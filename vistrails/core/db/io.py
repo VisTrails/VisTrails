@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -186,3 +186,9 @@ def create_delete_op_chain(object, parent=(None, None)):
     ops = db.services.action.create_delete_op_chain(object, parent)
     convert_operation_list(ops)
     return ops
+
+def create_temp_folder(prefix='vt_save'):
+    return db.services.io.create_temp_folder(prefix=prefix)
+
+def remove_temp_folder(temp_dir):
+    db.services.io.remove_temp_folder(temp_dir)

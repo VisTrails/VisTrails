@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -236,14 +236,15 @@ class QVistrailView(QDockContainer):
         """
         return QtCore.QSize(1024, 768)
 
-    def set_vistrail(self, vistrail, locator=None, abstractions=None):
+    def set_vistrail(self, vistrail, locator=None, abstractions=None, 
+                     thumbnails=None):
         """ set_vistrail(vistrail: Vistrail, locator: BaseLocator) -> None
         Assign a vistrail to this view, and start interacting with it
         
         """
         self.vistrail = vistrail
         self.locator = locator
-        self.controller.set_vistrail(vistrail, locator, abstractions)
+        self.controller.set_vistrail(vistrail, locator, abstractions, thumbnails)
         self.versionTab.setController(self.controller)
         self.pipelineTab.setController(self.controller)
         self.peTab.setController(self.controller)

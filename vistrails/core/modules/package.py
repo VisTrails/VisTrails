@@ -1,6 +1,6 @@
 ###########################################################################
 ##
-## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -222,12 +222,11 @@ class Package(DBPackage):
             raise self.LoadFailed(self, e, traceback.format_exc())
             
         if r:
-            dbg = debug.DebugPrint
-            dbg.critical("Could not enable package %s" % self.codepath)
+            debug.critical("Could not enable package %s" % self.codepath)
             for e in errors:
-                dbg.critical("Exceptions/tracebacks raised:")
-                dbg.critical(str(e[0]))
-                dbg.critical(str(e[1]))
+                debug.critical("Exceptions/tracebacks raised:")
+                debug.critical(str(e[0]))
+                debug.critical(str(e[1]))
             raise self.InitializationFailed(self,
                                             e[-1][0], e[-1][1])
 
@@ -257,8 +256,7 @@ class Package(DBPackage):
                 v = self._module.__file__
             except AttributeError:
                 v = self._module
-            debug.DebugPrint.critical("Package %s is missing necessary "
-                                      "attribute" % v)
+            debug.critical("Package %s is missing necessary attribute" % v)
             raise e
         if hasattr(self._module, '__doc__') and self._module.__doc__:
             self.description = self._module.__doc__
@@ -279,10 +277,9 @@ class Package(DBPackage):
         try:
             return handle(module_name, module_namespace)
         except Exception, e:
-            debug.DebugPrint.critical("Call to handle_missing_module in package '%s'"
-                                      " raised exception '%s'. Assuming package could not"
-                                      " handle call" % (self.name,
-                                                        str(e)))
+            debug.critical("Call to handle_missing_module in package '%s'"
+                           " raised exception '%s'. Assuming package could not"
+                           " handle call" % (self.name, str(e)))
         return False
 
     def check_requirements(self):

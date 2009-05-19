@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -96,7 +96,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
             aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled,
                                )
             for (alias, info) in pipeline.aliases.iteritems():
-                ptype, pId, parentType, parentId = info
+                ptype, pId, parentType, parentId, _ = info
                 parameter = pipeline.db_get_object(ptype, pId)
                 v = parameter.strValue
                 aType = parameter.type

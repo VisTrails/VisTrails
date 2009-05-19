@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -171,10 +171,12 @@ def default():
         'dataDirectory': (None, str),
         'dbDefault': False,
         'debugSignals': False,
-        'dotVistrails': system.default_dot_vistrails(),
-        'fileDirectory': (None, str),
         'defaultFileType':system.vistrails_default_file_type(),
+        'dotVistrails': system.default_dot_vistrails(),
+        'executeWorkflows': False,
+        'fileDirectory': (None, str),
         'interactiveMode': True,
+        'logFile': (None, str),
         'logger': default_logger(),
         'maxMemory': (None, int),
         'maximizeWindows': False,
@@ -183,19 +185,19 @@ def default():
         'nologger': True,
         'packageDirectory': (None, str),
         'pythonPrompt': False,
+        'repositoryLocalPath': (None, str),
+        'reviewMode': False,
         'rootDirectory': (None, str),
         'shell': default_shell(),
         'showMovies': True,
         'showSplash': True,
+        'showSpreadsheetOnly': False,
+        'spreadsheetDumpCells': (None, str),
+        'staticRegistry': (None, str),
+        'thumbs': default_thumbs(),
         'useCache': True,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
-        'spreadsheetDumpCells': (None, str),
-        'executeWorkflows': False,
-        'showSpreadsheetOnly': False,
-        'reviewMode': False,
-        'repositoryLocalPath': (None, str),
-        'staticRegistry': (None, str),
         'workflowInfo': (None, str),
         }
     specific_dir = add_specific_config(base_dir)
@@ -239,6 +241,19 @@ def default_shell():
         raise VistrailsInternalError('system type not recognized')
     return ConfigurationObject(**shell_dir)
 
+def default_thumbs():
+    """default_thumbs() -> ConfigurationObject
+    Returns the default configuration for VisTrails Pipelines Thumbnails    
+    """
+    thumbs_dir = {
+                  'autoSave': True,
+                  'cacheDirectory': (None, str),
+                  'cacheSize': 20,
+                  'mouseHover': False,
+                  'tagsOnly': False,
+                }
+    return ConfigurationObject(**thumbs_dir)
+
 def add_specific_config(base_dir):
      """add_specific_config() -> dict
     Returns a dict with other specific configuration
@@ -251,15 +266,34 @@ def add_specific_config(base_dir):
          
      return newdir
 
-def get_vistrails_configuration():
-    """get_vistrails_configuration() -> ConfigurationObject or None
-    Returns the configuration of the application. It returns None if
+def get_vistrails_persistent_configuration():
+    """get_vistrails_persistent_configuration() -> ConfigurationObject or None
+    Returns the persistent configuration of the application. It returns None if
     configuration was not found (when running as a bogus application
     for example.
+    Notice that this function should be use only to write configurations to
+    the user's startup.xml file. Otherwise, use get_vistrails_configuration  or
+    get_vistrails_temp_configuration.
+
     """
     if hasattr(QtCore.QCoreApplication.instance(),
                'configuration'):
         return QtCore.QCoreApplication.instance().configuration
+    else:
+        return None
+    
+def get_vistrails_configuration():
+    """get_vistrails_configuration() -> ConfigurationObject or None
+    Returns the current configuration of the application. It returns None if
+    configuration was not found (when running as a bogus application
+    for example. This configuration is the one that is used just for the
+    current session and is not persistent. To make changes persistent, 
+    use get_vistrails_persistent_configuration() instead.
+    
+    """
+    if hasattr(QtCore.QCoreApplication.instance(),
+               'temp_configuration'):
+        return QtCore.QCoreApplication.instance().temp_configuration
     else:
         return None
 
@@ -268,7 +302,8 @@ def get_vistrails_temp_configuration():
     Returns the temp configuration of the application. It returns None if
     configuration was not found (when running as a bogus application
     for example. The temp configuration is the one that is used just for the
-    current session and is not persistent.
+    current session and is not persistent. To make changes persistent, 
+    use get_vistrails_persistent_configuration() instead.
     
     """
     if hasattr(QtCore.QCoreApplication.instance(),

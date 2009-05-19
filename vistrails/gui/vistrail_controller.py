@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -21,7 +21,8 @@
 ############################################################################
 from PyQt4 import QtCore, QtGui
 from core.common import *
-from core.configuration import get_vistrails_configuration
+from core.configuration import get_vistrails_configuration, \
+    get_vistrails_temp_configuration
 import core.db.action
 import core.db.locator
 import core.modules.module_registry
@@ -44,6 +45,7 @@ from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 import core.system
 from core.system import vistrails_default_file_type
+from core.thumbnails import ThumbnailCache
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
@@ -62,13 +64,16 @@ from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
 from db.domain import IdScope
 from db.services.vistrail import getSharedRoot
+from db.services.io import create_temp_folder, remove_temp_folder
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+
 import core.packagerepository
 import core.analogy
 import copy
 import os.path
 import math
 import uuid
+import shutil
 
 ################################################################################
 
@@ -216,7 +221,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.stop()
 
-    def set_vistrail(self, vistrail, locator, abstractions=None):
+    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
@@ -229,6 +234,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.vistrail.log = self.log
             if abstractions is not None:
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
+            if thumbnails is not None:
+                ThumbnailCache.getInstance().add_entries_from_vtfile(thumbnails)
 
 #         if abstractions is not None:
 #             for abstraction_file in abstractions:
@@ -848,7 +855,27 @@ class VistrailController(QtCore.QObject, BaseController):
                       'logger': self.get_logger(),
                       'controller': self,
                       }
+            conf = get_vistrails_temp_configuration()
+            temp_folder_used = False
+            if not conf.check('spreadsheetDumpCells'):
+                conf.spreadsheetDumpCells = create_temp_folder(prefix='vt_thumb')
+                temp_folder_used = True
+                
             result = interpreter.execute(pipeline, **kwargs)
+            
+            thumb_cache = ThumbnailCache.getInstance()
+            if len(result.errors) == 0 and thumb_cache.conf.autoSave:
+                old_thumb = self.vistrail.actionMap[version].thumbnail
+                fname = thumb_cache.add_entry_from_cell_dump(
+                                        conf.spreadsheetDumpCells, old_thumb) 
+                self.vistrail.change_thumbnail(fname, version)
+                self.set_changed(True)
+                changed = True
+                
+            if temp_folder_used:
+                remove_temp_folder(conf.spreadsheetDumpCells)
+                conf.spreadsheetDumpCells = (None, str)
+                
             if result.parameter_changes:
                 l = result.parameter_changes
                 self.add_parameter_changes_from_execution(pipeline,
@@ -1886,6 +1913,14 @@ class VistrailController(QtCore.QObject, BaseController):
                     objs.append(('__file__', abs_fname))
 #             for abs_fname in abstractions:
 #                 objs.append(('__file__', abs_fname))
+            thumb_cache = ThumbnailCache.getInstance()
+            if thumb_cache.conf.autoSave:
+                thumbnails = self.find_thumbnails(
+                                    tags_only=thumb_cache.conf.tagsOnly)
+                for thumbnail in thumbnails:
+                    print "appending: ", thumbnail
+                    objs.append(('__thumb__', thumbnail))
+            
             # FIXME hack to use db_currentVersion for convenience
             # it's not an actual field
             self.vistrail.db_currentVersion = self.current_version
@@ -2019,7 +2054,7 @@ class VistrailController(QtCore.QObject, BaseController):
         #self.set_changed(True)
         #if invalidate:
             #self.invalidate_version_tree(False)
-
+    
 ################################################################################
 # Testing
 

@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -31,6 +31,7 @@ QNotesDialog
 
 from PyQt4 import QtCore, QtGui
 from core.query.version import SearchCompiler, SearchParseError, TrueSearch
+from core.thumbnails import ThumbnailCache
 from gui.theme import CurrentTheme
 from gui.common_widgets import QToolWindowInterface
 from gui.common_widgets import QSearchBox
@@ -110,6 +111,9 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         vLayout.addWidget(self.versionNotes)
         self.versionNotes.setEnabled(False)
 
+        self.versionThumbs = QVersionThumbs()
+        vLayout.addWidget(self.versionThumbs)
+        
         self.versionEmbed = QVersionEmbed()
         vLayout.addWidget(self.versionEmbed)
         self.versionEmbed.setVisible(False)
@@ -139,6 +143,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.controller = controller
         self.versionNotes.controller = controller
         self.versionEmbed.controller = controller
+        self.versionThumbs.controller = controller
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
@@ -147,6 +152,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         self.versionNumber = versionNumber
         self.versionNotes.updateVersion(versionNumber)
+        self.versionThumbs.updateVersion(versionNumber)
         self.versionEmbed.updateVersion(versionNumber)
         
         if self.controller:
@@ -766,3 +772,44 @@ tag="%s" showspreadsheetonly="True"/>'
         else:
             self.copylabel.setText(self.exportHtml)
         self.updateEmbedText()    
+        
+################################################################################
+
+class QVersionThumbs(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.versionNumber = None
+        label = QtGui.QLabel("Preview:")
+        self.thumbs = QtGui.QLabel()
+        self.thumbs.setFrameShape(QtGui.QFrame.StyledPanel)
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(0)
+        layout.addWidget(label)
+        layout.addWidget(self.thumbs,0, QtCore.Qt.AlignHCenter)
+        layout.addStretch()
+        self.setLayout(layout)
+        self.controller = None
+        
+    def updateController(self, controller):
+        """ updateController(controller: VistrailController) -> None
+
+        """
+        self.controller = controller
+        
+    def updateVersion(self, versionNumber):
+        """ updateVersion(versionNumber: int) -> None
+
+        """
+        if self.controller:
+            if versionNumber in self.controller.vistrail.actionMap.keys():
+                action = self.controller.vistrail.actionMap[versionNumber]
+                if action and action.thumbnail:
+                    cache = ThumbnailCache.getInstance()
+                    fname = cache.get_abs_name_entry(action.thumbnail)
+                    pixmap = QtGui.QPixmap(fname)
+                    self.thumbs.setPixmap(pixmap)
+                    self.thumbs.setFrameShape(QtGui.QFrame.StyledPanel)
+                    return
+                
+        self.thumbs.setPixmap(QtGui.QPixmap())
+        self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)

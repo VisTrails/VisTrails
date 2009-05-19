@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -41,7 +41,7 @@ from core.modules.paramexplore import make_interpolator, \
      IntegerLinearInterpolator
 from PyQt4 import QtGui
 
-import core.packagemanager
+
 import core.system
 from itertools import izip
 import os
@@ -522,7 +522,7 @@ class PythonSource(NotCacheable, Module):
         use_input and use_output control whether to use the inputport
         and output port dictionary as local variables inside the
         execution."""
-        
+        import core.packagemanager
         def fail(msg):
             raise ModuleError(self, msg)
         def cache_this():
@@ -561,7 +561,7 @@ class SmartSource(NotCacheable, Module):
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
-        
+        import core.packagemanager
         def fail(msg):
             raise ModuleError(self, msg)
         def cache_this():

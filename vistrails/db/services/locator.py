@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -276,7 +276,7 @@ class ZIPFileLocator(XMLFileLocator):
             (objs, tmp_dir) = io.open_from_zip_xml(self._name, type)
             self.tmp_dir = tmp_dir
         for obj in objs:
-            if obj[0] != '__file__':
+            if obj[0] not in ['__file__', '__thumb__']:
                 obj[1].locator = self
         return objs
 
@@ -291,7 +291,7 @@ class ZIPFileLocator(XMLFileLocator):
         (objs, tmp_dir) = io.save_to_zip_xml(objs, self._name, tmp_dir)
         self.tmp_dir = tmp_dir
         for obj in objs:
-            if obj[0] != '__file__':
+            if obj[0] not in ['__file__', '__thumb__']:
                 obj[1].locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()

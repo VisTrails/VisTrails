@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -39,7 +39,13 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module, controller, parent)
-        self.setWindowTitle('Module Configuration')
+        if module.has_annotation_with_key('__desc__'):
+            label = module.get_annotation_by_key('__desc__').value.strip()
+            title = '%s (%s) Module Configuration'%(label,
+                                                    module.name)
+        else:
+            title = '%s Module Configuration'%module.name
+        self.setWindowTitle(title)
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)

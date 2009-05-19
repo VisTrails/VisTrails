@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -117,7 +117,7 @@ The builder window can be accessed by a spreadsheet menu option.")
             default = None,
             help=("Save workflow graph and spec in specified directory "
                   "(only valid in console mode)."))
-        add("-R", "--reviewmode", action="store_true",
+        add("-E", "--reviewmode", action="store_true",
             default = None,
             help="Show the spreadsheet in the reviewing mode")
         add("-q", "--quickstart", action="store",
@@ -131,7 +131,17 @@ The builder window can be accessed by a spreadsheet menu option.")
         """
         print system.about_string()
         sys.exit(0)
-
+        
+    def read_dotvistrails_option(self):
+        """ read_dotvistrails_option() -> None
+        Check if the user sets a new dotvistrails folder and updates 
+        self.temp_configuration with the new value. 
+        
+        """
+        get = command_line.CommandLineParser().get_option
+        if get('dotVistrails')!=None:
+            self.temp_configuration.dotVistrails = get('dotVistrails')
+            
     def readOptions(self):
         """ readOptions() -> None
         Read arguments from the command line
@@ -144,9 +154,11 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.debugSignals = bool(get('debugsignals'))
         if get('dotVistrails')!=None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
-        if not self.configuration.check('dotVistrails'):
-            self.configuration.dotVistrails = system.default_dot_vistrails()
-            self.temp_configuration.dotVistrails = system.default_dot_vistrails()
+        #in theory this should never happen because core.configuration.default()
+        #should have done this already
+        #if not self.configuration.check('dotVistrails'):
+        #    self.configuration.dotVistrails = system.default_dot_vistrails()
+        #    self.temp_configuration.dotVistrails = system.default_dot_vistrails()
         if get('multiheads')!=None:
             self.temp_configuration.multiHeads = bool(get('multiheads'))
         if get('maximized')!=None:
@@ -198,20 +210,21 @@ The builder window can be accessed by a spreadsheet menu option.")
         """
         gui.theme.initializeCurrentTheme()
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
+        
+        # This is the persistent configuration
+        # Setup configuration to default
         self.configuration = core.configuration.default()
-        core.interpreter.default.connect_to_configuration(self.configuration)
         
         self.keyChain = keychain.KeyChain()
         self.setupOptions()
-
-        # Starting in version 1.2.1 logging is enabled by default.
-        # Users have to explicitly disable it through the command-line
-        self.configuration.nologger = False
         
-        # Setup configuration to default or saved preferences
-        self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration)
+        # self.temp_configuration is the configuration that will be updated 
+        # with the command line and custom options dictionary. 
+        # We have to do this because we don't want to make these settings 
+        # persistent. This is the actual VisTrails current configuration
         self.temp_configuration = copy.copy(self.configuration)
-
+        
+        core.interpreter.default.connect_to_configuration(self.temp_configuration)
         
         # now we want to open vistrails and point to a specific version
         # we will store the version in temp options as it doesn't
@@ -225,19 +238,44 @@ The builder window can be accessed by a spreadsheet menu option.")
                                            parameters=None
                                            ) 
         
-        # Command line options override configuration
-        self.readOptions()
-
+        # Read only new .vistrails folder option if passed in the command line
+        # or in the optionsDict because this may affect the configuration file 
+        # VistrailsStartup will load. This updates self.temp_configuration
+        self.read_dotvistrails_option()
+        
+        if optionsDict and 'dotVistrails' in optionsDict.keys():
+            self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
+                
+        # During this initialization, VistrailsStartup will load the
+        # configuration from disk and update both configurations
+        self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration,
+                                                    self.temp_configuration)
+        
+        # the problem here is that if the user pointed to a new .vistrails
+        # folder, the persistent configuration will always point to the 
+        # default ~/.vistrails. So we will copy whatever it's on 
+        # temp_configuration to the persistent one. In case the configuration
+        # that is on disk is different, it will overwrite this one
+        self.configuration.dotVistrails = self.temp_configuration.dotVistrails
+        
+        # Starting in version 1.2.1 logging is enabled by default.
+        # Users have to explicitly disable it through the command-line
+        self.configuration.nologger = False
+        self.temp_configuration.nologger = False
+        
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.temp_configuration, k, v)
-
+                
+        # Command line options override temp_configuration
+        self.readOptions()
+        
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:
             reg = None
         self.vistrailsStartup.set_registry(reg)
-                
+        
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
 includes local definitions from startup.py. Should only be called
@@ -410,7 +448,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 self.builderWindow.showMaximized()
             if self.temp_configuration.check('dbDefault'):
                 self.builderWindow.setDBDefault(True)
-        self.runInitialization()
         self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
         
@@ -486,7 +523,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 return False
             return True
         else:
-            debug.DebugPrint.critical("no input vistrails provided")
+            debug.critical("no input vistrails provided")
             return False
 
     def setIcon(self):
@@ -513,7 +550,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         self.setupSplashScreen()
-        metalstyle = self.configuration.check('useMacBrushedMetalStyle')
+        metalstyle = self.temp_configuration.check('useMacBrushedMetalStyle')
         if metalstyle:
             #to make all widgets to have the mac's nice looking
             self.installEventFilter(self)
@@ -527,32 +564,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             # self.builderWindow.show()
             # self.setActiveWindow(self.builderWindow)
             pass
-#         self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
-#         self.visDiffParent.resize(0,0)
-        
-    def runInitialization(self):
-        """ runInitialization() -> None
-        Run init script on the user folder
-        
-        """
-        def initBookmarks():
-            """loadBookmarkCollection() -> None
-            Init BookmarksManager and creates .vistrails folder if it 
-            does not exist 
-
-            """
-            if (not os.path.isdir(self.configuration.dotVistrails) and 
-                not os.path.isfile(self.configuration.dotVistrails)):
-                #create .vistrails dir
-                os.mkdir(self.configuration.dotVistrails)
-
-            # This is so that we don't import too many things before we
-            # have to. Otherwise, requirements are checked too late.
-           # import gui.bookmark_window
-           # gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
-            
-        #initBookmarks()
-        self.showSplash = self.temp_configuration.showSplash
 
     def finishSession(self):
         if QtCore.QT_VERSION >= 0x40400:

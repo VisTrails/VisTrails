@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -24,8 +24,10 @@ from PyQt4 import QtGui, QtCore
 from core.packagemanager import get_package_manager
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
-from gui.configuration import QConfigurationWidget
-from gui.configuration import QGeneralConfiguration
+from gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
+                               QThumbnailConfiguration)
+from core.configuration import get_vistrails_persistent_configuration, \
+    get_vistrails_configuration
 import os.path
 
 ##############################################################################
@@ -360,7 +362,7 @@ class QPackagesWidget(QtGui.QWidget):
                                 "available for enabled packages.")
             self._identifier_label.setText(p.identifier)
             self._dependencies_label.setText(deps)
-            self._description_label.setText(' '.join(p.description.split('\n')))
+            self._description_label.setText(p.description)
             self._reverse_dependencies_label.setText(reverse_deps)
 
 
@@ -414,6 +416,9 @@ class QPreferencesDialog(QtGui.QDialog):
         self._general_tab = self.create_general_tab()
         self._tab_widget.addTab(self._general_tab, 'General Configuration')
 
+        self._thumbs_tab = self.create_thumbs_tab()
+        self._tab_widget.addTab(self._thumbs_tab, 'Thumbnails Configuration')
+        
         self._packages_tab = self.create_packages_tab()
         self._tab_widget.addTab(self._packages_tab, 'Module Packages')
         
@@ -438,6 +443,10 @@ class QPreferencesDialog(QtGui.QDialog):
         self.connect(self._general_tab,
                      QtCore.SIGNAL('configuration_changed'),
                      self.configuration_changed)
+        
+        self.connect(self._thumbs_tab,
+                     QtCore.SIGNAL('configuration_changed'),
+                     self.configuration_changed)
 
         l.addWidget(self._button_box)
         l.addWidget(self._status_bar)
@@ -446,17 +455,25 @@ class QPreferencesDialog(QtGui.QDialog):
         self.done(0)
 
     def create_general_tab(self):
-        """ create_general_tab() -> None
+        """ create_general_tab() -> QGeneralConfiguration
         
         """
-        from gui.application import VistrailsApplication
         return QGeneralConfiguration(self,
-                                     VistrailsApplication.configuration)
+                                     get_vistrails_persistent_configuration(),
+                                     get_vistrails_configuration())
+        
+    def create_thumbs_tab(self):
+        """ create_thumbs_tab() -> QThumbnailConfiguration
+        
+        """
+        return QThumbnailConfiguration(self,
+                                       get_vistrails_persistent_configuration(),
+                                       get_vistrails_configuration())
 
     def create_configuration_tab(self):
-        from gui.application import VistrailsApplication
         return QConfigurationWidget(self,
-                                    VistrailsApplication.configuration,
+                                    get_vistrails_persistent_configuration(),
+                                    get_vistrails_configuration(),
                                     self._status_bar)
 
     def create_packages_tab(self):
@@ -470,20 +487,20 @@ class QPreferencesDialog(QtGui.QDialog):
         Keep general and advanced configurations in sync
         
         """
-        from gui.application import VistrailsApplication
         self._configuration_tab.configuration_changed(
-            VistrailsApplication.configuration)
+                                       get_vistrails_persistent_configuration(),
+                                       get_vistrails_configuration())
         self._general_tab.update_state(
-            VistrailsApplication.configuration)
-
+                                       get_vistrails_persistent_configuration(),
+                                       get_vistrails_configuration())
     
     def configuration_changed(self, item, new_value):
         """ configuration_changed(item: QTreeWidgetItem *, 
         new_value: QString) -> None
         Write the current session configuration to startup.xml.
         Note:  This is already happening on close to capture configuration
-        items that are not set in preferences.  Do we still need to do it 
-        with every preference change?
+        items that are not set in preferences.  We are doing this here too, so
+        we guarantee the changes were saved before VisTrails crashes.
         
         """
         from PyQt4 import QtCore

@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -33,17 +33,18 @@ QVersionTreeView
 """
 
 from PyQt4 import QtCore, QtGui
-from core.dotty import DotLayout
-from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from core.system import systemType
+from core.thumbnails import ThumbnailCache
+from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface,
                                QGraphicsRubberBandItem)
-from gui.version_prop import QVersionPropOverlay
-from gui.theme import CurrentTheme
-from gui.vis_diff import QVisualDiff
 from gui.qt import qt_super
+from gui.theme import CurrentTheme
+from gui.version_prop import QVersionPropOverlay
+from gui.vis_diff import QVisualDiff
+
 import gui.utils
 import math
 
@@ -507,6 +508,13 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             textToDraw=self.label
         else:
             textToDraw=self.descriptionLabel
+        
+        if (ThumbnailCache.getInstance().conf.mouseHover and
+            action and action.thumbnail is not None):
+            fname = ThumbnailCache.getInstance().get_abs_name_entry(action.thumbnail)
+            self.setToolTip('<img src="%s" height="128" border="1"/>'%fname)
+        else:
+            self.setToolTip('')    
         self.text.changed(node.p.x, node.p.y, textToDraw, validLabel)
         self.setRect(rect)
 

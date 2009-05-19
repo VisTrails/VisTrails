@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -33,7 +33,7 @@ from db.domain import DBVistrail
 from db import VistrailsDBException
 from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
-from core.debug import DebugPrint
+from core import debug
 import core.db.io
 from core.utils import enum, VistrailsInternalError, InstanceObject
 from core.vistrail.action import Action
@@ -777,10 +777,10 @@ class Vistrail(DBVistrail):
         if version_name == '':
             return None
         if version_number in self.tagMap:
-            DebugPrint.log("Version is already tagged")
+            debug.log("Version is already tagged")
             raise VersionAlreadyTagged()
         if self.has_tag_with_name(version_name):
-            DebugPrint.log("Tag already exists")
+            debug.log("Tag already exists")
             raise TagExists()
         tag = Tag(id=long(version_number),
                   name=version_name,
@@ -796,12 +796,12 @@ class Vistrail(DBVistrail):
                   
         """
         if not version_number in self.tagMap:
-            DebugPrint.log("Version is not tagged")
+            debug.log("Version is not tagged")
             raise VersionNotTagged()
         if self.tagMap[version_number].name == version_name:
             return None
         if self.has_tag_with_name(version_name):
-            DebugPrint.log("Tag already exists")
+            debug.log("Tag already exists")
             raise TagExists()
         self.db_delete_tag(self.tagMap[version_number])
         if version_name != '':
@@ -862,6 +862,15 @@ class Vistrail(DBVistrail):
         return self.change_annotation(Action.ANNOTATION_ANALOGY_INFO,
                                       analogy_info, version_number)
 
+    def change_thumbnail(self, thumbnail, version_number):
+        """ change_thumbnail(thumbnail:str, version_number:int) -> None 
+        Changes the filename of the thumbnail of a version
+                  
+        """
+
+        return self.change_annotation(Action.ANNOTATION_THUMBNAIL,
+                                      thumbnail, version_number)
+        
     def get_description(self, version_number):
         """ get_description(version_number: int) -> str
         Compute the description of a version

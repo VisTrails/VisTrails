@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -1267,7 +1267,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         # Update the state of the icons if changing between db and file
         # support
-        dbState = getattr(VistrailsApplication.configuration, 'dbDefault')
+        dbState = getattr(get_vistrails_configuration(), 'dbDefault')
         if self.dbDefault != dbState:
             self.setDBDefault(dbState)
 

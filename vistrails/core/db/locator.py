@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -21,8 +21,7 @@
 ############################################################################
 
 import os.path
-from core.configuration import get_vistrails_configuration, \
-    get_vistrails_temp_configuration
+from core.configuration import get_vistrails_configuration
 from core.system import vistrails_default_file_type, get_elementtree_library, \
                         default_connections_file
 from core.external_connection import ExtConnectionList, DBConnection
@@ -314,7 +313,7 @@ class DBLocator(_DBLocator, CoreLocator):
             tag = '';
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration
-        config = get_vistrails_temp_configuration()
+        config = get_vistrails_configuration()
         config.executeWorkflows = execute
         config.showSpreadsheetOnly = showSpreadsheetOnly
         
@@ -368,7 +367,8 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
         klass_map = {Vistrail.vtType: Vistrail,
                      Log.vtType: Log,
                      Pipeline.vtType: Pipeline,
-                     '__file__': None}
+                     '__file__': None,
+                     '__thumb__': None}
         return klass_map[vt_type]
 
     def load(self, klass=None):

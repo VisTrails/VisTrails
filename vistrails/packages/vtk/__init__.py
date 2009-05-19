@@ -1,6 +1,6 @@
 ###########################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -34,7 +34,7 @@ vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
                         'linux-fedora': 'vtk-python'})
 
 from core.utils import all, any, VistrailsInternalError, InstanceObject
-from core.debug import log
+from core.debug import debug
 from core.modules.basic_modules import Integer, Float, String, File, \
      Variant, Color
 from core.modules.module_registry import get_module_registry
@@ -335,11 +335,11 @@ def addSetGetPorts(module, get_set_dict, delayed):
             prune_signatures(module, 'Get%s'%name, getterSig, output=True)
         for getter, order in izip(getterSig, xrange(1, len(getterSig)+1)):
             if getter[1]:
-                log("Can't handle getter %s (%s) of class %s: Needs input to "
+                debug("Can't handle getter %s (%s) of class %s: Needs input to "
                     "get output" % (order, name, klass))
                 continue
             if len(getter[0]) != 1:
-                log("Can't handle getter %s (%s) of class %s: More than a "
+                debug("Can't handle getter %s (%s) of class %s: More than a "
                     "single output" % (order, name, str(klass)))
                 continue
             class_ = typeMap(getter[0][0])

@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -49,25 +49,45 @@ class VistrailsStartup(object):
     
     """
 
-    def __init__(self, config=None):
-        """ VistrailsStartup(config: ConfigurationObject) -> None
-        Setup the configuration
+    def __init__(self, config=None, tempconfig=None):
+        """ VistrailsStartup(config, tempconfig: ConfigurationObject,
+                             optionsDict: dict) -> None
+        Setup the configuration. config is the persistent configuration and 
+        tempconfig is the current configuration.
         
         """
         assert (config is None or
                 isinstance(config, core.configuration.ConfigurationObject))
+        assert (tempconfig is None or
+                isinstance(tempconfig, core.configuration.ConfigurationObject))
         if config:
             self.configuration = config
         else:
             self.configuration = core.configuration.default()
-        self._package_manager = core.packagemanager.PackageManager(
-            self.configuration)
+        if tempconfig:
+            self.temp_configuration = tempconfig
+        else:
+            self.temp_configuration = copy.copy(self.configuration)
+        
         self.startupHooks = []
+        
+        # This needs to be here because we want to log all initialization
+        # steps
+        self.setupLogFile()
         self._python_environment = self.runDotVistrails()
         self.load_configuration()
+        
+        #the problem is that maybe the logFile now points to a different place
+        self.setupLogFile()
+        
+        #package_manager needs the persistent configuration    
+        self._package_manager = core.packagemanager.PackageManager(
+            self.configuration)
+            
         self._do_load_packages = True
         self._package_dictionary = {}
-
+        
+        
     def init(self):
         """ init() -> None        
         Initialize VisTrails with optionsDict. optionsDict can be
@@ -87,23 +107,25 @@ class VistrailsStartup(object):
     # startup.xml related
 
     def startup_dom(self):
-        filename = os.path.join(self.configuration.dotVistrails,'startup.xml')
+        filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
         return xml.dom.minidom.parse(filename)
 
     def write_startup_dom(self, dom):
-        filename = os.path.join(self.configuration.dotVistrails,'startup.xml')
+        filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
         f = file(filename, 'w')
         f.write(dom.toxml())
-    
+                
     def load_configuration(self):
         """load_configuration() -> None
-
         Loads the appropriate configuration from .vistrails/startup.xml.
+        This will overwrite both configuration and temp_configuration
+        
         """
         dom = self.startup_dom()
         conf = enter_named_element(dom.documentElement, 'configuration')
         self.configuration.set_from_dom_node(conf)
-
+        self.temp_configuration.set_from_dom_node(conf)
+        
     def load_packages(self):
         """load_packages() -> None
 
@@ -128,6 +150,21 @@ class VistrailsStartup(object):
 by startup.py. This should only be called after init()."""
         return self._python_environment
 
+    def create_default_directory(self):
+        if os.path.lexists(self.temp_configuration.dotVistrails):
+            return
+
+        debug.log('Will try to create default directory')
+        try:
+            os.mkdir(self.temp_configuration.dotVistrails)
+            debug.log('Succeeded!')
+        except:
+            debug.critical("""Failed to create initialization directory.
+                    This could be an indication of a permissions problem.
+                    Make sure parent directory of '%'s is writable."""
+                    % self.temp_configuration.dotVistrails)
+            sys.exit(1)
+                
     def runDotVistrails(self):
         """ runDotVistrails() -> None
         Setup to run user .vistrails file
@@ -146,13 +183,14 @@ by startup.py. This should only be called after init()."""
             self._package_manager.add_package(packageName)
 
         def create_user_packages_dir():
-            debug.critical('Will try to create userpackages directory')
-            userpackagesname = os.path.join(self.configuration.dotVistrails,
+            debug.warning('Will try to create userpackages directory')
+            userpackagesname = os.path.join(self.temp_configuration.dotVistrails,
                                             'userpackages')
             if not os.path.isdir(userpackagesname):
                 try:
                     os.mkdir(userpackagesname)
-                    self.configuration.userPackageDirectory = \
+                    self.configuration.userPackageDirectory = userpackagesname
+                    self.temp_configuration.userPackageDirectory = \
                         userpackagesname
                 except:
                     msg = ("""Failed to create userpackages directory: '%s'.
@@ -173,16 +211,37 @@ by startup.py. This should only be called after init()."""
                 Please make sure it is writable.""" % name)
                 debug.critical(msg)
                 sys.exit(1)
-                       
+                
+        def create_thumbnails_dir():
+            debug.log('Will try to create thumbnails directory')
+            thumbnails_dir = os.path.join(self.temp_configuration.dotVistrails,
+                                            'thumbs')
+
+            if not os.path.isdir(thumbnails_dir):
+                try:
+                    os.mkdir(thumbnails_dir)
+                    self.configuration.thumbs.cacheDirectory = thumbnails_dir
+                    self.temp_configuration.thumbs.cacheDirectory = \
+                        thumbnails_dir
+                except:
+                    msg = ("Failed to create thumbnails cache directory: '%s'.  "
+                           "This could be an indication of a permissions "
+                           "problem.  Make sure directory '%s' is writable." % \
+                               (thumbnails_dir, 
+                                self.configuration.dotVistrails))
+                    debug.critical(msg)
+                    sys.exit(1)   
+                                
         def create_abstractions_dir():
-            debug.critical('Will try to create subworkflows directory')
-            abstractions_dir = os.path.join(self.configuration.dotVistrails,
+            debug.log('Will try to create subworkflows directory')
+            abstractions_dir = os.path.join(self.temp_configuration.dotVistrails,
                                             'subworkflows')
 
             if not os.path.isdir(abstractions_dir):
                 try:
                     os.mkdir(abstractions_dir)
-                    self.configuration.abstractionsDirectory = \
+                    self.configuration.abstractionsDirectory = abstractions_dir
+                    self.temp_configuration.abstractionsDirectory = \
                         abstractions_dir
                 except:
                     msg = ("Failed to create subworkflows directory: '%s'.  "
@@ -209,24 +268,24 @@ by startup.py. This should only be called after init()."""
 #                 sys.exit(1)
 
         def install_default_startup():
-            debug.critical('Will try to create default startup script')
+            debug.log('Will try to create default startup script')
             try:
                 root_dir = core.system.vistrails_root_directory()
                 default_file = os.path.join(root_dir,'core','resources',
                                             'default_vistrails_startup')
-                user_file = os.path.join(self.configuration.dotVistrails,
+                user_file = os.path.join(self.temp_configuration.dotVistrails,
                                          'startup.py')
                 shutil.copyfile(default_file,user_file)
                 debug.log('Succeeded!')
             except:
-                debug.critical("""Failed to copy default file to .vistrails.
+                debug.critical("""Failed to copy default file %s.
                 This could be an indication of a permissions problem.
                 Make sure directory '%s' is writable"""
-                % self.configuration.dotVistrails)
+                % (user_file,self.temp_configuration.dotVistrails))
                 sys.exit(1)
 
         def install_default_startupxml_if_needed():
-            fname = os.path.join(self.configuration.dotVistrails,
+            fname = os.path.join(self.temp_configuration.dotVistrails,
                                  'startup.xml')
             root_dir = core.system.vistrails_root_directory() 
             origin = os.path.join(root_dir, 'core','resources',
@@ -249,24 +308,10 @@ by startup.py. This should only be called after init()."""
                 debug.log('Succeeded!')
             except:
                 debug.critical("""Failed to copy default configuration
-                file to .vistrails. This could be an indication of a
+                file to %s. This could be an indication of a
                 permissions problem. Please make sure '%s' is writable."""
-                               % self.configuration.dotVistrails)
-
-        def create_default_directory():
-            if os.path.lexists(self.configuration.dotVistrails):
-                return
-
-            debug.critical('Will try to create default directory')
-            try:
-                os.mkdir(self.configuration.dotVistrails)
-                debug.critical('Succeeded!')
-            except:
-                debug.critical("""Failed to create initialization directory.
-                This could be an indication of a permissions problem.
-                Make sure parent directory of '%'s is writable."""
-                % self.configuration.dotVistrails)
-                sys.exit(1)
+                               % (fname,
+                                  self.temp_configuration.dotVistrails))
 
         def execDotVistrails(tried_once=False):
             """ execDotVistrails() -> None
@@ -275,22 +320,22 @@ by startup.py. This should only be called after init()."""
             """
             # if it is file, then must move old-style .vistrails to
             # directory.
-            if os.path.isfile(self.configuration.dotVistrails):
+            if os.path.isfile(self.temp_configuration.dotVistrails):
                 debug.warning("Old-style initialization hooks. Will try to set things correctly.")
                 (fd, name) = tempfile.mkstemp()
                 os.close(fd)
-                shutil.copyfile(self.configuration.dotVistrails, name)
+                shutil.copyfile(self.temp_configuration.dotVistrails, name)
                 try:
-                    os.unlink(self.configuration.dotVistrails)
+                    os.unlink(self.temp_configuration.dotVistrails)
                 except:
                     debug.critical("""Failed to remove old initialization file.
                     This could be an indication of a permissions problem.
                     Make sure file '%s' is writable."""
-                    % self.configuration.dotVistrails)
+                    % self.temp_configuration.dotVistrails)
                     sys.exit(1)
-                create_default_directory()
+                self.create_default_directory()
                 try:
-                    destiny = os.path.join(self.configuration.dotVistrails,
+                    destiny = os.path.join(self.temp_configuration.dotVistrails,
                                            'startup.py')
                     shutil.copyfile(name, destiny)
                 except:
@@ -298,7 +343,7 @@ by startup.py. This should only be called after init()."""
                     newly-created initialization directory. This must have been
                     a race condition. Please remove '%s' and
                     restart VisTrails."""
-                    % self.configuration.dotVistrails)
+                    % self.temp_configuration.dotVistrails)
                     sys.exit(1)
                 debug.critical("Successful move!")
                 try:
@@ -306,26 +351,30 @@ by startup.py. This should only be called after init()."""
                 except:
                     debug.warning("Failed to erase temporary file.")
 
-            if os.path.isdir(self.configuration.dotVistrails):
-                userpackages = os.path.join(self.configuration.dotVistrails,
+            if os.path.isdir(self.temp_configuration.dotVistrails):
+                userpackages = os.path.join(self.temp_configuration.dotVistrails,
                                             'userpackages')
-                startup = os.path.join(self.configuration.dotVistrails,
+                startup = os.path.join(self.temp_configuration.dotVistrails,
                                        'startup.py')
-                abstractions = os.path.join(self.configuration.dotVistrails,
+                abstractions = os.path.join(self.temp_configuration.dotVistrails,
                                             'subworkflows')
+                thumbnails = os.path.join(self.temp_configuration.dotVistrails,
+                                          'thumbs')
                 if not os.path.isdir(userpackages):
                     create_user_packages_dir()
                 if not os.path.isdir(abstractions):
                     create_abstractions_dir()
+                if not os.path.isdir(thumbnails):
+                    create_thumbnails_dir()
                 try:
                     
                     dotVistrails = file(startup)
                     g = {}
-                    localsDir = {'configuration': self.configuration,
+                    localsDir = {'configuration': self.temp_configuration,
                                  'addStartupHook': addStartupHook,
                                  'addPackage': addPackage}
                     old_path = copy.copy(sys.path)
-                    sys.path.append(self.configuration.dotVistrails)
+                    sys.path.append(self.temp_configuration.dotVistrails)
                     exec dotVistrails in localsDir
                     sys.path = old_path
                     del localsDir['addPackage']
@@ -344,15 +393,17 @@ by startup.py. This should only be called after init()."""
                     install_default_startup()
                     install_default_startupxml_if_needed()
                     return execDotVistrails(True)
-            elif not os.path.lexists(self.configuration.dotVistrails):
-                debug.critical('%s not found' % self.configuration.dotVistrails)
-                create_default_directory()
+            elif not os.path.lexists(self.temp_configuration.dotVistrails):
+                debug.log('%s not found' % self.temp_configuration.dotVistrails)
+                self.create_default_directory()
+                create_user_packages_dir()
+                create_abstractions_dir()
+                create_thumbnails_dir()
                 install_default_startup()
                 install_default_startupxml_if_needed()
                 return execDotVistrails(True)
 
-
-        install_default_startupxml_if_needed()
+        #install_default_startupxml_if_needed()
         # Now execute the dot vistrails
         return execDotVistrails()
 
@@ -361,21 +412,21 @@ by startup.py. This should only be called after init()."""
         Give default values to folders when there are no values specified
         
         """
-        if self.configuration.has('rootDirectory'):
-            system.set_vistrails_root_directory(self.configuration.rootDirectory)
-        if self.configuration.has('dataDirectory'):
+        if self.temp_configuration.has('rootDirectory'):
+            system.set_vistrails_root_directory(self.temp_configuration.rootDirectory)
+        if self.temp_configuration.has('dataDirectory'):
             system.set_vistrails_data_directory( \
-                self.configuration.dataDirectory)
-        if self.configuration.has('fileDirectory'):
+                self.temp_configuration.dataDirectory)
+        if self.temp_configuration.has('fileDirectory'):
             system.set_vistrails_file_directory( \
-                self.configuration.fileDirectory)
-        if (self.configuration.has('verbosenessLevel') and
-            self.configuration.verbosenessLevel != -1):
-            dbg = debug.DebugPrint
-            verbose = self.configuration.verbosenessLevel
+                self.temp_configuration.fileDirectory)
+        if (self.temp_configuration.has('verbosenessLevel') and
+            self.temp_configuration.verbosenessLevel != -1):
+            dbg = debug.DebugPrint.getInstance()
+            verbose = self.temp_configuration.verbosenessLevel
             if verbose < 0:
                 msg = ("""Don't know how to set verboseness level to %s - "
-                       "setting tothe lowest one I know of: 0""" % verbose)
+                       "setting to the lowest one I know of: 0""" % verbose)
                 dbg.critical(msg)
                 verbose = 0
             if verbose > 2:
@@ -386,18 +437,56 @@ by startup.py. This should only be called after init()."""
             levels = [dbg.Critical, dbg.Warning, dbg.Log]
             dbg.set_message_level(levels[verbose])
             dbg.log("Set verboseness level to %s" % verbose)
+        
+        #these checks may need to update the persistent configuration, so
+        # we have to change both objects
+        #userpackages directory
+        if not self.temp_configuration.has('userPackageDirectory'):
+            s = os.path.join(self.temp_configuration.dotVistrails,
+                             'userpackages')
+            self.temp_configuration.userPackageDirectory = s
         if not self.configuration.has('userPackageDirectory'):
-            s = os.path.join(core.system.default_dot_vistrails(),
+            s = os.path.join(self.configuration.dotVistrails,
                              'userpackages')
             self.configuration.userPackageDirectory = s
+        #abstractions directory    
+        if not self.temp_configuration.has('abstractionsDirectory') or \
+                self.temp_configuration.abstractionsDirectory == \
+                os.path.join(self.temp_configuration.userPackageDirectory, 
+                             'abstractions'):
+            s = os.path.join(self.temp_configuration.dotVistrails,
+                             'subworkflows')
+            self.temp_configuration.abstractionsDirectory = s
         if not self.configuration.has('abstractionsDirectory') or \
                 self.configuration.abstractionsDirectory == \
                 os.path.join(self.configuration.userPackageDirectory, 
                              'abstractions'):
-            s = os.path.join(core.system.default_dot_vistrails(),
+            s = os.path.join(self.configuration.dotVistrails,
                              'subworkflows')
             self.configuration.abstractionsDirectory = s
-
+        #thumbnails directory    
+        if self.temp_configuration.has('thumbs'):
+            if not self.temp_configuration.thumbs.check('cacheDirectory'):
+                s = os.path.join(self.temp_configuration.dotVistrails,'thumbs')
+                self.temp_configuration.thumbs.cacheDirectory = s
+        if self.configuration.has('thumbs'):
+            if not self.configuration.thumbs.check('cacheDirectory'):
+                s = os.path.join(self.configuration.dotVistrails, 'thumbs')
+                self.configuration.thumbs.cacheDirectory = s
+        
+    def setupLogFile(self):
+        if not self.temp_configuration.check('logFile'):
+            s = os.path.join(self.temp_configuration.dotVistrails,
+                             'vistrails.log')
+            self.temp_configuration.logFile = s
+        if not self.configuration.check('logFile'):
+            s = os.path.join(self.configuration.dotVistrails,
+                             'vistrails.log')
+            self.configuration.logFile = s
+        if not os.path.lexists(self.temp_configuration.dotVistrails):
+            self.create_default_directory()
+        debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
+    
     def setupBaseModules(self):
         """ setupBaseModules() -> None        
         Import basic modules for self-registration. The import here is
@@ -431,8 +520,7 @@ by startup.py. This should only be called after init()."""
             try:
                 hook()
             except Exception, e:
-                dbg = debug.DebugPrint
-                dbg.critical("Exception raised during hook: %s - %s" %
+                debug.critical("Exception raised during hook: %s - %s" %
                              (e.__class__, e))
 
     def destroy(self):

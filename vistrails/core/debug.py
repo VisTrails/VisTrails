@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -20,6 +20,7 @@
 ##
 ############################################################################
 import logging
+import logging.handlers
 import sys
 import inspect
 from core.utils import VersionTooLow
@@ -31,7 +32,7 @@ from PyQt4 import QtCore
 
 ################################################################################
 
-class DebugPrintSingleton(QtCore.QObject):
+class DebugPrint(QtCore.QObject):
     """ Class to be used for debugging information.
 
     Verboseness can be set in the following way:
@@ -47,66 +48,85 @@ class DebugPrintSingleton(QtCore.QObject):
     so it will only get information of who called the DebugPrint functions. 
 
     Example of usage:
-        >>> DebugPrint.set_message_level(DebugPrint.Warning)
-        >>> DebugPrint.warning('This is a warning message') #message that will be shown
-        >>> DebugPrint.log('This is a log message and it will not be shown') #only warnings and above are shown
+        >>> DebugPrint.getInstance().set_message_level(DebugPrint.Warning)
+        # the following message will be shown
+        >>> DebugPrint.getInstance().warning('This is a warning message') 
+        #only warnings and above are shown
+        >>> DebugPrint.getInstance().log('This is a log message and it will \
+        not be shown') 
         
     """
     (Critical, Warning, Log) = (logging.CRITICAL,
                                 logging.WARNING,
                                 logging.INFO) #python logging levels
     #Singleton technique
-    def __call__(self):
-        return self
-
-    def make_logger_235(self, f):
-        """self.make_logger_235(file) -> logger. Creates a logging object to
-        be used within the DebugPrint class that sends the debugging
-        output to file."""
-        logger = logging.getLogger("VisLog")
-        hdlr = logging.StreamHandler(f)
-        formatter = logging.Formatter('VisTrails %(levelname)s %(message)s')
-        hdlr.setFormatter(formatter)
-        logger.addHandler(hdlr)
-        logger.setLevel(logging.CRITICAL)
-        return logger
-
-    def make_logger_240(self, f):
+    _instance = None
+    class DebugPrintSingleton(QtCore.QObject):
+        def __call__(self, *args, **kw):
+            if DebugPrint._instance is None:
+                obj = DebugPrint(*args, **kw)
+                DebugPrint._instance = obj
+            return DebugPrint._instance
+        
+    getInstance = DebugPrintSingleton()
+    
+    def make_logger(self, f=None):
+        self.fhandler = None
         """self.make_logger_240(file) -> logger. Creates a logging object to
         be used within the DebugPrint class that sends the debugging
-        output to file."""
-        #setting basic configuration
-        logging.basicConfig(level=logging.DEBUG,
-                            format='VisTrails %(levelname)s: %(message)s',
-                            stream=f)
-        logger = logging.getLogger("VisLog")
-        logger.setLevel(logging.CRITICAL)
-        return logger
-
-    if system.python_version() >= (2,4,0,'',0):
-        make_logger = make_logger_240
-    elif system.python_version() >= (2,3,5,'',0):
-        make_logger = make_logger_235
-    else:
-        raise VersionTooLow('Python', '2.3.5')
+        output to file.
+        We will configure log so it outputs to both stderr and a file. 
+        
+        """
+        self.logger = logging.getLogger("VisLog")
+        self.logger.setLevel(logging.INFO)
+        self.format = logging.Formatter('VisTrails %(asctime)s %(levelname)s: %(message)s')
+        # first we define a handler for logging to a file
+        if f:
+            self.fhandler = logging.handlers.RotatingFileHandler(f, 
+                                                                 maxBytes=1024*1024, 
+                                                                 backupCount=5)
+        
+            self.fhandler.setFormatter(self.format)
+            self.fhandler.setLevel(logging.INFO)
+            self.logger.addHandler(handler)
+        
+        #then we define a handler to log to the console
+        self.console = logging.StreamHandler()
+        self.console.setFormatter(self.format)
+        self.console.setLevel(logging.CRITICAL)
+        self.logger.addHandler(self.console)
+        
+    if system.python_version() <= (2,4,0,'',0):
+        raise VersionTooLow('Python', '2.4.0')
                 
     def __init__(self):
         QtCore.QObject.__init__(self)
-        self.logger = self.make_logger(sys.stderr)
+        self.make_logger()
         self.level = logging.CRITICAL
-
-    def redirect_to_file(self, f):
-        """self.redirect_to_file(file) -> None. Redirects debugging
+        
+    def set_logfile(self, f):
+        """set_logfile(file) -> None. Redirects debugging
         output to file."""
-        self.logger = self.make_logger(f)
-        self.logger.set_message_level(self.level)
+        try:
+            handler = logging.handlers.RotatingFileHandler(f, maxBytes=1024*1024, 
+                                                           backupCount=5)
+            handler.setFormatter(self.format)
+            handler.setLevel(logging.INFO)
+            if self.fhandler:
+                self.logger.removeHandler(self.fhandler)
+            self.fhandler = handler
+            self.logger.addHandler(self.fhandler)
+
+        except Exception, e:
+            self.critical("Could not set log file %s: %s"%(f,str(e)))
             
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.Critical,
         DebugPrint.Warning, DebugPrint.Log)."""
-        self.level = logging.CRITICAL
-        self.logger.setLevel(level)
+        self.level = level
+        self.console.setLevel(level)
         
     def message(self, caller, msg):
         """self.message(caller, msg) -> str. Returns a string with a
@@ -119,6 +139,12 @@ class DebugPrintSingleton(QtCore.QObject):
             return "File '" + source + "' at line " + str(line) + ": " + msg
         else:
             return "(File info not available): " + msg
+        
+    def debug(self,msg):
+        """self.log(str) -> None. Send information message (low
+        importance) to log with appropriate call site information."""
+        caller = inspect.currentframe().f_back # who called us?
+        self.logger.debug(self.message(caller, msg))
         
     def log(self,msg):
         """self.log(str) -> None. Send information message (low
@@ -147,11 +173,10 @@ class DebugPrintSingleton(QtCore.QObject):
     def __debugSignal(self, *args):
         self.critical(str(args))
 
-DebugPrint = DebugPrintSingleton()
-
-critical = DebugPrint().critical
-warning  = DebugPrint().warning
-log      = DebugPrint().log
+debug    = DebugPrint.getInstance().debug
+critical = DebugPrint.getInstance().critical
+warning  = DebugPrint.getInstance().warning
+log      = DebugPrint.getInstance().log
 
 ################################################################################
 
@@ -163,7 +188,7 @@ def timecall(method):
         start = time.time()
         method(self, *args, **kwargs)
         end = time.time()
-        DebugPrint.logger.critical(DebugPrint.message(caller, "time: %.5s" % (end-start)))
+        critical(DebugPrint.message(caller, "time: %.5s" % (end-start)))
     call.__doc__ = method.__doc__
     return call
 

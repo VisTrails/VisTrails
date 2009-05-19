@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -74,9 +74,8 @@ class KeyChain(object):
             self.__keys[hashkey] = cryptvalue
             
         except KeyError:
-            dbg = debug.DebugPrint
-            dbg.critical("KeyChain: You need to call this method inside "
-                         "another a object's method")
+            debug.critical("KeyChain: You need to call this method inside "
+                           "another a object's method")
 
     def get_key(self, key):
         """ get_key(key:str) -> str
@@ -95,12 +94,11 @@ class KeyChain(object):
             if self.__keys.has_key(hashkey):
                 return crypt(hashkey,self.__keys[hashkey])
             else:
-                dbg = debug.DebugPrint
-                dbg.warning("KeyChain: the key is not present or only the"
-                            " object that set the key can get it")
+                debug.warning("KeyChain: the key is not present or only the"
+                              " object that set the key can get it")
                 return  ""
         except KeyError:
-            dbg = debug.DebugPrint
+            dbg = debug.DebugPrint.getInstance()
             dbg.critical("KeyChain: You need to call this method inside "
             "another a object's method")    
         

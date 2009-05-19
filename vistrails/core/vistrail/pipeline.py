@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -25,7 +25,7 @@
 from core.cache.hasher import Hasher
 from core.data_structures.bijectivedict import Bidict
 from core.data_structures.graph import Graph
-from core.debug import DebugPrint
+from core import debug
 from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
@@ -137,14 +137,16 @@ class Pipeline(DBWorkflow):
         for _plugin_data in _workflow.db_plugin_datas:
             PluginData.convert(_plugin_data)
         #there should be another way to do this
-        for _obj in _workflow.objects.itervalues():
-            if _obj.vtType == 'function':
-                for _par in _obj.parameters:
+        for _mod in _workflow.modules.itervalues():
+            mid = _mod.id
+            for _fun in _mod.functions:
+                for _par in _fun.parameters:
                     _workflow.change_alias(_par.alias,
                                            _par.vtType,
                                            _par.real_id,
-                                           _obj.vtType,
-                                           _obj.real_id)
+                                           _fun.vtType,
+                                           _fun.real_id,
+                                           mid)
 
     ##########################################################################
 
@@ -403,18 +405,19 @@ class Pipeline(DBWorkflow):
                               param.vtType, 
                               param.real_id,
                               parent_type,
-                              parent_id)
+                              parent_id,
+                              None)
 
     def delete_parameter(self, param_id, parent_id, 
                          parent_type=ModuleFunction.vtType):
         self.db_delete_object(param_id, ModuleParam.vtType,
                               parent_type, parent_id)
-        self.remove_alias(ModuleParam.vtType, param_id, parent_type, parent_id)
+        self.remove_alias(ModuleParam.vtType, param_id, parent_type, parent_id, None)
 
     def change_parameter(self, old_param_id, param, parent_id, 
                          parent_type=ModuleFunction.vtType):
         self.remove_alias(ModuleParam.vtType, old_param_id, 
-                          parent_type, parent_id)
+                          parent_type, parent_id, None)
         self.db_change_object(old_param_id, param,
                               parent_type, parent_id)
         if not self.has_alias(param.alias):
@@ -422,7 +425,8 @@ class Pipeline(DBWorkflow):
                               param.vtType, 
                               param.real_id,
                               parent_type,
-                              parent_id)
+                              parent_id,
+                              None)
 
     def add_port(self, port, parent_id, parent_type=Connection.vtType):
         self.db_add_object(port, parent_type, parent_id)
@@ -481,42 +485,67 @@ class Pipeline(DBWorkflow):
         # self.db_change_object(old_spec_id, port_spec, parent_type, parent_id)
         self.add_port_to_registry(port_spec, parent_id)
 
-    def add_alias(self, name, type, oId, parentType, parentId):
-        """add_alias(name: str, oId: int, parentType:str, parentId: int) -> None 
+    def add_alias(self, name, type, oId, parentType, parentId, mId):
+        """add_alias(name: str, oId: int, parentType:str, parentId: int, 
+                     mId: int) -> None 
         Add alias to pipeline
           
         """
         if self.has_alias(name):
             raise VistrailsInternalError("duplicate alias")
-        self.aliases[name] = (type, oId, parentType, parentId)
-
+        if mId is not None:
+            self.aliases[name] = (type, oId, parentType, parentId, mId)
+        else:
+            mid = None
+            for _mod in self.modules.itervalues():
+                for _fun in _mod.functions:
+                    for _par in _fun.parameters:
+                        if (_par.vtType == type and _par.real_id == oId and
+                            _fun.vtType == parentType and 
+                            _fun.real_id == parentId):
+                            mid = _mod.id
+                            break
+            if mid is not None:
+                self.aliases[name] = (type, oId, parentType, parentId, mid)
+                
     def remove_alias_by_name(self, name):
         """remove_alias_by_name(name: str) -> None
         Remove alias with given name """
         if self.has_alias(name):
             del self.aliases[name]
 
-    def remove_alias(self, type, oId, parentType, parentId):
-        """remove_alias(name: str, type:?, oId: int)-> None
+    def remove_alias(self, type, oId, parentType, parentId, mId):
+        """remove_alias(name: str, type:str, oId: int, parentType: str, 
+                        parentId: int, mId: int)-> None
         Remove alias identified by oId """
-        try:
-            oldname = self.aliases.inverse[(type,oId, parentType, parentId)]
-            del self.aliases[oldname]
-        except KeyError:
-            pass
+        if mId is not None:
+            try:
+                oldname = self.aliases.inverse[(type,oId, parentType, parentId, mId)]
+                del self.aliases[oldname]
+            except KeyError:
+                pass
+        else:
+            oldname = None
+            for aname,(t,o,pt,pid,mid) in self.aliases.iteritems():
+                if (t == type and o == oId and pt == parentType and 
+                    pid == parentId):
+                    oldname = aname
+                    break
+            if oldname:
+                del self.aliases[oldname]
 
-    def change_alias(self, name, type, oId, parentType, parentId):
+    def change_alias(self, name, type, oId, parentType, parentId, mId):
         """change_alias(name: str, type:str oId:int, parentType:str,
-                        parentId:int)-> None
+                        parentId:int, mId: int)-> None
         Change alias if name is non empty. Else remove alias
         
         """
         if name == "":
-            self.remove_alias(type, oId, parentType, parentId)
+            self.remove_alias(type, oId, parentType, parentId, mId)
         else:
             if not self.has_alias(name):
-                self.remove_alias(type, oId, parentType, parentId)
-                self.add_alias(name, type, oId, parentType, parentId)
+                self.remove_alias(type, oId, parentType, parentId, mId)
+                self.add_alias(name, type, oId, parentType, parentId, mId)
                 
     def get_alias_str_value(self, name):
         """ get_alias_str_value(name: str) -> str
@@ -524,7 +553,7 @@ class Pipeline(DBWorkflow):
 
         """
         try:
-            what, oId, parentType, parentId = self.aliases[name]
+            what, oId, parentType, parentId, mId = self.aliases[name]
         except KeyError:
             return ''
         else:
@@ -540,7 +569,7 @@ class Pipeline(DBWorkflow):
         
         """
         try:
-            what, oId, parentType, parentId = self.aliases[name]
+            what, oId, parentType, parentId, mId = self.aliases[name]
         except KeyError:
             pass
         else:
@@ -560,7 +589,7 @@ class Pipeline(DBWorkflow):
         if result.vtType != Abstraction.vtType and \
                 result.vtType != Group.vtType and result.package is None:
             registry = get_module_registry()
-            DebugPrint.critical('module %d is missing package' % id)
+            debug.critical('module %d is missing package' % id)
             descriptor = registry.get_descriptor_from_name_only(result.name)
             result.package = descriptor.identifier
         return result
@@ -1181,7 +1210,7 @@ class TestPipeline(unittest.TestCase):
                                 pos=old_param.pos,
                                 name=old_param.name,
                                 alias="",
-                                val=str(v),
+                                val=str(1.0),
                                 type=old_param.type)
         action_spec = ('change', old_param, new_param,
                        func.vtType, func.real_id)

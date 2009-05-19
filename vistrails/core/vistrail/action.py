@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -62,6 +62,7 @@ class Action(DBAction):
     ANNOTATION_NOTES = '__notes__'
     ANNOTATION_DESCRIPTION = '__description__'
     ANNOTATION_ANALOGY_INFO = '__analogy_info__'
+    ANNOTATION_THUMBNAIL = '__thumb__'
 
     ##########################################################################
     # Properties
@@ -119,6 +120,13 @@ class Action(DBAction):
         return None
     analogy_info = property(_get_analogy_info)
 
+    def _get_thumbnail(self):
+        if self.db_has_annotation_with_key(self.ANNOTATION_THUMBNAIL):
+            ann = self.db_get_annotation_by_key(self.ANNOTATION_THUMBNAIL)
+            return ann.value
+        return None
+    thumbnail = property(_get_thumbnail)
+    
     def add_operation(self, operation):
         self.db_operations.db_add_operation(operation)
 

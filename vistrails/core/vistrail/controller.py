@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -24,6 +24,7 @@ import copy
 from itertools import izip
 import os
 import uuid
+import shutil
 
 from core.configuration import get_vistrails_configuration
 import core.db.io
@@ -33,6 +34,7 @@ import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule
 from core.modules.sub_module import new_abstraction, read_vistrail
+from core.thumbnails import ThumbnailCache
 from core.utils import VistrailsInternalError, PortAlreadyExists
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.connection import Connection
@@ -1053,3 +1055,16 @@ class VistrailController(object):
         # end for
 
         return (modules, connections)
+
+    def find_thumbnails(self, tags_only=True):
+        thumbnails = []
+        thumb_cache = ThumbnailCache.getInstance()
+        for action in self.vistrail.actions:
+            if action.thumbnail is not None:
+                if tags_only and action.timestep not in self.vistrail.tagMap.keys():
+                    thumb_cache.remove(action.thumbnail)
+                    action.thumbnail = None
+                else:
+                    abs_fname = thumb_cache.get_abs_name_entry(action.thumbnail)
+                    thumbnails.append(abs_fname)
+        return thumbnails

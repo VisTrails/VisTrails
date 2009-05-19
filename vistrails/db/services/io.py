@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -414,6 +414,7 @@ def open_vistrail_from_zip_xml(filename):
     log_fname = None
     abstraction_files = []
     unknown_files = []
+    thumbnail_files = []
     try:
         for root, dirs, files in os.walk(vt_save_dir):
             for fname in files:
@@ -429,6 +430,10 @@ def open_vistrail_from_zip_xml(filename):
                 elif fname.startswith('abstraction_'):
                     abstraction_file = os.path.join(root, fname)
                     abstraction_files.append(abstraction_file)
+                elif (fname.endswith('.png') and 
+                      root == os.path.join(vt_save_dir,'thumbs')):
+                    thumbnail_file = os.path.join(root, fname)
+                    thumbnail_files.append(thumbnail_file)
                 else:
                     unknown_files.append(os.path.join(root, fname))
     except OSError, e:
@@ -445,7 +450,9 @@ def open_vistrail_from_zip_xml(filename):
         objs.append((DBLog.vtType, log))
     for abstraction_file in abstraction_files:
         objs.append(('__file__', abstraction_file))
-
+    for thumbnail_file in thumbnail_files:
+        objs.append(('__thumb__', thumbnail_file))
+        
     return (objs, vt_save_dir)
             
 def open_vistrail_from_db(db_connection, id, lock=False, version=None):
@@ -507,7 +514,8 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
         vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     # saving zip files flat so we'll do without this dir for now
     # abstraction_dir = os.path.join(vt_save_dir, 'abstractions')
-
+    thumbnail_dir = os.path.join(vt_save_dir, 'thumbs')
+    
     for (obj_type, obj) in objs:
         if obj_type == '__file__':
             if type(obj) == type(""):
@@ -521,6 +529,22 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
             else:
                 raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
                                            '__file__ must have a filename '
+                                           'as obj')
+        elif obj_type == '__thumb__':
+            if type(obj) == type(""):
+                obj_fname = os.path.basename(obj)
+                png_fname = os.path.join(thumbnail_dir, obj_fname)
+                if not os.path.exists(thumbnail_dir):
+                    os.mkdir(thumbnail_dir)
+                #print 'copying %s -> %s' %(obj, png_fname)
+                try:
+                    shutil.copyfile(obj, png_fname)
+                except:
+                    print "copying thumbnail failed"
+                    pass
+            else:
+                raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
+                                           '__thumb__ must have a filename '
                                            'as obj')
         elif obj_type == DBLog.vtType:
             xml_fname = os.path.join(vt_save_dir, 'log')
@@ -536,10 +560,16 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
     output = []
-    cmdline = ['zip', '-r', '-j', '-q', tmp_zip_file, vt_save_dir]
+    rel_vt_save_dir = os.path.split(vt_save_dir)[1]
+    cmdline = ['zip', '-r', '-q', tmp_zip_file, '.']
     try:
+        #if we want that directories are also stored in the zip file
+        # we need to run from the vt directory
+        cur_dir = os.getcwd()
+        os.chdir(vt_save_dir)
         result = execute_cmdline(cmdline,output)
-        # print result, output
+        os.chdir(cur_dir)
+        #print result, output
         if result != 0 and len(output) != 0:
             for line in output:
                 if line.find('deflated') == -1:
@@ -911,6 +941,28 @@ def get_current_time(db_connection=None):
 
     return timestamp
 
+def create_temp_folder(prefix='vt_save'):
+    return tempfile.mkdtemp(prefix=prefix)
+
+def remove_temp_folder(temp_dir):
+    if temp_dir is None:
+        return
+    if not os.path.isdir(temp_dir):
+        if os.path.isfile(temp_dir):
+            os.remove(temp_dir)
+
+        # cleanup has already happened
+        return
+    try:
+        for root, dirs, files in os.walk(temp_dir, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        os.rmdir(temp_dir)
+    except OSError, e:
+        raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, str(e)))
+    
 ##############################################################################
 # Testing
 

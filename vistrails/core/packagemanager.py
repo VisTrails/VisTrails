@@ -1,6 +1,6 @@
 ###########################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -108,6 +108,10 @@ class PackageManager(QtCore.QObject):
 
 
     def __init__(self, configuration):
+        """__init__(configuration: ConfigurationObject) -> PackageManager
+        configuration is the persistent configuration object of the application.
+        
+        """
         global _package_manager
         if _package_manager:
             m = "Package manager can only be constructed once."
@@ -308,8 +312,8 @@ creating a class that behaves similarly)."""
             try:
                 package.load(package_dictionary.get(package.codepath, None))
             except Package.LoadFailed, e:
-                debug.DebugPrint.critical("Will disable package %s" % package.name)
-                debug.DebugPrint.critical(str(e))
+                debug.critical("Will disable package %s" % package.name)
+                debug.critical(str(e))
                 # print "FAILED TO LOAD, let's disable it"
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
@@ -317,8 +321,8 @@ creating a class that behaves similarly)."""
                 package.remove_own_dom_element()
                 failed.append(package)
             except Package.InitializationFailed, e:
-                debug.DebugPrint.critical("Will disable package <codepath %s>" % package.codepath)
-                debug.DebugPrint.critical(str(e))
+                debug.critical("Will disable package <codepath %s>" % package.codepath)
+                debug.critical(str(e))
                 # print "FAILED TO LOAD, let's disable it"
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
@@ -341,8 +345,8 @@ creating a class that behaves similarly)."""
             try:
                 self.add_dependencies(package)
             except Package.MissingDependency, e:
-                debug.DebugPrint.critical("Will disable package %s" % package.name)
-                debug.DebugPrint.critical(str(e))
+                debug.critical("Will disable package %s" % package.name)
+                debug.critical(str(e))
                 # print "DEPENDENCIES FAILED TO LOAD, let's disable this"
                 package.remove_own_dom_element()
                 self._dependency_graph.delete_vertex(package.identifier)
@@ -367,9 +371,9 @@ creating a class that behaves similarly)."""
                 try:
                     self._registry.initialize_package(pkg)
                 except Package.InitializationFailed, e:
-                    debug.DebugPrint.critical("Package initialization failed <codepath %s>" % pkg.codepath)
-                    debug.DebugPrint.critical("Will disable package <codepath %s>" % pkg.codepath)
-                    debug.DebugPrint.critical(str(e))
+                    debug.critical("Package initialization failed <codepath %s>" % pkg.codepath)
+                    debug.critical("Will disable package <codepath %s>" % pkg.codepath)
+                    debug.critical(str(e))
                     # print "FAILED TO LOAD, let's disable it"
                     # We disable the package manually to skip over things
                     # we know will not be necessary - the only thing needed is

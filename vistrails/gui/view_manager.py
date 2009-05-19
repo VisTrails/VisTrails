@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -294,7 +294,8 @@ class QViewManager(QtGui.QTabWidget):
         else:
             locator = None
         try:
-            (vistrail, abstraction_files) = self.load_vistrail(locator)
+            (vistrail, abstraction_files, thumbnail_files) = \
+                                                     self.load_vistrail(locator)
         except ModuleRegistryException, e:
             QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
         except Exception, e:
@@ -302,7 +303,8 @@ class QViewManager(QtGui.QTabWidget):
                                        'Vistrails',
                                        str(e))
             raise
-        return self.set_vistrail_view(vistrail, locator, abstraction_files)
+        return self.set_vistrail_view(vistrail, locator, abstraction_files,
+                                      thumbnail_files)
 
     def close_first_vistrail_if_necessary(self):
         # Close first vistrail of no change was made
@@ -319,6 +321,7 @@ class QViewManager(QtGui.QTabWidget):
 
     def load_vistrail(self, locator, is_abstraction=False):
         abstraction_files = []
+        thumbnail_files = []
         vistrail = None
         if locator is None:
             vistrail = Vistrail()
@@ -326,18 +329,22 @@ class QViewManager(QtGui.QTabWidget):
             res = locator.load()
             if type(res) == type([]):
                 vistrail = res[0][1]
-                for (_, abstraction_file) in res[1:]:
-                    abstraction_files.append(abstraction_file)
+                for (t, file) in res[1:]:
+                    if t == '__file__':
+                        abstraction_files.append(file)
+                    elif t == '__thumb__':
+                        thumbnail_files.append(file)
             else:
                 vistrail = res
         vistrail.is_abstraction = is_abstraction
-        return (vistrail, abstraction_files)
+        return (vistrail, abstraction_files, thumbnail_files)
 
     def set_vistrail_view(self, vistrail, locator, abstraction_files=None,
-                          version=None):
+                          thumbnail_files=None, version=None):
         """set_vistrail_view(vistrail: Vistrail,
                              locator: VistrailLocator,
                              abstraction_files: list(str),
+                             thumbnail_files: list(str),
                              version=None)
                           -> QVistrailView
         Sets a new vistrail view for the vistrail object for the given version
@@ -350,7 +357,8 @@ class QViewManager(QtGui.QTabWidget):
             version = vistrail.get_latest_version()
 
         vistrailView = QVistrailView()
-        vistrailView.set_vistrail(vistrail, locator, abstraction_files)
+        vistrailView.set_vistrail(vistrail, locator, abstraction_files,
+                                  thumbnail_files)
         self.add_vistrail_view(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.setup_view(version)
@@ -373,10 +381,12 @@ class QViewManager(QtGui.QTabWidget):
         if view:
             return view
         try:
-            (vistrail, abstraction_files) = self.load_vistrail(locator,
+            (vistrail, abstraction_files, thumbnail_files) = \
+                                                    self.load_vistrail(locator,
                                                                is_abstraction)
             result = self.set_vistrail_view(vistrail, locator, 
-                                            abstraction_files, version)
+                                            abstraction_files, thumbnail_files,
+                                            version)
             return result
         except ModuleRegistryException, e:
             QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
