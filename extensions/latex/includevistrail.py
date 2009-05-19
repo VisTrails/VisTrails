@@ -1,4 +1,25 @@
 #!/usr/bin/env python
+############################################################################
+##
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 
 # the input file format should follow this:
 #   path=/Users/emanuele/code/vistrails/branches/v1.2/vistrails/vistrails.py
@@ -8,9 +29,13 @@
 #   vtid=8
 #   port=3306
 #   buildalways=true
+#   tag=Some text
 #   other=width=0.45\linewidth 
 #
-# the buildalways and the port lines are optional
+# the buildalways and port lines are optional
+# at least a version or a tag must be provided
+# please notice that the tag has precedence over version. If a tag is passed
+# we will query the database to get the latest version number.
 
 import sys
 import os.path
@@ -19,7 +44,11 @@ from httplib import HTTP
 from urlparse import urlparse
 import urllib2
 import re
+import MySQLdb
 
+vt_user = 'vtserver' # this is the user used to connect to the database.
+                     # we use a user with readonly and no password set
+                     
 ###############################################################################
 
 def usage():
@@ -41,7 +70,49 @@ def bool_conv(x):
         return False
 
 ###############################################################################
+
+def get_version_number_by_tag(host, port, dbname, vt_id, user, tag):
+    """get_version_number_by_tag(host: str, port: int, dbname: str,
+                                 vt_id: int, user:str, tag: str)-> int
+       This will connect directly to the database to get the version number
+       and execute the right pipeline.
     
+    """
+    try:
+        db_connection = MySQLdb.connect(host=host,
+                                        user=user,
+                                        db=dbname,
+                                        port=port)
+        c = db_connection.cursor()
+        db_command = """SELECT id FROM tag WHERE entity_type='vistrail' AND
+entity_id='%s' AND name='%s'""" % (vt_id, tag)
+        c.execute(db_command)
+        res = c.fetchone()
+        c.close()
+        db_connection.close()
+        return str(res[0])
+    
+    except MySQLdb.Error, e:
+        msg = "MySQL ERROR: %s, %s" % (e.args[0], e.args[1])
+        raise Exception(msg)
+    
+###############################################################################    
+
+def path_exists_and_not_empty(path):
+    """path_exists_and_not_empty(path:str) -> boolean 
+    Returns True if given path exists and it's not empty, otherwise returns 
+    False.
+    
+    """
+    if os.path.exists(path):
+        for root, dirs, file_names in os.walk(path):
+            break
+        if len(file_names) > 0:
+            return True
+    return False
+
+###############################################################################
+ 
 def build_vistrails_cmd_line(path_to_vistrails, host, db_name, vt_id, version,
                              port, path_to_figures):
     """ build_vistrails_cmd_line(path_to_vistrails: str, host: str,
@@ -49,8 +120,9 @@ def build_vistrails_cmd_line(path_to_vistrails, host, db_name, vt_id, version,
                                  path_to_figures: str) -> str
         Build the command line to run vistrails with the given parameters.
     """
-    cmd_line = 'python "%s" -b -e "%s" -t %s -f %s -r %s -u vtserver "%s:%s" > \
-vistrails.log' % (path_to_vistrails,
+    cmd_line = 'python "%s" -b -e "%s" -t %s -f %s -r %s -u %s "%s:%s" > \
+vistrails.log' % (vt_user,
+                  path_to_vistrails,
                   path_to_figures,
                   host,
                   db_name,
@@ -129,7 +201,7 @@ def run_vistrails_locally(path_to_vistrails, host, db_name, vt_id,
             return (False, generate_latex_error(msg))
         
     else:
-        if build_always:
+        if build_always or not path_exists_and_not_empty(path_to_figures):
             result = os.system(cmd_line)
             if result != 0:
                 os.rmdir(path_to_figures)
@@ -184,7 +256,7 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
         except:
             return None
     
-    if not os.path.exists(path_to_figures) or build_always:
+    if not path_exists_and_not_empty(path_to_figures) or build_always:
         if not os.path.exists(path_to_figures):
             os.makedirs(path_to_figures)
         
@@ -196,8 +268,10 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
                                                                    urllib2.quote(version),
                                                                    port)
             url = path_to_vistrails + request
+            #print url
             try:
                 page = download_as_text(url)
+                # we will look for images embedded in the html
                 re_imgs = re.compile('<img[^>]*/>')
                 re_src = re.compile('(.*src=")([^"]*)"')
                 images = re_imgs.findall(page)
@@ -308,10 +382,25 @@ for line in lines:
     elif args[0] == "other":
         graphics_options = args[1].strip(" \n")
         
+# if a tag is passed, we need to make sure that the version
+# number we use is consistent.
+if version_tag != '':
+    version = get_version_number_by_tag(host, int(port), db_name, int(vt_id),
+                                        vt_user, version_tag)
+
+# then we use the combination host_db_name_port_vt_id_version to
+# create a unique folder. 
+# TODO: Maybe we should use a hash of this. For now let's keep it
+# legible.
+
 path_to_figures = os.path.join("vistrails_images",
                                "%s_%s_%s_%s_%s" % (host, db_name, port,
                                                    vt_id,
-                                                   urllib2.quote(version)))
+                                                   version))    
+
+# if the path_to_vistrails point to a file that exists on disk, we will use
+# it, else let's assume it's a url (we still check if the url is valid inside
+# the run_vistrails_remotely function)
 
 run_locally = check_path(path_to_vistrails)
 
@@ -325,10 +414,10 @@ else:
                                           vt_id, version, port, path_to_figures,
                                           build_always, version_tag, execute,
                                           showspreadsheetonly)
+    
+# the printed answer will be included inline by the latex compiler.
 print latex
 if result == True:
     sys.exit(0)
 else:
     sys.exit(1)
-
-
