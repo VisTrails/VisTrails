@@ -21,6 +21,7 @@
 ############################################################################
 
 from datetime import datetime
+from core import debug
 from core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline
 import core.requirements
@@ -536,12 +537,15 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
                 png_fname = os.path.join(thumbnail_dir, obj_fname)
                 if not os.path.exists(thumbnail_dir):
                     os.mkdir(thumbnail_dir)
-                #print 'copying %s -> %s' %(obj, png_fname)
-                try:
-                    shutil.copyfile(obj, png_fname)
-                except:
-                    print "copying thumbnail failed"
-                    pass
+                if not os.path.exists(png_fname):
+                    #print 'copying %s -> %s' %(obj, png_fname)
+                    try:
+                        shutil.copyfile(obj, png_fname)
+                    except Exception, e:
+                        debug.warning('copying %s -> %s failed: %s' %(obj, 
+                                                                      png_fname,
+                                                                      str(e))) 
+                        pass
             else:
                 raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
                                            '__thumb__ must have a filename '

@@ -1918,7 +1918,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 thumbnails = self.find_thumbnails(
                                     tags_only=thumb_cache.conf.tagsOnly)
                 for thumbnail in thumbnails:
-                    print "appending: ", thumbnail
+                    #print "appending: ", thumbnail
                     objs.append(('__thumb__', thumbnail))
             
             # FIXME hack to use db_currentVersion for convenience

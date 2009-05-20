@@ -314,7 +314,7 @@ Would you like to create one?"
                     dlg.objectList.currentItem().id,
                     dlg.objectList.currentItem().name)
         else:
-            return({},-1)
+            return({},-1,'')
 
     @staticmethod
     def getSaveDBObject(obj_type):

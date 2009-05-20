@@ -896,7 +896,8 @@ hovering tree nodes')
         
         """
         res = show_question('VisTrails',
-                  "All files in %s will be removed. Are you sure? ",
+                  "All files in %s will be removed. Are you sure? " % (
+                            self._temp_configuration.thumbs.cacheDirectory),
                   buttons = [YES_BUTTON,NO_BUTTON],
                   default = NO_BUTTON)
         if res == YES_BUTTON:
