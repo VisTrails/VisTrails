@@ -1898,7 +1898,7 @@ class VistrailController(QtCore.QObject, BaseController):
             if locator:
                 locator.save_temporary(self.vistrail)
 
-    def write_vistrail(self, locator):
+    def write_vistrail(self, locator, version=None):
         if self.vistrail and (self.changed or self.locator != locator):
             is_abstraction = self.vistrail.is_abstraction
             # FIXME make all locators work with lists of objects
@@ -1929,10 +1929,10 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.locator = locator
                 # new_vistrail = self.locator.save_as(self.vistrail)
                 if type(self.locator) == core.db.locator.ZIPFileLocator:
-                    objs = self.locator.save_as(objs)
+                    objs = self.locator.save_as(objs, version)
                     new_vistrail = objs[0][1]
                 else:
-                    new_vistrail = self.locator.save_as(self.vistrail)
+                    new_vistrail = self.locator.save_as(self.vistrail, version)
                 self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()

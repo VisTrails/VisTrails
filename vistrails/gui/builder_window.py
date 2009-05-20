@@ -1,4 +1,4 @@
-############################################################################
+###########################################################################
 ##
 ## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
@@ -28,6 +28,7 @@ from core import system
 from core.configuration import get_vistrails_configuration
 from core.db.locator import DBLocator, FileLocator, XMLFileLocator, untitled_locator
 from core.packagemanager import get_package_manager
+import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
 from gui.application import VistrailsApplication
@@ -189,7 +190,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                                          'a file')
 
         self.importFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
-                                              'Import', self)
+                                              'From DB...', self)
         self.importFileAction.setStatusTip('Import an existing vistrail from '
                                            'a database')
 
@@ -206,7 +207,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                                            'to a different file location')
         self.saveFileAsAction.setEnabled(False)
 
-        self.exportFileAction = QtGui.QAction('Export', self)
+        self.exportFileAction = QtGui.QAction('To DB...', self)
         self.exportFileAction.setStatusTip('Export the current vistrail to '
                                            'a database')
         self.exportFileAction.setEnabled(False)
@@ -216,57 +217,56 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.closeVistrailAction.setStatusTip('Close the current vistrail')
         self.closeVistrailAction.setEnabled(False)
 
-        self.saveOpmAction = QtGui.QAction('Save As OPM XML...', self)
+        self.exportStableAction = QtGui.QAction('To Stable Version...', 
+                                                self)
+        self.exportStableAction.setStatusTip('Save vistrail as XML according '
+                                             'to the older (stable) schema')
+        self.exportStableAction.setEnabled(True)
+
+        self.saveOpmAction = QtGui.QAction('OPM XML...', self)
         self.saveOpmAction.setStatusTip('Saves provenance according to the'
                                         'Open Provenance Model in XML')
         self.saveOpmAction.setEnabled(True)
 
-        self.saveLogAction = QtGui.QAction('Save Log...', self)
+        self.saveLogAction = QtGui.QAction('Log To XML...', self)
         self.saveLogAction.setStatusTip('Save the execution log to '
                                         'a file')
         self.saveLogAction.setEnabled(True)
 
-        self.exportLogAction = QtGui.QAction('Export Log...', self)
+        self.exportLogAction = QtGui.QAction('Log To DB...', self)
         self.exportLogAction.setStatusTip('Save the execution log to '
                                           'a database')
         self.exportLogAction.setEnabled(True)
 
-        self.importWorkflowAction = QtGui.QAction('Import Workflow...', self)
+        self.importWorkflowAction = QtGui.QAction('Workflow...', self)
         self.importWorkflowAction.setStatusTip('Import a workflow from an '
                                                'xml file')
         self.importWorkflowAction.setEnabled(True)
 
-        self.saveWorkflowAction = QtGui.QAction('Save Workflow...', self)
+        self.saveWorkflowAction = QtGui.QAction('Workflow To XML...', self)
         self.saveWorkflowAction.setStatusTip('Save the current workflow to '
                                              'a file')
         self.saveWorkflowAction.setEnabled(True)
 
-        self.exportWorkflowAction = QtGui.QAction('Export Workflow...', self)
+        self.exportWorkflowAction = QtGui.QAction('Workflow To DB...', self)
         self.exportWorkflowAction.setStatusTip('Save the current workflow to '
                                                'a database')
         self.exportWorkflowAction.setEnabled(True)
 
-        self.saveRegistryAction = QtGui.QAction('Save Registry...', self)
+        self.saveRegistryAction = QtGui.QAction('Registry To XML...', self)
         self.saveRegistryAction.setStatusTip('Save the current registry to '
                                              'a file')
         self.saveRegistryAction.setEnabled(True)
 
-        self.exportRegistryAction = QtGui.QAction('Export Registry...', self)
+        self.exportRegistryAction = QtGui.QAction('Registry To DB...', self)
         self.exportRegistryAction.setStatusTip('Save the current registry to '
                                                'a database')
         self.exportRegistryAction.setEnabled(True)
 
-        self.saveVersionTreeToPDFAction = \
-            QtGui.QAction('Save Version Tree as PDF...', self)
-        self.saveVersionTreeToPDFAction.setStatusTip('Save the current version'
-                                                     'tree to a PDF file')
-        self.saveVersionTreeToPDFAction.setEnabled(True)
-
-        self.saveWorkflowToPDFAction = \
-            QtGui.QAction('Save Workflow as PDF...', self)
-        self.saveWorkflowToPDFAction.setStatusTip('Save the current workflow'
+        self.savePDFAction = QtGui.QAction('PDF...', self)
+        self.savePDFAction.setStatusTip('Save the current view'
                                                      'to a PDF file')
-        self.saveWorkflowToPDFAction.setEnabled(True)
+        self.savePDFAction.setEnabled(True)
 
         self.quitVistrailsAction = QtGui.QAction('Quit', self)
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
@@ -429,20 +429,25 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.saveFileAsAction)
         self.fileMenu.addAction(self.closeVistrailAction)
         self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.importFileAction)
-        self.fileMenu.addAction(self.exportFileAction)
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.saveOpmAction)
-        self.fileMenu.addAction(self.saveLogAction)
-        self.fileMenu.addAction(self.exportLogAction)
-        self.fileMenu.addAction(self.importWorkflowAction)
-        self.fileMenu.addAction(self.saveWorkflowAction)
-        self.fileMenu.addAction(self.exportWorkflowAction)
-        self.fileMenu.addAction(self.saveRegistryAction)
-        self.fileMenu.addAction(self.exportRegistryAction)
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.saveVersionTreeToPDFAction)
-        self.fileMenu.addAction(self.saveWorkflowToPDFAction)
+        self.importMenu = self.fileMenu.addMenu('Import')
+        self.importMenu.addAction(self.importFileAction)
+        self.importMenu.addSeparator()
+        self.importMenu.addAction(self.importWorkflowAction)
+        self.exportMenu = self.fileMenu.addMenu('Export')
+        self.exportMenu.addAction(self.exportFileAction)
+        self.exportMenu.addAction(self.exportStableAction)
+        self.exportMenu.addSeparator()
+        self.exportMenu.addAction(self.savePDFAction)
+        self.exportMenu.addSeparator()
+        self.exportMenu.addAction(self.saveWorkflowAction)
+        self.exportMenu.addAction(self.exportWorkflowAction)
+        self.exportMenu.addSeparator()
+        self.exportMenu.addAction(self.saveOpmAction)
+        self.exportMenu.addAction(self.saveLogAction)
+        self.exportMenu.addAction(self.exportLogAction)
+        self.exportMenu.addSeparator()
+        self.exportMenu.addAction(self.saveRegistryAction)
+        self.exportMenu.addAction(self.exportRegistryAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitVistrailsAction)
 
@@ -577,6 +582,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.saveFileAsAction, self.save_vistrail_default_as),
             (self.exportFileAction, self.export_vistrail_default),
             (self.closeVistrailAction, self.viewManager.closeVistrail),
+            (self.exportStableAction, self.viewManager.export_stable),
             (self.saveOpmAction, self.viewManager.save_opm),
             (self.saveLogAction, self.save_log_default),
             (self.exportLogAction, self.export_log_default),
@@ -585,8 +591,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.exportWorkflowAction, self.export_workflow_default),
             (self.saveRegistryAction, self.save_registry_default),
             (self.exportRegistryAction, self.export_registry_default),
-            (self.saveVersionTreeToPDFAction, self.save_tree_to_pdf),
-            (self.saveWorkflowToPDFAction, self.save_workflow_to_pdf),
+            (self.savePDFAction, self.save_pdf),
             (self.expandBranchAction, self.expandBranch),
             (self.collapseBranchAction, self.collapseBranch),
             (self.collapseAllAction, self.collapseAll),
@@ -724,26 +729,34 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.openFileAction.setStatusTip('Open an existing vistrail from '
                                              'a database')
             self.importFileAction.setIcon(CurrentTheme.OPEN_VISTRAIL_ICON)
+            self.importFileAction.setText('From XML File...')
             self.importFileAction.setStatusTip('Import an existing vistrail '
                                                ' from a file')
             self.saveFileAction.setStatusTip('Save the current vistrail '
                                              'to a database')
             self.saveFileAsAction.setStatusTip('Save the current vistrail to a '
                                                'different database location')
+            self.exportFileAction.setText('To XML File...')
             self.exportFileAction.setStatusTip('Save the current vistrail to '
                                                ' a file')
+            self.exportLogAction.setText('Log To XML File...')
             self.exportLogAction.setStatusTip('Save the execution log to '
                                               'a file')
+            self.saveLogAction.setText('Log To DB...')
             self.saveLogAction.setStatusTip('Save the execution log to '
                                             'a database')
+            self.exportWorkflowAction.setText('Workflow To XML File...')
             self.exportWorkflowAction.setStatusTip('Save the current workflow '
                                                    'to a file')
             self.importWorkflowAction.setStatusTip('Import a workflow from a '
                                                    'database')
+            self.saveWorkflowAction.setText('Workflow To DB...')
             self.saveWorkflowAction.setStatusTip('Save the current workflow '
                                                  'to a database')
+            self.exportRegistryAction.setText('Registry To XML File...')
             self.exportRegistryAction.setStatusTip('Save the current registry '
                                                    'to a file')
+            self.saveRegistryAction.setText('Registry To DB...')
             self.saveRegistryAction.setStatusTip('Save the current registry '
                                                  'to a database')
 
@@ -753,6 +766,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.openFileAction.setStatusTip('Open an existing vistrail from '
                                              'a file')
             self.importFileAction.setIcon(CurrentTheme.OPEN_VISTRAIL_DB_ICON)
+            self.importFileAction.setText('From DB...')
             self.importFileAction.setStatusTip('Import an existing vistrail '
                                                ' from a database')
             self.saveFileAction.setStatusTip('Save the current vistrail '
@@ -761,18 +775,24 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                'different file location')
             self.exportFileAction.setStatusTip('Save the current vistrail to '
                                                ' a database')
+            self.saveLogAction.setText('Log To XML...')
             self.saveLogAction.setStatusTip('Save the execution log to '
                                             'a file')
+            self.exportLogAction.setText('Log To DB...')
             self.exportLogAction.setStatusTip('Export the execution log to '
                                               'a database')
             self.importWorkflowAction.setStatusTip('Import a workflow from an '
                                                    'xml file')
+            self.saveWorkflowAction.setText('Workflow To XML File...')
             self.saveWorkflowAction.setStatusTip('Save the current workflow '
                                                  'to a file')
+            self.exportWorkflowAction.setText('Worfklow To DB...')
             self.exportWorkflowAction.setStatusTip('Save the current workflow '
                                                    'to a database')
+            self.saveRegistryAction.setText('Registry To XML File...')
             self.saveRegistryAction.setStatusTip('Save the current registry '
                                                  'to a file')
+            self.exportRegistryAction.setText('Registry To DB...')
             self.exportRegistryAction.setStatusTip('Save the current registry '
                                                    'to a database')
 
@@ -1027,24 +1047,19 @@ class QBuilderWindow(QtGui.QMainWindow):
 
     def import_workflow(self, locator_class):
         locator = locator_class.load_from_gui(self, Pipeline.vtType)
-        if not locator or not locator.is_valid():
-            ok = locator.update_from_gui()
-        else:
-            ok = True
-        if ok:
-            self.viewManager.open_workflow(locator)
-            self.closeVistrailAction.setEnabled(True)
-            self.saveFileAsAction.setEnabled(True)
-            self.exportFileAction.setEnabled(True)
-            self.vistrailMenu.menuAction().setEnabled(True)
-            self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
-            self.viewModeChanged(1)
-
-#     def import_workflow(self, invert=False, choose=True):
-#         if (invert and not self.dbDefault) or (not invert and self.dbDefault):
-#             self.viewManager.open_workflow(DBLocator)
-#         else:
-#             self.viewManager.open_workflow(XMLFileLocator)
+        if locator:
+            if not locator.is_valid():
+                ok = locator.update_from_gui()
+            else:
+                ok = True
+            if ok:
+                self.viewManager.open_workflow(locator)
+                self.closeVistrailAction.setEnabled(True)
+                self.saveFileAsAction.setEnabled(True)
+                self.exportFileAction.setEnabled(True)
+                self.vistrailMenu.menuAction().setEnabled(True)
+                self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
+                self.viewModeChanged(1)
 
     def import_workflow_default(self):
         self.import_workflow(XMLFileLocator)
@@ -1075,10 +1090,31 @@ class QBuilderWindow(QtGui.QMainWindow):
     def export_registry_default(self):
         self.save_registry(True)
 
-    def save_tree_to_pdf(self):
-        self.viewManager.save_tree_to_pdf()
-    def save_workflow_to_pdf(self):
-        self.viewManager.save_workflow_to_pdf()
+    def save_pdf(self):
+        active_window = VistrailsApplication.activeWindow()
+        view = None
+        if active_window and active_window.centralWidget() and \
+                hasattr(active_window.centralWidget(), 'saveToPDF'):
+            view = active_window.centralWidget()
+        elif active_window and hasattr(active_window, 'viewManager') and \
+                hasattr(active_window.viewManager.currentView().\
+                            stackedWidget.currentWidget().centralWidget(),
+                        'saveToPDF'):
+            view = active_window.viewManager.currentView().stackedWidget.\
+                currentWidget().centralWidget()
+
+        if view is not None:
+            fileName = QtGui.QFileDialog.getSaveFileName(
+                active_window,
+                "Save PDF...",
+                core.system.vistrails_file_directory(),
+                "PDF files (*.pdf)",
+                None)
+
+            if fileName.isEmpty():
+                return None
+            f = str(fileName)
+            view.saveToPDF(f)
 
     def quitVistrails(self):
         """ quitVistrails() -> bool

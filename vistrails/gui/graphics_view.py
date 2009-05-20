@@ -557,6 +557,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """
         return QtCore.QSize(512, 512)
 
+    def saveToPDF(self, filename):
+        self.scene().saveToPDF(filename)
+
     # Workaround for border aliasing on OSX
     # However, it breaks things on Linux, because it
     # makes zooming _extremely_ slow, so we check it

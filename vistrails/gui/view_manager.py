@@ -554,36 +554,31 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.controller.write_opm(locator)
             return True
         return False
-
-    def save_tree_to_pdf(self):
-        vistrailView = self.currentWidget()
-        fileName = QtGui.QFileDialog.getSaveFileName(
-            self,
-            "Save PDF...",
-            core.system.vistrails_file_directory(),
-            "PDF files (*.pdf)",
-            None)
-
-        if fileName.isEmpty():
-            return None
-        f = str(fileName)
-        vistrailView.versionTab.versionView.scene().saveToPDF(f)
-        
-    def save_workflow_to_pdf(self):
-        vistrailView = self.currentWidget()
-        fileName = QtGui.QFileDialog.getSaveFileName(
-            self,
-            "Save PDF...",
-            core.system.vistrails_file_directory(),
-            "PDF files (*.pdf)",
-            None)
-
-        if fileName.isEmpty():
-            return None
-        f = str(fileName)
-        vistrailView.pipelineTab.pipelineView.scene().saveToPDF(f)
-        
              
+    def export_stable(self, locator_class=XMLFileLocator,
+                      force_choose_locator=True):
+        vistrailView = self.currentWidget()
+        vistrailView.flush_changes()
+
+        if vistrailView:
+            vistrailView.flush_changes()
+            gui_get = locator_class.save_from_gui
+            if force_choose_locator:
+                locator = gui_get(self, Vistrail.vtType,
+                                  vistrailView.controller.locator)
+            else:
+                locator = (vistrailView.controller.locator or
+                           gui_get(self, Vistrail.vtType,
+                                   vistrailView.controller.locator))
+            if locator == untitled_locator():
+                locator = gui_get(self, Vistrail.vtType,
+                                  vistrailView.controller.locator)
+            if not locator:
+                return False
+            vistrailView.controller.write_vistrail(locator, '0.9.5')
+            return True
+        return False
+
     def closeVistrail(self, vistrailView=None, quiet=False):
         """ closeVistrail(vistrailView: QVistrailView, quiet: bool) -> bool
         Close the current active vistrail

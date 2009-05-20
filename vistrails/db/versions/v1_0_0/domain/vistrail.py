@@ -38,7 +38,7 @@ class DBVistrail(_DBVistrail):
         self.db_objects = {}
 
         # keep a reference to the current logging information here
-        self.log_filename = None
+        self.db_log_filename = None
         self.log = None
 
     def db_add_object(self, obj):

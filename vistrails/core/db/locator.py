@@ -74,9 +74,9 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         obj.locator = self
         return obj
 
-    def save_as(self, obj):
+    def save_as(self, obj, version=None):
         klass = obj.__class__
-        obj = _XMLFileLocator.save(self, obj, True)
+        obj = _XMLFileLocator.save(self, obj, True, version)
         klass.convert(obj)
         obj.locator = self
         return obj
@@ -397,8 +397,8 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
             obj[1].locator = self
         return objs
 
-    def save_as(self, objs):
-        objs = _ZIPFileLocator.save(self, objs, True)
+    def save_as(self, objs, version=None):
+        objs = _ZIPFileLocator.save(self, objs, True, version)
         # FIXME need to do some smarter conversions here
         for obj in objs:
             klass = self.get_convert_klass(obj[0])

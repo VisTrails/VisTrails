@@ -287,17 +287,17 @@ def open_from_xml(filename, type):
         raise VistrailsDBException("cannot open object of type "
                                    "'%s' from xml" % type)
 
-def save_to_xml(obj, filename):
+def save_to_xml(obj, filename, version=None):
     if obj.vtType == DBVistrail.vtType:
-        return save_vistrail_to_xml(obj, filename)
+        return save_vistrail_to_xml(obj, filename, version)
     elif obj.vtType == DBWorkflow.vtType:
-        return save_workflow_to_xml(obj, filename)
+        return save_workflow_to_xml(obj, filename, version)
     elif obj.vtType == DBLog.vtType:
-        return save_log_to_xml(obj, filename)
+        return save_log_to_xml(obj, filename, version)
     elif obj.vtType == DBRegistry.vtType:
-        return save_registry_to_xml(obj, filename)
+        return save_registry_to_xml(obj, filename, version)
     elif obj.vtType == DBOpmGraph.vtType:
-        return save_opm_to_xml(obj, filename)
+        return save_opm_to_xml(obj, filename, version)
     else:
         raise VistrailsDBException("cannot save object of type "
                                    "'%s' to xml" % type)
@@ -309,10 +309,10 @@ def open_from_zip_xml(filename, type):
         raise VistrailsDBException("cannot open object of type '%s' from zip" %\
                                        type)
 
-def save_to_zip_xml(objs, filename, tmp_dir=None):
+def save_to_zip_xml(objs, filename, tmp_dir=None, version=None):
     obj_type = objs[0][0]
     if obj_type == DBVistrail.vtType:
-        return save_vistrail_to_zip_xml(objs, filename, tmp_dir)
+        return save_vistrail_to_zip_xml(objs, filename, tmp_dir, version)
     else:
         raise VistrailsDBException("cannot save object of type '%s' to zip" % \
                                        obj_type)
@@ -487,7 +487,7 @@ def save_vistrail_to_xml(vistrail, filename, version=None):
     vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
 
     daoList = getVersionDAO(version)        
-    daoList.save_to_xml(vistrail, filename, tags, currentVersion)
+    daoList.save_to_xml(vistrail, filename, tags, version)
     return vistrail
 
 def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
@@ -657,7 +657,7 @@ def save_workflow_to_xml(workflow, filename, version=None):
     workflow = translate_workflow(workflow, workflow.db_version, version)
 
     daoList = getVersionDAO(version)
-    daoList.save_to_xml(workflow, filename, tags, currentVersion)
+    daoList.save_to_xml(workflow, filename, tags, version)
     return workflow
 
 def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
@@ -745,13 +745,13 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
         for workflow_exec in log.workflow_execs:
             # cannot do correct numbering here...
             workflow_exec.db_id = -1L
-            daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
+            daoList.save_to_xml(workflow_exec, log_file, {}, version)
         log_file.close()
     else:
         tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
                 'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
                 }
-        daoList.save_to_xml(log, filename, tags, currentVersion)
+        daoList.save_to_xml(log, filename, tags, version)
     return log
 
 def save_log_to_db(log, db_connection, do_copy=False, version=None):
@@ -795,7 +795,7 @@ def save_opm_to_xml(opm_graph, filename, version=None):
                                            opm_graph.version,
                                            opm_graph.log,
                                            opm_graph.registry)
-    daoList.save_to_xml(opm_graph, filename, tags, currentVersion)
+    daoList.save_to_xml(opm_graph, filename, tags, version)
     return opm_graph
 
 ##############################################################################
@@ -836,7 +836,7 @@ def save_registry_to_xml(registry, filename, version=None):
     registry = translate_registry(registry, registry.db_version, version)
 
     daoList = getVersionDAO(version)
-    daoList.save_to_xml(registry, filename, tags, currentVersion)
+    daoList.save_to_xml(registry, filename, tags, version)
     return registry
 
 def save_registry_to_db(registry, db_connection, do_copy=False, version=None):

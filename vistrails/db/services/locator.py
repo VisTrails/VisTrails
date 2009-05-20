@@ -97,8 +97,8 @@ class XMLFileLocator(BaseLocator):
         obj.locator = self
         return obj
 
-    def save(self, obj, do_copy=True):
-        obj = io.save_to_xml(obj, self._name)
+    def save(self, obj, do_copy=True, version=None):
+        obj = io.save_to_xml(obj, self._name, version)
         obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
@@ -280,7 +280,7 @@ class ZIPFileLocator(XMLFileLocator):
                 obj[1].locator = self
         return objs
 
-    def save(self, objs, do_copy=True):
+    def save(self, objs, do_copy=True, version=None):
         if do_copy:
             # make sure we create a fresh temporary directory if we're
             # duplicating the vistrail
@@ -288,7 +288,8 @@ class ZIPFileLocator(XMLFileLocator):
         else:
             # otherwise, use the existing temp directory if one is set
             tmp_dir = self.tmp_dir
-        (objs, tmp_dir) = io.save_to_zip_xml(objs, self._name, tmp_dir)
+        (objs, tmp_dir) = io.save_to_zip_xml(objs, self._name, tmp_dir, 
+                                             version)
         self.tmp_dir = tmp_dir
         for obj in objs:
             if obj[0] not in ['__file__', '__thumb__']:
