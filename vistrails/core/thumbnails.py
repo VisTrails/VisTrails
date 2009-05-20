@@ -137,6 +137,10 @@ class ThumbnailCache(object):
             entry = self.elements[key]
             del self.elements[key]
             os.unlink(entry.abs_name)
+        elif key in self.vtelements.keys():
+            entry = self.vtelements[key]
+            del self.vtelements[key]
+            os.unlink(entry.abs_name)
             
     def clear(self):
         self.elements = {}

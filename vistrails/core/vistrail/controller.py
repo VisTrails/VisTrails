@@ -1063,7 +1063,7 @@ class VistrailController(object):
             if action.thumbnail is not None:
                 if tags_only and action.timestep not in self.vistrail.tagMap.keys():
                     thumb_cache.remove(action.thumbnail)
-                    action.thumbnail = None
+                    self.vistrail.change_thumbnail("", action.timestep)
                 else:
                     abs_fname = thumb_cache.get_abs_name_entry(action.thumbnail)
                     thumbnails.append(abs_fname)

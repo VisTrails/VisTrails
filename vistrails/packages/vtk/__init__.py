@@ -393,6 +393,12 @@ def addSetGetPorts(module, get_set_dict, delayed):
             elif name == 'EdgeColor':
                 registry.add_input_port(module, 'SetEdgeColorWidget',
                                         (Color, 'color'), True)
+            elif name == 'Background' :
+                registry.add_input_port(module, 'SetBackgroundWidget', 
+                                        (Color, 'color'), True)
+            elif name == 'Background2' :
+                registry.add_input_port(module, 'SetBackground2Widget', 
+                                        (Color, 'color'), True)
 
 disallowed_toggle_ports = set(['GlobalWarningDisplay',
                                'Debug',
@@ -717,7 +723,21 @@ def class_dict(base_module, node):
         def call_SetEdgeColorWidget(self, color):
             self.vtkInstance.SetEdgeColor(color.tuple)
         return call_SetEdgeColorWidget
-
+    
+    def compute_SetBackgroundWidget(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetBackgroundWidget(self, color):
+            self.vtkInstance.SetBackground(color.tuple)
+        return call_SetBackgroundWidget
+    
+    def compute_SetBackground2Widget(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetBackground2Widget(self, color):
+            self.vtkInstance.SetBackground2(color.tuple)
+        return call_SetBackground2Widget
+    
     def compute_SetVTKCell(old_compute):
         if old_compute != None:
             return old_compute
@@ -807,13 +827,21 @@ def class_dict(base_module, node):
                     compute_SetAmbientColorWidget)
     if hasattr(node.klass, 'SetSpecularColor'):
         update_dict('_special_input_function_SetSpecularColorWidget',
-                    compute_SetDiffuseColorWidget)
+                    compute_SetSpecularColorWidget)
     if hasattr(node.klass, 'SetEdgeColor'):
         update_dict('_special_input_function_SetEdgeColorWidget',
                     compute_SetEdgeColorWidget)
     if hasattr(node.klass, 'SetColor'):
         update_dict('_special_input_function_SetColorWidget',
                     compute_SetColorWidget)
+    if (issubclass(node.klass, vtk.vtkRenderer) and 
+        hasattr(node.klass, 'SetBackground')):
+        update_dict('_special_input_function_SetBackgroundWidget',
+                    compute_SetBackgroundWidget)
+    if (issubclass(node.klass, vtk.vtkRenderer) and 
+        hasattr(node.klass, 'SetBackground2')):
+        update_dict('_special_input_function_SetBackground2Widget',
+                    compute_SetBackground2Widget)    
     if issubclass(node.klass, vtk.vtkWriter):
         update_dict('compute', guarded_Writer_wrap_compute)
 
