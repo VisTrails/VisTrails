@@ -237,7 +237,7 @@ allowed!'
             self.serialize()
             
     def remove_connection(self, id):
-        """remove_bookmark(id: int) -> None 
+        """remove_connection(id: int) -> None 
         Remove connection with id 'id'
         
         """

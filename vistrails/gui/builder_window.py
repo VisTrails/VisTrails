@@ -1210,18 +1210,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         sys.stdin = self.stdin
         sys.stderr = self.stderr
 
-#     def showBookmarks(self, checked=True):
-#         """ showBookmarks() -> None
-#         Display Bookmarks Interactor Window
-
-#         """
-#         if checked:
-#             if self.bookmarksWindow:
-#                 self.bookmarksWindow.show()
-#         else:
-#             if self.bookmarksWindow:
-#                 self.bookmarksWindow.hide()
-
     def showAboutMessage(self):
         """showAboutMessage() -> None
         Displays Application about message

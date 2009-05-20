@@ -375,7 +375,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.descriptionLabel = ''
         self.dragging = False
         self.ghosted = False
-        self.createActions()
 
         # self.rank is a positive number that determines the
         # saturation of the node. Two version nodes might have the
@@ -708,7 +707,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         Captures context menu event.
 
         """
-        #menu.addAction(self.addToBookmarksAct)
         controller = self.scene().controller
         if len(controller.analogy) > 0:
             menu = QtGui.QMenu()
@@ -721,14 +719,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                                        self.perform_analogy)
             menu.addMenu(analogies)
             menu.exec_(event.screenPos())
-
-    def createActions(self):
-        """ createActions() -> None
-        Create actions related to context menu 
-
-        """
-        self.addToBookmarksAct = QtGui.QAction("Add To Bookmarks", self.scene())
-        self.addToBookmarksAct.setStatusTip("Add this pipeline to bookmarks")
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """

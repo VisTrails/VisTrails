@@ -410,22 +410,6 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/console.png')
 
-        # Toolbar icon for toggling bookmarks window
-        self.BOOKMARKS_ICON = QtGui.QIcon(
-            core.system.vistrails_root_directory() +
-            '/gui/resources/images/bookmarks.png')
-        
-        # BOOKMARKS WINDOW
-        #Toolbar icon for removing bookmark
-        self.BOOKMARKS_REMOVE_ICON = QtGui.QIcon(
-            core.system.vistrails_root_directory() +
-            '/gui/resources/images/edittrash.png')
-
-        #Toolbar icon for reloading a bookmark
-        self.BOOKMARKS_RELOAD_ICON = QtGui.QIcon(
-            core.system.vistrails_root_directory() +
-            '/gui/resources/images/reload.png')
-
         # Background image of the Visual Diff pipeline view
         self.VISUAL_DIFF_BACKGROUND_IMAGE = QtGui.QImage(
             core.system.vistrails_root_directory() +

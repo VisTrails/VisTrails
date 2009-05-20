@@ -26,7 +26,6 @@ from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.version_prop import QVersionProp
 from gui.version_view import QVersionTreeView
-from gui.bookmark_window import BookmarksManager
 
 ################################################################################
         
@@ -60,9 +59,6 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('twoVersionsSelected(int,int)'),
                      self.twoVersionsSelected)
-        self.connect(self.versionView.scene(),
-                     QtCore.SIGNAL('addToBookmarks'),
-                     self.add_bookmark)
         self.connect(self.versionView,
                      QtCore.SIGNAL('resetQuery()'),
                      self.resetQuery)
@@ -154,15 +150,6 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         """
         if self.controller:
             self.versionView.versionProp.updateVersion(self.controller.current_version)
-
-    def add_bookmark(self, id, name):
-        """add_bookmark(id: int, label:name) -> None
-        Gather all information concerning the new bookmark and send it to 
-        BookmarksManager
-
-        """
-        vistrailsFile = self.controller.file_name
-        BookmarksManager.add_bookmark('',vistrailsFile,id,name)
 
     def resetQuery(self):
         """ resetQuery() -> None
