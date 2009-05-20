@@ -1475,6 +1475,26 @@ mutual connections."""
                 modules_to_be_deleted = self._old_module_ids - new_modules
                 common_modules = new_modules.intersection(self._old_module_ids)
 
+                new_connections = set(pipeline.connections)
+                connections_to_be_added = new_connections - self._old_connection_ids
+                connections_to_be_deleted = self._old_connection_ids - new_connections
+                common_connections = new_connections.intersection(self._old_connection_ids)
+                
+                # Check if connections to be added require 
+                # optional ports in modules to be visible
+                for c_id in connections_to_be_added:
+                    connection = pipeline.connections[c_id]
+                    smid = connection.source.moduleId
+                    s = connection.source.spec
+                    if s.optional:
+                        smm = pipeline.modules[smid]
+                        smm.portVisible.add((PortEndPoint.Source,s.name))
+                    dmid = connection.destination.moduleId   
+                    d = connection.destination.spec
+                    if d.optional:
+                        dmm = pipeline.modules[dmid]
+                        dmm.portVisible.add((PortEndPoint.Destination,d.name))
+                        
                 # remove old module shapes
                 for m_id in modules_to_be_deleted:
                     self.removeItem(self.modules[m_id])
@@ -1529,12 +1549,7 @@ mutual connections."""
                     else:
                         tm_item.setGhosted(False)
                     tm_item.setBreakpoint(nm.is_breakpoint)
-
-                new_connections = set(pipeline.connections)
-                connections_to_be_added = new_connections - self._old_connection_ids
-                connections_to_be_deleted = self._old_connection_ids - new_connections
-                common_connections = new_connections.intersection(self._old_connection_ids)
-
+                
                 # remove old connection shapes
                 for c_id in connections_to_be_deleted:
                     self.removeItem(self.connections[c_id])
