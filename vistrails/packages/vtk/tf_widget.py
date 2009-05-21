@@ -559,7 +559,7 @@ class vtkScaledTransferFunction(Module):
             
         self.setResult('TransferFunction', new_tf)
 
-
+string_conversion = staticmethod(lambda x: pickle.dumps(x).encode('hex'))
 conversion = staticmethod(lambda x: pickle.loads(x.decode('hex')))
 validation = staticmethod(lambda x: isinstance(x, TransferFunction))
 TransferFunctionConstant = new_constant('TransferFunction',
@@ -567,6 +567,7 @@ TransferFunctionConstant = new_constant('TransferFunction',
                                         default_tf,
                                         validation,
                                         TransferFunctionWidget)
+TransferFunctionConstant.translate_to_string = string_conversion
 
 ##############################################################################
 

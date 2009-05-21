@@ -865,12 +865,14 @@ class VistrailController(QtCore.QObject, BaseController):
             
             thumb_cache = ThumbnailCache.getInstance()
             if len(result.errors) == 0 and thumb_cache.conf.autoSave:
-                old_thumb = self.vistrail.actionMap[version].thumbnail
+                old_thumb_name = self.vistrail.actionMap[version].thumbnail
                 fname = thumb_cache.add_entry_from_cell_dump(
-                                        conf.spreadsheetDumpCells, old_thumb) 
-                self.vistrail.change_thumbnail(fname, version)
-                self.set_changed(True)
-                changed = True
+                                        conf.spreadsheetDumpCells, 
+                                        old_thumb_name)
+                if fname is not None: 
+                    self.vistrail.change_thumbnail(fname, version)
+                    self.set_changed(True)
+                    changed = True
                 
             if temp_folder_used:
                 remove_temp_folder(conf.spreadsheetDumpCells)

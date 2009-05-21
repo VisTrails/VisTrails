@@ -154,22 +154,25 @@ class ThumbnailCache(object):
         image file.
         
         """
-        if key:
-            fname = key
-        else:
-            fname = "%s.png" % str(uuid.uuid1())
+        
         image = self._merge_thumbnails(folder)
-        abs_fname = self._save_thumbnail(image, fname) 
-        statinfo = os.stat(abs_fname)
-        size = int(statinfo[6])
-        time = float(statinfo[8])
-        entry = CacheEntry(abs_fname, fname, time, size)
-        if self.size() + size > self.conf.cacheSize*1024*1024:
-            self.remove_lru(10)
+        fname = None
+        if image != None:
+            if key:
+                fname = key
+            else:
+                fname = "%s.png" % str(uuid.uuid1())
+            abs_fname = self._save_thumbnail(image, fname) 
+            statinfo = os.stat(abs_fname)
+            size = int(statinfo[6])
+            time = float(statinfo[8])
+            entry = CacheEntry(abs_fname, fname, time, size)
+            if self.size() + size > self.conf.cacheSize*1024*1024:
+                self.remove_lru(10)
                 
-        self.elements[fname] = entry
+            self.elements[fname] = entry
         return fname
-    
+        
     def add_entries_from_vtfile(self, absfnames):
         """add_entries_from_vtfile(absfnames: list of str) -> None
         In this case the files already exist in a temp file. We just keep a 
@@ -216,15 +219,18 @@ class ThumbnailCache(object):
                 #height = max(height, pix.height())
                 height += pix.height()
                 width = max(width,pix.width())
-        finalImage = QtGui.QImage(width, height, QtGui.QImage.Format_ARGB32)
-        painter = QtGui.QPainter(finalImage)
-        x = 0
-        for pix in pixmaps:
-            painter.drawPixmap(0, x, pix)
-            x += pix.height()
-        painter.end()
-        if width > ThumbnailCache.IMAGE_MAX_WIDTH:
-            finalImage = finalImage.scaledToWidth(ThumbnailCache.IMAGE_MAX_WIDTH)
+        if len(pixmaps) > 0:        
+            finalImage = QtGui.QImage(width, height, QtGui.QImage.Format_ARGB32)
+            painter = QtGui.QPainter(finalImage)
+            x = 0
+            for pix in pixmaps:
+                painter.drawPixmap(0, x, pix)
+                x += pix.height()
+            painter.end()
+            if width > ThumbnailCache.IMAGE_MAX_WIDTH:
+                finalImage = finalImage.scaledToWidth(ThumbnailCache.IMAGE_MAX_WIDTH)
+        else:
+            finalImage = None
         return finalImage
 
     def _save_thumbnail(self, pngimage, fname):
