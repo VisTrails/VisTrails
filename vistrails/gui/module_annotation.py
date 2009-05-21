@@ -109,10 +109,15 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
             self.setRowCount(len(self.module.annotations)+1)
             curRow = 0
             for annotation in self.module.annotations:
-                self.setItem(curRow, 0, QtGui.QTableWidgetItem(annotation.key))
-                item = QtGui.QTableWidgetItem(annotation.value)
-                self.setItem(curRow, 1, item)
-                curRow += 1
+                if annotation.key == '__desc__':
+                    # We don't display the '__desc__' annotation in the list
+                    # anymore. If it's present we decrease the rowcount by 1
+                    self.setRowCount(len(self.module.annotations))
+                else:
+                    self.setItem(curRow, 0, QtGui.QTableWidgetItem(annotation.key))
+                    item = QtGui.QTableWidgetItem(annotation.value)
+                    self.setItem(curRow, 1, item)
+                    curRow += 1
             self.setEnabled(True)
         else:
             self.setRowCount(1)
@@ -218,7 +223,13 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             if text!='' and text!=key:
                 if (self.table.module and
                     self.table.module.has_annotation_with_key(text)):
-                    QtGui.QMessageBox.information(None,
+                    if text == '__desc__':
+                        QtGui.QMessageBox.information(None,
+                                                      "VisTrails",
+                                    'Please use "Set Module Label..." menu option'
+                                    ' to set the label for this module.')
+                    else:
+                        QtGui.QMessageBox.information(None,
                                                   "VisTrails",
                                                   text + ' already exists in '
                                                   'the annotations.')
