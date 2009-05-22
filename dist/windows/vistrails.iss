@@ -1,6 +1,6 @@
 ;############################################################################
 ;##
-;## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+;## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ;##
 ;## This file is part of VisTrails.
 ;##
@@ -21,7 +21,7 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.1.1
+AppVerName=VisTrails 1.3
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$9d5942
@@ -33,25 +33,23 @@ DisableDirPage=false
 PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
+LicenseFile=Input\license.txt
 [Files]
 Source: C:\Python25\w9xpopen.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\*.dll; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\python.exe.manifest; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\LICENSE.txt; DestDir: {app}\vistrails\Python25
-Source: C:\Python25\pylupdate4.exe; DestDir: {app}\vistrails\Python25
-Source: C:\Python25\pyrcc4.exe; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\python.exe; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\pythonw.exe; DestDir: {app}\vistrails\Python25
-Source: C:\Python25\pyuic4.bat; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\README.txt; DestDir: {app}\vistrails\Python25
-Source: C:\Python25\sip.exe; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\DLLs\*; DestDir: {app}\vistrails\Python25\DLLs
 Source: C:\Python25\include\*; DestDir: {app}\vistrails\Python25\include
 Source: C:\Python25\Lib\*; DestDir: {app}\vistrails\Python25\Lib; Flags: recursesubdirs
 Source: C:\Python25\libs\*; DestDir: {app}\vistrails\Python25\libs
 Source: C:\Python25\Scripts\*; DestDir: {app}\vistrails\Python25\Scripts
-Source: C:\Python25\sip\*; DestDir: {app}\vistrails\Python25\sip; Flags: recursesubdirs
 Source: C:\Python25\tcl\*; DestDir: {app}\vistrails\Python25\tcl; Flags: recursesubdirs
 Source: C:\Python25\Tools\*; DestDir: {app}\vistrails\Python25\Tools; Flags: recursesubdirs
-Source: C:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
+Source: E:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chembiogrid_webservice.vt; DestDir: {app}\examples; Components: examples
@@ -89,11 +87,14 @@ Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}\vistrails
-Source: C:\Qt\4.4.0\bin\*.dll; DestDir: {app}\vistrails
-Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails
-Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails\Python25
-Source: C:\src\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
-Source: C:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
+;Source: C:\Qt\4.4.0\bin\*.dll; DestDir: {app}\vistrails
+Source: C:\Python25\Lib\site-packages\PyQt4\plugins\iconengines\*; DestDir: {app}\vistrails\Python25\plugins\iconengines
+Source: C:\Python25\Lib\site-packages\PyQt4\plugins\imageformats\*; DestDir: {app}\vistrails\Python25\plugins\imageformats
+Source: Input\qt.conf; DestDir: {app}\vistrails\Python25
+;Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails
+;Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails\Python25
+Source: E:\src\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
+Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 [Dirs]
 Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
