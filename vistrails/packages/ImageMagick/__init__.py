@@ -29,6 +29,10 @@ operations exposed by the ImageMagick package.
 ##############################################################################
 # Changes
 #
+# 20090521 (by Emanuele)
+#    Added path configuration option so imagemagick does not to be in the path
+#    Removed ImageMagick presence check
+#
 # 20081002:
 #    Added CombineRGBA to create image from channels.
 #    Moved quiet to configuration
@@ -38,6 +42,7 @@ operations exposed by the ImageMagick package.
 import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
+from core import debug
 from core.modules.vistrails_module import Module, ModuleError, new_module, \
      IncompleteImplementation
 import core.configuration
@@ -51,8 +56,9 @@ import popen2
 
 identifier = 'edu.utah.sci.vistrails.imagemagick'
 name = 'ImageMagick'
-version = '0.9.1'
-configuration = core.configuration.ConfigurationObject(quiet=False)
+version = '0.9.2'
+configuration = core.configuration.ConfigurationObject(quiet=False,
+                                                       path=(None, str))
 
 ################################################################################
 
@@ -110,7 +116,14 @@ indicated by the appropriate ports (geometry or width and height)"""
     def run(self, *args):
         """run(*args), runs ImageMagick's 'convert' on a shell, passing all
 arguments to the program."""
-        cmd = ['convert'] + list(args)
+        path = None
+        if configuration.check('path'):
+            path = configuration.path
+        if path:
+            cmd = os.path.join(path,'convert')
+        else:
+            cmd = 'convert'    
+        cmd = [cmd] + list(args)
         cmdline = list2cmdline(cmd)
         if not configuration.quiet:
             print cmdline
@@ -142,7 +155,15 @@ outputFormat port."""
         g = self.getInputFromPort("g")
         b = self.getInputFromPort("b")
         a = self.getInputFromPort("a")
-        cmd = ['convert', '-channel', 'RGBA', '-combine',
+        
+        path = None
+        if configuration.check('path'):
+            path = configuration.path
+        if path:
+            cmd = os.path.join(path,'convert')
+        else:
+            cmd = 'convert'    
+        cmd = [cmd, '-channel', 'RGBA', '-combine',
                r.name, g.name, b.name, a.name, o.name]
         if not configuration.quiet:
             print cmd
@@ -247,35 +268,38 @@ def initialize():
             err = "Parse error on version line. Was expecting '%s', got '%s'"
             raise Exception(err % (s, expected))
     
-    print "ImageMagick VisTrails package"
-    print "-----------------------------"
-    print "Will test ImageMagick presence..."
-
-    
-
-    if (not core.requirements.executable_file_exists('convert') and
-        not core.bundles.install({'linux-ubuntu': 'imagemagick'})):
-        raise core.requirements.MissingRequirement("ImageMagick suite")
-    if core.system.systemType not in ['Windows', 'Microsoft']: 
-        process = popen2.Popen4("convert -version")
-
-        result = -1
-        while result == -1:
-            result = process.poll()
-        conv_output = process.fromchild
-    else:
-        conv_output, input = popen2.popen4("convert -version")
-        result = 0
-        
-    version_line = conv_output.readlines()[0][:-1].split(' ')
-    if result != 0:
-        raise Exception("ImageMagick does not seem to be present.")
-    print "Ok, found ImageMagick"
-    parse_error_if_not_equal(version_line[0], 'Version:')
-    parse_error_if_not_equal(version_line[1], 'ImageMagick')
-    print "Detected version %s" % version_line[2]
-    global __version__
-    __version__ = version_line[2]
+    debug.log("ImageMagick VisTrails package")
+#    print "Will test ImageMagick presence..."
+#
+#    if not configuration.check('path'):
+#        cmd = 'convert'
+#        if (not core.requirements.executable_file_exists('convert') and
+#            not core.bundles.install({'linux-ubuntu': 'imagemagick'})):
+#            raise core.requirements.MissingRequirement("ImageMagick suite")
+#    else:
+#        cmd = os.path.join(configuration.path,'convert')
+#    cmdline = list2cmdline([cmd, '-version'])
+#    
+#    if core.system.systemType not in ['Windows', 'Microsoft']: 
+#        process = popen2.Popen4(cmdline)
+#
+#        result = -1
+#        while result == -1:
+#            result = process.poll()
+#        conv_output = process.fromchild
+#    else:
+#        conv_output, input = popen2.popen4(cmdline)
+#        result = 0
+#        
+#    version_line = conv_output.readlines()[0][:-1].split(' ')
+#    if result != 0:
+#        raise Exception("ImageMagick does not seem to be present.")
+#    print "Ok, found ImageMagick"
+#    parse_error_if_not_equal(version_line[0], 'Version:')
+#    parse_error_if_not_equal(version_line[1], 'ImageMagick')
+#    print "Detected version %s" % version_line[2]
+#    global __version__
+#    __version__ = version_line[2]
 
     reg = core.modules.module_registry.get_module_registry()
     basic = core.modules.basic_modules

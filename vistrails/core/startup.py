@@ -182,9 +182,10 @@ by startup.py. This should only be called after init()."""
             """
             self._package_manager.add_package(packageName)
 
-        def create_user_packages_dir():
+        def create_user_packages_dir(userpackagesname=None):
             debug.warning('Will try to create userpackages directory')
-            userpackagesname = os.path.join(self.temp_configuration.dotVistrails,
+            if userpackagesname is None:
+                userpackagesname = os.path.join(self.temp_configuration.dotVistrails,
                                             'userpackages')
             if not os.path.isdir(userpackagesname):
                 try:
@@ -212,9 +213,10 @@ by startup.py. This should only be called after init()."""
                 debug.critical(msg)
                 sys.exit(1)
                 
-        def create_thumbnails_dir():
+        def create_thumbnails_dir(thumbnails_dir=None):
             debug.log('Will try to create thumbnails directory')
-            thumbnails_dir = os.path.join(self.temp_configuration.dotVistrails,
+            if thumbnails_dir is None:
+                thumbnails_dir = os.path.join(self.temp_configuration.dotVistrails,
                                             'thumbs')
 
             if not os.path.isdir(thumbnails_dir):
@@ -232,7 +234,7 @@ by startup.py. This should only be called after init()."""
                     debug.critical(msg)
                     sys.exit(1)   
                                 
-        def create_abstractions_dir():
+        def create_abstractions_dir(abstractions_dir=None):
             debug.log('Will try to create subworkflows directory')
             abstractions_dir = os.path.join(self.temp_configuration.dotVistrails,
                                             'subworkflows')
@@ -352,20 +354,30 @@ by startup.py. This should only be called after init()."""
                     debug.warning("Failed to erase temporary file.")
 
             if os.path.isdir(self.temp_configuration.dotVistrails):
-                userpackages = os.path.join(self.temp_configuration.dotVistrails,
+                if self.temp_configuration.check('userPackageDirectory'):
+                    userpackages = self.temp_configuration.userPackageDirectory
+                else:
+                    userpackages = os.path.join(self.temp_configuration.dotVistrails,
                                             'userpackages')
                 startup = os.path.join(self.temp_configuration.dotVistrails,
                                        'startup.py')
-                abstractions = os.path.join(self.temp_configuration.dotVistrails,
+                if self.temp_configuration.check('abstractionsDirectory'):
+                    abstractions = self.temp_configuration.abstractionsDirectory
+                else:
+                    abstractions = os.path.join(self.temp_configuration.dotVistrails,
                                             'subworkflows')
-                thumbnails = os.path.join(self.temp_configuration.dotVistrails,
+                if (self.temp_configuration.has('thumbs') and
+                    self.temp_configuration.thumbs.check('cacheDirectory')):
+                    thumbnails = self.temp_configuration.thumbs.cacheDirectory
+                else:
+                    thumbnails = os.path.join(self.temp_configuration.dotVistrails,
                                           'thumbs')
                 if not os.path.isdir(userpackages):
-                    create_user_packages_dir()
+                    create_user_packages_dir(userpackages)
                 if not os.path.isdir(abstractions):
-                    create_abstractions_dir()
+                    create_abstractions_dir(abstractions)
                 if not os.path.isdir(thumbnails):
-                    create_thumbnails_dir()
+                    create_thumbnails_dir(thumbnails)
                 try:
                     
                     dotVistrails = file(startup)
@@ -388,7 +400,7 @@ by startup.py. This should only be called after init()."""
                         not exist.""")
                         sys.exit(1)
                     debug.critical('%s not found' % startup)
-                    debug.critical('Will try to install default' +
+                    debug.critical('Will try to install default ' +
                                               'startup file')
                     install_default_startup()
                     install_default_startupxml_if_needed()
@@ -441,11 +453,11 @@ by startup.py. This should only be called after init()."""
         #these checks may need to update the persistent configuration, so
         # we have to change both objects
         #userpackages directory
-        if not self.temp_configuration.has('userPackageDirectory'):
+        if not self.temp_configuration.check('userPackageDirectory'):
             s = os.path.join(self.temp_configuration.dotVistrails,
                              'userpackages')
             self.temp_configuration.userPackageDirectory = s
-        if not self.configuration.has('userPackageDirectory'):
+        if not self.configuration.check('userPackageDirectory'):
             s = os.path.join(self.configuration.dotVistrails,
                              'userpackages')
             self.configuration.userPackageDirectory = s
@@ -457,7 +469,7 @@ by startup.py. This should only be called after init()."""
             s = os.path.join(self.temp_configuration.dotVistrails,
                              'subworkflows')
             self.temp_configuration.abstractionsDirectory = s
-        if not self.configuration.has('abstractionsDirectory') or \
+        if not self.configuration.check('abstractionsDirectory') or \
                 self.configuration.abstractionsDirectory == \
                 os.path.join(self.configuration.userPackageDirectory, 
                              'abstractions'):
@@ -480,7 +492,9 @@ by startup.py. This should only be called after init()."""
                              'vistrails.log')
             self.temp_configuration.logFile = s
         if not self.configuration.check('logFile'):
-            s = os.path.join(self.configuration.dotVistrails,
+            # if this was not set before, it should point to the
+            # value in temp_configuration
+            s = os.path.join(self.temp_configuration.dotVistrails,
                              'vistrails.log')
             self.configuration.logFile = s
         if not os.path.lexists(self.temp_configuration.dotVistrails):

@@ -51,7 +51,7 @@ class QPackageConfigurationDialog(QtGui.QDialog):
         self.setLayout(layout)
         self._status_bar = QtGui.QStatusBar(self)
 
-        self._configuration_widget = QConfigurationWidget(self, c,
+        self._configuration_widget = QConfigurationWidget(self, c, c,
                                                           self._status_bar)
         layout.addWidget(self._configuration_widget)
 
