@@ -28,7 +28,8 @@ OPTIONS = {'argv_emulation': True,
            'includes': 'sip,pylab,xml,netCDF3,netCDF4_utils,netcdftime,\
 			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
                         shelve, uuid, gridfield, gridfield.core, \
-                        gridfield.algebra, gridfield.gfvis, gridfield.selfe',
+                        gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
+                        sine,st',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,ZSI,api,twisted,pyGridWare,Ft',
            'plist': plist,
            }

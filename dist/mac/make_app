@@ -22,6 +22,8 @@ echo "copying examples folder..."
 cp -r Input/examples dist/
 echo "copying README file..."
 cp Input/README dist/
+echo "copying LICENSE file..."
+cp Input/LICENSE dist/
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/Vistrails.app dist/VisTrails/
