@@ -94,13 +94,11 @@ class Vistrail(DBVistrail):
         if other is None:
             self.changed = False
             self.currentVersion = -1
-            self.currentGraph = None
             self.savedQueries = []
             self.is_abstraction = False
         else:
             self.changed = other.changed
             self.currentVersion = other.currentVersion
-            self.currentGraph = other.currentGraph
             self.savedQueries = copy.copy(other.savedQueries)
             self.is_abstraction = other.is_abstraction
 
@@ -968,53 +966,6 @@ class Vistrail(DBVistrail):
                                 action.timestep,
                                0)
         return result
-
-    # FIXME: remove this function (left here only for transition)
-    # the idea of terse graph does not need 
-    # to be so intrinsic to be in the Vistrail 
-    # class. It can be treated in a higher layer.
-    def getTerseGraph(self):
-        """ getTerseGraph() -> Graph 
-        Returns the version graph skiping the non-tagged internal nodes. 
-        Branches are kept.
-        
-        """
-        complete = self.getVersionGraph()
-        x = []
-        x.append(0)
-        while len(x):
-            current = x.pop()
-            efrom = complete.edges_from(current)
-            eto = complete.edges_to(current)
-
-            for (e1,e2) in efrom:
-                x.append(e1)
-            if len(efrom) == 1 and len(eto) == 1 and not self.hasTag(current):
-                to_me = eto[0][0]
-                from_me = efrom[0][0]
-                complete.delete_edge(current, from_me, None)
-                complete.change_edge(to_me, current, from_me, None, -1)
-                # complete.delete_edge(to_me, current, None)
-                # complete.add_edge(to_me, from_me, -1)
-                complete.delete_vertex(current)
-        return complete
-
-    def getCurrentGraph(self):
-        """getCurrentGraph() -> Graph
-        returns the current version graph. if there is not one, returns the
-        terse graph instead 
-
-        """
-        if not self.currentGraph:
-            self.currentGraph=copy.copy(self.getTerseGraph())
-        return self.currentGraph
-
-    def setCurrentGraph(self, newGraph):
-        """setCurrentGraph(newGraph: Graph) -> None
-        Sets a copy of newGraph as the currentGraph. 
-
-        """
-        self.currentGraph=copy.copy(newGraph)
 
     def getDate(self):
 	""" getDate() -> str - Returns the current date and time. """

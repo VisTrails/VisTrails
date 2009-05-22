@@ -28,8 +28,9 @@ import re
 
 class VisualQuery(query.Query):
 
-    def __init__(self, pipeline):
+    def __init__(self, pipeline, versions_to_check):
         self.queryPipeline = copy.copy(pipeline)
+        self.versions_to_check = versions_to_check
 
     def heuristicDAGIsomorphism(self,
                                 target, template,
@@ -72,8 +73,7 @@ class VisualQuery(query.Query):
     def run(self, vistrail, name):
         result = []
         self.tupleLength = 2
-        versions = vistrail.getTerseGraph().vertices.keys()
-        for version in versions:
+        for version in self.versions_to_check:
             p = vistrail.getPipeline(version)
             matches = set()
             queryModuleNameIndex = {}

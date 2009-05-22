@@ -1360,7 +1360,7 @@ class VistrailController(QtCore.QObject, BaseController):
         prev = None
         try:
             prev = self._current_full_graph.parent(self.current_version)
-        except full.CalledParentOnSourceVertex:
+        except Graph.VertexHasNoParentError:
             prev = 0
 
         self._change_version_short_hop(prev)
@@ -2012,7 +2012,11 @@ class VistrailController(QtCore.QObject, BaseController):
         if len(pipeline.modules)==0:
             search = TrueSearch()
         else:
-            search = VisualQuery(pipeline)
+            if not self._current_terse_graph:
+                self.recompute_terse_graph()
+            versions_to_check = \
+                set(self._current_terse_graph.vertices.iterkeys())
+            search = VisualQuery(pipeline, versions_to_check)
 
         self.set_search(search, '') # pipeline.dump_to_string())
 
