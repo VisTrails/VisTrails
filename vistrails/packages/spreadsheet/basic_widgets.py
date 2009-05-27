@@ -226,6 +226,8 @@ class SpreadsheetCell(NotCacheable, Module):
         e.inputPorts = inputPorts
         QtCore.QCoreApplication.processEvents()
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
+        if spreadsheetWindow.echoMode == False:
+            spreadsheetWindow.show()
         return spreadsheetWindow.displayCellEvent(e)
 
 class SingleCellSheetReference(SheetReference):

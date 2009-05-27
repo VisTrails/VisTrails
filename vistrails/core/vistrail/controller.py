@@ -28,6 +28,10 @@ import shutil
 
 from core.configuration import get_vistrails_configuration
 import core.db.io
+import core.db.locator
+from core.interpreter.default import get_default_interpreter
+from core.log.controller import LogController, DummyLogController
+from core.log.log import Log
 from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
@@ -35,7 +39,7 @@ from core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule
 from core.modules.sub_module import new_abstraction, read_vistrail
 from core.thumbnails import ThumbnailCache
-from core.utils import VistrailsInternalError, PortAlreadyExists
+from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.connection import Connection
 from core.vistrail.group import Group
@@ -48,21 +52,102 @@ from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from db.domain import IdScope
+from db.services.io import create_temp_folder, remove_temp_folder
 
 class VistrailController(object):
     def __init__(self, vistrail=None, id_scope=None):
         self.vistrail = vistrail
         self.id_scope = id_scope
+        self.current_session = -1
+        self.log = Log()
         if vistrail is not None:
             self.id_scope = vistrail.idScope
-
-    def set_vistrail(self, vistrail):
+            self.current_session = vistrail.idScope.getNewId('session')
+            vistrail.current_session = self.current_session
+            vistrail.log = self.log
+        self.current_pipeline = None
+        self.locator = None
+        self.current_version = -1
+        self.changed = False
+        
+    def logging_on(self):
+        from core.configuration import get_vistrails_configuration
+        return not get_vistrails_configuration().check('nologger')
+            
+    def get_logger(self):
+        if self.logging_on():
+            return LogController(self.log)
+        else:
+            return DummyLogController()
+        
+    def get_locator(self):
+        return self.locator
+    
+    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
         self.vistrail = vistrail
-        if vistrail is not None:
-            self.id_scope = vistrail.idScope
-
+        if self.vistrail is not None:
+            self.id_scope = self.vistrail.idScope
+            self.current_session = self.vistrail.idScope.getNewId("session")
+            self.vistrail.current_session = self.current_session
+            self.vistrail.log = self.log
+            if abstractions is not None:
+                self.ensure_abstractions_loaded(self.vistrail, abstractions)
+            if thumbnails is not None:
+                ThumbnailCache.getInstance().add_entries_from_vtfile(thumbnails)
+        self.current_version = -1
+        self.current_pipeline = None
+        if self.locator != locator and self.locator is not None:
+            self.locator.clean_temporaries()
+        self.locator = locator
+        
+    def close_vistrail(self, locator):
+        if locator is not None:
+            locator.close()
+               
     def set_id_scope(self, id_scope):
         self.id_scope = id_scope
+
+    def set_changed(self, changed):
+        """ set_changed(changed: bool) -> None
+        Set the current state of changed and emit signal accordingly
+        
+        """
+        if changed!=self.changed:
+            self.changed = changed
+        
+    def check_alias(self, name):
+        """check_alias(alias) -> Boolean 
+        Returns True if current pipeline has an alias named name """
+        # FIXME Why isn't this call on the pipeline?
+        return self.current_pipeline.has_alias(name)
+    
+    ##########################################################################
+    # Actions, etc
+    
+    def perform_action(self, action):
+        """ performAction(action: Action) -> timestep
+        
+        Performs given action on current pipeline.
+        
+        """
+        self.current_pipeline.perform_action(action)
+        self.current_version = action.db_id
+        return action.db_id
+    
+    def add_new_action(self, action):
+        """add_new_action(action) -> None
+
+        Call this function to add a new action to the vistrail being
+        controlled by the vistrailcontroller.
+
+        FIXME: In the future, this function should watch the vistrail
+        and get notified of the change.
+
+        """
+        self.vistrail.add_action(action, self.current_version, 
+                                 self.current_session)
+        self.set_changed(True)
+        self.current_version = action.db_id
 
     def create_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
                                       internal_version=-1):
@@ -1068,3 +1153,289 @@ class VistrailController(object):
                     abs_fname = thumb_cache.get_abs_name_entry(action.thumbnail)
                     thumbnails.append(abs_fname)
         return thumbnails
+    
+    ##########################################################################
+    # Workflow Execution
+    
+    def execute_workflow_list(self, vistrails):
+        """execute_workflow_list(vistrails: list) -> (results, bool)"""
+        
+        interpreter = get_default_interpreter()
+        changed = False
+        results = []
+        for vis in vistrails:
+            (locator, version, pipeline, view, aliases) = vis
+            kwargs = {'locator': locator,
+                      'current_version': version,
+                      'view': view,
+                      'logger': self.get_logger(),
+                      'controller': self,
+                      'aliases': aliases,
+                      }
+            conf = get_vistrails_configuration()
+            temp_folder_used = False
+            if not conf.check('spreadsheetDumpCells'):
+                conf.spreadsheetDumpCells = create_temp_folder(prefix='vt_thumb')
+                temp_folder_used = True
+                
+            result = interpreter.execute(pipeline, **kwargs)
+            
+            thumb_cache = ThumbnailCache.getInstance()
+            if len(result.errors) == 0 and thumb_cache.conf.autoSave:
+                old_thumb_name = self.vistrail.actionMap[version].thumbnail
+                fname = thumb_cache.add_entry_from_cell_dump(
+                                        conf.spreadsheetDumpCells, 
+                                        old_thumb_name)
+                if fname is not None: 
+                    self.vistrail.change_thumbnail(fname, version)
+                    self.set_changed(True)
+                    changed = True
+                
+            if temp_folder_used:
+                remove_temp_folder(conf.spreadsheetDumpCells)
+                conf.spreadsheetDumpCells = (None, str)
+                
+            results.append(result)
+            
+        if self.logging_on():
+            self.set_changed(True)
+            
+        if interpreter.debugger:
+            interpreter.debugger.update_values()
+        return (results,changed)
+    
+    def execute_current_workflow(self, custom_aliases=None):
+        """ execute_current_workflow() -> (list, bool)
+        Execute the current workflow (if exists)
+        
+        """
+        if self.current_pipeline:
+            locator = self.get_locator()
+            if locator:
+                locator.clean_temporaries()
+                locator.save_temporary(self.vistrail)
+            view = DummyView()
+            return self.execute_workflow_list([(self.locator,
+                                         self.current_version,
+                                         self.current_pipeline,
+                                         view,
+                                         custom_aliases)])
+            
+    def change_selected_version(self, new_version):
+        """ change_selected_version(new_version: int) -> None        
+        Change the current vistrail version into new_version
+        
+        """
+        def switch_version():
+            #TODO: This is the simplest thing to do. Maybe we should do the
+            #      same optimizations in gui.vistrail_controller
+            
+            if new_version == self.current_version:
+                # we don't even need to check connection specs or
+                # registry
+                return self.current_pipeline
+            else:
+                return self.vistrail.getPipeline(new_version)
+            
+        def handle_missing_packages(e):
+            """ handle_missing_packages(exception) -> Boolean
+
+            handle_missing_package tries to fill in missing modules or
+            packages in the registry. The 'exception' parameter should
+            be the exception raised by the package manager.
+
+            Returns True if changes have been made to the registry,
+            which means reloading a pipeline that previously failed
+            with missing packages might work now.
+            """
+
+            # if package is present, then we first let the package know
+            # that the module is missing - this might trigger
+            # some new modules.
+
+            def try_to_enable_package(identifier):
+                pkg = pm.identifier_is_available(identifier)
+                if pkg:
+                    # Ok, user wants to late-enable it. Let's give it a shot
+                    try:
+                        pm.late_enable_package(pkg.codepath)
+                    except pkg.InitializationFailed:
+                        message = """Package '%s' failed during initialization.
+Please contact the developer of that package and report a bug""" % pkg.name
+                        debug.critical(message)
+                        return False
+                    except pkg.MissingDependency, e:
+                        for dependency in e.dependencies:
+                            if not try_to_enable_package(dependency):
+                                return False
+                    except Exception, e:
+                        msg = "Weird - this exception '%s' shouldn't have happened" % str(e)
+                        raise VistrailsInternalError(msg)
+
+                    # there's a new package in the system, so we retry
+                    # changing the version by recursing, since other
+                    # packages/modules might still be needed.
+                    return True
+
+                # Package is not available, let's try to fetch it
+                rep = core.packagerepository.get_repository()
+                if rep:
+                    codepath = rep.find_package(identifier)
+                    if codepath:
+                        rep.install_package(codepath)
+                        return True
+                msg = "Cannot find package '%s' in\n \
+list of available packages. \n \
+Please install it first." % identifier
+                debug.critical(msg)
+                return False
+
+            pm = get_package_manager()
+            for err in e._exception_set:
+                if issubclass(err.__class__, ModuleRegistryException):
+                    try:
+                        pkg = pm.get_package_by_identifier(err._identifier)
+                        res = pkg.report_missing_module(err._name, 
+                                                        err._namespace)
+                        if not res:
+                            msg = "Cannot find module '%s' in\n \
+loaded package '%s'. A different package \
+version\n might be necessary." % (err._name, pkg.name)
+                            debug.critical(msg)
+                            return False
+#                         else:
+#                             # package reported success in handling missing
+#                             # module, so we retry changing the version by
+#                             # recursing, since other packages/modules
+#                             # might still be needed.
+#                             return True
+                    except pm.MissingPackage:
+                        pass
+                    # Ok, package is missing - let's see if user wants to
+                    # late-enable it.
+                    if not try_to_enable_package(err._identifier):
+                        return False
+                    # return try_to_enable_package(e._identifier)
+                        
+        if new_version == -1:
+            new_pipeline = None
+        else:
+            try:
+                new_pipeline = switch_version()
+            # except ModuleRegistryException, e:
+            except InvalidPipeline, e:
+                # we need to rollback the current pipeline. This is
+                # sort of slow, but we're going to present a dialog to
+                # the user anyway, so we can get away with this
+                
+                # currentVersion might be -1 and so currentPipeline
+                # will be None. We can't call getPipeline with -1
+                if self.current_version != -1:
+                    self.current_pipeline = self.vistrail.getPipeline(self.current_version)
+                else:
+                    assert self.current_pipeline is None
+                retry = handle_missing_packages(e)
+                if retry:
+                    # Things changed, try again recursively.
+                    return self.change_selected_version(new_version)
+                else:
+                    new_version = 0
+                    new_pipeline = self.vistrail.getPipeline(0)
+        # If execution arrives here, we handled all exceptions, so
+        # assign values
+        self.current_pipeline = new_pipeline
+        self.current_version = new_version
+        
+    def write_temporary(self):
+        if self.vistrail and self.changed:
+            locator = self.get_locator()
+            if locator:
+                locator.save_temporary(self.vistrail)
+                
+    def write_vistrail(self, locator, version=None):
+        if self.vistrail and (self.changed or self.locator != locator):
+            is_abstraction = self.vistrail.is_abstraction
+            # FIXME make all locators work with lists of objects
+            objs = [(Vistrail.vtType, self.vistrail)]
+            if self.log and len(self.log.workflow_execs) > 0:
+                objs.append((Log.vtType, self.log))
+            abstractions = self.find_abstractions(self.vistrail, True)
+            for abstraction in abstractions:
+                abs_module = abstraction.module_descriptor.module
+                if abs_module is not None:
+                    abs_fname = abs_module.vt_fname
+                    objs.append(('__file__', abs_fname))
+#             for abs_fname in abstractions:
+#                 objs.append(('__file__', abs_fname))
+            thumb_cache = ThumbnailCache.getInstance()
+            if thumb_cache.conf.autoSave:
+                thumbnails = self.find_thumbnails(
+                                    tags_only=thumb_cache.conf.tagsOnly)
+                for thumbnail in thumbnails:
+                    #print "appending: ", thumbnail
+                    objs.append(('__thumb__', thumbnail))
+            
+            # FIXME hack to use db_currentVersion for convenience
+            # it's not an actual field
+            self.vistrail.db_currentVersion = self.current_version
+            if self.locator != locator:
+                old_locator = self.get_locator()
+                self.locator = locator
+                # new_vistrail = self.locator.save_as(self.vistrail)
+                if type(self.locator) == core.db.locator.ZIPFileLocator:
+                    objs = self.locator.save_as(objs, version)
+                    new_vistrail = objs[0][1]
+                else:
+                    new_vistrail = self.locator.save_as(self.vistrail, version)
+                self.set_file_name(locator.name)
+                if old_locator:
+                    old_locator.clean_temporaries()
+                    old_locator.close()
+            else:
+                # new_vistrail = self.locator.save(self.vistrail)
+                if type(self.locator) == core.db.locator.ZIPFileLocator:
+                    objs = self.locator.save(objs)
+                    new_vistrail = objs[0][1]
+                else:
+                    new_vistrail = self.locator.save(self.vistrail)
+            # FIXME abstractions only work with FileLocators right now
+            if (is_abstraction and 
+                (type(self.locator) == core.db.locator.XMLFileLocator or
+                 type(self.locator) == core.db.locator.ZIPFileLocator)):
+                filename = self.locator.name
+                self.load_abstraction(filename, True)
+            if id(self.vistrail) != id(new_vistrail):
+                new_version = new_vistrail.db_currentVersion
+                self.set_vistrail(new_vistrail, locator)
+                self.change_selected_version(new_version)
+            self.set_changed(False)
+
+    def write_workflow(self, locator):
+        if self.current_pipeline:
+            pipeline = Pipeline()
+            # pipeline.set_abstraction_map(self.vistrail.abstractionMap)
+            for module in self.current_pipeline.modules.itervalues():
+                # if module.vtType == AbstractionModule.vtType:
+                #     abstraction = \
+                #         pipeline.abstraction_map[module.abstraction_id]
+                #     pipeline.add_abstraction(abstraction)
+                pipeline.add_module(module)
+            for connection in self.current_pipeline.connections.itervalues():
+                pipeline.add_connection(connection)            
+            locator.save_as(pipeline)
+
+    def write_expanded_workflow(self, locator):
+        if self.current_pipeline:
+            (workflow, _) = core.db.io.expand_workflow(self.vistrail, 
+                                                       self.current_pipeline)
+            locator.save_as(workflow)
+        
+    
+    def write_log(self, locator):
+        if self.log:
+            if self.vistrail.db_log_filename is not None:
+                log = core.db.io.merge_logs(self.log, 
+                                            self.vistrail.db_log_filename)
+            else:
+                log = self.log
+            locator.save_as(log)

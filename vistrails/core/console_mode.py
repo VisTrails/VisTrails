@@ -25,10 +25,12 @@ import uuid
 import core.interpreter.default
 import core.db.io
 from core.configuration import get_vistrails_configuration
+from core.db.io import load_vistrail
 from core.db.locator import XMLFileLocator, ZIPFileLocator
-from core.utils import (VistrailsInternalError, expression,
-                        DummyView)
+from core.utils import VistrailsInternalError, expression
+from core.vistrail.controller import VistrailController
 from core.vistrail.vistrail import Vistrail
+
 ################################################################################
     
 def run_and_get_results(w_list, parameters='', workflow_info=None, 
@@ -39,33 +41,13 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     version can be a tag name or a version id.
     
     """
-    #FIXME: console mode doesn't care about abstractions
-    import core.thumbnails
-    def load_vistrail(locator):
-        abstraction_files = []
-        thumbnail_files = []
-        vistrail = None
-        res = locator.load()
-        if type(res) == type([]):
-            vistrail = res[0][1]
-            for (t, file) in res[1:]:
-                if t == '__file__':
-                    abstraction_files.append(file)
-                elif t == '__thumb__':
-                    thumbnail_files.append(file)
-        else:
-            vistrail = res
-        return (vistrail, abstraction_files, thumbnail_files)
-    
     elements = parameters.split("&")
     aliases = {}
     result = []
-    thumb_cache = core.thumbnails.ThumbnailCache.getInstance()
     for locator, workflow in w_list:
         (v, abstractions , thumbnails)  = load_vistrail(locator)
-        # copy the thumbnails to local dir
-        if len(thumbnails) > 0:
-            thumb_cache.copy_thumbnails(thumbnails)
+        controller = VistrailController()
+        controller.set_vistrail(v, locator, abstractions, thumbnails)
         if type(workflow) == type("str"):
             version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
@@ -75,15 +57,15 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         else:
             msg = "Invalid version tag or number: %s" % workflow
             raise VistrailsInternalError(msg)
-
-        pip = v.getPipeline(version)
+        controller.change_selected_version(version)
+        
         for e in elements:
             pos = e.find("=")
             if pos != -1:
                 key = e[:pos].strip()
                 value = e[pos+1:].strip()
             
-                if pip.has_alias(key):
+                if controller.current_pipeline.has_alias(key):
                     aliases[key] = value
                     
         if workflow_info is not None:
@@ -98,51 +80,16 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             base_fname = "%s_%s_pipeline.xml" % (locator.short_name, version)
             filename = os.path.join(workflow_info, base_fname)
             core.db.io.save_workflow(pip, filename)
-
-        view = DummyView()
-        interpreter = core.interpreter.default.get_default_interpreter()
-
-        kwargs = {'locator': locator, 
-                  'current_version': version,
-                  'view': view,
-                  'aliases': aliases,
-                  }
-        if update_thumbs:
-            conf = get_vistrails_configuration()
-            temp_folder_used = False
-            if not conf.check('spreadsheetDumpCells'):
-                conf.spreadsheetDumpCells = core.db.io.create_temp_folder(prefix='vt_thumb')
-                temp_folder_used = True
-        run = interpreter.execute(pip, **kwargs)
+       
+        (results, changed) = controller.execute_current_workflow(aliases)
+        run = results[0]
         run.workflow_info = (locator.name, version)
-        run.pipeline = pip
-        objs = [(Vistrail.vtType, v)]
-        if update_thumbs:
-           if len(run.errors) == 0:
-               old_thumb = v.actionMap[version].thumbnail
-               fname = thumb_cache.add_entry_from_cell_dump(
-                                        conf.spreadsheetDumpCells, old_thumb)
-               v.change_thumbnail(fname, version) 
-               thumb_cache.save_thumbnail(image, fname)
-               #thumbs = v.find_thumbnails()
-               for thumbnail in thumbs:
-                   abs_fname = thumb_cache.get_abs_name_entry(thumbnail)
-                   if abs_fname is not None:
-                       objs.append(('__thumb__', abs_fname))
-           if temp_folder_used:
-              core.db.io.remove_temp_folder(conf.spreadsheetDumpCells)
-              conf.spreadsheetDumpCells = (None, str)
-                    
+        run.pipeline = controller.current_pipeline
+        
+
         #not sure if you need to add the abstractions back
         #but just to be safe
-        for abstraction in abstractions:
-           objs.append(('__file__', abstraction))
-                   
-        if type(locator) == ZIPFileLocator:
-            objs = locator.save(objs)
-        else:
-            locator.save(v)
-            locator.close()
+        controller.write_vistrail(locator)
         result.append(run)
     return result
     

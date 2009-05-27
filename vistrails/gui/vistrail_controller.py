@@ -31,8 +31,6 @@ from core.data_structures.graph import Graph
 from core.data_structures.point import Point
 from core.utils import VistrailsInternalError, ModuleAlreadyExists, \
     InvalidPipeline
-from core.log.controller import LogController, DummyLogController
-from core.log.log import Log
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.module_registry import ModuleRegistryException
@@ -60,7 +58,6 @@ from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
 from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
-from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
 from db.domain import IdScope
 from db.services.vistrail import getSharedRoot
@@ -117,14 +114,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.name = ''
         self.file_name = None
         self.set_file_name(name)
-        # self.vistrail = vis
-        self.log = Log()
-        self.current_session = -1
-        if vis is not None:
-            self.current_session = vis.idScope.getNewId('session')
-            vis.current_session = self.current_session
-            vis.log = self.log
-        self.current_pipeline = None
         # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
         self.current_pipeline_view = None
         self.vistrail_view = None
@@ -137,10 +126,8 @@ class VistrailController(QtCore.QObject, BaseController):
         # If self.refine is True, search mismatches are hidden instead
         # of ghosted
         self.refine = False
-        self.changed = False
         self.full_tree = False
         self.analogy = {}
-        self.locator = None
         # if self._auto_save is True, an auto_saving timer will save a temporary
         # file every 2 minutes
         self._auto_save = auto_save
@@ -196,16 +183,6 @@ class VistrailController(QtCore.QObject, BaseController):
     def disable_autosave(self):
         self._auto_save = False
 
-    def logging_on(self):
-        from gui.application import VistrailsApplication
-        return not VistrailsApplication.configuration.check('nologger')
-
-    def get_logger(self):
-        if self.logging_on():
-            return LogController(self.log)
-        else:
-            return DummyLogController()
-
     def get_locator(self):
         from gui.application import VistrailsApplication
         if (self._auto_save and 
@@ -227,24 +204,8 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         # self.vistrail = vistrail
-        BaseController.set_vistrail(self, vistrail)
-        if self.vistrail is not None:
-            self.current_session = self.vistrail.idScope.getNewId("session")
-            self.vistrail.current_session = self.current_session
-            self.vistrail.log = self.log
-            if abstractions is not None:
-                self.ensure_abstractions_loaded(self.vistrail, abstractions)
-            if thumbnails is not None:
-                ThumbnailCache.getInstance().add_entries_from_vtfile(thumbnails)
-
-#         if abstractions is not None:
-#             for abstraction_file in abstractions:
-#                 self.load_abstraction(abstraction_file, False)
-        self.current_version = -1
-        self.current_pipeline = None
-        if self.locator != locator and self.locator is not None:
-            self.locator.clean_temporaries()
-        self.locator = locator
+        BaseController.set_vistrail(self, vistrail, locator, abstractions,
+                                    thumbnails)
         if locator != None:
             self.set_file_name(locator.name)
         else:
@@ -252,10 +213,6 @@ class VistrailController(QtCore.QObject, BaseController):
         if locator and locator.has_temporaries():
             self.set_changed(True)
         self.recompute_terse_graph()
-
-    def close_vistrail(self, locator):
-        if locator is not None:
-            locator.close()
 
     ##########################################################################
     # Actions, etc
@@ -273,8 +230,7 @@ class VistrailController(QtCore.QObject, BaseController):
         updated.)
         
         """
-        self.current_pipeline.perform_action(action)
-        self.current_version = action.db_id
+        BaseController.perform_action(self,action)
         
         if quiet is None:
             if not self.quiet:
@@ -294,11 +250,8 @@ class VistrailController(QtCore.QObject, BaseController):
         and get notified of the change.
 
         """
-        self.vistrail.add_action(action, self.current_version, 
-                                 self.current_session)
-        self.set_changed(True)
+        BaseController.add_new_action(self, action)
         self.emit(QtCore.SIGNAL("new_action"), action)
-        self.current_version = action.db_id
         self.recompute_terse_graph()
 
     ##########################################################################
@@ -843,54 +796,19 @@ class VistrailController(QtCore.QObject, BaseController):
                                     params)
 
     def execute_workflow_list(self, vistrails):
-        interpreter = get_default_interpreter()
-        changed = False
         old_quiet = self.quiet
         self.quiet = True
-        for vis in vistrails:
-            (locator, version, pipeline, view) = vis
-            kwargs = {'locator': locator,
-                      'current_version': version,
-                      'view': view,
-                      'logger': self.get_logger(),
-                      'controller': self,
-                      }
-            conf = get_vistrails_temp_configuration()
-            temp_folder_used = False
-            if not conf.check('spreadsheetDumpCells'):
-                conf.spreadsheetDumpCells = create_temp_folder(prefix='vt_thumb')
-                temp_folder_used = True
-                
-            result = interpreter.execute(pipeline, **kwargs)
-            
-            thumb_cache = ThumbnailCache.getInstance()
-            if len(result.errors) == 0 and thumb_cache.conf.autoSave:
-                old_thumb_name = self.vistrail.actionMap[version].thumbnail
-                fname = thumb_cache.add_entry_from_cell_dump(
-                                        conf.spreadsheetDumpCells, 
-                                        old_thumb_name)
-                if fname is not None: 
-                    self.vistrail.change_thumbnail(fname, version)
-                    self.set_changed(True)
-                    changed = True
-                
-            if temp_folder_used:
-                remove_temp_folder(conf.spreadsheetDumpCells)
-                conf.spreadsheetDumpCells = (None, str)
-                
+        (results, changed) = BaseController.execute_workflow_list(self, vistrails)
+        for result in results:       
             if result.parameter_changes:
                 l = result.parameter_changes
                 self.add_parameter_changes_from_execution(pipeline,
                                                           version, l)
                 changed = True
+            
         self.quiet = old_quiet
         if changed:
             self.invalidate_version_tree(False)
-
-        if interpreter.debugger:
-            interpreter.debugger.update_values()
-        if self.logging_on():
-            self.set_changed(True)
 
     def execute_current_workflow(self):
         """ execute_current_workflow() -> None
@@ -906,7 +824,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.execute_workflow_list([(self.locator,
                                          self.current_version,
                                          self.current_pipeline,
-                                         self.current_pipeline_view)])
+                                         self.current_pipeline_view,
+                                         None)])
 
     def change_selected_version(self, new_version):
         """ change_selected_version(new_version: int) -> None        
@@ -1869,8 +1788,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Set the current state of changed and emit signal accordingly
         
         """
-        if changed!=self.changed:
-            self.changed = changed
+        BaseController.set_changed(self, changed)
         # FIXME: emit different signal in the future
         self.emit(QtCore.SIGNAL('stateChanged'))
 
@@ -1888,106 +1806,12 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.name = 'untitled%s'%vistrails_default_file_type()
             self.emit(QtCore.SIGNAL('stateChanged'))
 
-    def check_alias(self, name):
-        """check_alias(alias) -> Boolean 
-        Returns True if current pipeline has an alias named name """
-        # FIXME Why isn't this call on the pipeline?
-        return self.current_pipeline.has_alias(name)
-
-    def write_temporary(self):
-        if self.vistrail and self.changed:
-            locator = self.get_locator()
-            if locator:
-                locator.save_temporary(self.vistrail)
-
     def write_vistrail(self, locator, version=None):
+        BaseController.write_vistrail(self, locator, version)
         if self.vistrail and (self.changed or self.locator != locator):
-            is_abstraction = self.vistrail.is_abstraction
-            # FIXME make all locators work with lists of objects
-            objs = [(Vistrail.vtType, self.vistrail)]
-            if self.log and len(self.log.workflow_execs) > 0:
-                objs.append((Log.vtType, self.log))
-            abstractions = self.find_abstractions(self.vistrail, True)
-            for abstraction in abstractions:
-                abs_module = abstraction.module_descriptor.module
-                if abs_module is not None:
-                    abs_fname = abs_module.vt_fname
-                    objs.append(('__file__', abs_fname))
-#             for abs_fname in abstractions:
-#                 objs.append(('__file__', abs_fname))
-            thumb_cache = ThumbnailCache.getInstance()
-            if thumb_cache.conf.autoSave:
-                thumbnails = self.find_thumbnails(
-                                    tags_only=thumb_cache.conf.tagsOnly)
-                for thumbnail in thumbnails:
-                    #print "appending: ", thumbnail
-                    objs.append(('__thumb__', thumbnail))
-            
-            # FIXME hack to use db_currentVersion for convenience
-            # it's not an actual field
-            self.vistrail.db_currentVersion = self.current_version
-            if self.locator != locator:
-                old_locator = self.get_locator()
-                self.locator = locator
-                # new_vistrail = self.locator.save_as(self.vistrail)
-                if type(self.locator) == core.db.locator.ZIPFileLocator:
-                    objs = self.locator.save_as(objs, version)
-                    new_vistrail = objs[0][1]
-                else:
-                    new_vistrail = self.locator.save_as(self.vistrail, version)
-                self.set_file_name(locator.name)
-                if old_locator:
-                    old_locator.clean_temporaries()
-                    old_locator.close()
-            else:
-                # new_vistrail = self.locator.save(self.vistrail)
-                if type(self.locator) == core.db.locator.ZIPFileLocator:
-                    objs = self.locator.save(objs)
-                    new_vistrail = objs[0][1]
-                else:
-                    new_vistrail = self.locator.save(self.vistrail)
-            # FIXME abstractions only work with FileLocators right now
-            if (is_abstraction and 
-                (type(self.locator) == core.db.locator.XMLFileLocator or
-                 type(self.locator) == core.db.locator.ZIPFileLocator)):
-                filename = self.locator.name
-                self.load_abstraction(filename, True)
             if id(self.vistrail) != id(new_vistrail):
-                new_version = new_vistrail.db_currentVersion
-                self.set_vistrail(new_vistrail, locator)
-                self.change_selected_version(new_version)
                 self.invalidate_version_tree(False)
             self.set_changed(False)
-
-    def write_workflow(self, locator):
-        if self.current_pipeline:
-            pipeline = Pipeline()
-            # pipeline.set_abstraction_map(self.vistrail.abstractionMap)
-            for module in self.current_pipeline.modules.itervalues():
-                # if module.vtType == AbstractionModule.vtType:
-                #     abstraction = \
-                #         pipeline.abstraction_map[module.abstraction_id]
-                #     pipeline.add_abstraction(abstraction)
-                pipeline.add_module(module)
-            for connection in self.current_pipeline.connections.itervalues():
-                pipeline.add_connection(connection)            
-            locator.save_as(pipeline)
-
-    def write_expanded_workflow(self, locator):
-        if self.current_pipeline:
-            (workflow, _) = core.db.io.expand_workflow(self.vistrail, 
-                                                       self.current_pipeline)
-            locator.save_as(workflow)
-        
-    
-    def write_log(self, locator):
-        if self.log:
-            if self.vistrail.db_log_filename is not None:
-                log = core.db.io.merge_logs(self.log, 
-                                            self.vistrail.db_log_filename)
-            else:
-                log = self.log
-            locator.save_as(log)
 
     def write_opm(self, locator):
         if self.log:

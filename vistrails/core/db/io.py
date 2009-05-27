@@ -23,6 +23,7 @@
 from core.vistrail.action import Action
 from core.log.log import Log
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
+from core.vistrail.vistrail import Vistrail
 import db.services.io
 import db.services.vistrail
 import db.services.action
@@ -56,6 +57,26 @@ def save_workflow(workflow, filename):
 def save_vistrail_to_xml(vistrail, filename):
     db.services.io.save_vistrail_to_xml(vistrail, filename)
 
+def load_vistrail(locator, is_abstraction=False):
+        abstraction_files = []
+        thumbnail_files = []
+        vistrail = None
+        if locator is None:
+            vistrail = Vistrail()
+        else:
+            res = locator.load()
+            if type(res) == type([]):
+                vistrail = res[0][1]
+                for (t, file) in res[1:]:
+                    if t == '__file__':
+                        abstraction_files.append(file)
+                    elif t == '__thumb__':
+                        thumbnail_files.append(file)
+            else:
+                vistrail = res
+        vistrail.is_abstraction = is_abstraction
+        return (vistrail, abstraction_files, thumbnail_files)
+    
 def open_registry(filename):
     from core.modules.module_registry import ModuleRegistry
     registry = db.services.io.open_registry_from_xml(filename)

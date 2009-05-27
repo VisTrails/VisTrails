@@ -1522,7 +1522,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         controller.execute_workflow_list([(controller.locator,
                                            controller.current_version,
                                            newPipeline,
-                                           controller.current_pipeline_view)])
+                                           controller.current_pipeline_view,
+                                           None)])
         
         spreadsheetWindow.startReviewingMode()
 

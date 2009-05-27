@@ -239,8 +239,9 @@ class ThumbnailCache(object):
         
         """
         png_fname = os.path.join(self.get_directory(), fname)
-        if not os.path.exists(png_fname):
-            pngimage.save(png_fname)
+        if os.path.exists(png_fname):
+            os.unlink(png_fname)
+        pngimage.save(png_fname)
         return png_fname
 
     def _copy_thumbnails(self, thumbnails):

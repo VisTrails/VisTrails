@@ -31,6 +31,7 @@ from gui.utils import getBuilderWindow
 from gui.vistrail_view import QVistrailView
 from core import system
 from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
+from core.db.io import load_vistrail
 from core.log.log import Log
 from core.log.opm_graph import OpmGraph
 import core.system
@@ -294,8 +295,7 @@ class QViewManager(QtGui.QTabWidget):
         else:
             locator = None
         try:
-            (vistrail, abstraction_files, thumbnail_files) = \
-                                                     self.load_vistrail(locator)
+            (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
         except ModuleRegistryException, e:
             QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
         except Exception, e:
@@ -318,26 +318,6 @@ class QViewManager(QtGui.QTabWidget):
             # We set it to none, since it's been changed, so
             # we don't want to ever close it again.
             self._first_view = None
-
-    def load_vistrail(self, locator, is_abstraction=False):
-        abstraction_files = []
-        thumbnail_files = []
-        vistrail = None
-        if locator is None:
-            vistrail = Vistrail()
-        else:
-            res = locator.load()
-            if type(res) == type([]):
-                vistrail = res[0][1]
-                for (t, file) in res[1:]:
-                    if t == '__file__':
-                        abstraction_files.append(file)
-                    elif t == '__thumb__':
-                        thumbnail_files.append(file)
-            else:
-                vistrail = res
-        vistrail.is_abstraction = is_abstraction
-        return (vistrail, abstraction_files, thumbnail_files)
 
     def set_vistrail_view(self, vistrail, locator, abstraction_files=None,
                           thumbnail_files=None, version=None):
@@ -382,8 +362,7 @@ class QViewManager(QtGui.QTabWidget):
             return view
         try:
             (vistrail, abstraction_files, thumbnail_files) = \
-                                                    self.load_vistrail(locator,
-                                                               is_abstraction)
+                                        load_vistrail(locator, is_abstraction)
             result = self.set_vistrail_view(vistrail, locator, 
                                             abstraction_files, thumbnail_files,
                                             version)
