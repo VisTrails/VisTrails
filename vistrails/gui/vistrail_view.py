@@ -229,6 +229,20 @@ class QVistrailView(QDockContainer):
         if self.stackedWidget.count()>index:
             self.stackedWidget.setCurrentIndex(index)
 
+    def pasteToCurrentTab(self):
+        index = self.stackedWidget.currentIndex()
+        if index == 0:
+            self.pipelineTab.pipelineView.pasteFromClipboard()
+        elif index == 2:
+            self.queryTab.pipelineView.pasteFromClipboard()
+            
+    def selectAll(self):
+        index = self.stackedWidget.currentIndex()
+        if index == 0:
+            self.pipelineTab.pipelineView.scene().selectAll()    
+        elif index == 2:
+            self.queryTab.pipelineView.scene().selectAll()
+            
     def sizeHint(self):
         """ sizeHint(self) -> QSize
         Return recommended size of the widget
