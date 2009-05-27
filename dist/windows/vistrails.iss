@@ -37,9 +37,9 @@ LicenseFile=Input\license.txt
 [Files]
 Source: C:\Python25\w9xpopen.exe; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\*.dll; DestDir: {app}\vistrails\Python25
-Source: C:\Python25\python.exe.manifest; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\LICENSE.txt; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\python.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\python.exe.manifest; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\pythonw.exe; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\README.txt; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\DLLs\*; DestDir: {app}\vistrails\Python25\DLLs
@@ -53,12 +53,14 @@ Source: E:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Fla
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chembiogrid_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\DDBJ_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\EMBOSS_webservices.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\gridfieldexample.vt; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\gridfieldexample.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\bathymetry.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\croos2.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\gridfieldexample.xml; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\gridfieldexample.xml; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\head.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\KEGG_SearchEntities_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\KEGG_webservices.vt; DestDir: {app}\examples; Components: examples
@@ -66,8 +68,11 @@ Source: ..\..\examples\lung.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\noaa_webservices.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\offscreen.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\plot.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\protein_visualization.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\spx.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\structure_or_id_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\terminator.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\triangle_area.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\vtk.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
@@ -87,6 +92,8 @@ Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}\vistrails
+Source: Input\license.txt; DestDir: {app}
+Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
 ;Source: C:\Qt\4.4.0\bin\*.dll; DestDir: {app}\vistrails
 Source: C:\Python25\Lib\site-packages\PyQt4\plugins\iconengines\*; DestDir: {app}\vistrails\Python25\plugins\iconengines
 Source: C:\Python25\Lib\site-packages\PyQt4\plugins\imageformats\*; DestDir: {app}\vistrails\Python25\plugins\imageformats
@@ -95,10 +102,11 @@ Source: Input\qt.conf; DestDir: {app}\vistrails\Python25
 ;Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails\Python25
 Source: E:\src\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
 Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
+Source: E:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 [Dirs]
 Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
-Name: {app}\examples; Components: ; Tasks: 
+Name: {app}\examples; Components: examples; Tasks: 
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
 Name: {app}\scripts
@@ -119,8 +127,8 @@ Name: main; Description: Main Files; Types: full compact custom; Flags: fixed
 Name: examples; Description: Example Files; Types: full
 
 [Icons]
-Name: {group}\VisTrails; Filename: {app}\vistrails\Python25\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py -l
-Name: {commondesktop}\VisTrails; Filename: {app}\vistrails\Python25\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails.py -l
+Name: {group}\VisTrails; Filename: {app}\vistrails\Python25\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py
+Name: {commondesktop}\VisTrails; Filename: {app}\vistrails\Python25\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails.py; Components: main; Tasks: desktopicon
 Name: {group}\Uninstall VisTrails; Filename: {uninstallexe}
 [Tasks]
 Name: desktopicon; Description: Create a &desktop icon; GroupDescription: Additional icons:; Components: main
@@ -136,6 +144,7 @@ Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uni
 Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles; Flags: uninsdeletekey
 Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\vistrails\Python25\python.exe"" ""{app}\runvistrails.py"" ""{app}\vistrails\Python25\python.exe"" ""{app}\vistrails\vistrails.py"" ""{app}\vistrails"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
+Root: HKCR; Subkey: .vtl; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
 [InstallDelete]
 Name: {app}\vistrails\dot.exe; Type: files
 Name: {app}\vistrails\freetype6.dll; Type: files
@@ -147,9 +156,11 @@ Name: {app}\vistrails\z.dll; Type: files
 Name: {app}\vistrails\zlib1.dll; Type: files
 Name: {app}\vistrails\python24.dll; Type: files
 Name: {app}\vistrails\Python24; Type: filesandordirs
-
-
-
+Name: {app}\examples\gridfieldexample.vt; Type: files
+Name: {app}\vistrails\vistrails; Type: filesandordirs
+Name: {app}\vistrails\packages\gridfield; Type: filesandordirs
+[Run]
+Filename: {tmp}\vcredist_x86.exe; Parameters: /Q; Components: ; Tasks: 
 
 
 [Code]
