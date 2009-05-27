@@ -51,6 +51,7 @@ import offscreen
 import fix_classes
 import inspectors
 from hasher import vtk_hasher
+import sys
 
 version = '0.9.1'
 identifier = 'edu.utah.sci.vistrails.vtk'
@@ -67,16 +68,29 @@ warnings.filterwarnings("ignore",
 
 ################################################################################
 
-def get_description_class(klass):
-    """Because sometimes we need to patch VTK classes, the klass that
-    has the methods is different than the klass we want to
-    instantiate. get_description_class makes sure that for patched
-    classes we get the correct one."""
-
-    try:
-        return fix_classes.description[klass]
-    except KeyError:
-        return klass
+if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
+    def get_description_class(klass):
+        """Because sometimes we need to patch VTK classes, the klass that
+        has the methods is different than the klass we want to
+        instantiate. get_description_class makes sure that for patched
+        classes we get the correct one."""
+        try:
+            return fix_classes.description[klass]
+        except KeyError:
+            return klass
+else:
+    # On VTK 5.0.4, we use the id of the class to hash, because it
+    # seems that VTK hasn't implemented hash() correctly for their
+    # classes.
+    def get_description_class(klass):
+        """Because sometimes we need to patch VTK classes, the klass that
+        has the methods is different than the klass we want to
+        instantiate. get_description_class makes sure that for patched
+        classes we get the correct one."""
+        try:
+            return fix_classes.description[id(klass)]
+        except KeyError:
+            return klass
 
 parser = VTKMethodParser()
 

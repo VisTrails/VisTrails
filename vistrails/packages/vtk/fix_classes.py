@@ -34,11 +34,18 @@ description = {}
 # SetUserControlledLookupTable needs to be set before calling
 # SetLookupTable.  VTK should do it automatically, so let's fix it
 
+
+# This fix seems to break on VTK versions larger than 5.0.3. It might also
+# be because of an interaction with python 2.6, but I haven't checked that.
 class vtkImagePlaneWidget_fixed(vtk.vtkImagePlaneWidget):
     def SetLookupTable(self, lookup_table):
         self.UserControlledLookupTableOn()
         vtk.vtkImagePlaneWidget.SetLookupTable(self, lookup_table)
-description[vtkImagePlaneWidget_fixed] = vtk.vtkImagePlaneWidget
+
+if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
+    description[vtkImagePlaneWidget_fixed] = vtk.vtkImagePlaneWidget
+else:
+    description[id(vtkImagePlaneWidget_fixed)] = vtk.vtkImagePlaneWidget
 
 # Set docstring to wrap it correctly
 vtkImagePlaneWidget_fixed.SetLookupTable.__doc__ = vtk.vtkImagePlaneWidget.SetLookupTable.__doc__
