@@ -36,7 +36,7 @@ from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
-    MissingModuleVersion, MissingModule
+    MissingModuleVersion, MissingModule, MissingPackageVersion
 from core.modules.sub_module import new_abstraction, read_vistrail
 from core.thumbnails import ThumbnailCache
 from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView
@@ -1034,9 +1034,43 @@ class VistrailController(object):
         abstractions = self.find_abstractions(vistrail)
         for abstraction in abstractions:
             try:
-                print abstraction.package, abstraction.name, \
-                    abstraction.namespace, abstraction.internal_version
+#                 print abstraction.package, abstraction.name, \
+#                     abstraction.namespace, abstraction.internal_version
                 descriptor = abstraction.module_descriptor
+            except MissingPackageVersion, e:
+                reg = core.modules.module_registry.get_module_registry()
+                try:
+                    new_desc = \
+                        reg.get_descriptor_by_name(abstraction.package,
+                                                   abstraction.name,
+                                                   abstraction.namespace,
+                                                   '',
+                                                   abstraction.internal_version)
+                    abstraction._module_descriptor = new_desc
+                except MissingModuleVersion, e:
+                    other_desc = \
+                        reg.get_descriptor_by_name(abstraction.package,
+                                                   abstraction.name,
+                                                   abstraction.namespace)
+                    new_desc = \
+                        self.load_abstraction(other_desc.module.vt_fname,
+                                              False, abstraction.name,
+                                              abstraction.internal_version)
+                    abstraction._module_descriptor = new_desc
+                except MissingModule, e:
+                    if abstraction.name not in lookup:
+                        raise
+                    abs_fname = lookup[abstraction.name]
+                    new_desc = \
+                        self.load_abstraction(abs_fname, False, 
+                                              abstraction.name,
+                                              abstraction.internal_version,
+                                              abs_fnames)
+                    abstraction._module_descriptor = new_desc
+                
+#                 self.load_abstraction(other_desc.module.vt_fname,
+#                                       False, abstraction.name,
+#                                       abstraction.internal_version)
             except MissingModuleVersion, e:
                 # just change the version...
                 reg = core.modules.module_registry.get_module_registry()
