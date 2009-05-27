@@ -176,13 +176,13 @@ def execute_cmdline(lst, output):
     """execute_cmdline(lst: list of str)-> int Builds a command line
     enquoting the arguments properly and executes it using popen4. It
     returns the output on output. popen4 doesn't return a code, so it
-    will always return -1
+    will always return 0
 
     """
     cmdline = list2cmdline(lst)
     out, inp = popen2.popen4(cmdline)
     output.extend(out.readlines())
-    return -1
+    return 0
     
 ################################################################################
 
