@@ -1,4 +1,5 @@
-<opmGraph version="1.0.0">
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<opmGraph xmlns="http://openprovenance.org/model/v1.01.a">
   <accounts>
     <account id="acct0">
       <value>0</value>
