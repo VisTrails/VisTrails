@@ -1300,11 +1300,11 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         # We need to go up-stream to the highest invisible node
-        current = self.vistrail.currentGraph
+        current = self._current_terse_graph
         if not current:
             (current, full, layout) = self.refine_graph()
         else:
-            full = self.vistrail.getVersionGraph()
+            full = self._current_full_graph
         changed = False
         for v in versions:
             if v!=0: # not root
@@ -1484,7 +1484,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Try to select the latest visible version on the tree
         
         """
-        current = self.vistrail.currentGraph
+        current = self._current_terse_graph
         if not current:
             (current, full, layout) = self.refine_graph()        
         self.change_selected_version(max(current.iter_vertices()))

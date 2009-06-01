@@ -462,7 +462,7 @@ by startup.py. This should only be called after init()."""
                              'userpackages')
             self.configuration.userPackageDirectory = s
         #abstractions directory    
-        if not self.temp_configuration.has('abstractionsDirectory') or \
+        if not self.temp_configuration.check('abstractionsDirectory') or \
                 self.temp_configuration.abstractionsDirectory == \
                 os.path.join(self.temp_configuration.userPackageDirectory, 
                              'abstractions'):

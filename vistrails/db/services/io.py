@@ -66,8 +66,8 @@ def open_db_connection(config):
     try:
         print config
         # FIXME allow config to be kwargs and args?
-        # db_connection = get_db_lib().connect(**config)
-        db_connection = get_db_lib().connect(config)
+        db_connection = get_db_lib().connect(**config)
+        #db_connection = get_db_lib().connect(config)
         return db_connection
     except get_db_lib().Error, e:
         # should have a DB exception type
