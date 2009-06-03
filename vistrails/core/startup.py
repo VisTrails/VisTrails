@@ -161,7 +161,7 @@ by startup.py. This should only be called after init()."""
         except:
             debug.critical("""Failed to create initialization directory.
                     This could be an indication of a permissions problem.
-                    Make sure parent directory of '%'s is writable."""
+                    Make sure parent directory of '%s' is writable."""
                     % self.temp_configuration.dotVistrails)
             sys.exit(1)
                 
