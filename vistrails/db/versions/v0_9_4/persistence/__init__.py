@@ -28,7 +28,7 @@ ElementTree = get_elementtree_library()
 from db import VistrailsDBException
 from db.versions.v0_9_4 import version as my_version
 from db.versions.v0_9_4.domain import DBVistrail, DBWorkflow, DBLog, \
-    DBAbstraction
+    DBAbstraction, DBGroup
 
 class DAOList(dict):
     def __init__(self):
@@ -132,13 +132,13 @@ class DAOList(dict):
 
         # assumes not deleting entire thing
         (child, _, _) = children[0]
-        dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
+        self['sql'][child.vtType].set_sql_columns(db_connection, child, 
                                                       global_props, do_copy)
-        dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
+        self['sql'][child.vtType].to_sql_fast(child, do_copy)
         if not do_copy:
             for (child, _, _) in children:
                 for c in child.db_deleted_children(True):
-                    dao_list['sql'][c.vtType].delete_sql_column(db_connection,
+                    self['sql'][c.vtType].delete_sql_column(db_connection,
                                                                 c,
                                                                 global_props)
 
@@ -147,9 +147,9 @@ class DAOList(dict):
         child.is_new = False
         for (child, _, _) in children:
             # print "child:", child.vtType, child.db_id
-            dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
+            self['sql'][child.vtType].set_sql_columns(db_connection, child, 
                                                           global_props, do_copy)
-            dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
+            self['sql'][child.vtType].to_sql_fast(child, do_copy)
             if child.vtType == DBGroup.vtType:
                 if child.db_workflow:
                     # print '*** entity_type:', global_props['entity_type']
