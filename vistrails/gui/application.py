@@ -312,7 +312,7 @@ after self.init()"""
                 # will try to convert version to int
                 # if it fails, it's a tag name
                 try:
-                    #maybe a tag name contains ':' in ist name
+                    #maybe a tag name contains ':' in its name
                     #so we need to bring it back together
                     rest = ":".join(data[1:])
                     version = int(rest)
@@ -330,13 +330,18 @@ after self.init()"""
         if self.temp_db_options.host:
            usedb = True
         if self.input:
+            locator = None
             #check if versions are embedded in the filename
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
-                if not usedb:
+                if f_name is None:
+                    msg = "VisTrails could not find file %s"%filename
+                    QtGui.QMessageBox.critical(None, "File not found",
+                                               msg)
+                elif not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                     #_vnode and _vtag will be set when a .vtl file is open and
-                    # instead of a FileLocator, a DBLocator is created instead
+                    # it can be either a FileLocator or a DBLocator
                     if hasattr(locator, '_vnode'):
                         version = locator._vnode
                     if hasattr(locator,'_vtag'):
@@ -344,7 +349,7 @@ after self.init()"""
                         # version number
                         if locator._vtag != '':
                             version = locator._vtag
-                else:
+                elif usedb:
                     locator = DBLocator(host=self.temp_db_options.host,
                                         port=self.temp_db_options.port,
                                         database=self.temp_db_options.db,
@@ -353,10 +358,11 @@ after self.init()"""
                                         obj_id=f_name,
                                         obj_type=None,
                                         connection_id=None)
-                execute = self.temp_configuration.executeWorkflows
-                self.builderWindow.open_vistrail_without_prompt(locator,
-                                                                version,
-                                                                execute)
+                if locator:
+                    execute = self.temp_configuration.executeWorkflows
+                    self.builderWindow.open_vistrail_without_prompt(locator,
+                                                                    version,
+                                                                    execute)
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
                 
@@ -493,7 +499,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             w_list = []
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
-                if f_name:
+                if f_name and version:
                     if not usedb:
                         locator = FileLocator(os.path.abspath(f_name))
                     else:
