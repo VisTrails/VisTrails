@@ -53,21 +53,35 @@ class DummyLogController(object):
     def finish_loop_execution(*args, **kwargs): pass
     def insert_module_annotations(*args, **kwargs): pass
 
-class LogController(object):
-    def __init__(self, log):
-        self.log = log
-        self.workflow_exec = None
-        self.machine = None
-
-    def start_workflow_execution(self, vistrail=None, pipeline=None, 
-                                 currentVersion=None):
+class LogControllerFactory(object):
+    _instance = None
+    class LogControllerFactorySingleton(object):
+        def __call__(self, *args, **kw):
+            if LogControllerFactory._instance is None:
+                obj = LogControllerFactory(*args, **kw)
+                LogControllerFactory._instance = obj
+            return LogControllerFactory._instance
+        
+    getInstance = LogControllerFactorySingleton()
+    
+    def __init__(self):
         self.machine = Machine(id=-1,
                                name=core.system.current_machine(),
                                os=core.system.systemType,
                                architecture=core.system.current_architecture(),
                                processor=core.system.current_processor(),
                                ram=core.system.guess_total_memory())
-        
+    
+    def create_logger(self, log):
+        return LogController(log, self.machine)
+
+LogControllerFactory.getInstance()
+
+class LogController(object):
+    def __init__(self, log, machine):
+        self.log = log
+        self.workflow_exec = None
+        self.machine = machine
         to_add = True
         for machine in self.log.machine_list:
             if self.machine.equals_no_id(machine):
@@ -76,7 +90,9 @@ class LogController(object):
         if to_add:
             self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
             self.log.add_machine(self.machine)
-
+            
+    def start_workflow_execution(self, vistrail=None, pipeline=None, 
+                                 currentVersion=None):
         if vistrail is not None:
             parent_type = Vistrail.vtType
             parent_id = vistrail.id

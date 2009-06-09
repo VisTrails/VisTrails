@@ -30,7 +30,7 @@ from core.configuration import get_vistrails_configuration
 import core.db.io
 import core.db.locator
 from core.interpreter.default import get_default_interpreter
-from core.log.controller import LogController, DummyLogController
+from core.log.controller import LogControllerFactory, DummyLogController
 from core.log.log import Log
 from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.basic_modules import identifier as basic_pkg
@@ -76,7 +76,7 @@ class VistrailController(object):
             
     def get_logger(self):
         if self.logging_on():
-            return LogController(self.log)
+            return LogControllerFactory.getInstance().create_logger(self.log)
         else:
             return DummyLogController()
         
