@@ -28,6 +28,7 @@ import stat
 import subprocess
 import sys
 import core.utils
+import re
 
 def executable_is_in_path(filename):
     """executable_is_in_path(filename): string
@@ -64,9 +65,11 @@ def executable_is_in_pythonpath(filename):
     return ""
 
 def list2cmdline(lst):
+    res = []
     for el in lst:
         assert type(el) == str
-    return subprocess.list2cmdline(lst)
+        res.append(re.escape(el))
+    return subprocess.list2cmdline(res)
 
 def execute_cmdline(lst, output):
     """execute_cmdline(lst: list of str)-> int
