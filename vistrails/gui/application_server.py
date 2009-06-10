@@ -34,6 +34,7 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 from gui.application import VistrailsApplicationInterface
 from gui import qt
 from core.db.locator import DBLocator
+from core.db import io 
 from core.utils import InstanceObject
 from core import command_line
 from core import system
@@ -130,6 +131,10 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver.register_function(self.run_vistrail_from_db, "run_from_db")
         self.rpcserver.register_function(self.get_tag_version,
                                          "get_tag_version")
+        self.rpcserver.register_function(self.get_vt_xml, "get_vt_xml")
+        self.rpcserver.register_function(self.get_wf_xml, "get_wf_xml")
+        self.rpcserver.register_function(self.get_db_vistrail_list,
+                                         "get_db_vt_list")
         self.rpcserver.register_function(self.quit_server, "quit")
         self.server_logger.info("Vistrails XML RPC Server is listening on http://%s:%s"% \
                         (self.temp_xml_rpc_options.server,
@@ -215,6 +220,76 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             self.server_logger.info("Failure: %s"% str(e))
             return "FAILURE: %s"% str(e)
         
+    def get_db_vistrail_list(self, host, port, db_name):
+        self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)"%(host,
+                                                                 port,
+                                                                 db_name))
+        config = {}
+        config['host'] = host
+        config['port'] = int(port)
+        config['db'] = db_name
+        config['user'] = 'vtserver'
+        config['passwd'] = ''
+        try:
+            result = io.get_db_vistrail_list(config)
+            print result
+        except Exception, e:
+            self.server_logger.info("Error: %s"%str(e))
+            return "FAILURE: %s" %str(e)
+        
+    def get_vt_xml(self, host, port, db_name, vt_id):
+        self.server_logger.info("Request: get_vt_xml(%s,%s,%s,%s)"%(host,
+                                                                 port,
+                                                                 db_name,
+                                                                 vt_id))
+        try:
+            locator = DBLocator(host=host,
+                                port=int(port),
+                                database=db_name,
+                                user='vtserver',
+                                passwd='',
+                                obj_id=int(vt_id),
+                                obj_type=None,
+                                connection_id=None)
+        
+            v = locator.load()
+            result = io.serialize(v)
+            self.server_logger.info("SUCCESS!")
+            return result
+        except Exception, e:
+            self.server_logger.info("Error: %s"%str(e))
+            return "FAILURE: %s" %str(e)
+    
+    def get_wf_xml(self, host, port, db_name, vt_id, version):
+        self.server_logger.info("Request: get_wf_xml(%s,%s,%s,%s,%s)"%(host,
+                                                                       port,
+                                                                       db_name,
+                                                                       vt_id,
+                                                                       version))
+        try:
+            locator = DBLocator(host=host,
+                                port=int(port),
+                                database=db_name,
+                                user='vtserver',
+                                passwd='',
+                                obj_id=int(vt_id),
+                                obj_type=None,
+                                connection_id=None)
+        
+            v = locator.load()
+            p = v.getPipeline(long(version))
+            if p:
+                result = io.serialize(p)
+                print result
+            else:
+                result = "Error: Pipeline was not materialized"
+                self.server_logger.info(result)
+        except Exception, e:
+            result = "Error: %s"%str(e)
+            self.server_logger.info(result)
+            
+        return result
+    
     def setupOptions(self):
         """ setupOptions() -> None
         Check and store all command-line arguments

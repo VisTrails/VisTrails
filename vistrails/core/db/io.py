@@ -30,7 +30,7 @@ import db.services.action
 from xml.dom.minidom import parse, getDOMImplementation
 
 def get_db_vistrail_list(config):
-    return db.services.io.get_db_vistrail_list(config)
+    return db.services.io.get_db_object_list(config,'vistrail')
 
 def get_workflow(vt, version):
     from core.vistrail.pipeline import Pipeline
