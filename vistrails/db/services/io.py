@@ -566,11 +566,13 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
     output = []
     rel_vt_save_dir = os.path.split(vt_save_dir)[1]
     cur_dir = os.getcwd()
-    # on windows, we assume zip.exe is in the current directory
+    # on windows, we assume zip.exe is in the current directory when
+    # running from the binary install
     zipcmd = 'zip'
     if systemType in ['Windows', 'Microsoft']:
         zipcmd = os.path.join(cur_dir,'zip')
-        
+        if not os.path.exists(zipcmd):
+            zipcmd = 'zip' #assume zip is in path
     cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
     try:
         #if we want that directories are also stored in the zip file
