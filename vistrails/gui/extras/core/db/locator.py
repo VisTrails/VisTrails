@@ -126,7 +126,7 @@ suffix_map = {'vistrail': ['.vt', '.xml'],
               }
 
 def get_load_file_locator_from_gui(parent, obj_type):
-    suffixes = "*." + " *.".join(suffix_map[obj_type])
+    suffixes = "*" + " *".join(suffix_map[obj_type])
     fileName = QtGui.QFileDialog.getOpenFileName(
         parent,
         "Open %s..." % obj_type.capitalize(),
@@ -144,7 +144,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
     # Ignore current locator for now
     # In the future, use locator to guide GUI for better starting directory
 
-    suffixes = "*." + " *.".join(suffix_map[obj_type])
+    suffixes = "*" + " *".join(suffix_map[obj_type])
     fileName = QtGui.QFileDialog.getSaveFileName(
         parent,
         "Save Vistrail...",
