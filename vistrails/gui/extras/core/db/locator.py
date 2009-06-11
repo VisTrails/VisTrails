@@ -118,11 +118,11 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
 ##############################################################################
 # File dialogs
 
-suffix_map = {'vistrail': ['vt', 'xml'],
-              'workflow': ['xml'],
-              'log': ['xml'],
-              'registry': ['xml'],
-              'opm_graph': ['xml'],
+suffix_map = {'vistrail': ['.vt', '.xml'],
+              'workflow': ['.xml'],
+              'log': ['.xml'],
+              'registry': ['.xml'],
+              'opm_graph': ['.xml'],
               }
 
 def get_load_file_locator_from_gui(parent, obj_type):
