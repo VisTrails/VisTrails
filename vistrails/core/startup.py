@@ -489,13 +489,13 @@ by startup.py. This should only be called after init()."""
     def setupLogFile(self):
         if not self.temp_configuration.check('logFile'):
             s = os.path.join(self.temp_configuration.dotVistrails,
-                             'vistrails.log')
+                             'vistrails_1_3.log')
             self.temp_configuration.logFile = s
         if not self.configuration.check('logFile'):
             # if this was not set before, it should point to the
             # value in temp_configuration
             s = os.path.join(self.temp_configuration.dotVistrails,
-                             'vistrails.log')
+                             'vistrails_1_3.log')
             self.configuration.logFile = s
         if not os.path.lexists(self.temp_configuration.dotVistrails):
             self.create_default_directory()
