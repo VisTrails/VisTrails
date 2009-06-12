@@ -303,7 +303,7 @@ class ImageViewerFlipAction(QtGui.QAction):
         label = cellWidget.label
         if not label.pixmap() or label.pixmap().isNull():
             return
-        cellWidget.originalPix = labeloriginalPix.transformed(
+        cellWidget.originalPix = cellWidget.originalPix.transformed(
             self.flipMatrix)
         label.setPixmap(label.pixmap().transformed(self.flipMatrix))
 
