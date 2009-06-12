@@ -121,7 +121,8 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
                 
     def sizeHint(self):
         metrics = QtGui.QFontMetrics(self.font())
-        return QtCore.QSize(metrics.width(self.text())+10, 
+        width = min(metrics.width(self.text())+10,70)
+        return QtCore.QSize(width, 
                             metrics.height()+6)
     
     def minimumSizeHint(self):
@@ -229,6 +230,21 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         Updates the contents of the line_edit 
         """
         self.line_edit.setContents(strValue, silent)
+        
+    def focusInEvent(self, event):
+        """ focusInEvent(event: QEvent) -> None
+        Pass the event to the parent
+
+        """
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        QtGui.QWidget.focusInEvent(self, event)   
+        
+    def focusOutEvent(self, event):
+        self.update_parent()
+        QtGui.QWidget.focusOutEvent(self, event)
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
 class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
 
@@ -245,6 +261,8 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         assert param.type == 'Boolean'
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
         assert param.namespace is None
+        self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
+                     self.change_state)
         self.setContents(param.strValue)
         
     def contents(self):
