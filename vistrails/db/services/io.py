@@ -939,13 +939,13 @@ def get_current_time(db_connection=None):
         try:
             c = db_connection.cursor()
             # FIXME MySQL versus sqlite3
-            # c.execute("SELECT NOW();")
-            c.execute("SELECT DATETIME('NOW');")
+            c.execute("SELECT NOW();")
+            # c.execute("SELECT DATETIME('NOW');")
             row = c.fetchone()
             if row:
                 # FIXME MySQL versus sqlite3
-                # timestamp = row[0]
-                timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+                timestamp = row[0]
+                # timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
             c.close()
         except get_db_lib().Error, e:
             print "Logger Error %d: %s" % (e.args[0], e.args[1])
