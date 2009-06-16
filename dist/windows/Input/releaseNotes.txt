@@ -1,4 +1,217 @@
-Release Name: v1.1 build 1141
+RELEASE NOTES
+-------------
+Release Name: v1.3 build 1529
+
+Changes:
+ - Schema upgrade. Current version: 1.0.0.
+ - Updated VTK libs to use 5.4 release
+ - Removes conditional expression constructs, so that code runs on Python < 2.5.
+ - Including Gridfields python module
+ - Using only application single instance behavior if Qt 4.4 or later is 
+   available
+ - Added support for SubWorkflows (with no database support yet)
+ - Added a Control Flow Package (see user's guide to see how to use it) and 
+   related example files
+ - Added support for basic package repository
+ - Introduced a major reorg of the registry and related classes.  Specifically, 
+   it adds serialization capabilities, and unifies the 
+   core.modules.module_registry.PortSpec and
+   core.vistrail.port_spec.PortSpec classes.  In addition, all configuration and
+   drawing is done using PortSpecs (not Ports). It also includes revisions to 
+   the PythonSource, and Tuple configuration dialogs, and adds controller code 
+   to better support resulting updates. You can serialize the registry via the 
+   "File -> Export -> Registry To ..." menu items.
+ - Added support for "registry quickstart" which allows VisTrails to boot 
+   significantly faster.  It also further changes registry behavior to allow 
+   VisTrails to function without having access to the actual python modules 
+   behind the ModuleDescriptors.  Everything can be done by tracing the 
+   descriptor hierarchy instead of the mro, but we still use the mro when we 
+   have it.  Try the quickstart by starting VisTrails normally and selecting 
+   "File -> Export -> Registry To XML..." and saving the resulting file. 
+   Then restart VisTrails with the -q flag followed by the registry file: 
+   (ie "./vistrails -q <registry_filename>")
+ - Use solid colors instead of textured backgrounds on graphics views, 
+   since Qt (or pyqt) redraws much slower when these are enabled.
+ - Improved layout of modules in visual diff and analogy
+ - Added support for displaying thumbnails below the notes panel and/or as a
+   version node tooltip. See Thumbnails Preference tab for changing specific
+   options
+ - Improved menu File organization
+ - Added translate* methods for versions 0.9.3 and up, and updated code to use 
+   them.  This should ensure that xml vistrails, workflows, logs, and 
+   registries, can be updated when schemas change.  The idea is that you open a
+   vistrail, and if it is not in the current schema, it is translated to the 
+   current schema, no matter if you're using an xml-based file or relational
+   database.  When saving the vistrail, the db code will attempt to translate 
+   the vistrail to the schema of the database (even if it is an older version) 
+   before saving.  For xml-based files, you may optionally specify to save the 
+   file as an older version.  Currently, you are only able to translate back 
+   to 0.9.3 (See menu "File -> Export -> Stable Version").
+ - Added initial support for workflow debugging
+ - Added the progress functionality allowing modules to show their progress 
+   during the compute() by calling self.logging.update_progress(self, progress).
+ - The VisTrails Console is now a dockable window. Also fixed a long-standing 
+   bug that hitting enter when cursor is not at EOL will carry garbage to next 
+   line. Fixed also a bug where if user types fast enough in the shell, the 
+   input fails.
+ - Added support for constants to generate custom hashes. The main current 
+   usecase is File constants, which hash against filename and last-modified 
+   times. The biggest consequence is that pipelines that use File objects will 
+   now be smarter when it comes to files that change upstream, reducing the 
+   number of times one has to clear the cache.
+ - Improved the initialization of packages: if package fails during call to 
+   initialize(), we report failure, disable the package, and continue 
+   initialization. This allows startup process to continue. Also in preferences 
+   pane, when package fails to load, we now display the error message; 
+   previously, it just said "error". (There's still the problem of reporting 
+   packages that load ok but fail to initialize)
+ - Changed view behavior so that the initial pipeline view upon opening a 
+   vistrail is reset.
+ - Added support for importing workflows that have been saved as xml.
+ - Added a function to change parameters from the api along with a function to 
+   find modules by name (and package/namespace if specified). Note that the 
+   param_list in change_parameter requires a list of strings---the serialized 
+   representations of the parameters!
+ - Updated the gen_vtk_examples scripts to create better pipeline 
+   specifications.
+ - Added pc3 package for the Third Provenance Challenge.
+ - VTK package:
+   + Added support for Picking in a VisTrails cell. By default, the 
+     vtkRenderWindow contains a picker. The 'p' key activates the pick test in 
+     the render window.  A new vtkPicker can be attached to the VTKCell to 
+     modify the picking behavior according to the mechanism provided by VTK.
+   + All VTK Filters are registered to show their progress while executing
+   + Added support of InfoVis to VTKCell. Notice that the saving camera feature 
+     does not working with InfoVis (because there are no direct SetCamera port 
+     for InfoVis classes).
+   + Added support for changing the backgorund color of a vtkRenderer using 
+     color widget
+ - Spreadsheet:
+   + Added exporting images and echo mode feature
+     
+Bug Fixes:
+ - Fixed bug where queries with multiple sources would fail in query by example
+ - Spreadsheet:
+   + Jpg/gif/png images can be correctly displayed on the spreadsheet
+   + Fixed many interaction bugs
+   + temp files were not being correctly removed
+ - Fixes a  bug where the configuration wouldn't be setup properly for a new 
+   .vistrails directory.
+ - Fixed plot.vt example to work with matplotlib version >= 0.98.5.2
+ - Catch exceptions when writing file to raise dialog box if there is an error.  
+   This fixes bug that nothing was being shown to the user in case of a bad 
+   write (ie, file permissions insufficient).
+ - Fixed PythonSource syntax highlighter error and (yes!) there's a line number 
+   for debugging now.
+ - Fixed startup "bug" when package with dependencies fails to load
+ - Copy/paste is relative to the current canvas
+ - Shipping the GPL License in the distributions
+ - ImageMagick package:
+   + Added CombineRGBA class, configuration object, and fixed GaussianBlur bug
+   + Removed requirement check that prevented the package from loading if
+     ImageMagick was not found in the path  
+ - Bug fixes in Windows installer: 
+   + Installer always creates desktop shortcut and uninstaller did not remove 
+     all pyc files
+ - Other minor fixes
+ 
+From Release v1.2.1 build 1336
+Changes:
+ - Schema upgrade. Current version: 0.9.3. If you keep vt files in a database,
+   you have to upgrade the database as well
+ - VisTrails now requires Qt 4.4 or later to run
+ - Adopted application single instance behavior (only one version of the
+   VisTrails application can be executing).
+ - Added Interactive expansion and collapsing in the version tree: the three
+   lines on edges in the version tree that used to represent multple
+   versions has been replaced by a plus symbol. Clicking this symbol
+   expands the link to show all the versions in betweeen (though this may
+   change to only a limited number later).  A minus sign appears on the
+   top of a list of untagged, non-branching, non-selected versions that
+   will collapse that list.
+ - Added descriptions to the version tree.  They show up in place of
+   a tag if one hasn't been set, but with a thinner italicized font.
+   Double-clicking on the node allows it to be changed and turned into a tag.
+   Showing a description for each action that is now displayed in the
+   properties overlay. This description is still very simple (eg.,
+   Added module), though in the future it might make sense to save off
+    more detailed descriptions for each action in the db (eg., Added
+    vtkRenderer module)
+ - Added new items to the View Menu to show and hide branches and nodes
+ - Restored the "Clear Recent Searches" in the search box in the version
+   properties
+ - Added command line options to execute workflows and show only 
+   the spreadsheet when opening
+ - Logging information is now stored in .vt file
+ 
+ Bug fixes:
+ - Copying and Pasting dynamic modules, such as PythonSource threw an error
+ - File version was not set correctly
+ - Fixed a bug in analogies that sometimes corrupted vistrails files.
+ - Fixed some bugs and annoying behavior with autosave.  A dialog
+   now prompts the user if they want to load autosaved data.  This
+   dialog appears when opening a file or starting up vistrails.
+   Autosave data no longer is loaded when the user creates a new
+   vistrail by pressing the new button.
+ - Dragging versions to the spreadsheet is working again
+ - Dragging a spreadsheet tab created a window that couldn't be closed
+   or put back. A floating sheet can be docked back by simply closing it or
+   dragging it back the spreadsheet tab bar (if exists) or just the window
+   itself.
+ - There was no obvious way to exit full screen mode in spreadsheet. The
+   fullscreen mode can be closed either by:
+    * Pressing 'ESC', 'Ctrl-F', 'F11' or 'Alt-Enter'
+    * Right click on the fullscreen mode and unselect 'Fullscreen'
+  - Border color of selected cells in the spreadsheet is now consistent
+ 
+From Release: v1.2 build 1263
+Changes:
+ - Version tags can be edited directly by double-clicking the tree nodes
+ - Added basic support for package management on Fedora Core through YUM
+ - Added compatibility with Qt4.4
+ - Added support for dynamic addition of modules in packages
+ - Pipeline, Query and History views are now reset with Ctrl+R 
+  (Command+R, on a Mac) so that it does not interfere with version text
+  items 
+ - Add a transparent overlay to the version viewer that shows the 
+   selected version's properties.  By default this is turned off, but 
+   can be enabled under the view menu.
+ - Added standalone functions that help third-party applications that 
+   need an API into VisTrails, located on vistrails/api directory.
+ - Improvements in the command-line for both non-interactive and interactive mode:
+   + Added support for executing more than one workflow at a time
+   + Included support for opening a vistrails from the database
+     Now a version (tag or id) can be specified in the command-line
+     together with the filename (or vistrails id when opening from the 
+     database). 
+ - Added support for opening special vistrails files (.vtl files) on 
+   the web (wiki integration)
+ - WebServices package: added support for loading wsdl urls automatically
+   when opening a pipeline using them
+
+
+Bug fixes:
+ - Improved handling of faulty packages
+ - Vistrails having groups with annotations or functions did not open
+   correctly
+ - Query display didn't ghost module fill
+ - Query execution and reset didn't update pipeline view
+ - Connection line was drawn twice in query canvas
+ - Editing parameters in query mode was cumbersome because of 
+   bad focus management
+ - Fixed database support to pipelines with groups
+ - Fixed "Add Database" dialog confusing behavior
+ - Fixed a long-standing bug on PythonCalc where ModuleError was 
+   being called without the self parameter
+ - HTTP Package: slightly better error handling with malformed URLs
+ - Improved general GUI performance when changing versions, including
+   Undo/Redo
+ - Removed obsolete command-line options
+ - Refine in the search box was not working
+ - Spreadsheet: Saving a spreadsheet also included cleared cells.
+
+
+From release: v1.1 build 1143
 
 Changes:
  - Added "Set Module Label" feature (through the configuration pop-up
