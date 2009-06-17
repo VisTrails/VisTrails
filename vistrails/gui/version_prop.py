@@ -781,12 +781,15 @@ class QVersionThumbs(QtGui.QWidget):
         self.versionNumber = None
         label = QtGui.QLabel("Preview:")
         self.thumbs = QtGui.QLabel()
-        self.thumbs.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)
+        self.scrollArea = QtGui.QScrollArea(self)
+        self.scrollArea.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.scrollArea.setWidget(self.thumbs)
+        self.scrollArea.setWidgetResizable(True)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.addWidget(label)
-        layout.addWidget(self.thumbs,0, QtCore.Qt.AlignHCenter)
-        layout.addStretch()
+        layout.addWidget(self.scrollArea)
         self.setLayout(layout)
         self.controller = None
         
@@ -806,8 +809,10 @@ class QVersionThumbs(QtGui.QWidget):
                 if action and action.thumbnail:
                     cache = ThumbnailCache.getInstance()
                     fname = cache.get_abs_name_entry(action.thumbnail)
-                    pixmap = QtGui.QPixmap(fname)
-                    self.thumbs.setPixmap(pixmap)
+                    if fname is not None:
+                        pixmap = QtGui.QPixmap(fname)
+                        self.thumbs.setPixmap(pixmap)
+                        self.thumbs.adjustSize()
                     self.thumbs.setFrameShape(QtGui.QFrame.StyledPanel)
                     return
                 
