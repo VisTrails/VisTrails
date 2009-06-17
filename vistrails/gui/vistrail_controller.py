@@ -1051,6 +1051,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.search_str = text
             if self.search:
                 self.search.run(self.vistrail, '')
+                self.invalidate_version_tree(True)
             if self.refine:
                 # need to recompute the graph because the refined items might
                 # have changed since last time
