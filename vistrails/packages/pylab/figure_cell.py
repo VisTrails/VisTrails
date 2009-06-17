@@ -126,5 +126,7 @@ class MplFigureCellWidget(QCellWidget):
 
     def dumpToFile(self, filename):
         #resizing to default size so the image is not clipped
+        previous_size = self.figManager.canvas.figure.get_size_inches()
         self.figManager.canvas.figure.set_size_inches(8.0,6.0)
         self.figManager.canvas.print_figure(filename)
+        self.figManager.canvas.figure.set_size_inches(*previous_size)

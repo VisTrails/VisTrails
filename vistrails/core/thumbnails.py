@@ -207,7 +207,7 @@ class ThumbnailCache(object):
         Generates a single image formed by all the images in folder 
         
         """
-        from PyQt4 import QtGui
+        from PyQt4 import QtCore, QtGui
         height = 0
         width = 0
         pixmaps = []
@@ -228,7 +228,8 @@ class ThumbnailCache(object):
                 x += pix.height()
             painter.end()
             if width > ThumbnailCache.IMAGE_MAX_WIDTH:
-                finalImage = finalImage.scaledToWidth(ThumbnailCache.IMAGE_MAX_WIDTH)
+                finalImage = finalImage.scaledToWidth(ThumbnailCache.IMAGE_MAX_WIDTH,
+                                                      QtCore.Qt.SmoothTransformation)
         else:
             finalImage = None
         return finalImage
