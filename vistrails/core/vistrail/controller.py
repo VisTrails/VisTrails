@@ -1152,7 +1152,10 @@ class VistrailController(object):
 
         for connection in full_pipeline.connection_list:
             if connection.source.moduleId == group.id:
-                neighbors = open_ports[(connection.source.name, 'output')]
+                key = (connection.source.name, 'output')
+                if key not in open_ports:
+                    continue
+                neighbors = open_ports[key]
                 input_module = \
                     full_pipeline.modules[connection.destination.moduleId]
                 input_port = connection.destination.name
@@ -1162,7 +1165,10 @@ class VistrailController(object):
                                                               input_module,
                                                               input_port))
             elif connection.destination.moduleId == group.id:
-                neighbors = open_ports[(connection.destination.name, 'input')]
+                key = (connection.destination.name, 'input')
+                if key not in open_ports:
+                    continue
+                neighbors = open_ports[key]
                 output_module = \
                     full_pipeline.modules[connection.source.moduleId]
                 output_port = connection.source.name
