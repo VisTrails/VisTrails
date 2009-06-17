@@ -65,15 +65,9 @@ def executable_is_in_pythonpath(filename):
     return ""
 
 def list2cmdline(lst):
-    ignore_list = ['>']
-    res = []
     for el in lst:
         assert type(el) == str
-        if el not in ignore_list:
-            res.append(re.escape(el))
-        else:
-            res.append(el)
-    return subprocess.list2cmdline(res)
+    return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):
     """execute_cmdline(lst: list of str)-> int
