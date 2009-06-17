@@ -86,6 +86,8 @@ class DBPortSpec(object):
             new_obj.db_spec = res
         elif hasattr(old_obj, 'db_spec') and old_obj.db_spec is not None:
             new_obj.db_spec = old_obj.db_spec
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -311,6 +313,8 @@ class DBModule(object):
         elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
                 new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -668,6 +672,8 @@ class DBTag(object):
             new_obj.db_name = res
         elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -786,6 +792,8 @@ class DBPort(object):
             new_obj.db_spec = res
         elif hasattr(old_obj, 'db_spec') and old_obj.db_spec is not None:
             new_obj.db_spec = old_obj.db_spec
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1024,6 +1032,8 @@ class DBGroup(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1407,6 +1417,8 @@ class DBLog(object):
             new_obj.db_vistrail_id = res
         elif hasattr(old_obj, 'db_vistrail_id') and old_obj.db_vistrail_id is not None:
             new_obj.db_vistrail_id = old_obj.db_vistrail_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1688,6 +1700,8 @@ class DBMachine(object):
             new_obj.db_ram = res
         elif hasattr(old_obj, 'db_ram') and old_obj.db_ram is not None:
             new_obj.db_ram = old_obj.db_ram
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1886,6 +1900,8 @@ class DBAdd(object):
             new_obj.db_parentObjType = res
         elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2046,6 +2062,8 @@ class DBOther(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2154,6 +2172,8 @@ class DBLocation(object):
             new_obj.db_y = res
         elif hasattr(old_obj, 'db_y') and old_obj.db_y is not None:
             new_obj.db_y = old_obj.db_y
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2283,6 +2303,8 @@ class DBParameter(object):
             new_obj.db_alias = res
         elif hasattr(old_obj, 'db_alias') and old_obj.db_alias is not None:
             new_obj.db_alias = old_obj.db_alias
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2423,6 +2445,8 @@ class DBPluginData(object):
             new_obj.db_data = res
         elif hasattr(old_obj, 'db_data') and old_obj.db_data is not None:
             new_obj.db_data = old_obj.db_data
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2538,6 +2562,8 @@ class DBFunction(object):
         elif hasattr(old_obj, 'db_parameters') and old_obj.db_parameters is not None:
             for obj in old_obj.db_parameters:
                 new_obj.db_add_parameter(DBParameter.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2753,6 +2779,8 @@ class DBAbstraction(object):
         elif hasattr(old_obj, 'db_tags') and old_obj.db_tags is not None:
             for obj in old_obj.db_tags:
                 new_obj.db_add_tag(DBTag.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3140,6 +3168,8 @@ class DBWorkflow(object):
             new_obj.db_vistrail_id = res
         elif hasattr(old_obj, 'db_vistrail_id') and old_obj.db_vistrail_id is not None:
             new_obj.db_vistrail_id = old_obj.db_vistrail_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3683,6 +3713,8 @@ class DBAbstractionRef(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3958,6 +3990,8 @@ class DBAnnotation(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4126,6 +4160,8 @@ class DBChange(object):
             new_obj.db_parentObjType = res
         elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4382,6 +4418,8 @@ class DBWorkflowExec(object):
         elif hasattr(old_obj, 'db_module_execs') and old_obj.db_module_execs is not None:
             for obj in old_obj.db_module_execs:
                 new_obj.db_add_module_exec(DBModuleExec.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4673,6 +4711,8 @@ class DBConnection(object):
         elif hasattr(old_obj, 'db_ports') and old_obj.db_ports is not None:
             for obj in old_obj.db_ports:
                 new_obj.db_add_port(DBPort.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4888,6 +4928,8 @@ class DBAction(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5171,6 +5213,8 @@ class DBDelete(object):
             new_obj.db_parentObjType = res
         elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5405,6 +5449,8 @@ class DBVistrail(object):
         elif hasattr(old_obj, 'db_abstractions') and old_obj.db_abstractions is not None:
             for obj in old_obj.db_abstractions:
                 new_obj.db_add_abstraction(DBAbstraction.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5852,6 +5898,8 @@ class DBModuleExec(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):

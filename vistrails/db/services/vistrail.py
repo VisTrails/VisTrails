@@ -256,8 +256,7 @@ def performActions(actions, workflow):
     # a change after an add is effectively an add if the add is discarded
     performAdds(getCurrentOperations(actions), workflow)
 
-def synchronize(old_vistrail, new_vistrail):
-    current_version = new_vistrail.db_currentVersion
+def synchronize(old_vistrail, new_vistrail, current_action_id):
     id_remap = {}
     for action in new_vistrail.db_actions:
         if action.is_new:
@@ -319,9 +318,10 @@ def synchronize(old_vistrail, new_vistrail):
                 old_vistrail.db_delete_tag(old_tag)
             old_vistrail.db_add_tag(new_tag)
 
-    new_version = \
-        id_remap.get((DBAction.vtType, current_version), current_version)
-    old_vistrail.db_currentVersion = new_version
+    new_action_id = \
+        id_remap.get((DBAction.vtType, current_action_id), current_action_id)
+    old_vistrail.db_currentVersion = new_action_id
+    return new_action_id
 
 ################################################################################
 # Analogy methods

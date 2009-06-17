@@ -408,6 +408,7 @@ class QViewManager(QtGui.QTabWidget):
                 QtGui.QMessageBox.critical(None,
                                            'Vistrails',
                                            str(e))
+                raise
                 return False
             return locator
         return False

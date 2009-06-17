@@ -67,6 +67,8 @@ class DBOpmProcessIdEffect(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -190,6 +192,8 @@ class DBOpmWasGeneratedBy(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -410,6 +414,8 @@ class DBOpmAccounts(object):
         elif hasattr(old_obj, 'db_opm_overlapss') and old_obj.db_opm_overlapss is not None:
             for obj in old_obj.db_opm_overlapss:
                 new_obj.db_add_opm_overlaps(DBOpmOverlaps.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -588,6 +594,8 @@ class DBPortSpec(object):
             new_obj.db_sigstring = res
         elif hasattr(old_obj, 'db_sigstring') and old_obj.db_sigstring is not None:
             new_obj.db_sigstring = old_obj.db_sigstring
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -839,6 +847,8 @@ class DBModule(object):
         elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
                 new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1247,6 +1257,8 @@ class DBModuleDescriptor(object):
         elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
                 new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1453,6 +1465,8 @@ class DBTag(object):
             new_obj.db_name = res
         elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1534,6 +1548,8 @@ class DBOpmRole(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1615,6 +1631,8 @@ class DBOpmProcesses(object):
         elif hasattr(old_obj, 'db_processs') and old_obj.db_processs is not None:
             for obj in old_obj.db_processs:
                 new_obj.db_add_process(DBOpmProcess.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1728,6 +1746,8 @@ class DBOpmAccountId(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1832,6 +1852,8 @@ class DBPort(object):
             new_obj.db_signature = res
         elif hasattr(old_obj, 'db_signature') and old_obj.db_signature is not None:
             new_obj.db_signature = old_obj.db_signature
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -1991,6 +2013,8 @@ class DBOpmArtifact(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2222,6 +2246,8 @@ class DBGroup(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2605,6 +2631,8 @@ class DBLog(object):
             new_obj.db_vistrail_id = res
         elif hasattr(old_obj, 'db_vistrail_id') and old_obj.db_vistrail_id is not None:
             new_obj.db_vistrail_id = old_obj.db_vistrail_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2863,6 +2891,8 @@ class DBOpmAgents(object):
         elif hasattr(old_obj, 'db_agents') and old_obj.db_agents is not None:
             for obj in old_obj.db_agents:
                 new_obj.db_add_agent(DBOpmAgent.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -2976,6 +3006,8 @@ class DBOpmProcessIdCause(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3080,6 +3112,8 @@ class DBMachine(object):
             new_obj.db_ram = res
         elif hasattr(old_obj, 'db_ram') and old_obj.db_ram is not None:
             new_obj.db_ram = old_obj.db_ram
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3278,6 +3312,8 @@ class DBAdd(object):
             new_obj.db_parentObjType = res
         elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3438,6 +3474,8 @@ class DBOther(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3546,6 +3584,8 @@ class DBLocation(object):
             new_obj.db_y = res
         elif hasattr(old_obj, 'db_y') and old_obj.db_y is not None:
             new_obj.db_y = old_obj.db_y
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3650,6 +3690,8 @@ class DBOpmOverlaps(object):
         elif hasattr(old_obj, 'db_opm_account_ids') and old_obj.db_opm_account_ids is not None:
             for obj in old_obj.db_opm_account_ids:
                 new_obj.db_add_opm_account_id(DBOpmAccountId.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3753,6 +3795,8 @@ class DBOpmArtifacts(object):
         elif hasattr(old_obj, 'db_artifacts') and old_obj.db_artifacts is not None:
             for obj in old_obj.db_artifacts:
                 new_obj.db_add_artifact(DBOpmArtifact.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -3883,6 +3927,8 @@ class DBOpmDependencies(object):
                     new_obj.db_add_dependency(DBOpmWasDerivedFrom.update_version(obj, trans_dict))
                 elif obj.vtType == 'opm_was_controlled_by':
                     new_obj.db_add_dependency(DBOpmWasControlledBy.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4007,6 +4053,8 @@ class DBParameter(object):
             new_obj.db_alias = res
         elif hasattr(old_obj, 'db_alias') and old_obj.db_alias is not None:
             new_obj.db_alias = old_obj.db_alias
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4196,6 +4244,8 @@ class DBOpmUsed(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4393,6 +4443,8 @@ class DBPluginData(object):
             new_obj.db_data = res
         elif hasattr(old_obj, 'db_data') and old_obj.db_data is not None:
             new_obj.db_data = old_obj.db_data
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4508,6 +4560,8 @@ class DBFunction(object):
         elif hasattr(old_obj, 'db_parameters') and old_obj.db_parameters is not None:
             for obj in old_obj.db_parameters:
                 new_obj.db_add_parameter(DBParameter.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -4761,6 +4815,8 @@ class DBAbstraction(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5203,6 +5259,8 @@ class DBWorkflow(object):
             new_obj.db_vistrail_id = res
         elif hasattr(old_obj, 'db_vistrail_id') and old_obj.db_vistrail_id is not None:
             new_obj.db_vistrail_id = old_obj.db_vistrail_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5611,6 +5669,8 @@ class DBOpmArtifactIdCause(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5685,6 +5745,8 @@ class DBOpmArtifactValue(object):
                 new_obj.db_add_value(DBPortSpec.update_version(obj, trans_dict))
             elif obj.vtType == 'function':
                 new_obj.db_add_value(DBFunction.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5767,6 +5829,8 @@ class DBOpmArtifactIdEffect(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -5878,6 +5942,8 @@ class DBOpmGraph(object):
         elif hasattr(old_obj, 'db_dependencies') and old_obj.db_dependencies is not None:
             obj = old_obj.db_dependencies
             new_obj.db_add_dependencies(DBOpmDependencies.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -6096,6 +6162,8 @@ class DBRegistry(object):
         elif hasattr(old_obj, 'db_packages') and old_obj.db_packages is not None:
             for obj in old_obj.db_packages:
                 new_obj.db_add_package(DBPackage.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -6274,6 +6342,8 @@ class DBOpmAccount(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -6369,6 +6439,8 @@ class DBAnnotation(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -6537,6 +6609,8 @@ class DBChange(object):
             new_obj.db_parentObjType = res
         elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -6752,6 +6826,8 @@ class DBOpmWasDerivedFrom(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -7014,6 +7090,8 @@ class DBOpmWasControlledBy(object):
         elif hasattr(old_obj, 'db_ends') and old_obj.db_ends is not None:
             for obj in old_obj.db_ends:
                 new_obj.db_add_end(DBOpmTime.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -7238,6 +7316,8 @@ class DBOpmAgentId(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -7417,6 +7497,8 @@ class DBGroupExec(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -7727,6 +7809,8 @@ class DBOpmTime(object):
             new_obj.db_clock_id = res
         elif hasattr(old_obj, 'db_clock_id') and old_obj.db_clock_id is not None:
             new_obj.db_clock_id = old_obj.db_clock_id
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -7885,6 +7969,8 @@ class DBPackage(object):
         elif hasattr(old_obj, 'db_module_descriptors') and old_obj.db_module_descriptors is not None:
             for obj in old_obj.db_module_descriptors:
                 new_obj.db_add_module_descriptor(DBModuleDescriptor.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -8197,6 +8283,8 @@ class DBWorkflowExec(object):
             new_obj.db_name = res
         elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -8525,6 +8613,8 @@ class DBLoopExec(object):
             new_obj.db_error = res
         elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
             new_obj.db_error = old_obj.db_error
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -8738,6 +8828,8 @@ class DBConnection(object):
         elif hasattr(old_obj, 'db_ports') and old_obj.db_ports is not None:
             for obj in old_obj.db_ports:
                 new_obj.db_add_port(DBPort.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -8896,6 +8988,8 @@ class DBOpmProcess(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -9078,6 +9172,8 @@ class DBOpmWasTriggeredBy(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -9277,6 +9373,8 @@ class DBOpmProcessValue(object):
                 new_obj.db_add_value(DBGroupExec.update_version(obj, trans_dict))
             elif obj.vtType == 'loop_exec':
                 new_obj.db_add_value(DBLoopExec.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -9440,6 +9538,8 @@ class DBAction(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -9714,6 +9814,8 @@ class DBOpmAgent(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -9862,6 +9964,8 @@ class DBDelete(object):
             new_obj.db_parentObjType = res
         elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -10076,6 +10180,8 @@ class DBVistrail(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
@@ -10475,6 +10581,8 @@ class DBModuleExec(object):
         elif hasattr(old_obj, 'db_loop_execs') and old_obj.db_loop_execs is not None:
             for obj in old_obj.db_loop_execs:
                 new_obj.db_add_loop_exec(DBLoopExec.update_version(obj, trans_dict))
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):

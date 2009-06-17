@@ -483,10 +483,19 @@ def save_vistrail_to_xml(vistrail, filename, version=None):
         version = currentVersion
     if not vistrail.db_version:
         vistrail.db_version = currentVersion
+
+    # current_action holds the current action id 
+    # (used by the controller--write_vistrail)
+    current_action = 0L
+    if hasattr(vistrail, 'db_currentVersion'):
+        current_action = vistrail.db_currentVersion
+
     vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
 
     daoList = getVersionDAO(version)        
     daoList.save_to_xml(vistrail, filename, tags, version)
+    vistrail = translate_vistrail(vistrail, version)
+    vistrail.db_currentVersion = current_action
     return vistrail
 
 def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
@@ -601,25 +610,39 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             version = currentVersion
     if not vistrail.db_version:
         vistrail.db_version = currentVersion
-    vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
+
     dao_list = getVersionDAO(version)
 
     # db_connection.begin()
+    
+    # current_action holds the current action id 
+    # (used by the controller--write_vistrail)
+    current_action = 0L
+    if hasattr(vistrail, 'db_currentVersion'):
+        current_action = vistrail.db_currentVersion
+
     if not do_copy and vistrail.db_last_modified is not None:
         new_time = get_db_object_modification_time(db_connection, 
                                                    vistrail.db_id,
                                                    DBVistrail.vtType)
         if new_time > vistrail.db_last_modified:
             # need synchronization
-            old_vistrail = open_vistrail_from_db(db_connection, vistrail.db_id,
+            old_vistrail = open_vistrail_from_db(db_connection, 
+                                                 vistrail.db_id,
                                                  True, version)
             old_vistrail = translate_vistrail(old_vistrail, version)
             # the "old" one is modified and changes integrated
-            db.services.vistrail.synchronize(old_vistrail, vistrail)
+            current_action = \
+                db.services.vistrail.synchronize(old_vistrail, vistrail, 
+                                                 current_action)
             vistrail = old_vistrail
     vistrail.db_last_modified = get_current_time(db_connection)
+
+    vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
     dao_list.save_to_db(db_connection, vistrail, do_copy)
     db_connection.commit()
+    vistrail = translate_vistrail(vistrail, version)
+    vistrail.db_currentVersion = current_action
     return vistrail
 
 ##############################################################################
@@ -664,6 +687,7 @@ def save_workflow_to_xml(workflow, filename, version=None):
 
     daoList = getVersionDAO(version)
     daoList.save_to_xml(workflow, filename, tags, version)
+    workflow = translate_workflow(workflow, version)
     return workflow
 
 def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
@@ -683,6 +707,7 @@ def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
     workflow.db_last_modified = get_current_time(db_connection)
     dao_list.save_to_db(db_connection, workflow, do_copy)
     db_connection.commit()
+    workflow = translate_workflow(workflow, version)
     return workflow
 
 ##############################################################################
@@ -758,6 +783,7 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
                 'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
                 }
         daoList.save_to_xml(log, filename, tags, version)
+    log = translate_log(log, version)
     return log
 
 def save_log_to_db(log, db_connection, do_copy=False, version=None):
@@ -777,6 +803,7 @@ def save_log_to_db(log, db_connection, do_copy=False, version=None):
     log.db_last_modified = get_current_time(db_connection)
     dao_list.save_to_db(db_connection, log, do_copy)
     db_connection.commit()
+    log = translate_log(log, version)
     return log
 
 def merge_logs(new_log, vt_log_fname):
@@ -843,6 +870,7 @@ def save_registry_to_xml(registry, filename, version=None):
 
     daoList = getVersionDAO(version)
     daoList.save_to_xml(registry, filename, tags, version)
+    registry = translate_registry(registry, version)
     return registry
 
 def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
@@ -862,6 +890,7 @@ def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
     registry.db_last_modified = get_current_time(db_connection)
     dao_list.save_to_db(db_connection, registry, do_copy)
     db_connection.commit()
+    registry = translate_registry(registry, version)
     return registry
 
 ##############################################################################
@@ -910,7 +939,8 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
                                                        abstraction.db_id,
                                                        True)
             # the "old" one is modified and changes integrated
-            db.services.vistrail.synchronize(old_abstraction, abstraction)
+            db.services.vistrail.synchronize(old_abstraction, abstraction,
+                                             0L)
             abstraction = old_abstraction
     if do_copy:
         abstraction.db_id = None

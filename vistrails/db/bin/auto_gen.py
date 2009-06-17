@@ -463,7 +463,9 @@ class AutoGen:
                                     (field.getFieldName(), 
                                      field.getFieldName()))
 
-        self.unindentLine('return new_obj\n\n')
+        self.unindentLine('new_obj.is_new = old_obj.is_new\n')
+        self.printLine('new_obj.is_dirty = old_obj.is_dirty\n')
+        self.printLine('return new_obj\n\n')
 
 
         # create child methods
