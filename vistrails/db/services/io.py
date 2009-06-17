@@ -64,7 +64,6 @@ def open_db_connection(config):
         msg = "You need to provide valid config dictionary"
         raise VistrailsDBException(msg)
     try:
-        print config
         # FIXME allow config to be kwargs and args?
         db_connection = get_db_lib().connect(**config)
         #db_connection = get_db_lib().connect(config)
