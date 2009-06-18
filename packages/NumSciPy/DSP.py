@@ -11,12 +11,40 @@ import numpy
 class DSPModule(object):
     my_namespace = 'scipy|signals'
 
+class SignalGenerator(DSPModule, Module):
+    my_namespace = 'scipy|signals|generator'
+
+    def compute(self):
+        samples = self.getInputFromPort("Samples")
+        periods = self.getInputFromPort("Periods")
+        freqs = self.getInputListFromPort("Frequencies")
+
+        ar = numpy.linspace(0., float(periods) * 2. * scipy.pi, periods * samples)
+        out_ar = numpy.zeros(periods * samples)
+
+        for f in freqs:
+            out_ar += scipy.sin(f * ar)
+
+        out = NDArray()
+        out.set_array(out_ar)
+        self.setResult("Output", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Samples", (basic.Integer, "Sampling Rate"))
+        reg.add_input_port(cls, "Periods", (basic.Integer, "Signal Length"))
+        reg.add_input_port(cls, "Frequencies", (basic.Float, "Additive Frequency"))
+        reg.add_output_port(cls, "Output", (NDArray, "Output Signal"))
+
 class FFT(DSPModule, Module):
     __doc__ = """ Calculate the discrete Fourier transform of the arbitrary
     sequence presented on the Signal port.  This is done using
     SciPy's FFTPack module.\n\n"""
     __doc__ += """From fftpack.fft:\n\t"""
     __doc__ += fftpack.fft.__doc__
+
+    my_namespace = 'scipy|signals|fourier'
     
     def compute(self):
         sig_array = self.getInputFromPort("Signals")
@@ -64,6 +92,8 @@ class FFTN(DSPModule, Module):
     __doc__ += """From fftpack.fftn:\n\t"""
     __doc__ += fftpack.fftn.__doc__
     
+    my_namespace = 'scipy|signals|fourier'
+
     def compute(self):
         sig_array = self.getInputFromPort("Signals")
         # If there is no input on the samples port,
@@ -95,6 +125,8 @@ class ShortTimeFourierTransform(DSPModule, Module):
     SciPy's FFTPack fft module in conjuction with an input window.
     If a window is not specified, a Hamming window of the specified
     size is used. """
+    my_namespace = 'scipy|signals|fourier'
+
     def get_signal(self, sigs, window, offset, size):
         win = scipy.zeros(sigs.shape[0])
         win[offset:offset+size] = window
@@ -170,134 +202,168 @@ class ShortTimeFourierTransform(DSPModule, Module):
         reg.add_input_port(cls, "Stride", (basic.Integer, 'Stride'))
         reg.add_output_port(cls, "FFT Output", (NDArray, 'FFT Output'))
 
-class StockwellTransform(DSPModule, Module):
-
-    def __init__(self):
-        Module.__init__(self)
-
-    def compute_basis(self, N, order, tau):
-        al2 = scipy.log(2.)
-        imag = 0-1j
-        if order == 0:
-            s = numpy.ones(N)
-            s = s + 0j
-            return s
-        elif order == 1:
-            t = numpy.arange(float(N))
-            cosar = scipy.cos(2.*scipy.pi*t/float(N))
-            sinar = scipy.sin(2.*scipy.pi*t/N)
-            s = numpy.cast['complex64'](cosar)
-            s.imag = -1.*sinar
-            return s
-        elif order >= 2:
-            aln = scipy.log(float(N))
-            if order <= (aln/al2 - 1):
-                v = float(pow(2,order-1) + pow(2,order-2))
-                b = float(pow(2,order-1))
-                k = numpy.arange(float(N))
-                s = numpy.zeros(N)
-                s = s + 0j
-                factor = numpy.exp(imag * scipy.pi * tau) / numpy.sqrt(b)
-                firstterm = numpy.exp(imag * 2. * scipy.pi * ((k / N) - (tau / b)) * (v - (b/2.) - 0.5))
-                termtwo = numpy.exp(imag * 2. * scipy.pi * ((k / N) - (tau / b)) * (v + (b/2.) - 0.5))
-                den = 2. * scipy.sin(scipy.pi * ((k / N) - (tau / b)))
-                cond = numpy.where(den != 0.)
-                wcond = numpy.where(den == 0.)
-                s[cond] = factor * imag * (firstterm[cond] - termtwo[cond]) / den[cond]
-                if len(wcond[0]) > 0:
-                    s[wcond] = numpy.sqrt(b) * numpy.exp(imag * scipy.pi * tau)
-
-                return s
-        else:
-            raise ModuleError("Order less than 0")
-
-    def get_partitions(self, n):
-        n_freqs = n/2
-        a = self.partition(n_freqs)
-        s = a.sum()
-        if s < n_freqs:
-            diff = numpy.ones((n_freqs - s))
-            a = numpy.concatenate((a,diff))
-            print "s < freqs:  diff = ", diff
-        if n % 2 == 0:
-            b = a[1:]
-            a = numpy.concatenate((a[::-1],b))
-        else:
-            b = a[0:]
-            a = numpy.concatenate((a[::-1],b))
-
-        a = numpy.concatenate(([1.],a))
-        return a
-
-    def partition(self, n, partsizes=None):
-        if n == 1:
-            if partsizes == None:
-                return numpy.array([1])
-            else:
-                return partsizes
-#                return numpy.concatenate((partsizes,[1]))
-        
-        if partsizes == None:
-            if n%2 == 0:
-                partsizes = numpy.array([1])
-
-        half = long(float((n+1) / 2.))
-        if partsizes == None:
-            partsizes = numpy.array([half])
-        else:
-            partsizes = numpy.concatenate((partsizes,[half]))
-
-        rem = n - half
-        return self.partition(rem, partsizes=partsizes)
-#         if rem > 0.:
-
-#         print "output partsizes = ", partsizes
-#         return partsizes
-
-    def do_dost(self, signal):
-        sig = signal.squeeze()
-        length = sig.shape[0]
-        partitions = self.get_partitions(length)
-        num_parts = partitions.shape[0]
-        big_part = partitions.max()
-        np = num_parts / 2
-        sp = numpy.zeros((np,big_part))
-
-        for i in xrange(np):
-            p_len = partitions[i]
-            voice = numpy.zeros(p_len) + 0j
-            for j in xrange(p_len):
-                b_func = self.compute_basis(length, i, j) / numpy.sqrt(float(pow(2.,float(i-1.))))
-                dprod = sig * b_func
-                voice[j] = dprod.sum()
-            # Not sure if this resample is necessary...
-            print "voice shape = ", voice.shape
-            sp[i] = scipy.signal.resample(voice, big_part, window=('ksr', 3.))
-            
-        return sp
-        
+class SignalSmoothing(DSPModule, Module):
+    """
+    Documentation
+    """
     def compute(self):
-        signal = self.getInputFromPort("Signals")
-        sig_ar = signal.get_array()
-        if len(sig_ar.shape) == 1:
-            sig_ar.shape = (1,sig_ar.shape[0])
-        try:
-            (num_sigs, sig_len) = sig_ar.shape
-        except:
-            raise ModuleError("Signal Array shape is invalid.")
+        window = self.getInputFromPort("Window").get_array()
+        in_signal = self.getInputFromPort("Signal").get_array()
 
-        out_list = []
-        for i in xrange(num_sigs):
-            sig = sig_ar[i]
-            out_list.append(self.do_dost(sig))
+        to_conv = window/window.sum() # Make sure the window is normalized
+        if in_signal.ndim > 1:
+            out_ar = numpy.zeros(in_signal.shape)
+        else:
+            out_ar = numpy.zeros(1,in_signal.shape[0])
+            in_signal.shape = (1, in_signal.shape[0])
 
-        out_ar = numpy.array(out_list)
-        out = self.create_instance_of_type('edu.utah.sci.vistrails.numpyscipy','Numpy Array','numpy|array')
+        for row in xrange(in_signal.shape[0]):
+            out_ar[row] = numpy.convolve(to_conv, in_signal[row], mode='same')
+
+        out = NDArray()
         out.set_array(out_ar)
         self.setResult("Output Array", out)
-
+        
     @classmethod
     def register(cls, reg, basic):
         reg.add_module(cls, namespace=cls.my_namespace)
-        reg.add_input_port(cls, "Signals", (NDArray, 'Signal Array'))
-        reg.add_output_port(cls, "Output Array", (NDArray, 'Output TFR Collection'))
+        reg.add_input_port(cls, "Signal", (NDArray, "Input Signals"))
+        reg.add_input_port(cls, "Window", (NDArray, "Smoothing Filter"))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Smoothed Signals'))
+        
+# class SingleTrialPhaseLocking(DSPModule, Module):
+#     """
+#     Documentation
+#     """
+#     def get_time_indexes(self, t0, time_window):
+#         if time_window % 2:
+#             # odd number of samples:  t0 +/- (window-1)/2
+#             tw = (time_window - 1) / 2
+#         else:
+#             tw = time_window / 2
+#         return (t0 - tw, t0 + tw)
+    
+#     def calc_pli(self, f_n_ar, f_m_ar):
+#         phasors = numpy.concatenate((f_n_ar, f_m_ar))
+#         norm_c = numpy.sqrt(phasors.real*phasors.real + phasors.imag*phasors.imag)
+#         phasors /= norm_c
+#         mean_phasor = phasors.mean()
+#         pli = numpy.sqrt(mean_phasor.real*mean_phasor.real + mean_phasor.imag*mean_phasor.imag)
+#         return pli
+    
+#     def compute(self):
+#         phasors = self.getInputFromPort("Phasor Array").get_array()
+#         time_window = self.getInputFromPort("Time Window")
+#         time_step = self.forceGetInputFromPort("Time Step")
+#         if time_step == None:
+#             time_step = 1
+            
+#         ndims = phasors.ndim
+#         if ndims == 2:
+#             phasors.shape = (1, phasors.shape[0], phasors.shape[1])
+#         elif ndims == 1:
+#             phasors.shape = (1, phasors.shape[0], 1)
+#         else:
+#             raise ModuleError("Cannot Process Phasor set of dimension " + str(ndims))
+        
+#         num_freqs = phasors[0].shape[0]
+#         num_times = phasors[0].shape[1]
+#         num_times /= time_step
+#         out_ar = numpy.zeros((phasors.shape[0], num_freqs, num_freqs, num_times))
+#         for channel in xrange(phasors.shape[0]):
+#             tfr = phasors[channel,:,:].squeeze()
+#             for f_m in xrange(tfr.shape[0]):
+#                 f_m_row = tfr[f_m,:]
+#                 for f_n in xrange(f_m+1, tfr.shape[0], 1):
+#                     f_n_row = tfr[f_n,:]
+#                     t0 = 0
+#                     tn = 0
+#                     (start_i, end_i) = self.get_time_indexes(t0, time_window)
+#                     while t0 < f_m_row.shape[0]:
+#                         f_m_range = f_m_row[max(0,start_i):min(end_i,f_m_row.shape[0]-1)]
+#                         f_n_range = f_n_row[max(0,start_i):min(end_i,f_n_row.shape[0]-1)]
+#                         pli = self.calc_pli(f_m_range, f_n_range)
+#                         out_ar[channel, f_m, f_n, tn] = pli
+#                         out_ar[channel, f_n, f_m, tn] = pli
+#                         out_ar[channel, f_m, f_m, tn] = 1.0
+#                         tn += 1
+#                         t0 += time_step
+#                         start_i += time_step
+#                         end_i += time_step
+
+#         out = NDArray()
+#         out.set_array(out_ar)
+#         self.setResult("Output Array", out)
+
+#     @classmethod
+#     def register(cls, reg, basic):
+#         reg.add_module(cls, namespace=cls.my_namespace)
+#         reg.add_input_port(cls, "Phasor Array", (NDArray, 'Phasor Array'))
+#         reg.add_input_port(cls, "Time Step", (basic.Integer, 'Stride in the Time Domain'))
+#         reg.add_input_port(cls, "Time Window", (basic.Integer, 'Samples per Timeslice'))
+#         reg.add_output_port(cls, "Output Array", (NDArray, 'Result set'))
+
+# class CalculatePhaseLocking(DSPModule, Module):
+#     """
+#     documentation
+#     """
+#     def Phi(self, p):
+#         return scipy.arctan2(p.real, p.imag)
+    
+#     def compute(self):
+#         phasors = self.getInputFromPort("Phasor Array").get_array()
+#         if phasors.ndim != 3:
+#             raise ModuleError("Cannot handle phasor array with less than 3 dimensions")
+
+#         (trials, times, frequencies) = phasors.shape
+#         lowestF = self.getInputFromPort("Lowest Freq")
+# #        highestF = self.getInputFromPort("Highest Freq")
+        
+#         Phi = self.Phi(phasors)
+
+#         gamma_ar = numpy.zeros((times, frequencies, frequencies))
+        
+#         for t in range(times):
+#             n = lowestF
+#             for fn_i in range(frequencies):
+#                 n += fn_i
+#                 fn = fn_i + lowestF
+#                 m = lowestF
+#                 for fm_i in range(fn_i, frequencies, 1):
+#                     m += fm_i
+#                     fm = fm_i + lowestF
+#                     DeltaPhi = (float((n+m)/(2*m))Phi[:,t,fm_i] - float((n+m)/(2*n))Phi[:,t,fn_i]) % (2. * scipy.pi)
+#                     Gamma = exp(complex(0.,DeltaPhi))
+#                     Gamma = Gamma.sum()
+#                     Gamma = numpy.sqrt(Gamma * Gamma.conjugate())
+#                     gamma_ar[t, fn_i, fm_i] = Gamma
+#                     gamma_ar[t, fm_i, fn_i] = Gamma
+#                     m += 1
+#                 n += 1
+
+#         out = NDArray()
+#         out.set_array(gamma_ar)
+#         self.setResults("Gamma", out)
+
+#     @classmethod
+#     def register(cls, reg, basic):
+#         reg.add_module(cls, namespace=cls.my_namespace)
+#         reg.add_input_port(cls, "Phasor Array", (NDArray, 'Phasor Array'))
+#         reg.add_input_port(cls, "Lowest Freq", (basic.Integer, 'Lowest Frequency Phasor'))
+#         reg.add_output_port(cls, "Gamma", (NDArray, 'Phase Locking Volume'))
+        
+
+# class DifferentialPhaseLocking(DSPModule, Module):
+#     """
+#     documentation
+#     """
+#     def compute(self):
+#         phasors = self.getInputFromPort("Phasor Array").get_array()
+#         if phasors.ndim != 2:
+#             raise ModuleError("Cannot handle phasor array with more than 2 dimensions")
+
+#         mag = phasors.real*phasors.real + phasors.imag*phasors.imag
+#         mag = numpy.sqrt(mag)
+#         normalized = phasors / mag
+
+        

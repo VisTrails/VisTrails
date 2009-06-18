@@ -77,13 +77,17 @@ class GetMean(Module, ArrayAccess):
     """ Get the mean value of an array """
     def compute(self):
         a = self.getInputFromPort("Array")
-        self.setResult("Mean", float(a.get_mean()))
+        axis = self.forceGetInputFromPort("Axis")
+        out = NDArray()
+        out.set_array(numpy.array(a.get_mean(axis)))
+        self.setResult("Mean", out)
 
     @classmethod
     def register(cls, reg, basic):
         reg.add_module(cls, name="Get Mean", namespace=cls.my_namespace)
         reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
-        reg.add_output_port(cls, "Mean", (basic.Float, 'Mean Value'))
+        reg.add_input_port(cls, "Axis", (basic.Integer, 'Axis'), True)
+        reg.add_output_port(cls, "Mean", (NDArray, 'Mean Value'))
 
 class GetMin(Module, ArrayAccess):
     """ Get the smallest value in an array """
@@ -269,6 +273,39 @@ class GetRowRange(Module, ArrayAccess):
         reg.add_input_port(cls, "End", (basic.Integer, 'End Index'))
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
 
+
+class GetRows(Module, ArrayAccess):
+    """ Get a set of rows from the input array defined by a list of indexes """
+    def compute(self):
+        l = self.forceGetInputFromPort("Index List")
+        if l == None:
+            l = self.forceGetInputListFromPort("Indexes")
+
+        if l == None or len(l) == 0:
+            raise ModuleError("No indexes provided")
+
+        l.sort()
+        in_ar = self.getInputFromPort("Array").get_array()
+        out_ar = in_ar[l[0],::]
+        for i in range(1,len(l)):
+            out_ar = numpy.vstack((out_ar,in_ar[i,::]))
+
+        out = NDArray()
+        out.set_array(out_ar)
+        out_order = NDArray()
+        out_order.set_array(numpy.array(l))
+        self.setResult("Output Array", out)
+        self.setResult("Output Order", out_order)
+        
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "Indexes", (basic.Integer, 'Index'))
+        reg.add_input_port(cls, "Index List", (basic.List, 'Index List'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+        reg.add_output_port(cls, "Output Order", (NDArray, 'Output Ordering'))
+
 class GetColumnRange(Module, ArrayAccess):
     """ Get a set of columns from the input array """
     def compute(self):
@@ -286,3 +323,4 @@ class GetColumnRange(Module, ArrayAccess):
         reg.add_input_port(cls, "Start", (basic.Integer, 'Start Index'))
         reg.add_input_port(cls, "End", (basic.Integer, 'End Index'))
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+

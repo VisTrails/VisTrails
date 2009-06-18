@@ -489,3 +489,110 @@ class ArrayLog10(ArrayOperationModule, Module):
         reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
     
+class ArrayAtan2(ArrayOperationModule,  Module):
+    """ Calculate the oriented arc-tangent of a vector stored as two arrays.
+    Reals:  Real components of complex vectors
+    Imaginaries:  Imaginary components of complex vectors
+    """
+    def compute(self):
+        r = self.getInputFromPort("Reals").get_array()
+        i = self.getInputFromPort("Imaginaries").get_array()
+        out = NDArray()
+        out.set_array(numpy.arctan2(r,i))
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Reals", (NDArray, 'Real Components'))
+        reg.add_input_port(cls, "Imaginaries", (NDArray, 'Imaginary Components'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+
+class ArraySqrt(ArrayOperationModule, Module):
+    """ Calculate the element-wise square root of the input array """
+    def compute(self):
+        a = self.getInputFromPort("Input Array").get_array()
+        out = NDArray()
+        out.set_array(numpy.sqrt(a))
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input Array", (NDArray, 'Input Array'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+           
+class ArrayThreshold(ArrayOperationModule, Module):
+    """ Threshold the array keeping only the values above the scalar value, v. """
+    def compute(self):
+        in_ar = self.getInputFromPort("Input Array").get_array()
+        v = self.getInputFromPort("Value")
+        r = self.forceGetInputFromPort("Replacement")
+        if r == None:
+            r = 0.
+        out = NDArray()
+        out.set_array(numpy.where(in_ar > v, in_ar, r))
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "Value", (basic.Float, 'Threshold Value'))
+        reg.add_input_port(cls, "Replacement", (basic.Float, 'Replacement Value'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+        
+class ArrayWindow(ArrayOperationModule, Module):
+    """ Threshold the array from both above and below, keeping only
+    the values within the window. """
+    def compute(self):
+        in_ar = self.getInputFromPort("Input Array").get_array()
+        lo = self.forceGetInputFromPort("Lower Bound")
+        hi = self.forceGetInputFromPort("Upper Bound")
+        r = self.forceGetInputFromPort("Replacement")
+        if r == None:
+            r = 0.
+        if lo == None:
+            lo = in_ar.min()
+        if hi == None:
+            hi = in_ar.max()
+
+        out = NDArray()
+        o = numpy.where(in_ar >= lo, in_ar, r)
+        o = numpy.where(o <= hi, o, r)
+        out.set_array(o)
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "Lower Bound", (basic.Float, 'Lower Threshold Value'))
+        reg.add_input_port(cls, "Upper Bound", (basic.Float, 'Upper Threshold Value'))
+        reg.add_input_port(cls, "Replacement", (basic.Float, 'Replacement Value'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+
+class ArrayNormalize(ArrayOperationModule, Module):
+    """ Normalize the input array """
+    def compute(self):
+        in_ar = self.getInputFromPort("Input Array").get_array()
+        ar = numpy.zeros(in_ar.shape)
+        if self.forceGetInputFromPort("Planes"):
+            for i in range(in_ar.shape[0]):
+                p = in_ar[i] - in_ar[i].min()
+                ar[i] = p / p.max()
+        else:
+            ar = in_ar - in_ar.min()
+            ar = ar/ar.max()
+            
+        out = NDArray()
+        out.set_array(ar)
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "Planes", (basic.Boolean, 'Plane-wise normalization'), True)
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+        

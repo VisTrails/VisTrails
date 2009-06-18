@@ -1,11 +1,14 @@
 import core.modules
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
+import scipy
+import scipy.interpolate
 
 # Numpy package imports
 import Array
 import ArrayAccess
 import ArrayOperations
+import ArrayUtilities
 import ArrayConvert
 import ArrayIO
 import Imaging
@@ -17,7 +20,7 @@ import DSP
 import Filters
 import EnsembleOrdering
 
-version = '0.1.5'
+version = '0.2.0'
 name = 'Num-SciPy'
 identifier = 'edu.utah.sci.vistrails.numpyscipy'
 
@@ -25,6 +28,8 @@ def initialize(*args, **keywords):
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
 
+    clslst = []
+    
     #########################################################################################
     #  Numpy Registry
     reg.add_module(Array.NDArray, name="Numpy Array", namespace=Array.NDArray.my_namespace)
@@ -52,7 +57,8 @@ def initialize(*args, **keywords):
                    ArrayAccess.GetArraySize,
                    ArrayAccess.GetTranspose,
                    ArrayAccess.GetRowRange,
-                   ArrayAccess.GetColumnRange]
+                   ArrayAccess.GetColumnRange,
+                   ArrayAccess.GetRows]
 
     for cls in accessclass:
         cls.register(reg, basic)
@@ -80,7 +86,12 @@ def initialize(*args, **keywords):
                  ArrayOperations.ArrayScalarMultiply,
                  ArrayOperations.ArrayAdd,
                  ArrayOperations.ArrayScalarAdd,
-                 ArrayOperations.ArrayLog10]
+                 ArrayOperations.ArrayLog10,
+                 ArrayOperations.ArrayAtan2,
+                 ArrayOperations.ArraySqrt,
+                 ArrayOperations.ArrayThreshold,
+                 ArrayOperations.ArrayWindow,
+                 ArrayOperations.ArrayNormalize]
 
     for cls in opclasses:
         cls.register(reg, basic)
@@ -101,15 +112,33 @@ def initialize(*args, **keywords):
     #########################################################################################
     #  Array IO registry
     ioclasses = [ArrayIO.ReadRAW,
-                 ArrayIO.ReadNHDR]
+                 ArrayIO.ReadNHDR,
+                 ArrayIO.WriteRAW,
+                 ArrayIO.WriteNHDR,
+                 ArrayIO.ReadStatisticalSummary]
+
     try:
         import pylab
         ioclasses.append(ArrayIO.ReadPNG)
+        ioclasses.append(ArrayIO.WritePNG)
     except:
         pass
     
     for cls in ioclasses:
         cls.register(reg, basic)
+
+    #########################################################################################
+    #  Array Imaging registry
+    ar_util = [ArrayUtilities.ArrayToVTKScalars,
+               ArrayUtilities.ArrayToTimeVaryingVTKScalars,
+               ArrayUtilities.ArrayToTimeVaryingVTKVectors,
+               ArrayUtilities.ArrayToVTKVectors,
+               ArrayUtilities.VTKDataSetToPointArray]
+
+    clslst.extend(ar_util)
+    
+    for cls in ar_util:
+        cls.register(reg, basic)        
 
     #########################################################################################
     #  Array Imaging registry
@@ -119,7 +148,8 @@ def initialize(*args, **keywords):
                  Imaging.GaussianSmooth,
                  Imaging.MedianFilter,
                  Imaging.ImageDifference,
-                 Imaging.ImageNormalize]
+                 Imaging.ImageNormalize,
+                 Imaging.SobelGradientMagnitude]
 
     for cls in imclasses:
         cls.register(reg, basic)
@@ -145,17 +175,45 @@ def initialize(*args, **keywords):
     #  Scipy DSP Registry
     dspclasses = [DSP.FFT,
                   DSP.FFTN,
-                  DSP.ShortTimeFourierTransform]
-               
+                  DSP.SignalSmoothing,
+                  DSP.ShortTimeFourierTransform,
+                  DSP.SignalGenerator]
+#                  DSP.FrequencyPhaseLocking,
+#                  DSP.SingleTrialPhaseLocking
+
     try:
         import smt
         import Stockwell
         dspclasses.append(Stockwell.StockwellTransform)
         dspclasses.append(Stockwell.MultiTaperStockwellTransform)
+        dspclasses.append(Stockwell.FastStockwell3D)
+        dspclasses.append(Stockwell.Stockwell2D)
+        dspclasses.append(Stockwell.PyStockwellTransform)
+        dspclasses.append(Stockwell.PointBasedStockwell)
+        dspclasses.append(Stockwell.ScaleSpaceHistogram)
+        dspclasses.append(Stockwell.PyScaleSpaceHistogram)
+        dspclasses.append(Stockwell.MaximalScaleVolume)
+        dspclasses.append(Stockwell.ScaleVolumes)
+        dspclasses.append(Stockwell.IsotropicScaleVolumes)
+        dspclasses.append(Stockwell.FrequencyPhaseLocking)
     except:
         pass
 
     for cls in dspclasses:
+        cls.register(reg, basic)
+
+    #########################################################################################
+    #  Scipy Interpolation Registry
+    interpclasses = []
+    try:
+        import ArrayInterpolate
+        interpclasses.append(ArrayInterpolate.RBFInterpolate)
+        interpclasses.append(ArrayInterpolate.BSplineInterpolate)
+    except:
+        pass
+
+    interpclasses.append(ArrayInterpolate.BSplineResample)
+    for cls in interpclasses:
         cls.register(reg, basic)
 
     #########################################################################################
@@ -180,10 +238,17 @@ def initialize(*args, **keywords):
     #########################################################################################
     #  Scipy Signal Ensembles Registry
     ensembles = [EnsembleOrdering.OrderByIndexes,
-                 EnsembleOrdering.OrderByCorrelation]
+                 EnsembleOrdering.OrderByCorrelation,
+                 EnsembleOrdering.OrderByProgressiveCorrelation,
+                 EnsembleOrdering.ComputeDistance]
 
     for cls in ensembles:
         cls.register(reg, basic)
+
+    for cls in clslst:
+        cls.register_ports(reg, basic)
+
+    #########################################################################################    
 
 def package_dependencies():
     import core.packagemanager

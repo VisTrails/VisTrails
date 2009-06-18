@@ -101,24 +101,29 @@ class ArrayToVTKImageData(ArrayConvertModule, Module):
         sh = a.get_shape()
 
         if len(sh) < 2:
-            sh = tuple(sh[0], 0, 0)
+            sh = tuple([sh[0], 1, 0])
         if len(sh) < 3:
-            sh = tuple(sh[0], sh[1], 0)
+            sh = tuple([sh[0], sh[1], 0])
 
         (num_sigs, num_times, num_freqs) = sh
         num_pts = a.get_num_elements()
         vtk_set = core.modules.module_registry.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkStructuredPoints').module()
         vtk_set.vtkInstance = vtk.vtkImageData()
-        vtk_set.vtkInstance.SetDimensions(sh[0], sh[1], sh[2])
+        vtk_set.vtkInstance.SetDimensions(sh[0], sh[1], sh[2]+1)
         vtk_set.vtkInstance.SetScalarTypeToFloat()
         scalars = vtk.vtkFloatArray()
 
         ar = a.get_array()
         for ar_x in xrange(sh[0]):
             for ar_y in xrange(sh[1]):
-                for ar_z in xrange(sh[2]):
-                    val = ar[ar_x, ar_y, ar_z]
-                    vtk_set.vtkInstance.SetScalarComponentFromFloat(ar_x, ar_y, ar_z, 0, val)
+                if sh[2] == 0:
+                    val = ar[ar_x, ar_y]
+                    vtk_set.vtkInstance.SetScalarComponentFromFloat(ar_x, ar_y, 0, 0, val)
+                else:
+                    
+                    for ar_z in xrange(sh[2]):
+                        val = ar[ar_x, ar_y, ar_z]
+                        vtk_set.vtkInstance.SetScalarComponentFromFloat(ar_x, ar_y, ar_z, 0, val)
 
         if self.hasInputFromPort("SpacingX"):
             x = self.getInputFromPort("SpacingX")

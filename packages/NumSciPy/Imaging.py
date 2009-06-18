@@ -171,3 +171,23 @@ class ImageNormalize(ArrayImaging, Module):
         reg.add_module(cls, namespace=cls.my_namespace)
         reg.add_input_port(cls, "Input", (NDArray, 'Image Array'))
         reg.add_output_port(cls, "Output", (NDArray, 'Output Array'))
+
+class SobelGradientMagnitude(ArrayImaging, Module):
+    """ Use n-dimensional sobel kernels to compute the gradient magnitude
+    of an image """
+    def compute(self):
+        im = self.getInputFromPort("Input").get_array()
+        mag = numpy.zeros(im.shape)
+        for i in xrange(im.ndim):
+            kern = scipy.ndimage.sobel(im, axis=i)
+            mag += kern*kern
+
+        out = NDArray()
+        out.set_array(numpy.sqrt(mag))
+        self.setResult("Output", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input", (NDArray, 'Image Array'))
+        reg.add_output_port(cls, "Output", (NDArray, 'Output Array'))

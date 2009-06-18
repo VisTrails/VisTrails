@@ -28,6 +28,8 @@ class MatlabReader(ArrayUtilityModule, Module):
 
         for t in vals:
             if type(t) == numpy.ndarray:
+                if t.dtype == 'object':
+                    continue
                 mat = t
 
         return (mat,)

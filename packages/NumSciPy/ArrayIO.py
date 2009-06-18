@@ -4,6 +4,7 @@ from core.modules.vistrails_module import Module, ModuleError
 import numpy
 import scipy
 import scipy.io
+import pylab
 from Array import *
 from Matrix import *
 
@@ -21,7 +22,23 @@ class NrrdHelper(object):
         self.type['int16'] = 'i'
         self.type['long'] = 'l'
         self.type['int32'] = 'l'
+        self.type['unsigned short'] = 's'
+        self.type['unsigned char'] = 'c'
 
+        self.nrrd_type = {}
+        self.nrrd_type['float'] = 'float'
+        self.nrrd_type['float32'] = 'float'
+        self.nrrd_type['float64'] = 'double'
+        self.nrrd_type['double'] = 'double'
+        self.nrrd_type['int64'] = 'long'
+        self.nrrd_type['long'] = 'long'
+        self.nrrd_type['int32'] = 'int'
+        self.nrrd_type['int16'] = 'short'
+        self.nrrd_type['int8'] = 'uchar'
+        self.nrrd_type['unsigned short'] = 'short'
+
+        self.little_endian = True
+        
     def num_bytes(self, dtype):
         if self.type.has_key(dtype):
             return self.type[dtype]
@@ -29,12 +46,20 @@ class NrrdHelper(object):
             print "Cannot find " + dtype + " in type library."
             print "Assuming float32 for dtype"
             return 'f'
+
+    def get_nrrd_type(self, data):
+        dt = data.dtype.name
+        if self.nrrd_type.has_key(dt):
+            print self.nrrd_type[dt]
+            return self.nrrd_type[dt]
+        else:
+            print "Cannot find " + dt + " in type library."
+            print "Assuming float32 for dtype"
+            return 'float'
         
     def read_raw(self, fn, sizes, dtype, little_end=True):
         try:
-#            fn = "/scratch/eranders/data/joao/foot/" + fn
             fid = open(fn, 'rb')
-            print 'fid open'
             dt = self.num_bytes(dtype)
             ndim = len(sizes)
             num_el = 1
@@ -42,16 +67,48 @@ class NrrdHelper(object):
                 num_el *= sizes[i]
 
             if little_end:
-                data = scipy.io.fread(fid, num_el, dt, 'd')
+                dt = '<'+dt
             else:
-                data = scipy.io.fread(fid, num_el, dt, 'd', byteswap=1)
+                dt = '>'+dt
+
+            data = numpy.fromfile(fn, dt)
             fid.close()
-            print 'fid closed'
             data.shape = sizes
             return data
         except:
             raise ModuleError("Could not read .raw file!")
-            
+
+    def write_raw(self, fn, data):
+        try:
+            fid = open(fn, 'wb')
+            scipy.io.fwrite(fid, data.size, data)
+            fid.close()
+        except:
+            raise ModuleError("Could not write .raw file!")
+
+    def write_nhdr(self, fn, data):
+        import os
+        l = fn.split('/')
+        name = l[len(l)-1]
+        base = name.split('.')[0]
+        rawname = base + '.raw'
+        rawpath = fn.rstrip(name)
+        rawpath += rawname
+        self.write_raw(rawpath, data)
+        cmd = 'unu make -h -t '
+        cmd += self.get_nrrd_type(data) + ' '
+        cmd += '-e raw -i ' + rawname + ' -s '
+        sh = data.shape
+        ndims = len(sh)
+        for i in xrange(ndims):
+            cmd += str(sh[i]) + ' '
+
+        cmd += '-o ' + fn
+        try:
+            os.system(cmd)
+        except:
+            raise ModuleError("Could not write NHDR file.  Please make sure the Teem and UNU utilities are on your path.")
+        
     def read_nhdr(self, fn):
         import os.path
         try:
@@ -92,7 +149,6 @@ class NrrdHelper(object):
 class ReadPNG(ArrayIOModule, Module):
     """ Load a .png type image into a Numpy Array. """
     def compute(self):
-        import pylab
         fn = self.getInputFromPort("Filename")
         ar = pylab.imread(fn)
         out = NDArray()
@@ -104,6 +160,19 @@ class ReadPNG(ArrayIOModule, Module):
         reg.add_module(cls, namespace=cls.my_namespace)
         reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+
+class WritePNG(ArrayIOModule, Module):
+    """ Write a .png type image from a Numpy Array. """
+    def compute(self):
+        fn = self.getInputFromPort("Filename")
+        ar = self.getInputFromPort("Image")
+        pylab.save(fn, ar.get_array())
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
+        reg.add_input_port(cls, "Image", (NDArray, 'Image To Write'))
 
 class ReadRAW(ArrayIOModule, Module):    
     """ Load a .raw file into a Numpy Array.  The .raw files are
@@ -129,6 +198,23 @@ class ReadRAW(ArrayIOModule, Module):
         reg.add_input_port(cls, "DataType", (basic.String, 'Datatype'))
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
 
+class WriteRAW(ArrayIOModule, Module):
+    """ Write a .raw file from a Numpy Array. """
+    def __init__(self):
+        Module.__init__(self)
+        self.helper = NrrdHeler()
+
+    def compute(self):
+        fn = self.getInputFromPort("Filename")
+        ar = self.getInputFromPort("Array").get_array()
+        self.helper.write_raw(fn,ar)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
+        reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
+        
 class ReadNHDR(ArrayIOModule, Module):
     """ Load a .nhdr/.raw pair into a Numpy Array. """
     def __init__(self):
@@ -136,7 +222,11 @@ class ReadNHDR(ArrayIOModule, Module):
         self.helper = NrrdHelper()
 
     def compute(self):
-        fn = self.getInputFromPort("Filename")
+        fn = ''
+        if self.hasInputFromPort("File"):
+            fn = self.getInputFromPort("File").name
+        else:
+            fn = self.getInputFromPort("Filename")
         ar = self.helper.read_nhdr(fn)
         out = NDArray()
         out.set_array(ar)
@@ -146,5 +236,121 @@ class ReadNHDR(ArrayIOModule, Module):
     def register(cls, reg, basic):
         reg.add_module(cls, namespace=cls.my_namespace)
         reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
+        reg.add_input_port(cls, "File", (basic.File, 'File'))
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
         
+class WriteNHDR(ArrayIOModule, Module):
+    """ Write a .nhdr/.raw pair from a Numpy Array """
+    def __init__(self):
+        Module.__init__(self)
+        self.helper = NrrdHelper()
+
+    def compute(self):
+        fn = self.getInputFromPort("Filename")
+        ar = self.getInputFromPort("Array").get_array()
+        self.helper.write_nhdr(fn,ar)
+        self.setResult("Filename Out", fn)
+        
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
+        reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
+        reg.add_output_port(cls, "Filename Out", (basic.String, 'Output Filename'))
+
+class ReadStatisticalSummary(ArrayIOModule, Module):
+    """
+    Documentation
+    """
+    def compute(self):
+        fn = ''
+        if self.hasInputFromPort("File"):
+            fn = self.getInputFromPort("File").name
+        else:
+            fn = self.getInputFromPort("Filename")
+
+        if self.forceGetInputFromPort("Allocate Aggregated Array"):
+            alloc_array = True
+        else:
+            alloc_array = False
+
+        fid = open(fn, 'r')
+        dims = fid.readline().strip().split()
+        n_pts = int(dims[0])
+        n_bins = int(dims[1])
+
+        min_ar = numpy.zeros(n_pts)
+        lq_ar = numpy.zeros(n_pts)
+        med_ar = numpy.zeros(n_pts)
+        hq_ar = numpy.zeros(n_pts)
+        max_ar = numpy.zeros(n_pts)
+        mode_ar = numpy.zeros((n_pts, 4))
+        hist_ar = numpy.zeros((n_pts, n_bins))
+        if alloc_array:
+            ag_ar = numpy.zeros((n_pts, 5+4+n_bins))
+        for i in xrange(n_pts):
+            l = fid.readline().strip().split()
+            min_ar[i] = float(l[0])
+            lq_ar[i] = float(l[1])
+            med_ar[i] = float(l[2])
+            hq_ar[i] = float(l[3])
+            max_ar[i] = float(l[4])
+            for j in xrange(4):
+                mode_ar[i, j] = float(l[5+j])
+
+            for b in xrange(n_bins):
+                hist_ar[i, b] = float(l[9+b])
+
+            if alloc_array:
+                vals = numpy.array(l).astype('float')
+                ag_ar[i,:] += vals
+
+        fid.close()
+        
+        min_ar_out = NDArray()
+        min_ar_out.set_array(min_ar)
+        self.setResult("Min Array", min_ar_out)
+        
+        lq_ar_out = NDArray()
+        lq_ar_out.set_array(lq_ar)
+        self.setResult("Lower Quartile Array", lq_ar_out)
+        
+        med_ar_out = NDArray()
+        med_ar_out.set_array(med_ar)
+        self.setResult("Median Array", med_ar_out)
+        
+        hq_ar_out = NDArray()
+        hq_ar_out.set_array(hq_ar)
+        self.setResult("Upper Quartile Array", hq_ar_out)
+        
+        max_ar_out = NDArray()
+        max_ar_out.set_array(max_ar)
+        self.setResult("Max Array", max_ar_out)
+        
+        mode_ar_out = NDArray()
+        mode_ar_out.set_array(mode_ar)
+        self.setResult("Mode Array", mode_ar_out)
+        
+        hist_ar_out = NDArray()
+        hist_ar_out.set_array(hist_ar)
+        self.setResult("Histogram Array", hist_ar_out)
+
+        if alloc_array:
+            ag_ar_out = NDArray()
+            ag_ar_out.set_array(ag_ar)
+            self.setResult("Aggregated Array", ag_ar_out)
+        
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
+        reg.add_input_port(cls, "File", (basic.File, 'File'))
+        reg.add_input_port(cls, "Allocate Aggregated Array", (basic.Boolean, 'Allocate Extra Space for Aggregated Array'), True)
+        reg.add_output_port(cls, "Min Array", (NDArray, 'Minima Array'))
+        reg.add_output_port(cls, "Lower Quartile Array", (NDArray, 'Lower Quartile Array'))
+        reg.add_output_port(cls, "Median Array", (NDArray, 'Median Array'))
+        reg.add_output_port(cls, "Upper Quartile Array", (NDArray, 'Upper Quartile Array'))
+        reg.add_output_port(cls, "Max Array", (NDArray, 'Maxima Array'))
+        reg.add_output_port(cls, "Mode Array", (NDArray, 'Mode Array'))
+        reg.add_output_port(cls, "Histogram Array", (NDArray, 'Histogram Array'))
+        reg.add_output_port(cls, "Aggregated Array", (NDArray, 'Aggregated Array'), True)

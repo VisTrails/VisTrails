@@ -121,7 +121,7 @@ class GaussianWindow(WindowModule, Module):
         size = self.getInputFromPort("Window Size")
         sigma = self.getInputFromPort("Sigma")
         out = NDArray()
-        out.set_array(scipy.signal.gaussian(size, sigam))
+        out.set_array(scipy.signal.gaussian(size, sigma))
         self.setResult("Window", out)
 
     @classmethod

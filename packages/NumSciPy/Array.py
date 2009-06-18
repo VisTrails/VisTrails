@@ -33,8 +33,8 @@ class NDArray(Module, ArrayModule):
 	return self.array.max()
 
     # Array Access
-    def get_mean(self):
-	return self.array.mean()
+    def get_mean(self, axis=None):
+	return self.array.mean(axis=axis)
 
     # Array Access
     def get_min(self):
