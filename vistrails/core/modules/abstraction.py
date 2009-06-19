@@ -104,8 +104,11 @@ def package_dependencies():
     for abstraction in os.listdir(abstraction_dir):
         if p.match(abstraction):
             abs_fname = os.path.join(abstraction_dir, abstraction)
-            vistrail = read_vistrail(abs_fname)
-            dependencies = get_abstraction_dependencies(vistrail)
+            try:
+                vistrail = read_vistrail(abs_fname)
+                dependencies = get_abstraction_dependencies(vistrail)
+            except core.modules.module_registry.MissingPackage, e:
+                dependencies = {e._identifier: set()}
             add_abstraction = True
             inter_depends = []
             for package, depends in dependencies.iteritems():
@@ -122,6 +125,7 @@ def package_dependencies():
                 vistrails[abstraction[:-4]] = \
                     (vistrail, abs_fname, inter_depends)
             else:
-                print "Abstraction '%s' missing packages it depends on"
+                print "Abstraction '%s' missing packages it depends on" % \
+                    abstraction
     # print 'all_packages:', all_packages
     return list(all_packages)
