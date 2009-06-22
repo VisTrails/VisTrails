@@ -28,6 +28,7 @@ from core.modules.tuple_configuration import PortTableConfigurationWidget, \
 from core.utils import PortAlreadyExists
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
+from gui.theme import CurrentTheme
 import urllib
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
@@ -113,10 +114,6 @@ class PythonEditor(QtGui.QTextEdit):
 
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
-        if system.systemType=='Linux':
-            self.defaultFontFamily = 'Monospace'
-        else:
-            self.defaultFontFamily = 'Courier'
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         self.formatChanged(None)
         self.setCursorWidth(8)
@@ -126,8 +123,7 @@ class PythonEditor(QtGui.QTextEdit):
                      self.formatChanged)
 
     def formatChanged(self, f):
-        self.setFontFamily(self.defaultFontFamily)
-        self.setFontPointSize(10.0)
+        self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> Nont

@@ -321,7 +321,10 @@ class DefaultTheme(object):
         # Font showing on the Legend window of Visual Diff
         self.VISUAL_DIFF_LEGEND_FONT = QtGui.QFont('Arial', 9)
 
-
+         # Font for PythonSource
+        self.PYTHON_SOURCE_EDITOR_FONT = QtGui.QFont('Courier', 10, 
+                                                     QtGui.QFont.Normal)
+        
         #### ICONS & IMAGES ####
         #The application disclaimer image
         self.DISCLAIMER_IMAGE = QtGui.QPixmap(
@@ -579,6 +582,19 @@ class MacTheme(DefaultTheme):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/mac/closetab.png')
         
+        #### FONTS ####
+        # Font for PythonSource
+        self.PYTHON_SOURCE_EDITOR_FONT = QtGui.QFont('Monaco', 11, 
+                                                     QtGui.QFont.Normal)
+
+class LinuxTheme(DefaultTheme):
+    def __init__(self):
+        DefaultTheme.__init__(self)
+        #### FONTS ####
+        # Font for PythonSource
+        self.PYTHON_SOURCE_EDITOR_FONT = QtGui.QFont('Monospace', 10, 
+                                                     QtGui.QFont.Normal)
+                
 class ThemeHolder(object):
     """
     ThemeHolder is a class holding a theme and exposed that theme
