@@ -406,7 +406,10 @@ class VTKMethodParser(object):
                 for key, values in sm.items():
                     default = getattr(obj, 'Get%s'%key)()
                     for x in values[:]:
-                        getattr(obj, 'Set%sTo%s'%(key, x[0]))()
+                        try:
+                            getattr(obj, 'Set%sTo%s'%(key, x[0]))()
+                        except:
+                            continue
                         val = getattr(obj, 'Get%s'%key)()
                         x[1] = val
                         if val == default:
