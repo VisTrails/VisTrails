@@ -1361,7 +1361,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                                 controller
                             controller.current_pipeline_view = \
                                 pipelineView.scene()
+                            group.pipeline.ensure_connection_specs()
                             pipelineView.scene().setupScene(group.pipeline)
+                            pipelineView.scene().fitToView(pipelineView, True)
                             self.groupPipelineView = pipelineView
                             pipelineView.show()
                             pipelineMainWindow.show()
