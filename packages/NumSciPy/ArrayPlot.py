@@ -54,6 +54,15 @@ class ArrayPlot(object):
         return None
 
 class ArrayImage(ArrayPlot, Module):
+    '''
+    Display the 2D input Data Array as a color-mapped image.
+    Independent control of the aspect ratio, colormap, presence of the
+    colorbar and presented axis values are provided through the
+    appropriate input ports: Aspect Ratio, Colormap, Colorbar,
+    Extents.  To change the colormap being used, it must be one of the
+    pre-made maps provided by matplotlib.cm.  Only 1 2D array can be
+    viewed at a time.
+    '''
     def compute(self):
         data = self.getInputFromPort("Data Array")
         da_ar = data.get_array().squeeze()
@@ -143,6 +152,14 @@ class ArrayImage(ArrayPlot, Module):
         reg.add_output_port(cls, "source", (basic.String, 'source'))
         
 class Histogram(ArrayPlot, Module):
+    '''
+    Plot a histogram of the data values.  Multiple datasets can be
+    presented by providing multiple connections to the Data Array
+    port.  These data are then differentiated by assigned colors and
+    labels.  By default, 10 bins are used to histogram the data.
+    Additionally, recapturing the PDF of the data is possible by
+    enabling the Normalize option.
+    '''
     def compute(self):
         data = self.getInputListFromPort("Data Array")
         self.label_dict = None
@@ -239,6 +256,14 @@ class Histogram(ArrayPlot, Module):
         reg.add_output_port(cls, "source", (basic.String, 'source'))
         
 class BarChart(ArrayPlot, Module):
+    '''
+    Create a bar chart of the input data.  Different datasets can be
+    used simultaneously by connecting to the Data input port multiple
+    times.  Each successive data connection will be rendered on top of
+    the previous dataset.  This creates a stacked bar chart.  Error
+    bars are drawn with the errors for each of the datasets connected
+    to the Error Bars input port.
+    '''
     def get_ticks(self, num):
         a = []
         for i in range(num):
@@ -369,7 +394,14 @@ class BarChart(ArrayPlot, Module):
         reg.add_input_port(cls, "Bar Width", (basic.Float, 'Bar Width'), True)
         reg.add_output_port(cls, "source", (basic.String, 'source'))
         
-class ScatterPlot(ArrayPlot, Module):        
+class ScatterPlot(ArrayPlot, Module):
+    '''
+    Create a scatter plot from X and Y positions defined by the X
+    Array and Y Array ports, respectively.  Datasets can be added by
+    connecting multiple arrays to the appropriate input ports.
+    Symbols representing each dataset can be defined by using the
+    Markers input assigning a valid pylab symbol to a dataset.
+    '''
     def compute(self):
         xdata = self.getInputListFromPort("X Array")
         ydata = self.getInputListFromPort("Y Array")
@@ -407,19 +439,24 @@ class ScatterPlot(ArrayPlot, Module):
         else:
             s += 'figure(facecolor=' + str(bg_color) + ')\n'
 
+        xdata_ar = numpy.zeros((len(xdata), xdata[0].get_array().flatten().shape[0]))
+        ydata_ar = numpy.zeros((len(xdata), xdata[0].get_array().flatten().shape[0]))
+
+        for i in range(len(xdata)):
+            xd = xdata[i]
+            yd = ydata[i]
+            xdata_ar[i,:] = xd.get_array().flatten()
+            ydata_ar[i,:] = yd.get_array().flatten()
+            
         for i in range(len(xdata)):
             xar = xdata[i]
             yar = ydata[i]
-            xarray = xar.get_array().flatten()
-            yarray = yar.get_array().flatten()
 
-            if xarray.shape != yarray.shape:
-                raise ModuleError("Cannot create scatter plot for arrays of different sizes")
             lab = self.get_label(xar, i)
             col = self.get_color(colors, i, randomcolors)
             mar = self.get_marker(markers, i)
 
-            s += 'scatter(xarray, yarray'
+            s += 'scatter(xdata_ar[' + str(i) +',:], ydata_ar[' + str(i) + ',:]'
             
             if lab != None:
                 s += ', label=\'' + lab +'\''
@@ -447,6 +484,7 @@ class ScatterPlot(ArrayPlot, Module):
         if p_title:
             s += 'title(\'' + p_title + '\')\n'
 
+        print s
         exec s
         self.setResult("source", s)
 
@@ -473,6 +511,11 @@ class ScatterPlot(ArrayPlot, Module):
         reg.add_output_port(cls, "source", (basic.String, 'source'))
 
 class LinePlot(ArrayPlot, Module):
+    '''
+    Create a standard line plot from a 1 or 2-dimensional Input Array.
+    If the Input Array is 2-dimensional, each row will be plotted as a
+    new line.
+    '''    
     def compute(self):
         data = self.getInputFromPort("Input Array")
         indexes = self.forceGetInputFromPort("Indexes")
