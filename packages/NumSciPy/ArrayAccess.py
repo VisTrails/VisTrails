@@ -262,7 +262,18 @@ class GetRowRange(Module, ArrayAccess):
         s = self.getInputFromPort("Start")
         e = self.getInputFromPort("End")
         out = NDArray()
+        if self.forceGetInputFromPort("One Indexed"):
+            s = s-1
+            e = e-1
+
         out.set_array(a.get_row_range(s, e))
+        new_index = 0
+        for i in range(s,e+1):
+            out.set_row_name(a.get_name(i), new_index)
+            new_index += 1
+
+        out.set_domain_name(a.get_domain_name())
+        out.set_range_name(a.get_range_name())
         self.setResult("Output Array", out)
 
     @classmethod
@@ -271,6 +282,7 @@ class GetRowRange(Module, ArrayAccess):
         reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
         reg.add_input_port(cls, "Start", (basic.Integer, 'Start Index'))
         reg.add_input_port(cls, "End", (basic.Integer, 'End Index'))
+        reg.add_input_port(cls, "One Indexed", (basic.Boolean, 'One Indexed'), True)
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
 
 
@@ -285,12 +297,16 @@ class GetRows(Module, ArrayAccess):
             raise ModuleError("No indexes provided")
 
         l.sort()
-        in_ar = self.getInputFromPort("Array").get_array()
+        inp = self.getInputFromPort("Array")
+        in_ar = inp.get_array()
         out_ar = in_ar[l[0],::]
         for i in range(1,len(l)):
             out_ar = numpy.vstack((out_ar,in_ar[i,::]))
 
         out = NDArray()
+        for i in range(out_ar.shape[0]):
+            out.set_row_name(inp.get_row_name(l[i]), i)
+            
         out.set_array(out_ar)
         out_order = NDArray()
         out_order.set_array(numpy.array(l))

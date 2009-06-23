@@ -20,7 +20,10 @@ import DSP
 import Filters
 import EnsembleOrdering
 
-version = '0.2.0'
+# NumSciPy plotting
+import ArrayPlot
+
+version = '0.4.0'
 name = 'Num-SciPy'
 identifier = 'edu.utah.sci.vistrails.numpyscipy'
 
@@ -91,7 +94,8 @@ def initialize(*args, **keywords):
                  ArrayOperations.ArraySqrt,
                  ArrayOperations.ArrayThreshold,
                  ArrayOperations.ArrayWindow,
-                 ArrayOperations.ArrayNormalize]
+                 ArrayOperations.ArrayNormalize,
+                 ArrayOperations.ArrayName]
 
     for cls in opclasses:
         cls.register(reg, basic)
@@ -245,10 +249,23 @@ def initialize(*args, **keywords):
     for cls in ensembles:
         cls.register(reg, basic)
 
-    for cls in clslst:
-        cls.register_ports(reg, basic)
+    #########################################################################################    
+    #  NumSciPy Plotting Registry
+    pl = [ArrayPlot.LinePlot,
+          ArrayPlot.ScatterPlot,
+          ArrayPlot.BarChart,
+          ArrayPlot.Histogram,
+          ArrayPlot.ArrayImage]
+
+    for cls in pl:
+        cls.register(reg, basic)
+
+    clslst.extend(pl)
 
     #########################################################################################    
+    #  Register all ports.
+    for cls in clslst:
+        cls.register_ports(reg, basic)
 
 def package_dependencies():
     import core.packagemanager

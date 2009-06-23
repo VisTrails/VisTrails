@@ -12,7 +12,11 @@ class NDArray(Module, ArrayModule):
     def __init__(self):
         Module.__init__(self)
         self.array = None
-    
+        self.names = {}
+        self.general_name = None
+        self.domain = ''
+        self.range = ''
+        
     def get_shape(self):
 	return self.array.shape
 
@@ -56,6 +60,59 @@ class NDArray(Module, ArrayModule):
     def get_diagonal(self):
 	return self.array.diagonal()
 
+    # Array Naming
+    def get_name(self, row):
+        if self.names.has_key(row):
+            return self.names[row]
+        else:
+            return None
+
+    # Array Naming
+    def get_general_name(self):
+        return self.general_name
+    
+    # Array Naming
+    def set_name(self, name, index=False):
+        self.general_name = name
+        for i in range(self.array.shape[0]):
+            if index:
+                self.names[i] = name + " " + str(i+1)
+            else:
+                self.names[i] = name + " " + str(i)
+
+    # Array Naming
+    def set_row_name(self, name, row):
+        self.names[row] = name
+
+    # Array Naming
+    def clear_names(self):
+        self.general_name = None
+        self.names = {}
+
+    # Array Naming
+    def get_domain_name(self):
+        return self.domain
+
+    # Array Naming
+    def get_range_name(self):
+        return self.range
+    
+    # Array Naming
+    def set_domain_name(self, name):
+        self.domain = name
+
+    # Array Naming
+    def set_range_name(self, name):
+        self.range = name
+
+    # Array Naming
+    def clear_domain_name(self):
+        self.domain = ''
+
+    # Array Naming
+    def clear_range_name(self):
+        self.range = ''
+        
     # Array Operation 
     def sort_array(self, axis=-1, kind='quicksort', order=None):
 	return self.array.argsort(axis, kind, order)

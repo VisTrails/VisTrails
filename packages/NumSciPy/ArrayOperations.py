@@ -596,3 +596,37 @@ class ArrayNormalize(ArrayOperationModule, Module):
         reg.add_input_port(cls, "Planes", (basic.Boolean, 'Plane-wise normalization'), True)
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
         
+class ArrayName(ArrayOperationModule, Module):
+    """ Assign a name or label to the entries of an array """
+    def compute(self):
+        in_ar = self.getInputFromPort("Input Array")
+        gen_name = self.forceGetInputFromPort("Name")
+        one_index = self.forceGetInputFromPort("One Indexed")
+        if gen_name:
+            in_ar.set_name(gen_name, index=one_index)
+
+        name_list = self.forceGetInputListFromPort("Row Name")
+        if name_list != None:
+            for (i,n) in name_list:
+                in_ar.set_row_name(n, i)
+
+        dname = self.forceGetInputFromPort("Domain Name")
+        if dname:
+            in_ar.set_domain_name(dname)
+
+        rname = self.forceGetInputFromPort("Range Name")
+        if rname:
+            in_ar.set_range_name(rname)
+
+        self.setResult("Output Array", in_ar)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "One Indexed", (basic.Boolean, 'One Indexed'))
+        reg.add_input_port(cls, "Name", (basic.String, 'Array Name'))
+        reg.add_input_port(cls, "Row Name", [basic.Integer, basic.String], True)
+        reg.add_input_port(cls, "Domain Name", (basic.String, 'Domain Label'))
+        reg.add_input_port(cls, "Range Name", (basic.String, 'Range Label'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))

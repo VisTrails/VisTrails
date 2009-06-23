@@ -50,7 +50,6 @@ class NrrdHelper(object):
     def get_nrrd_type(self, data):
         dt = data.dtype.name
         if self.nrrd_type.has_key(dt):
-            print self.nrrd_type[dt]
             return self.nrrd_type[dt]
         else:
             print "Cannot find " + dt + " in type library."
