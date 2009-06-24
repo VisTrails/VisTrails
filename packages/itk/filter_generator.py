@@ -1,4 +1,4 @@
-# This is a rough code generation tool that works to generate code for wrapping itk functions for Vistrails
+# This is a rough code generation tool that works to generate code used to wrap itk functions for Vistrails
 # In order to use this one must:
 #   -set generation variables
 #   -run script
@@ -13,7 +13,9 @@
 #       http://math.nist.gov/mcsd/savg/software/filters/
 #       http://voxel.jouy.inra.fr/darcs/contrib-itk/WrapITK/Python/Tests/
 
+##########################################################
 #String Manipulation Methods
+##########################################################
 def AddSpaces(word):
     output = ""
     for char in word:
@@ -22,6 +24,7 @@ def AddSpaces(word):
         else:
             output += char
     return output
+
 def SplitCap(word):
     temp = word.split("_")
     output = ""
@@ -29,7 +32,9 @@ def SplitCap(word):
         output += "%s "%elem.capitalize()
     return output.strip()
 
+##########################################################
 #SETUP generation variables
+##########################################################
 #filter_name should be equal to itk.filter_name
 filter_name = "BinaryErodeImageFilter"
 
@@ -44,7 +49,9 @@ has_kernel = True
 filter_values = {"level":["basic.Float",None, "SetSquaredDistance"],
                  "lower_threshold":["basic.Float",None, "SetUseImageSpacing"]}
 
+##########################################################
 #code generation
+##########################################################
 out_class = """class %s(Module):
     my_namespace = '%s'"""%(filter_name, namespace)
 
@@ -154,6 +161,10 @@ register += """
         reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)
         reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'),True)
 """
+
+##########################################################
+#Output
+##########################################################
 print out_class
 print compute
 print register

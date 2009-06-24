@@ -20,6 +20,13 @@
 ##
 ############################################################################
 #  ITK package for VisTrails
+############################################################################
+
+"""ITK is an open-source, cross-platform system that provides developers with an extensive suite of software tools for image analysis. www.itk.org
+
+For info on installing itk and python-itk on ubuntu see: http://paulnovo.org/node/2
+
+For info on generating wrapper modules for more itk filters see itk/filter_generator.py"""
 
 version = '0.2'
 identifier = 'edu.utah.sci.vistrails.itk'
