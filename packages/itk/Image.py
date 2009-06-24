@@ -24,7 +24,7 @@ import core.modules
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
 from ITK import *
-from PixelTypes import *
+from PixelType import *
 
 class Image(Module, ITK):
     my_namespace="disregard"
