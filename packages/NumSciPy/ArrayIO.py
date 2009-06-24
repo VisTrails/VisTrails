@@ -165,12 +165,21 @@ class WritePNG(ArrayIOModule, Module):
     def compute(self):
         fn = self.getInputFromPort("Filename")
         ar = self.getInputFromPort("Image")
-        pylab.save(fn, ar.get_array())
+        minv = self.forceGetInputFromPort("Min")
+        maxv = self.forceGetInputFromPort("Max")
+        if minv == None:
+            minv = 0
+        if maxv == None:
+            maxv = 255
+        da_ar = ar.get_array().squeeze()
+        im = scipy.misc.toimage(da_ar, cmin=minv, cmax=maxv).save(fn)
 
     @classmethod
     def register(cls, reg, basic):
         reg.add_module(cls, namespace=cls.my_namespace)
         reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
+        reg.add_input_port(cls, "Min", (basic.Integer, 'Min Value'))
+        reg.add_input_port(cls, "Max", (basic.Integer, 'Max Value'))
         reg.add_input_port(cls, "Image", (NDArray, 'Image To Write'))
 
 class ReadRAW(ArrayIOModule, Module):    
