@@ -22,7 +22,7 @@
 
 import copy
 from db.versions.v0_9_5.domain import DBVistrail, DBWorkflow, DBLog, \
-    DBRegistry
+    DBRegistry, DBModuleExec
 
 def translateVistrail(_vistrail):
     def update_signature(old_obj, translate_dict):
@@ -74,7 +74,12 @@ def translateWorkflow(_workflow):
     return workflow
 
 def translateLog(_log):
-    translate_dict = {}
+    def update_items(old_obj, translate_dict):
+        new_items = []
+        for obj in old_obj.db_module_execs:
+            new_items.append(DBModuleExec.update_version(obj, translate_dict))
+        return new_items
+    translate_dict = {'DBWorkflowExec': {'items': update_items}}
     log = DBLog.update_version(_log, translate_dict, DBLog())
     log.db_version = '0.9.5'
     return log
