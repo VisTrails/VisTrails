@@ -422,7 +422,10 @@ class ModuleRegistry(DBRegistry):
         package.add_descriptor(desc)
     def delete_descriptor(self, desc, package=None):
         if package is None:
-            package = self._default_package
+            try:
+                package = self.packages[desc.identifier]
+            except KeyError:
+                package = self._default_package
         if desc.base_descriptor_id != -1 and desc.base_descriptor:
             desc.base_descriptor.children.remove(desc)
         # del self.descriptors[(desc.package, desc.name, desc.namespace)]

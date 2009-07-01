@@ -25,6 +25,7 @@ from itertools import izip
 import os
 import uuid
 import shutil
+import tempfile
 
 from core.configuration import get_vistrails_configuration
 import core.db.io
@@ -1017,9 +1018,62 @@ class VistrailController(object):
                             abstractions.append(abstraction)
         if recurse:
             for abstraction in abstractions:
-                abstractions.extend(
-                    self.find_abstractions(abstraction.vistrail, recurse))
+                try:
+                    vistrail = abstraction.vistrail
+                except MissingPackageVersion, e:
+                    reg = core.modules.module_registry.get_module_registry()
+                    abstraction._module_descriptor = \
+                        reg.get_similar_descriptor(*abstraction.descriptor_info)
+                    vistrail = abstraction.vistrail
+                abstractions.extend(self.find_abstractions(vistrail, recurse))
         return abstractions
+
+    def check_abstraction(self, descriptor_tuple, lookup):
+        reg = core.modules.module_registry.get_module_registry()
+        try:
+            descriptor = reg.get_descriptor_by_name(*descriptor_tuple)
+            if not os.path.exists(descriptor.module.vt_fname):
+                # print "abstraction path doesn't exist"
+                reg.delete_descriptor(descriptor)
+                raise MissingModule(descriptor_tuple[0],
+                                    descriptor_tuple[1],
+                                    descriptor_tuple[2],
+                                    descriptor_tuple[4])
+            return descriptor
+        except MissingPackageVersion, e:
+            if descriptor_tuple[3] != '':
+                new_desc = (descriptor_tuple[0],
+                            descriptor_tuple[1],
+                            descriptor_tuple[2],
+                            '',
+                            descriptor_tuple[4])
+                return self.check_abstraction(new_desc, lookup)
+            else:
+                raise
+        except MissingModuleVersion, e:
+            if descriptor_tuple[4] != '':
+                other_desc = reg.get_descriptor_by_name(descriptor_tuple[0],
+                                                        descriptor_tuple[1],
+                                                        descriptor_tuple[2],
+                                                        descriptor_tuple[3],
+                                                        '')
+                self.load_abstraction(other_desc.module.vt_fname, 
+                                      False, descriptor_tuple[1],
+                                      descriptor_tuple[4])
+                return self.check_abstraction(descriptor_tuple, lookup)
+            else:
+                raise
+        except MissingModule, e:
+            if descriptor_tuple[1] not in lookup:
+                raise
+            abs_fname = lookup[descriptor_tuple[1]]
+            new_desc = \
+                self.load_abstraction(abs_fname, False, 
+                                      descriptor_tuple[1],
+                                      descriptor_tuple[4],
+                                      lookup.values())
+            return self.check_abstraction(descriptor_tuple, lookup)
+        return None
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
@@ -1033,65 +1087,10 @@ class VistrailController(object):
         # abstraction.vistrail until the module is loaded.
         abstractions = self.find_abstractions(vistrail)
         for abstraction in abstractions:
-            try:
-#                 print abstraction.package, abstraction.name, \
-#                     abstraction.namespace, abstraction.internal_version
-                descriptor = abstraction.module_descriptor
-            except MissingPackageVersion, e:
-                reg = core.modules.module_registry.get_module_registry()
-                try:
-                    new_desc = \
-                        reg.get_descriptor_by_name(abstraction.package,
-                                                   abstraction.name,
-                                                   abstraction.namespace,
-                                                   '',
-                                                   abstraction.internal_version)
-                    abstraction._module_descriptor = new_desc
-                except MissingModuleVersion, e:
-                    other_desc = \
-                        reg.get_descriptor_by_name(abstraction.package,
-                                                   abstraction.name,
-                                                   abstraction.namespace)
-                    new_desc = \
-                        self.load_abstraction(other_desc.module.vt_fname,
-                                              False, abstraction.name,
-                                              abstraction.internal_version)
-                    abstraction._module_descriptor = new_desc
-                except MissingModule, e:
-                    if abstraction.name not in lookup:
-                        raise
-                    abs_fname = lookup[abstraction.name]
-                    new_desc = \
-                        self.load_abstraction(abs_fname, False, 
-                                              abstraction.name,
-                                              abstraction.internal_version,
-                                              abs_fnames)
-                    abstraction._module_descriptor = new_desc
-                
-#                 self.load_abstraction(other_desc.module.vt_fname,
-#                                       False, abstraction.name,
-#                                       abstraction.internal_version)
-            except MissingModuleVersion, e:
-                # just change the version...
-                reg = core.modules.module_registry.get_module_registry()
-                other_desc = reg.get_descriptor_by_name(e._identifier,
-                                                        e._name,
-                                                        e._namespace,
-                                                        e._package_version)
-                self.load_abstraction(other_desc.module.vt_fname, 
-                                      False, abstraction.name, 
-                                      abstraction.internal_version)
-            except MissingModule, e:
-                # missing the whole module
-                if abstraction.name not in lookup:
-                    raise
-                abs_fname = lookup[abstraction.name]
-                self.load_abstraction(abs_fname, False, abstraction.name,
-                                      abstraction.internal_version, abs_fnames)
-                descriptor = abstraction.module_descriptor                
-            except ModuleRegistryException, e:
-                # shouldn't get here...
-                raise
+            # print 'checking for abstraction "' + str(abstraction.name) + '"'
+            descriptor = self.check_abstraction(abstraction.descriptor_info,
+                                                lookup)
+            abstraction.module_descriptor = descriptor
             
     def create_ungroup(self, full_pipeline, module_id):
 
@@ -1394,6 +1393,7 @@ version\n might be necessary." % (err._name, pkg.name)
                 
     def write_vistrail(self, locator, version=None):
         if self.vistrail and (self.changed or self.locator != locator):
+            abs_save_dir = None
             is_abstraction = self.vistrail.is_abstraction
             # FIXME make all locators work with lists of objects
             objs = [(Vistrail.vtType, self.vistrail)]
@@ -1404,7 +1404,15 @@ version\n might be necessary." % (err._name, pkg.name)
                 abs_module = abstraction.module_descriptor.module
                 if abs_module is not None:
                     abs_fname = abs_module.vt_fname
+                    if not os.path.exists(abs_fname):
+                        if abs_save_dir is None:
+                            abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
+                        abs_fname = os.path.join(abs_save_dir, 
+                                                 abstraction.name + '.xml')
+                        core.db.io.save_vistrail_to_xml(abstraction.vistrail,
+                                                        abs_fname)
                     objs.append(('__file__', abs_fname))
+                                                
 #             for abs_fname in abstractions:
 #                 objs.append(('__file__', abs_fname))
             thumb_cache = ThumbnailCache.getInstance()
@@ -1449,6 +1457,16 @@ version\n might be necessary." % (err._name, pkg.name)
                 self.set_vistrail(new_vistrail, locator)
                 self.change_selected_version(new_version)
             self.set_changed(False)
+            if abs_save_dir is not None:
+                try:
+                    for root, _, files in os.walk(abs_save_dir, topdown=False):
+                        for name in files:
+                            os.remove(os.path.join(root, name))
+                    os.rmdir(abs_save_dir)
+                except OSError, e:
+                    raise VistrailsDBException("Can't remove %s: %s" % \
+                                                   (abs_save_dir, str(e)))
+
 
     def write_workflow(self, locator):
         if self.current_pipeline:

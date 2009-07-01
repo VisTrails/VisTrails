@@ -1618,6 +1618,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.add_new_action(action)
             self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)
+            self.current_pipeline.ensure_modules_are_on_registry()
             self.current_pipeline.ensure_connection_specs(connections)
         return modules
 

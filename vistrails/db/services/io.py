@@ -528,13 +528,25 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
     for (obj_type, obj) in objs:
         if obj_type == '__file__':
             if type(obj) == type(""):
-                obj_fname = 'abstraction_' + os.path.basename(obj)
+                # FIXME we should have an abstraction directory here instead
+                # of the abstraction_ prefix...
+                if not os.path.basename(obj).startswith('abstraction_'):
+                    obj_fname = 'abstraction_' + os.path.basename(obj)
+                else:
+                    obj_fname = os.path.basename(obj)
                 # xml_fname = os.path.join(abstraction_dir, obj_fname)
                 xml_fname = os.path.join(vt_save_dir, obj_fname)
                 # if not os.path.exists(abstraction_dir):
                 #     os.mkdir(abstraction_dir)
-                # print 'copying %s -> %s' % (obj, xml_fname)
-                shutil.copyfile(obj, xml_fname)
+                # print "obj:", obj
+                # print "xml_fname:", xml_fname
+                if obj != xml_fname:
+                    # print 'copying %s -> %s' % (obj, xml_fname)
+                    try:
+                        shutil.copyfile(obj, xml_fname)
+                    except Exception, e:
+                        debug.critical('copying %s -> %s failed: %s' % \
+                                           (obj, xml_fname, str(e)))
             else:
                 raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
                                            '__file__ must have a filename '
@@ -550,10 +562,8 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
                     try:
                         shutil.copyfile(obj, png_fname)
                     except Exception, e:
-                        debug.warning('copying %s -> %s failed: %s' %(obj, 
-                                                                      png_fname,
-                                                                      str(e))) 
-                        pass
+                        debug.critical('copying %s -> %s failed: %s' % \
+                                           (obj, png_fname, str(e))) 
             else:
                 raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
                                            '__thumb__ must have a filename '
