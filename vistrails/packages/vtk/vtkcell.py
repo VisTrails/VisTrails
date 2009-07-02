@@ -64,9 +64,11 @@ class VTKCell(SpreadsheetCell):
         renderers = self.forceGetInputListFromPort('AddRenderer')
         renderViews = self.forceGetInputListFromPort('SetRenderView')
         if len(renderViews)>1:
-            raise ModuleError('There can only be one vtkRenderView per cell')
+            raise ModuleError(self, 'There can only be one vtkRenderView '
+                              'per cell')
         if len(renderViews)==1 and len(renderers)>0:
-            raise ModuleError('Cannot set both vtkRenderView and vtkRenderer to a cell')
+            raise ModuleError(self, 'Cannot set both vtkRenderView '
+                              'and vtkRenderer to a cell')
         renderView = self.forceGetInputFromPort('SetRenderView')
         iHandlers = self.forceGetInputListFromPort('InteractionHandler')
         iStyle = self.forceGetInputFromPort('InteractorStyle')
