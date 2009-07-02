@@ -94,7 +94,6 @@ else:
 
 parser = VTKMethodParser()
 
-
 typeMapDict = {'int': Integer,
                'long': Integer,
                'float': Float,
@@ -108,6 +107,15 @@ typeMapDictValues = [Integer, Float, String]
 
 file_name_pattern = re.compile('.*FileName$')
 set_file_name_pattern = re.compile('Set.*FileName$')
+
+def resolve_overloaded_name(name, ix, signatures):
+    # VTK supports static overloading, VisTrails does not. The
+    # solution is to check whether the current function has
+    # overloads and change the names appropriately.
+    if len(signatures) == 1:
+        return name
+    else:
+        return name + '_' + str(ix+1)
 
 def typeMap(name, package=None):
     """ typeMap(name: str) -> Module
@@ -347,25 +355,22 @@ def addSetGetPorts(module, get_set_dict, delayed):
         setterSig = get_method_signature(setterMethod)
         if len(getterSig) > 1:
             prune_signatures(module, 'Get%s'%name, getterSig, output=True)
-        for getter, order in izip(getterSig, xrange(1, len(getterSig)+1)):
+        for order, getter in enumerate(getterSig):
             if getter[1]:
                 debug("Can't handle getter %s (%s) of class %s: Needs input to "
-                    "get output" % (order, name, klass))
+                    "get output" % (order+1, name, klass))
                 continue
             if len(getter[0]) != 1:
                 debug("Can't handle getter %s (%s) of class %s: More than a "
-                    "single output" % (order, name, str(klass)))
+                    "single output" % (order+1, name, str(klass)))
                 continue
             class_ = typeMap(getter[0][0])
             if is_class_allowed(class_):
                 registry.add_output_port(module, 'Get'+name, class_, True)
         if len(setterSig) > 1:
             prune_signatures(module, 'Set%s'%name, setterSig)
-        for setter, order in izip(setterSig, xrange(1, len(setterSig)+1)):
-            if len(setterSig) == 1:
-                n = 'Set' + name
-            else:
-                n = 'Set' + name + '_' + str(order)
+        for ix, setter in enumerate(setterSig):
+            n = resolve_overloaded_name('Set' + name, ix, setterSig)
             if len(setter[1]) == 1 and is_class_allowed(typeMap(setter[1][0])):
                 registry.add_input_port(module, n,
                                         typeMap(setter[1][0]),
@@ -463,10 +468,7 @@ def addStatePorts(module, state_dict):
             if len(setterSig) > 1:
                 prune_signatures(module, 'Set%s'%name, setterSig)
             for ix, setter in enumerate(setterSig):
-                if len(setterSig) == 1:
-                    n = 'Set' + name
-                else:
-                    n = 'Set' + name + str(ix+1)
+                n = resolve_overloaded_name('Set' + name, ix, setterSig)
                 tm = typeMap(setter[1][0])
                 if len(setter[1]) == 1 and is_class_allowed(tm):
                     registry.add_input_port(module, n, tm,
@@ -542,10 +544,7 @@ def addOtherPorts(module, other_list):
                 if types:
                     if not all(types, is_class_allowed):
                         continue
-                    if len(signatures) == 1:
-                        n = name
-                    else:
-                        n = name + '_' + str(ix+1)
+                    n = resolve_overloaded_name(name, ix, signatures)
                     if len(types)<=1:
                         registry.add_input_port(module, n, types[0],
                                                 types[0] in typeMapDictValues)
@@ -568,10 +567,7 @@ def addOtherPorts(module, other_list):
                 if not all(types, is_class_allowed):
                     continue
                 if types==[] or (result==None):
-                    if len(signatures) == 1:
-                        n = name
-                    else:
-                        n = name + '_' + str(ix+1)
+                    n = resolve_overloaded_name(name, ix, signatures)
                     registry.add_input_port(module, n, types, True)
 
 disallowed_get_ports = set([
@@ -1063,43 +1059,4 @@ def package_requirements():
         print 'between VTK and the spreadsheet.'
     import vtk
 
-
 ################################################################################
-
-# Commenting out because we no longer have a vtkRenderWindow module..
-
-# from core.console_mode import run
-# import os
-# import core.system
-# import unittest
-# from core.db.locator import XMLFileLocator
-
-# class TestVTKPackage(unittest.TestCase):
-
-#     def test_writer(self):
-
-#         result_filename = (core.system.temporary_directory() +
-#                            os.path.sep +
-#                            'test_vtk_12345.vtk')
-#         template_filename = (core.system.vistrails_root_directory() +
-#                              '/tests/resources/vtkfiles/vtk_quadric_writer_test.vtk')
-
-#         def compare():
-#             for (l1, l2) in izip(file(result_filename, 'r'),
-#                                  file(template_filename, 'r')):
-#                 if l1 != l2:
-#                     self.fail("Resulting file doesn't match template")
-            
-#         locator = XMLFileLocator(core.system.vistrails_root_directory() +
-#                                  '/tests/resources/vtk.xml')
-
-#         result = run(locator, "writer_test")
-#         self.assertEquals(result, True)
-#         compare()
-#         os.remove(result_filename)
-
-#         result = run(locator, "writer_test_filesink")
-#         self.assertEquals(result, True)
-#         compare()
-#         os.remove(result_filename)
-        
