@@ -52,7 +52,6 @@ Source: C:\Python25\Tools\*; DestDir: {app}\vistrails\Python25\Tools; Flags: rec
 Source: E:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\chembiogrid_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\DDBJ_webservice.vt; DestDir: {app}\examples; Components: examples

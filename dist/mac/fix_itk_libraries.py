@@ -27,10 +27,11 @@ try:
 except IndexError:
     usage()
 
-print "This will copy the *.dylibs to", destination_libs, " and the python files to ", destination_python_files
+print "This will copy the *.dylib to", destination_libs, " and *.so and the python files to ", destination_python_files
 
 libnames = re.compile(r'.*\.dylib')
 itklibnames = re.compile(r'(.*emanuele*.*\.dylib) .*')
+sonames = re.compile(r'.*\.so')
 usrlocalnames = re.compile(r'(.*local*.*\.dylib) .*')
 updatenames = re.compile(r'(@executable_path.*[^ ]*) .*')
 
@@ -71,14 +72,16 @@ for root, dirs, file_names in os.walk(path_to_libs):
 
 files_to_visit = set()
 links_to_visit = set()
-
+so_to_visit = set()
 for f in file_names:
     if libnames.match(f):
         if not os.path.islink(os.path.join(path_to_libs,f)):
             files_to_visit.add(f)
         else:
             links_to_visit.add(f)
-
+    elif sonames.match(f):
+        so_to_visit.add(f)
+        
 if len(files_to_visit) == 0:
     print "looks like you started the script from the wrong directory"
     sys.exit(1)
@@ -123,7 +126,36 @@ while len(links_to_visit):
     os.symlink(src,f)
     
 os.chdir(cur_dir)
-
+print "Dealing with *.so files... "
+while len(so_to_visit):
+    f = so_to_visit.pop()
+    print "Visiting file", f
+    src = os.path.join(path_to_libs,f)
+    dst = os.path.join(destination_python_files,f)
+    print "Copyng to destination folder..."
+    link_or_copy(src,dst)
+    pout, pin = popen2.popen2("otool -L %s" % dst)
+    # print pout.readlines()
+    #changing id
+    lines = pout.readlines()
+    m = itklibnames.match(lines[0][:-1].strip())
+    if m:
+        cmd_line = build_id_cmdline(dst, m.groups()[0])
+        result = os.system(cmd_line)
+    for l in lines[1:]:
+        for r in [itklibnames,
+                  usrlocalnames]:
+            m = r.match(l[:-1].strip())
+            if m:
+                #print "  * matched: ", l[:-1].strip()
+                libname = os.path.basename(m.groups()[0])
+                cmd_line = build_cmdline(dst, m.groups()[0], libname)
+                #print "new file!", f
+                result = os.system(cmd_line)
+                if result != 0:
+                    print "Something went wrong with install_name_tool. Ouch."
+                    sys.exit(1)
+                    
 #copying python files
 print "copying python files... "
 src = os.path.join(path_to_python_files,'*')

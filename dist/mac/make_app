@@ -14,6 +14,9 @@ echo "copying missing xml.etree.cElementTree imports..."
 cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/pyexpat.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
 cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/_elementtree.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
 cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/xml dist/VisTrails.app/Contents/Resources/lib/python2.5/
+echo "copying Ft/Data directory"
+cp -r /usr/local/share/4Suite/Data dist/VisTrails.app/Contents/Resources/lib/python2.5/Ft/
+cp -r /usr/local/share/4Suite/default.cat dist/VisTrails.app/Contents/Resources/lib/python2.5/Ft/
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."

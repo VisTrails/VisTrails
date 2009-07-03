@@ -1,10 +1,10 @@
 RELEASE NOTES
 -------------
-Release Name: v1.3 build 1529
+Release Name: v1.3 build 1559
 
 Changes:
  - Schema upgrade. Current version: 1.0.0.
- - Updated VTK libs to use 5.4 release
+ - Updated VTK libs to use 5.4.2 release
  - Removes conditional expression constructs, so that code runs on Python < 2.5.
  - Including Gridfields python module
  - Using only application single instance behavior if Qt 4.4 or later is 
@@ -95,6 +95,8 @@ Bug Fixes:
    + Jpg/gif/png images can be correctly displayed on the spreadsheet
    + Fixed many interaction bugs
    + temp files were not being correctly removed
+ - VTK state changes with statically overloaded parameters are now handled 
+   correctly. Typical example is vtkTreeMapView::SetLayoutStrategy
  - Fixes a  bug where the configuration wouldn't be setup properly for a new 
    .vistrails directory.
  - Fixed plot.vt example to work with matplotlib version >= 0.98.5.2
