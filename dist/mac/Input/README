@@ -16,7 +16,13 @@ Please see the About Message for Licensing and Disclaimers.
 
 RELEASE NOTES
 -------------
-Release Name: v1.3 build 1559
+Release Name v1.3 build 1561
+
+Bug Fixes:
+ - Fixed bug that was preventing files from being saved on Windows
+
+
+From Release v1.3 build 1559
 
 Changes:
  - Schema upgrade. Current version: 1.0.0.
