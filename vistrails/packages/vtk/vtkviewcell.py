@@ -185,6 +185,7 @@ class QVTKViewWidget(QCellWidget):
         renWin.DoubleBufferOn()
         self.SetRenderWindow(renWin)
         renderView.vtkInstance.ResetCamera()
+        self.addObserversToInteractorStyle()
         
 #        renWin = self.GetRenderWindow()
 #        renderers = [renderView.vtkInstance.GetRenderer()]

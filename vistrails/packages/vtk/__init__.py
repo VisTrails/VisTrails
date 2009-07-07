@@ -509,6 +509,11 @@ disallowed_other_ports = set(
      'UpdateWholeExtent',
      ])
 
+force_not_optional_port = set(
+    ['ApplyViewTheme',
+     ])
+
+
 def addOtherPorts(module, other_list):
     """ addOtherPorts(module: Module, other_list: list) -> None
     Convert all other ports such as Insert/Add.... into input/output
@@ -568,7 +573,8 @@ def addOtherPorts(module, other_list):
                     continue
                 if types==[] or (result==None):
                     n = resolve_overloaded_name(name, ix, signatures)
-                    registry.add_input_port(module, n, types, True)
+                    registry.add_input_port(module, n, types,
+                                            not (n in force_not_optional_port))
 
 disallowed_get_ports = set([
     'GetClassName',
