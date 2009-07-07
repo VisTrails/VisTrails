@@ -1557,6 +1557,9 @@ class VistrailController(QtCore.QObject, BaseController):
     ################################################################################
     # Clipboard, copy/paste
 
+    def get_selected_item_ids(self):
+        return self.current_pipeline_view.get_selected_item_ids()
+
     def copy_modules_and_connections(self, module_ids, connection_ids):
         """copy_modules_and_connections(module_ids: [long],
                                      connection_ids: [long]) -> str

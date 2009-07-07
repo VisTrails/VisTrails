@@ -31,14 +31,18 @@ http://gerard.vermeulen.free.fr/html/pycute-intro.html
 """
 from PyQt4 import QtGui, QtCore
 from code import InteractiveInterpreter
-from gui.common_widgets import QToolWindowInterface, QToolWindow
-import core.system
 import copy
 import sys
 import time
 import os.path
-import gui.application
+
+import api
 from core.interpreter.default import get_default_interpreter
+import core.modules.module_registry
+import core.system
+from core.vistrail.port_spec import PortSpec
+import gui.application
+from gui.common_widgets import QToolWindowInterface, QToolWindow
 
 ################################################################################
 
@@ -132,6 +136,167 @@ class QShellDialog(QToolWindow, QToolWindowInterface):
 ##############################################################################
 # QShell
         
+
+class vistrails_port(object):
+    def __new__(klass, *args, **kwargs):
+        if len(args) + len(kwargs) > 0:
+            # if klass._port_spec.type == 'input':
+            klass._vistrails_module._update_func(klass._port_spec,
+                                                 *args, **kwargs)
+            return None
+        else:
+            return object.__new__(klass, *args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        # print 'calling vistrails_port.__init__'
+        pass
+
+class vistrails_module(object):
+    def __init__(self, *args, **kwargs):
+        if not hasattr(self, '_module'):
+            self._module = \
+                api.add_module_from_descriptor(self._module_desc)
+            # FIXME if constant, we can use args
+            module_desc = self._module_desc
+            for attr_name, value in kwargs.iteritems():
+                self._process_attr_value(attr_name, value)
+
+    def _process_attr_value(self, attr_name, value):
+        if self._module.has_port_spec(attr_name, 'input'):
+            port_spec = self._module.get_port_spec(attr_name, 'input')
+
+            args = None
+            # FIXME want this to be any iterable
+            if type(value) == tuple:
+                args = value
+            else:
+                args = (value,)
+            self._update_func(port_spec, *args)
+        else:
+            raise AttributeError("type object '%s' has no "
+                                 "attribute '%s'" % \
+                                     (self.__class__.__name__,
+                                      attr_name))                
+
+    def __getattr__(self, attr_name):
+        def create_port(port_spec):
+            d = {'_port_spec': port_spec,
+                 '_vistrails_module': self,
+                 }
+            return type('port', (vistrails_port,), d)
+
+        try:
+            return self.__dict__[attr_name]
+        except KeyError:
+            if self._module.has_port_spec(attr_name, 'output'):
+                port_spec = \
+                    self._module.get_port_spec(attr_name, 'output')
+                return create_port(port_spec)
+            elif self._module.has_port_spec(attr_name, 'input'):
+                port_spec = \
+                    self._module.get_port_spec(attr_name, 'input')
+                return create_port(port_spec)
+            else:
+                raise AttributeError("type object '%s' has no "
+                                     "attribute '%s'" % \
+                                         (self.__class__.__name__, 
+                                          attr_name))
+
+    def __setattr__(self, attr_name, value):
+        if attr_name.startswith('_'):
+            self.__dict__[attr_name] = value
+        else:
+            self._process_attr_value(attr_name, value)
+
+    def _update_func(self, port_spec, *args, **kwargs):
+        # print 'running _update_func', port_spec.name
+        # print args
+
+        if port_spec.type != 'input':
+            if self._module.has_port_spec(port_spec.name, 'input'):
+                port_spec = \
+                    self._module.get_port_spec(port_spec.name, 'input')
+            else:
+                raise Exception("cannot update an output port spec")
+
+        # FIXME deal with kwargs
+        num_ports = 0
+        num_params = 0
+        for value in args:
+            # print 'processing', type(value), value
+            if isinstance(value, vistrails_port):
+                # make connection to specified output port
+                # print 'updating port'
+                num_ports += 1
+            elif isinstance(value, vistrails_module):
+                # make connection to 'self' output port of value
+                # print 'updating module'
+                num_ports += 1
+            else:
+                # print 'update literal', type(value), value
+                num_params += 1
+        if num_ports > 1 or (num_ports == 1 and num_params > 0):
+            reg = core.modules.module_registry.get_module_registry()
+            tuple_desc = \
+                reg.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                           'Tuple', '')
+
+            d = {'_module_desc': tuple_desc,
+                 '_package': self._package,}
+            tuple = type('module', (vistrails_module,), d)()
+
+            output_port_spec = PortSpec(id=-1,
+                                        name='value',
+                                        type='output',
+                                        sigstring=port_spec.sigstring)
+            api.add_port_spec(tuple._module.id, output_port_spec)
+            self._update_func(port_spec, *[tuple.value()])
+            assert len(port_spec.descriptors()) == len(args)
+            for i, descriptor in enumerate(port_spec.descriptors()):
+                arg_name = 'arg%d' % i
+                sigstring = "(" + descriptor.sigstring + ")"
+                tuple_port_spec = PortSpec(id=-1,
+                                           name=arg_name,
+                                           type='input',
+                                           sigstring=sigstring)
+                api.add_port_spec(tuple._module.id, tuple_port_spec)
+                tuple._process_attr_value(arg_name, args[i])
+                
+                
+            # create tuple object
+            pass
+        elif num_ports == 1:
+            other = args[0]
+            if isinstance(other, vistrails_port):
+                if other._port_spec.type != 'output':
+                    other_module = other._vistrails_module._module
+                    if other_module.has_port_spec(port_spec.name, 
+                                                   'output'):
+                        other_port_spec = \
+                            other_module.get_port_spec(port_spec.name, 
+                                                        'output')
+                    else:
+                        raise Exception("cannot update an input "
+                                        "port spec")
+                else:
+                    other_port_spec = other._port_spec
+
+                api.add_connection(other._vistrails_module._module.id,
+                                   other_port_spec,
+                                   self._module.id, 
+                                   port_spec)
+            elif isinstance(other, vistrails_module):
+                other_port_spec = \
+                    other._module.get_port_spec('self', 'output')
+                api.add_connection(other._module.id, 
+                                   other_port_spec,
+                                   self._module.id,
+                                   port_spec)
+        else:
+            api.change_parameter(self._module.id,
+                                 port_spec.name,
+                                 [str(x) for x in args])
+
 class QShell(QtGui.QTextEdit):
     """This class embeds a python interperter in a QTextEdit Widget
     It is based on PyCute developed by Gerard Vermeulen.
@@ -188,11 +353,48 @@ class QShell(QtGui.QTextEdit):
         self.setCurrentFont(font)
         self.reset(locals)
 
+    def load_package(self, pkg_name):
+        reg = core.modules.module_registry.get_module_registry()
+        package = reg.get_package_by_name(pkg_name)
+
+        def get_module_init(module_desc):
+            def init(self, *args, **kwargs):
+                self.__dict__['module'] = \
+                    api.add_module_from_descriptor(module_desc)
+            return init
+        
+        def get_module(package):
+            def getter(self, attr_name):
+                desc_tuple = (attr_name, '')
+                if desc_tuple in package.descriptors:
+                    module_desc = package.descriptors[desc_tuple]
+                    d = {'_module_desc': module_desc,
+                         '_package': self,}
+                    return type('module', (vistrails_module,), d)
+                else:
+                    raise AttributeError("type object '%s' has no attribute "
+                                         "'%s'" % (self.__class__.__name__, 
+                                                   attr_name))
+            return getter
+                        
+        d = {'__getattr__': get_module(package)}
+        return type(package.name, (object,), d)()
+
+    def selected_modules(self):
+        shell_modules = []
+        modules = api.get_selected_modules()
+        for module in modules:
+            d = {'_module': module}
+            shell_modules.append(type('module', (vistrails_module,), d)())
+        return shell_modules
+
     def reset(self, locals):
         """reset(locals) -> None
         Reset shell preparing it for a new session.
         
         """
+        locals['load_package'] = self.load_package
+        locals['selected_modules'] = self.selected_modules
         if self.interpreter:
             del self.interpreter
         self.interpreter = InteractiveInterpreter(locals)
