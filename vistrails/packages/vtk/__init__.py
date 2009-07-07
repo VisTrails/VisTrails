@@ -1007,8 +1007,10 @@ def initialize():
                            'SpreadsheetCell'):
         import vtkhandler
         import vtkcell
+        import vtkviewcell
         vtkhandler.registerSelf()
         vtkcell.registerSelf()
+        vtkviewcell.registerSelf()
 
     # register offscreen rendering module
     offscreen.register_self()
