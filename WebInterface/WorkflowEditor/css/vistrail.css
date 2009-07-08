@@ -1,0 +1,23 @@
+.canvas {
+	position: absolute;
+	/* left: 256px; */
+	left: 0px;
+	top: 0px;
+	width: 99%;
+	height: 99%;
+	background-color: #888888;
+	overflow-y: hidden;
+	overflow-x: hidden;
+}
+
+.offscreen {
+	position: absolute;
+	left: -500px;
+	top: -300px;
+}
+
+.zoom {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}

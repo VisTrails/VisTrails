@@ -179,7 +179,7 @@ table.treeLines td {
 	overflow-x: scroll;
 }
 
-.functionList {
+.functionsAndMethods {
 	position: absolute;
 	right: 0px;
 	top: 0px;
@@ -190,6 +190,10 @@ table.treeLines td {
 	height: 99%;
 	overflow-y: scroll;
 	overflow-x: scroll;
+}
+
+.methodList {
+	
 }
 
 .button {
