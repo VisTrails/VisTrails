@@ -417,10 +417,10 @@ class StandardWidgetSheetTabInterface(object):
             pipeline = newSheet.setPipelineToLocateAt(newRow, newCol,
                                                       info['pipeline'], [mId])
             executePipelineWithProgress(pipeline, 'Copy Cell',
-                                        currentVersion=info['version'],
+                                        current_version=info['version'],
                                         actions=info['actions'],
                                         reason=info['reason'],
-                                        vistrailLocator=info['locator'],
+                                        locator=info['locator'],
                                         sinks=[mId])
 
     def executePipelineToCell(self, pInfo, row, col, reason=''):
