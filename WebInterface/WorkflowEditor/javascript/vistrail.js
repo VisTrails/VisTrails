@@ -20,6 +20,9 @@ $(document).ready(function() {
 	screenCenterX = screenWidth / 2;
 	screenCenterY = screenHeight / 10;
 
+	windowCenterX = screenWidth / 2;
+	windowCenterY = screenHeight / 10;
+
 	// Bind events for changing active tool
 
 	activeTool = 0;
@@ -309,21 +312,21 @@ function drawVistrail() {
 				"position: absolute; " +
 				"width: " + ( divWidth + 44 ) + "px; " +
 				"height: " + ( screenHeight * 0.85 ) + "px; " +
-				"left: " + ( screenCenterX - ( ( divWidth ) / 2 ) - 22 ) + "px; " +
+				"left: " + ( windowCenterX - ( ( divWidth ) / 2 ) - 22 ) + "px; " +
 				"top: " + ( tenPercent - 22 ) + "px;'></div>" +
 
 				"<img src='images/blackCircle.gif' class='stickyWidget' id='parentBlackCircleImage' " +
 				"width='" + ( parentNode.width + 36 ) + "'" +
 				"height='" + ( parentNode.height + 26 ) + "' " +
 				"style='position: absolute; " +
-				"left: " + ( screenCenterX - ( parentNode.width / 2 ) - 18 ) + "px; " +
+				"left: " + ( windowCenterX - ( parentNode.width / 2 ) - 18 ) + "px; " +
 				"top: " + tenPercent + "px;'>" +
 
 				"<img src='images/whiteCircle.gif' class='stickyWidget' id='parentWhiteCircleImage' " +
 				"width='" + ( parentNode.width + 30 ) + "'" +
 				"height='" + ( parentNode.height + 20 ) + "' " +
 				"style='position: absolute; " +
-				"left: " + ( screenCenterX - ( parentNode.width / 2 ) - 15 ) + "px; " +
+				"left: " + ( windowCenterX - ( parentNode.width / 2 ) - 15 ) + "px; " +
 				"top: " + ( tenPercent + 3 ) + "px;'>" +
 
 				"<img src='images/orangeCircle.gif' class='stickyWidget' id='parentOrangeCircleImage' " +
@@ -335,12 +338,12 @@ function drawVistrail() {
 				"opacity:" + ( parentNode.level / smallTree.maxLevel ) + "; filter:alpha(opacity=" + parseInt( parentNode.level / smallTree.maxLevel ) + ")'>" +
 
 				"<div id='parentNode' class='stickyWidget' style='position: absolute; " +
-				"left: " + ( screenCenterX - ( parentNode.width / 2 ) ) + "px; " +
+				"left: " + ( windowCenterX - ( parentNode.width / 2 ) ) + "px; " +
 				"top: " + ( tenPercent + 15 ) + "px;" +
 				"font-size: 16px;'>" + parentNode.object + "</div><br>" +
 
 			"<div id='stickView' class='stickyWidget' style='position: absolute; overflow-y: scroll;" +
-			"left: " + ( screenCenterX - ( divWidth / 2 ) ) + "px; " +
+			"left: " + ( windowCenterX - ( divWidth / 2 ) ) + "px; " +
 			"width: " + divWidth + "px; " +
 			"top: 20%; " +
 			"height: 60%;'>" +
@@ -362,26 +365,26 @@ function drawVistrail() {
 				"width='" + ( childNode.width + 36 ) + "'" +
 				"height='" + ( childNode.height + 26 ) + "' " +
 				"style='position: absolute; " +
-				"left: " + ( screenCenterX - ( childNode.width / 2 ) - 18 ) + "px; " +
+				"left: " + ( windowCenterX - ( childNode.width / 2 ) - 18 ) + "px; " +
 				"top: " + tenPercent + "px;'>" +
 
 				"<img src='images/whiteCircle.gif' class='stickyWidget' id='parentWhiteCircleImage' " +
 				"width='" + ( childNode.width + 30 ) + "'" +
 				"height='" + ( childNode.height + 20 ) + "' " +
 				"style='position: absolute; " +
-				"left: " + ( screenCenterX - ( childNode.width / 2 ) - 15 ) + "px; " +
+				"left: " + ( windowCenterX - ( childNode.width / 2 ) - 15 ) + "px; " +
 				"top: " + ( tenPercent + 3 ) + "px;'>" +
 
 				"<img src='images/orangeCircle.gif' class='stickyWidget' id='parentOrangeCircleImage' " +
 				"width='" + ( childNode.width + 30 ) + "'" +
 				"height='" + ( childNode.height + 20 ) + "' " +
 				"style='position: absolute; " +
-				"left: " + ( screenCenterX - ( childNode.width / 2 ) - 15 ) + "px; " +
+				"left: " + ( windowCenterX - ( childNode.width / 2 ) - 15 ) + "px; " +
 				"top: " + ( tenPercent + 3 ) + "px;" +
 				"opacity:" + ( childNode.level / smallTree.maxLevel ) + "; filter:alpha(opacity=" + parseInt( childNode.level / smallTree.maxLevel ) + ")'>" +
 
 				"<div id='parentNode' class='stickyWidget' style='position: absolute; " +
-				"left: " + ( screenCenterX - ( childNode.width / 2 ) ) + "px; " +
+				"left: " + ( windowCenterX - ( childNode.width / 2 ) ) + "px; " +
 				"top: " + ( tenPercent + 15 ) + "px;" +
 				"font-size: 16px;'>" + childNode.object + "</div></div>";
 			$("#canvas").append( stickHTML );
