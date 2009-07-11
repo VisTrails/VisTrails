@@ -12,6 +12,8 @@ var previousZoomLevel = 1.0;
 
 var startedLine = false;
 
+var activeTool;
+
 var jg;
 
 $(document).ready(function() {
@@ -85,12 +87,13 @@ $(document).ready(function() {
 	var tempActions = new Array();
 
 	$.ajax({
-		url: 'http://kodos.eng.utah.edu/cbrooks/vistrailExample.xml',
+		url: "../extensions/get_vt_xml.php?host=vistrails.sci.utah.edu&port=3306&db=vistrails&vt=" + getParamFromURL( "" + window.location, "id" ),
 		type: 'GET',
 		cache: true,
 		dataType: 'xml',
 		timeout: 8446744073709551610,
 		error: function(){
+			alert(this.url);
 			alert('Error loading XML document');
 		},
 		success: function(xml){
@@ -163,12 +166,12 @@ $(document).ready(function() {
 
 				if ( id != 0 && ( parseInt( treeNodes[id].getNumChildren() ) != 1 || vistrail.taggedActions[id] ) ) {
 
-		//			if ( ( "" + treeNodes[id].getNumChildren()) == "1" ) {
+/*
 					if ( ( "" + id ) == "16" ) {
 						alert(  "id: " + id + " treeNodes[id]: " + treeNodes[id] + " children" + treeNodes[id].getNumChildren() +
 							" taggedActions[id]: " + vistrail.taggedActions[id]);
 					}
-
+*/
 					// find its parent.
 					var parentId = vistrail.actions[id].prevId;
 
@@ -254,7 +257,7 @@ function drawVistrail() {
 				"top: " + ( screenCenterY + ( zoomLevel * ( node.y - 10 - ( node.height / 2 ) ) ) ) + "px; " +
 				"opacity:" + ( node.level / smallTree.maxLevel ) + ";filter:alpha(opacity=" + parseInt( node.level / smallTree.maxLevel ) + ")'>" +
 
-				"<div id='treeAction-" + n + "' style='position: absolute; " +
+				"<div id='treeAction-" + n + "' class='action' style='position: absolute; cursor: pointer; " +
 				//"width: " + ( zoomLevel * node.width ) + "px; " +
 				//"height: " + ( zoomLevel * node.height ) + "px; " +
 				"left: " + ( screenCenterX + ( zoomLevel * ( node.x - ( node.width / 2 ) ) ) ) + "px; " +
@@ -273,6 +276,13 @@ function drawVistrail() {
 	jg.paint();
 
 	$("#canvas").append( nodeString );
+
+	$(".action").click( function(){
+		if ( activeTool == 0 ) {
+			var stickId =  parseInt(this.id.split('-')[1]);
+			window.location = "WorkflowEditor.html?vt=" + vistrail.id + "&version=" + stickId;
+		}
+	});
 
 	$(".stick").click( function(){
 
@@ -415,26 +425,9 @@ function zoom(e) {
 	magnitude /= 200.0;
 	magnitude++;
 
-	if ( sign > 0 ) zoomLevel = previousZoomLevel * magnitude;
+	if ( sign < 0 ) zoomLevel = previousZoomLevel * magnitude;
 	else zoomLevel = previousZoomLevel / magnitude;
 
 	drawVistrail();
 }
 
-function getWindowDimensions() {
-
-  if( typeof( window.innerWidth ) == 'number' ) {
-    //Non-IE
-    screenWidth = window.innerWidth;
-    screenHeight = window.innerHeight;
-  } else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-    //IE 6+ in 'standards compliant mode'
-    screenWidth = document.documentElement.clientWidth;
-    screenHeight = document.documentElement.clientHeight;
-  } else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-    //IE 4 compatible
-    screenWidth = document.body.clientWidth;
-    screenHeight = document.body.clientHeight;
-  }
-
-}

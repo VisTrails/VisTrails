@@ -368,7 +368,7 @@ $(document).ready(function() {
 	});
 
 	$.ajax({
-	    url: 'http://kodos.eng.utah.edu/cbrooks/registry.xml',
+	    url: 'registry.xml',
 	    type: 'GET',
 	    cache: true,
 	    dataType: 'xml',
@@ -405,7 +405,7 @@ $(document).ready(function() {
 		drawRegistry();
 
 		$.ajax({
-		    url: 'workflowExample.xml',
+		    url: "http://www.vistrails.org/extensions/get_wf_xml.php?host=vistrails.sci.utah.edu&port=3306&db=vistrails&vt=" + getParamFromURL( "" + window.location, "vt" ) + "&version=" + getParamFromURL( "" + window.location, "version" ),
 		    type: 'GET',
 		    dataType: 'xml',
 		    timeout: 1000,
@@ -1215,74 +1215,3 @@ function findLocation(obj) {
 
 }
 
-function getWindowDimensions() {
-
-  if( typeof( window.innerWidth ) == 'number' ) {
-    //Non-IE
-    screenWidth = window.innerWidth;
-    screenHeight = window.innerHeight;
-  } else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-    //IE 6+ in 'standards compliant mode'
-    screenWidth = document.documentElement.clientWidth;
-    screenHeight = document.documentElement.clientHeight;
-  } else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-    //IE 4 compatible
-    screenWidth = document.body.clientWidth;
-    screenHeight = document.body.clientHeight;
-  }
-
-}
-
-function inspect(obj, maxLevels, level) {
-
-    var str = '', type, msg;
-
-    // Start Input Validations
-    // Don't touch, we start iterating at level zero
-    if(level == null)  level = 0;
-
-    // At least you want to show the first level
-    if(maxLevels == null) maxLevels = 1;
-    if(maxLevels < 1)     
-        return '<font color="red">Error: Levels number must be > 0</font>';
-
-    // We start with a non null object
-    if(obj == null)
-    return '<font color="red">Error: Object <b>NULL</b></font>';
-    // End Input Validations
-
-    // Each Iteration must be indented
-    str += '<ul>';
-
-    // Start iterations for all objects in obj
-    for(property in obj)
-    {
-      try
-      {
-          // Show "property" and "type property"
-          type =  typeof(obj[property]);
-          str += '<li>(' + type + ') ' + property + ' ' + obj[property] +
-                 ( (obj[property]==null)?(': <b>null</b>'):('')) + '</li>';
-
-          // We keep iterating if this property is an Object, non null
-          // and we are inside the required number of levels
-          if((type == 'object') && (obj[property] != null) && (level+1 < maxLevels))
-          str += inspect(obj[property], maxLevels, level+1);
-      }
-      catch(err)
-      {
-        // Is there some properties in obj we can't access? Print it red.
-        if(typeof(err) == 'string') msg = err;
-        else if(err.message)        msg = err.message;
-        else if(err.description)    msg = err.description;
-        else                        msg = 'Unknown';
-
-        str += '<li><font color="red">(Error) ' + property + ': ' + msg +'</font></li>';
-      }
-    }
-
-      // Close indent
-      str += '</ul>';
-
-    $("#errors").append(str);
-}
