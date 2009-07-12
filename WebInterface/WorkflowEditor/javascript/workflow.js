@@ -235,6 +235,12 @@ $(document).ready(function() {
 		$("#zoomButton").attr("border","1px");
 	});
 
+	$("#executeButton").mousedown(function(e){
+		window.open('http://www.vistrails.org/extensions/run_vistrails.php?host=vistrails.sci.utah.edu&port=3306&db=vistrails&vt=' + getParamFromURL( "" + window.location, "vt" ) + "&version=" + getParamFromURL( "" + window.location, "version" ),'','scrollbars=no,menubar=no,height=600,width=800,resizable=yes,toolbar=no,location=no,status=no');
+		//http://www.vistrails.org/extensions/run_vistrails.php?host=vistrails.sci.utah.edu&port=3306&db=vistrails&vt=4&version=613
+	});
+
+
 	jg = new jsGraphics("canvas");    // Use the "canvas" div for drawing
 	jg.setColor("#000000");
 
