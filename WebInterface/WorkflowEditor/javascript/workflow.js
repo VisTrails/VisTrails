@@ -259,7 +259,6 @@ $(document).ready(function() {
 		previousZoomLevel = zoomLevel;
 
 		startedLine = true;
-
 	}).mousemove(function(e){
 		if ( startedNewConnection ) {
 			var xOffset = ( ( e.pageX - positionSource.x < 0 ) ? 5 : -5 );
