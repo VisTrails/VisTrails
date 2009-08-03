@@ -880,6 +880,7 @@ def class_dict(base_module, node):
 disallowed_modules = set([
         'vtkGeoAlignedImageCache',
         'vtkGeoTerrainCache',
+        'vtkMPIGroup'
         ])
 def createModule(baseModule, node):
     """ createModule(baseModule: a Module subclass, node: TreeNode) -> None
