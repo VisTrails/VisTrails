@@ -187,7 +187,7 @@ def perform_analogy_on_vistrail(vistrail,
                             port.moduleName = output_module_name_remap[port.moduleId]
                             port.moduleId = output_module_remap[port.moduleId]
                             m = pipeline_c.modules[port.moduleId]
-                            d = reg.get_descriptor_by_name(m.package, m.name)
+                            d = m.module_descriptor
                             def remap():
                                 port_type = \
                                     PortSpec.port_type_map.inverse[port.type]
@@ -227,7 +227,7 @@ def perform_analogy_on_vistrail(vistrail,
                             port.moduleName = input_module_name_remap[port.moduleId]
                             port.moduleId = input_module_remap[port.moduleId]
                             m = pipeline_c.modules[port.moduleId]
-                            d = reg.get_descriptor_by_name(m.package, m.name)
+                            d = m.module_descriptor
                             def remap():
                                 port_type = \
                                     PortSpec.port_type_map.inverse[port.type]
