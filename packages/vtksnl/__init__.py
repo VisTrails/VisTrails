@@ -20,18 +20,19 @@
 ##
 ############################################################################
 ################################################################################
-# VTK Package for VisTrails
+# VTK-SNL Package for VisTrails (Sandia National Laboratories)
 ################################################################################
 
 """The Visualization ToolKit (VTK) is an open source, freely available
 software system for 3D computer graphics, image processing, and
 visualization used by thousands of researchers and developers around
-the world. http://www.vtk.org"""
+the world. This version of the VTK package requires the Sandia
+National Laboratories version of the VTK libraries.
+
+http://www.vtk.org"""
 
 from core.bundles import py_import
-
-vtksnl = py_import('vtksnl', {'linux-ubuntu': 'python-vtk',
-                        'linux-fedora': 'vtk-python'})
+import vtksnl
 
 from core.utils import all, any, VistrailsInternalError, InstanceObject
 from core.debug import debug
