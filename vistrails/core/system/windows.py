@@ -179,6 +179,8 @@ def execute_cmdline(lst, output):
     will always return 0
 
     """
+    # FIXME this is deprecated. Someone with windows experience should
+    # fix it with the correct subprocess.Popen incantation
     cmdline = list2cmdline(lst)
     out, inp = popen2.popen4(cmdline)
     output.extend(out.readlines())

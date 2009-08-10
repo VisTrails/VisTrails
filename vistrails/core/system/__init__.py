@@ -25,7 +25,6 @@ import os
 import os.path
 import sys
 import platform
-import popen2
 import socket
 from core.utils import unimplemented, VistrailsInternalError
 import core.requirements

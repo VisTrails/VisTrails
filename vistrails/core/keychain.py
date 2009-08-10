@@ -30,10 +30,16 @@ Use this at your own risk!
 import inspect
 import os
 import sys
-import md5
 from core import debug
 from core.utils import VistrailsInternalError
 from itertools import izip
+
+try:
+    import hashlib
+    md5_hash = hashlib.md5
+except ImportError:
+    import md5
+    md5_hash = md5.new
 
 ##############################################################################
 
@@ -69,7 +75,7 @@ class KeyChain(object):
             #this will return the instance of the object that called us
             caller = id(args['self'])
             newkey = str(caller)+str(key)
-            hashkey = md5.new(newkey).hexdigest()[:16]
+            hashkey = md5_hash(newkey).hexdigest()[:16]
             cryptvalue = crypt(hashkey,value)
             self.__keys[hashkey] = cryptvalue
             

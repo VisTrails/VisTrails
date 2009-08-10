@@ -52,8 +52,6 @@ from core.system import list2cmdline
 import core.bundles
 import os
 
-import popen2
-
 identifier = 'edu.utah.sci.vistrails.imagemagick'
 name = 'ImageMagick'
 version = '0.9.2'

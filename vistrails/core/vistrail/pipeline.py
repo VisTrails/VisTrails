@@ -48,7 +48,6 @@ from core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
-import sha
 
 ##############################################################################
 

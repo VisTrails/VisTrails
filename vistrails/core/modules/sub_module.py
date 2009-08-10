@@ -24,7 +24,12 @@
 
 from itertools import izip
 import random
-import sha
+try:
+    import hashlib
+    sha_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha_hash = sha.new
 
 from core.modules import module_registry
 from core.modules.basic_modules import String, Boolean, Variant, NotCacheable
@@ -302,7 +307,7 @@ def initialize(*args, **kwargs):
     reg = module_registry.get_module_registry()
 
     def random_signature(pipeline, obj, chm):
-        hasher = sha.new()
+        hasher = sha_hash()
         hasher.update(str(random.random()))
         return hasher.digest()
 

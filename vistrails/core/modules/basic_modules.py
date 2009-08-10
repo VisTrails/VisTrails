@@ -46,7 +46,12 @@ import core.system
 from itertools import izip
 import os
 import os.path
-import sha
+try:
+    import hashlib
+    sha_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha_hash = sha.new
 import zipfile
 import urllib
 
@@ -230,7 +235,7 @@ def file_parameter_hasher(p):
         v = int(os.path.getmtime(p.strValue))
     except OSError:
         return h
-    hasher = sha.new()
+    hasher = sha_hash()
     u = hasher.update
     u(h)
     u(str(v))

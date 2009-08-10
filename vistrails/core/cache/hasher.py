@@ -22,7 +22,13 @@
 """Hasher class for vistrail items."""
 
 from core.cache.utils import hash_list
-import sha
+
+try:
+    import hashlib
+    sha_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha_hash = sha.new
 
 ##############################################################################
 
@@ -35,7 +41,7 @@ class Hasher(object):
         if custom_hasher:
             return custom_hasher(p)
         else:
-            hasher = sha.new()
+            hasher = sha_hash()
             u = hasher.update
             u(p.type)
             u(p.identifier)
@@ -47,7 +53,7 @@ class Hasher(object):
 
     @staticmethod
     def function_signature(function, constant_hasher_map={}):
-        hasher = sha.new()
+        hasher = sha_hash()
         u = hasher.update
         u(function.name)
         u(function.returnType)
@@ -58,7 +64,7 @@ class Hasher(object):
 
     @staticmethod
     def connection_signature(c):
-        hasher = sha.new()
+        hasher = sha_hash()
         u = hasher.update
         u(c.source.name)
         u(c.destination.name)
@@ -68,7 +74,7 @@ class Hasher(object):
     def connection_subpipeline_signature(c, source_sig, dest_sig):
         """Returns the signature for the connection, including source
 and dest subpipelines"""
-        hasher = sha.new()
+        hasher = sha_hash()
         u = hasher.update
         u(Hasher.connection_signature(c))
         u(source_sig)
@@ -77,7 +83,7 @@ and dest subpipelines"""
 
     @staticmethod
     def module_signature(obj, constant_hasher_map={}):
-        hasher = sha.new()
+        hasher = sha_hash()
         u = hasher.update
         u(obj.name)
         u(obj.package)
@@ -92,7 +98,7 @@ signatures for the upstream pipelines and connections.
 
         WARNING: For efficiency, upstream_sigs is mutated!
         """
-        hasher = sha.new()
+        hasher = sha_hash()
         hasher.update(module_sig)
         upstream_sigs.sort()
         for pipeline_connection_sig in upstream_sigs:
@@ -104,7 +110,7 @@ signatures for the upstream pipelines and connections.
         """compound_signature(list of signatures) -> sha digest
         returns the signature of the compound object formed by the list
         of signatures, assuming the list order is irrelevant"""
-        hasher = sha.new()
+        hasher = sha_hash()
         for h in sorted(sig_list):
             hasher.update(h)
         return hasher.digest()

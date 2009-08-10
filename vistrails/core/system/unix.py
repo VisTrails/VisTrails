@@ -23,7 +23,6 @@
 """Routines common to Linux and OSX."""
 import os
 import os.path
-import popen2
 import stat
 import subprocess
 import sys
@@ -70,15 +69,22 @@ def list2cmdline(lst):
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):
-    """execute_cmdline(lst: list of str)-> int
+    """execute_cmdline(lst: list of str, output)-> int
     Builds a command line enquoting the arguments properly and executes it
-    using Popen4. It returns the error code and the output is on 'output'. 
+    using subprocess.Popen. It returns the error code and the output is on 'output'.
+
+    cscheid: why don't we return a tuple of int, lst instead of mutating that list?
 
     """
     cmdline = list2cmdline(lst)
-    process = popen2.Popen4(cmdline)
-    result = -1
-    while result == -1:
+    process = subprocess.Popen(cmdline, shell=True,
+                               stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               close_fds=True)
+    # cscheid: Should this be busy-waiting? What's going on here?
+    result = None
+    while result == None:
         result = process.poll()
-    output.extend(process.fromchild.readlines())
+    output.extend(process.stdout.readlines())
     return result

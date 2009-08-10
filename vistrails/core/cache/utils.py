@@ -21,12 +21,17 @@
 ############################################################################
 """Helper functions for cache package."""
 
-import sha
+try:
+    import hashlib
+    sha_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha_hash = sha.new
 
 ##############################################################################
 
 def hash_list(lst, hasher_f, constant_hasher_map={}):
-    hasher = sha.new()
+    hasher = sha_hash()
     hash_l = [hasher_f(el, constant_hasher_map) for el in lst]
     hash_l.sort()
     for hel in hash_l: hasher.update(hel)

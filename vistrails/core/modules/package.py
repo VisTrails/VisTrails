@@ -45,6 +45,8 @@ class Package(DBPackage):
         def __str__(self):
             try:
                 name = self.package.name
+                if name is None:
+                    name = 'codepath <%s>' % self.package.codepath
             except AttributeError:
                 name = 'codepath <%s>' % self.package.codepath
             return ("Package '%s' failed to initialize, raising '%s: %s'. Traceback:\n%s" %
@@ -228,7 +230,7 @@ class Package(DBPackage):
                 debug.critical(str(e[0]))
                 debug.critical(str(e[1]))
             raise self.InitializationFailed(self,
-                                            e[-1][0], e[-1][1])
+                                            errors[-1][0], errors[-1][1])
 
         # Sometimes we don't want to change startup.xml, for example
         # when peeking at a package that's on the available package list
