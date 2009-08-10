@@ -921,18 +921,19 @@ class VistrailController(QtCore.QObject, BaseController):
             # that the module is missing - this might trigger
             # some new modules.
 
-            def try_to_enable_package(identifier):
+            def try_to_enable_package(identifier, confirmed=False):
                 pkg = pm.identifier_is_available(identifier)
                 if pkg:
-                    res = show_question('Enable package?',
-                                        "VisTrails need to enable package '%s'."
-                                        " Do you want to enable that package?"  % identifier,
-                                        [YES_BUTTON, NO_BUTTON], YES_BUTTON)
-                    if res == NO_BUTTON:
-                        QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
-                                                  'Missing modules',
-                                                  'Some necessary modules will be missing.')
-                        return False
+                    if not confirmed:
+                        res = show_question('Enable package?',
+                                            "VisTrails need to enable package '%s'."
+                                            " Do you want to enable that package?"  % identifier,
+                                            [YES_BUTTON, NO_BUTTON], YES_BUTTON)
+                        if res == NO_BUTTON:
+                            QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
+                                                      'Missing modules',
+                                                      'Some necessary modules will be missing.')
+                            return False
                     # Ok, user wants to late-enable it. Let's give it a shot
                     try:
                         pm.late_enable_package(pkg.codepath)
@@ -968,7 +969,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                             [YES_BUTTON, NO_BUTTON], YES_BUTTON)
                         if res == YES_BUTTON:
                             rep.install_package(codepath)
-                            return True
+                            return try_to_enable_package(identifier, True)
 
                 QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
                                            'Unavailable package',

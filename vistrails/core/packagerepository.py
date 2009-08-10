@@ -23,6 +23,14 @@
 import os
 import core.configuration
 import shutil
+import urllib2
+import tempfile
+import os.path
+
+##############################################################################
+# The local codepaths have '.' replaced by '_' because '.' in the names
+# of directories that will be used as python libraries confuses the Python
+# runtime.
 
 ##############################################################################
 
@@ -84,7 +92,7 @@ class LocalPackageRepository(PackageRepository):
         print "package found!"
         # read manifest
         try:
-            f = file(self._path + '/' + codepath + '/MANIFEST')
+            f = file(os.path.join(self._path, codepath, 'MANIFEST'))
         except IOError, e:
             raise InvalidPackage("Package is missing manifest.")
         # create directory
@@ -95,11 +103,54 @@ class LocalPackageRepository(PackageRepository):
                 continue
             file_type = l[0]
             l = l[2:]
-            fn = os.path.join(self._path, codepath, l)
             if file_type == 'D':
-                self.create_directory(codepath, fn)
+                self.create_directory(codepath, l)
             elif file_type == 'F':
-                self.copy_file(codepath, os.path.join(self._upd, codepath, l), fn)
+                self.copy_file(codepath, l, os.path.join(self._path, codepath, l))
+
+##############################################################################
+
+class HTTPPackageRepository(PackageRepository):
+
+    def __init__(self, repository_url):
+        PackageRepository.__init__(self)
+        self._path = repository_url
+
+    def find_package(self, identifier):
+        identifier = identifier.replace('.', '_')
+        package_url = self._path + '/' + identifier
+        try:
+            f = urllib2.urlopen(package_url)
+            return identifier
+        except urllib2.HTTPError:
+            return None
+
+    def install_package(self, codepath):
+        print "package found!"
+        # read manifest
+        try:
+            f = urllib2.urlopen(self._path + '/' + codepath + '/MANIFEST')
+        except urllib2.HTTPError, e:
+            raise InvalidPackage("Package is missing manifest.")
+        self.create_main_directory(codepath)
+        for l in f:
+            l = l[:-1]
+            if len(l) == 0:
+                continue
+            file_type = l[0]
+            l = l[2:]
+            if file_type == 'D':
+                self.create_directory(codepath, l)
+            elif file_type == 'F':
+                fd, name = tempfile.mkstemp()
+                os.close(fd)
+                fout = file(name, 'w')
+                fin = urllib2.urlopen(self._path + '/' + codepath + '/' + l)
+                fout.write(fin.read()) # There should be a better way to do this
+                fin.close()
+                fout.close()
+                self.copy_file(codepath, l, name)
+                os.unlink(name)
 
 ##############################################################################
 
@@ -110,8 +161,12 @@ def get_repository():
         return _repository
     import core.configuration
     conf = core.configuration.get_vistrails_configuration()
-    if conf.check('repositoryLocalPath'):
+    if conf.check('repositoryHTTPURL'):
+        _repository = HTTPPackageRepository(conf.repositoryHTTPURL)
+        print "Using HTTP Package Repository @",conf.repositoryHTTPURL
+    elif conf.check('repositoryLocalPath'):
         _repository = LocalPackageRepository(conf.repositoryLocalPath)
+        print "Using Local Repository @",conf.repositoryLocalPath
     else:
         _repository = None
     return _repository

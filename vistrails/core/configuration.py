@@ -186,6 +186,7 @@ def default():
         'packageDirectory': (None, str),
         'pythonPrompt': False,
         'repositoryLocalPath': (None, str),
+        'repositoryHTTPURL': (None, str),
         'reviewMode': False,
         'rootDirectory': (None, str),
         'shell': default_shell(),

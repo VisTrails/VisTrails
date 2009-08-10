@@ -436,6 +436,8 @@ creating a class that behaves similarly)."""
                     pkg.load()
                 except pkg.LoadFailed:
                     pass
+                except pkg.InitializationFailed:
+                    pass
                 if pkg.identifier == identifier:
                     return pkg
         return None
