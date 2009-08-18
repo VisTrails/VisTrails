@@ -96,7 +96,7 @@ class KeyChain(object):
             #this will return the instance of the object that called us
             caller = id(args['self'])
             newkey = str(caller)+str(key)
-            hashkey = md5.new(newkey).hexdigest()[:16]
+            hashkey = md5_hash(newkey).hexdigest()[:16]
             if self.__keys.has_key(hashkey):
                 return crypt(hashkey,self.__keys[hashkey])
             else:
