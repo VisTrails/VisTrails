@@ -232,7 +232,12 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         config['passwd'] = ''
         try:
             result = io.get_db_vistrail_list(config)
-            print result
+            rows = io.get_db_vistrail_list(config)
+            for (id, name, mod_time) in rows:
+                result += '<vistrail id="%s" name="%s" mod_time="%s" />'% \
+                                                            (id,name,mod_time)
+            result += '</vistrails>'
+            return result
         except Exception, e:
             self.server_logger.info("Error: %s"%str(e))
             return "FAILURE: %s" %str(e)
