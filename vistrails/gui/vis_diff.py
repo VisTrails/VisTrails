@@ -479,7 +479,9 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Interprete the diff result
         (p1, p2, v1Andv2, v1Only, v2Only, paramChanged) = self.diff
+        p1.ensure_modules_are_on_registry()
         p1.ensure_connection_specs()
+        p2.ensure_modules_are_on_registry()
         p2.ensure_connection_specs()
         p_both = Pipeline()
         # the abstraction map is the same for both p1 and p2
