@@ -25,6 +25,8 @@ $(document).ready(function() {
 	windowCenterX = screenWidth / 2;
 	windowCenterY = screenHeight / 10;
 
+	$('.canvas').css({'width' : screenWidth, 'height' : screenHeight});
+
 	// Bind events for changing active tool
 
 	activeTool = 0;
@@ -36,14 +38,14 @@ $(document).ready(function() {
 		$("#panButton").attr("border","0px");
 		$("#zoomButton").attr("border","0px");
 	});
-	
+
 	$("#panButton").mousedown(function(e){
 		activeTool = 1;
 		$("#selectButton").attr("border","0px");
 		$("#panButton").attr("border","1px");
 		$("#zoomButton").attr("border","0px");
 	});
-	
+
 	$("#zoomButton").mousedown(function(e){
 		activeTool = 2;
 		$("#selectButton").attr("border","0px");
@@ -87,7 +89,7 @@ $(document).ready(function() {
 	var tempActions = new Array();
 
 	$.ajax({
-		url: "../extensions/get_vt_xml.php?host=vistrails.sci.utah.edu&port=3306&db=vistrails&vt=" + getParamFromURL( "" + window.location, "id" ),
+		url: "http://www.vistrails.org/extensions/get_vt_xml.php?host=vistrails.sci.utah.edu&port=3306&db=vistrails&vt=" + getParamFromURL( "" + window.location, "id" ),
 		type: 'GET',
 		cache: true,
 		dataType: 'xml',

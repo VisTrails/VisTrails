@@ -14,10 +14,9 @@ document.onselectstart=new Function ("return false")
 
 //if the browser is NS6
 if (window.sidebar){
-document.onmousedown=disabletext
-document.onclick=reEnable
+	document.onmousedown=disabletext
+	document.onclick=reEnable
 }
-
 
 function getParamFromURL(url, paramName) {
 
@@ -37,20 +36,19 @@ function getParamFromURL(url, paramName) {
 
 function getWindowDimensions() {
 
-  if( typeof( window.innerWidth ) == 'number' ) {
-    //Non-IE
-    screenWidth = window.innerWidth;
-    screenHeight = window.innerHeight;
-  } else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-    //IE 6+ in 'standards compliant mode'
-    screenWidth = document.documentElement.clientWidth;
-    screenHeight = document.documentElement.clientHeight;
-  } else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-    //IE 4 compatible
-    screenWidth = document.body.clientWidth;
-    screenHeight = document.body.clientHeight;
-  }
-
+	if( typeof( window.innerWidth ) == 'number' ) {
+		//Non-IE
+		screenWidth = window.innerWidth;
+		screenHeight = window.innerHeight;
+	} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+		//IE 6+ in 'standards compliant mode'
+		screenWidth = document.documentElement.clientWidth;
+		screenHeight = document.documentElement.clientHeight;
+	} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+		//IE 4 compatible
+		screenWidth = document.body.clientWidth;
+		screenHeight = document.body.clientHeight;
+	}
 }
 
 function inspect(obj, maxLevels, level) {
