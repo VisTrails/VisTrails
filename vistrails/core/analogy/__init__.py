@@ -57,7 +57,9 @@ def perform_analogy_on_vistrail(vistrail,
         print 'version_c:', version_c
 
     pipeline_a = core.db.io.get_workflow(vistrail, version_a)
+    pipeline_a.ensure_modules_are_on_registry()
     pipeline_c = core.db.io.get_workflow(vistrail, version_c)
+    pipeline_c.ensure_modules_are_on_registry()
     
     e = EigenPipelineSimilarity2(pipeline_a, pipeline_c, alpha=alpha)
     e._debug = _debug

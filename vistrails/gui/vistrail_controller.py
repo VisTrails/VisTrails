@@ -1883,7 +1883,8 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
                                           action.id)
         self.perform_action(action)
-        
+        self.current_pipeline.ensure_modules_are_on_registry()
+        self.current_pipeline.ensure_connection_specs()
         self.current_pipeline_view.setupScene(self.current_pipeline)
 
         # this is not necessary anymore
