@@ -10,8 +10,8 @@ var screenWidth = 0, screenHeight = 0, screenCenterX = 0, screenCenterY = 0;
 var previousScreenCenterX = 0;
 var previousScreenCenterY = 0;
 
-var zoomLevel = 1.0;
-var previousZoomLevel = 1.0;
+var zoomLevel = 2.0;
+var previousZoomLevel = 2.0;
 
 // Workflow Variables:
 var modules = new Array();
@@ -41,14 +41,28 @@ function setConnectionPort(connection, node) {
 		connection.source.moduleName = $(node).attr("moduleName");
 		connection.source.name = $(node).attr("name");
 		connection.source.spec = $(node).attr("spec");
-		moduleOutputPorts[connection.source.moduleId] = connection.source;
+
+		if ( moduleOutputPorts[connection.source.moduleId] ) {
+			moduleOutputPorts[connection.source.moduleId][moduleOutputPorts[connection.source.moduleId].length] = connection.source;
+		} else {
+			moduleOutputPorts[connection.source.moduleId] = new Array();
+			moduleOutputPorts[connection.source.moduleId][0] = connection.source;
+		}
+
 	} else if ( $(node).attr("type") == "destination" ) {
 		connection.destination.id = $(node).attr("id");
 		connection.destination.moduleId = $(node).attr("moduleId");
 		connection.destination.moduleName = $(node).attr("moduleName");
 		connection.destination.name = $(node).attr("name");
 		connection.destination.spec = $(node).attr("spec");
-		moduleInputPorts[connection.destination.moduleId] = connection.destination;
+
+		if ( moduleInputPorts[connection.destination.moduleId] ) {
+			moduleInputPorts[connection.destination.moduleId][moduleInputPorts[connection.destination.moduleId].length] = connection.source;
+		} else {
+			moduleInputPorts[connection.destination.moduleId] = new Array();
+			moduleInputPorts[connection.destination.moduleId][0] = connection.source;
+		}
+
 	}
 }
 
@@ -84,7 +98,7 @@ $(document).ready(function() {
 
 	// bind user interaction events
 
-	$("#canvas").mousedown(function(e){
+	$("#canvas").mousedown( function(e) {
 		positionSource.x = e.pageX;
 		positionSource.y = e.pageY;
 
@@ -142,7 +156,7 @@ $(document).ready(function() {
 			module.label = "";
 		});
 
-		$('connection', xml).each(function(){
+		$( 'connection', xml ).each(function(){
 			var i = connections.length;
 
 			connections[i] = new Object();
@@ -193,8 +207,8 @@ function zoom(e) {
 
 function drawModules() {
 
-	jg.clear();	// Clear connections
-	$( "#modulesViewport" ).remove();	// Clear modules
+	jg.clear(); // Clear connections
+	$( "#modulesViewport" ).remove(); // Clear modules
 
 	// Draw Modules:
 	var xOffset = Math.round( screenCenterX );
@@ -209,7 +223,7 @@ function drawModules() {
 
 		modulesHTML += "<table " + ( modules[i].selected ? "class='selectedModule'" : "class='module'" );
 
-		modulesHTML += " style='height:" + Math.round( 50 / zoomLevel ) + "px;'><tr><td>" + getInputs( modules[i].id ) + "</td><td><img src='images/arrow.png' id='options-" + modules[i].id + "' style='cursor:pointer;padding:1px;float:right;width:" + Math.round( 12 / zoomLevel ) + "px;height:" + Math.round( 16 / zoomLevel ) + "px'></td></tr>" +
+		modulesHTML += " style='height:" + Math.round( 50 / zoomLevel ) + "px;'><tr><td>" + getInputs( modules[i].id ) + "</td><td><img src='images/arrow.png' id='options-" + modules[i].id + "' style='padding:1px;float:right;width:" + Math.round( 12 / zoomLevel ) + "px;height:" + Math.round( 16 / zoomLevel ) + "px'></td></tr>" +
 				"<tr><td colspan='2'><div class='moduleName' style='font-size: " +  ( 24 / zoomLevel )  + "px; text-align: center;'>&nbsp;&nbsp;" + ( modules[i].label ? ( modules[i].label + "<div style='font-size: " +  ( 8 / zoomLevel )  + "px;'>(" + modules[i].name + ")</div>" ) : modules[i].name ) + "</div></td></tr>" +
 				"<tr><td colspan='2'>" + getOutputs( modules[i].id ) + "</td></tr></table>" +
 				"</div>";
@@ -230,9 +244,8 @@ function drawModules() {
 
 	for (var i in connections) {
 		if ( document.getElementById( "output|" + connections[i].source.moduleId + "|" + connections[i].source.spec ) ) {
-
 			sourcePosition = findPos( document.getElementById( "output|" + connections[i].source.moduleId + "|" + connections[i].source.spec ) );
-			destinationPosition = findPos( document.getElementById( "input|" + connections[i].destination.moduleId + "|" + connections[i].destination.spec ) );
+			destinationPosition = findPos( document.getElementById( "input|" + connections[i].destination.moduleId + "|" + connections[i].source.spec ) );
 			jg.setClassName('c-' + i);
 
 			if ( connections[i].selected ) {
@@ -253,87 +266,36 @@ function getInputs(moduleId) {
 
 	var inputTableString = "<table class='inputRack'><tr><td>";
 
-	for ( var i in moduleInputPorts[moduleId] ) {
-		if ( portSpecs[i].type == "input" ) {
-			if ( parseInt ( portSpecs[i].optional ) == 0 ) {
-				inputTableString += "<div class='inputPort' " +
-						    "moduleID='" + moduleId + "' " +
-						    "sigstring='" + portSpecs[i].sigstring + "' " +
-						    "id='input|" + moduleId + "|" + portSpecs[i].sigstring + "'" +
-						    "style='border: 1px solid #000;border-color:black;width: " + Math.round( 14 / zoomLevel ) + "px; height: " + Math.round( 12 / zoomLevel ) + "px;cursor:pointer;'>" +
-						    "</div></td><td>";
-			} else if ( optionalPorts[ portSpecs[i].id ] ) {
-				inputTableString += "<div class='inputPort' " +
-						    "moduleID='" + moduleId + "' " +
-						    "sigstring='" + portSpecs[i].sigstring + "' " +
-						    "id='input|" + moduleId + "|" + portSpecs[i].sigstring + "'" +
-						    "style='-moz-border-radius:" + Math.round( 6 / zoomLevel ) + "px;-webkit-border-radius:" + Math.round( 6 / zoomLevel ) + "px;border: 1px solid #000;border-color:black;width: " + Math.round( 14 / zoomLevel ) + "px; height: " + Math.round( 12 / zoomLevel ) + "px;'>" +
-						    "</div></td><td>";
-			}
-		}
+	for ( var i in inputArray ) {
+		inputTableString += "<div class='inputPort' " +
+				    "moduleID='" + moduleId + "' " +
+				    "id='input|" + moduleId + "|" + inputArray[i].spec + "'" +
+				    "style='border: 1px solid #000;border-color:black;width: " + Math.round( 14 / zoomLevel ) + "px; height: " + Math.round( 12 / zoomLevel ) + "px;'>" +
+				    "</div></td><td>";
 	}
+
 	return inputTableString + "</td></td></table>";
 }
 
 function getOutputs(moduleId) {
 
 	var module = modules[moduleId];
-	moduleDescriptorId = moduleDescriptorIndices[ module.package + ":" + module.name + "|" + module.namespace ];
+	var outputArray = moduleOutputPorts[moduleId];
 
-	var portSpecs = moduleDescriptors[moduleDescriptorId].portSpecs;
-	var optionalPorts = modules[moduleId].optionalPorts;
-
-	if ( portSpecs ) {
-		var outputTableString = "<table class='outputRack'><tr><td>";
-		
-		for ( var i in portSpecs ) {
-			if ( portSpecs[i].type == "output" ) {
-				if ( parseInt ( portSpecs[i].optional ) == 0 ) {
-					outputTableString += "<div class='outputPort' " +
-							    "moduleID='" + moduleId + "' " +
-							    "sigstring='" + portSpecs[i].sigstring + "' " +
-							    "id='output|" + moduleId + "|" + portSpecs[i].sigstring + "'" +
-							    "style='border: 1px solid #000;border-color:black;width: " + Math.round( 14 / zoomLevel ) + "px; height: " + Math.round( 12 / zoomLevel ) + "px;cursor:pointer;'>" +
-							    "</div></td><td>";
-				} else if ( optionalPorts[ portSpecs[i].id ] ) {
-					outputTableString += "<div class='outputPort' " +
-							    "moduleID='" + moduleId + "' " +
-							    "sigstring='" + portSpecs[i].sigstring + "' " +
-							    "id='output|" + moduleId + "|" + portSpecs[i].sigstring + "'" +
-							    "style='-moz-border-radius:" + Math.round( 6 / zoomLevel ) + "px;-webkit-border-radius:" + Math.round( 6 / zoomLevel ) + "px;border: 1px solid #000;border-color:black;width: " + Math.round( 14 / zoomLevel ) + "px; height: " + Math.round( 12 / zoomLevel ) + "px;'>" +
-							    "</div></td><td>";
-				}
-			}
-		}
-
-		return outputTableString + "</td></td></table>";
-	} else return "";
-}
-
-
-function zoomIn() {
-
-	if ( zoomLevel > 1 ) {
-		zoomLevel = zoomLevel - 1;
-	} else {
-		zoomLevel = zoomLevel / 2;
+	var outputTableString = "<table class='outputRack'><tr><td>";
+	
+	for ( var i in outputArray ) {
+		outputTableString += "<div class='outputPort' " +
+				    "moduleID='" + moduleId + "' " +
+				    "id='output|" + moduleId + "|" + outputArray[i].spec + "'" +
+				    "style='border: 1px solid #000;border-color:black;width: " + Math.round( 14 / zoomLevel ) + "px; height: " + Math.round( 12 / zoomLevel ) + "px;'>" +
+				    "</div></td><td>";
 	}
 
-	drawModules();
+	return outputTableString + "</td></td></table>";
 }
 
-function zoomOut() {
-
-	if ( zoomLevel > 1 ) {
-		zoomLevel = zoomLevel + 1;
-	} else {
-		zoomLevel = zoomLevel * 2;
-	}
-
-	drawModules();
-}
-
-function findPos(obj) {
+function findPos( obj ) {
 
 	var curleft = curtop = 0;
 

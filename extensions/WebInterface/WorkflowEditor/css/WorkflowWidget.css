@@ -1,0 +1,85 @@
+.canvas {
+	position: absolute;
+	/* left: 256px; */
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: #888888;
+	overflow-y: hidden;
+	overflow-x: hidden;
+}
+
+.errors {
+	position: absolute;
+	left: 300px;
+	top: 0px;
+	color: #000000;
+}
+
+.viewTools {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+
+table.module {
+	border-width: 2px;
+	border-spacing: 0px;
+	border-style: solid;
+	border-color: black;
+	background-color: rgb(221, 221, 221);
+}
+
+table.module td {
+	border-width: 0px;
+	padding: 1px;
+}
+
+table.input {
+	border-width: 1px 1px 1px 1px;
+	padding: 0px 0px 0px 0px;
+	border-style: outset outset outset outset;
+	border-spacing: 1px;
+	border-color: black black black black;
+	border-collapse: collapse;
+	margin-right:auto;
+	margin-left:0px;
+}
+
+table.output {
+	border-width: 1px 1px 1px 1px;
+	padding: 0px 0px 0px 0px;
+	border-style: outset outset outset outset;
+	border-spacing: 1px;
+	border-color: black black black black;
+	border-collapse: collapse;
+}
+
+table.inputRack {
+	border-width: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+	border-spacing: 1px;
+	border-collapse: collapse;
+	margin-left:0px;
+	margin-right:auto;
+}
+
+table.outputRack {
+	border-width: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+	border-spacing: 1px;
+	border-collapse: collapse;
+	margin-left:auto;
+	margin-right:0px;
+}
+
+table.inputRack td {
+	border-width: 0px 0px 0px 0px;
+	padding: 2px 2px 2px 2px;
+}
+
+table.outputRack td {
+	border-width: 0px 0px 0px 0px;
+	padding: 2px 2px 2px 2px;
+}
