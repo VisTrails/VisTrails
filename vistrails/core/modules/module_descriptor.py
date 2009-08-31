@@ -77,16 +77,6 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     ##########################################################################
 
-    class MissingPort(Exception):
-        def __init__(self, name, type):
-            import traceback
-            traceback.print_stack()
-            Exception.__init__(self)
-            self._name = name
-            self._type = type
-        def __str__(self):
-            return "Missing port: %s, %s" % (self._name, self._type)
-
     def __init__(self, *args, **kwargs):
         self.children = []
         if 'module' in kwargs:
@@ -334,7 +324,8 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     def get_port_spec(self, name, port_type):
         if not self.db_has_portSpec_with_name((name, port_type)):
-            raise self.MissingPort(name, port_type)
+            raise Exception("ModuleDescriptor.get_port_spec called when spec "
+                            " (%s, %s) doesn't exist" % (name, port_type))
         return self.db_get_portSpec_by_name((name, port_type))
 
     def set_port_spec(self, name, port_type, port_spec):

@@ -33,7 +33,7 @@ from core.utils import VistrailsInternalError, ModuleAlreadyExists, \
     InvalidPipeline
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
-from core.modules.module_registry import ModuleRegistryException
+from core.modules.module_registry import ModuleRegistryException, MissingPort
 from core.modules.basic_modules import Variant
 from core.modules.sub_module import InputPort, OutputPort, new_abstraction, \
     read_vistrail
@@ -981,6 +981,16 @@ class VistrailController(QtCore.QObject, BaseController):
             pm = get_package_manager()
             for err in e._exception_set:
                 if issubclass(err.__class__, ModuleRegistryException):
+                    if issubclass(err.__class__, MissingPort):
+                        msg = ('Cannot find %s port "%s" for module "%s" '
+                               'in loaded package "%s". A different package '
+                               'version might be necessary.') % \
+                               (err._port_type, err._port_name, 
+                                err._module_name, err._package_name)
+                        QtGui.QMessageBox.critical(\
+                            VistrailsApplication.builderWindow, 'Missing port',
+                            msg)
+                        return False
                     try:
                         pkg = pm.get_package_by_identifier(err._identifier)
                         res = pkg.report_missing_module(err._name, 
@@ -1768,7 +1778,6 @@ class VistrailController(QtCore.QObject, BaseController):
         pkg_subworkflows = []
         pkg_dependencies = set()
         for abstraction in abstractions:
-            print "abstraction", abstraction
             new_name = self.get_abstraction_name(abstraction.name, False)
             if not new_name:
                 break

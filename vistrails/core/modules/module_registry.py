@@ -284,6 +284,21 @@ class AmbiguousResolution(ModuleRegistryException):
         return ("Ambiguous resolution of module %s.  Could resolve to:\n%s" % \
                     (self._module_name, 
                      ',\n'.join(str(m) for m in self.matches)))
+
+class MissingPort(ModuleRegistryException):
+    def __init__(self, descriptor, port_name, port_type):
+        ModuleRegistryException.__init__(self, 
+                                         descriptor.identifier,
+                                         descriptor.name,
+                                         descriptor.namespace)
+        self._port_name = port_name
+        self._port_type = port_type
+
+    def __str__(self):
+        return "Missing %s port %s from module %s in package %s" % \
+            (self._port_type, self._port_name, self._module_name, 
+             self._package_name)
+
         
 class MissingBaseClass(Exception):
     def __init__(self, base):
@@ -1025,16 +1040,12 @@ class ModuleRegistry(DBRegistry):
         descriptor.add_port_spec(port_spec)
 
     def get_port_spec_from_descriptor(self, desc, port_name, port_type):
-        try:
-            for d in self.get_module_hierarchy(desc):
-                if d.has_port_spec(port_name, port_type):
-                    return d.get_port_spec(port_name, port_type)
-        except ModuleDescriptor.MissingPort:
-            print "missing port: '%s:%s|%s', '%s:%s'" % (package, module_name,
-                                                         namespace, port_name,
-                                                         port_type)
-            raise
-        return None
+        for d in self.get_module_hierarchy(desc):
+            if d.has_port_spec(port_name, port_type):
+                return d.get_port_spec(port_name, port_type)
+
+        # if we don't find it, raise MissingPort exception
+        raise MissingPort(desc, port_name, port_type)
 
     def get_port_spec(self, package, module_name, namespace, 
                       port_name, port_type):

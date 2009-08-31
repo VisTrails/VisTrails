@@ -797,8 +797,6 @@ class Pipeline(DBWorkflow):
                                             port_type_map.inverse[port.type])
             except ModuleRegistryException, e:
                 exceptions.add(e)
-            except ModuleDescriptor.MissingPort:
-                exceptions.add(e)
             return spec
             
         if connection_ids is None:
