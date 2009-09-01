@@ -101,11 +101,14 @@ def perform_analogy_on_vistrail(vistrail,
             if (output_module_remap[a_source] == c_connect.source.moduleId and 
                 input_module_remap[a_dest] == c_connect.destination.moduleId):
                 match = c_connect
-                if (a_connect.source.sig == c_connect.source.sig and 
-                    a_connect.destination.sig == c_connect.destination.sig):
+                if (a_connect.source.spec == c_connect.source.spec and 
+                    a_connect.destination.spec == c_connect.destination.spec):
                     break
         if match is not None:
             connection_remap[a_connect.id] = c_connect.id
+        else:
+            print "failed to find connection match", a_connect.id, a_source, \
+                a_dest
 
     # find function remap
 
@@ -150,22 +153,41 @@ def perform_analogy_on_vistrail(vistrail,
 
     reg = get_module_registry()
     ops = []
+
+    # NOTE !!! delete ops are before any add ops so this is ok !!!
+    # if this changes, this may break
+    c_modules = set(pipeline_c.modules)
+    c_connections = set(pipeline_c.connections)
+    conns_to_delete = set()
+
     for op in baAction.operations:
         if op.vtType == 'delete':
             if op.what == 'module':
                 if module_remap.has_key(op.old_obj_id):
-                    module = pipeline_c.modules[module_remap[op.old_obj_id]]
+                    remap_id = module_remap[op.old_obj_id]
+                    module = pipeline_c.modules[remap_id]
+                    graph = pipeline_c.graph
+                    for _, c_id in graph.edges_from(remap_id):
+                        conn = pipeline_c.connections[c_id]
+                        ops.extend(core.db.io.create_delete_op_chain(conn))
+                    for _, c_id in graph.edges_to(remap_id):
+                        conn = pipeline_c.connections[c_id]
+                        ops.extend(core.db.io.create_delete_op_chain(conn))
                     ops.extend(core.db.io.create_delete_op_chain(module))
+                    c_modules.discard(remap_id)
                 else:
                     ops.append(op)
+                    c_modules.discard(op.old_obj_id)
             elif op.what == 'connection':
                 if connection_remap.has_key(op.old_obj_id):
                     conn = pipeline_c.connections[connection_remap[ \
                             op.old_obj_id]]
                     ops.extend(core.db.io.create_delete_op_chain(conn))
+                    c_connections.discard(conn.id)
                 else:
                     ops.append(op)
-            else:
+                    c_connections.discard(op.old_obj_id)
+            elif (op.parentObjType, op.parentObjId) not in id_remap:
                 ops.append(op)
         elif op.vtType == 'add' or op.vtType == 'change':
             old_id = op.new_obj_id
@@ -175,6 +197,9 @@ def perform_analogy_on_vistrail(vistrail,
             id_remap[(op.what, old_id)] = new_id
             if op.what == 'module':
                 module_name_remap[old_id] = op.data.name
+                c_modules.add(new_id)
+            elif op.what == 'connection':
+                c_connections.add(new_id)
 
             if op.parentObjId is not None and \
                     id_remap.has_key((op.parentObjType, 
@@ -183,7 +208,12 @@ def perform_analogy_on_vistrail(vistrail,
                                            op.parentObjId)]
             if op.what == 'port':
                 port = op.data
-                if id_remap.has_key(('module', port.moduleId)):
+                if ('module', port.moduleId) in id_remap:
+                    temp_id = id_remap[('module', port.moduleId)]
+                else:
+                    temp_id = port.moduleId
+                if temp_id in c_modules:
+                #if id_remap.has_key(('module', port.moduleId)):
                     if port.type == 'source':
                         try:
                             port.moduleName = output_module_name_remap[port.moduleId]
@@ -264,9 +294,23 @@ def perform_analogy_on_vistrail(vistrail,
                             # This happens when the module was added as part of the analogy
                             port.moduleName = module_name_remap[port.moduleId]
                             port.moduleId = id_remap[('module', port.moduleId)]
-                        
+                else:
+                    # delete the connection since it won't work
+                    conns_to_delete.add(op.parentObjId)
+                    continue
             ops.append(op)
-    baAction.operations = ops
+
+    baAction.operations = []
+    for op in ops:
+        if op.what == 'connection' and op.new_obj_id in conns_to_delete:
+            pass
+        elif op.what == 'port' and op.parentObjId in conns_to_delete:
+            pass
+        else:
+            baAction.operations.append(op)
+
+    # baAction.operations = ops
+    
     # baAction should now have remapped everything
 
     ############################################################################
