@@ -502,7 +502,7 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
 
     def __init__(self, param, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self)
+        ConstantWidgetMixin.__init__(self, param.strValue)
         if not param.strValue:
             self._tf = copy.copy(default_tf)
         else:

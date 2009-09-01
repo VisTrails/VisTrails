@@ -46,7 +46,7 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
         obj = typedict[dictkey]
         self.enumerationlist = obj.ports[0][0]
         QtGui.QComboBox.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self)
+        ConstantWidgetMixin.__init__(self, param.strValue)
         QtGui.QComboBox.clear(self)
         listqt = QtCore.QStringList()
         for element in self.enumerationlist:

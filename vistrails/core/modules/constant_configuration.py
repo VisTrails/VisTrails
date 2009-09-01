@@ -33,8 +33,8 @@ from core import system
 
 class ConstantWidgetMixin(object):
 
-    def __init__(self):
-        self._last_contents = None
+    def __init__(self, contents=None):
+        self._last_contents = contents
 
     def update_parent(self):
         newContents = self.contents()
@@ -71,7 +71,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
 
         """
         QtGui.QLineEdit.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self)
+        ConstantWidgetMixin.__init__(self, param.strValue)
         # assert param.namespace == None
         # assert param.identifier == 'edu.utah.sci.vistrails.basic'
         contents = param.strValue
@@ -204,7 +204,7 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
 
         """
         QtGui.QWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self)
+        ConstantWidgetMixin.__init__(self, param.strValue)
         layout = QtGui.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = FileChooserToolButton(self, self.line_edit)
@@ -257,7 +257,7 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         Initializes the line edit with contents
         """
         QtGui.QCheckBox.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self)
+        ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type == 'Boolean'
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
         assert param.namespace is None
@@ -337,7 +337,7 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
         contents = param.strValue
         contentsType = param.type
         QtGui.QWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self)
+        ConstantWidgetMixin.__init__(self, param.strValue)
         layout = QtGui.QHBoxLayout()
         self.color_indicator = ColorChooserButton(self)
         self.connect(self.color_indicator,
