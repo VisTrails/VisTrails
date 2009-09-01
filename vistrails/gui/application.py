@@ -32,8 +32,7 @@ from core import system
 from core import keychain
 from core.db.locator import FileLocator, DBLocator
 from core.utils import InstanceObject
-from core.utils.uxml import (named_elements,
-                             elements_filter, enter_named_element)
+from core.utils.uxml import enter_named_element
 from gui import qt
 import core.configuration
 import core.interpreter.default
@@ -328,7 +327,7 @@ after self.init()"""
     def process_interactive_input(self):
         usedb = False
         if self.temp_db_options.host:
-           usedb = True
+            usedb = True
         if self.input:
             locator = None
             #check if versions are embedded in the filename
@@ -494,7 +493,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         """
         usedb = False
         if self.temp_db_options.host:
-           usedb = True
+            usedb = True
         if self.input:
             w_list = []
             for filename in self.input:
@@ -515,7 +514,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             import core.console_mode
             if self.temp_db_options.parameters == None:
                 self.temp_db_options.parameters = ''
-            workflowInfo = None
+            
             if self.temp_configuration.check('workflowInfo'):
                 workflow_info = self.temp_configuration.workflowInfo
             else:
@@ -529,8 +528,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 return False
             return True
         else:
-            debug.critical("no input vistrails provided")
-            return False
+            debug.warning("no input vistrails provided")
+            return True
 
     def setIcon(self):
         """ setIcon() -> None
@@ -556,9 +555,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         self.setupSplashScreen()
-        metalstyle = self.temp_configuration.check('useMacBrushedMetalStyle')
-        if metalstyle:
-            #to make all widgets to have the mac's nice looking
+        if system.systemType in ['Darwin']:
             self.installEventFilter(self)
 
         # This is so that we don't import too many things before we
@@ -581,10 +578,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def eventFilter(self, o, event):
         """eventFilter(obj,event)-> boolean
         This will filter all create events and will set on the WA_MacMetalStyle
-        attribute of a QWidget.
+        attribute of a QWidget. It will also filter the FileOpen events on a Mac
         
         """
-        if(event.type() == QtCore.QEvent.Create and 
+        metalstyle = self.temp_configuration.check('useMacBrushedMetalStyle')
+            
+        if(metalstyle and event.type() == QtCore.QEvent.Create and 
            issubclass(type(o),QtGui.QWidget) and
            type(o) != QtGui.QSplashScreen):
             o.setAttribute(QtCore.Qt.WA_MacMetalStyle)
