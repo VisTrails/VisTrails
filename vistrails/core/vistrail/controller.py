@@ -1190,7 +1190,10 @@ class VistrailController(object):
                     self.vistrail.change_thumbnail("", action.timestep)
                 else:
                     abs_fname = thumb_cache.get_abs_name_entry(action.thumbnail)
-                    thumbnails.append(abs_fname)
+                    if abs_fname is not None:
+                        thumbnails.append(abs_fname)
+                    else:
+                        self.vistrail.change_thumbnail("", action.timestep)
         return thumbnails
     
     ##########################################################################
