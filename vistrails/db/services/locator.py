@@ -356,7 +356,7 @@ class DBLocator(BaseLocator):
 
     def __init__(self, host, port, database, user, passwd, name=None,
                  obj_id=None, obj_type=None, connection_id=None,
-                 version_node=None, version_tag=None):
+                 version_node=None, version_tag=''):
         self._host = host
         self._port = port
         self._db = database
@@ -422,19 +422,22 @@ class DBLocator(BaseLocator):
         if self._conn_id is not None \
                 and DBLocator.connections.has_key(self._conn_id):
             connection = DBLocator.connections[self._conn_id]
+            if io.ping_db_connection(connection):
+               return connection
         else:
-            config = {'host': self._host,
-                      'port': self._port,
-                      'db': self._db,
-                      'user': self._user,
-                      'passwd': self._passwd}
-            connection = io.open_db_connection(config)
             if self._conn_id is None:
                 if len(DBLocator.connections.keys()) == 0:
                     self._conn_id = 1
                 else:
-                    self._conn_id = max(DBLocator.connections.keys()) + 1
-            DBLocator.connections[self._conn_id] = connection
+                    self._conn_id = max(DBLocator.connections.keys()) + 1 
+        config = {'host': self._host,
+                  'port': self._port,
+                  'db': self._db,
+                  'user': self._user,
+                  'passwd': self._passwd}
+        connection = io.open_db_connection(config)
+            
+        DBLocator.connections[self._conn_id] = connection
         return connection
 
     def load(self, type):

@@ -89,6 +89,18 @@ def test_db_connection(config):
         msg = "connection test failed (%d: %s)" % (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
 
+def ping_db_connection(db_connection):
+    """ping_db_connection(db_connection) -> boolean 
+    It will ping the database to check if the connection is alive.
+    It returns True if it is, False otherwise. 
+    This can be used for preventing the "MySQL Server has gone away" error. 
+    """
+    try:
+        db_connection.ping()
+    except get_db_lib().OperationalError, e:
+        return False
+    return True
+    
 def translate_to_tbl_name(obj_type):
     map = {DBVistrail.vtType: 'vistrail',
            DBWorkflow.vtType: 'workflow',
