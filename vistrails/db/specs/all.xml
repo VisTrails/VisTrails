@@ -1019,7 +1019,19 @@
 	<sql column="parent_id" type="int"/>
       </property>
       
+      <property ref="true" object="module_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
     </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
 
   </object>
 
@@ -1708,6 +1720,15 @@
       <sql type="int"/>
     </property>
 
+    <property name="name" type="str">
+      <!-- <xml nodeType="xs:attribute" type="xs:string"/> -->
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="last_modified" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
     <property ref="true" object="package" type="list"
 	      mapping="one-to-many" index="identifier:version">
       <xml nodeType="xs:element"/>
@@ -1982,7 +2003,7 @@
   <object name="opm_graph">
     <layout>
       <xml name="opmGraph" nodeType="xs:element"/>
-      <sql table="opm_graph"/>
+      <!-- <sql table="opm_graph"/> -->
     </layout>
 
     <property name="accounts" ref="true" object="opm_accounts" 
@@ -2018,7 +2039,7 @@
   <object name="opm_accounts">
     <layout>
       <xml name="accounts" nodeType="xs:element"/>
-      <sql table="accounts"/>
+      <!-- <sql table="accounts"/> -->
     </layout>
 
     <property name="account" ref="true" object="opm_account" type="list" 
@@ -2039,12 +2060,12 @@
   <object name="opm_account">
     <layout>
       <xml name="account" nodeType="xs:element"/>
-      <sql table="account"/>
+      <!-- <sql table="account"/> -->
     </layout>
 
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
     
     <property name="value" type="str">
@@ -2059,7 +2080,7 @@
   <object name="opm_overlaps">
     <layout>
       <xml name="overlaps" nodeType="xs:element"/>
-      <sql table="overlaps"/>
+      <!-- <sql table="overlaps"/> -->
     </layout>
 
     <property ref="true" object="opm_account_id" type="list" 
@@ -2075,7 +2096,7 @@
   <object name="opm_artifacts">
     <layout>
       <xml name="artifacts" nodeType="xs:element"/>
-      <sql table="artifacts"/>
+      <!-- <sql table="artifacts"/> -->
     </layout>
 
     <property name="artifact" ref="true" object="opm_artifact" type="list" 
@@ -2091,7 +2112,7 @@
   <object name="opm_artifact_value">
     <layout>
       <xml name="value" nodeType="xs:element"/>
-      <sql table="artifact_value"/>
+      <!-- <sql table="artifact_value"/> -->
     </layout>
     
     <choice name="value" type="object" mapping="one-to-one">
@@ -2114,12 +2135,12 @@
   <object name="opm_artifact">
     <layout>
       <xml name="artifact" nodeType="xs:element"/>
-      <sql table="artifact"/>
+      <!-- <sql table="artifact"/> -->
     </layout>
 
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
     
     <property name="value" ref="true" object="opm_artifact_value" type="object" 
@@ -2130,7 +2151,7 @@
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2141,7 +2162,7 @@
   <object name="opm_processes">
     <layout>
       <xml name="processes" nodeType="xs:element"/>
-      <sql table="processes"/>
+      <!-- <sql table="processes"/> -->
     </layout>
 
     <property name="process" ref="true" object="opm_process" type="list" 
@@ -2157,7 +2178,7 @@
   <object name="opm_process_value">
     <layout>
       <xml name="value" nodeType="xs:element"/>
-      <sql table="process_value"/>
+      <!-- <sql table="process_value"/> -->
     </layout>
     
     <choice name="value" type="object" mapping="one-to-one">
@@ -2185,12 +2206,12 @@
   <object name="opm_process">
     <layout>
       <xml name="process" nodeType="xs:element"/>
-      <sql table="process"/>
+      <!-- <sql table="process"/> -->
     </layout>
 
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="value" ref="true" object="opm_process_value" type="object" 
@@ -2201,7 +2222,7 @@
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2212,7 +2233,7 @@
   <object name="opm_agents">
     <layout>
       <xml name="agents" nodeType="xs:element"/>
-      <sql table="agents"/>
+      <!-- <sql table="agents"/> -->
     </layout>
 
     <property name="agent" ref="true" object="opm_agent" type="list" 
@@ -2228,23 +2249,23 @@
   <object name="opm_agent">
     <layout>
       <xml name="agent" nodeType="xs:element"/>
-      <sql table="agent"/>
+      <!-- <sql table="agent"/> -->
     </layout>
 
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
     
     <property name="value" type="str">
       <xml nodeType="xs:element"/>
-      <sql type=""/>
+      <!-- <sql type=""/> -->
     </property>
 
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2255,7 +2276,7 @@
   <object name="opm_dependencies">
     <layout>
       <xml name="causalDependencies" nodeType="xs:element"/>
-      <sql table="causal_dependencies"/>
+      <!-- <sql table="causal_dependencies"/> -->
     </layout>
 
     <choice name="dependency" type="list" mapping="one-to-many">
@@ -2292,22 +2313,22 @@
   <object name="opm_time">
     <layout>
       <xml name="time" nodeType="xs:element"/>
-      <sql table="time"/>
+      <!-- <sql table="time"/> -->
     </layout>
 
     <property name="no_later_than" type="datetime">
       <xml name="noLaterThan" nodeType="xs:attribute" type="xs:dateTime"/>
-      <sql type="datetime"/>
+      <!-- <sql type="datetime"/> -->
     </property>
 
     <property name="no_earlier_than" type="datetime">
       <xml name="noEarlierThan" nodeType="xs:attribute" type="xs:dateTime"/>
-      <sql type="datetime"/>
+      <!-- <sql type="datetime"/> -->
     </property>
 
     <property name="clock_id" type="str">
       <xml name="clockId" nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2318,12 +2339,12 @@
   <object name="opm_account_id">
     <layout>
       <xml name="account" nodeType="xs:element"/>
-      <sql table="account_id"/>
+      <!-- <sql table="account_id"/> -->
     </layout>
 
     <property name="id" type="str" foreignKey="true" object="opm_account">
       <xml nodeType="xs:attribute"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2334,12 +2355,12 @@
   <object name="opm_process_id_cause">
     <layout>
       <xml name="cause" nodeType="xs:element"/>
-      <sql table="process_id_cause"/>
+      <!-- <sql table="process_id_cause"/> -->
     </layout>
 
     <property name="id" type="str" foreignKey="true" object="opm_process">
       <xml nodeType="xs:attribute"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2350,12 +2371,12 @@
   <object name="opm_process_id_effect">
     <layout>
       <xml name="effect" nodeType="xs:element"/>
-      <sql table="process_id_effect"/>
+      <!-- <sql table="process_id_effect"/> -->
     </layout>
 
     <property name="id" type="str" foreignKey="true" object="opm_process">
       <xml nodeType="xs:attribute"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2366,12 +2387,12 @@
   <object name="opm_artifact_id_cause">
     <layout>
       <xml name="cause" nodeType="xs:element"/>
-      <sql table="artifact_id_cause"/>
+      <!-- <sql table="artifact_id_cause"/> -->
     </layout>
 
     <property name="id" type="str" foreignKey="true" object="opm_artifact">
       <xml nodeType="xs:attribute"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2382,12 +2403,12 @@
   <object name="opm_artifact_id_effect">
     <layout>
       <xml name="effect" nodeType="xs:element"/>
-      <sql table="artifact_id_effect"/>
+      <!-- <sql table="artifact_id_effect"/> -->
     </layout>
 
     <property name="id" type="str" foreignKey="true" object="opm_artifact">
       <xml nodeType="xs:attribute"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2398,12 +2419,12 @@
   <object name="opm_agent_id">
     <layout>
       <xml name="agent" nodeType="xs:element"/>
-      <sql table="agent_id"/>
+      <!-- <sql table="agent_id"/> -->
     </layout>
 
     <property name="id" type="str" foreignKey="true" object="opm_agent">
       <xml nodeType="xs:attribute"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
   </object>
 
@@ -2414,12 +2435,12 @@
   <object name="opm_role">
     <layout>
       <xml name="role" nodeType="xs:element"/>
-      <sql table="role"/>
+      <!-- <sql table="role"/> -->
     </layout>
 
     <property name="value" type="str">
       <xml nodeType="xs:attribute"/>
-      <sql type="varchar(4095)"/>
+      <!-- <sql type="varchar(4095)"/> -->
     </property>
   </object>
   
@@ -2431,31 +2452,31 @@
   <object name="opm_used">
     <layout>
       <xml name="used" nodeType="xs:element"/>
-      <sql table="used"/>
+      <!-- <sql table="used"/> -->
     </layout>
 
     <property name="effect" ref="true" object="opm_process_id_effect"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="role" ref="true" object="opm_role" type="str"
 	      mapping="one-to-one">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="cause" ref="true" object="opm_artifact_id_cause"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property ref="true" object="opm_time" type="list" mapping="one-to-many">
@@ -2470,31 +2491,31 @@
   <object name="opm_was_generated_by">
     <layout>
       <xml name="wasGeneratedBy" nodeType="xs:element"/>
-      <sql table="was_generated_by"/>
+      <!-- <sql table="was_generated_by"/> -->
     </layout>
 
     <property name="effect" ref="true" object="opm_artifact_id_effect"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="role" ref="true" object="opm_role" type="str"
 	      mapping="one-to-one">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="cause" ref="true" object="opm_process_id_cause"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property ref="true" object="opm_time" type="list" mapping="one-to-many">
@@ -2509,31 +2530,31 @@
   <object name="opm_was_controlled_by">
     <layout>
       <xml name="wasControlledBy" nodeType="xs:element"/>
-      <sql table="was_controlled_by"/>
+      <!-- <sql table="was_controlled_by"/> -->
     </layout>
 
     <property name="effect" ref="true" object="opm_process_id_effect"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="role" ref="true" object="opm_role" type="str"
 	      mapping="one-to-one">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="cause" ref="true" object="opm_agent_id"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="start" ref="true" object="opm_time" type="list" 
@@ -2554,31 +2575,31 @@
   <object name="opm_was_derived_from">
     <layout>
       <xml name="wasDerivedFrom" nodeType="xs:element"/>
-      <sql table="was_derived_from"/>
+      <!-- <sql table="was_derived_from"/> -->
     </layout>
 
     <property name="effect" ref="true" object="opm_artifact_id_effect"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="role" ref="true" object="opm_role" type="str"
 	      mapping="one-to-one">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="cause" ref="true" object="opm_artifact_id_cause"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property ref="true" object="opm_time" type="list" mapping="one-to-many">
@@ -2593,31 +2614,31 @@
   <object name="opm_was_triggered_by">
     <layout>
       <xml name="wasTriggeredBy" nodeType="xs:element"/>
-      <sql table="was_triggered_by"/>
+      <!-- <sql table="was_triggered_by"/> -->
     </layout>
 
     <property name="effect" ref="true" object="opm_process_id_effect"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="role" ref="true" object="opm_role" type="str"
 	      mapping="one-to-one">
       <xml nodeType="xs:element"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="cause" ref="true" object="opm_process_id_cause"
 	      type="str" mapping="one-to-one">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property name="account" ref="true" object="opm_account_id"
 	      type="list" mapping="one-to-many">
       <xml nodeType="xs:element" type="xs:string"/>
-      <sql type="varchar(255)"/>
+      <!-- <sql type="varchar(255)"/> -->
     </property>
 
     <property ref="true" object="opm_time" type="list" mapping="one-to-many">

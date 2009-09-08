@@ -1859,7 +1859,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'entity_type', 'version', 'root_descriptor_id']
+        columns = ['id', 'entity_type', 'version', 'root_descriptor_id', 'name', 'last_modified']
         table = 'registry'
         whereMap = global_props
         orderBy = 'id'
@@ -1874,10 +1874,14 @@ class DBRegistrySQLDAOBase(SQLDAO):
             global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             root_descriptor_id = self.convertFromDB(row[3], 'long', 'int')
+            name = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
             
             registry = DBRegistry(entity_type=entity_type,
                                   version=version,
                                   root_descriptor_id=root_descriptor_id,
+                                  name=name,
+                                  last_modified=last_modified,
                                   id=id)
             registry.is_dirty = False
             res[('registry', id)] = registry
@@ -1890,7 +1894,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'entity_type', 'version', 'root_descriptor_id']
+        columns = ['id', 'entity_type', 'version', 'root_descriptor_id', 'name', 'last_modified']
         table = 'registry'
         whereMap = {}
         whereMap.update(global_props)
@@ -1910,6 +1914,12 @@ class DBRegistrySQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_root_descriptor_id') and obj.db_root_descriptor_id is not None:
             columnMap['root_descriptor_id'] = \
                 self.convertToDB(obj.db_root_descriptor_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_last_modified') and obj.db_last_modified is not None:
+            columnMap['last_modified'] = \
+                self.convertToDB(obj.db_last_modified, 'datetime', 'datetime')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -2594,7 +2604,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'completed', 'error', 'parent_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'completed', 'error', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -2609,7 +2619,9 @@ class DBLoopExecSQLDAOBase(SQLDAO):
             completed = self.convertFromDB(row[3], 'int', 'int')
             error = self.convertFromDB(row[4], 'str', 'varchar(1023)')
             parentType = self.convertFromDB(row[5], 'str', 'char(32)')
-            parent = self.convertFromDB(row[6], 'long', 'long')
+            entity_id = self.convertFromDB(row[6], 'long', 'int')
+            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            parent = self.convertFromDB(row[8], 'long', 'long')
             
             loop_exec = DBLoopExec(ts_start=ts_start,
                                    ts_end=ts_end,
@@ -2617,6 +2629,8 @@ class DBLoopExecSQLDAOBase(SQLDAO):
                                    error=error,
                                    id=id)
             loop_exec.db_parentType = parentType
+            loop_exec.db_entity_id = entity_id
+            loop_exec.db_entity_type = entity_type
             loop_exec.db_parent = parent
             loop_exec.is_dirty = False
             res[('loop_exec', id)] = loop_exec
@@ -2634,7 +2648,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'ts_start', 'ts_end', 'completed', 'error', 'parent_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'completed', 'error', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -2660,6 +2674,12 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_parent') and obj.db_parent is not None:
             columnMap['parent_id'] = \
                 self.convertToDB(obj.db_parent, 'long', 'long')

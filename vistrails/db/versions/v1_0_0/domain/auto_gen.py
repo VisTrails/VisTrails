@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -6079,11 +6079,13 @@ class DBRegistry(object):
 
     vtType = 'registry'
 
-    def __init__(self, id=None, entity_type=None, version=None, root_descriptor_id=None, packages=None):
+    def __init__(self, id=None, entity_type=None, version=None, root_descriptor_id=None, name=None, last_modified=None, packages=None):
         self._db_id = id
         self._db_entity_type = entity_type
         self._db_version = version
         self._db_root_descriptor_id = root_descriptor_id
+        self._db_name = name
+        self._db_last_modified = last_modified
         self.db_deleted_packages = []
         self.db_packages_id_index = {}
         self.db_packages_identifier_index = {}
@@ -6104,7 +6106,9 @@ class DBRegistry(object):
         cp = DBRegistry(id=self._db_id,
                         entity_type=self._db_entity_type,
                         version=self._db_version,
-                        root_descriptor_id=self._db_root_descriptor_id)
+                        root_descriptor_id=self._db_root_descriptor_id,
+                        name=self._db_name,
+                        last_modified=self._db_last_modified)
         if self._db_packages is None:
             cp._db_packages = []
         else:
@@ -6155,6 +6159,16 @@ class DBRegistry(object):
             new_obj.db_root_descriptor_id = res
         elif hasattr(old_obj, 'db_root_descriptor_id') and old_obj.db_root_descriptor_id is not None:
             new_obj.db_root_descriptor_id = old_obj.db_root_descriptor_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
+            new_obj.db_name = old_obj.db_name
+        if 'last_modified' in class_dict:
+            res = class_dict['last_modified'](old_obj, trans_dict)
+            new_obj.db_last_modified = res
+        elif hasattr(old_obj, 'db_last_modified') and old_obj.db_last_modified is not None:
+            new_obj.db_last_modified = old_obj.db_last_modified
         if 'packages' in class_dict:
             res = class_dict['packages'](old_obj, trans_dict)
             for obj in res:
@@ -6241,6 +6255,32 @@ class DBRegistry(object):
         self._db_root_descriptor_id = root_descriptor_id
     def db_delete_root_descriptor_id(self, root_descriptor_id):
         self._db_root_descriptor_id = None
+    
+    def __get_db_name(self):
+        return self._db_name
+    def __set_db_name(self, name):
+        self._db_name = name
+        self.is_dirty = True
+    db_name = property(__get_db_name, __set_db_name)
+    def db_add_name(self, name):
+        self._db_name = name
+    def db_change_name(self, name):
+        self._db_name = name
+    def db_delete_name(self, name):
+        self._db_name = None
+    
+    def __get_db_last_modified(self):
+        return self._db_last_modified
+    def __set_db_last_modified(self, last_modified):
+        self._db_last_modified = last_modified
+        self.is_dirty = True
+    db_last_modified = property(__get_db_last_modified, __set_db_last_modified)
+    def db_add_last_modified(self, last_modified):
+        self._db_last_modified = last_modified
+    def db_change_last_modified(self, last_modified):
+        self._db_last_modified = last_modified
+    def db_delete_last_modified(self, last_modified):
+        self._db_last_modified = None
     
     def __get_db_packages(self):
         return self._db_packages

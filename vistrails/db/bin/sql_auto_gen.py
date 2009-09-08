@@ -262,7 +262,8 @@ class SQLAutoGen(AutoGen):
 	self.reset(SQL_SPACES)
         self.printLine('-- generated automatically by auto_dao.py\n\n')
         for obj in self.objects.values():
-            self.generateTable(obj)
+            if SQL_TYPE in obj.layouts:
+                self.generateTable(obj)
         return self.getOutput()
 
     def generateTable(self, object):
@@ -295,8 +296,9 @@ class SQLAutoGen(AutoGen):
         self.printLine('DROP TABLE IF EXISTS')
         comma = ''
 	for obj in self.objects.values():
-            self.write('%s %s' % (comma, obj.getName()))
-            comma = ','
+            if SQL_TYPE in obj.layouts:
+                self.write('%s %s' % (comma, obj.getName()))
+                comma = ','
         self.write('\n')
 	return self.getOutput()
 
@@ -309,11 +311,12 @@ class SQLAutoGen(AutoGen):
 	self.indentLine('if daos is not None:\n')
 	self.indentLine('dict.update(self, daos)\n\n')
 	for obj in self.objects.values():
-	    self.unindentLine('if \'%s\' not in self:\n' % \
-			   obj.getRegularName())
-	    self.indentLine('self[\'%s\'] = %sSQLDAOBase(self)\n' % \
-			   (obj.getRegularName(), 
-			    obj.getClassName()))
+            if SQL_TYPE in obj.layouts:
+                self.unindentLine('if \'%s\' not in self:\n' % \
+                               obj.getRegularName())
+                self.indentLine('self[\'%s\'] = %sSQLDAOBase(self)\n' % \
+                               (obj.getRegularName(), 
+                                obj.getClassName()))
 	return self.getOutput()
 
     def generateDAO(self, version):
@@ -322,7 +325,8 @@ class SQLAutoGen(AutoGen):
 	self.printLine('from sql_dao import SQLDAO\n')
 	self.printLine('from db.versions.%s.domain import *\n\n' % version)
 	for obj in self.objects.values():
-	    self.generateDAOClass(obj)
+            if SQL_TYPE in obj.layouts:
+                self.generateDAOClass(obj)
 	return self.getOutput()
 
     def generateDAOClass(self, object):

@@ -151,7 +151,7 @@ class DBLocator(_DBLocator, CoreLocator):
         obj.locator = self
         return obj
 
-    def save_as(self, obj):
+    def save_as(self, obj, version=None):
         klass = obj.__class__
         obj = _DBLocator.save(self, obj, True)
         klass.convert(obj)

@@ -36,6 +36,12 @@ class Machine(DBMachine):
         cp.__class__ = Machine
         return cp
 
+    @staticmethod
+    def convert(_machine):
+        if _machine.__class__ == Machine:
+            return
+        _machine.__class__ = Machine
+
     ##########################################################################
     # Properties
 

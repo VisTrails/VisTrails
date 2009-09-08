@@ -105,6 +105,7 @@ def translate_to_tbl_name(obj_type):
     map = {DBVistrail.vtType: 'vistrail',
            DBWorkflow.vtType: 'workflow',
            DBLog.vtType: 'log_tbl',
+           DBRegistry.vtType: 'registry',
            DBAbstraction.vtType: 'abstraction',
            }
     return map[obj_type]

@@ -1,24 +1,24 @@
---##########################################################################
---
--- Copyright (C) 2006-2008 University of Utah. All rights reserved.
---
--- This file is part of VisTrails.
---
--- This file may be used under the terms of the GNU General Public
--- License version 2.0 as published by the Free Software Foundation
--- and appearing in the file LICENSE.GPL included in the packaging of
--- this file.  Please review the following to ensure GNU General Public
--- Licensing requirements will be met:
--- http://www.opensource.org/licenses/gpl-license.php
---
--- If you are unsure which license is appropriate for your use (for
--- instance, you are interested in developing a commercial derivative
--- of VisTrails), please contact us at vistrails@sci.utah.edu.
---
--- This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
--- WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
---
---##########################################################################
+############################################################################
+##
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 
 CREATE TABLE `vistrails_version`(`version` char(16)) engine=InnoDB;
 INSERT INTO `vistrails_version`(`version`) VALUES ('0.9.5');
@@ -214,7 +214,9 @@ CREATE TABLE registry(
     id int not null auto_increment primary key,
     entity_type char(16),
     version char(16),
-    root_descriptor_id int
+    root_descriptor_id int,
+    name varchar(255),
+    last_modified datetime
 ) engine=InnoDB;
 
 CREATE TABLE annotation(
@@ -294,6 +296,8 @@ CREATE TABLE loop_exec(
     completed int,
     error varchar(1023),
     parent_type char(32),
+    entity_id int,
+    entity_type char(16),
     parent_id int
 ) engine=InnoDB;
 

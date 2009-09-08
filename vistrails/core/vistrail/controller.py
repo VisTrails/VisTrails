@@ -1438,6 +1438,8 @@ version\n might be necessary." % (err._name, pkg.name)
                     new_vistrail = objs[0][1]
                 else:
                     new_vistrail = self.locator.save_as(self.vistrail, version)
+                    if type(self.locator) == core.db.locator.DBLocator:
+                        new_vistrail.db_log_filename = None
                 self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()

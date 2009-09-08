@@ -1004,6 +1004,14 @@
       </property>
     </choice>
 
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
   </object>
 
   <!--++++++++++++++++++++++++++-->
@@ -1697,6 +1705,15 @@
 	      object="module_descriptor">
       <xml name="rootDescriptorId" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <!-- <xml nodeType="xs:attribute" type="xs:string"/> -->
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="last_modified" type="datetime">
+      <sql type="datetime"/>
     </property>
 
     <property ref="true" object="package" type="list"
