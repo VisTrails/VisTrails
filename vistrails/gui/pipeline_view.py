@@ -1865,10 +1865,13 @@ mutual connections."""
                     2: CurrentTheme.NOT_EXECUTED_MODULE_BRUSH,
                     3: CurrentTheme.ACTIVE_MODULE_BRUSH,
                     4: CurrentTheme.COMPUTING_MODULE_BRUSH,
+                    6: CurrentTheme.PERSISTENT_MODULE_BRUSH,
                     }
                 item.setProgress(e.progress)
-                if statusMap.has_key(e.status):
+                if e.status in statusMap:
                     item.statusBrush = statusMap[e.status]
+                else:
+                    item.statusBrush = None
                 item._needs_state_updated = True
                 item.update()
             return True
@@ -2030,6 +2033,10 @@ mutual connections."""
                                                         progress))
         QtCore.QCoreApplication.processEvents()
 
+    def set_module_persistent(self, moduleId):
+        QtGui.QApplication.postEvent(self,
+                                     QModuleStatusEvent(moduleId, 6, ''))
+        QtCore.QCoreApplication.processEvents()
 
     def reset_module_colors(self):
         for module in self.modules.itervalues():

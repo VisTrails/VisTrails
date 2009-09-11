@@ -223,6 +223,8 @@ Designing New Modules
         # used for the logging stuff
         self.computed = False
 
+        self.signature = None
+
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
 deletion."""

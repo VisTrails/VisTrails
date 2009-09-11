@@ -166,6 +166,8 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('yellow'))))
         self.NOT_EXECUTED_MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_goldenrod'))))
+        self.PERSISTENT_MODULE_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('slate_blue'))))
 
         # Pen and brush for un-matched queried modules
         self.GHOSTED_MODULE_PEN = QtGui.QPen(QtGui.QBrush(

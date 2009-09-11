@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+import base64
 from core import modules
 from core.common import *
 from core.data_structures.bijectivedict import Bidict
@@ -168,6 +169,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.interpreter = self
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
+            obj.signature = module._signature
                 
             reg = modules.module_registry.get_module_registry()
             for f in module.functions:
@@ -259,6 +261,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to execute_pipeline: %s' % kwargs)
 
+        errors = {}
+        executed = {}
+        cached = {}
+
         # LOGGING SETUP
         def get_remapped_id(id):
             return persistent_to_tmp_id_map[id]
@@ -287,6 +293,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             view.set_module_active(i)
 
         def update_cached(obj):
+            cached[obj.id] = True
             i = get_remapped_id(obj.id)
 
             reg = modules.module_registry.get_module_registry()
@@ -360,11 +367,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         else:
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
-            
-        errors = {}
-        executed = {}
-        abstractions = {}
-                            
+                                        
         # Update new sinks
         for obj in persistent_sinks:
             try:
@@ -394,6 +397,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         #              for i in tmp_to_persistent_module_map.keys()])
         errs = {}
         execs = {}
+        caches = {}
 
         to_delete = []
         for (tmp_id, obj) in tmp_id_to_module_map.iteritems():
@@ -406,13 +410,15 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                     to_delete.append(obj.id)
             if obj.id in executed:
                 execs[tmp_id] = executed[obj.id]
+            elif obj.id in cached:
+                caches[tmp_id] = cached[obj.id]
             else:
                 # these modules didn't execute
                 execs[tmp_id] = False
 
-        return (to_delete, objs, errs, execs, parameter_changes)
+        return (to_delete, objs, errs, execs, caches, parameter_changes)
 
-    def finalize_pipeline(self, pipeline, to_delete, objs, errs, execs, 
+    def finalize_pipeline(self, pipeline, to_delete, objs, errs, execs, cached,
                           **kwargs):
         def fetch(name, default):
             r = kwargs.get(name, default)
@@ -431,8 +437,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 view.set_module_error(i, errs[i].msg)
             elif i in execs and execs[i]:
                 view.set_module_success(i)
-            else:
+            elif i in cached and cached[i]:
                 view.set_module_not_executed(i)
+            else:
+                view.set_module_persistent(i)
 
         if reset_computed:
             for module in self._objects.itervalues():
@@ -452,7 +460,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         if len(errors) == 0:
             res = self.execute_pipeline(pipeline, *(res[:2]), **kwargs)
         else:
-            res = (to_delete, res[0], errors, [], [])
+            res = (to_delete, res[0], errors, {}, {}, [])
         self.finalize_pipeline(pipeline, *(res[:-1]), **kwargs)
         
         return InstanceObject(objects=res[1],
@@ -562,6 +570,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 persistent_id = self._persistent_pipeline.fresh_module_id()
                 persistent_module.id = persistent_id
                 self._persistent_pipeline.add_module(persistent_module)
+                self._persistent_pipeline.modules[persistent_id]._signature = \
+                    base64.b16encode(new_sig)
                 module_id_map[new_module_id] = persistent_id
                 modules_added.add(new_module_id)
             else:
