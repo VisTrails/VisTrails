@@ -138,18 +138,17 @@ class QShellDialog(QToolWindow, QToolWindowInterface):
         
 
 class vistrails_port(object):
-    def __new__(klass, *args, **kwargs):
-        if len(args) + len(kwargs) > 0:
-            # if klass._port_spec.type == 'input':
-            klass._vistrails_module._update_func(klass._port_spec,
-                                                 *args, **kwargs)
-            return None
-        else:
-            return object.__new__(klass, *args, **kwargs)
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, vistrails_module, port_spec):
         # print 'calling vistrails_port.__init__'
-        pass
+        self._vistrails_module = vistrails_module
+        self._port_spec = port_spec
+
+    def __call__(self, *args, **kwargs):
+        if len(args) + len(kwargs) > 0:
+            self._vistrails_module._update_func(self._port_spec,
+                                                *args, **kwargs)
+            return None
+        return self
 
 class vistrails_module(object):
     def __init__(self, *args, **kwargs):
@@ -180,11 +179,7 @@ class vistrails_module(object):
 
     def __getattr__(self, attr_name):
         def create_port(port_spec):
-            d = {'_port_spec': port_spec,
-                 '_vistrails_module': self,
-                 }
-            return type('port', (vistrails_port,), d)
-
+            return vistrails_port(self, port_spec)()
         try:
             return self.__dict__[attr_name]
         except KeyError:
