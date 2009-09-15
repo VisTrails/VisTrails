@@ -307,8 +307,11 @@ class XMLAutoGen(AutoGen):
 
         # define fromXML function
         self.unindentLine('def fromXML(self, node):\n')
-        self.indentLine('node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag\n')
-        self.printLine('if node_tag != \'%s\':\n' % object.getName())
+        self.indentLine('if node.tag[0] == "{":\n')
+        self.indentLine('node_tag = node.tag.split("}")[1]\n')
+        self.unindentLine('else:\n')
+        self.indentLine('node_tag = node.tag\n')
+        self.unindentLine('if node_tag != \'%s\':\n' % object.getName())
         self.indentLine('return None\n')
         self.unindent()
 
@@ -372,8 +375,12 @@ class XMLAutoGen(AutoGen):
             self.printLine('\n')
             self.printLine('# read children\n')
             self.printLine('for child in node.getchildren():\n')
-            self.indentLine('child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag\n')
-            
+            self.indentLine('if child.tag[0] == "{":\n')
+            self.indentLine('child_tag = child.tag.split("}")[1]\n')
+            self.unindentLine('else:\n')
+            self.indentLine('child_tag = child.tag\n')
+            self.unindent()
+
             cond = 'if'
             for field in elements + choices:
                 if field.isChoice():

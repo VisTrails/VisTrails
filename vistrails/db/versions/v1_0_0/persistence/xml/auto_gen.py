@@ -37,7 +37,10 @@ class DBOpmProcessIdEffectXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'effect':
             return None
         
@@ -67,7 +70,10 @@ class DBOpmWasGeneratedByXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'wasGeneratedBy':
             return None
         
@@ -79,7 +85,10 @@ class DBOpmWasGeneratedByXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'effect':
                 _data = self.getDao('opm_artifact_id_effect').fromXML(child)
                 effect = _data
@@ -145,7 +154,10 @@ class DBOpmAccountsXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'accounts':
             return None
         
@@ -154,7 +166,10 @@ class DBOpmAccountsXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'account':
                 _data = self.getDao('opm_account').fromXML(child)
                 accounts.append(_data)
@@ -196,7 +211,10 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'portSpec':
             return None
         
@@ -246,7 +264,10 @@ class DBModuleXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'module':
             return None
         
@@ -273,7 +294,10 @@ class DBModuleXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'location':
                 _data = self.getDao('location').fromXML(child)
                 location = _data
@@ -347,7 +371,10 @@ class DBModuleDescriptorXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'moduleDescriptor':
             return None
         
@@ -369,7 +396,10 @@ class DBModuleDescriptorXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'portSpec':
                 _data = self.getDao('portSpec').fromXML(child)
                 portSpecs.append(_data)
@@ -417,7 +447,10 @@ class DBTagXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'tag':
             return None
         
@@ -451,7 +484,10 @@ class DBOpmRoleXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'role':
             return None
         
@@ -481,7 +517,10 @@ class DBOpmProcessesXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'processes':
             return None
         
@@ -489,7 +528,10 @@ class DBOpmProcessesXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'process':
                 _data = self.getDao('opm_process').fromXML(child)
                 processs.append(_data)
@@ -523,7 +565,10 @@ class DBOpmAccountIdXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'account':
             return None
         
@@ -553,7 +598,10 @@ class DBPortXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'port':
             return None
         
@@ -603,7 +651,10 @@ class DBOpmArtifactXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'artifact':
             return None
         
@@ -616,7 +667,10 @@ class DBOpmArtifactXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'value':
                 _data = self.getDao('opm_artifact_value').fromXML(child)
                 value = _data
@@ -662,7 +716,10 @@ class DBGroupXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'group':
             return None
         
@@ -689,7 +746,10 @@ class DBGroupXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'workflow':
                 _data = self.getDao('workflow').fromXML(child)
                 workflow = _data
@@ -763,7 +823,10 @@ class DBLogXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'log':
             return None
         
@@ -782,7 +845,10 @@ class DBLogXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'workflowExec':
                 _data = self.getDao('workflow_exec').fromXML(child)
                 workflow_execs.append(_data)
@@ -834,7 +900,10 @@ class DBOpmAgentsXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'agents':
             return None
         
@@ -842,7 +911,10 @@ class DBOpmAgentsXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'agent':
                 _data = self.getDao('opm_agent').fromXML(child)
                 agents.append(_data)
@@ -876,7 +948,10 @@ class DBOpmProcessIdCauseXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'cause':
             return None
         
@@ -906,7 +981,10 @@ class DBMachineXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'machine':
             return None
         
@@ -956,7 +1034,10 @@ class DBAddXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'add':
             return None
         
@@ -976,7 +1057,10 @@ class DBAddXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'module':
                 _data = self.getDao('module').fromXML(child)
                 data = _data
@@ -1089,7 +1173,10 @@ class DBOtherXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'other':
             return None
         
@@ -1103,7 +1190,10 @@ class DBOtherXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'value':
                 _data = self.convertFromStr(child.text,'str')
                 value = _data
@@ -1142,7 +1232,10 @@ class DBLocationXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'location':
             return None
         
@@ -1180,7 +1273,10 @@ class DBOpmOverlapsXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'overlaps':
             return None
         
@@ -1188,7 +1284,10 @@ class DBOpmOverlapsXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'account':
                 _data = self.getDao('opm_account_id').fromXML(child)
                 opm_account_ids.append(_data)
@@ -1222,7 +1321,10 @@ class DBOpmArtifactsXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'artifacts':
             return None
         
@@ -1230,7 +1332,10 @@ class DBOpmArtifactsXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'artifact':
                 _data = self.getDao('opm_artifact').fromXML(child)
                 artifacts.append(_data)
@@ -1264,7 +1369,10 @@ class DBOpmDependenciesXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'causalDependencies':
             return None
         
@@ -1272,7 +1380,10 @@ class DBOpmDependenciesXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'used':
                 _data = self.getDao('opm_used').fromXML(child)
                 dependencys.append(_data)
@@ -1331,7 +1442,10 @@ class DBParameterXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'parameter':
             return None
         
@@ -1381,7 +1495,10 @@ class DBOpmUsedXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'used':
             return None
         
@@ -1393,7 +1510,10 @@ class DBOpmUsedXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'effect':
                 _data = self.getDao('opm_process_id_effect').fromXML(child)
                 effect = _data
@@ -1459,7 +1579,10 @@ class DBPluginDataXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'plugin_data':
             return None
         
@@ -1493,7 +1616,10 @@ class DBFunctionXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'function':
             return None
         
@@ -1509,7 +1635,10 @@ class DBFunctionXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'parameter':
                 _data = self.getDao('parameter').fromXML(child)
                 parameters.append(_data)
@@ -1551,7 +1680,10 @@ class DBAbstractionXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'abstraction':
             return None
         
@@ -1579,7 +1711,10 @@ class DBAbstractionXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'location':
                 _data = self.getDao('location').fromXML(child)
                 location = _data
@@ -1647,7 +1782,10 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'workflow':
             return None
         
@@ -1669,7 +1807,10 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'connection':
                 _data = self.getDao('connection').fromXML(child)
                 connections.append(_data)
@@ -1758,7 +1899,10 @@ class DBOpmArtifactIdCauseXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'cause':
             return None
         
@@ -1788,7 +1932,10 @@ class DBOpmArtifactValueXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'value':
             return None
         
@@ -1796,7 +1943,10 @@ class DBOpmArtifactValueXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'portSpec':
                 _data = self.getDao('portSpec').fromXML(child)
                 value = _data
@@ -1837,7 +1987,10 @@ class DBOpmArtifactIdEffectXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'effect':
             return None
         
@@ -1867,7 +2020,10 @@ class DBOpmGraphXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'opmGraph':
             return None
         
@@ -1879,7 +2035,10 @@ class DBOpmGraphXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'accounts':
                 _data = self.getDao('opm_accounts').fromXML(child)
                 accounts = _data
@@ -1945,7 +2104,10 @@ class DBRegistryXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'registry':
             return None
         
@@ -1961,7 +2123,10 @@ class DBRegistryXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'package':
                 _data = self.getDao('package').fromXML(child)
                 packages.append(_data)
@@ -2003,7 +2168,10 @@ class DBOpmAccountXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'account':
             return None
         
@@ -2015,7 +2183,10 @@ class DBOpmAccountXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'value':
                 _data = self.convertFromStr(child.text,'str')
                 value = _data
@@ -2052,7 +2223,10 @@ class DBAnnotationXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'annotation':
             return None
         
@@ -2090,7 +2264,10 @@ class DBChangeXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'change':
             return None
         
@@ -2112,7 +2289,10 @@ class DBChangeXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'module':
                 _data = self.getDao('module').fromXML(child)
                 data = _data
@@ -2227,7 +2407,10 @@ class DBOpmWasDerivedFromXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'wasDerivedFrom':
             return None
         
@@ -2239,7 +2422,10 @@ class DBOpmWasDerivedFromXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'effect':
                 _data = self.getDao('opm_artifact_id_effect').fromXML(child)
                 effect = _data
@@ -2305,7 +2491,10 @@ class DBOpmWasControlledByXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'wasControlledBy':
             return None
         
@@ -2318,7 +2507,10 @@ class DBOpmWasControlledByXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'effect':
                 _data = self.getDao('opm_process_id_effect').fromXML(child)
                 effect = _data
@@ -2392,7 +2584,10 @@ class DBOpmAgentIdXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'agent':
             return None
         
@@ -2422,7 +2617,10 @@ class DBGroupExecXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'groupExec':
             return None
         
@@ -2453,7 +2651,10 @@ class DBGroupExecXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
@@ -2530,7 +2731,10 @@ class DBOpmTimeXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'time':
             return None
         
@@ -2568,7 +2772,10 @@ class DBPackageXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'package':
             return None
         
@@ -2592,7 +2799,10 @@ class DBPackageXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'moduleDescriptor':
                 _data = self.getDao('module_descriptor').fromXML(child)
                 module_descriptors.append(_data)
@@ -2642,7 +2852,10 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'workflowExec':
             return None
         
@@ -2676,7 +2889,10 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 item_execs.append(_data)
@@ -2749,7 +2965,10 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'loopExec':
             return None
         
@@ -2771,7 +2990,10 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 item_execs.append(_data)
@@ -2832,7 +3054,10 @@ class DBConnectionXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'connection':
             return None
         
@@ -2844,7 +3069,10 @@ class DBConnectionXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'port':
                 _data = self.getDao('port').fromXML(child)
                 ports.append(_data)
@@ -2882,7 +3110,10 @@ class DBOpmProcessXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'process':
             return None
         
@@ -2895,7 +3126,10 @@ class DBOpmProcessXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'value':
                 _data = self.getDao('opm_process_value').fromXML(child)
                 value = _data
@@ -2941,7 +3175,10 @@ class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'wasTriggeredBy':
             return None
         
@@ -2953,7 +3190,10 @@ class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'effect':
                 _data = self.getDao('opm_process_id_effect').fromXML(child)
                 effect = _data
@@ -3019,7 +3259,10 @@ class DBOpmProcessValueXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'value':
             return None
         
@@ -3027,7 +3270,10 @@ class DBOpmProcessValueXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 value = _data
@@ -3074,7 +3320,10 @@ class DBActionXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'action':
             return None
         
@@ -3097,7 +3346,10 @@ class DBActionXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
@@ -3166,7 +3418,10 @@ class DBOpmAgentXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'agent':
             return None
         
@@ -3179,7 +3434,10 @@ class DBOpmAgentXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'value':
                 _data = self.convertFromStr(child.text,'str')
                 value = _data
@@ -3224,7 +3482,10 @@ class DBDeleteXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'delete':
             return None
         
@@ -3270,7 +3531,10 @@ class DBVistrailXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'vistrail':
             return None
         
@@ -3288,7 +3552,10 @@ class DBVistrailXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'action':
                 _data = self.getDao('action').fromXML(child)
                 actions.append(_data)
@@ -3346,7 +3613,10 @@ class DBModuleExecXMLDAOBase(XMLDAO):
         return self.daoList[dao]
 
     def fromXML(self, node):
-        node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
         if node_tag != 'moduleExec':
             return None
         
@@ -3375,7 +3645,10 @@ class DBModuleExecXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
-            child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
             if child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
