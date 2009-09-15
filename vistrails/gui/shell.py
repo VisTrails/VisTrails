@@ -179,7 +179,7 @@ class vistrails_module(object):
 
     def __getattr__(self, attr_name):
         def create_port(port_spec):
-            return vistrails_port(self, port_spec)()
+            return vistrails_port(self, port_spec)
         try:
             return self.__dict__[attr_name]
         except KeyError:
