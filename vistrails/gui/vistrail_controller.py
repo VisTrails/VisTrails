@@ -476,31 +476,8 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         self.flush_move_actions()
 
-        action_list = []
-        must_change = False
-        for i in xrange(len(param_list)):
-            (p_val, p_type, p_namespace, p_identifier, p_alias) = param_list[i]
-            function = module.functions[function_pos]
-            old_param = function.params[i]
-            param_id = self.vistrail.idScope.getNewId(ModuleParam.vtType)
-            new_param = ModuleParam(id=param_id,
-                                    pos=i,
-                                    name='<no description>',
-                                    alias=p_alias,
-                                    val=p_val,
-                                    type=p_type,
-                                    identifier=p_identifier,
-                                    namespace=p_namespace,
-                                    )
-            must_change |= (new_param != old_param)
-            action_list.append(('change', old_param, new_param, 
-                                function.vtType, function.real_id))
-        if must_change:
-            action = core.db.action.create_action(action_list)
-            self.add_new_action(action)
-            return self.perform_action(action)
-        else:
-            return None
+        return BaseController.replace_method(self, module, function_pos,
+                                             param_list)
 
     def delete_annotation(self, key, module_id):
         """ delete_annotation(key: str, module_id: long) -> version_id
@@ -747,65 +724,14 @@ class VistrailController(QtCore.QObject, BaseController):
             self.set_changed(True)
             self.emit(QtCore.SIGNAL('notesChanged()'))
 
-    def add_parameter_changes_from_execution(self, pipeline, version,
-                                             parameter_changes):
-        """add_parameter_changes_from_execution(pipeline, version,
-        parameter_changes) -> int.
-
-        Adds new versions to the current vistrail as a result of an
-        execution. Returns the version number of the new version."""
-
-        type_map = {float: 'Float',
-                    int: 'Integer',
-                    str: 'String',
-                    bool: 'Boolean'}
-
-        def convert_function_parameters(params):
-            if (type(function_values) == tuple or
-                type(function_values) == list):
-                result = []
-                for v in params:
-                    result.extend(convert_function_parameters(v))
-                return result
-            else:
-                t = type(function_values)
-                assert t in type_map
-                return [ModuleParam(type=type_map[t],
-                                    val=str(function_values))]
-
-        def add_aliases(m_id, f_index, params):
-            function = pipeline.modules[m_id].functions[f_index]
-            result = []
-            for (index, param) in enumerate(params):
-                result.append((param.strValue, param.type,
-                               function.params[index].alias))
-            return result
-
-        for (m_id, function_name, function_values) in parameter_changes:
-            params = convert_function_parameters(function_values)
-
-            f_index = pipeline.find_method(m_id, function_name)
-            if f_index == -1:
-                new_method = ModuleFunction(name=function_name,
-                                            parameters=params)
-                self.add_method(m_id, new_method)
-            else:
-                params = add_aliases(m_id, f_index, params)
-                self.replace_method(pipeline.modules[m_id],
-                                    f_index,
-                                    params)
-
+    ##########################################################################
+    # Workflow Execution
+    
     def execute_workflow_list(self, vistrails):
         old_quiet = self.quiet
         self.quiet = True
-        (results, changed) = BaseController.execute_workflow_list(self, vistrails)
-        for result in results:       
-            if result.parameter_changes:
-                l = result.parameter_changes
-                self.add_parameter_changes_from_execution(pipeline,
-                                                          version, l)
-                changed = True
-            
+        (results, changed) = BaseController.execute_workflow_list(self, 
+                                                                  vistrails)        
         self.quiet = old_quiet
         if changed:
             self.invalidate_version_tree(False)

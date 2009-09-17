@@ -466,7 +466,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         return InstanceObject(objects=res[1],
                               errors=res[2],
                               executed=res[3],
-                              parameter_changes=res[4],
+                              parameter_changes=res[5],
                               modules_added=modules_added,
                               conns_added=conns_added)
 
