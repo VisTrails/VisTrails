@@ -153,20 +153,22 @@ class DAOList(dict):
         # print 'global_props:', global_props
 
         # assumes not deleting entire thing
-        (child, _, _) = children.pop(0)
+        child = children[0][0]
         self['sql'][child.vtType].set_sql_columns(db_connection, child, 
                                                   global_props, do_copy)
         self['sql'][child.vtType].to_sql_fast(child, do_copy)
-        child.is_dirty = False
-        child.is_new = False
 
         # do deletes
         if not do_copy:
-            for (c, _, _) in children:
-                for child in c.db_deleted_children(True):
+            for (child, _, _) in children:
+                for c in child.db_deleted_children(True):
                     self['sql'][c.vtType].delete_sql_column(db_connection,
                                                             c,
                                                             global_props)
+
+        child = children.pop(0)[0]
+        child.is_dirty = False
+        child.is_new = False
 
         # process remaining children
         for (child, _, _) in children:
