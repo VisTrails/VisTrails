@@ -334,7 +334,8 @@ class SQLAutoGen(AutoGen):
 	self.printLine('class %sSQLDAOBase(SQLDAO):\n\n' % \
 		       object.getClassName())
 	self.indentLine('def __init__(self, daoList):\n')
-	self.indentLine('self.daoList = daoList\n\n')
+	self.indentLine('self.daoList = daoList\n')
+        self.printLine("self.table = '%s'\n\n" % object.getName())
 	self.unindentLine('def getDao(self, dao):\n')
 	self.indentLine('return self.daoList[dao]\n\n')
 

@@ -355,6 +355,11 @@ def save_to_db(obj, db_connection, do_copy=False):
         raise VistrailsDBException("cannot save object of type '%s' to db" % \
                                        type)
 
+def delete_from_db(db_connection, type, obj_id):
+    if type in [DBVistrail.vtType, DBWorkflow.vtType, DBLog.vtType,
+                DBRegistry.vtType]:
+        return delete_entity_from_db(db_connection, type, obj_id)
+
 def close_zip_xml(temp_dir):
     """close_zip_xml(temp_dir: string) -> None
     Removes any temporary files for a vistrails file
@@ -975,6 +980,17 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
 ##############################################################################
 # I/O Utilities
 
+def delete_entity_from_db(db_connection, type, obj_id):
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    version = get_db_version(db_connection)
+    if version is None:
+        version = currentVersion
+    dao_list = getVersionDAO(version)
+    dao_list.delete_from_db(db_connection, type, obj_id)
+    db_connection.commit()
+    
 def get_version_for_xml(root):
     version = root.get('version', None)
     if version is not None:
@@ -1075,5 +1091,4 @@ class TestDBIO(unittest.TestCase):
                 os.unlink(filename)
         except Exception, e:
             self.fail(str(e))
-        
 

@@ -187,6 +187,26 @@ class DAOList(dict):
             child.is_dirty = False
             child.is_new = False
 
+    def delete_from_db(self, db_connection, type, obj_id):
+        root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
+                        DBLog.vtType, DBRegistry.vtType])
+        if type not in root_set:
+            raise VistrailsDBException("Cannot delete entity of type '%s'" \
+                                           % type)
+
+        type_str = "'" + type + "'"
+        id_str = str(obj_id)
+        for (dao_type, dao) in self['sql'].iteritems():
+            if dao_type not in root_set:
+                db_cmd = \
+                    self['sql'][type].createSQLDelete(dao.table,
+                                                      {'entity_type': type_str,
+                                                       'entity_id': id_str})
+                self['sql'][type].executeSQL(db_connection, db_cmd, False)
+        db_cmd = self['sql'][type].createSQLDelete(self['sql'][type].table,
+                                                   {'id': id_str})
+        self['sql'][type].executeSQL(db_connection, db_cmd, False)
+
     def serialize(self, object):
         root = self.write_xml_object(object)
         return ElementTree.tostring(root)

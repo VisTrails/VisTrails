@@ -29,6 +29,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'port_spec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -149,6 +150,7 @@ class DBModuleSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -285,6 +287,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module_descriptor'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -395,6 +398,7 @@ class DBTagSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'tag'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -481,6 +485,7 @@ class DBPortSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'port'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -598,6 +603,7 @@ class DBGroupSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'group_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -734,6 +740,7 @@ class DBLogSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'log_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -837,6 +844,7 @@ class DBMachineSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'machine'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -948,6 +956,7 @@ class DBAddSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'add_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1054,6 +1063,7 @@ class DBOtherSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'other'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1156,6 +1166,7 @@ class DBLocationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'location'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1264,6 +1275,7 @@ class DBParameterSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'parameter'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1381,6 +1393,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'plugin_data'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1478,6 +1491,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'function'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1590,6 +1604,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'abstraction'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1728,6 +1743,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'workflow'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1854,6 +1870,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'registry'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1955,6 +1972,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'annotation'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2078,6 +2096,7 @@ class DBChangeSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'change_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2189,6 +2208,7 @@ class DBGroupExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'group_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2333,6 +2353,7 @@ class DBPackageSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'package'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2453,6 +2474,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'workflow_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2593,6 +2615,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'loop_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2717,6 +2740,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'connection_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2813,6 +2837,7 @@ class DBActionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'action'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2925,6 +2950,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'delete_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -3026,6 +3052,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'vistrail'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -3127,6 +3154,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
