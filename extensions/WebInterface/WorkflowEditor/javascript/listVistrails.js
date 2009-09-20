@@ -14,6 +14,7 @@ $(document).ready(function() {
 			inspect(whatever, 7, 0);
 			alert('Error loading XML document' + " _ " + whatever.responseText);
 		},
+
 		success: function(xml){
 			// <vistrail id="9" name="brain" mod_time="2009-06-17 14:45:07"/> 
 			$('vistrail', xml).each(function(){

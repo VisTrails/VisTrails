@@ -33,6 +33,86 @@ function getParamFromURL(url, paramName) {
 	return false;
 }
 
+function drawLightVistrail() {
+
+	$("#canvas").html("");
+
+	var vistrailHTML = "Vistrail: " + vistrail.name + "<br>";
+
+	var smallTree = vistrail.tree;
+	var smallTreeNodes = vistrail.smallTreeNodes;
+	//var boundingBoxValues = smallTree.boundingBox();
+
+	var nodeString = "";
+
+	var nodes = vistrail.treeLayout.tree.nodes;
+
+	for ( var n in nodes ) {
+		var node = nodes[n];
+		nodeString += "<div id='blackBoundary-" + n + "' " +
+				"style='position: absolute; " +
+				"border: 1px black solid; background-color: #FFFFFF;" +
+				"width: " + ( zoomLevel * ( node.width + 36 ) ) + "px; " +
+				"height: " + ( zoomLevel * ( node.height + 26 ) ) + "px; " +
+				"left: " + ( screenCenterX + ( zoomLevel * ( node.x - 18 - ( node.width / 2 ) ) ) ) + "px; " +
+				"top: " + ( screenCenterY + ( zoomLevel * ( node.y - 13 - ( node.height / 2 ) ) ) ) + "px;'></div>";
+	}
+
+	$("#canvas").append( nodeString );
+
+}
+
+function drawLightWorkflow() {
+
+	$( "#modulesViewport" ).remove(); // Clear modules
+
+	// Draw Modules:
+	var xOffset = Math.round( screenCenterX );
+	var yOffset = Math.round( screenCenterY );
+
+	var modulesHTML = "<div id='modulesViewport'>";
+
+	for ( var i in modules ) {
+
+		modulesHTML += "<div class='moduleDiv' id='moduleId-" + modules[i].id + "' class='module' style='position:absolute;left:" + ( screenCenterX + ( Math.round( parseFloat( modules[i].location.x ) / zoomLevel ) ) ) + "px;" +
+				"top:" + ( screenCenterY - ( Math.round( parseFloat( modules[i].location.y ) / zoomLevel ) ) ) + "px;'>";
+
+		modulesHTML += "<table class='module'" +
+				" style='height:" + Math.round( 50 / zoomLevel ) + "px;'>" +
+				"<tr><td colspan='2'><div class='moduleName' style='font-size: " +  ( 24 / zoomLevel )  + "px; text-align: center;'>&nbsp;&nbsp;" + ( modules[i].label ? ( modules[i].label + "<div style='font-size: " +  ( 8 / zoomLevel )  + "px;'>(" + modules[i].name + ")</div>" ) : modules[i].name ) + "</div></td></tr>" +
+				"</table>" +
+				"</div>";
+	}
+
+	modulesHTML += "</div>";
+
+	$("#canvas").html( modulesHTML );
+
+	// Draw connections:
+
+	var strokeWidth =  Math.round( 4 / zoomLevel );
+	strokeWidth = ( strokeWidth < 1 ? 1 : strokeWidth );
+	jg.setStroke( strokeWidth );
+
+	var sourcePosition;
+	var destinationPosition;
+
+	for (var i in connections) {
+		if ( document.getElementById( "output|" + connections[i].source.moduleId + "|" + connections[i].source.spec ) ) {
+			sourcePosition = findPos( document.getElementById( "output|" + connections[i].source.moduleId + "|" + connections[i].source.spec ) );
+			destinationPosition = findPos( document.getElementById( "input|" + connections[i].destination.moduleId + "|" + connections[i].source.spec ) );
+			jg.setClassName('c-' + i);
+
+			if ( connections[i].selected ) {
+				jg.setColor("#FF9900");
+			} else jg.setColor("#000000");
+
+			jg.drawLine( sourcePosition.x, sourcePosition.y, destinationPosition.x, destinationPosition.y );
+			jg.setClassName(null);
+		}
+	}
+	jg.paint();
+}
 
 function getWindowDimensions() {
 

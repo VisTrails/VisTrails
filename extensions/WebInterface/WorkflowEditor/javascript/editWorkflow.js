@@ -258,7 +258,10 @@ $(document).ready(function() {
 
 		previousZoomLevel = zoomLevel;
 
-		startedLine = true;
+		if ( activeTool != 0 ) {
+			startedLine = true;
+		}
+
 	}).mousemove(function(e){
 		if ( startedNewConnection ) {
 			var xOffset = ( ( e.pageX - positionSource.x < 0 ) ? 5 : -5 );
@@ -288,6 +291,7 @@ $(document).ready(function() {
 		}
 
 		$("#canvas2").html('');
+		drawWorkflow();
 	});
 
 	$("#canvas2").mouseup(function(e){
@@ -306,6 +310,7 @@ $(document).ready(function() {
 		}
 
 		$("#canvas2").html('');
+		drawWorkflow();
 
 	}).mousemove(function(e){
 		if ( startedNewConnection ) {
@@ -368,7 +373,7 @@ $(document).ready(function() {
 
 			modules[module.id] = module;
 
-			drawModules();
+			drawWorkflow();
 		}
 	});
 
@@ -471,7 +476,7 @@ $(document).ready(function() {
 					setConnectionPort(connection, node);
 				});
 			});
-			drawModules();
+			drawWorkflow();
 
 		    }
 		});
@@ -496,7 +501,7 @@ function removeSelected() {
 
 	modules = tempModules;
 	connections = tempConnections;
-	drawModules();
+	drawWorkflow();
 }
 
 function selectModules( additive ) {
@@ -527,7 +532,7 @@ function selectModules( additive ) {
 
 	autoSelectConnections();
 
-	drawModules();
+	drawWorkflow();
 }
 
 function autoSelectConnections() {
@@ -556,7 +561,7 @@ function pan(e) {
 	screenCenterX = previousScreenCenterX + ( ( e.pageX - positionSource.x ) );
 	screenCenterY = previousScreenCenterY + ( ( e.pageY - positionSource.y ) );
 
-	drawModules();
+	drawLightWorkflow();
 }
 
 function zoom(e) {
@@ -573,10 +578,10 @@ function zoom(e) {
 	if ( sign > 0 ) zoomLevel = previousZoomLevel * magnitude;
 	else zoomLevel = previousZoomLevel / magnitude;
 
-	drawModules();
+	drawLightWorkflow();
 }
 
-function drawModules() {
+function drawWorkflow() {
 
 	// Clear connections
 	jg.clear();
@@ -740,7 +745,7 @@ function drawModules() {
 		inputPortNode = null;
 		outputPortNode = null;
 
-		drawModules();
+		drawWorkflow();
 	});
 }
 
@@ -760,7 +765,7 @@ function moveModule( node, position ) {
 		}
 	}
 
-	drawModules();
+	drawWorkflow();
 }
 
 function selectModule( node, additive ) {
@@ -769,7 +774,7 @@ function selectModule( node, additive ) {
 
 	if ( !modules[id].selected ) selectSingleModule( id, additive );
 
-	drawModules();
+	drawWorkflow();
 }
 
 function selectSingleModule(id, additive) {
@@ -803,7 +808,7 @@ function selectConnection( node, additive ) {
 	}
 
 	connections[id].selected = true;
-	drawModules();
+	drawWorkflow();
 }
 
 function showOptions( node ) {
@@ -1011,7 +1016,7 @@ function changeModuleConfiguration(moduleId) {
 
 	modules[moduleId].optionalPorts = optionalPorts;
 
-	drawModules();
+	drawWorkflow();
 
 }
 
@@ -1050,7 +1055,7 @@ function showAnnotation( moduleId ) {
 
 function changeAnnotation( moduleId ) {
 	modules[moduleId].annotation = $( "#annotationTextArea-" + moduleId ).attr( 'value' );
-	drawModules();
+	drawWorkflow();
 }
 
 function showLabel( moduleId ) {
@@ -1083,7 +1088,7 @@ function showLabel( moduleId ) {
 function changeModuleLabel( moduleId ) {
 
 	modules[moduleId].label = $( "#moduleLabelTextBox-" + moduleId ).attr( 'value' );
-	drawModules();
+	drawWorkflow();
 
 }
 
@@ -1168,7 +1173,7 @@ function zoomIn() {
 		zoomLevel = zoomLevel / 2;
 	}
 
-	drawModules();
+	drawLightWorkflow();
 }
 
 function zoomOut() {
@@ -1179,7 +1184,7 @@ function zoomOut() {
 		zoomLevel = zoomLevel * 2;
 	}
 
-	drawModules();
+	drawLightWorkflow();
 }
 
 function findPos(obj) {

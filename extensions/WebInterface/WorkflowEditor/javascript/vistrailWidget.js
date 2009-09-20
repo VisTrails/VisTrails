@@ -55,7 +55,9 @@ $(document).ready(function() {
 
 		previousZoomLevel = zoomLevel;
 
-		startedLine = true;
+		if ( activeTool != 0 ) {
+			startedLine = true;
+		}
 
 	}).mousemove(function(e){
 		if ( startedLine ) {
@@ -70,6 +72,7 @@ $(document).ready(function() {
 			startedLine = false;
 		}
 
+		drawVistrail();
 	});
 
 
@@ -276,7 +279,7 @@ function pan(e) {
 	screenCenterX = previousScreenCenterX + ( ( e.pageX - positionSource.x ) );
 	screenCenterY = previousScreenCenterY + ( ( e.pageY - positionSource.y ) );
 
-	drawVistrail();
+	drawLightVistrail();
 }
 
 function zoom(e) {
@@ -293,6 +296,6 @@ function zoom(e) {
 	if ( sign < 0 ) zoomLevel = previousZoomLevel * magnitude;
 	else zoomLevel = previousZoomLevel / magnitude;
 
-	drawVistrail();
+	drawLightVistrail();
 }
 

@@ -64,7 +64,9 @@ $(document).ready(function() {
 
 		previousZoomLevel = zoomLevel;
 
-		startedLine = true;
+		if ( activeTool != 0 ) {
+			startedLine = true;
+		}
 
 	}).mousemove(function(e){
 		if ( startedLine ) {
@@ -77,10 +79,10 @@ $(document).ready(function() {
 			positionDestination.x = e.pageX;
 			positionDestination.y = e.pageY;
 			startedLine = false;
+			drawVistrail();
 		}
 
 	});
-
 
 	vistrail.taggedActions = new Array();
 	vistrail.actions = new Array();
@@ -201,6 +203,8 @@ $(document).ready(function() {
 				}
 			}
 
+			$("#offscreen").html("");
+
 			vistrail.tree = smallTree;
 			vistrail.smallTreeNodes = smallTreeNodes;
 
@@ -209,14 +213,13 @@ $(document).ready(function() {
 
 			vistrail.treeLayout = new TreeLayout( smallTree, 0, 50, 50 );
 
+			$("Title").html( "Vistrail - " + vistrail.name  );
 			drawVistrail();
 		}
 	});
 });
 
 function drawVistrail() {
-
-	$("Title").html( "Vistrail - " + vistrail.name  );
 
 	$("#canvas").html("");
 
@@ -260,10 +263,12 @@ function drawVistrail() {
 				"opacity:" + ( node.level / smallTree.maxLevel ) + ";filter:alpha(opacity=" + parseInt( node.level / smallTree.maxLevel ) + ")'>" +
 
 				"<div id='treeAction-" + n + "' class='action' style='position: absolute; cursor: pointer; " +
-				//"width: " + ( zoomLevel * node.width ) + "px; " +
+				"width: " + ( 10 + ( zoomLevel * node.width ) ) + "px; " +
 				//"height: " + ( zoomLevel * node.height ) + "px; " +
+				"overflow-y: hidden; overflow-x: hidden;" +
 				"left: " + ( screenCenterX + ( zoomLevel * ( node.x - ( node.width / 2 ) ) ) ) + "px; " +
 				"top: " + ( screenCenterY + ( zoomLevel * ( node.y - ( node.height / 2 ) ) ) ) + "px; font-size: " + zoomLevel * 16 + "px;'>" + node.object + "</div>";
+
 	}
 
 	var sticks = vistrail.sticks;
@@ -287,7 +292,6 @@ function drawVistrail() {
 	});
 
 	$(".stick").click( function(){
-
 		$(".stickyWidget").remove();
 
 		var stickId =  parseInt(this.id.split('-')[1]);
@@ -413,7 +417,7 @@ function pan(e) {
 	screenCenterX = previousScreenCenterX + ( ( e.pageX - positionSource.x ) );
 	screenCenterY = previousScreenCenterY + ( ( e.pageY - positionSource.y ) );
 
-	drawVistrail();
+	drawLightVistrail();
 }
 
 function zoom(e) {
@@ -430,6 +434,6 @@ function zoom(e) {
 	if ( sign < 0 ) zoomLevel = previousZoomLevel * magnitude;
 	else zoomLevel = previousZoomLevel / magnitude;
 
-	drawVistrail();
+	drawLightVistrail();
 }
 

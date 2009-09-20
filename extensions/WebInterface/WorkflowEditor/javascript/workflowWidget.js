@@ -82,7 +82,7 @@ $(document).ready(function() {
 		$("#panButton").attr("border","1px");
 		$("#zoomButton").attr("border","0px");
 	});
-	
+
 	$("#zoomButton").mousedown(function(e){
 		activeTool = 2;
 		$("#panButton").attr("border","0px");
@@ -107,7 +107,9 @@ $(document).ready(function() {
 
 		previousZoomLevel = zoomLevel;
 
-		startedLine = true;
+		if ( activeTool != 0 ) {
+			startedLine = true;
+		}
 	}).mousemove(function(e){
 		if ( startedLine ) {
 			if ( activeTool == 1 ) pan(e);
@@ -123,6 +125,8 @@ $(document).ready(function() {
 			positionDestination.y = e.pageY;
 			startedLine = false;
 		}
+
+		drawWorkflow();
 	});
 
 	$.ajax({
@@ -175,7 +179,7 @@ $(document).ready(function() {
 				setConnectionPort(connection, node);
 			});
 		});
-		drawModules();
+		drawWorkflow();
 	    }
 	});
 });
@@ -185,7 +189,7 @@ function pan(e) {
 	screenCenterX = previousScreenCenterX + ( ( e.pageX - positionSource.x ) );
 	screenCenterY = previousScreenCenterY + ( ( e.pageY - positionSource.y ) );
 
-	drawModules();
+	drawLightWorkflow();
 }
 
 function zoom(e) {
@@ -202,10 +206,10 @@ function zoom(e) {
 	if ( sign > 0 ) zoomLevel = previousZoomLevel * magnitude;
 	else zoomLevel = previousZoomLevel / magnitude;
 
-	drawModules();
+	drawLightWorkflow();
 }
 
-function drawModules() {
+function drawWorkflow() {
 
 	jg.clear(); // Clear connections
 	$( "#modulesViewport" ).remove(); // Clear modules
@@ -223,7 +227,7 @@ function drawModules() {
 
 		modulesHTML += "<table " + ( modules[i].selected ? "class='selectedModule'" : "class='module'" );
 
-		modulesHTML += " style='height:" + Math.round( 50 / zoomLevel ) + "px;'><tr><td>" + getInputs( modules[i].id ) + "</td><td><img src='images/arrow.png' id='options-" + modules[i].id + "' style='padding:1px;float:right;width:" + Math.round( 12 / zoomLevel ) + "px;height:" + Math.round( 16 / zoomLevel ) + "px'></td></tr>" +
+		modulesHTML += " style='height:" + Math.round( 50 / zoomLevel ) + "px;'><tr><td>" + getInputs( modules[i].id ) + "</td></tr>" +
 				"<tr><td colspan='2'><div class='moduleName' style='font-size: " +  ( 24 / zoomLevel )  + "px; text-align: center;'>&nbsp;&nbsp;" + ( modules[i].label ? ( modules[i].label + "<div style='font-size: " +  ( 8 / zoomLevel )  + "px;'>(" + modules[i].name + ")</div>" ) : modules[i].name ) + "</div></td></tr>" +
 				"<tr><td colspan='2'>" + getOutputs( modules[i].id ) + "</td></tr></table>" +
 				"</div>";
