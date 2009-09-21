@@ -223,6 +223,9 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L):
         internal_version = vistrail.get_latest_version()
     action = vistrail.actionMap[internal_version]
     pipeline = vistrail.getPipeline(internal_version)
+    # try to make the subworkflow work with the package versions we have
+    pipeline.ensure_modules_are_on_registry()
+    pipeline.ensure_connection_specs()
     uuid = vistrail.get_annotation('__abstraction_uuid__').value
 
     if action.notes is not None:
