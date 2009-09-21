@@ -158,6 +158,8 @@ def perform_analogy_on_vistrail(vistrail,
     # if this changes, this may break
     c_modules = set(pipeline_c.modules)
     c_connections = set(pipeline_c.connections)
+    c_locations = dict((m_id, m.location) 
+                       for (m_id, m) in pipeline_c.modules.iteritems())
     conns_to_delete = set()
 
     for op in baAction.operations:
@@ -188,6 +190,8 @@ def perform_analogy_on_vistrail(vistrail,
                     ops.append(op)
                     c_connections.discard(op.old_obj_id)
             elif (op.parentObjType, op.parentObjId) not in id_remap:
+                if op.what == 'location':
+                    c_locations.pop(op.parentObjId, None)
                 ops.append(op)
         elif op.vtType == 'add' or op.vtType == 'change':
             old_id = op.new_obj_id
@@ -206,6 +210,19 @@ def perform_analogy_on_vistrail(vistrail,
                                       op.parentObjId)):
                 op.parentObjId = id_remap[(op.parentObjType,
                                            op.parentObjId)]
+            if op.what == 'location':
+                # need to make this a 'change' if it's an 'add' and
+                # the module already exists
+                if op.vtType == 'add':
+                    if op.parentObjId in c_locations:
+                        new_op_list = core.db.io.create_change_op_chain(
+                            c_locations[op.parentObjId], op.data,
+                            (Module.vtType, op.parentObjId))
+                        op = new_op_list[0]
+                    c_locations[op.parentObjId] = op.data
+                elif op.vtType == 'change':
+                    c_locations[op.parentObjId] = op.data
+                        
             if op.what == 'port':
                 port = op.data
                 if ('module', port.moduleId) in id_remap:
