@@ -115,33 +115,38 @@ class QMethodTreeWidget(QSearchTreeWidget):
                 raise
             moduleHierarchy = registry.get_module_hierarchy(descriptor)
 
-            method_specs = []
-            # Check the local registry
-            for port_spec in sorted(module.port_spec_list,
-                                    key=lambda x: x.name):
-                if registry.is_method(port_spec):
-                    method_specs.append(port_spec)
-
+            base_items = {}
+            # Create the base widget item for each descriptor
             for descriptor in moduleHierarchy:
                 baseName = descriptor.name
                 base_package = descriptor.identifier
-                # Create the base widget item
                 baseItem = QMethodTreeWidgetItem(None,
                                                  None,
                                                  self,
                                                  (QtCore.QStringList()
                                                   <<  baseName
                                                   << ''))
-                method_specs.extend(registry.method_ports(descriptor))
-                    
-#                 local_reg = module.registry
-#                 key = (descriptor.identifier, descriptor.name, 
-#                        descriptor.namespace)
-#                 if local_reg and local_reg.has_module(*key):
-#                     local_descriptor = local_reg.get_descriptor_by_name(*key)
-#                     method_specs += local_reg.method_ports(local_descriptor)
+                base_items[descriptor] = baseItem
 
-                for method_spec in method_specs:
+            method_specs = {}
+            # do this in reverse to ensure proper overloading
+            # !!! NOTE: we have to use ***all*** input ports !!!
+            # because a subclass can overload a port with a 
+            # type that isn't a method
+            for descriptor in reversed(moduleHierarchy):
+                method_specs.update((name, (descriptor, spec))
+                                    for name, spec in \
+                                        registry.module_ports('input', 
+                                                              descriptor))
+
+            # add local registry last so that it takes precedence
+            method_specs.update((spec.name, (descriptor, spec))
+                                for spec in module.port_spec_list
+                                if spec.type == 'input')
+
+            for _, (desc, method_spec) in sorted(method_specs.iteritems()):
+                if registry.is_method(method_spec):
+                    baseItem = base_items[desc]
                     sig = method_spec.short_sigstring
                     QMethodTreeWidgetItem(module,
                                           method_spec,
@@ -149,8 +154,7 @@ class QMethodTreeWidget(QSearchTreeWidget):
                                           (QtCore.QStringList()
                                            << method_spec.name
                                            << sig))
-                method_specs = []
-            # end for
+
             self.expandAll()
             self.resizeColumnToContents(0)
                                           

@@ -1262,19 +1262,16 @@ class ModuleRegistry(DBRegistry):
 
     def method_ports(self, module_descriptor):
         """method_ports(module_descriptor: ModuleDescriptor) 
-              -> list of PortSpecs
+              -> [PortSpec]}
 
-        Returns the list of ports that can also be interpreted as
-        method calls. These are the ones whose spec contains only
-        subclasses of Constant."""
-        # module_descriptor = self.get_descriptor(module)
-        # FIXME don't hardcode this
+        Returns a list of port specs that are methods 
+        (spec contains only subclasses of Constant).
 
-        # do lookups of methods in the global registry!
-        global_registry = get_module_registry()
-        return [spec for spec in \
-                    self.destination_ports_from_descriptor(module_descriptor)
-                if global_registry.is_method(spec)]
+        """
+        getter = self.module_destination_ports_from_descriptor
+        return [spec for spec in sorted(getter(False, module_descriptor),
+                                        key=lambda x: x.name)
+                if self.is_method(spec)]
 
     def port_and_port_spec_match(self, port, port_spec):
         """port_and_port_spec_match(port: Port, port_spec: PortSpec) -> bool
