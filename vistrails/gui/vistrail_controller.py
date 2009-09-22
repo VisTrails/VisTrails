@@ -1148,8 +1148,11 @@ class VistrailController(QtCore.QObject, BaseController):
                 p_parent = self._current_full_graph.parent(p_id)
                 if not terse_graph.has_edge(p_id, p_parent):
                     terse_graph.add_edge(p_parent, p_id)
-                p_child = [to for (to, _) in self._current_full_graph.adjacency_list[p_id]
-                           if (to in am) and not am[to].prune][0]
+                p_child = p_id
+                while p_child not in self._current_graph_layout.nodes:
+                    # Should always have exactly one child
+                    p_child = [to for (to, _) in self._current_full_graph.adjacency_list[p_child]
+                        if (to in am) and not am[to].prune][0]
                 if not terse_graph.has_edge(p_id, p_child):
                     terse_graph.add_edge(p_id, p_child)
 
