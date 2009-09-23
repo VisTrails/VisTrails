@@ -118,12 +118,10 @@ def create_action(action_list):
      (
       type, 
       object, 
+      new_obj=None,
       parent_type=None,
       parent_id=None,
-      new_obj=None
-     )
-    and the method returns an action that accomplishes all of the operations.
-
+    )
     Example: create_action([('add', module1), ('delete', connection2)]
 
     """

@@ -150,53 +150,60 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
 ###############################################################################
 # File Constant Widgets
 
-class FileChooserToolButton(QtGui.QToolButton):
+class PathChooserToolButton(QtGui.QToolButton):
     """
-    MethodFileChooser is a toolbar button that opens a browser for
-    files.  The lineEdit is updated with the filename that is
-    selected.
+    PathChooserToolButton is a toolbar button that opens a browser for
+    paths.  The lineEdit is updated with the pathname that is selected.
 
     """
-    def __init__(self, parent=None, lineEdit=None):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None):
         """
-        FileChooserButton(parent: QWidget, lineEdit: StandardConstantWidget) ->
-                 FileChooserToolButton
+        PathChooserToolButton(parent: QWidget, 
+                              lineEdit: StandardConstantWidget) ->
+                 PathChooserToolButton
 
         """
         QtGui.QToolButton.__init__(self, parent)
         self.setIcon(QtGui.QIcon(
                 self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
         self.setIconSize(QtCore.QSize(12,12))
-        self.setToolTip('Open a file chooser')
+        if toolTip is None:
+            toolTip = 'Open a file chooser'
+        self.setToolTip(toolTip)
         self.setAutoRaise(True)
         self.lineEdit = lineEdit
         self.connect(self,
                      QtCore.SIGNAL('clicked()'),
-                     self.openChooser)
+                     self.runDialog)
 
-
-    def openChooser(self):
+    def setPath(self, path):
         """
-        openChooser() -> None
+        setPath() -> None
 
         """
-        fileName = QtGui.QFileDialog.getOpenFileName(self,
-                                                     'Use Filename '
-                                                     'as Value...',
-                                                     self.text(),
-                                                     'All files '
-                                                     '(*.*)')
-        if self.lineEdit and not fileName.isEmpty():
-            self.lineEdit.setText(fileName)
+        if self.lineEdit and path and not path.isEmpty():
+            self.lineEdit.setText(path)
             self.lineEdit.update_parent()
+    
+    def openChooser(self):
+        return QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Use Filename '
+                                                 'as Value...',
+                                                 self.lineEdit.text(),
+                                                 'All files '
+                                                 '(*.*)')
 
-class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
+    def runDialog(self):
+        path = self.openChooser()
+        self.setPath(path)
+
+class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
     """
-    FileChooserWidget is a widget containing a line edit and a button that
-    opens a browser for files. The lineEdit is updated with the filename that is
+    PathChooserWidget is a widget containing a line edit and a button that
+    opens a browser for paths. The lineEdit is updated with the pathname that is
     selected.
 
-    """
+    """    
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
         parent: QWidget)
@@ -207,12 +214,15 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         ConstantWidgetMixin.__init__(self, param.strValue)
         layout = QtGui.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
-        self.browse_button = FileChooserToolButton(self, self.line_edit)
+        self.browse_button = self.create_browse_button()
         layout.setMargin(5)
         layout.setSpacing(5)
         layout.addWidget(self.line_edit)
         layout.addWidget(self.browse_button)
         self.setLayout(layout)
+
+    def create_browse_button(self):
+        return PathChooserToolButton(self, self.line_edit)
 
     def updateMethod(self):
         if self.parent():
@@ -245,6 +255,39 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         QtGui.QWidget.focusOutEvent(self, event)
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
+
+class FileChooserToolButton(PathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None):
+        PathChooserToolButton.__init__(self, parent, lineEdit, 
+                                       "Open a file chooser")
+        
+    def openChooser(self):
+        return QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Use Filename '
+                                                 'as Value...',
+                                                 self.lineEdit.text(),
+                                                 'All files '
+                                                 '(*.*)')
+
+class FileChooserWidget(PathChooserWidget):
+    def create_browse_button(self):
+        return FileChooserToolButton(self, self.line_edit)
+
+
+class DirectoryChooserToolButton(PathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None):
+        PathChooserToolButton.__init__(self, parent, lineEdit, 
+                                       "Open a directory chooser")
+        
+    def openChooser(self):
+        return QtGui.QFileDialog.getExistingDirectory(self,
+                                                      'Use Directory '
+                                                      'as Value...',
+                                                      self.lineEdit.text())
+
+class DirectoryChooserWidget(PathChooserWidget):
+    def create_browse_button(self):
+        return DirectoryChooserToolButton(self, self.line_edit)
 
 class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
 

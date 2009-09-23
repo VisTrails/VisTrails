@@ -170,7 +170,7 @@ def create_action(action_list):
 
     Examples: create_action([('add', module1), ('delete', connection2)]
               create_action([('add', param1, 'function', function1),
-                             ('change', func3, 'module', module1, func2)])
+                             ('change', old_func, new_func, 'module', m1)])
     Note that create_action([('add', module)]) adds a module and *all* of its
     children.
     """

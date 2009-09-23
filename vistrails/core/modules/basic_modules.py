@@ -33,7 +33,7 @@ from core.modules.python_source_configure import PythonSourceConfigurationWidget
 from core.modules.tuple_configuration import TupleConfigurationWidget, \
     UntupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
-     FileChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget
+    PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget
 from core.system import vistrails_version
 from core.utils import InstanceObject
 from core.modules.paramexplore import make_interpolator, \
@@ -185,18 +185,15 @@ Integer.parameter_exploration_widgets = [
 
 ##############################################################################
 
-class File(Constant):
-    """File is a VisTrails Module that represents a file stored on a
-    file system local to the machine where VisTrails is running."""
-
+class Path(Constant):
     def __init__(self):
         Constant.__init__(self)
         self.name = ""
-        File.default_value = self
-
+        Path.default_value = self
+    
     @staticmethod
     def translate_to_python(x):
-        result = File()
+        result = Path()
         result.name = x
         result.setResult("value", result)
         return result
@@ -204,29 +201,89 @@ class File(Constant):
     @staticmethod
     def translate_to_string(x):
         return str(x.name)
-    
-    def compute(self):
+
+    def get_name(self):
         n = None
         if self.hasInputFromPort("value"):
             n = self.getInputFromPort("value").name
         if n is None:
             self.checkInputPort("name")
             n = self.getInputFromPort("name")
+        return n
+        
+    def set_results(self, n):
+        self.name = n
+        self.setResult("value", self)
+        self.setResult("value_as_string", self.translate_to_string(self))
 
+    def compute(self):
+        n = self.get_name()
+        self.set_results(n)
+#         self.setResult("exists", os.path.exists(n))
+#         self.setResult("isfile", os.path.isfile(n))
+#         self.setResult("isdir", os.path.isdir(n))
+        
+    @staticmethod
+    def get_widget_class():
+        return PathChooserWidget
+
+class File(Path):
+    """File is a VisTrails Module that represents a file stored on a
+    file system local to the machine where VisTrails is running."""
+    def __init__(self):
+        Path.__init__(self)
+        File.default_value = self
+        
+    @staticmethod
+    def translate_to_python(x):
+        result = File()
+        result.name = x
+        result.setResult("value", result)
+        return result
+
+    def compute(self):
+        n = self.get_name()
         if (self.hasInputFromPort("create_file") and
             self.getInputFromPort("create_file")):
             core.system.touch(n)
-        self.name = n
         if not os.path.isfile(n):
-            raise ModuleError(self, "File '%s' not existent" % n)
-        self.setResult("local_filename", self.name)
+            raise ModuleError(self, 'File "%s" does not exist' % n)
+        self.set_results(n)
+        self.setResult("local_filename", n)
         self.setResult("self", self)
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
 
     @staticmethod
     def get_widget_class():
         return FileChooserWidget
+    
+class Directory(Path):
+    def __init__(self):
+        Path.__init__(self)
+        Directory.default_value = self
+        
+    @staticmethod
+    def translate_to_python(x):
+        result = Directory()
+        result.name = x
+        result.setResult("value", result)
+        return result
+
+    def compute(self):
+        n = self.get_name()
+        if (self.hasInputFromPort("create_directory") and
+            self.getInputFromPort("create_directory")):
+            try:
+                core.system.mkdir(n)
+            except Exception, e:
+                raise ModuleError(self, 'mkdir: ' + str(e))
+        if not os.path.isdir(n):
+            raise ModuleError(self, 'Directory "%s" does not exist' % n)
+        self.set_results(n)
+        # FIXME add "fileList" output port...
+
+    @staticmethod
+    def get_widget_class():
+        return DirectoryChooserWidget
 
 def file_parameter_hasher(p):
     h = core.cache.hasher.Hasher.parameter_signature(p)
@@ -726,13 +783,22 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
 
+    reg.add_module(Path)
+    reg.add_input_port(Path, "value", Path)
+    reg.add_output_port(Path, "value", Path)
+    reg.add_input_port(Path, "name", String, True)
+
     reg.add_module(File, constantSignatureCallable=file_parameter_hasher)
     reg.add_input_port(File, "value", File)
     reg.add_output_port(File, "value", File)
-    reg.add_input_port(File, "name", String, True)
     reg.add_output_port(File, "self", File, True)
     reg.add_input_port(File, "create_file", Boolean, True)
     reg.add_output_port(File, "local_filename", String, True)
+
+    reg.add_module(Directory)
+    reg.add_input_port(Directory, "value", Directory)
+    reg.add_output_port(Directory, "value", Directory)
+    reg.add_input_port(Directory, "create_directory", Boolean, True)
 
     reg.add_module(FileSink)
     reg.add_input_port(FileSink,  "file", File)

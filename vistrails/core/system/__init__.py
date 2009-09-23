@@ -72,6 +72,14 @@ def touch(file_name):
     else:
         file(file_name, 'w')
 
+def mkdir(dir_name):
+    """mkdir(dir_name) -> None Equivalent to 'mkdir' in a shell except
+    that if the directory exists, it will not be overwritten.
+
+    """
+    if not os.path.isdir(dir_name):
+        os.mkdir(dir_name)
+
 ##############################################################################
 
 # Makes sure root directory is sensible.
