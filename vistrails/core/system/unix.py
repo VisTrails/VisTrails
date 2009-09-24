@@ -36,7 +36,7 @@ the filename if true, or an empty string if false."""
     cmdline = ['which','%s' % filename]
     output = []
     result = execute_cmdline(cmdline, output)
-    if result == 256:
+    if result == 1:
         return ""
     if result != 0:
         msg = ("'%s' failed. Return code %s" %
