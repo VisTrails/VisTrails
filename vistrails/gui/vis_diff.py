@@ -559,24 +559,26 @@ class QVisualDiff(QtGui.QMainWindow):
             #input/output ports. We just make sure that the module we add to
             # the canvas has the ports from both modules, so we don't have
             # addconnection errors.
-            ports = {}
-            for p in m1.port_specs.itervalues():
-                ports[p.name] = p
-            for port in m2.port_specs.itervalues():
-                if not ports.has_key(port.name):
-                    m1.add_port_spec(port)
-                else:
-                    if ports[port.name].spec != port.spec:
-                        #if we add this port, we will get port overloading.
-                        #To avoid this, just cast the current port to be of
-                        # Module or Variant type.
-                        new_port = ports[port.name]
-                        m1.delete_port_spec(new_port)
-                        if new_port.type == 'input':
-                            new_port.spec = "(Module)"
-                        else:
-                            new_port.spec = "(Variant)"
-                        m1.add_port_spec(new_port)
+            port_specs = dict(((p.type, p.name), p) for p in m1.port_spec_list)
+            for p in m2.port_spec_list:
+                p_key = (p.type, p.name)
+                if not p_key in port_specs:
+                    m1.add_port_spec(port_spec)
+                elif port_specs[p_key] != p:
+                    #if we add this port, we will get port overloading.
+                    #To avoid this, just cast the current port to be of
+                    # Module or Variant type.
+                    var_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(var_port_spec)
+                    if var_port_spec.type == 'input':
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Module)'
+                    else:
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Variant)'
+                    var_port_spec.create_entries_and_descriptors()
+                    var_port_spec.create_tooltip()
+                    m1.add_port_spec(var_port_spec)
                             
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
