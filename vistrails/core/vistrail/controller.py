@@ -30,6 +30,7 @@ import tempfile
 from core.configuration import get_vistrails_configuration
 import core.db.io
 import core.db.locator
+from core import debug
 from core.interpreter.default import get_default_interpreter
 from core.log.controller import LogControllerFactory, DummyLogController
 from core.log.log import Log
@@ -39,8 +40,10 @@ import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule, MissingPackageVersion
 from core.modules.sub_module import new_abstraction, read_vistrail
+from core.packagemanager import get_package_manager
 from core.thumbnails import ThumbnailCache
-from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView
+from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
+    InvalidPipeline
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.connection import Connection
 from core.vistrail.group import Group
@@ -54,6 +57,7 @@ from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from db.domain import IdScope
 from db.services.io import create_temp_folder, remove_temp_folder
+from db.services.vistrail import getSharedRoot
 
 class VistrailController(object):
     def __init__(self, vistrail=None, id_scope=None):
@@ -70,7 +74,13 @@ class VistrailController(object):
         self.locator = None
         self.current_version = -1
         self.changed = False
-        
+
+        # if _cache_pipelines is True, cache pipelines to speed up
+        # version switching
+        self._cache_pipelines = True
+        self._pipelines = {0: Pipeline()}
+        self._current_full_graph = None
+
     def logging_on(self):
         from core.configuration import get_vistrails_configuration
         return not get_vistrails_configuration().check('nologger')
@@ -100,6 +110,7 @@ class VistrailController(object):
         if self.locator != locator and self.locator is not None:
             self.locator.clean_temporaries()
         self.locator = locator
+        self.recompute_terse_graph()
         
     def close_vistrail(self, locator):
         if locator is not None:
@@ -149,6 +160,7 @@ class VistrailController(object):
                                  self.current_session)
         self.set_changed(True)
         self.current_version = action.db_id
+        self.recompute_terse_graph()
 
     def create_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
                                       internal_version=-1):
@@ -304,37 +316,6 @@ class VistrailController(object):
             new_functions.append(self.create_function(module, *f))
         return new_functions
     
-    def replace_method(self, module, function_pos, param_list):
-        """ replace_method(module: Module, function_pos: int, param_list: list)
-               -> version_id or None, if new parameter was equal to old one.
-        Replaces parameters for a given function
-        """
-        action_list = []
-        must_change = False
-        for i in xrange(len(param_list)):
-            (p_val, p_type, p_namespace, p_identifier, p_alias) = param_list[i]
-            function = module.functions[function_pos]
-            old_param = function.params[i]
-            param_id = self.vistrail.idScope.getNewId(ModuleParam.vtType)
-            new_param = ModuleParam(id=param_id,
-                                    pos=i,
-                                    name='<no description>',
-                                    alias=p_alias,
-                                    val=p_val,
-                                    type=p_type,
-                                    identifier=p_identifier,
-                                    namespace=p_namespace,
-                                    )
-            must_change |= (new_param != old_param)
-            action_list.append(('change', old_param, new_param, 
-                                function.vtType, function.real_id))
-        if must_change:
-            action = core.db.action.create_action(action_list)
-            self.add_new_action(action)
-            return self.perform_action(action)
-        else:
-            return None
-
     def create_port_spec(self, module, port_type, port_name, port_sigstring,
                          port_sort_key=-1):
         p_id = self.id_scope.getNewId(PortSpec.vtType)
@@ -861,8 +842,18 @@ class VistrailController(object):
             module_version = -1L
 
         self.ensure_abstractions_loaded(abs_vistrail, avail_fnames)
-        abstraction = new_abstraction(name, abs_vistrail, abs_fname,
-                                      long(module_version))
+        try:
+            abstraction = new_abstraction(name, abs_vistrail, abs_fname,
+                                          long(module_version))
+        except InvalidPipeline, e:
+            unhandled_exceptions = self.handle_invalid_pipeline(e, False)
+            if len(unhandled_exceptions) == 0:
+                for e in unhandled_exceptions:
+                    print 'Exception:', str(e)
+                abstraction = new_abstraction(name, abs_vistrail, abs_fname,
+                                              long(module_version))
+            else:
+                raise InvalidPipeline(unhandled_exceptions)
 
         old_desc = None
         if is_global:
@@ -1235,45 +1226,46 @@ class VistrailController(object):
         Adds new versions to the current vistrail as a result of an
         execution. Returns the version number of the new version."""
 
-        type_map = {float: 'Float',
-                    int: 'Integer',
-                    str: 'String',
-                    bool: 'Boolean'}
+        current_pipeline = self.current_pipeline
+        current_version = self.current_version
 
-        def convert_function_parameters(params):
-            if (type(function_values) == tuple or
-                type(function_values) == list):
-                result = []
-                for v in params:
-                    result.extend(convert_function_parameters(v))
-                return result
-            else:
-                t = type(function_values)
-                assert t in type_map
-                return [ModuleParam(type=type_map[t],
-                                    val=str(function_values))]
+        self.current_pipeline = pipeline
+        self.current_version = version
 
-        def add_aliases(m_id, f_index, params):
-            function = pipeline.modules[m_id].functions[f_index]
-            result = []
-            for (index, param) in enumerate(params):
-                result.append((param.strValue, param.type,
-                               function.params[index].alias))
-            return result
+        op_list = []
+        for (m_id, function_name, param_values) in parameter_changes:
+            try:
+                param_values_len = len(param_values)
+            except TypeError:
+                param_values = [param_values]
+            module = self.current_pipeline.modules[m_id]
+            # FIXME remove this code when aliases move
+            old_id = -1
+            for old_function in module.functions:
+                if old_function.name == function_name:
+                    old_id = old_function.real_id
 
-        for (m_id, function_name, function_values) in parameter_changes:
-            params = convert_function_parameters(function_values)
+            # ensure that replacements don't happen for functions that
+            # shouldn't be replaced
+            aliases = []
+            if old_id >= 0:
+                function = module.function_idx[old_id]
+                for i in xrange(len(param_values)):
+                    aliases.append(function.params[i].alias)
+                    
+            op_list.extend(self.update_function_ops(module, function_name, 
+                                                    param_values,
+                                                    should_replace=True, 
+                                                    aliases=aliases))
 
-            f_index = pipeline.find_method(m_id, function_name)
-            if f_index == -1:
-                new_method = ModuleFunction(name=function_name,
-                                            parameters=params)
-                self.add_method(m_id, new_method)
-            else:
-                params = add_aliases(m_id, f_index, params)
-                self.replace_method(pipeline.modules[m_id],
-                                    f_index,
-                                    params)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        new_id = self.perform_action(action)
+
+        self.current_pipeline = current_pipeline
+        self.current_version = current_version
+        
+        return new_id
     
     ##########################################################################
     # Workflow Execution
@@ -1342,113 +1334,191 @@ class VistrailController(object):
                 locator.save_temporary(self.vistrail)
             view = DummyView()
             return self.execute_workflow_list([(self.locator,
-                                         self.current_version,
-                                         self.current_pipeline,
-                                         view,
-                                         custom_aliases)])
-            
-    def change_selected_version(self, new_version):
-        """ change_selected_version(new_version: int) -> None        
-        Change the current vistrail version into new_version
+                                                self.current_version,
+                                                self.current_pipeline,
+                                                view,
+                                                custom_aliases)])
+
+    def recompute_terse_graph(self):
+        """recomputes just the full graph, gui.VistrailController
+        does more
+
+        """
+        self._current_full_graph = self.vistrail.tree.getVersionTree()
+
+    def enable_missing_package(self, identifier):
+        """callback for try_to_enable_package"""
+        return True
+
+    def install_missing_package(self, identifier):
+        """callback for try_to_enable_package"""
+        return True
+       
+    def try_to_enable_package(self, identifier, confirmed=False):
+        """try_to_enable_package(identifier: str,
+                                 confirmed: boolean)
+        Returns True if changes have been made to the registry,
+        which means reloading a pipeline that previously failed
+        with missing packages might work now.  Setting confirmed to
+        True will bypass prompts for later enables.
+        """
+
+        pm = get_package_manager()
+        pkg = pm.identifier_is_available(identifier)
+        if pkg:
+            if confirmed or not self.enable_missing_package(identifier):
+                return False
+            # Ok, user wants to late-enable it. Let's give it a shot
+            try:
+                pm.late_enable_package(pkg.codepath)
+            except pkg.MissingDependency, e:
+                for dependency in e.dependencies:
+                    if not self.try_to_enable_package(dependency):
+                        return False
+
+            # there's a new package in the system, so we retry
+            # changing the version by recursing, since other
+            # packages/modules might still be needed.
+            return True
+
+        # Package is not available, let's try to fetch it
+        rep = core.packagerepository.get_repository()
+        if rep:
+            codepath = rep.find_package(identifier)
+            if codepath and self.install_missing_package(identifier):
+                rep.install_package(codepath)
+                return self.try_to_enable_package(identifier, True)
+        return False
+
+    def handle_invalid_pipeline(self, e, report_all_errors=False):
+        unhandled_exceptions = []
+        pm = get_package_manager()
+        for err in e._exception_set:
+            if isinstance(err, ModuleRegistryException):
+                try:
+                    # if package is present, then we first let the
+                    # package know that the module is missing - this
+                    # might trigger some new modules.
+                    pkg = pm.get_package_by_identifier(err._identifier)
+                    res = pkg.report_missing_module(err._name,
+                                                    err._namespace)
+                    if not res:
+                        # print 'report missing module failed'
+                        unhandled_exceptions.append(err)
+                        if not report_all_errors:
+                            break
+                except pm.MissingPackage:
+                    pass
+                try:
+                    # print 'trying to enable package'
+                    if not self.try_to_enable_package(err._identifier):
+                        # print 'failed to enable package'
+                        unhandled_exceptions.append(err)
+                except Exception, enable_exception:
+                    # print 'hit other exception'
+                    unhandled_exceptions.append(enable_exception)
+                    if not report_all_errors:
+                        break
+            else:
+                unhandled_exceptions.append(err)
+                if not report_all_errors:
+                    break
+        return unhandled_exceptions
+
+    def do_version_switch(self, new_version, report_all_errors=False):
+        """ do_version_switch(new_version: int,
+                              resolve_all_errors: boolean) -> None        
+        Change the current vistrail version into new_version, reporting
+        either the first error or all errors.
         
         """
+
+        # This is tricky code, so watch carefully before you change
+        # it.  The biggest problem is that we want to perform state
+        # changes only after all exceptions have been handled, but
+        # creating a pipeline every time is too slow. The solution
+        # then is to mutate currentPipeline, and in case exceptions
+        # are thrown, we roll back by rebuilding the pipeline from
+        # scratch as the first thing on the exception handler, so to
+        # the rest of the exception handling code, things look
+        # stateless.
+
+        def get_cost(descendant, ancestor):
+            cost = 0
+            am = self.vistrail.actionMap
+            while descendant <> ancestor:
+                descendant = am[descendant].parent
+                cost += 1
+            return cost
+        
         def switch_version():
-            #TODO: This is the simplest thing to do. Maybe we should do the
-            #      same optimizations in gui.vistrail_controller
-            
-            if new_version == self.current_version:
+            if not self.current_pipeline:
+                result = self.vistrail.getPipeline(new_version)
+            # now we reuse some existing pipeline, even if it's the
+            # empty one for version zero
+            #
+            # The available pipelines are in self._pipelines, plus
+            # the current pipeline.
+            # Fast check: do we have to change anything?
+            elif new_version == self.current_version:
                 # we don't even need to check connection specs or
                 # registry
                 return self.current_pipeline
+            # Fast check: if target is cached, copy it and we're done.
+            elif new_version in self._pipelines:
+                result = copy.copy(self._pipelines[new_version])
             else:
-                return self.vistrail.getPipeline(new_version)
-            
-        def handle_missing_packages(e):
-            """ handle_missing_packages(exception) -> Boolean
+                # Find the closest upstream pipeline to the current one
+                cv = self._current_full_graph.inverse_immutable().closest_vertex
+                closest = cv(new_version, self._pipelines)
+                cost_closest_to_new_version = get_cost(new_version, closest)
+                # Now we have to decide between the closest pipeline
+                # to new_version and the current pipeline
+                shared_parent = getSharedRoot(self.vistrail, 
+                                              [self.current_version, 
+                                               new_version])
+                cost_common_to_old = get_cost(self.current_version, 
+                                              shared_parent)
+                cost_common_to_new_version = get_cost(new_version, 
+                                                      shared_parent)
+                # FIXME I'm assuming copying the pipeline has zero cost.
+                # Formulate a better cost model
+                if (cost_common_to_old + cost_common_to_new_version >
+                    cost_closest_to_new_version):
+                    if new_version == 0:
+                        result = self.vistrail.getPipeline(new_version)
+                    else:
+                        result = copy.copy(self._pipelines[closest])
+                        action = self.vistrail.general_action_chain(closest, 
+                                                                    new_version)
+                        result.perform_action(action)
+                else:
+                    action = \
+                        self.vistrail.general_action_chain(self.current_version,
+                                                           new_version)
+                    self.current_pipeline.perform_action(action)
+                    result = self.current_pipeline
+                if self._cache_pipelines and \
+                        long(new_version) in self.vistrail.tagMap:
+                    # stash a copy for future use
+                    result.ensure_modules_are_on_registry()
+                    result.ensure_connection_specs()
+                    result.ensure_parameter_positions()
+                    self._pipelines[new_version] = copy.copy(result)
+            result.ensure_modules_are_on_registry()
+            result.ensure_connection_specs()
+            result.ensure_parameter_positions()
+            return result
+        # end switch_version
 
-            handle_missing_package tries to fill in missing modules or
-            packages in the registry. The 'exception' parameter should
-            be the exception raised by the package manager.
-
-            Returns True if changes have been made to the registry,
-            which means reloading a pipeline that previously failed
-            with missing packages might work now.
-            """
-
-            # if package is present, then we first let the package know
-            # that the module is missing - this might trigger
-            # some new modules.
-
-            def try_to_enable_package(identifier):
-                pkg = pm.identifier_is_available(identifier)
-                if pkg:
-                    # Ok, user wants to late-enable it. Let's give it a shot
-                    try:
-                        pm.late_enable_package(pkg.codepath)
-                    except pkg.InitializationFailed:
-                        message = """Package '%s' failed during initialization.
-Please contact the developer of that package and report a bug""" % pkg.name
-                        debug.critical(message)
-                        return False
-                    except pkg.MissingDependency, e:
-                        for dependency in e.dependencies:
-                            if not try_to_enable_package(dependency):
-                                return False
-                    except Exception, e:
-                        msg = "Weird - this exception '%s' shouldn't have happened" % str(e)
-                        raise VistrailsInternalError(msg)
-
-                    # there's a new package in the system, so we retry
-                    # changing the version by recursing, since other
-                    # packages/modules might still be needed.
-                    return True
-
-                # Package is not available, let's try to fetch it
-                rep = core.packagerepository.get_repository()
-                if rep:
-                    codepath = rep.find_package(identifier)
-                    if codepath:
-                        rep.install_package(codepath)
-                        return True
-                msg = "Cannot find package '%s' in\n \
-list of available packages. \n \
-Please install it first." % identifier
-                debug.critical(msg)
-                return False
-
-            pm = get_package_manager()
-            for err in e._exception_set:
-                if issubclass(err.__class__, ModuleRegistryException):
-                    try:
-                        pkg = pm.get_package_by_identifier(err._identifier)
-                        res = pkg.report_missing_module(err._name, 
-                                                        err._namespace)
-                        if not res:
-                            msg = "Cannot find module '%s' in\n \
-loaded package '%s'. A different package \
-version\n might be necessary." % (err._name, pkg.name)
-                            debug.critical(msg)
-                            return False
-#                         else:
-#                             # package reported success in handling missing
-#                             # module, so we retry changing the version by
-#                             # recursing, since other packages/modules
-#                             # might still be needed.
-#                             return True
-                    except pm.MissingPackage:
-                        pass
-                    # Ok, package is missing - let's see if user wants to
-                    # late-enable it.
-                    if not try_to_enable_package(err._identifier):
-                        return False
-                    # return try_to_enable_package(e._identifier)
-                        
         if new_version == -1:
-            new_pipeline = None
+            self.current_pipeline = None
+            self.current_version = new_version
         else:
             try:
                 new_pipeline = switch_version()
-            # except ModuleRegistryException, e:
+                self.current_pipeline = new_pipeline
+                self.current_version = new_version
             except InvalidPipeline, e:
                 # we need to rollback the current pipeline. This is
                 # sort of slow, but we're going to present a dialog to
@@ -1457,21 +1527,57 @@ version\n might be necessary." % (err._name, pkg.name)
                 # currentVersion might be -1 and so currentPipeline
                 # will be None. We can't call getPipeline with -1
                 if self.current_version != -1:
-                    self.current_pipeline = self.vistrail.getPipeline(self.current_version)
+                    self.current_pipeline = \
+                        self.vistrail.getPipeline(self.current_version)
                 else:
                     assert self.current_pipeline is None
-                retry = handle_missing_packages(e)
-                if retry:
+                unhandled_exceptions = \
+                    self.handle_invalid_pipeline(e, report_all_errors)
+                if len(unhandled_exceptions) == 0:
                     # Things changed, try again recursively.
-                    return self.change_selected_version(new_version)
+                    self.do_version_switch(new_version)
                 else:
-                    new_version = 0
-                    new_pipeline = self.vistrail.getPipeline(0)
-        # If execution arrives here, we handled all exceptions, so
-        # assign values
-        self.current_pipeline = new_pipeline
-        self.current_version = new_version
-        
+                    self.current_pipeline = self.vistrail.getPipeline(0)
+                    self.current_version = 0
+                    raise InvalidPipeline(unhandled_exceptions)
+
+    def change_selected_version(self, new_version, report_all_errors=False):
+        try:
+            self.do_version_switch(new_version, report_all_errors)
+
+        except InvalidPipeline, e:
+            # FIXME: do error handling through central switch that produces gui
+            # or core.debug messages as specified
+            def process_err(err):
+                if isinstance(err, Package.InitializationFailed):
+                    msg = ('Package "%s" failed during initialization. '
+                           'Please contact the developer of that package '
+                           'and report a bug.' % err.package.name)
+                    debug.critical(msg)
+                elif isinstance(err, PackageManager.MissingPackage):
+                    msg = ('Cannot find package "%s" in '
+                           'list of available packages. '
+                           'Please install it first.' % err._identifier)
+                    debug.critical(msg)
+                elif issubclass(err.__class__, MissingPort):
+                    msg = ('Cannot find %s port "%s" for module "%s" '
+                           'in loaded package "%s". A different package '
+                           'version might be necessary.') % \
+                           (err._port_type, err._port_name, 
+                            err._module_name, err._package_name)
+                    debug.critical(msg)
+                else:
+                    debug.critical(str(err))                
+
+            if report_all_errors:
+                for err in e._exception_set:
+                    process_err(err)
+            elif len(e._exception_set) > 0:
+                process_err(e._exception_set.__iter__().next())
+
+        except Exception, e:
+            debug.critical(str(e))
+
     def write_temporary(self):
         if self.vistrail and self.changed:
             locator = self.get_locator()

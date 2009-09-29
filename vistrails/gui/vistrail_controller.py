@@ -33,11 +33,12 @@ from core.utils import VistrailsInternalError, ModuleAlreadyExists, \
     InvalidPipeline
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
-from core.modules.module_registry import ModuleRegistryException, MissingPort
 from core.modules.basic_modules import Variant
+from core.modules.module_registry import ModuleRegistryException, MissingPort
+from core.modules.package import Package
 from core.modules.sub_module import InputPort, OutputPort, new_abstraction, \
     read_vistrail
-from core.packagemanager import get_package_manager
+from core.packagemanager import PackageManager, get_package_manager
 from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
@@ -134,13 +135,8 @@ class VistrailController(QtCore.QObject, BaseController):
         self.timer = QtCore.QTimer(self)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
-        # if _cache_pipelines is True, cache pipelines to speed up
-        # version switching
-        self._cache_pipelines = True
-        self._pipelines = {0: Pipeline()}
 
         self._current_terse_graph = None
-        self._current_full_graph = None
         self._previous_graph_layout = None
         self._current_graph_layout = VistrailsTreeLayoutLW()
         self.animate_layout = False
@@ -212,7 +208,6 @@ class VistrailController(QtCore.QObject, BaseController):
             self.set_file_name('')
         if locator and locator.has_temporaries():
             self.set_changed(True)
-        self.recompute_terse_graph()
 
     ##########################################################################
     # Actions, etc
@@ -469,16 +464,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.add_new_action(action)
         return self.perform_action(action)
         
-    def replace_method(self, module, function_pos, param_list):
-        """ replace_method(module: Module, function_pos: int, param_list: list)
-               -> version_id or None, if new parameter was equal to old one.
-        Replaces parameters for a given function
-        """
-        self.flush_move_actions()
-
-        return BaseController.replace_method(self, module, function_pos,
-                                             param_list)
-
     def delete_annotation(self, key, module_id):
         """ delete_annotation(key: str, module_id: long) -> version_id
         Deletes an annotation from a module
@@ -753,230 +738,82 @@ class VistrailController(QtCore.QObject, BaseController):
                                          self.current_pipeline_view,
                                          None)])
 
-    def change_selected_version(self, new_version):
-        """ change_selected_version(new_version: int) -> None        
+    def enable_missing_package(self, identifier):
+        from gui.application import VistrailsApplication
+        res = show_question('Enable package?',
+                            "VisTrails need to enable package '%s'."
+                            " Do you want to enable that package?"  % \
+                                identifier, [YES_BUTTON, NO_BUTTON], 
+                            YES_BUTTON)
+        if res == NO_BUTTON:
+            QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
+                                      'Missing modules',
+                                      'Some necessary modules will be missing.')
+            return False
+        return True
+
+    def install_missing_package(self, identifier):
+        res = show_question('Install package?',
+                            "This pipeline contains a module"
+                            " in package '%s', which"
+                            " is not installed. Do you want to"
+                            " install and enable that package?" % \
+                                identifier, [YES_BUTTON, NO_BUTTON],
+                            YES_BUTTON)
+        return res == YES_BUTTON
+
+    def change_selected_version(self, new_version, report_all_errors=False):
+        """change_selected_version(new_version: int,
+                                   report_all_errors: boolean) -> None
         Change the current vistrail version into new_version and emit a
         notification signal
         
         """
-
-        # This is tricky code, so watch carefully before you change
-        # it.  The biggest problem is that we want to perform state
-        # changes only after all exceptions have been handled, but
-        # creating a pipeline every time is too slow. The solution
-        # then is to mutate currentPipeline, and in case exceptions
-        # are thrown, we roll back by rebuilding the pipeline from
-        # scratch as the first thing on the exception handler, so to
-        # the rest of the exception handling code, things look
-        # stateless.
-
-        def get_cost(descendant, ancestor):
-            cost = 0
-            am = self.vistrail.actionMap
-            while descendant <> ancestor:
-                descendant = am[descendant].parent
-                cost += 1
-            return cost
-        
-        def switch_version():
-            if not self.current_pipeline:
-                result = self.vistrail.getPipeline(new_version)
-            # now we reuse some existing pipeline, even if it's the
-            # empty one for version zero
-            #
-            # The available pipelines are in self._pipelines, plus
-            # the current pipeline.
-            # Fast check: do we have to change anything?
-            elif new_version == self.current_version:
-                # we don't even need to check connection specs or
-                # registry
-                return self.current_pipeline
-            # Fast check: if target is cached, copy it and we're done.
-            elif new_version in self._pipelines:
-                result = copy.copy(self._pipelines[new_version])
-            else:
-                # Find the closest upstream pipeline to the current one
-                cv = self._current_full_graph.inverse_immutable().closest_vertex
-                closest = cv(new_version,
-                             self._pipelines)
-                cost_closest_to_new_version = get_cost(new_version, closest)
-                # Now we have to decide between the closest pipeline
-                # to new_version and the current pipeline
-                shared_parent = getSharedRoot(self.vistrail, [self.current_version,
-                                                              new_version])
-                cost_common_to_old = get_cost(self.current_version, shared_parent)
-                cost_common_to_new_version = get_cost(new_version, shared_parent)
-                # FIXME I'm assuming copying the pipeline has zero cost.
-                # Formulate a better cost model
-                if (cost_common_to_old + cost_common_to_new_version >
-                    cost_closest_to_new_version):
-                    if new_version == 0:
-                        result = self.vistrail.getPipeline(new_version)
-                    else:
-                        result = copy.copy(self._pipelines[closest])
-                        action = self.vistrail.general_action_chain(closest, new_version)
-                        result.perform_action(action)
-                else:
-                    action = self.vistrail.general_action_chain(self.current_version,
-                                                                new_version)
-                    self.current_pipeline.perform_action(action)
-                    result = self.current_pipeline
-                if self._cache_pipelines and long(new_version) in self.vistrail.tagMap:
-                    # stash a copy for future use
-                    result.ensure_modules_are_on_registry()
-                    result.ensure_connection_specs()
-                    self._pipelines[new_version] = copy.copy(result)
-            result.ensure_modules_are_on_registry()
-            result.ensure_connection_specs()
-            return result
-
-        def handle_missing_packages(e):
-            """ handle_missing_packages(exception) -> Boolean
-
-            handle_missing_package tries to fill in missing modules or
-            packages in the registry. The 'exception' parameter should
-            be the exception raised by the package manager.
-
-            Returns True if changes have been made to the registry,
-            which means reloading a pipeline that previously failed
-            with missing packages might work now.
-            """
-
+        try:
+            self.do_version_switch(new_version, report_all_errors)
+        except InvalidPipeline, e:
             from gui.application import VistrailsApplication
-            # if package is present, then we first let the package know
-            # that the module is missing - this might trigger
-            # some new modules.
 
-            def try_to_enable_package(identifier, confirmed=False):
-                pkg = pm.identifier_is_available(identifier)
-                if pkg:
-                    if not confirmed:
-                        res = show_question('Enable package?',
-                                            "VisTrails need to enable package '%s'."
-                                            " Do you want to enable that package?"  % identifier,
-                                            [YES_BUTTON, NO_BUTTON], YES_BUTTON)
-                        if res == NO_BUTTON:
-                            QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
-                                                      'Missing modules',
-                                                      'Some necessary modules will be missing.')
-                            return False
-                    # Ok, user wants to late-enable it. Let's give it a shot
-                    try:
-                        pm.late_enable_package(pkg.codepath)
-                    except pkg.InitializationFailed:
-                        QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
-                                                   'Package load failed',
-                                                   'Package "%s" failed during initialization.'
-                                                   ' Please contact the developer of that package'
-                                                   ' and report a bug' % pkg.name)
-                        return False
-                    except pkg.MissingDependency, e:
-                        for dependency in e.dependencies:
-                            if not try_to_enable_package(dependency):
-                                return False
-                    except Exception, e:
-                        msg = "Weird - this exception '%s' shouldn't have happened" % str(e)
-                        raise VistrailsInternalError(msg)
-
-                    # there's a new package in the system, so we retry
-                    # changing the version by recursing, since other
-                    # packages/modules might still be needed.
-                    return True
-
-                # Package is not available, let's try to fetch it
-                rep = core.packagerepository.get_repository()
-                if rep:
-                    codepath = rep.find_package(identifier)
-                    if codepath:
-                        res = show_question('Install package?',
-                                            "This pipeline contains a module in package '%s', which"
-                                            " is not installed. Do you want to"
-                                            " install and enable that package?"  % identifier,
-                                            [YES_BUTTON, NO_BUTTON], YES_BUTTON)
-                        if res == YES_BUTTON:
-                            rep.install_package(codepath)
-                            return try_to_enable_package(identifier, True)
-
-                QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
-                                           'Unavailable package',
-                                           'Cannot find package "%s" in\n'
-                                           'list of available packages. \n'
-                                           'Please install it first.' % identifier)
-                return False
-
-            pm = get_package_manager()
-            for err in e._exception_set:
-                if issubclass(err.__class__, ModuleRegistryException):
-                    if issubclass(err.__class__, MissingPort):
-                        msg = ('Cannot find %s port "%s" for module "%s" '
-                               'in loaded package "%s". A different package '
-                               'version might be necessary.') % \
-                               (err._port_type, err._port_name, 
-                                err._module_name, err._package_name)
-                        QtGui.QMessageBox.critical(\
-                            VistrailsApplication.builderWindow, 'Missing port',
-                            msg)
-                        return False
-                    try:
-                        pkg = pm.get_package_by_identifier(err._identifier)
-                        res = pkg.report_missing_module(err._name, 
-                                                        err._namespace)
-                        if not res:
-                            msg = ('Cannot find module "%s" in\n'
-                                   'loaded package "%s". A different package '
-                                   'version\n might be necessary.') % \
-                                   (err._name, pkg.name)
-                            QtGui.QMessageBox.critical( \
-                                VistrailsApplication.builderWindow,
-                                'Missing module in package',
-                                msg)
-                            return False
-#                         else:
-#                             # package reported success in handling missing
-#                             # module, so we retry changing the version by
-#                             # recursing, since other packages/modules
-#                             # might still be needed.
-#                             return True
-                    except pm.MissingPackage:
-                        pass
-                    # Ok, package is missing - let's see if user wants to
-                    # late-enable it.
-                    if not try_to_enable_package(err._identifier):
-                        return False
-                    # return try_to_enable_package(e._identifier)
+            def process_err(err):
+                if isinstance(err, Package.InitializationFailed):
+                    QtGui.QMessageBox.critical(
+                        VistrailsApplication.builderWindow,
+                        'Package load failed',
+                        'Package "%s" failed during initialization. '
+                        'Please contact the developer of that package '
+                        'and report a bug.' % err.package.name)
+                elif isinstance(err, PackageManager.MissingPackage):
+                    QtGui.QMessageBox.critical(
+                        VistrailsApplication.builderWindow,
+                        'Unavailable package',
+                        'Cannot find package "%s" in\n'
+                        'list of available packages. \n'
+                        'Please install it first.' % err._identifier)
+                elif issubclass(err.__class__, MissingPort):
+                    msg = ('Cannot find %s port "%s" for module "%s" '
+                           'in loaded package "%s". A different package '
+                           'version might be necessary.') % \
+                           (err._port_type, err._port_name, 
+                            err._module_name, err._package_name)
+                    QtGui.QMessageBox.critical(
+                        VistrailsApplication.builderWindow, 'Missing port',
+                        msg)
+                else:
+                    QtGui.QMessageBox.critical(
+                        VistrailsApplication.builderWindow,
+                        'Invalid Pipeline', str(e))
+            if report_all_errors:
+                for err in e._exception_set:
+                    process_err(err)
+            elif len(e._exception_set) > 0:
+                process_err(e._exception_set.__iter__().next())
+        except Exception, e:
+            from gui.application import VistrailsApplication
+            QtGui.QMessageBox.critical(
+                VistrailsApplication.builderWindow,
+                'Unexpected Exception', str(e))
         
-        # We assign to temporaries to avoid partial state changes
-        # being hosed by an exception
-       
-        if new_version == -1:
-            new_pipeline = None
-        else:
-            try:
-                new_pipeline = switch_version()
-            # except ModuleRegistryException, e:
-            except InvalidPipeline, e:
-                # we need to rollback the current pipeline. This is
-                # sort of slow, but we're going to present a dialog to
-                # the user anyway, so we can get away with this
-                
-                # currentVersion might be -1 and so currentPipeline
-                # will be None. We can't call getPipeline with -1
-                if self.current_version != -1:
-                    self.current_pipeline = self.vistrail.getPipeline(self.current_version)
-                else:
-                    assert self.current_pipeline is None
-                retry = handle_missing_packages(e)
-                if retry:
-                    # Things changed, try again recursively.
-                    return self.change_selected_version(new_version)
-                else:
-                    new_version = 0
-                    new_pipeline = self.vistrail.getPipeline(0)
-        # If execution arrives here, we handled all exceptions, so
-        # assign values
-        self.current_pipeline = new_pipeline
-        self.current_version = new_version
-        self.emit(QtCore.SIGNAL('versionWasChanged'), new_version)
+        self.emit(QtCore.SIGNAL('versionWasChanged'), self.current_version)
 
     def set_search(self, search, text=''):
         """ set_search(search: SearchStmt, text: str) -> None

@@ -26,6 +26,7 @@ from core.modules.module_registry import get_module_registry
 import core.db.io
 from core.requirements import MissingRequirement
 from core.vistrail.module import Module
+from core.vistrail.module_function import ModuleFunction
 from core.vistrail.port_spec import PortSpec, PortEndPoint
 import copy
 from core.vistrail.pipeline import Pipeline
@@ -160,6 +161,13 @@ def perform_analogy_on_vistrail(vistrail,
     c_connections = set(pipeline_c.connections)
     c_locations = dict((m_id, m.location) 
                        for (m_id, m) in pipeline_c.modules.iteritems())
+    c_annotations = dict(((m_id, a.key), a) for m_id, m in \
+                             pipeline_c.modules.iteritems()
+                         for a in m.annotations)
+    c_parameters = dict(((f.real_id, p.pos), p) 
+                        for m in pipeline_c.modules.itervalues() 
+                        for f in m.functions 
+                        for p in f.parameters)
     conns_to_delete = set()
 
     for op in baAction.operations:
@@ -192,6 +200,17 @@ def perform_analogy_on_vistrail(vistrail,
             elif (op.parentObjType, op.parentObjId) not in id_remap:
                 if op.what == 'location':
                     c_locations.pop(op.parentObjId, None)
+                if op.what == 'annotation':
+                    for (m_id, key), a in c_annotations.iteritems():
+                        if a.id == op.old_obj_id:
+                            c_annotations.pop((m_id, key), None)
+                            break
+                if op.what == 'parameter':
+                    for (f_id, pos), p in c_parameters.iteritems():
+                        if p.real_id == op.old_obj_id:
+                            c_parameters.pop((f_id, pos), None)
+                            break
+                    
                 ops.append(op)
         elif op.vtType == 'add' or op.vtType == 'change':
             old_id = op.new_obj_id
@@ -222,8 +241,29 @@ def perform_analogy_on_vistrail(vistrail,
                     c_locations[op.parentObjId] = op.data
                 elif op.vtType == 'change':
                     c_locations[op.parentObjId] = op.data
-                        
-            if op.what == 'port':
+            elif op.what == 'annotation':
+                if op.vtType == 'add':
+                    if (op.parentObjId, op.data.key) in c_annotations:
+                        new_op_list = core.db.io.create_change_op_chain(
+                            c_annotations[(op.parentObjId, op.data.key)],
+                            op.data,
+                            (Module.vtType, op.parentObjId))
+                        op = new_op_list[0]
+                    c_annotations[(op.parentObjId, op.data.key)] = op.data
+                elif op.vtType == 'change':
+                    c_annotations[(op.parentObjId, op.data.key)] = op.data
+            elif op.what == 'parameter':
+                if op.vtType == 'add':
+                    if (op.parentObjId, op.data.pos) in c_parameters:
+                        new_op_list = core.db.io.create_change_op_chain(
+                            c_parameters[(op.parentObjId, op.data.pos)],
+                            op.data,
+                            (ModuleFunction.vtType, op.parentObjId))
+                        op = new_op_list[0]
+                    c_parameters[(op.parentObjId, op.data.pos)] = op.data
+                elif op.vtType == 'change':
+                    c_parameters[(op.parentObjId, op.data.pos)] = op.data
+            elif op.what == 'port':
                 port = op.data
                 if ('module', port.moduleId) in id_remap:
                     temp_id = id_remap[('module', port.moduleId)]

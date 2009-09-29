@@ -148,6 +148,7 @@ class TestConsoleMode(unittest.TestCase):
         from core.vistrail.module_param import ModuleParam
         from core.vistrail.module_function import ModuleFunction
         from core.vistrail.module import Module
+        from core.utils import DummyView
         interpreter = core.interpreter.default.get_default_interpreter()
         v = DummyView()
         p = core.vistrail.pipeline.Pipeline()

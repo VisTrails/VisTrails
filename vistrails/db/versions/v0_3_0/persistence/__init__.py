@@ -27,7 +27,7 @@ class DAOList(dict):
     def __init__(self):
         self['xml'] = XMLDAOListBase()
 
-    def open_from_xml(self, filename, vtType):
+    def open_from_xml(self, filename, vtType, tree=None):
         return xml.io.open_from_xml(filename, vtType, self['xml'])
 
     def save_to_xml(self, obj, filename):

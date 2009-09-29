@@ -802,6 +802,7 @@ class Pipeline(DBWorkflow):
         if connection_ids is None:
             connection_ids = self.connections.iterkeys()
         for conn_id in connection_ids:
+            # print 'checking connection', conn_id
             conn = self.connections[conn_id]
             if not conn.source.spec:
                 conn.source.spec = find_spec(conn.source)
@@ -850,6 +851,25 @@ class Pipeline(DBWorkflow):
         # end find_descriptors
 
         exceptions = find_descriptors(self, module_ids)
+        if len(exceptions) > 0:
+            raise InvalidPipeline(exceptions)
+
+    def ensure_parameter_positions(self):
+        exceptions = []
+        for module in self.modules.itervalues():
+            for function in module.functions:
+                pos_map = {}
+                for parameter in function.parameters:
+                    if parameter.pos in pos_map:
+                        e = VistrailsInternalError("Module %d has multiple "
+                                                   "values for parameter %d "
+                                                   "of function %s (%d)" % \
+                                                       (module.id,
+                                                        parameter.pos,
+                                                        function.name,
+                                                        function.real_id))
+                        exceptions.append(e)
+                    pos_map[parameter.pos] = parameter
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions)
                 
