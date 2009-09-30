@@ -20,4 +20,8 @@
 ##
 ############################################################################
 
-from db.versions.v1_0_1.persistence import *
+DROP TABLE IF EXISTS `vistrails_version`;
+
+-- genereated automatically by generate.py
+
+DROP TABLE IF EXISTS port_spec, module, module_descriptor, tag, port, group_tbl, log_tbl, machine, add_tbl, other, location, parameter, plugin_data, function, abstraction, workflow, registry, annotation, change_tbl, group_exec, package, workflow_exec, loop_exec, connection_tbl, action, delete_tbl, vistrail, module_exec

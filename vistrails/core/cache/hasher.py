@@ -85,9 +85,11 @@ and dest subpipelines"""
     def module_signature(obj, constant_hasher_map={}):
         hasher = sha_hash()
         u = hasher.update
-        u(obj.name)
-        u(obj.package)
-        u(obj.namespace or '')
+        u(obj.module_descriptor.name)
+        u(obj.module_descriptor.package)
+        u(obj.module_descriptor.namespace or '')
+        u(obj.module_descriptor.package_version or '')
+        u(obj.module_descriptor.version or '')
         u(hash_list(obj.functions, Hasher.function_signature, constant_hasher_map))
         return hasher.digest()
 

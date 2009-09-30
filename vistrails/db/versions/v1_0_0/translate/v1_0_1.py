@@ -20,4 +20,33 @@
 ##
 ############################################################################
 
-from db.versions.v1_0_1.persistence import *
+import copy
+from db.versions.v1_0_0.domain import DBVistrail, DBWorkflow, DBLog, \
+    DBRegistry
+
+def translateVistrail(_vistrail):
+    translate_dict = {}
+    vistrail = DBVistrail.update_version(_vistrail, translate_dict,
+                                         DBVistrail())
+    vistrail.db_version = '1.0.0'
+    return vistrail
+
+def translateWorkflow(_workflow):
+    translate_dict = {}
+    workflow = DBWorkflow.update_version(_workflow, translate_dict,
+                                         DBWorkflow())
+    workflow.db_version = '1.0.0'
+    return workflow
+
+def translateLog(_log):
+    translate_dict = {}
+    log = DBLog.update_version(_log, translate_dict, DBLog())
+    log.db_version = '1.0.0'
+    return log
+
+def translateRegistry(_registry):
+    translate_dict = {}
+    registry = DBRegistry.update_version(_registry, translate_dict,
+                                         DBRegistry())
+    registry.db_version = '1.0.0'
+    return registry

@@ -755,6 +755,7 @@ class ModuleRegistry(DBRegistry):
                                       base_descriptor=base_descriptor,
                                       name=name,
                                       namespace=namespace,
+                                      package_version=package_version,
                                       version=version
                                       )
         self.add_descriptor(descriptor, package)

@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2009 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -20,4 +20,10 @@
 ##
 ############################################################################
 
-from db.versions.v1_0_1.persistence import *
+from auto_gen import DBRegistry as _DBRegistry
+from id_scope import IdScope
+
+class DBRegistry(_DBRegistry):
+    def __init__(self, *args, **kwargs):
+	_DBRegistry.__init__(self, *args, **kwargs)
+        self.idScope = IdScope()
