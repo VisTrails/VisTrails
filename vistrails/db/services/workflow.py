@@ -21,5 +21,9 @@
 ############################################################################
 
 def update_id_scope(workflow):
-    pass
+    if hasattr(workflow, 'update_id_scope'):
+        workflow.update_id_scope()
+    else:
+        pass
+
 

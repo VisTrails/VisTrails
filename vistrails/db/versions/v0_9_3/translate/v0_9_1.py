@@ -50,28 +50,25 @@ def translateVistrail(_vistrail):
         return session
 
     def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, 
-                                         translate_dict, DBWorkflow())
+        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
 
     translate_dict = {'DBAction': {'annotations': update_annotation,
                                    'session': update_session},
                       'DBGroup': {'workflow': update_workflow}}
     # pass DBVistrail because domain contains enriched version of the auto_gen
-    vistrail = DBVistrail.update_version(_vistrail, translate_dict, 
-                                         DBVistrail())
+    vistrail = DBVistrail.update_version(_vistrail, translate_dict)
     vistrail.db_version = '0.9.3'
     return vistrail
 
 def translateWorkflow(_workflow):
     def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow,
-                                         translate_dict, DBWorkflow())
+        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
     translate_dict = {'DBGroup': {'workflow': update_workflow}}
     workflow = update_workflow(_workflow, translate_dict)
     workflow.db_version = '0.9.3'
     return workflow
 
 def translateLog(_log):
-    log = DBLog.update_version(_log, translate_dict, DBLog())
+    log = DBLog.update_version(_log, translate_dict)
     log.db_version = '0.9.3'
     return log

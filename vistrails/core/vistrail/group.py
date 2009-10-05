@@ -143,6 +143,7 @@ class Group(DBGroup, Module):
         self.db_workflow = pipeline
         self.setup_indices()
     pipeline = property(_get_pipeline, _set_pipeline)
+    workflow = pipeline
     
     # override these from the Module class with defaults
     # these are "local" port_specs, but Group's are "registry"

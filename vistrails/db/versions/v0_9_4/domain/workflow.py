@@ -46,6 +46,18 @@ class DBWorkflow(_DBWorkflow):
         cp.tmp_id = copy.copy(self.tmp_id)
         return cp        
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBWorkflow()
+        new_obj = _DBWorkflow.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        new_obj.build_index()
+        return new_obj
+    
+    def update_id_scope(self):
+        pass
+
     _vtTypeMap = {DBAbstraction.vtType: DBModule.vtType, 
                   DBGroup.vtType: DBModule.vtType}
 

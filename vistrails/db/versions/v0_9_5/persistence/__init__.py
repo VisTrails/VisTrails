@@ -181,7 +181,9 @@ class DAOList(dict):
                     # print '*** entity_type:', global_props['entity_type']
                     new_props = {'entity_id': global_props['entity_id'],
                                  'entity_type': global_props['entity_type']}
+                    is_dirty = child.db_workflow.is_dirty
                     child.db_workflow.db_entity_type = DBWorkflow.vtType
+                    child.db_workflow.is_dirty = is_dirty
                     self.save_to_db(db_connection, child.db_workflow, do_copy,
                                     new_props)
                                             
@@ -193,9 +195,18 @@ class DAOList(dict):
         return ElementTree.tostring(root)
 
     def unserialize(self, str, obj_type):
+        def set_dirty(obj):
+            for child, _, _ in obj.db_children():
+                if child.vtType == DBGroup.vtType:
+                    if child.db_workflow:
+                        set_dirty(child.db_workflow)
+                child.is_dirty = True
+                child.is_new = True
         try:
             root = ElementTree.fromstring(str)
-            return self.read_xml_object(obj_type, root)
+            obj = self.read_xml_object(obj_type, root)
+            set_dirty(obj)
+            return obj
         except SyntaxError, e:
             msg = "Invalid VisTrails serialized object %s" % str
             raise VistrailsDBException(msg)

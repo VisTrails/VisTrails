@@ -750,7 +750,8 @@ class Vistrail(DBVistrail):
           
         """
         if action.timestep in self.actionMap:
-            raise VistrailsInternalError("existing timestep")
+            raise VistrailsInternalError("existing timestep: %d" % 
+                                         action.timestep)
         self.db_add_action(action)
         self.changed = True
 

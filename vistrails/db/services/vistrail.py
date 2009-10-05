@@ -30,27 +30,25 @@ import datetime
 import getpass
 
 def update_id_scope(vistrail):
-    for action in vistrail.db_actions:
-        vistrail.idScope.updateBeginId('action', action.db_id+1)
-        if action.db_session is not None:
-            vistrail.idScope.updateBeginId('session', action.db_session + 1)
-        for operation in action.db_operations:
-            vistrail.idScope.updateBeginId('operation', operation.db_id+1)
-            if operation.vtType == 'add' or operation.vtType == 'change':
-                # update ids of data
-                vistrail.idScope.updateBeginId(operation.db_what, 
-                                               getNewObjId(operation)+1)
-                if operation.db_data is None:
-                    if operation.vtType == 'change':
-                        operation.db_objectId = operation.db_oldObjId
-                vistrail.db_add_object(operation.db_data)
-#     print ' *** vistrail objects:'
-#     for key in sorted(vistrail.db_objects.keys()):
-#         print '%s %s' % (key[0], key[1])
-        for annotation in action.db_annotations:
-            vistrail.idScope.updateBeginId('annotation', annotation.db_id+1)
-#     for abstraction in vistrail.db_abstractions:
-#         vistrail.idScope.updateBeginId('abstraction', abstraction.db_id+1)
+    if hasattr(vistrail, 'update_id_scope'):
+        vistrail.update_id_scope()
+    else:
+        for action in vistrail.db_actions:
+            vistrail.idScope.updateBeginId('action', action.db_id+1)
+            if action.db_session is not None:
+                vistrail.idScope.updateBeginId('session', action.db_session + 1)
+            for operation in action.db_operations:
+                vistrail.idScope.updateBeginId('operation', operation.db_id+1)
+                if operation.vtType == 'add' or operation.vtType == 'change':
+                    # update ids of data
+                    vistrail.idScope.updateBeginId(operation.db_what, 
+                                                   getNewObjId(operation)+1)
+                    if operation.db_data is None:
+                        if operation.vtType == 'change':
+                            operation.db_objectId = operation.db_oldObjId
+                    vistrail.db_add_object(operation.db_data)
+            for annotation in action.db_annotations:
+                vistrail.idScope.updateBeginId('annotation', annotation.db_id+1)
 
 def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action

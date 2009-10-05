@@ -23,12 +23,14 @@
 from db.domain import DBPackage, DBModuleDescriptor, DBPortSpec
 
 def update_id_scope(registry):
-    for package in registry.db_packages:
-        registry.idScope.updateBeginId(DBPackage.vtType, package.db_id+1)
-        for descriptor in package.db_module_descriptors:
-            registry.idScope.updateBeginId(DBModuleDescriptor.vtType,
-                                           descriptor.db_id+1)
-            for port_spec in descriptor.db_portSpecs:
-                registry.idScope.updateBeginId(DBPortSpec.vtType, 
-                                               port_spec.db_id+1)
-                
+    if hasattr(registry, 'update_id_scope'):
+        registry.update_id_scope()
+    else:
+        for package in registry.db_packages:
+            registry.idScope.updateBeginId(DBPackage.vtType, package.db_id+1)
+            for descriptor in package.db_module_descriptors:
+                registry.idScope.updateBeginId(DBModuleDescriptor.vtType,
+                                               descriptor.db_id+1)
+                for port_spec in descriptor.db_portSpecs:
+                    registry.idScope.updateBeginId(DBPortSpec.vtType, 
+                                                   port_spec.db_id+1)

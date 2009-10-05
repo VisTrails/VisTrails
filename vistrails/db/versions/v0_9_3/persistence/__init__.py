@@ -168,9 +168,18 @@ class DAOList(dict):
         return ElementTree.tostring(root)
 
     def unserialize(self, str, obj_type):
+        def set_dirty(obj):
+            for child, _, _ in obj.db_children():
+                if child.vtType == DBGroup.vtType:
+                    if child.db_workflow:
+                        set_dirty(child.db_workflow)
+                child.is_dirty = True
+                child.is_new = True
         try:
             root = ElementTree.fromstring(str)
-            return self.read_xml_object(obj_type, root)
+            obj = self.read_xml_object(obj_type, root)
+            set_dirty(obj)
+            return obj
         except SyntaxError, e:
             msg = "Invalid VisTrails serialized object %s" % str
             raise VistrailsDBException(msg)

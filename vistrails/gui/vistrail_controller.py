@@ -1344,6 +1344,14 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         self.flush_move_actions()
 
+        def process_group(group):
+            # reset pipeline id for db
+            group.pipeline.id = None
+            # recurse
+            for module in group.pipeline.module_list:
+                if module.is_group():
+                    process_group(module)
+
         pipeline = Pipeline()
         sum_x = 0.0
         sum_y = 0.0
@@ -1351,6 +1359,9 @@ class VistrailController(QtCore.QObject, BaseController):
             module = self.current_pipeline.modules[module_id]
             sum_x += module.location.x
             sum_y += module.location.y
+            if module.is_group():
+                process_group(module)
+
         center_x = sum_x / len(module_ids)
         center_y = sum_y / len(module_ids)
         for module_id in module_ids:
@@ -1378,9 +1389,20 @@ class VistrailController(QtCore.QObject, BaseController):
         modules = []
         connections = []
         if pipeline:
+            def process_group(group):
+                # reset pipeline id for db
+                group.pipeline.id = None
+                # recurse
+                for module in group.pipeline.module_list:
+                    if module.is_group():
+                        process_group(module)
+
             for module in pipeline.module_list:
                 module.location.x += center[0]
                 module.location.y += center[1]
+                if module.is_group():
+                    process_group(module)
+
             id_remap = {}
             action = core.db.action.create_paste_action(pipeline, 
                                                         self.vistrail.idScope,

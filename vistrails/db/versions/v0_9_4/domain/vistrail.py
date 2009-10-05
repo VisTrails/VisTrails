@@ -41,6 +41,46 @@ class DBVistrail(_DBVistrail):
         self.log_filename = None
         self.log = None
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBVistrail()
+        new_obj = _DBVistrail.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        if hasattr(old_obj, 'log_filename'):
+            new_obj.log_filename = old_obj.log_filename
+        if hasattr(old_obj, 'log'):
+            new_obj.log = old_obj.log
+        return new_obj
+
+    def update_id_scope(self):
+        def getOldObjId(operation):
+            if operation.vtType == 'change':
+                return operation.db_oldObjId
+            return operation.db_objectId
+
+        def getNewObjId(operation):
+            if operation.vtType == 'change':
+                return operation.db_newObjId
+            return operation.db_objectId
+
+        for action in self.db_actions:
+            self.idScope.updateBeginId('action', action.db_id+1)
+            if action.db_session is not None:
+                self.idScope.updateBeginId('session', action.db_session + 1)
+            for operation in action.db_operations:
+                self.idScope.updateBeginId('operation', operation.db_id+1)
+                if operation.vtType == 'add' or operation.vtType == 'change':
+                    # update ids of data
+                    self.idScope.updateBeginId(operation.db_what, 
+                                               getNewObjId(operation)+1)
+                    if operation.db_data is None:
+                        if operation.vtType == 'change':
+                            operation.db_objectId = operation.db_oldObjId
+                    self.db_add_object(operation.db_data)
+            for annotation in action.db_annotations:
+                self.idScope.updateBeginId('annotation', annotation.db_id+1)
+
     def db_add_object(self, obj):
         self.db_objects[(obj.vtType, obj.db_id)] = obj
 

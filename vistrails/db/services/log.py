@@ -23,7 +23,10 @@
 from db.domain import DBWorkflowExec
 
 def update_id_scope(log):
-    pass
+    if hasattr(log, 'update_id_scope'):
+        log.update_id_scope()
+    else:
+        pass
 
 def update_ids(log):
     for workflow_exec in log.db_workflow_execs:

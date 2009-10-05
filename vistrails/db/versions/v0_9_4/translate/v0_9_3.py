@@ -32,9 +32,7 @@ def translateVistrail(_vistrail):
                                          translate_dict, DBWorkflow())
 
     translate_dict = {'DBGroup': {'workflow': update_workflow}}
-    # pass DBVistrail because domain contains enriched version of the auto_gen
-    vistrail = DBVistrail.update_version(_vistrail, translate_dict, 
-                                         DBVistrail())
+    vistrail = DBVistrail.update_version(_vistrail, translate_dict)
     vistrail.db_version = '0.9.4'
     return vistrail
 
@@ -44,13 +42,12 @@ def translateWorkflow(_workflow):
                                          translate_dict, DBWorkflow())
 
     translate_dict = {'DBGroup': {'workflow': update_workflow}}
-    workflow = DBWorkflow.update_version(_workflow, translate_dict,
-                                         DBWorkflow())
+    workflow = DBWorkflow.update_version(_workflow, translate_dict)
     workflow.db_version = '0.9.4'
     return workflow
 
 def translateLog(_log):
     translate_dict = {}
-    log = DBLog.update_version(_log, translate_dict, DBLog())
+    log = DBLog.update_version(_log, translate_dict)
     log.db_version = '0.9.4'
     return log
