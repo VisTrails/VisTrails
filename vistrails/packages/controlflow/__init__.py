@@ -8,9 +8,10 @@ from fold import Fold
 from utils import Map, Filter, AreaFilter, SimilarityFilter
 from conditional import If
 from products import Dot, Cross
+from order import ExecuteInOrder
 
 
-version="0.1"
+version="0.1.1"
 name="Control Flow"
 identifier="edu.utah.sci.vistrails.control_flow"
 
@@ -70,3 +71,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(Cross, 'List_2', (ListOfElements, ""))
     reg.add_input_port(Cross, 'CombineTuple', (Boolean, ""), optional=True)
     reg.add_output_port(Cross, 'Result', (ListOfElements, ""))
+
+    reg.add_module(ExecuteInOrder)
+    reg.add_input_port(ExecuteInOrder, 'module1', (Module, ""))
+    reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
