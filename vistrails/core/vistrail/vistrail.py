@@ -106,7 +106,7 @@ class Vistrail(DBVistrail):
         # version tree always updated
         self.tree = ExplicitExpandedVersionTree(self)
         # add all versions to the trees
-        for action in self.actions:
+        for action in sorted(self.actions, key=lambda a: a.id):
             self.tree.addVersion(action.id, action.prevId)
 
     @staticmethod
