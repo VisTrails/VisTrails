@@ -110,7 +110,8 @@ def initialize(*args, **keywords):
     reg = core.modules.module_registry.get_module_registry()
     
     reg.add_module(MplPlot, configureWidgetType=MplPlotConfigurationWidget)
-#     reg.add_input_port(MplPlot, 'source', String, True)
+#    reg.add_input_port(MplPlot, 'source', String, True)
+    reg.add_input_port(MplPlot, 'Hide Toolbar', Boolean, True)
     reg.add_output_port(MplPlot, 'source', String)
     
     reg.add_module(MplFigureManager)

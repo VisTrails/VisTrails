@@ -50,12 +50,15 @@ class MplPlot(PythonSource):
         MplFigure module for a unified execution.
         
         """
+        hide_toolbar = self.forceGetInputFromPort("Hide Toolbar", False)
         if self.hasInputFromPort('source'):
             if self.outputPorts.has_key('source'):
                 source = self.getInputFromPort('source')
                 s = ('from pylab import *\n' +
                      'from numpy import *\n' +
                      urllib.unquote(source))
+                if hide_toolbar:
+                    s += 'get_current_fig_manager().toolbar.hide()\n'
                 self.run_code(s, use_input=True, use_output=True)
 
 class MplPlotConfigurationWidget(PythonSourceConfigurationWidget):
