@@ -137,6 +137,7 @@ def get_load_file_locator_from_gui(parent, obj_type):
     filename = os.path.abspath(str(fileName))
     dirName = os.path.dirname(filename)
     setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
+    setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
     core.system.set_vistrails_file_directory(dirName)
     return FileLocator(filename)
 
@@ -179,6 +180,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
             return None
     dirName = os.path.dirname(str(f))
     setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
+    setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
     core.system.set_vistrails_file_directory(dirName)
     return FileLocator(f)
    

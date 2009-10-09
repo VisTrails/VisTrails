@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+import base64
 import os.path
 from core.configuration import get_vistrails_configuration
 from core.system import vistrails_default_file_type, get_elementtree_library, \
@@ -55,8 +56,8 @@ class CoreLocator(object):
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
-    def __init__(self, filename):
-        _XMLFileLocator.__init__(self, filename)
+    def __init__(self, filename, version_node=None, version_tag=''):
+        _XMLFileLocator.__init__(self, filename, version_node, version_tag)
         
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -128,7 +129,7 @@ class DBLocator(_DBLocator, CoreLocator):
     
     def __init__(self, host, port, database, user, passwd, name=None,
                  obj_id=None, obj_type=None, connection_id=None,
-                 version_node=None, version_tag=None):
+                 version_node=None, version_tag=''):
         
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
                             obj_id, obj_type, connection_id, version_node,
@@ -253,77 +254,6 @@ class DBLocator(_DBLocator, CoreLocator):
         DBLocator.keyChain.set_key(key,passwd)
         return conn.id
     
-    @staticmethod
-    def from_link_file(filename):
-        """from_link_file(filename: str) -> DBLocator
-        This will parse a '.vtl' file and  will create a DBLocator. .vtl files
-        are vistrail link files and they are used to point vistrails to open
-        vistrails from the database on the web. """
-        def convert_from_str(value,type):
-            def bool_conv(x):
-                s = str(x).upper()
-                if s == 'TRUE':
-                    return True
-                if s == 'FALSE':
-                    return False
-            
-            if value is not None:
-                if type == 'str':
-                    return str(value)
-                elif value.strip() != '':
-                    if type == 'long':
-                        return long(value)
-                    elif type == 'float':
-                       return float(value)
-                    elif type == 'int':
-                        return int(value)
-                    elif type == 'bool':
-                        return bool_conv(value)
-            return None
-        tree = ElementTree.parse(filename)
-        node = tree.getroot()
-        if node.tag != 'vtlink':
-            return None
-        #read attributes
-        data = node.get('host', None)
-        host = convert_from_str(data, 'str')
-        data = node.get('port', None)
-        port = convert_from_str(data,'int')
-        data = node.get('database', None)
-        database = convert_from_str(data,'str')
-        data = node.get('vtid')
-        vt_id = convert_from_str(data, 'int')
-        data = node.get('version')
-        version = convert_from_str(data, 'str')
-        data = node.get('tag')
-        tag = convert_from_str(data, 'str')
-        data = node.get('execute')
-        execute = convert_from_str(data, 'bool')
-        data = node.get('showSpreadsheetOnly')
-        showSpreadsheetOnly = convert_from_str(data, 'bool')
-        #asking to show only the spreadsheet force the workflow to be executed
-        if showSpreadsheetOnly:
-            execute = True
-        try:
-            version = int(version)
-        except:
-            tag = version
-            pass
-        if tag is None:
-            tag = '';
-        ## execute and showSpreadsheetOnly should be written to the current
-        ## configuration
-        config = get_vistrails_configuration()
-        config.executeWorkflows = execute
-        config.showSpreadsheetOnly = showSpreadsheetOnly
-        
-        user = ""
-        passwd = ""
-            
-        return DBLocator(host, port, database,
-                         user, passwd, None, vt_id, 'vistrail',
-                         None, version, tag)
-
     ##########################################################################
 
     def __eq__(self, other):
@@ -356,8 +286,8 @@ class DBLocator(_DBLocator, CoreLocator):
 
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
-    def __init__(self, filename):
-        _ZIPFileLocator.__init__(self, filename)
+    def __init__(self, filename, version_node=None, version_tag=''):
+        _ZIPFileLocator.__init__(self, filename, version_node, version_tag)
 
     def get_convert_klass(self, vt_type):
         from core.vistrail.vistrail import Vistrail
@@ -438,11 +368,11 @@ class FileLocator(CoreLocator):
         if len(args) > 0:
             filename = args[0]
             if filename.endswith('.vt'):
-                return ZIPFileLocator(filename)
+                return ZIPFileLocator(*args)
             elif filename.endswith('.vtl'):
-                return DBLocator.from_link_file(filename)
+                return FileLocator.from_link_file(*args)
             else:
-                return XMLFileLocator(filename)
+                return XMLFileLocator(*args)
         else:
             #return class based on default file type
             if vistrails_default_file_type() == '.vt':
@@ -497,7 +427,99 @@ class FileLocator(CoreLocator):
                     filename = str(child.text).strip(" \n\t")
                     return FileLocator(filename)
         return None
+    
+    @staticmethod
+    def from_link_file(filename):
+        """from_link_file(filename: str) -> DBLocator
+        This will parse a '.vtl' file and  will create a DBLocator. .vtl files
+        are vistrail link files and they are used to point vistrails to open
+        vistrails from the database on the web. """
+        def convert_from_str(value,type):
+            def bool_conv(x):
+                s = str(x).upper()
+                if s == 'TRUE':
+                    return True
+                if s == 'FALSE':
+                    return False
+            
+            if value is not None:
+                if type == 'str':
+                    return str(value)
+                elif value.strip() != '':
+                    if type == 'long':
+                        return long(value)
+                    elif type == 'float':
+                       return float(value)
+                    elif type == 'int':
+                        return int(value)
+                    elif type == 'bool':
+                        return bool_conv(value)
+                    elif type == 'base64':
+                        return base64.b64decode(value)
+            return None
+        tree = ElementTree.parse(filename)
+        node = tree.getroot()
+        if node.tag != 'vtlink':
+            return None
+        #read attributes
+        data = node.get('host', None)
+        host = convert_from_str(data, 'str')
+        data = node.get('port', None)
+        port = convert_from_str(data,'int')
+        data = node.get('database', None)
+        database = convert_from_str(data,'str')
+        data = node.get('vtid')
+        vt_id = convert_from_str(data, 'int')
+        data = node.get('version')
+        version = convert_from_str(data, 'str')
+        data = node.get('tag')
+        tag = convert_from_str(data, 'str')
+        data = node.get('execute')
+        execute = convert_from_str(data, 'bool')
+        data = node.get('showSpreadsheetOnly')
+        showSpreadsheetOnly = convert_from_str(data, 'bool')
+        data = node.get('url', None)
+        url = convert_from_str(data,'str')
+        data = node.get('vistrail', None)
+        vtcontent = convert_from_str(data,'base64')
+        #asking to show only the spreadsheet force the workflow to be executed
+        if showSpreadsheetOnly:
+            execute = True
+        try:
+            version = int(version)
+        except:
+            tag = version
+            pass
+        if tag is None:
+            tag = '';
+        ## execute and showSpreadsheetOnly should be written to the current
+        ## configuration
+        config = get_vistrails_configuration()
+        config.executeWorkflows = execute
+        config.showSpreadsheetOnly = showSpreadsheetOnly
+        if host is not None:
+            user = ""
+            passwd = ""
+            
+            return DBLocator(host, port, database,
+                             user, passwd, None, vt_id, 'vistrail',
+                             None, version, tag)
+        elif url is not None:
+            basename = url.split('/')[-1]
+            base,ext = os.path.splitext(basename)
+            dirname = os.path.dirname(filename)
+            fname = os.path.join(dirname,basename)
+            i = 1
+            while os.path.exists(fname):
+                newbase = "%s_%s%s" % (base, i, ext)
+                fname = os.path.join(dirname,newbase)
+                i+=1
+            f = open(fname,'wb')
+            f.write(vtcontent)
+            f.close()
+            return FileLocator(fname, version, tag)
         
+    ##########################################################################
 def untitled_locator():
     basename = 'untitled' + vistrails_default_file_type()
     config = get_vistrails_configuration()

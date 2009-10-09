@@ -28,6 +28,7 @@ import urllib
 from db import VistrailsDBException
 from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
+import hashlib
 
 class BaseLocator(object):
 
@@ -58,6 +59,9 @@ class BaseLocator(object):
     def serialize(self, dom, element):
         pass #Serializes this locator to XML
 
+    def to_xml(self, node=None): #ElementTree port od serialize
+        pass
+    
     @staticmethod
     def parse(element):
         pass #Parse an XML object representing a locator and returns a Locator
@@ -80,8 +84,10 @@ class BaseLocator(object):
         pass # Implement nonequality
 
 class XMLFileLocator(BaseLocator):
-    def __init__(self, filename):
+    def __init__(self, filename, version_node=None, version_tag=''):
         self._name = filename
+        self._vnode = version_node
+        self._vtag = version_tag
         config = core.configuration.get_vistrails_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
@@ -263,8 +269,8 @@ class XMLFileLocator(BaseLocator):
 class ZIPFileLocator(XMLFileLocator):
     """Files are compressed in zip format. The temporaries are
     still in xml"""
-    def __init__(self, filename):
-        XMLFileLocator.__init__(self, filename)
+    def __init__(self, filename, version_node=None, version_tag=None):
+        XMLFileLocator.__init__(self, filename, version_node, version_tag)
         self.tmp_dir = None
 
     def load(self, type):
@@ -350,8 +356,11 @@ class ZIPFileLocator(XMLFileLocator):
             return None
         return None
 
+# class URLLocator(ZIPFileLocator):
+#     def load(self, type):
+        
 class DBLocator(BaseLocator):
-    
+    cache = {}
     connections = {}
 
     def __init__(self, host, port, database, user, passwd, name=None,
@@ -402,6 +411,11 @@ class DBLocator(BaseLocator):
         return self._name
     short_name = property(_get_short_name)
 
+    def hash(self):
+        node = self.to_xml()
+        xml_string = ElementTree.tostring(node)
+        return hashlib.sha224(xml_string).hexdigest()
+    
     def is_valid(self):
         if self._conn_id is not None \
                 and DBLocator.connections.has_key(self._conn_id):
@@ -441,10 +455,15 @@ class DBLocator(BaseLocator):
         return connection
 
     def load(self, type):
-        connection = self.get_connection()
-        obj = io.open_from_db(connection, type, self.obj_id)
-        self._name = obj.db_name
-        obj.locator = self
+        _hash = self.hash()
+        if DBLocator.cache.has_key(_hash):
+            obj = DBLocator.cache[_hash]
+        else:
+            connection = self.get_connection()
+            obj = io.open_from_db(connection, type, self.obj_id)
+            self._name = obj.db_name
+            obj.locator = self
+            DBLocator.cache[self.hash()] = obj
         return obj
 
     def save(self, obj, do_copy=False):
