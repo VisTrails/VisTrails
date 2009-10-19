@@ -44,7 +44,7 @@ class XMLObject(Object):
             return self.layouts[XML_TYPE]['name']
         except KeyError:
             pass
-        return Object.getName()
+        return Object.getName(self)
 
     def getNodeType(self):
         try:
