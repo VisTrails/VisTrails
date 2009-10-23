@@ -29,6 +29,8 @@ from db import VistrailsDBException
 from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 import hashlib
+from time import strptime
+from datetime import datetime
 
 class BaseLocator(object):
 
@@ -361,6 +363,7 @@ class ZIPFileLocator(XMLFileLocator):
         
 class DBLocator(BaseLocator):
     cache = {}
+    cache_timestamps = {}
     connections = {}
 
     def __init__(self, host, port, database, user, passwd, name=None,
