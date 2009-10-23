@@ -456,16 +456,27 @@ class DBLocator(BaseLocator):
 
     def load(self, type):
         _hash = self.hash()
+        
         if DBLocator.cache.has_key(_hash):
-            obj = DBLocator.cache[_hash]
-        else:
-            connection = self.get_connection()
-            obj = io.open_from_db(connection, type, self.obj_id)
-            self._name = obj.db_name
-            obj.locator = self
-            DBLocator.cache[self.hash()] = obj
+            obj = DBLocator.cache[_hash]   
+            ts = io.get_db_object_modification_time(self.get_connection(),
+                                                    obj.db_id,
+                                                    obj.vtType)
+            ts = datetime(*strptime(str(ts), '%Y-%m-%d %H:%M:%S')[0:6])
+               
+            print DBLocator.cache_timestamps[_hash],ts
+            if DBLocator.cache_timestamps[_hash] == ts:
+                return obj
+            
+        connection = self.get_connection()
+        obj = io.open_from_db(connection, type, self.obj_id)
+        self._name = obj.db_name
+        obj.locator = self
+        _hash = self.hash()
+        DBLocator.cache[_hash] = obj  
+        DBLocator.cache_timestamps[_hash] = obj.db_last_modified
         return obj
-
+        
     def save(self, obj, do_copy=False):
         connection = self.get_connection()
         obj.db_name = self._name
