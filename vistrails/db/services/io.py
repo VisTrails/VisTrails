@@ -101,45 +101,6 @@ class SaveBundle(object):
         """
         return getattr(self, self.bundle_type)
 
-    def get_io_objs(self):
-        """get_io_objs() -> objs: (obj_type: str, obj: DB*)
-
-           obj_type: the object's vtType or '__file__' or '__thumb__'
-                     for abstractions and thumbnails, respectively
-           obj: a DB* object or a filename
-
-           Gets a list of (obj_type, obj) tuples suitable for consumption
-           by the db.services.io functions that use such a list of tuples.
-
-        """
-        objs = None
-        if self.bundle_type == DBVistrail.vtType and self.vistrail:
-            objs = [(self.vistrail.vtType, self.vistrail)]
-            if self.log:
-                objs.append((self.log.vtType, self.log))
-            objs.extend([('__file__', abstraction) for abstraction in self.abstractions])
-            objs.extend([('__thumb__', thumbnail) for thumbnail in self.thumbnails])
-        return objs
-
-    @staticmethod
-    def create_bundle_from_io_objs(bundle_type, objs):
-        """create_bundle_from_io_objs(bundle_type: str,
-                                      objs: (obj_type: str, obj: DB*)
-             -> SaveBundle
-
-           obj_type: the object's vtType or '__file__' or '__thumb__'
-                     for abstractions and thumbnails, respectively
-           obj: a DB* object or a filename
-
-           Creates a SaveBundle from a list of (obj_type, obj) tuples
-           returned by some of the db.services.io functions.
-
-        """
-        args = [obj for (obj_type, obj) in objs if obj_type != '__file__' and obj_type != '__thumb__']
-        abstracts = [obj for (obj_type, obj) in objs if obj_type == '__file__']
-        thumbs = [obj for (obj_type, obj) in objs if obj_type == '__thumb__']
-        return SaveBundle(bundle_type, *args, abstractions=abstracts, thumbnails=thumbs)
-
 
 _db_lib = None
 def get_db_lib():
