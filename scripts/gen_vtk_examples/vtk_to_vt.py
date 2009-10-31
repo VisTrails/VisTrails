@@ -33,6 +33,7 @@ from db.domain import DBModule, DBConnection, DBPort, DBFunction, \
     DBParameter, DBLocation, DBPortSpec, DBTag, DBAnnotation, DBVistrail, \
     DBRegistry
 import db.services.io
+from db.services.io import SaveBundle
 from vtk_imposter import vtk_module, vtk_function
 
 class VTK2VT(object):
@@ -1096,8 +1097,7 @@ class VTK2VT(object):
                                       value="This workflow was automatically generated from a modified version of the vtk python example script '%s' from the vtk 5.0.4 distribution.  In most cases, running this workflow will generate a visualization that is identical to the result from the example script." % script_name)
             action.db_add_annotation(annotation)
 
-            db.services.io.save_vistrail_to_zip_xml([(DBVistrail.vtType, 
-                                                      vistrail)], filename)
+            db.services.io.save_bundle_to_zip_xml(SaveBundle(DBVistrail.vtType, vistrail), filename)
         else:
             f = None
             print >>f, db.services.io.serialize(vistrail)

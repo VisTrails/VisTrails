@@ -41,11 +41,11 @@ def main(out_fname, in_fnames):
 
     """
     # FIXME this breaks when you use abstractions!
-    (objs, vt_save_dir) = io.open_vistrail_from_zip_xml(in_fnames[0])
+    (save_bundle, vt_save_dir) = io.open_bundle_from_zip_xml(DBVistrail.vtType, in_fnames[0])
     for in_fname in in_fnames[1:]:
-        (new_objs, new__save_dir) = io.open_vistrail_from_zip_xml(in_fname)
-        merge_vistrails(objs[0][1], new_objs[0][1])
-    io.save_vistrail_to_zip_xml(objs, out_fname)
+        (new_save_bundle, new__save_dir) = io.open_bundle_from_zip_xml(DBVistrail.vtType, in_fname)
+        merge_vistrails(save_bundle.vistrail, new_save_bundle.vistrail)
+    io.save_bundle_to_zip_xml(save_bundle, out_fname)
     
 if __name__ == '__main__':
     if len(sys.argv) < 3:

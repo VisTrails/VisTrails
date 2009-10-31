@@ -26,8 +26,10 @@ from core.configuration import get_vistrails_configuration
 from core.system import vistrails_default_file_type, get_elementtree_library, \
                         default_connections_file
 from core.external_connection import ExtConnectionList, DBConnection
+from core.thumbnails import ThumbnailCache
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
+from db.services.io import SaveBundle
 from PyQt4 import QtCore
 import core.configuration
 ElementTree = get_elementtree_library()
@@ -54,6 +56,23 @@ class CoreLocator(object):
     def update_from_gui(self, klass=None):
         pass
 
+    # FIXME Need to do some more intelligent conversions anywhere this
+    # function gets called
+    @staticmethod
+    def get_convert_klass(vt_type):
+        from core.vistrail.vistrail import Vistrail
+        from core.vistrail.pipeline import Pipeline
+        from core.log.log import Log
+        from core.modules.module_registry import ModuleRegistry
+        from core.log.opm_graph import OpmGraph
+        
+        klass_map = {Vistrail.vtType: Vistrail,
+                     Pipeline.vtType: Pipeline,
+                     Log.vtType: Log,
+                     ModuleRegistry.vtType: ModuleRegistry,
+                     OpmGraph.vtType: OpmGraph}
+        return klass_map[vt_type]
+
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
     def __init__(self, filename, version_node=None, version_tag=''):
@@ -69,17 +88,31 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return obj
 
     def save(self, obj):
+        is_bundle = False
+        if type(obj) == type(SaveBundle(None)):
+            is_bundle = True
+            save_bundle = obj
+            obj = save_bundle.get_primary_obj()
         klass = obj.__class__
         obj = _XMLFileLocator.save(self, obj, False)
         klass.convert(obj)
         obj.locator = self
+        if is_bundle:
+            return SaveBundle(save_bundle.bundle_type, obj)
         return obj
 
     def save_as(self, obj, version=None):
+        is_bundle = False
+        if type(obj) == type(SaveBundle(None)):
+            is_bundle = True
+            save_bundle = obj
+            obj = save_bundle.get_primary_obj()
         klass = obj.__class__
         obj = _XMLFileLocator.save(self, obj, True, version)
         klass.convert(obj)
         obj.locator = self
+        if is_bundle:
+            return SaveBundle(save_bundle.bundle_type, obj)
         return obj
 
     ##########################################################################
@@ -140,24 +173,49 @@ class DBLocator(_DBLocator, CoreLocator):
         from core.vistrail.vistrail import Vistrail
         if klass is None:
             klass = Vistrail
-        obj = _DBLocator.load(self, klass.vtType)
-        klass.convert(obj)
-        obj.locator = self
-        return obj
+        save_bundle = _DBLocator.load(self, klass.vtType, ThumbnailCache.getInstance().get_directory())
+        for obj in save_bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.vtType)
+            klass.convert(obj)
+            obj.locator = self
+        return save_bundle
 
-    def save(self, obj):
-        klass = obj.__class__
-        obj = _DBLocator.save(self, obj, False)
-        klass.convert(obj)
-        obj.locator = self
-        return obj
+    def save(self, save_bundle):
+        save_bundle = _DBLocator.save(self, save_bundle, False)
+        for obj in save_bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.vtType)
+            klass.convert(obj)
+            obj.locator = self
+        return save_bundle
 
-    def save_as(self, obj, version=None):
-        klass = obj.__class__
-        obj = _DBLocator.save(self, obj, True)
-        klass.convert(obj)
-        obj.locator = self
-        return obj
+    def save_as(self, save_bundle, version=None):
+        save_bundle = _DBLocator.save(self, save_bundle, True)
+        for obj in save_bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.vtType)
+            klass.convert(obj)
+            obj.locator = self
+        # Need to copy images into thumbnail cache directory so references
+        # won't become invalid if they are in a temp dir that gets destroyed
+        # when the previous locator is closed
+        import shutil
+        thumb_cache = ThumbnailCache.getInstance()
+        thumb_cache_dir = thumb_cache.get_directory()
+        new_thumbnails = []
+        for thumbnail in save_bundle.thumbnails:
+            if os.path.dirname(thumbnail) == thumb_cache_dir:
+                new_thumbnails.append(thumbnail)
+            else:
+                cachedir_thumbnail = os.path.join(thumb_cache_dir, os.path.basename(thumbnail))
+                try:
+                    shutil.copyfile(thumbnail, cachedir_thumbnail)
+                    new_thumbnails.append(cachedir_thumbnail)
+                except Exception, e:
+                    debug.critical('copying %s -> %s failed: %s' % \
+                                       (thumbnail, cachedir_thumbnail, str(e)))
+        save_bundle.thumbnails = new_thumbnails
+        # Need to update thumbnail cache in case some references have changed
+        thumb_cache.add_entries_from_files(save_bundle.thumbnails)
+        return save_bundle
 
     def update_from_gui(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -289,54 +347,34 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
     def __init__(self, filename, version_node=None, version_tag=''):
         _ZIPFileLocator.__init__(self, filename, version_node, version_tag)
 
-    def get_convert_klass(self, vt_type):
-        from core.vistrail.vistrail import Vistrail
-        from core.log.log import Log
-        from core.vistrail.pipeline import Pipeline
-        
-        klass_map = {Vistrail.vtType: Vistrail,
-                     Log.vtType: Log,
-                     Pipeline.vtType: Pipeline,
-                     '__file__': None,
-                     '__thumb__': None}
-        return klass_map[vt_type]
-
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
-
         if klass is None:
             klass = Vistrail
-        objs = _ZIPFileLocator.load(self, klass.vtType)
-        # FIXME need to do some smarter conversions here
-        for obj in objs:
-            klass = self.get_convert_klass(obj[0])
-            if klass is None:
-                continue
-            klass.convert(obj[1])
-            obj[1].locator = self
-        return objs
+        save_bundle = _ZIPFileLocator.load(self, klass.vtType)
+        for obj in save_bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.vtType)
+            klass.convert(obj)
+            obj.locator = self
+        return save_bundle
 
-    def save(self, objs):
-        objs = _ZIPFileLocator.save(self, objs, False)
-        # FIXME need to do some smarter conversions here
-        for obj in objs:
-            klass = self.get_convert_klass(obj[0])
-            if klass is None:
-                continue
-            klass.convert(obj[1])
-            obj[1].locator = self
-        return objs
+    def save(self, save_bundle):
+        save_bundle = _ZIPFileLocator.save(self, save_bundle, False)
+        for obj in save_bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.vtType)
+            klass.convert(obj)
+            obj.locator = self
+        return save_bundle
 
-    def save_as(self, objs, version=None):
-        objs = _ZIPFileLocator.save(self, objs, True, version)
-        # FIXME need to do some smarter conversions here
-        for obj in objs:
-            klass = self.get_convert_klass(obj[0])
-            if klass is None:
-                continue
-            klass.convert(obj[1])
-            obj[1].locator = self
-        return objs
+    def save_as(self, save_bundle, version=None):
+        save_bundle = _ZIPFileLocator.save(self, save_bundle, True, version)
+        for obj in save_bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.vtType)
+            klass.convert(obj)
+            obj.locator = self
+        # Need to update thumbnail cache since files have moved
+        ThumbnailCache.getInstance().add_entries_from_files(save_bundle.thumbnails)
+        return save_bundle
 
     ##########################################################################
 

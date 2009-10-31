@@ -57,6 +57,7 @@ from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from db.domain import IdScope
 from db.services.io import create_temp_folder, remove_temp_folder
+from db.services.io import SaveBundle
 from db.services.vistrail import getSharedRoot
 
 class VistrailController(object):
@@ -104,7 +105,7 @@ class VistrailController(object):
             if abstractions is not None:
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
-                ThumbnailCache.getInstance().add_entries_from_vtfile(thumbnails)
+                ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
         self.current_version = -1
         self.current_pipeline = None
         if self.locator != locator and self.locator is not None:
@@ -1588,10 +1589,10 @@ class VistrailController(object):
         if self.vistrail and (self.changed or self.locator != locator):
             abs_save_dir = None
             is_abstraction = self.vistrail.is_abstraction
-            # FIXME make all locators work with lists of objects
-            objs = [(Vistrail.vtType, self.vistrail)]
+            save_bundle = SaveBundle(self.vistrail.vtType)
+            save_bundle.vistrail = self.vistrail
             if self.log and len(self.log.workflow_execs) > 0:
-                objs.append((Log.vtType, self.log))
+                save_bundle.log = self.log
             abstractions = self.find_abstractions(self.vistrail, True)
             for abstraction in abstractions:
                 abs_module = abstraction.module_descriptor.module
@@ -1604,17 +1605,12 @@ class VistrailController(object):
                                                  abstraction.name + '.xml')
                         core.db.io.save_vistrail_to_xml(abstraction.vistrail,
                                                         abs_fname)
-                    objs.append(('__file__', abs_fname))
-                                                
-#             for abs_fname in abstractions:
-#                 objs.append(('__file__', abs_fname))
+                    save_bundle.abstractions.append(abs_fname)
+
             thumb_cache = ThumbnailCache.getInstance()
             if thumb_cache.conf.autoSave:
-                thumbnails = self.find_thumbnails(
-                                    tags_only=thumb_cache.conf.tagsOnly)
-                for thumbnail in thumbnails:
-                    #print "appending: ", thumbnail
-                    objs.append(('__thumb__', thumbnail))
+                save_bundle.thumbnails = self.find_thumbnails(
+                                           tags_only=thumb_cache.conf.tagsOnly)
             
             # FIXME hack to use db_currentVersion for convenience
             # it's not an actual field
@@ -1622,25 +1618,17 @@ class VistrailController(object):
             if self.locator != locator:
                 old_locator = self.get_locator()
                 self.locator = locator
-                # new_vistrail = self.locator.save_as(self.vistrail)
-                if type(self.locator) == core.db.locator.ZIPFileLocator:
-                    objs = self.locator.save_as(objs, version)
-                    new_vistrail = objs[0][1]
-                else:
-                    new_vistrail = self.locator.save_as(self.vistrail, version)
-                    if type(self.locator) == core.db.locator.DBLocator:
-                        new_vistrail.db_log_filename = None
+                save_bundle = self.locator.save_as(save_bundle, version)
+                new_vistrail = save_bundle.vistrail
+                if type(self.locator) == core.db.locator.DBLocator:
+                    new_vistrail.db_log_filename = None
                 self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()
                     old_locator.close()
             else:
-                # new_vistrail = self.locator.save(self.vistrail)
-                if type(self.locator) == core.db.locator.ZIPFileLocator:
-                    objs = self.locator.save(objs)
-                    new_vistrail = objs[0][1]
-                else:
-                    new_vistrail = self.locator.save(self.vistrail)
+                save_bundle = self.locator.save(save_bundle)
+                new_vistrail = save_bundle.vistrail
             # FIXME abstractions only work with FileLocators right now
             if (is_abstraction and 
                 (type(self.locator) == core.db.locator.XMLFileLocator or
@@ -1674,7 +1662,7 @@ class VistrailController(object):
                 #     pipeline.add_abstraction(abstraction)
                 pipeline.add_module(module)
             for connection in self.current_pipeline.connections.itervalues():
-                pipeline.add_connection(connection)            
+                pipeline.add_connection(connection)
             locator.save_as(pipeline)
 
     def write_expanded_workflow(self, locator):

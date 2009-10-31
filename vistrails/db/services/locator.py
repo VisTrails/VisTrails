@@ -24,6 +24,7 @@ import os.path
 import core.configuration
 import core.system
 from db.services import io
+from db.services.io import SaveBundle
 import urllib
 from db import VistrailsDBException
 from core.system import get_elementtree_library
@@ -106,10 +107,17 @@ class XMLFileLocator(BaseLocator):
         return obj
 
     def save(self, obj, do_copy=True, version=None):
+        is_bundle = False
+        if type(obj) == type(SaveBundle(None)):
+            is_bundle = True
+            save_bundle = obj
+            obj = save_bundle.get_primary_obj()
         obj = io.save_to_xml(obj, self._name, version)
         obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
+        if is_bundle:
+            return SaveBundle(save_bundle.bundle_type, obj)
         return obj
 
     def save_temporary(self, obj):
@@ -278,17 +286,17 @@ class ZIPFileLocator(XMLFileLocator):
     def load(self, type):
         fname = self._find_latest_temporary()
         if fname:
+            from db.domain import DBVistrail
             obj = io.open_from_xml(fname, type)
-            return [('vistrail', obj)]
+            return SaveBundle(DBVistrail.vtType, obj)
         else:
-            (objs, tmp_dir) = io.open_from_zip_xml(self._name, type)
+            (save_bundle, tmp_dir) = io.open_bundle_from_zip_xml(type, self._name)
             self.tmp_dir = tmp_dir
-        for obj in objs:
-            if obj[0] not in ['__file__', '__thumb__']:
-                obj[1].locator = self
-        return objs
+            for obj in save_bundle.get_db_objs():
+                obj.locator = self
+            return save_bundle
 
-    def save(self, objs, do_copy=True, version=None):
+    def save(self, save_bundle, do_copy=True, version=None):
         if do_copy:
             # make sure we create a fresh temporary directory if we're
             # duplicating the vistrail
@@ -296,15 +304,13 @@ class ZIPFileLocator(XMLFileLocator):
         else:
             # otherwise, use the existing temp directory if one is set
             tmp_dir = self.tmp_dir
-        (objs, tmp_dir) = io.save_to_zip_xml(objs, self._name, tmp_dir, 
-                                             version)
+        (save_bundle, tmp_dir) = io.save_bundle_to_zip_xml(save_bundle, self._name, tmp_dir, version)
         self.tmp_dir = tmp_dir
-        for obj in objs:
-            if obj[0] not in ['__file__', '__thumb__']:
-                obj[1].locator = self
+        for obj in save_bundle.get_db_objs():
+            obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
-        return objs
+        return save_bundle
 
     def close(self):
         if self.tmp_dir is not None:
@@ -457,37 +463,49 @@ class DBLocator(BaseLocator):
         DBLocator.connections[self._conn_id] = connection
         return connection
 
-    def load(self, type):
+    def load(self, type, tmp_dir=None):
         _hash = self.hash()
         
         if DBLocator.cache.has_key(_hash):
-            obj = DBLocator.cache[_hash]   
+            save_bundle = DBLocator.cache[_hash]
+            obj = save_bundle.get_primary_obj()
             ts = io.get_db_object_modification_time(self.get_connection(),
                                                     obj.db_id,
                                                     obj.vtType)
             ts = datetime(*strptime(str(ts), '%Y-%m-%d %H:%M:%S')[0:6])
-               
-            print DBLocator.cache_timestamps[_hash],ts
-            if DBLocator.cache_timestamps[_hash] == ts:
-                return obj
             
-        connection = self.get_connection()
-        obj = io.open_from_db(connection, type, self.obj_id)
-        self._name = obj.db_name
-        obj.locator = self
-        _hash = self.hash()
-        DBLocator.cache[_hash] = obj  
-        DBLocator.cache_timestamps[_hash] = obj.db_last_modified
-        return obj
+            #print DBLocator.cache_timestamps[_hash],ts
+            if DBLocator.cache_timestamps[_hash] == ts:
+                # If thumbnail cache was cleared, get thumbs from db
+                if tmp_dir is not None:
+                    for absfname in save_bundle.thumbnails:
+                        if not os.path.isfile(absfname):
+                            save_bundle.thumbnails = io.open_thumbnails_from_db(self.get_connection(), type, self.obj_id, tmp_dir)
+                            break
+                return save_bundle
         
-    def save(self, obj, do_copy=False):
         connection = self.get_connection()
-        obj.db_name = self._name
-        obj = io.save_to_db(obj, connection, do_copy)
-        self._obj_id = obj.db_id
-        self._obj_type = obj.vtType
-        obj.locator = self
-        return obj
+        save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
+        primary_obj = save_bundle.get_primary_obj()
+        self._name = primary_obj.db_name
+        for obj in save_bundle.get_db_objs():
+            obj.locator = self
+        _hash = self.hash()
+        DBLocator.cache[_hash] = save_bundle
+        DBLocator.cache_timestamps[_hash] = primary_obj.db_last_modified
+        return save_bundle
+
+    def save(self, save_bundle, do_copy=False):
+        connection = self.get_connection()
+        for obj in save_bundle.get_db_objs():
+            obj.db_name = self._name
+        save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy)
+        primary_obj = save_bundle.get_primary_obj()
+        self._obj_id = primary_obj.db_id
+        self._obj_type = primary_obj.vtType
+        for obj in save_bundle.get_db_objs():
+            obj.locator = self
+        return save_bundle
 
     def serialize(self, dom, element):
         """serialize(dom, element) -> None

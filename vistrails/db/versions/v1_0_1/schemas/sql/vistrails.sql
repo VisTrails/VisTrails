@@ -23,6 +23,13 @@
 CREATE TABLE `vistrails_version`(`version` char(16)) engine=InnoDB;
 INSERT INTO `vistrails_version`(`version`) VALUES ('1.0.1');
 
+CREATE TABLE thumbnail(
+    id int not null auto_increment primary key,
+    file_name varchar(255),
+    image_bytes mediumblob,
+    last_modified datetime
+) engine=InnoDB;
+
 -- generated automatically by auto_dao.py
 
 CREATE TABLE port_spec(

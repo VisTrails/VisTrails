@@ -264,6 +264,12 @@ def main(argv=None):
                 "engine=InnoDB;\n")
         f.write("INSERT INTO `vistrails_version`(`version`) "
                 "VALUES ('%s');\n\n" % version)
+        f.write("CREATE TABLE thumbnail(\n"
+                "    id int not null auto_increment primary key,\n"
+                "    file_name varchar(255),\n"
+                "    image_bytes mediumblob,\n"
+                "    last_modified datetime\n"
+                ") engine=InnoDB;\n\n")
 	f.write(sqlAutoGen.generateSchema())
 	f.close()
 	
@@ -271,6 +277,7 @@ def main(argv=None):
 	f = open(schemaFile, 'w')
         f.write(COPYRIGHT_NOTICE)
         f.write("DROP TABLE IF EXISTS `vistrails_version`;\n\n")
+        f.write("DROP TABLE IF EXISTS thumbnail;\n\n")
 	f.write(sqlAutoGen.generateDeleteSchema())
 	f.close()
 

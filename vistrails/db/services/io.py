@@ -46,6 +46,101 @@ from db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
     translate_object, translate_vistrail, translate_workflow, translate_log, \
     translate_registry
 
+
+class SaveBundle(object):
+    """Transient bundle of objects to be saved or loaded.
+       The bundle type MUST be specified in the constructor; it should be
+       the the vtType of the primary object in the bundle. This parameter
+       identifies which object is the primary object when mutiple objects
+       are stored in the bundle.
+
+       Args is the (unordered) list of objects to be included in the bundle
+       (vistrail, workflow, log, registry, opm_graph).  Any args without a
+       'vtType' attribute are explicitly ignored (including any args=None).
+
+       As kwargs, you can specify 'abstractions=[]' or 'thumbnails=[]',
+       both of which should be a list of filenames as strings.  You can also
+       specify the other bundle objects as kwargs, but abstractions and
+       thumbnails cannot be args, since they are both lists, and there is no
+       vtType to differentiate between them.
+
+       As a final option, you can directly set the objects in the bundle,
+       self.vistrail = vistrail_object, self.thumbnails = thumbs_list, etc.,
+       before passing the SaveBundle to a locator.  Both abstractions and
+       thumbnails are intialized for convenience so that you can directly
+       append to them when using this step-by-step bundle creation method.
+
+    """
+
+    def __init__(self, bundle_type, *args, **kwargs):
+        self.bundle_type = bundle_type
+        self.vistrail = None
+        self.workflow = None
+        self.log = None
+        self.registry = None
+        self.opm_graph = None
+        self.abstractions = []
+        self.thumbnails = []
+        # Make all args into attrs using vtType as attr name
+        # This requires that attr names in this class match the vtTypes
+        # i.e. if arg's vtType is 'vistrail', self.vistrail = arg, etc...
+        for arg in args:
+            if hasattr(arg, 'vtType'):
+                setattr(self, arg.vtType, arg)
+        # Make all keyword args directly into attrs
+        for (k,v) in kwargs.iteritems():
+            setattr(self, k, v)
+
+    def get_db_objs(self):
+        """Gets a list containing only the DB* objects in the bundle"""
+        return [obj for obj in self.__dict__.itervalues() if obj is not None and type(obj) not in [type([]), type('')]]
+
+    def get_primary_obj(self):
+        """get_primary_obj() -> DB*
+           Gets the bundle's primary DB* object based on the bundle type.
+        """
+        return getattr(self, self.bundle_type)
+
+    def get_io_objs(self):
+        """get_io_objs() -> objs: (obj_type: str, obj: DB*)
+
+           obj_type: the object's vtType or '__file__' or '__thumb__'
+                     for abstractions and thumbnails, respectively
+           obj: a DB* object or a filename
+
+           Gets a list of (obj_type, obj) tuples suitable for consumption
+           by the db.services.io functions that use such a list of tuples.
+
+        """
+        objs = None
+        if self.bundle_type == DBVistrail.vtType and self.vistrail:
+            objs = [(self.vistrail.vtType, self.vistrail)]
+            if self.log:
+                objs.append((self.log.vtType, self.log))
+            objs.extend([('__file__', abstraction) for abstraction in self.abstractions])
+            objs.extend([('__thumb__', thumbnail) for thumbnail in self.thumbnails])
+        return objs
+
+    @staticmethod
+    def create_bundle_from_io_objs(bundle_type, objs):
+        """create_bundle_from_io_objs(bundle_type: str,
+                                      objs: (obj_type: str, obj: DB*)
+             -> SaveBundle
+
+           obj_type: the object's vtType or '__file__' or '__thumb__'
+                     for abstractions and thumbnails, respectively
+           obj: a DB* object or a filename
+
+           Creates a SaveBundle from a list of (obj_type, obj) tuples
+           returned by some of the db.services.io functions.
+
+        """
+        args = [obj for (obj_type, obj) in objs if obj_type != '__file__' and obj_type != '__thumb__']
+        abstracts = [obj for (obj_type, obj) in objs if obj_type == '__file__']
+        thumbs = [obj for (obj_type, obj) in objs if obj_type == '__thumb__']
+        return SaveBundle(bundle_type, *args, abstractions=abstracts, thumbnails=thumbs)
+
+
 _db_lib = None
 def get_db_lib():
     global _db_lib
@@ -57,6 +152,23 @@ def get_db_lib():
 def set_db_lib(lib):
     global _db_lib
     _db_lib = lib
+
+def format_prepared_statement(statement):
+    """format_prepared_statement(statement: str) -> str
+    Formats a prepared statement for compatibility with the currently
+    loaded database library's paramstyle.
+
+    Currently only supports 'qmark' and 'format' paramstyles.
+    May be expanded later to allow for more compatibility options
+    on input and output.  See PEP 249 for more info.
+
+    """
+    style = get_db_lib().paramstyle
+    if style == 'format':
+        return statement.replace("?", "%s")
+    elif style == 'qmark':
+        return statement.replace("%s", "?")
+    return statement
 
 def open_db_connection(config):
 
@@ -314,20 +426,35 @@ def save_to_xml(obj, filename, version=None):
         raise VistrailsDBException("cannot save object of type "
                                    "'%s' to xml" % type)
 
-def open_from_zip_xml(filename, type):
-    if type == DBVistrail.vtType:
-        return open_vistrail_from_zip_xml(filename)
+def open_bundle_from_zip_xml(bundle_type, filename):
+    if bundle_type == DBVistrail.vtType:
+        return open_vistrail_bundle_from_zip_xml(filename)
     else:
-        raise VistrailsDBException("cannot open object of type '%s' from zip" %\
-                                       type)
+        raise VistrailsDBException("cannot open bundle of type '%s' from zip" %\
+                                       bundle_type)
 
-def save_to_zip_xml(objs, filename, tmp_dir=None, version=None):
-    obj_type = objs[0][0]
-    if obj_type == DBVistrail.vtType:
-        return save_vistrail_to_zip_xml(objs, filename, tmp_dir, version)
+def save_bundle_to_zip_xml(save_bundle, filename, tmp_dir=None, version=None):
+    bundle_type = save_bundle.bundle_type
+    if bundle_type == DBVistrail.vtType:
+        return save_vistrail_bundle_to_zip_xml(save_bundle, filename, tmp_dir, version)
     else:
-        raise VistrailsDBException("cannot save object of type '%s' to zip" % \
-                                       obj_type)
+        raise VistrailsDBException("cannot save bundle of type '%s' to zip" % \
+                                       bundle_type)
+
+def open_bundle_from_db(bundle_type, connection, primary_obj_id, tmp_dir=None):
+    if bundle_type == DBVistrail.vtType:
+        return open_vistrail_bundle_from_db(connection, primary_obj_id, tmp_dir)
+    else:
+        raise VistrailsDBException("cannot open bundle of type '%s' from db" %\
+                                       bundle_type)
+
+def save_bundle_to_db(save_bundle, connection, do_copy=False):
+    bundle_type = save_bundle.bundle_type
+    if bundle_type == DBVistrail.vtType:
+        return save_vistrail_bundle_to_db(save_bundle, connection, do_copy)
+    else:
+        raise VistrailsDBException("cannot save bundle of type '%s' to db" % \
+                                       bundle_type)
 
 def open_from_db(db_connection, type, obj_id):
     if type == DBVistrail.vtType:
@@ -410,10 +537,13 @@ def open_vistrail_from_xml(filename):
         raise VistrailsDBException(msg)
     return vistrail
 
-def open_vistrail_from_zip_xml(filename):
-    """open_vistrail_from_zip_xml(filename) -> Vistrail
+def open_vistrail_bundle_from_zip_xml(filename):
+    """open_vistrail_bundle_from_zip_xml(filename) -> SaveBundle
     Open a vistrail from a zip compressed format.
-    It expects that the file inside archive has name vistrail
+    It expects that the vistrail file inside archive has name 'vistrail',
+    the log inside archive has name 'log',
+    abstractions inside archive have prefix 'abstraction_',
+    and thumbnails inside archive are '.png' files in 'thumbs' dir
 
     """
 
@@ -463,16 +593,22 @@ def open_vistrail_from_zip_xml(filename):
         raise VistrailsDBException("vt file does not contain vistrail")
     vistrail.db_log_filename = log_fname
 
-    objs = [(DBVistrail.vtType, vistrail)]
-    if log is not None:
-        objs.append((DBLog.vtType, log))
-    for abstraction_file in abstraction_files:
-        objs.append(('__file__', abstraction_file))
-    for thumbnail_file in thumbnail_files:
-        objs.append(('__thumb__', thumbnail_file))
-        
-    return (objs, vt_save_dir)
-            
+    save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=abstraction_files, thumbnails=thumbnail_files)
+    return (save_bundle, vt_save_dir)
+
+def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
+    """open_vistrail_bundle_from_db(db_connection, id: long, tmp_dir: str) -> SaveBundle
+       Open a vistrail bundle from the database.
+
+    """
+    vistrail = open_vistrail_from_db(db_connection, vistrail_id)
+    # FIXME open log from db
+    log = None
+    # FIXME open abstractions from db
+    abstractions = []
+    thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType, vistrail_id, tmp_dir)
+    return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=abstractions, thumbnails=thumbnails)
+
 def open_vistrail_from_db(db_connection, id, lock=False, version=None):
     """open_vistrail_from_db(db_connection, id : long, lock: bool, 
                              version: str) 
@@ -516,86 +652,88 @@ def save_vistrail_to_xml(vistrail, filename, version=None):
     vistrail.db_currentVersion = current_action
     return vistrail
 
-def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
-    """save_vistrail_to_zip_xml(objs: (string, object, fname), filename:str,
-                                vt_save_dir: str, version: str) -> None
-    string: either the object's vtType or 'file' (we are copying a file)
-    object: a DB* object or filename
-    fname: the filename of the object in the zip file
-    filename: filename to save to
-    temp_dir: directory storing any previous files
+def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, version=None):
+    """save_vistrail_bundle_to_zip_xml(save_bundle: SaveBundle, filename: str,
+                                vt_save_dir: str, version: str)
+         -> (save_bundle: SaveBundle, vt_save_dir: str)
 
-    Generate a zip compressed version of vistrail.
-    It raise an Exception if there was an error
+    save_bundle: a SaveBundle object containing vistrail data to save
+    filename: filename to save to
+    vt_save_dir: directory storing any previous files
+
+    Generates a zip compressed version of vistrail.
+    It raises an Exception if there was an error.
     
     """
 
     core.requirements.require_executable('zip')
 
-    vistrail = objs[0]
-    if vistrail[1].vtType != DBVistrail.vtType or \
-            vistrail[0] != DBVistrail.vtType:
-        raise VistrailsDBException('save_vistrail_to_zip_xml failed, object '
-                                   'is not a vistrail')
+    if save_bundle.vistrail is None:
+        raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
+                                   'bundle does not contain a vistrail')
     if not vt_save_dir:
         vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     # saving zip files flat so we'll do without this dir for now
     # abstraction_dir = os.path.join(vt_save_dir, 'abstractions')
     thumbnail_dir = os.path.join(vt_save_dir, 'thumbs')
-    
-    for (obj_type, obj) in objs:
-        if obj_type == '__file__':
-            if type(obj) == type(""):
-                # FIXME we should have an abstraction directory here instead
-                # of the abstraction_ prefix...
-                if not os.path.basename(obj).startswith('abstraction_'):
-                    obj_fname = 'abstraction_' + os.path.basename(obj)
-                else:
-                    obj_fname = os.path.basename(obj)
-                # xml_fname = os.path.join(abstraction_dir, obj_fname)
-                xml_fname = os.path.join(vt_save_dir, obj_fname)
-                # if not os.path.exists(abstraction_dir):
-                #     os.mkdir(abstraction_dir)
-                # print "obj:", obj
-                # print "xml_fname:", xml_fname
-                if obj != xml_fname:
-                    # print 'copying %s -> %s' % (obj, xml_fname)
-                    try:
-                        shutil.copyfile(obj, xml_fname)
-                    except Exception, e:
-                        debug.critical('copying %s -> %s failed: %s' % \
-                                           (obj, xml_fname, str(e)))
+
+    # Save Vistrail
+    xml_fname = os.path.join(vt_save_dir, 'vistrail')
+    save_vistrail_to_xml(save_bundle.vistrail, xml_fname, version)
+
+    # Save Log
+    if save_bundle.log is not None:
+        xml_fname = os.path.join(vt_save_dir, 'log')
+        save_log_to_xml(save_bundle.log, xml_fname, version, True)
+
+    # Save Abstractions
+    saved_abstractions = []
+    for obj in save_bundle.abstractions:
+        if type(obj) == type(""):
+            # FIXME we should have an abstraction directory here instead
+            # of the abstraction_ prefix...
+            if not os.path.basename(obj).startswith('abstraction_'):
+                obj_fname = 'abstraction_' + os.path.basename(obj)
             else:
-                raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
-                                           '__file__ must have a filename '
-                                           'as obj')
-        elif obj_type == '__thumb__':
-            if type(obj) == type(""):
                 obj_fname = os.path.basename(obj)
-                png_fname = os.path.join(thumbnail_dir, obj_fname)
-                if not os.path.exists(thumbnail_dir):
-                    os.mkdir(thumbnail_dir)
-                if not os.path.exists(png_fname):
-                    #print 'copying %s -> %s' %(obj, png_fname)
-                    try:
-                        shutil.copyfile(obj, png_fname)
-                    except Exception, e:
-                        debug.critical('copying %s -> %s failed: %s' % \
-                                           (obj, png_fname, str(e))) 
-            else:
-                raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
-                                           '__thumb__ must have a filename '
-                                           'as obj')
-        elif obj_type == DBLog.vtType:
-            xml_fname = os.path.join(vt_save_dir, 'log')
-            save_log_to_xml(obj, xml_fname, version, True)
-        elif obj_type == DBVistrail.vtType:
-            xml_fname = os.path.join(vt_save_dir, 'vistrail')
-            save_vistrail_to_xml(obj, xml_fname, version)
+            # xml_fname = os.path.join(abstraction_dir, obj_fname)
+            xml_fname = os.path.join(vt_save_dir, obj_fname)
+            saved_abstractions.append(xml_fname)
+            # if not os.path.exists(abstraction_dir):
+            #     os.mkdir(abstraction_dir)
+            # print "obj:", obj
+            # print "xml_fname:", xml_fname
+            if obj != xml_fname:
+                # print 'copying %s -> %s' % (obj, xml_fname)
+                try:
+                    shutil.copyfile(obj, xml_fname)
+                except Exception, e:
+                    saved_abstractions.pop()
+                    debug.critical('copying %s -> %s failed: %s' % \
+                                       (obj, xml_fname, str(e)))
         else:
-            raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
-                                       "type '%s' unrecognized" % obj_type)
-        
+            raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
+                                       'abstraction list entry must be a filename')
+    # Save Thumbnails
+    saved_thumbnails = []
+    for obj in save_bundle.thumbnails:
+        if type(obj) == type(""):
+            obj_fname = os.path.basename(obj)
+            png_fname = os.path.join(thumbnail_dir, obj_fname)
+            saved_thumbnails.append(png_fname)
+            if not os.path.exists(thumbnail_dir):
+                os.mkdir(thumbnail_dir)
+            if not os.path.exists(png_fname):
+                #print 'copying %s -> %s' %(obj, png_fname)
+                try:
+                    shutil.copyfile(obj, png_fname)
+                except Exception, e:
+                    saved_thumbnails.pop()
+                    debug.critical('copying %s -> %s failed: %s' % \
+                                       (obj, png_fname, str(e))) 
+        else:
+            raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
+                                       'thumbnail list entry must be a filename')
 
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
@@ -625,9 +763,23 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
     finally:
         os.unlink(tmp_zip_file)
         os.rmdir(tmp_zip_dir)
-    
-    return (objs, vt_save_dir)
-            
+    save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail, save_bundle.log, thumbnails=saved_thumbnails, abstractions=saved_abstractions)
+    return (save_bundle, vt_save_dir)
+
+def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False):
+    if save_bundle.vistrail is None:
+        raise VistrailsDBException('save_vistrail_bundle_to_db failed, '
+                                   'bundle does not contain a vistrail')
+    vistrail = save_vistrail_to_db(save_bundle.vistrail, db_connection, do_copy)
+    log = None
+    if save_bundle.log is not None:
+        # Set foreign key 'vistrail_id' for the log to point at its vistrail
+        save_bundle.log.db_vistrail_id = vistrail.db_id
+        log = save_log_to_db(save_bundle.log, db_connection, do_copy)
+    # FIXME Save abstractions to the db
+    save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
+    return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))
+
 def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
@@ -978,6 +1130,135 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
     return abstraction
 
 ##############################################################################
+# Thumbnail I/O
+
+def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
+    """open_thumbnails_from_db(db_connection, obj_type: DB*,
+                            obj_id: long, tmp_dir: str) -> [str]
+
+    Gets a list of all thumbnails associated with this object from the
+    annotations table in the db (by comparing obj_type with the column
+    'entity_type' and obj_id with the column 'entity_id') and for any
+    thumbnails not found in tmp_dir, they are retreived from the db and
+    saved into tmp_dir.
+    Returns a list of absolute file paths for all thumbnails associated
+    with this object that exist in tmp_dir after the function has run.
+
+    """
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    if tmp_dir is None:
+        return []
+
+    # First get associated file names from annotation table
+    prepared_statement = format_prepared_statement(
+    """
+    SELECT a.value
+    FROM annotation a
+    WHERE a.akey = '__thumb__' AND a.entity_id = ? AND a.entity_type = ?
+    """)
+    try:
+        c = db_connection.cursor()
+        c.execute(prepared_statement, (obj_id, obj_type))
+        file_names = [file_name for (file_name,) in c.fetchall()]
+        c.close()
+    except get_db_lib().Error, e:
+        msg = "Couldn't get thumbnails list from db (%d : %s)" % \
+            (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
+
+    # Next get all thumbnails from the db that aren't already in tmp_dir
+    get_db_file_names = [fname for fname in file_names if fname not in os.listdir(tmp_dir)]
+    for file_name in get_db_file_names:
+        prepared_statement = format_prepared_statement(
+        """
+        SELECT t.image_bytes
+        FROM thumbnail t
+        WHERE t.file_name = ?
+        """)
+        try:
+            c = db_connection.cursor()
+            c.execute(prepared_statement, (file_name,))
+            row = c.fetchone()
+            c.close()
+        except get_db_lib().Error, e:
+            msg = "Couldn't get thumbnail from db (%d : %s)" % \
+                (e.args[0], e.args[1])
+            raise VistrailsDBException(msg)
+        if row is not None:
+            image_bytes = row[0]
+            try:
+                absfname = os.path.join(tmp_dir, file_name)
+                image_file = open(absfname, 'wb')
+                image_file.write(image_bytes)
+                image_file.close()
+            except IOError, e:
+                msg = "Couldn't write thumbnail file to disk: %s" % absfname
+                raise VistrailsDBException(msg)
+        else:
+            print "db: Referenced thumbnail not found locally or in the database: '%s'" % file_name
+    # Return only thumbnails that now exist locally
+    return [os.path.join(tmp_dir, file_name) for file_name in file_names if file_name in os.listdir(tmp_dir)]
+
+def save_thumbnails_to_db(absfnames, db_connection):
+    """save_thumbnails_to_db(absfnames: list, db_connection) -> None
+    Saves all thumbnails from a list of local absolute file paths into the db,
+    except those already present on the db.
+
+    """
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    if absfnames is None or len(absfnames) == 0:
+        return None
+
+    # Determine which thumbnails already exist in db
+    statement = """
+    SELECT t.file_name
+    FROM thumbnail t
+    WHERE t.file_name IN %s
+    """
+    check_file_names = [os.path.basename(absfname).replace("'", "''").replace("\\", "\\\\") for absfname in absfnames]
+    # SQL syntax needs SOMETHING if list is empty - use filename that's illegal on all platforms
+    check_file_names.append(':/')
+    sql_in_token = str(tuple(check_file_names))
+    try:
+        c = db_connection.cursor()
+        c.execute(statement % sql_in_token)
+        db_file_names = [file_name for (file_name,) in c.fetchall()]
+        c.close()
+    except get_db_lib().Error, e:
+        msg = "Couldn't check which thumbnails already exist in db (%d : %s)" % \
+            (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
+    insert_absfnames = [absfname for absfname in absfnames if os.path.basename(absfname) not in db_file_names]
+
+    # Save any thumbnails that don't already exist in db
+    prepared_statement = format_prepared_statement(
+    """
+    INSERT INTO thumbnail(file_name, image_bytes, last_modified)
+    VALUES (?, ?, ?)
+    """)
+    try:
+        c = db_connection.cursor()
+        for absfname in insert_absfnames:
+            image_file = open(absfname, 'rb')
+            image_bytes = image_file.read()
+            image_file.close()
+            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, get_current_time(db_connection).strftime('%Y-%m-%d %H:%M:%S')))
+            db_connection.commit()
+        c.close()
+    except IOError, e:
+        msg = "Couldn't read thumbnail file for writing to db: %s" % absfname
+        raise VistrailsDBException(msg)
+    except get_db_lib().Error, e:
+        msg = "Couldn't insert thumbnail into db (%d : %s)" % \
+            (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
+    return None
+
+##############################################################################
 # I/O Utilities
 
 def delete_entity_from_db(db_connection, type, obj_id):
@@ -1070,10 +1351,11 @@ class TestDBIO(unittest.TestCase):
         """test importing a vt file"""
 
         # FIXME include abstractions
-        (objs, vt_save_dir) = open_vistrail_from_zip_xml( \
+        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
+            DBVistrail.vtType,
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.vt'))
-        assert objs[0][1] is not None
+        assert save_bundle.vistrail is not None
 
     def test4(self):
         """ test saving a vt file """
@@ -1082,11 +1364,12 @@ class TestDBIO(unittest.TestCase):
         filename = os.path.join(core.system.vistrails_root_directory(),
                                 'tests/resources/dummy_new_temp.vt')
     
-        (objs, vt_save_dir) = open_vistrail_from_zip_xml( \
+        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
+            DBVistrail.vtType,
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.vt'))
         try:
-            save_vistrail_to_zip_xml(objs, filename, vt_save_dir)
+            save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
             if os.path.isfile(filename):
                 os.unlink(filename)
         except Exception, e:

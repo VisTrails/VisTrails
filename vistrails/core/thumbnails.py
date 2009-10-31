@@ -173,10 +173,10 @@ class ThumbnailCache(object):
             self.elements[fname] = entry
         return fname
         
-    def add_entries_from_vtfile(self, absfnames):
-        """add_entries_from_vtfile(absfnames: list of str) -> None
-        In this case the files already exist in a temp file. We just keep a 
-        reference to them.
+    def add_entries_from_files(self, absfnames):
+        """add_entries_from_files(absfnames: list of str) -> None
+        In this case the files already exist somewhere on disk.
+        We just keep references to them.
         
         """
         for abs_fname in absfnames:
@@ -186,7 +186,7 @@ class ThumbnailCache(object):
             time = float(statinfo[8])
             entry = CacheEntry(abs_fname, fname, time, size)
             self.vtelements[fname] = entry
-            
+
     @staticmethod
     def _delete_files(dirname):
         """delete_files(dirname: str) -> None

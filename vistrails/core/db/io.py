@@ -24,6 +24,7 @@ from core.vistrail.action import Action
 from core.log.log import Log
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from core.vistrail.vistrail import Vistrail
+from db.services.io import SaveBundle
 import db.services.io
 import db.services.vistrail
 import db.services.action
@@ -65,13 +66,10 @@ def load_vistrail(locator, is_abstraction=False):
             vistrail = Vistrail()
         else:
             res = locator.load()
-            if type(res) == type([]):
-                vistrail = res[0][1]
-                for (t, file) in res[1:]:
-                    if t == '__file__':
-                        abstraction_files.append(file)
-                    elif t == '__thumb__':
-                        thumbnail_files.append(file)
+            if type(res) == type(SaveBundle(None)):
+                vistrail = res.vistrail
+                abstraction_files.extend(res.abstractions)
+                thumbnail_files.extend(res.thumbnails)
             else:
                 vistrail = res
         vistrail.is_abstraction = is_abstraction
