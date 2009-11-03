@@ -166,7 +166,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                 obj_type=None,
                                 connection_id=None)
         
-            v = locator.load()
+            (v, abstractions , thumbnails)  = io.load_vistrail(locator)
             if v.has_tag_with_name(vt_tag):
                 version = v.get_tag_by_name(vt_tag).time
             self.server_logger.info("Answer: %s"%version)
