@@ -127,10 +127,22 @@ def perform_analogy_on_vistrail(vistrail,
         module_c = pipeline_c.modules[c_id]
         sum_cx += module_c.location.x
         sum_cy += module_c.location.y
-    avg_ax = sum_ax / len(module_remap) if len(module_remap) != 0 else 0.0
-    avg_ay = sum_ay / len(module_remap) if len(module_remap) != 0 else 0.0
-    avg_cx = sum_cx / len(module_remap) if len(module_remap) != 0 else 0.0
-    avg_cy = sum_cy / len(module_remap) if len(module_remap) != 0 else 0.0
+        
+    if len(module_remap) != 0:
+        avg_ax = sum_ax / len(module_remap)
+        avg_ay = sum_ay / len(module_remap)
+        avg_cx = sum_cx / len(module_remap)
+        avg_cy = sum_cy / len(module_remap)
+    else:
+        avg_ax = 0.0
+        avg_ay = 0.0
+        avg_cx = 0.0
+        avg_cy = 0.0
+        
+#    avg_ax = sum_ax / len(module_remap) if len(module_remap) != 0 else 0.0
+#    avg_ay = sum_ay / len(module_remap) if len(module_remap) != 0 else 0.0
+#    avg_cx = sum_cx / len(module_remap) if len(module_remap) != 0 else 0.0
+#    avg_cy = sum_cy / len(module_remap) if len(module_remap) != 0 else 0.0
         
     for (a_id, c_id) in connection_remap.iteritems():
         id_remap[('connection', a_id)] = c_id
