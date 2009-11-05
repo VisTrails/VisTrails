@@ -409,10 +409,10 @@ def open_bundle_from_db(bundle_type, connection, primary_obj_id, tmp_dir=None):
         raise VistrailsDBException("cannot open bundle of type '%s' from db" %\
                                        bundle_type)
 
-def save_bundle_to_db(save_bundle, connection, do_copy=False):
+def save_bundle_to_db(save_bundle, connection, do_copy=False, version=None):
     bundle_type = save_bundle.bundle_type
     if bundle_type == DBVistrail.vtType:
-        return save_vistrail_bundle_to_db(save_bundle, connection, do_copy)
+        return save_vistrail_bundle_to_db(save_bundle, connection, do_copy, version)
     else:
         raise VistrailsDBException("cannot save bundle of type '%s' to db" % \
                                        bundle_type)
@@ -727,16 +727,16 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail, save_bundle.log, thumbnails=saved_thumbnails, abstractions=saved_abstractions)
     return (save_bundle, vt_save_dir)
 
-def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False):
+def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None):
     if save_bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_db failed, '
                                    'bundle does not contain a vistrail')
-    vistrail = save_vistrail_to_db(save_bundle.vistrail, db_connection, do_copy)
+    vistrail = save_vistrail_to_db(save_bundle.vistrail, db_connection, do_copy, version)
     log = None
     if save_bundle.log is not None:
         # Set foreign key 'vistrail_id' for the log to point at its vistrail
         save_bundle.log.db_vistrail_id = vistrail.db_id
-        log = save_log_to_db(save_bundle.log, db_connection, do_copy)
+        log = save_log_to_db(save_bundle.log, db_connection, do_copy, version)
     # FIXME Save abstractions to the db
     save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
     return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))

@@ -189,7 +189,7 @@ class DBLocator(_DBLocator, CoreLocator):
         return save_bundle
 
     def save_as(self, save_bundle, version=None):
-        save_bundle = _DBLocator.save(self, save_bundle, True)
+        save_bundle = _DBLocator.save(self, save_bundle, True, version)
         for obj in save_bundle.get_db_objs():
             klass = self.get_convert_klass(obj.vtType)
             klass.convert(obj)

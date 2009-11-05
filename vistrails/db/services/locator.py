@@ -38,11 +38,11 @@ class BaseLocator(object):
     def load(self):
         pass # returns an object
 
-    def save(self, obj):
+    def save(self, obj, do_copy=True, version=None):
         pass # saves an object in the given place
 
-    def save_as(self, obj):
-        return self.save(obj) # calls save by default
+    def save_as(self, obj, version=None):
+        return self.save(obj, True, version) # calls save by default
 
     def close(self):
         pass # closes locator
@@ -495,11 +495,11 @@ class DBLocator(BaseLocator):
         DBLocator.cache_timestamps[_hash] = primary_obj.db_last_modified
         return save_bundle
 
-    def save(self, save_bundle, do_copy=False):
+    def save(self, save_bundle, do_copy=False, version=None):
         connection = self.get_connection()
         for obj in save_bundle.get_db_objs():
             obj.db_name = self._name
-        save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy)
+        save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy, version)
         primary_obj = save_bundle.get_primary_obj()
         self._obj_id = primary_obj.db_id
         self._obj_type = primary_obj.vtType
