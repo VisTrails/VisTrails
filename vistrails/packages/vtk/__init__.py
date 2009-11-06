@@ -231,8 +231,11 @@ def prune_signatures(module, name, signatures, output=False):
             name == 'PlaceWidget' and
             flattened == []):
             return True
-        # We forbid this because addPorts hardcodes this
-        if get_description_class(module.vtkClass) == vtk.vtkAlgorithm:
+        # We forbid this because addPorts hardcodes this but
+        # SetInputArrayToProcess is an exception for the InfoVis
+        # package
+        if (get_description_class(module.vtkClass) == vtk.vtkAlgorithm and
+            name!='SetInputArrayToProcess'):
             return True
         return False
 
