@@ -504,7 +504,7 @@ disallowed_other_ports = set(
      'RemoveObserver',
      'RemoveObservers',
      'SafeDownCast',
-     'SetInputArrayToProcess',
+#     'SetInputArrayToProcess',
      'ShallowCopy',
      'Update',
      'UpdateInformation',
