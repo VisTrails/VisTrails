@@ -458,11 +458,56 @@ class AutoGen:
                                        '(obj, trans_dict))\n')
                 if field.isPlural():
                     self.unindent()
+                if not field.isInverse():
+                    self.unindentLine("if hasattr(old_obj, 'db_deleted_%s') "
+                                      "and hasattr(new_obj, "
+                                      "'db_deleted_%s'):\n" % \
+                                          (field.getRegularName(), 
+                                           field.getRegularName()))
+                    refObj = self.getReferencedObject(field.getReference())
+                    self.indentLine("for obj in old_obj.db_deleted_%s:\n" % \
+                                        field.getRegularName())
+                    if field.isChoice():
+                        cond = 'if'
+                        self.indent()
+                        for prop in field.properties:
+                            if prop.isReference():
+                                propRefObj = self.getReferencedObject(
+                                    prop.getReference())
+                            else:
+                                raise Exception("Should not get here")
+                            self.printLine("%s obj.vtType == '%s':\n" % \
+                                               (cond, 
+                                                propRefObj.getRegularName()))
+                            # FIXME: this doesn't work because plural
+                            # field should really handle--it's not
+                            # individual so need to be careful when handling
+                            # referenced objects
+                            # self.indentLine("if '%s' in class_dict:\n" % \
+                            #                       field.getRegularName())
+                            # self.indentLine("n_obj = class_dict['%s']("
+                            #                 "old_obj, trans_dict)\n" % \
+                            #                     field.getRegularName())
+                            # self.unindentLine("else:\n")
+                            self.indentLine("n_obj = %s.update_version("
+                                            "obj, trans_dict)\n" % \
+                                                propRefObj.getClassName())
+                            self.printLine("new_obj.db_deleted_%s.append("
+                                           "n_obj)\n" % field.getRegularName())
+                            self.unindent()
+                            cond = 'elif'
+                    else:
+                        self.indentLine("n_obj = %s.update_version(obj, "
+                                       "trans_dict)\n" % refObj.getClassName())
+                        self.printLine("new_obj.db_deleted_%s.append("
+                                       "n_obj)\n" % field.getRegularName())
+                    self.unindent()
             else:
                 self.indentLine('new_obj.%s = old_obj.%s\n' % \
                                     (field.getFieldName(), 
                                      field.getFieldName()))
 
+        
         self.unindentLine('new_obj.is_new = old_obj.is_new\n')
         self.printLine('new_obj.is_dirty = old_obj.is_dirty\n')
         self.printLine('return new_obj\n\n')

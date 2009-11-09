@@ -166,18 +166,30 @@ class DBOpmWasGeneratedBy(object):
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
             new_obj.db_add_effect(DBOpmArtifactIdEffect.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
+            for obj in old_obj.db_deleted_effect:
+                n_obj = DBOpmArtifactIdEffect.update_version(obj, trans_dict)
+                new_obj.db_deleted_effect.append(n_obj)
         if 'role' in class_dict:
             res = class_dict['role'](old_obj, trans_dict)
             new_obj.db_role = res
         elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
             obj = old_obj.db_role
             new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
+            for obj in old_obj.db_deleted_role:
+                n_obj = DBOpmRole.update_version(obj, trans_dict)
+                new_obj.db_deleted_role.append(n_obj)
         if 'cause' in class_dict:
             res = class_dict['cause'](old_obj, trans_dict)
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
             new_obj.db_add_cause(DBOpmProcessIdCause.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
+            for obj in old_obj.db_deleted_cause:
+                n_obj = DBOpmProcessIdCause.update_version(obj, trans_dict)
+                new_obj.db_deleted_cause.append(n_obj)
         if 'accounts' in class_dict:
             res = class_dict['accounts'](old_obj, trans_dict)
             for obj in res:
@@ -185,6 +197,10 @@ class DBOpmWasGeneratedBy(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         if 'opm_times' in class_dict:
             res = class_dict['opm_times'](old_obj, trans_dict)
             for obj in res:
@@ -192,6 +208,10 @@ class DBOpmWasGeneratedBy(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
+            for obj in old_obj.db_deleted_opm_times:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_times.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -407,6 +427,10 @@ class DBOpmAccounts(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccount.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccount.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         if 'opm_overlapss' in class_dict:
             res = class_dict['opm_overlapss'](old_obj, trans_dict)
             for obj in res:
@@ -414,6 +438,10 @@ class DBOpmAccounts(object):
         elif hasattr(old_obj, 'db_opm_overlapss') and old_obj.db_opm_overlapss is not None:
             for obj in old_obj.db_opm_overlapss:
                 new_obj.db_add_opm_overlaps(DBOpmOverlaps.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_overlapss') and hasattr(new_obj, 'db_deleted_opm_overlapss'):
+            for obj in old_obj.db_deleted_opm_overlapss:
+                n_obj = DBOpmOverlaps.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_overlapss.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -826,6 +854,10 @@ class DBModule(object):
         elif hasattr(old_obj, 'db_location') and old_obj.db_location is not None:
             obj = old_obj.db_location
             new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_location') and hasattr(new_obj, 'db_deleted_location'):
+            for obj in old_obj.db_deleted_location:
+                n_obj = DBLocation.update_version(obj, trans_dict)
+                new_obj.db_deleted_location.append(n_obj)
         if 'functions' in class_dict:
             res = class_dict['functions'](old_obj, trans_dict)
             for obj in res:
@@ -833,6 +865,10 @@ class DBModule(object):
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
                 new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
+            for obj in old_obj.db_deleted_functions:
+                n_obj = DBFunction.update_version(obj, trans_dict)
+                new_obj.db_deleted_functions.append(n_obj)
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
@@ -840,6 +876,10 @@ class DBModule(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         if 'portSpecs' in class_dict:
             res = class_dict['portSpecs'](old_obj, trans_dict)
             for obj in res:
@@ -847,6 +887,10 @@ class DBModule(object):
         elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
                 new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_portSpecs') and hasattr(new_obj, 'db_deleted_portSpecs'):
+            for obj in old_obj.db_deleted_portSpecs:
+                n_obj = DBPortSpec.update_version(obj, trans_dict)
+                new_obj.db_deleted_portSpecs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -1264,6 +1308,10 @@ class DBModuleDescriptor(object):
         elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
                 new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_portSpecs') and hasattr(new_obj, 'db_deleted_portSpecs'):
+            for obj in old_obj.db_deleted_portSpecs:
+                n_obj = DBPortSpec.update_version(obj, trans_dict)
+                new_obj.db_deleted_portSpecs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -1651,6 +1699,10 @@ class DBOpmProcesses(object):
         elif hasattr(old_obj, 'db_processs') and old_obj.db_processs is not None:
             for obj in old_obj.db_processs:
                 new_obj.db_add_process(DBOpmProcess.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_processs') and hasattr(new_obj, 'db_deleted_processs'):
+            for obj in old_obj.db_deleted_processs:
+                n_obj = DBOpmProcess.update_version(obj, trans_dict)
+                new_obj.db_deleted_processs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -2026,6 +2078,10 @@ class DBOpmArtifact(object):
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             obj = old_obj.db_value
             new_obj.db_add_value(DBOpmArtifactValue.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
+            for obj in old_obj.db_deleted_value:
+                n_obj = DBOpmArtifactValue.update_version(obj, trans_dict)
+                new_obj.db_deleted_value.append(n_obj)
         if 'accounts' in class_dict:
             res = class_dict['accounts'](old_obj, trans_dict)
             for obj in res:
@@ -2033,6 +2089,10 @@ class DBOpmArtifact(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -2216,6 +2276,10 @@ class DBGroup(object):
         elif hasattr(old_obj, 'db_workflow') and old_obj.db_workflow is not None:
             obj = old_obj.db_workflow
             new_obj.db_add_workflow(DBWorkflow.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_workflow') and hasattr(new_obj, 'db_deleted_workflow'):
+            for obj in old_obj.db_deleted_workflow:
+                n_obj = DBWorkflow.update_version(obj, trans_dict)
+                new_obj.db_deleted_workflow.append(n_obj)
         if 'cache' in class_dict:
             res = class_dict['cache'](old_obj, trans_dict)
             new_obj.db_cache = res
@@ -2252,6 +2316,10 @@ class DBGroup(object):
         elif hasattr(old_obj, 'db_location') and old_obj.db_location is not None:
             obj = old_obj.db_location
             new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_location') and hasattr(new_obj, 'db_deleted_location'):
+            for obj in old_obj.db_deleted_location:
+                n_obj = DBLocation.update_version(obj, trans_dict)
+                new_obj.db_deleted_location.append(n_obj)
         if 'functions' in class_dict:
             res = class_dict['functions'](old_obj, trans_dict)
             for obj in res:
@@ -2259,6 +2327,10 @@ class DBGroup(object):
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
                 new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
+            for obj in old_obj.db_deleted_functions:
+                n_obj = DBFunction.update_version(obj, trans_dict)
+                new_obj.db_deleted_functions.append(n_obj)
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
@@ -2266,6 +2338,10 @@ class DBGroup(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -2639,6 +2715,10 @@ class DBLog(object):
         elif hasattr(old_obj, 'db_workflow_execs') and old_obj.db_workflow_execs is not None:
             for obj in old_obj.db_workflow_execs:
                 new_obj.db_add_workflow_exec(DBWorkflowExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_workflow_execs') and hasattr(new_obj, 'db_deleted_workflow_execs'):
+            for obj in old_obj.db_deleted_workflow_execs:
+                n_obj = DBWorkflowExec.update_version(obj, trans_dict)
+                new_obj.db_deleted_workflow_execs.append(n_obj)
         if 'machines' in class_dict:
             res = class_dict['machines'](old_obj, trans_dict)
             for obj in res:
@@ -2646,6 +2726,10 @@ class DBLog(object):
         elif hasattr(old_obj, 'db_machines') and old_obj.db_machines is not None:
             for obj in old_obj.db_machines:
                 new_obj.db_add_machine(DBMachine.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_machines') and hasattr(new_obj, 'db_deleted_machines'):
+            for obj in old_obj.db_deleted_machines:
+                n_obj = DBMachine.update_version(obj, trans_dict)
+                new_obj.db_deleted_machines.append(n_obj)
         if 'vistrail_id' in class_dict:
             res = class_dict['vistrail_id'](old_obj, trans_dict)
             new_obj.db_vistrail_id = res
@@ -2911,6 +2995,10 @@ class DBOpmAgents(object):
         elif hasattr(old_obj, 'db_agents') and old_obj.db_agents is not None:
             for obj in old_obj.db_agents:
                 new_obj.db_add_agent(DBOpmAgent.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_agents') and hasattr(new_obj, 'db_deleted_agents'):
+            for obj in old_obj.db_deleted_agents:
+                n_obj = DBOpmAgent.update_version(obj, trans_dict)
+                new_obj.db_deleted_agents.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -3307,6 +3395,44 @@ class DBAdd(object):
                 new_obj.db_add_data(DBOther.update_version(obj, trans_dict))
             elif obj.vtType == 'plugin_data':
                 new_obj.db_add_data(DBPluginData.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_data') and hasattr(new_obj, 'db_deleted_data'):
+            for obj in old_obj.db_deleted_data:
+                if obj.vtType == 'module':
+                    n_obj = DBModule.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'location':
+                    n_obj = DBLocation.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'annotation':
+                    n_obj = DBAnnotation.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'function':
+                    n_obj = DBFunction.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'connection':
+                    n_obj = DBConnection.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'port':
+                    n_obj = DBPort.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'parameter':
+                    n_obj = DBParameter.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'portSpec':
+                    n_obj = DBPortSpec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'abstraction':
+                    n_obj = DBAbstraction.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'group':
+                    n_obj = DBGroup.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'other':
+                    n_obj = DBOther.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'plugin_data':
+                    n_obj = DBPluginData.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -3710,6 +3836,10 @@ class DBOpmOverlaps(object):
         elif hasattr(old_obj, 'db_opm_account_ids') and old_obj.db_opm_account_ids is not None:
             for obj in old_obj.db_opm_account_ids:
                 new_obj.db_add_opm_account_id(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_account_ids') and hasattr(new_obj, 'db_deleted_opm_account_ids'):
+            for obj in old_obj.db_deleted_opm_account_ids:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_account_ids.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -3815,6 +3945,10 @@ class DBOpmArtifacts(object):
         elif hasattr(old_obj, 'db_artifacts') and old_obj.db_artifacts is not None:
             for obj in old_obj.db_artifacts:
                 new_obj.db_add_artifact(DBOpmArtifact.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_artifacts') and hasattr(new_obj, 'db_deleted_artifacts'):
+            for obj in old_obj.db_deleted_artifacts:
+                n_obj = DBOpmArtifact.update_version(obj, trans_dict)
+                new_obj.db_deleted_artifacts.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -3947,6 +4081,23 @@ class DBOpmDependencies(object):
                     new_obj.db_add_dependency(DBOpmWasDerivedFrom.update_version(obj, trans_dict))
                 elif obj.vtType == 'opm_was_controlled_by':
                     new_obj.db_add_dependency(DBOpmWasControlledBy.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_dependencys') and hasattr(new_obj, 'db_deleted_dependencys'):
+            for obj in old_obj.db_deleted_dependencys:
+                if obj.vtType == 'opm_used':
+                    n_obj = DBOpmUsed.update_version(obj, trans_dict)
+                    new_obj.db_deleted_dependencys.append(n_obj)
+                elif obj.vtType == 'opm_was_generated_by':
+                    n_obj = DBOpmWasGeneratedBy.update_version(obj, trans_dict)
+                    new_obj.db_deleted_dependencys.append(n_obj)
+                elif obj.vtType == 'opm_was_triggered_by':
+                    n_obj = DBOpmWasTriggeredBy.update_version(obj, trans_dict)
+                    new_obj.db_deleted_dependencys.append(n_obj)
+                elif obj.vtType == 'opm_was_derived_from':
+                    n_obj = DBOpmWasDerivedFrom.update_version(obj, trans_dict)
+                    new_obj.db_deleted_dependencys.append(n_obj)
+                elif obj.vtType == 'opm_was_controlled_by':
+                    n_obj = DBOpmWasControlledBy.update_version(obj, trans_dict)
+                    new_obj.db_deleted_dependencys.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -4238,18 +4389,30 @@ class DBOpmUsed(object):
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
             new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
+            for obj in old_obj.db_deleted_effect:
+                n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
+                new_obj.db_deleted_effect.append(n_obj)
         if 'role' in class_dict:
             res = class_dict['role'](old_obj, trans_dict)
             new_obj.db_role = res
         elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
             obj = old_obj.db_role
             new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
+            for obj in old_obj.db_deleted_role:
+                n_obj = DBOpmRole.update_version(obj, trans_dict)
+                new_obj.db_deleted_role.append(n_obj)
         if 'cause' in class_dict:
             res = class_dict['cause'](old_obj, trans_dict)
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
             new_obj.db_add_cause(DBOpmArtifactIdCause.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
+            for obj in old_obj.db_deleted_cause:
+                n_obj = DBOpmArtifactIdCause.update_version(obj, trans_dict)
+                new_obj.db_deleted_cause.append(n_obj)
         if 'accounts' in class_dict:
             res = class_dict['accounts'](old_obj, trans_dict)
             for obj in res:
@@ -4257,6 +4420,10 @@ class DBOpmUsed(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         if 'opm_times' in class_dict:
             res = class_dict['opm_times'](old_obj, trans_dict)
             for obj in res:
@@ -4264,6 +4431,10 @@ class DBOpmUsed(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
+            for obj in old_obj.db_deleted_opm_times:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_times.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -4580,6 +4751,10 @@ class DBFunction(object):
         elif hasattr(old_obj, 'db_parameters') and old_obj.db_parameters is not None:
             for obj in old_obj.db_parameters:
                 new_obj.db_add_parameter(DBParameter.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_parameters') and hasattr(new_obj, 'db_deleted_parameters'):
+            for obj in old_obj.db_deleted_parameters:
+                n_obj = DBParameter.update_version(obj, trans_dict)
+                new_obj.db_deleted_parameters.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -4821,6 +4996,10 @@ class DBAbstraction(object):
         elif hasattr(old_obj, 'db_location') and old_obj.db_location is not None:
             obj = old_obj.db_location
             new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_location') and hasattr(new_obj, 'db_deleted_location'):
+            for obj in old_obj.db_deleted_location:
+                n_obj = DBLocation.update_version(obj, trans_dict)
+                new_obj.db_deleted_location.append(n_obj)
         if 'functions' in class_dict:
             res = class_dict['functions'](old_obj, trans_dict)
             for obj in res:
@@ -4828,6 +5007,10 @@ class DBAbstraction(object):
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
                 new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
+            for obj in old_obj.db_deleted_functions:
+                n_obj = DBFunction.update_version(obj, trans_dict)
+                new_obj.db_deleted_functions.append(n_obj)
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
@@ -4835,6 +5018,10 @@ class DBAbstraction(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -5221,6 +5408,17 @@ class DBWorkflow(object):
                     new_obj.db_add_module(DBAbstraction.update_version(obj, trans_dict))
                 elif obj.vtType == 'group':
                     new_obj.db_add_module(DBGroup.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_modules') and hasattr(new_obj, 'db_deleted_modules'):
+            for obj in old_obj.db_deleted_modules:
+                if obj.vtType == 'module':
+                    n_obj = DBModule.update_version(obj, trans_dict)
+                    new_obj.db_deleted_modules.append(n_obj)
+                elif obj.vtType == 'abstraction':
+                    n_obj = DBAbstraction.update_version(obj, trans_dict)
+                    new_obj.db_deleted_modules.append(n_obj)
+                elif obj.vtType == 'group':
+                    n_obj = DBGroup.update_version(obj, trans_dict)
+                    new_obj.db_deleted_modules.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -5253,6 +5451,10 @@ class DBWorkflow(object):
         elif hasattr(old_obj, 'db_connections') and old_obj.db_connections is not None:
             for obj in old_obj.db_connections:
                 new_obj.db_add_connection(DBConnection.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_connections') and hasattr(new_obj, 'db_deleted_connections'):
+            for obj in old_obj.db_deleted_connections:
+                n_obj = DBConnection.update_version(obj, trans_dict)
+                new_obj.db_deleted_connections.append(n_obj)
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
@@ -5260,6 +5462,10 @@ class DBWorkflow(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         if 'plugin_datas' in class_dict:
             res = class_dict['plugin_datas'](old_obj, trans_dict)
             for obj in res:
@@ -5267,6 +5473,10 @@ class DBWorkflow(object):
         elif hasattr(old_obj, 'db_plugin_datas') and old_obj.db_plugin_datas is not None:
             for obj in old_obj.db_plugin_datas:
                 new_obj.db_add_plugin_data(DBPluginData.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_plugin_datas') and hasattr(new_obj, 'db_deleted_plugin_datas'):
+            for obj in old_obj.db_deleted_plugin_datas:
+                n_obj = DBPluginData.update_version(obj, trans_dict)
+                new_obj.db_deleted_plugin_datas.append(n_obj)
         if 'others' in class_dict:
             res = class_dict['others'](old_obj, trans_dict)
             for obj in res:
@@ -5274,6 +5484,10 @@ class DBWorkflow(object):
         elif hasattr(old_obj, 'db_others') and old_obj.db_others is not None:
             for obj in old_obj.db_others:
                 new_obj.db_add_other(DBOther.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_others') and hasattr(new_obj, 'db_deleted_others'):
+            for obj in old_obj.db_deleted_others:
+                n_obj = DBOther.update_version(obj, trans_dict)
+                new_obj.db_deleted_others.append(n_obj)
         if 'vistrail_id' in class_dict:
             res = class_dict['vistrail_id'](old_obj, trans_dict)
             new_obj.db_vistrail_id = res
@@ -5765,6 +5979,14 @@ class DBOpmArtifactValue(object):
                 new_obj.db_add_value(DBPortSpec.update_version(obj, trans_dict))
             elif obj.vtType == 'function':
                 new_obj.db_add_value(DBFunction.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
+            for obj in old_obj.db_deleted_value:
+                if obj.vtType == 'portSpec':
+                    n_obj = DBPortSpec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_value.append(n_obj)
+                elif obj.vtType == 'function':
+                    n_obj = DBFunction.update_version(obj, trans_dict)
+                    new_obj.db_deleted_value.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -5938,30 +6160,50 @@ class DBOpmGraph(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             obj = old_obj.db_accounts
             new_obj.db_add_accounts(DBOpmAccounts.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccounts.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         if 'processes' in class_dict:
             res = class_dict['processes'](old_obj, trans_dict)
             new_obj.db_processes = res
         elif hasattr(old_obj, 'db_processes') and old_obj.db_processes is not None:
             obj = old_obj.db_processes
             new_obj.db_add_processes(DBOpmProcesses.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_processes') and hasattr(new_obj, 'db_deleted_processes'):
+            for obj in old_obj.db_deleted_processes:
+                n_obj = DBOpmProcesses.update_version(obj, trans_dict)
+                new_obj.db_deleted_processes.append(n_obj)
         if 'artifacts' in class_dict:
             res = class_dict['artifacts'](old_obj, trans_dict)
             new_obj.db_artifacts = res
         elif hasattr(old_obj, 'db_artifacts') and old_obj.db_artifacts is not None:
             obj = old_obj.db_artifacts
             new_obj.db_add_artifacts(DBOpmArtifacts.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_artifacts') and hasattr(new_obj, 'db_deleted_artifacts'):
+            for obj in old_obj.db_deleted_artifacts:
+                n_obj = DBOpmArtifacts.update_version(obj, trans_dict)
+                new_obj.db_deleted_artifacts.append(n_obj)
         if 'agents' in class_dict:
             res = class_dict['agents'](old_obj, trans_dict)
             new_obj.db_agents = res
         elif hasattr(old_obj, 'db_agents') and old_obj.db_agents is not None:
             obj = old_obj.db_agents
             new_obj.db_add_agents(DBOpmAgents.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_agents') and hasattr(new_obj, 'db_deleted_agents'):
+            for obj in old_obj.db_deleted_agents:
+                n_obj = DBOpmAgents.update_version(obj, trans_dict)
+                new_obj.db_deleted_agents.append(n_obj)
         if 'dependencies' in class_dict:
             res = class_dict['dependencies'](old_obj, trans_dict)
             new_obj.db_dependencies = res
         elif hasattr(old_obj, 'db_dependencies') and old_obj.db_dependencies is not None:
             obj = old_obj.db_dependencies
             new_obj.db_add_dependencies(DBOpmDependencies.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_dependencies') and hasattr(new_obj, 'db_deleted_dependencies'):
+            for obj in old_obj.db_deleted_dependencies:
+                n_obj = DBOpmDependencies.update_version(obj, trans_dict)
+                new_obj.db_deleted_dependencies.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -6196,6 +6438,10 @@ class DBRegistry(object):
         elif hasattr(old_obj, 'db_packages') and old_obj.db_packages is not None:
             for obj in old_obj.db_packages:
                 new_obj.db_add_package(DBPackage.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_packages') and hasattr(new_obj, 'db_deleted_packages'):
+            for obj in old_obj.db_deleted_packages:
+                n_obj = DBPackage.update_version(obj, trans_dict)
+                new_obj.db_deleted_packages.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -6639,6 +6885,44 @@ class DBChange(object):
                 new_obj.db_add_data(DBOther.update_version(obj, trans_dict))
             elif obj.vtType == 'plugin_data':
                 new_obj.db_add_data(DBPluginData.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_data') and hasattr(new_obj, 'db_deleted_data'):
+            for obj in old_obj.db_deleted_data:
+                if obj.vtType == 'module':
+                    n_obj = DBModule.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'location':
+                    n_obj = DBLocation.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'annotation':
+                    n_obj = DBAnnotation.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'function':
+                    n_obj = DBFunction.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'connection':
+                    n_obj = DBConnection.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'port':
+                    n_obj = DBPort.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'parameter':
+                    n_obj = DBParameter.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'portSpec':
+                    n_obj = DBPortSpec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'abstraction':
+                    n_obj = DBAbstraction.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'group':
+                    n_obj = DBGroup.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'other':
+                    n_obj = DBOther.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'plugin_data':
+                    n_obj = DBPluginData.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -6860,18 +7144,30 @@ class DBOpmWasDerivedFrom(object):
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
             new_obj.db_add_effect(DBOpmArtifactIdEffect.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
+            for obj in old_obj.db_deleted_effect:
+                n_obj = DBOpmArtifactIdEffect.update_version(obj, trans_dict)
+                new_obj.db_deleted_effect.append(n_obj)
         if 'role' in class_dict:
             res = class_dict['role'](old_obj, trans_dict)
             new_obj.db_role = res
         elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
             obj = old_obj.db_role
             new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
+            for obj in old_obj.db_deleted_role:
+                n_obj = DBOpmRole.update_version(obj, trans_dict)
+                new_obj.db_deleted_role.append(n_obj)
         if 'cause' in class_dict:
             res = class_dict['cause'](old_obj, trans_dict)
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
             new_obj.db_add_cause(DBOpmArtifactIdCause.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
+            for obj in old_obj.db_deleted_cause:
+                n_obj = DBOpmArtifactIdCause.update_version(obj, trans_dict)
+                new_obj.db_deleted_cause.append(n_obj)
         if 'accounts' in class_dict:
             res = class_dict['accounts'](old_obj, trans_dict)
             for obj in res:
@@ -6879,6 +7175,10 @@ class DBOpmWasDerivedFrom(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         if 'opm_times' in class_dict:
             res = class_dict['opm_times'](old_obj, trans_dict)
             for obj in res:
@@ -6886,6 +7186,10 @@ class DBOpmWasDerivedFrom(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
+            for obj in old_obj.db_deleted_opm_times:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_times.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -7117,18 +7421,30 @@ class DBOpmWasControlledBy(object):
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
             new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
+            for obj in old_obj.db_deleted_effect:
+                n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
+                new_obj.db_deleted_effect.append(n_obj)
         if 'role' in class_dict:
             res = class_dict['role'](old_obj, trans_dict)
             new_obj.db_role = res
         elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
             obj = old_obj.db_role
             new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
+            for obj in old_obj.db_deleted_role:
+                n_obj = DBOpmRole.update_version(obj, trans_dict)
+                new_obj.db_deleted_role.append(n_obj)
         if 'cause' in class_dict:
             res = class_dict['cause'](old_obj, trans_dict)
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
             new_obj.db_add_cause(DBOpmAgentId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
+            for obj in old_obj.db_deleted_cause:
+                n_obj = DBOpmAgentId.update_version(obj, trans_dict)
+                new_obj.db_deleted_cause.append(n_obj)
         if 'accounts' in class_dict:
             res = class_dict['accounts'](old_obj, trans_dict)
             for obj in res:
@@ -7136,6 +7452,10 @@ class DBOpmWasControlledBy(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         if 'starts' in class_dict:
             res = class_dict['starts'](old_obj, trans_dict)
             for obj in res:
@@ -7143,6 +7463,10 @@ class DBOpmWasControlledBy(object):
         elif hasattr(old_obj, 'db_starts') and old_obj.db_starts is not None:
             for obj in old_obj.db_starts:
                 new_obj.db_add_start(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_starts') and hasattr(new_obj, 'db_deleted_starts'):
+            for obj in old_obj.db_deleted_starts:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_starts.append(n_obj)
         if 'ends' in class_dict:
             res = class_dict['ends'](old_obj, trans_dict)
             for obj in res:
@@ -7150,6 +7474,10 @@ class DBOpmWasControlledBy(object):
         elif hasattr(old_obj, 'db_ends') and old_obj.db_ends is not None:
             for obj in old_obj.db_ends:
                 new_obj.db_add_end(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_ends') and hasattr(new_obj, 'db_deleted_ends'):
+            for obj in old_obj.db_deleted_ends:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_ends.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -7500,6 +7828,17 @@ class DBGroupExec(object):
                     new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'loop_exec':
                     new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
+            for obj in old_obj.db_deleted_item_execs:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -7557,6 +7896,10 @@ class DBGroupExec(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -8029,6 +8372,10 @@ class DBPackage(object):
         elif hasattr(old_obj, 'db_module_descriptors') and old_obj.db_module_descriptors is not None:
             for obj in old_obj.db_module_descriptors:
                 new_obj.db_add_module_descriptor(DBModuleDescriptor.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_module_descriptors') and hasattr(new_obj, 'db_deleted_module_descriptors'):
+            for obj in old_obj.db_deleted_module_descriptors:
+                n_obj = DBModuleDescriptor.update_version(obj, trans_dict)
+                new_obj.db_deleted_module_descriptors.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -8283,6 +8630,17 @@ class DBWorkflowExec(object):
                     new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'loop_exec':
                     new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
+            for obj in old_obj.db_deleted_item_execs:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -8643,6 +9001,17 @@ class DBLoopExec(object):
                     new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'loop_exec':
                     new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
+            for obj in old_obj.db_deleted_item_execs:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -8888,6 +9257,10 @@ class DBConnection(object):
         elif hasattr(old_obj, 'db_ports') and old_obj.db_ports is not None:
             for obj in old_obj.db_ports:
                 new_obj.db_add_port(DBPort.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_ports') and hasattr(new_obj, 'db_deleted_ports'):
+            for obj in old_obj.db_deleted_ports:
+                n_obj = DBPort.update_version(obj, trans_dict)
+                new_obj.db_deleted_ports.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9041,6 +9414,10 @@ class DBOpmProcess(object):
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             obj = old_obj.db_value
             new_obj.db_add_value(DBOpmProcessValue.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
+            for obj in old_obj.db_deleted_value:
+                n_obj = DBOpmProcessValue.update_version(obj, trans_dict)
+                new_obj.db_deleted_value.append(n_obj)
         if 'accounts' in class_dict:
             res = class_dict['accounts'](old_obj, trans_dict)
             for obj in res:
@@ -9048,6 +9425,10 @@ class DBOpmProcess(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9206,18 +9587,30 @@ class DBOpmWasTriggeredBy(object):
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
             new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
+            for obj in old_obj.db_deleted_effect:
+                n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
+                new_obj.db_deleted_effect.append(n_obj)
         if 'role' in class_dict:
             res = class_dict['role'](old_obj, trans_dict)
             new_obj.db_role = res
         elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
             obj = old_obj.db_role
             new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
+            for obj in old_obj.db_deleted_role:
+                n_obj = DBOpmRole.update_version(obj, trans_dict)
+                new_obj.db_deleted_role.append(n_obj)
         if 'cause' in class_dict:
             res = class_dict['cause'](old_obj, trans_dict)
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
             new_obj.db_add_cause(DBOpmProcessIdCause.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
+            for obj in old_obj.db_deleted_cause:
+                n_obj = DBOpmProcessIdCause.update_version(obj, trans_dict)
+                new_obj.db_deleted_cause.append(n_obj)
         if 'accounts' in class_dict:
             res = class_dict['accounts'](old_obj, trans_dict)
             for obj in res:
@@ -9225,6 +9618,10 @@ class DBOpmWasTriggeredBy(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         if 'opm_times' in class_dict:
             res = class_dict['opm_times'](old_obj, trans_dict)
             for obj in res:
@@ -9232,6 +9629,10 @@ class DBOpmWasTriggeredBy(object):
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
                 new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
+            for obj in old_obj.db_deleted_opm_times:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_times.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9433,6 +9834,17 @@ class DBOpmProcessValue(object):
                 new_obj.db_add_value(DBGroupExec.update_version(obj, trans_dict))
             elif obj.vtType == 'loop_exec':
                 new_obj.db_add_value(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
+            for obj in old_obj.db_deleted_value:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_value.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_value.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_value.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9561,6 +9973,17 @@ class DBAction(object):
                     new_obj.db_add_operation(DBDelete.update_version(obj, trans_dict))
                 elif obj.vtType == 'change':
                     new_obj.db_add_operation(DBChange.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_operations') and hasattr(new_obj, 'db_deleted_operations'):
+            for obj in old_obj.db_deleted_operations:
+                if obj.vtType == 'add':
+                    n_obj = DBAdd.update_version(obj, trans_dict)
+                    new_obj.db_deleted_operations.append(n_obj)
+                elif obj.vtType == 'delete':
+                    n_obj = DBDelete.update_version(obj, trans_dict)
+                    new_obj.db_deleted_operations.append(n_obj)
+                elif obj.vtType == 'change':
+                    n_obj = DBChange.update_version(obj, trans_dict)
+                    new_obj.db_deleted_operations.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -9598,6 +10021,10 @@ class DBAction(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9874,6 +10301,10 @@ class DBOpmAgent(object):
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
                 new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -10226,6 +10657,10 @@ class DBVistrail(object):
         elif hasattr(old_obj, 'db_actions') and old_obj.db_actions is not None:
             for obj in old_obj.db_actions:
                 new_obj.db_add_action(DBAction.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_actions') and hasattr(new_obj, 'db_deleted_actions'):
+            for obj in old_obj.db_deleted_actions:
+                n_obj = DBAction.update_version(obj, trans_dict)
+                new_obj.db_deleted_actions.append(n_obj)
         if 'tags' in class_dict:
             res = class_dict['tags'](old_obj, trans_dict)
             for obj in res:
@@ -10233,6 +10668,10 @@ class DBVistrail(object):
         elif hasattr(old_obj, 'db_tags') and old_obj.db_tags is not None:
             for obj in old_obj.db_tags:
                 new_obj.db_add_tag(DBTag.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_tags') and hasattr(new_obj, 'db_deleted_tags'):
+            for obj in old_obj.db_deleted_tags:
+                n_obj = DBTag.update_version(obj, trans_dict)
+                new_obj.db_deleted_tags.append(n_obj)
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
@@ -10240,6 +10679,10 @@ class DBVistrail(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -10634,6 +11077,10 @@ class DBModuleExec(object):
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         if 'loop_execs' in class_dict:
             res = class_dict['loop_execs'](old_obj, trans_dict)
             for obj in res:
@@ -10641,6 +11088,10 @@ class DBModuleExec(object):
         elif hasattr(old_obj, 'db_loop_execs') and old_obj.db_loop_execs is not None:
             for obj in old_obj.db_loop_execs:
                 new_obj.db_add_loop_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_loop_execs') and hasattr(new_obj, 'db_deleted_loop_execs'):
+            for obj in old_obj.db_deleted_loop_execs:
+                n_obj = DBLoopExec.update_version(obj, trans_dict)
+                new_obj.db_deleted_loop_execs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj

@@ -106,7 +106,7 @@ def makeAllDirs(dirs):
         if not os.path.exists(dir):
             print "creating directory '%s'" % dir
             os.makedirs(dir)
-        if not name in ['specs', 'schemas', 'xmlSchema', 'sqlSchema']:
+        if name not in set(['specs', 'schemas', 'xmlSchema', 'sqlSchema']):
             init_file = os.path.join(dir, '__init__.py')
             if not os.path.exists(init_file):
                 print "creating file '%s'" % init_file
@@ -177,20 +177,32 @@ def main(argv=None):
         makeAllDirs(baseDirs)
         makeAllDirs(versionDirs)
 
-    # copy specs to version
-    for file in os.listdir(baseDirs['specs']):
-        if file.endswith('.xml'):
-            print 'copying %s' % file
-            filename = os.path.join(baseDirs['specs'], file)
-            toFile = os.path.join(versionDirs['specs'], file)
-            shutil.copyfile(filename, toFile)
+    # check whether we should use existing specs for version
+    use_base_specs = True
+    if options['n'] and os.path.exists(versionDirs['specs']):
+        for file in os.listdir(versionDirs['specs']):
+            if file.endswith('.xml'):
+                # assume we've already copied the specs
+                use_base_specs = False
+
+    if use_base_specs:
+        # copy specs to version        
+        print "copying base specs to version directory..."
+        for file in os.listdir(baseDirs['specs']):
+            if file.endswith('.xml'):
+                print 'copying %s' % file
+                filename = os.path.join(baseDirs['specs'], file)
+                toFile = os.path.join(versionDirs['specs'], file)
+                shutil.copyfile(filename, toFile)
+    else:
+        print "using existing specs from version directory..."
 
     if options['p'] or options['a']:
 	# generate python domain objects
 	print "generating python domain objects..."
 	if objects is None:
 	    parser = AutoGenParser()
-	    objects = parser.parse(baseDirs['specs'])
+	    objects = parser.parse(versionDirs['specs'])
 	autoGen = AutoGen(objects)
 	domainFile = os.path.join(versionDirs['domain'], 'auto_gen.py')
 	f = open(domainFile, 'w')
@@ -211,7 +223,7 @@ def main(argv=None):
 	print "generating xml schema and dao objects..."
 	if objects is None:
 	    parser = AutoGenParser()
-	    objects = parser.parse(baseDirs['specs'])
+	    objects = parser.parse(versionDirs['specs'])
 	xmlAutoGen = XMLAutoGen(objects)
 	
 # 	schemaFile = os.path.join(versionDirs['xmlSchema'], 'workflow.xsd')
@@ -253,7 +265,7 @@ def main(argv=None):
 	print "generating sql schema and dao objects..."
 	if objects is None:
 	    parser = AutoGenParser()
-	    objects = parser.parse(baseDirs['specs'])
+	    objects = parser.parse(versionDirs['specs'])
 	sqlAutoGen = SQLAutoGen(objects)
 	
 	schemaFile = os.path.join(versionDirs['sqlSchema'], 'vistrails.sql')
