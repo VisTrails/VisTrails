@@ -231,7 +231,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         config['user'] = 'vtserver'
         config['passwd'] = ''
         try:
-            result = io.get_db_vistrail_list(config)
+            result = '<vistrails>'
             rows = io.get_db_vistrail_list(config)
             for (id, name, mod_time) in rows:
                 result += '<vistrail id="%s" name="%s" mod_time="%s" />'% \
@@ -257,7 +257,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                 obj_type=None,
                                 connection_id=None)
         
-            v = locator.load()
+            (v, abstractions , thumbnails)  = io.load_vistrail(locator)
             result = io.serialize(v)
             self.server_logger.info("SUCCESS!")
             return result
@@ -281,7 +281,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                 obj_type=None,
                                 connection_id=None)
         
-            v = locator.load()
+            (v, abstractions , thumbnails)  = io.load_vistrail(locator)
             p = v.getPipeline(long(version))
             if p:
                 result = io.serialize(p)
