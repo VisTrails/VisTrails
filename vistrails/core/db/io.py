@@ -104,35 +104,21 @@ def merge_logs(new_log, log_fname):
 
 def get_workflow_diff(vt, v1, v2):
     from core.vistrail.pipeline import Pipeline
-    (v1, v2, pairs, v1Only, v2Only, paramChanges, _, _, _) = \
-        db.services.vistrail.getWorkflowDiff(vt, v1, v2, True)
+    (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes, \
+         _, _, _, _) = db.services.vistrail.getWorkflowDiff(vt, v1, v2, True)
     Pipeline.convert(v1)
-    # v1.set_abstraction_map(vt.abstractionMap)
     Pipeline.convert(v2)
-    # v2.set_abstraction_map(vt.abstractionMap)
-    #     print 'pairs:', pairs
-    #     print 'v1Only:', v1Only
-    #     print 'v2Only:', v2Only
-    #     print 'paramChanges:', paramChanges
-    return (v1, v2, pairs, v1Only, v2Only, paramChanges)
+    return (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes)
 
 def get_workflow_diff_with_connections(vt, v1, v2):
     from core.vistrail.pipeline import Pipeline
-    (v1, v2, mPairs, v1Only, v2Only, paramChanges, cPairs, c1Only, c2Only) = \
-        db.services.vistrail.getWorkflowDiff(vt, v1, v2, False)
+    (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes, \
+         c_pairs, c_heuristic, c1_only, c2_only) = \
+         db.services.vistrail.getWorkflowDiff(vt, v1, v2, False)
     Pipeline.convert(v1)
-    # v1.set_abstraction_map(vt.abstractionMap)
     Pipeline.convert(v2)
-    # v2.set_abstraction_map(vt.abstractionMap)
-    #     print 'mPairs:', mPairs
-    #     print 'v1Only:', v1Only
-    #     print 'v2Only:', v2Only
-    #     print 'paramChanges:', paramChanges
-    #     print 'cPairs:', cPairs
-    #     print 'c1Only:', c1Only
-    #     print 'c2Only:', c2Only
-    return (v1, v2, pairs, v1Only, v2Only, paramChanges,
-            cPairs, c1Only, c2Only)
+    return (v1, v2, m_pairs, m_heustric, v1_only, v2_only, param_changes,
+            c_pairs, c_heuristic, c1_only, c2_only)
 
 def getPathAsAction(vt, v1, v2, do_copy=False):
     a = db.services.vistrail.getPathAsAction(vt, v1, v2, do_copy)

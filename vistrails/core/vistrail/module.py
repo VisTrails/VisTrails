@@ -303,8 +303,13 @@ class Module(DBModule):
 
     def __str__(self):
         """__str__() -> str Returns a string representation of itself. """
-        return ("(Module '%s' id=%s functions:%s port_specs:%s)@%X" %
-                (self.name,
+        def get_name():
+            if self.namespace:
+                return self.namespace + '|' + self.name
+            return self.name
+        return ("(Module '%s:%s' id=%s functions:%s port_specs:%s)@%X" %
+                (self.package,
+                 get_name(),
                  self.id,
                  [str(f) for f in self.functions],
                  [str(port_spec) for port_spec in self.db_portSpecs],
@@ -319,6 +324,10 @@ class Module(DBModule):
         if type(other) != type(self):
             return False
         if self.name != other.name:
+            return False
+        if self.namespace != other.namespace:
+            return False
+        if self.package != other.package:
             return False
         if self.cache != other.cache:
             return False

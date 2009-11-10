@@ -288,7 +288,15 @@ class DefaultTheme(object):
         # Color of the shared modules in Visual Diff
         self.VISUAL_DIFF_SHARED_BRUSH = QtGui.QBrush(
             QtGui.QColor(155, 155, 155, 255))
-    
+
+        # Color of shared modules in Visual Diff matched by heuristic
+        self.VISUAL_DIFF_MATCH_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*ColorByName.get_int('white')))
+        
+        # Color of partially shared modules in Visual Diff
+        self.VISUAL_DIFF_SUMMARY_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*ColorByName.get_int('spring_green')))
+
         # Pen & Brush of the circled id on the right corner of the
         # virtual cell label
         self.ANNOTATED_ID_PEN = QtGui.QPen(

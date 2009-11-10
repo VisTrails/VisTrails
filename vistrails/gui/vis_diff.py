@@ -223,6 +223,16 @@ class QLegendWindow(QtGui.QWidget):
         self.gridLayout.addWidget(self.legendParamBox,3,0)
         self.legendParam = QtGui.QLabel("Parameter Changes", self)
         self.gridLayout.addWidget(self.legendParam,3,1)
+
+        self.legendMatchedBox = \
+            QLegendBox(CurrentTheme.VISUAL_DIFF_MATCH_BRUSH,
+                       CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
+                       self)
+        self.gridLayout.addWidget(self.legendMatchedBox, 4, 0)
+        self.legendMatched = QtGui.QLabel("Matched", self)
+        self.gridLayout.addWidget(self.legendMatched, 4, 1)
+
+
         self.adjustSize()
         
     def closeEvent(self,e):
@@ -256,7 +266,7 @@ class QVisualDiff(QtGui.QMainWindow):
         if not v2Name: v2Name = 'Version %d' % v2
         
         # Actually perform the diff and store its result
-        self.diff = vistrail.getPipelineDiff(v1, v2)
+        self.diff = vistrail.get_pipeline_diff(v1, v2)
 
         self.v1_name = v1Name
         self.v2_name = v2Name
@@ -380,7 +390,8 @@ class QVisualDiff(QtGui.QMainWindow):
             return
         
         # Interprete the diff result and setup item models
-        (p1, p2, v1Andv2, v1Only, v2Only, paramChanged) = self.diff
+        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
+            self.diff
 
         # Set the window title
         if id>self.maxId1:
@@ -478,7 +489,8 @@ class QVisualDiff(QtGui.QMainWindow):
         """
 
         # Interprete the diff result
-        (p1, p2, v1Andv2, v1Only, v2Only, paramChanged) = self.diff
+        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
+            self.diff
         p1.ensure_modules_are_on_registry()
         p1.ensure_connection_specs()
         p2.ensure_modules_are_on_registry()
@@ -543,6 +555,45 @@ class QVisualDiff(QtGui.QMainWindow):
             sum1_y += p1.modules[m1id].location.y
             sum2_x += p2.modules[m2id].location.x
             sum2_y += p2.modules[m2id].location.y
+        for (m1id, m2id) in heuristicMatch:
+            m1 = p1.modules[m1id]
+            m2 = p2.modules[m2id]
+
+            sum1_x += p1.modules[m1id].location.x
+            sum1_y += p1.modules[m1id].location.y
+            sum2_x += p2.modules[m2id].location.x
+            sum2_y += p2.modules[m2id].location.y            
+
+            #this is a hack for modules with a dynamic local registry.
+            #The problem arises when modules have the same name but different
+            #input/output ports. We just make sure that the module we add to
+            # the canvas has the ports from both modules, so we don't have
+            # addconnection errors.
+            port_specs = dict(((p.type, p.name), p) for p in m1.port_spec_list)
+            for p in m2.port_spec_list:
+                p_key = (p.type, p.name)
+                if not p_key in port_specs:
+                    m1.add_port_spec(p)
+                elif port_specs[p_key] != p:
+                    #if we add this port, we will get port overloading.
+                    #To avoid this, just cast the current port to be of
+                    # Module or Variant type.
+                    var_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(var_port_spec)
+                    if var_port_spec.type == 'input':
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Module)'
+                    else:
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Variant)'
+                    var_port_spec.create_entries_and_descriptors()
+                    var_port_spec.create_tooltip()
+                    m1.add_port_spec(var_port_spec)
+
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_MATCH_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Then add parameter changed version
         for ((m1id, m2id), matching) in paramChanged:
@@ -563,7 +614,7 @@ class QVisualDiff(QtGui.QMainWindow):
             for p in m2.port_spec_list:
                 p_key = (p.type, p.name)
                 if not p_key in port_specs:
-                    m1.add_port_spec(port_spec)
+                    m1.add_port_spec(p)
                 elif port_specs[p_key] != p:
                     #if we add this port, we will get port overloading.
                     #To avoid this, just cast the current port to be of
@@ -585,7 +636,7 @@ class QVisualDiff(QtGui.QMainWindow):
             item.controller = controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
-        total_len = len(v1Andv2) + len(paramChanged)
+        total_len = len(v1Andv2) + + len(heuristicMatch) + len(paramChanged)
         if total_len != 0:
             avg1_x = sum1_x / total_len
             avg1_y = sum1_y / total_len
@@ -626,6 +677,9 @@ class QVisualDiff(QtGui.QMainWindow):
         v1Tov2 = {}
         v2Tov1 = {}
         for (m1id, m2id) in v1Andv2:
+            v1Tov2[m1id] = m2id
+            v2Tov1[m2id] = m1id
+        for (m1id, m2id) in heuristicMatch:
             v1Tov2[m1id] = m2id
             v2Tov1[m2id] = m1id
         for ((m1id, m2id), matching) in paramChanged:

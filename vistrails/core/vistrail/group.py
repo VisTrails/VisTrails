@@ -175,6 +175,25 @@ class Group(DBGroup, Module):
             return self._port_specs[name]
         return None
 
+    def add_port_spec(self, spec):
+        # operate on self._port_specs instead of db level
+        if self._port_specs is None:
+            self.make_port_specs()
+        self._port_specs[(spec.name, spec.type)] = spec
+        self.port_specs[spec.id] = spec
+        if spec.type == 'input':
+            self._input_port_specs.append(spec)
+        elif spec.type == 'output':
+            self._output_port_specs.append(spec)
+    def delete_port_spec(self, spec):
+        if spec.type == 'input':
+            self._input_port_specs.remove(spec)
+        elif spec.type == 'output':
+            self._output_port_specs.remove(spec)
+        # operate on self._port_specs instead of db level
+        del self._port_specs[(spec.name, spec.type)]
+        del self.port_specs[spec.id]
+
     def _get_input_port_specs(self):
         if self._port_specs is None:
             self.make_port_specs()

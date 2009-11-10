@@ -602,7 +602,22 @@ def heuristicModuleMatch(m1, m2):
     0 if module names match, -1 if no match
     
     """
-    if m1.db_name == m2.db_name:
+    if m1.db_name == m2.db_name and m1.db_namespace == m2.db_namespace and \
+            m1.db_package == m2.db_package:
+        if m1.vtType == 'group':
+            # check if we have __desc__ annotation
+            m1_desc = None
+            m2_desc = None
+            if '__desc__' in m1.db_annotations_key_index:
+                m1_desc = m1.db_annotations_key_index['__desc__']
+            if '__desc__' in m2.db_annotations_key_index:
+                m2_desc = m2.db_annotations_key_index['__desc__']
+            if not (m1_desc and m2_desc and m1_desc == m2_desc):
+                # if desc's don't exactly match, return 0
+                # else continue and check functions
+                # FIXME: maybe we should check functions here
+                return 0
+                
         m1_functions = copy.copy(m1.db_get_functions())
         m2_functions = copy.copy(m2.db_get_functions())
         if len(m1_functions) != len(m2_functions):
@@ -904,6 +919,8 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
 
     paramChgModulePairs = [(id, id) for id in paramChgModules.keys()]
 
+    heuristicModulePairs = []
+    heuristicConnectionPairs = []
     # add heuristic matches
     if heuristic_match:
         # match modules
@@ -912,7 +929,7 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
             m2 = v2Workflow.db_get_module(m2_id)
             if heuristicModuleMatch(m1, m2) == 1:
                 paramChgModulePairs.remove((m1_id, m2_id))
-                sharedModulePairs.append((m1_id, m2_id))
+                heuristicModulePairs.append((m1_id, m2_id))
 
         for m1_id in v1Only[:]:
             m1 = v1Workflow.db_get_module(m1_id)
@@ -926,14 +943,9 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
                 elif isMatch == 0:
                     match = (m1_id, m2_id)
             if match is not None:
-                if isMatch == 1:
-                    v1Only.remove(match[0])
-                    v2Only.remove(match[1])
-                    sharedModulePairs.append(match)
-                else:
-                    v1Only.remove(match[0])
-                    v2Only.remove(match[1])
-                    paramChgModulePairs.append(match)
+                v1Only.remove(match[0])
+                v2Only.remove(match[1])
+                heuristicModulePairs.append(match)
 
         # match connections
         for c1_id in c1Only[:]:
@@ -951,7 +963,7 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
                 # don't have port changes yet
                 c1Only.remove(match[0])
                 c2Only.remove(match[1])
-                sharedConnectionPairs.append(match)
+                heuristicConnectionPairs.append(match)
                     
     paramChanges = []
     #     print sharedModulePairs
@@ -963,8 +975,9 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
                              getParamChanges(m1, m2, heuristic_match)))
 
     return (v1Workflow, v2Workflow, 
-            sharedModulePairs, v1Only, v2Only, paramChanges,
-            sharedConnectionPairs, c1Only, c2Only)
+            sharedModulePairs, heuristicModulePairs, v1Only, v2Only, 
+            paramChanges, sharedConnectionPairs, heuristicConnectionPairs, 
+            c1Only, c2Only)
 
 ################################################################################
 

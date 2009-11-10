@@ -258,73 +258,6 @@ class Vistrail(DBVistrail):
         workflow = core.db.io.get_workflow(self, version)
         return workflow
 
-
-    def getPipelineDiffByAction(self, v1, v2):
-        """ getPipelineDiffByAction(v1: int, v2: int) -> tuple(list,list,list)
-        Compute the diff between v1 and v2 just by looking at the
-        action chains. The value returned is a tuple containing lists
-        of shared, v1 not v2, and v2 not v1 modules
-        
-        """
-        # Get first common ancestor
-        p = self.getFirstCommonVersion(v1,v2)
-        
-        # Get the modules present in v1 and v2
-        v1andv2 = []
-        v2Only = []
-        v1Only = []
-        sharedCreations = []
-        parent = self.getPipeline(p)
-        for m in parent.modules.keys():
-            v1andv2.append(m)
-            sharedCreations.append(m)
-        l1 = self.actionChain(v1,p)
-        l2 = self.actionChain(v2,p)
-        l = l1 + l2
-
-        # Take deleted modules out of shared modules
-        for a in l:
-            if a.type == "DeleteModule":
-                for id in a.ids:
-                    if id in v1andv2:
-                        v1andv2.remove(id)
-
-        # Add deleted "shared modules" of v2 to v1
-        for a in l2:
-            if a.type == "DeleteModule":
-                for id in a.ids:
-                    if id in sharedCreations:
-                        v1Only.append(id)
-                        
-        # Add deleted "shared modules" of v1 to v2
-        for a in l1:
-            if a.type == "DeleteModule":
-                for id in a.ids:
-                    if id in sharedCreations:
-                        v2Only.append(id)
-
-        # Add module created by v1 only
-        for a in l1:
-            if a.type == "AddModule":
-                if a.module.id not in v1Only:
-                    v1Only.append(a.module.id)
-            if a.type == "DeleteModule":
-                for id in a.ids:
-                    if id in v1Only:
-                        v1Only.remove(id)
-                    
-        # Add module created by v2 only
-        for a in l2:
-            if a.type == "AddModule":
-                if a.module.id not in v2Only:
-                    v2Only.append(a.module.id)
-            if a.type == "DeleteModule":
-                for id in a.ids:
-                    if id in v2Only:
-                        v2Only.remove(id)
-                    
-        return (v1andv2,v1Only,v2Only)
-
     def make_actions_from_diff(self, diff):
         """ make_actions_from_diff(diff) -> [action]
         Returns a sequence of actions that performs the diff.
@@ -444,75 +377,30 @@ class Vistrail(DBVistrail):
                 connection_id_remap)
 
     def get_pipeline_diff_with_connections(self, v1, v2):
-        """like get_pipeline_diff but returns connection info"""
-        (p1, p2, v1andv2, v1only,
-         v2only, paramchanged) = self.getPipelineDiff(v1, v2)
+        """like get_pipeline_diff but returns connection info
+        Keyword arguments:
+        v1     --- the first version number
+        v2     --- the second version number
+        return --- (p1, p2: VistrailPipeline,
+                    [shared modules (id in v1, id in v2) ...],
+                    [shared modules [heuristic match] (id in v1, id in v2)],
+                    [v1 not v2 modules],
+                    [v2 not v1 modules],
+                    [parameter-changed modules (see-below)],
+                    [shared connections (id in v1, id in v2) ...],
+                    [shared connections [heuristic] (id in v1, id in v2)],
+                    [c1 not in v2 connections],
+                    [c2 not in v1 connections])
 
-        v1andv2 = Bidict(v1andv2)
-
-        # Now, do the connections between shared modules
-
-        c1andc2 = []
-        c1only = []
-        c2only = []
-
-        used = set()
-        for (edge_from_1, edge_to_1,
-             edge_id_1) in p1.graph.iter_all_edges():
-            try:
-                edge_from_2 = v1andv2[edge_from_1]
-                edge_to_2 = v1andv2[edge_to_1]
-            except KeyError:
-                # edge is clearly in c1, so must not be in c2
-                c1only.append(edge_id_1)
-                continue
-            c1 = p1.connections[edge_id_1]
-            found = False
-            for (_, _, edge_id_2) in [x for x
-                                      in p2.graph.iter_edges_from(edge_from_2)
-                                      if x[1] == edge_to_2]:
-                c2 = p2.connections[edge_id_2]
-                if c1.equals_no_id(c2) and not edge_id_2 in used:
-                    # Found edge in both
-                    c1andc2.append((edge_id_1, edge_id_2))
-                    used.add(edge_id_2)
-                    found = True
-                    continue
-            if not found:
-                c1only.append(edge_id_1)
-
-        used = set()
-        for (edge_from_2, edge_to_2,
-             edge_id_2) in p2.graph.iter_all_edges():
-            try:
-                edge_from_1 = v1andv2.inverse[edge_from_2]
-                edge_to_1 = v1andv2.inverse[edge_to_2]
-            except KeyError:
-                # edge is clearly in c2, so must not be in c1
-                c2only.append(edge_id_2)
-                continue
-            c2 = p2.connections[edge_id_2]
-            found = False
-            for (_, _, edge_id_1) in [x for x
-                                      in p1.graph.iter_edges_from(edge_from_1)
-                                      if x[1] == edge_to_1]:
-                c1 = p1.connections[edge_id_1]
-                if c2.equals_no_id(c1) and not edge_id_1 in used:
-                    # Found edge in both, but it was already added. just mark
-                    # and continue
-                    found = True
-                    used.add(edge_id_1)
-                    continue
-            if not found:
-                c2only.append(edge_id_2)
-
-        return InstanceObject(p1=p1, p2=p2, v1andv2=v1andv2, v1only=v1only,
-                              v2only=v2only, paramchanged=paramchanged,
-                              c1andc2=Bidict(c1andc2),
-                              c1only=c1only, c2only=c2only)
-
-    def getPipelineDiff(self, v1, v2):
-        """ getPipelineDiff(v1: int, v2: int) -> tuple        
+        parameter-changed modules = [((module id in v1, module id in v2),
+                                      [(function in v1, function in v2)...]),
+                                      ...]
+        
+        """
+        return core.db.io.get_workflow_diff_with_connections(self, v1, v2)
+        
+    def get_pipeline_diff(self, v1, v2):
+        """ get_pipeline_diff(v1: int, v2: int) -> tuple        
         Perform a diff between 2 versions, this will obtain the shared
         modules by getting shared nodes on the version tree. After,
         that, it will perform a heuristic algorithm to match
@@ -524,6 +412,7 @@ class Vistrail(DBVistrail):
         v2     --- the second version number
         return --- (p1, p2: VistrailPipeline,
                     [shared modules (id in v1, id in v2) ...],
+                    [shared modules [heuristic match] (id in v1, id in v2)],
                     [v1 not v2 modules],
                     [v2 not v1 modules],
                     [parameter-changed modules (see-below)])
@@ -533,79 +422,7 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return core.db.io.get_workflow_diff(self, v1, v2)
-
-        # Instantiate pipelines associated with v1 and v2
-        p1 = self.getPipelineVersionNumber(v1)
-        p2 = self.getPipelineVersionNumber(v2)
-
-        # Find the shared modules deriving from the version tree
-        # common ancestor
-        (v1Andv2, v1Only, v2Only) = self.getPipelineDiffByAction(v1, v2)
-
-        # Convert v1Andv2 to a list of tuple
-        v1Andv2 = [(i,i) for i in v1Andv2]
-
-        # Looking for more shared modules by looking at all modules of
-        # v1 and determine if there is an corresponding one in v2.
-        # Only look by name for now
-        for m1id in copy.copy(v1Only):
-            m1 = p1.modules[m1id]
-            for m2id in v2Only:
-                m2 = p2.modules[m2id]
-                if m1.name==m2.name:
-                    v1Andv2.append((m1id, m2id))
-                    v1Only.remove(m1id)
-                    v2Only.remove(m2id)
-                    break
-
-        # Capture parameter changes
-        paramChanged = []
-        for (m1id,m2id) in copy.copy(v1Andv2):
-            m1 = p1.modules[m1id]
-            m2 = p2.modules[m2id]
-            # Get signatures of all functions in m1 and m2
-            signature1 = []
-            signature2 = []
-            for f1 in m1.functions:
-                signature1.append((f1.name,
-                                   [(p.type, str(p.strValue))
-                                    for p in f1.params]))
-            for f2 in m2.functions:
-                signature2.append((f2.name,
-                                   [(p.type, str(p.strValue))
-                                    for p in f2.params]))
-
-            if signature1!=signature2:
-                v1Andv2.remove((m1id,m2id))
-                paramMatching = []
-                id2 = 0
-                for s1 in signature1:
-                    # Looking for a match and perform a panel-to-panel
-                    # comparison
-                    i = id2
-                    match = None
-                    while i<len(signature2):
-                        s2 = signature2[i]
-                        if s1==s2:
-                            match = i
-                            break
-                        if s1[0]==s2[0] and match==None:
-                            match = i
-                        i += 1
-                    if match!=None:
-                        paramMatching.append((s1, signature2[match]))
-                        while id2<match:
-                            paramMatching.append(((None, None), signature2[id2]))
-                            id2 += 1
-                        id2 += 1
-                    else:
-                        paramMatching.append((s1, (None, None)))
-                while id2<len(signature2):
-                    paramMatching.append(((None, None), signature2[id2]))
-                    id2 += 1
-                paramChanged.append(((m1id,m2id),paramMatching))
-        return (p1, p2, v1Andv2, v1Only, v2Only, paramChanged)                    
+        return core.db.io.get_workflow_diff(self, v1, v2)               
                         
     def getFirstCommonVersion(self, v1, v2):
         """ Returns the first version that it is common to both v1 and v2 
@@ -884,12 +701,19 @@ class Vistrail(DBVistrail):
             ops = action.operations
             added_modules = 0
             added_functions = 0
+            added_parameters = 0
             added_connections = 0
+            added_annotations = 0
+            added_ports = 0
             moved_modules = 0
             changed_parameters = 0
+            changed_annotations = 0
             deleted_modules = 0
             deleted_connections = 0
             deleted_parameters = 0
+            deleted_functions = 0
+            deleted_annotations = 0
+            deleted_ports = 0
             for op in ops:
                 if op.vtType == 'add':
                     if op.what == 'module':
@@ -898,18 +722,32 @@ class Vistrail(DBVistrail):
                         added_connections+=1
                     elif op.what == 'function':
                         added_functions+=1
+                    elif op.what == 'parameter':
+                        added_parameters+=1
+                    elif op.what == 'annotation':
+                        added_annotations+=1
+                    elif op.what == 'portSpec':
+                        added_ports += 1
                 elif op.vtType == 'change':
                     if op.what == 'parameter':
                         changed_parameters+=1
                     elif op.what == 'location':
                         moved_modules+=1
+                    elif op.what == 'annotation':
+                        changed_annotations+=1
                 elif op.vtType == 'delete':
                     if op.what == 'module':
                         deleted_modules+=1
                     elif op.what == 'connection':
                         deleted_connections+=1
+                    elif op.what == 'function':
+                        deleted_functions+=1
                     elif op.what == 'parameter':
                         deleted_parameters+=1
+                    elif op.what == 'annotation':
+                        deleted_annotations+=1
+                    elif op.what == 'port':
+                        deleted_ports += 1
                 else:
                     raise Exception("Unknown operation type '%s'" % op.vtType)
 
@@ -919,15 +757,31 @@ class Vistrail(DBVistrail):
                     description += "s"
             elif added_connections:
                 description = "Added connection"
-            elif added_functions:
-                description = "Added function"
-            elif moved_modules:
-                description = "Moved module"
-                if moved_modules > 1:
+                if added_connections > 1:
+                    description += "s"
+            elif added_functions or added_parameters:
+                description = "Added parameter"
+                if added_functions > 1 or added_parameters > 1:
+                    description += "s"
+            elif added_annotations:
+                description = "Added annotation"
+                if added_annotations > 1:
+                    description += "s"
+            elif added_ports:
+                description = "Added port"
+                if added_ports > 1:
                     description += "s"
             elif changed_parameters:
                 description = "Changed parameter"
                 if changed_parameters > 1:
+                    description += "s"
+            elif moved_modules:
+                description = "Moved module"
+                if moved_modules > 1:
+                    description += "s"
+            elif changed_annotations:
+                description = "Changed annotation"
+                if changed_annotations > 1:
                     description += "s"
             elif deleted_modules:
                 description = "Deleted module"
@@ -937,11 +791,18 @@ class Vistrail(DBVistrail):
                 description = "Deleted connection"
                 if deleted_connections > 1:
                     description += "s"
-            elif deleted_parameters:
+            elif deleted_parameters or deleted_functions:
                 description = "Deleted parameter"
-                if deleted_parameters > 1:
+                if deleted_parameters > 1 or deleted_functions > 1:
                     description += "s"
-                
+            elif deleted_annotations:
+                description = "Deleted annotation"
+                if deleted_annotations > 1:
+                    description += "s"
+            elif deleted_ports:
+                description = "Deleted port"
+                if deleted_ports > 1:
+                    description += "s"
         return description
 
     # FIXME: remove this function (left here only for transition)
@@ -1212,8 +1073,8 @@ class TestVistrail(unittest.TestCase):
         v1 = 17
         v2 = 27
         v3 = 22
-        v.getPipelineDiff(v1,v2)
-        v.getPipelineDiff(v1,v3)
+        v.get_pipeline_diff(v1,v2)
+        v.get_pipeline_diff(v1,v3)
 
     def test_empty_action_chain(self):
         """Tests calling action chain on empty version."""
