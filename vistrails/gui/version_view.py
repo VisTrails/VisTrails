@@ -235,10 +235,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         
         """
         if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
-            selectedItems = self.scene().selectedItems()
-            for item in selectedItems:
-                if type(item)==QGraphicsVersionItem:
-                    return QtCore.QVariant(False)
+            return QtCore.QVariant(False)
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 
 
@@ -556,61 +553,63 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         # Do not allow links to be selected with version
         
         """
-        if (change==QtGui.QGraphicsItem.ItemSelectedChange and not value.toBool()):
-            self.text.hide()
-        if ((change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool()) or
-            (change==QtGui.QGraphicsItem.ItemSelectedChange and
-             ((not value.toBool()) and
-              len(self.scene().selectedItems()) == 1))):
+
+        if change == QtGui.QGraphicsItem.ItemSelectedChange:
+            addingToSelection = value.toBool()
+            if not addingToSelection:
+                self.text.hide()
+
             selectedItems = self.scene().selectedItems()
             selectedId = -1
             selectByClick = not self.scene().multiSelecting
-            if value.toBool():
-                for item in selectedItems:
-                    if type(item)==QGraphicsLinkItem:
-                        item.setSelected(False)
-                        item.update()
-                selectedItems = self.scene().selectedItems()
-                if len(selectedItems)==0:
-                    selectedId = self.id
-            elif len(selectedItems)==2:
+            
+            if addingToSelection and len(selectedItems) == 0:
+                selectedId = self.id
+            elif not addingToSelection and len(selectedItems)==2:
+                # here, we know addingToSelection is False so the
+                # other id becomes the selected one
                 if selectedItems[0]==self:
                     selectedId = selectedItems[1].id
                 else:
                     selectedId = selectedItems[0].id
+
             selectByClick = self.scene().mouseGrabberItem() == self
             if not selectByClick:
                 for item in self.scene().items():
                     if type(item)==QGraphicsRubberBandItem:
                         selectByClick = True
                         break
+
+            self.scene().emit(QtCore.SIGNAL('versionSelected(int, bool)'),
+                              selectedId, selectByClick)
+
             # Update the selected items list to include only versions and 
             # check if two versions selected
-            selectedVersions = [item for item in 
-                                self.scene().selectedItems() 
-                                if type(item) == QGraphicsVersionItem]
-            # If adding a version, the ids are self and other selected version
-            if (len(selectedVersions) == 1 and value.toBool()): 
-                self.scene().emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'),
-                                  selectedVersions[0].id, self.id)
-            # If deleting a version, the ids are the two selected versions that
-            # are not self
-            if (len(selectedVersions) == 3 and not value.toBool()):
-                if selectedVersions[0] == self:
-                    self.scene().emit(QtCore.SIGNAL(
-                            'twoVersionsSelected(int,int)'),
-                                      selectedVersions[1].id, 
-                                      selectedVersions[2].id)
-                elif selectedVersions[1] == self:
-                    self.scene().emit(QtCore.SIGNAL(
-                            'twoVersionsSelected(int,int)'),
-                                      selectedVersions[0].id, 
-                                      selectedVersions[2].id)
-                else:
-                    self.scene().emit(QtCore.SIGNAL(
-                            'twoVersionsSelected(int,int)'),
-                                      selectedVersions[0].id, 
-                                      selectedVersions[1].id)
+            otherSelectedVersions = [item for item in 
+                                     self.scene().selectedItems() 
+                                     if type(item) == QGraphicsVersionItem
+                                     and item != self]
+            # print 'selectedVersions:', otherSelectedVersions
+            # print 'addingToSelection:', addingToSelection
+
+            if addingToSelection and len(otherSelectedVersions) == 1:
+                # If adding a version, the ids are self and other
+                # selected version
+
+                # print 'emitting twoVersionsSelected', \
+                #     otherSelectedVersions[0].id, self.id
+                self.scene().emit(
+                    QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                    otherSelectedVersions[0].id, self.id)
+            elif not addingToSelection and len(otherSelectedVersions) == 2:
+                # If deleting a version, the ids are the two selected
+                # versions that are not self
+
+                # print 'emitting twoVersionsSelected', \
+                #     otherSelectedVersions[0].id, otherSelectedVersions[1].id
+                self.scene().emit(
+                    QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                    otherSelectedVersions[0].id, otherSelectedVersions[1].id)
 
         return QtGui.QGraphicsItem.itemChange(self, change, value)    
 
@@ -622,8 +621,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if event.button()==QtCore.Qt.LeftButton:
             self.dragging = True
             self.dragPos = QtCore.QPoint(event.screenPos())
-            self.scene().emit(QtCore.SIGNAL('versionSelected(int, bool)'),
-                              self.id, True)
         return QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
         
     def mouseMoveEvent(self, event):
@@ -1032,16 +1029,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
              if res == gui.utils.YES_BUTTON:
                  self.controller.prune_versions(versions)
          qt_super(QVersionTreeScene, self).keyPressEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        """ mouseReleaseEvent(event: QMouseEvent) -> None
-        
-        """
-        if len(self.selectedItems()) != 1:
-            self._pipeline_scene.clear()
-            self.emit(QtCore.SIGNAL('versionSelected(int, bool)'),
-                      -1, True)
-        qt_super(QVersionTreeScene, self).mouseReleaseEvent(event)
         
 class QVersionTreeView(QInteractiveGraphicsView):
     """

@@ -1301,8 +1301,8 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         currentView = self.viewManager.currentWidget()
-        if (currentView and currentView.execDiffId1 > 0 and
-            currentView.execDiffId2 > 0):
+        if (currentView and currentView.execDiffId1 >= 0 and
+            currentView.execDiffId2 >= 0):
             visDiff = QVisualDiff(currentView.controller.vistrail,
                                   currentView.execDiffId1,
                                   currentView.execDiffId2,

@@ -344,15 +344,17 @@ class QVistrailView(QDockContainer):
         
         """
         if self.controller:
-            self.controller.flush_move_actions()
-            self.controller.reset_pipeline_view = byClick
-            self.controller.change_selected_version(versionId)
-            self.controller.invalidate_version_tree(False)
+            # print 'versionSelected', versionId, byClick
             if byClick:
+                if self.controller.current_version > 0:
+                    self.controller.flush_move_actions()
+                self.controller.reset_pipeline_view = byClick
+                self.controller.change_selected_version(versionId)
+                # self.controller.invalidate_version_tree(False)
                 self.controller.current_pipeline_view.fitToAllViews(True)
+                self.redo_stack = []
             self.versionTab.versionProp.updateVersion(versionId)
             self.versionTab.versionView.versionProp.updateVersion(versionId)
-            self.redo_stack = []
             self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
             self.execPipelineEnabled = versionId>-1
             self.execDiffEnabled = False
