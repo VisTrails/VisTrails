@@ -301,6 +301,13 @@ class QListInterpolationEditor(QtGui.QWidget):
             self._str_values = []
         else: 
             self._str_values = t[1:-1].split(',')
+            if self._param_info.type=='String':
+                for i, val in enumerate(self._str_values):
+                    val = val.strip()
+                    if len(val) >= 2 and  \
+                            ((val[0] == "'" and val[-1] == "'") or 
+                             (val[0] == '"' and val[-1] == '"')):
+                        self._str_values[i] = val.strip()[1:-1]
 
     def get_values(self, count):
         """ get_values(count) -> []        
