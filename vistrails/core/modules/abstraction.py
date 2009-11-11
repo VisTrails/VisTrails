@@ -76,19 +76,29 @@ def initialize(*args, **kwargs):
                             new_vistrails[abs_name] = abs_info
                             break
             if add_abstraction:
-                abstraction = new_abstraction(abs_name, abs_vistrail, abs_fname)
+                abstraction = None
+                try:
+                    abstraction = \
+                        new_abstraction(abs_name, abs_vistrail, abs_fname)
+                except Exception, e:
+                    cannot_load[abs_name] = (abs_vistrail, e)
                 if abstraction is not None:
                     options = {'namespace': abstraction.uuid,
                                'hide_namespace': True,
                                'version': str(abstraction.internal_version)}
                     reg.auto_add_module((abstraction, options))
                     reg.auto_add_ports(abstraction)
-                else:
-                    cannot_load[abs_name] = abs_vistrail
+                    # print "Added subworkflow", abs_name, abstraction.uuid
+                elif abs_name not in cannot_load:
+                    cannot_load[abs_name] = (abs_vistrail, '')
         last_count = len(abs_vistrails)
         abs_vistrails = new_vistrails
 
-    for abs_name in chain(cannot_load, abs_vistrails):
+    for abs_name, (_, e) in cannot_load.iteritems():
+        print "Cannot load abstraction '%s'" % abs_name
+        if e:
+            print " ", e
+    for abs_name in abs_vistrails:
         print "Cannot load abstraction '%s'" % abs_name
 
 def package_dependencies():
