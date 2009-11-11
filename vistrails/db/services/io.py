@@ -643,6 +643,11 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     save_vistrail_to_xml(save_bundle.vistrail, xml_fname, version)
 
     # Save Log
+    if save_bundle.vistrail.db_log_filename is not None:
+        xml_fname = os.path.join(vt_save_dir, 'log')
+        if save_bundle.vistrail.db_log_filename != xml_fname:
+            shutil.copyfile(save_bundle.vistrail.db_log_filename, xml_fname)
+
     if save_bundle.log is not None:
         xml_fname = os.path.join(vt_save_dir, 'log')
         save_log_to_xml(save_bundle.log, xml_fname, version, True)
@@ -733,10 +738,18 @@ def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, versio
                                    'bundle does not contain a vistrail')
     vistrail = save_vistrail_to_db(save_bundle.vistrail, db_connection, do_copy, version)
     log = None
-    if save_bundle.log is not None:
+    if save_bundle.vistrail.db_log_filename is not None:
+        if save_bundle.log is not None:
+            log = merge_logs(save_bundle.log,
+                             save_bundle.vistrail.db_log_filename)
+        else:
+            log = open_log_from_xml(save_bundle.vistrail.db_log_filename, True)
+    elif save_bundle.log is not None:
+        log = save_bundle.log
+    if log is not None:
         # Set foreign key 'vistrail_id' for the log to point at its vistrail
-        save_bundle.log.db_vistrail_id = vistrail.db_id
-        log = save_log_to_db(save_bundle.log, db_connection, do_copy, version)
+        log.db_vistrail_id = vistrail.db_id
+        log = save_log_to_db(log, db_connection, do_copy, version)
     # FIXME Save abstractions to the db
     save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
     return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))
