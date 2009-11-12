@@ -108,18 +108,23 @@ class PortSpec(DBPortSpec):
 
     @staticmethod
     def convert(_port_spec):
-        from core.modules.module_registry import module_registry_loaded
+        from core.modules.module_registry import module_registry_loaded, \
+            ModuleRegistryException
         _port_spec.__class__ = PortSpec
         _port_spec._entries = None
         _port_spec._descriptors = None
         _port_spec._short_sigstring = None
         _port_spec._tooltip = None
         if module_registry_loaded():
-            _port_spec.create_entries_and_descriptors()
+            try:
+                _port_spec.create_entries_and_descriptors()
+                _port_spec.create_tooltip()
+            except ModuleRegistryException:
+                _port_spec._descriptors = None
+                _port_spec._entries = None
         else:
+            _port_spec._descriptors = None
             _port_spec._entries = None
-        _port_spec.create_tooltip()
-        pass
 
     @staticmethod
     def from_sigstring(sigstring):
@@ -235,16 +240,13 @@ class PortSpec(DBPortSpec):
             for sig in self.sigstring[1:-1].split(','):
                 k = sig.split(':', 2)
                 if len(k) < 2:
-                    try:
-                        d = registry.get_descriptor_from_name_only(k[0])
-                        self._descriptors.append(d)
-                        recompute_sigstring = True
-                    except Exception:
-                        raise VistrailsInternalError("Cannot determine package "
-                                                     "for module '%s'" % k[0])
+                    d = registry.get_descriptor_from_name_only(k[0])
+                    self._descriptors.append(d)
+                    recompute_sigstring = True
                 else:
                     d = registry.get_descriptor_by_name(*k)
                     self._descriptors.append(d)
+
         if recompute_sigstring:
             self.sigstring = "(" + ",".join(d.sigstring 
                                             for d in self._descriptors) + ")"
