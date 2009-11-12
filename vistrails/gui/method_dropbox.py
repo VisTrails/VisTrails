@@ -115,7 +115,7 @@ class QMethodDropBox(QtGui.QScrollArea):
         if module:
             fId = 0
             for f in module.functions:
-                self.vWidget.addFunction(module.id, fId, f)
+                self.vWidget.addFunction(module, fId, f)
                 fId += 1
             self.vWidget.showPromptByChildren()
         else:
@@ -158,16 +158,21 @@ class QVerticalWidget(QPromptWidget):
         self.setMinimumHeight(50)
         self._functions = []
         
-    def addFunction(self, moduleId, fId, function):
-        """ addFunction(moduleId: int, fId: int,
+    def addFunction(self, module, fId, function):
+        """ addFunction(module: Module, fId: int,
                         function: ModuleFunction) -> None
         Add an input form for the function
         
         """
         inputForm = self.formType(self)
-        inputForm.moduleId = moduleId
+        inputForm.moduleId = module.id
         inputForm.fId = fId
-        inputForm.updateFunction(function)
+
+        # call module.get_port_spec(function.name) to get labels
+        port_spec = module.get_port_spec(function.name, 'input')
+        inputForm.updateFunction(function, port_spec)
+        self.connect(inputForm, QtCore.SIGNAL('deleted(QWidget*)'), 
+                     self.delete_form)
         self.layout().addWidget(inputForm)
         inputForm.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
@@ -186,6 +191,23 @@ class QVerticalWidget(QPromptWidget):
         self._functions = []
         self.setEnabled(True)
 
+    def delete_form(self, input_form):
+        methodBox = self.parent().parent()
+        self.layout().removeWidget(input_form)
+        self._functions.remove(input_form)
+        input_form.deleteLater()
+        self.showPromptByChildren()
+        for i in xrange(self.layout().count()):
+            self.layout().itemAt(i).widget().fId = i
+
+        methodBox.lockUpdate()
+        if methodBox.controller:
+            methodBox.controller.delete_method(input_form.fId,
+                                               methodBox.module.id)
+        methodBox.unlockUpdate()
+        methodBox.emit(QtCore.SIGNAL("paramsAreaChanged"))
+
+
 class QMethodInputForm(QtGui.QGroupBox):
     """
     QMethodInputForm is a widget with multiple input lines depends on
@@ -199,6 +221,10 @@ class QMethodInputForm(QtGui.QGroupBox):
         """
         QtGui.QGroupBox.__init__(self, parent)
         self.setLayout(QtGui.QGridLayout())
+        self.setCheckable(True)
+        self.setChecked(True)
+        self.connect(self, QtCore.SIGNAL('clicked(bool)'),
+                     self.wasClicked)
         self.layout().setMargin(5)
         self.layout().setSpacing(5)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -206,6 +232,9 @@ class QMethodInputForm(QtGui.QGroupBox):
                                 CurrentTheme.METHOD_SELECT_COLOR)
         self.fId = -1
         self.function = None
+
+    def wasClicked(self):
+        self.emit(QtCore.SIGNAL('deleted(QWidget*)'), self)
 
     def focusInEvent(self, event):
         """ gotFocus() -> None
@@ -250,8 +279,9 @@ class QMethodInputForm(QtGui.QGroupBox):
             return methodBox.controller.check_alias(name)
         return False
 
-    def updateFunction(self, function):
-        """ updateFunction(function: ModuleFunction) -> None
+    def updateFunction(self, function, port_spec):
+        """ updateFunction(function: ModuleFunction,
+                           port_spec: PortSpec) -> None
         Auto create widgets to describes the function 'function'
         
         """
@@ -260,6 +290,8 @@ class QMethodInputForm(QtGui.QGroupBox):
         self.function = function
         self.widgets = []
         self.labels = []
+
+        ps_labels = port_spec.labels
         for pIndex in xrange(len(function.params)):
             p = function.params[pIndex]
             # FIXME: Find the source of this problem instead
@@ -275,7 +307,10 @@ class QMethodInputForm(QtGui.QGroupBox):
                 widget_type = p_module.get_widget_class()
             else:
                 widget_type = StandardConstantWidget
-            label = QHoverAliasLabel(p.alias, p.type)
+            ps_label = ''
+            if ps_labels is not None and len(ps_labels) > pIndex:
+                ps_label = str(ps_labels[pIndex])
+            label = QHoverAliasLabel(p.alias, p.type, ps_label)
             constant_widget = widget_type(p, self)            
             self.widgets.append(constant_widget)
             self.labels.append(label)
@@ -293,19 +328,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         
         """
         if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
-            methodBox = self.parent().parent().parent()
-            self.parent().layout().removeWidget(self)
-            self.parent()._functions.remove(self)
-            self.deleteLater()
-            self.parent().showPromptByChildren()
-            for i in xrange(self.parent().layout().count()):
-                self.parent().layout().itemAt(i).widget().fId = i
-            methodBox.lockUpdate()
-            if methodBox.controller:
-                methodBox.controller.delete_method(self.fId,
-                                                   methodBox.module.id)            
-            methodBox.unlockUpdate()
-            methodBox.emit(QtCore.SIGNAL("paramsAreaChanged"))
+            self.emit(QtCore.SIGNAL('deleted(QWidget*)'), self)
         else:
             QtGui.QGroupBox.keyPressEvent(self, e)
             # super(QMethodInputForm, self).keyPressEvent(e)
@@ -315,15 +338,16 @@ class QHoverAliasLabel(QtGui.QLabel):
     QHoverAliasLabel is a QLabel that supports hover actions similar
     to a hot link
     """
-    def __init__(self, alias='', text='', parent=None):
-        """ QHoverAliasLabel(alias:str , text: str, parent: QWidget)
-                             -> QHoverAliasLabel
+    def __init__(self, alias='', text='', default_label='', parent=None):
+        """ QHoverAliasLabel(alias:str , text: str, default_label: str,
+                             parent: QWidget) -> QHoverAliasLabel
         Initialize the label with a text
         
         """
         QtGui.QLabel.__init__(self, parent)
         self.alias = alias
         self.caption = text
+        self.default_label = default_label
         self.updateText()
         self.setAttribute(QtCore.Qt.WA_Hover)
         self.setCursor(QtCore.Qt.PointingHandCursor)
@@ -336,8 +360,10 @@ class QHoverAliasLabel(QtGui.QLabel):
         Update the label text to contain the alias name when appropriate
         
         """
-        if self.alias!='':
-            self.setText(self.alias+': '+self.caption)
+        if self.alias != '':
+            self.setText(self.alias + ': ' + self.caption)
+        elif self.default_label != '':
+            self.setText(self.default_label + ': ' + self.caption)
         else:
             self.setText(self.caption)
 

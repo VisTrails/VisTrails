@@ -550,13 +550,15 @@ class DBPortSpec(object):
 
     vtType = 'portSpec'
 
-    def __init__(self, id=None, name=None, type=None, optional=None, sort_key=None, sigstring=None):
+    def __init__(self, id=None, name=None, type=None, optional=None, sort_key=None, sigstring=None, labels=None, defaults=None):
         self._db_id = id
         self._db_name = name
         self._db_type = type
         self._db_optional = optional
         self._db_sort_key = sort_key
         self._db_sigstring = sigstring
+        self._db_labels = labels
+        self._db_defaults = defaults
         self.is_dirty = True
         self.is_new = True
     
@@ -569,7 +571,9 @@ class DBPortSpec(object):
                         type=self._db_type,
                         optional=self._db_optional,
                         sort_key=self._db_sort_key,
-                        sigstring=self._db_sigstring)
+                        sigstring=self._db_sigstring,
+                        labels=self._db_labels,
+                        defaults=self._db_defaults)
         
         # set new ids
         if new_ids:
@@ -622,6 +626,16 @@ class DBPortSpec(object):
             new_obj.db_sigstring = res
         elif hasattr(old_obj, 'db_sigstring') and old_obj.db_sigstring is not None:
             new_obj.db_sigstring = old_obj.db_sigstring
+        if 'labels' in class_dict:
+            res = class_dict['labels'](old_obj, trans_dict)
+            new_obj.db_labels = res
+        elif hasattr(old_obj, 'db_labels') and old_obj.db_labels is not None:
+            new_obj.db_labels = old_obj.db_labels
+        if 'defaults' in class_dict:
+            res = class_dict['defaults'](old_obj, trans_dict)
+            new_obj.db_defaults = res
+        elif hasattr(old_obj, 'db_defaults') and old_obj.db_defaults is not None:
+            new_obj.db_defaults = old_obj.db_defaults
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -712,6 +726,32 @@ class DBPortSpec(object):
         self._db_sigstring = sigstring
     def db_delete_sigstring(self, sigstring):
         self._db_sigstring = None
+    
+    def __get_db_labels(self):
+        return self._db_labels
+    def __set_db_labels(self, labels):
+        self._db_labels = labels
+        self.is_dirty = True
+    db_labels = property(__get_db_labels, __set_db_labels)
+    def db_add_labels(self, labels):
+        self._db_labels = labels
+    def db_change_labels(self, labels):
+        self._db_labels = labels
+    def db_delete_labels(self, labels):
+        self._db_labels = None
+    
+    def __get_db_defaults(self):
+        return self._db_defaults
+    def __set_db_defaults(self, defaults):
+        self._db_defaults = defaults
+        self.is_dirty = True
+    db_defaults = property(__get_db_defaults, __set_db_defaults)
+    def db_add_defaults(self, defaults):
+        self._db_defaults = defaults
+    def db_change_defaults(self, defaults):
+        self._db_defaults = defaults
+    def db_delete_defaults(self, defaults):
+        self._db_defaults = None
     
     def getPrimaryKey(self):
         return self._db_id

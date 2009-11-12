@@ -287,7 +287,7 @@ class VistrailController(object):
         params = []
         for i in xrange(len(port_spec.descriptors())):
             if i < len(values):
-                value = values[i]
+                value = str(values[i])
             else:
                 value = None
             param = self.create_param(port_spec, i, value)
@@ -296,6 +296,9 @@ class VistrailController(object):
 
     def create_function(self, module, function_name, param_values=[]):
         port_spec = module.get_port_spec(function_name, 'input')
+        if len(param_values) <= 0 and port_spec.defaults is not None:
+            param_values = port_spec.defaults
+
         f_id = self.id_scope.getNewId(ModuleFunction.vtType)
         new_function = ModuleFunction(id=f_id,
                                       pos=module.getNumFunctions(),

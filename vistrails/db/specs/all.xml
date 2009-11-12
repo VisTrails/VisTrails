@@ -1518,6 +1518,16 @@
       <sql type="varchar(4095)"/>
     </property>
 
+    <property name="labels" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(4095)"/>
+    </property>
+
+    <property name="defaults" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(4095)"/>
+    </property>
+
     <property name="parentType" type="str" inverse="true">
       <sql column="parent_type" type="char(32)"/>
     </property>

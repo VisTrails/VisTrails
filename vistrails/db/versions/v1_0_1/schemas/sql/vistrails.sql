@@ -39,6 +39,8 @@ CREATE TABLE port_spec(
     optional int,
     sort_key int,
     sigstring varchar(4095),
+    labels varchar(4095),
+    defaults varchar(4095),
     parent_type char(32),
     entity_id int,
     entity_type char(16),

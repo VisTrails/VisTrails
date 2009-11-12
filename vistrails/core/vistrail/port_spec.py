@@ -79,6 +79,8 @@ class PortSpec(DBPortSpec):
         self._entries = None
         self._descriptors = None
         self._short_sigstring = None
+        self._labels = None
+        self._defaults = None
         if signature is not None:
             self.create_entries(signature)
         if not self.sigstring and self._entries is not None:
@@ -101,6 +103,8 @@ class PortSpec(DBPortSpec):
         cp._entries = copy.copy(self._entries)
         cp._descriptors = copy.copy(self._descriptors)
         cp._short_sigstring = self._short_sigstring
+        cp._labels = self._labels
+        cp._defaults = self._defaults
         cp._tooltip = self._tooltip
         cp.__class__ = PortSpec
         cp.create_tooltip()
@@ -114,6 +118,8 @@ class PortSpec(DBPortSpec):
         _port_spec._entries = None
         _port_spec._descriptors = None
         _port_spec._short_sigstring = None
+        _port_spec._labels = None
+        _port_spec._defaults = None
         _port_spec._tooltip = None
         if module_registry_loaded():
             try:
@@ -144,6 +150,40 @@ class PortSpec(DBPortSpec):
     optional = DBPortSpec.db_optional
     sort_key = DBPortSpec.db_sort_key
     sigstring = DBPortSpec.db_sigstring
+
+    def _get_labels(self):
+        if self._labels is None:
+            if not self.db_labels:
+                self._labels = None
+            else:
+                labels = eval(self.db_labels)
+                if type(labels) == type(''):
+                    labels = (labels,)
+                else:
+                    try:
+                        it = iter(labels)
+                    except TypeError:
+                        labels = (labels,)
+                self._labels = labels
+        return self._labels
+    labels = property(_get_labels)
+
+    def _get_defaults(self):
+        if self._defaults is None:
+            if not self.db_defaults:
+                self._defaults = None
+            else:
+                defaults = eval(self.db_defaults)
+                if type(defaults) == type(''):
+                    defaults = (defaults,)
+                else:
+                    try:
+                        it = iter(defaults)
+                    except TypeError:
+                        defaults = (defaults,)
+                self._defaults = defaults
+        return self._defaults
+    defaults = property(_get_defaults)
     
     def _get_short_sigstring(self):
         if self._short_sigstring is None:

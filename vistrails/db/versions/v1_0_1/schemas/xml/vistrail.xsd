@@ -191,6 +191,8 @@
       <xs:attribute name="optional" type="xs:int"/>
       <xs:attribute name="sortKey" type="xs:int"/>
       <xs:attribute name="sigstring" type="xs:string"/>
+      <xs:attribute name="labels" type="xs:string"/>
+      <xs:attribute name="defaults" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="abstraction">

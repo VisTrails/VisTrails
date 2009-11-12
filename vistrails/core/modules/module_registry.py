@@ -772,10 +772,42 @@ class ModuleRegistry(DBRegistry):
         contents."""
         if hasattr(module, '_input_ports'):
             for port_info in module._input_ports:
-                self.add_input_port(module, *port_info)
+                added = False
+                if len(port_info) >= 2:
+                    port_name, port_sig = port_info[:2]
+                    if len(port_info) > 2 and type(port_info[2]) == dict:
+                        kwargs = port_info[2]
+                        self.add_input_port(module, port_name, port_sig, 
+                                            **kwargs)
+                        added = True
+                    else:
+                        args = port_info[2:]
+                        self.add_input_port(module, port_name, port_sig, 
+                                            *args)
+                        added = True
+                if not added:
+                    raise TypeError("Expected (port_name, port_signature, "
+                                    "kwargs_dict) or (port_name, "
+                                    "port_signature, *args)")
         if hasattr(module, '_output_ports'):
             for port_info in module._output_ports:
-                self.add_output_port(module, *port_info)
+                added = False
+                if len(port_info) >= 2:
+                    port_name, port_sig = port_info[:2]
+                    if len(port_info) > 2 and type(port_info[2]) == dict:
+                        kwargs = port_info[2]
+                        self.add_output_port(module, port_name, port_sig, 
+                                             **kwargs)
+                        added = True
+                    else:
+                        args = port_info[2:]
+                        self.add_output_port(module, port_name, port_sig, 
+                                             *args)
+                        added = True
+                if not added:
+                    raise TypeError("Expected (port_name, port_signature, "
+                                    "kwargs_dict) or (port_name, "
+                                    "port_signature, *args)")
 
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module
@@ -1023,7 +1055,8 @@ class ModuleRegistry(DBRegistry):
         return (portName, 'output') in descriptor.port_specs
 
     def create_port_spec(self, name, type, signature=None, sigstring=None,
-                         optional=False, sort_key=-1):
+                         optional=False, sort_key=-1, labels=None, 
+                         defaults=None):
         if signature is None and sigstring is None:
             raise VistrailsInternalError("create_port_spec: one of signature "
                                          "and sigstring must be specified")
@@ -1034,7 +1067,9 @@ class ModuleRegistry(DBRegistry):
                         signature=signature,
                         sigstring=sigstring,
                         optional=optional,
-                        sort_key=sort_key)
+                        sort_key=sort_key,
+                        labels=labels,
+                        defaults=defaults)
         return spec
 
     def add_port_spec(self, descriptor, port_spec):
@@ -1077,9 +1112,11 @@ class ModuleRegistry(DBRegistry):
         return None        
 
     def add_port(self, descriptor, port_name, port_type, port_sig=None, 
-                 port_sigstring=None, optional=False, sort_key=-1):
+                 port_sigstring=None, optional=False, sort_key=-1,
+                 labels=None, defaults=None):
         spec = self.create_port_spec(port_name, port_type, port_sig,
-                                     port_sigstring, optional, sort_key)
+                                     port_sigstring, optional, sort_key,
+                                     labels, defaults)
         descriptor.add_port_spec(spec)
         if port_type == 'input':
             self.signals.emit_new_input_port(descriptor.identifier,
@@ -1088,13 +1125,15 @@ class ModuleRegistry(DBRegistry):
             self.signals.emit_new_output_port(descriptor.identifier,
                                              descriptor.name, port_name, spec)
 
-    def add_input_port(self, module, portName, portSignature, 
-                       optional=False, sort_key=-1):
+    def add_input_port(self, module, portName, portSignature, optional=False, 
+                       sort_key=-1, labels=None, defaults=None):
         """add_input_port(module: class,
                           portName: string,
                           portSignature: string,
                           optional=False,
-                          sort_key=-1) -> None
+                          sort_key=-1,
+                          labels=None,
+                          defaults=None) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
@@ -1104,14 +1143,14 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor(module)
         if type(portSignature) == type(""):
             self.add_port(descriptor, portName, 'input', None, portSignature, 
-                          optional, sort_key)
+                          optional, sort_key, labels, defaults)
         else:
             self.add_port(descriptor, portName, 'input', portSignature, None, 
-                          optional, sort_key)
+                          optional, sort_key, labels, defaults)
 
 
-    def add_output_port(self, module, portName, portSignature, 
-                        optional=False, sort_key=-1):
+    def add_output_port(self, module, portName, portSignature, optional=False, 
+                       sort_key=-1):
         """add_output_port(module: class,
                            portName: string,
                            portSignature: string,

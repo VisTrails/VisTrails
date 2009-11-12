@@ -231,13 +231,19 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         sort_key = self.convertFromStr(data, 'int')
         data = node.get('sigstring', None)
         sigstring = self.convertFromStr(data, 'str')
+        data = node.get('labels', None)
+        labels = self.convertFromStr(data, 'str')
+        data = node.get('defaults', None)
+        defaults = self.convertFromStr(data, 'str')
         
         obj = DBPortSpec(id=id,
                          name=name,
                          type=type,
                          optional=optional,
                          sort_key=sort_key,
-                         sigstring=sigstring)
+                         sigstring=sigstring,
+                         labels=labels,
+                         defaults=defaults)
         obj.is_dirty = False
         return obj
     
@@ -252,6 +258,8 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         node.set('optional',self.convertToStr(portSpec.db_optional, 'int'))
         node.set('sortKey',self.convertToStr(portSpec.db_sort_key, 'int'))
         node.set('sigstring',self.convertToStr(portSpec.db_sigstring, 'str'))
+        node.set('labels',self.convertToStr(portSpec.db_labels, 'str'))
+        node.set('defaults',self.convertToStr(portSpec.db_defaults, 'str'))
         
         return node
 
