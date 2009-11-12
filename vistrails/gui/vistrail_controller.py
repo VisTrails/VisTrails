@@ -1275,18 +1275,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.setSavedQueries(queries)
         self.set_changed(True)
         
-
-    def update_module_tag(self, module, tag):
-        """ update_module_tag(module: Module, tag: str) -> None
-        Updates the current module's tag
-        
-        """
-        self.flush_move_actions()
-        if module.vtType == 'module':
-            self.vistrail.update_object(module, db_tag=tag)
-        elif module.vtType == 'abstraction':
-            self.vistrail.update_object(module, db_name=tag)
-        
     def update_current_tag(self,tag):
         """ update_current_tag(tag: str) -> Bool
         Update the current vistrail tag and return success predicate

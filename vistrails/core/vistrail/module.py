@@ -124,7 +124,6 @@ class Module(DBModule):
     label = DBModule.db_name
     namespace = DBModule.db_namespace
     package = DBModule.db_package
-    tag = DBModule.db_tag
     version = DBModule.db_version
     port_spec_list = DBModule.db_portSpecs
     internal_version = ''

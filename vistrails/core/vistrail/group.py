@@ -104,7 +104,6 @@ class Group(DBGroup, Module):
     annotations = DBGroup.db_annotations
     location = DBGroup.db_location
     center = DBGroup.db_location
-    tag = DBGroup.db_tag
     # version = DBGroup.db_version
     # name = DBGroup.db_name
     # label = DBGroup.db_name

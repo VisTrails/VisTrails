@@ -93,7 +93,6 @@ class Abstraction(DBAbstraction, Module):
     label = DBAbstraction.db_name
     namespace = DBAbstraction.db_namespace
     package = DBAbstraction.db_package
-    tag = DBAbstraction.db_tag
     version = DBAbstraction.db_version
     internal_version = DBAbstraction.db_internal_version
 
