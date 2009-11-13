@@ -34,9 +34,10 @@ from core.configuration import ConfigurationObject
 from core.modules.basic_modules import Path, File, Directory, Boolean
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.system import default_dot_vistrails, execute_cmdline, systemType
+from compute_hash import compute_hash
 
 identifier = 'edu.utah.sci.vistrails.persistence'
-version = '0.0.2'
+version = '0.0.3'
 name = 'Persistence'
 
 global_db = None
@@ -207,7 +208,10 @@ class PersistentPath(NotCacheable, Module):
         persistent_path.name = p_path
         persistent_path.setResult("value", persistent_path)
         self.setResult("value", persistent_path)
-        
+
+        hash = compute_hash(p_path)
+        self.annotate({'sha_hash': hash, 'signature': self.signature.lower()})
+
     _input_ports = [('value', Path), ('compress', Boolean, True)]
     _output_ports = [('value', Path)]
 
@@ -222,6 +226,9 @@ class PersistentFile(PersistentPath):
         persistent_file.setResult("value", persistent_file)
         self.setResult("value", persistent_file)
         
+        hash = compute_hash(p_path, False)
+        self.annotate({'sha_hash': hash, 'signature': self.signature.lower()})
+
     _input_ports = [('value', File)]
     _output_ports = [('value', File)]
 
@@ -234,7 +241,10 @@ class PersistentDirectory(PersistentPath):
         persistent_dir = Directory()
         persistent_dir.name = p_path
         persistent_dir.setResult("value", persistent_dir)
-        self.setResult("value", persistent_dir)    
+        self.setResult("value", persistent_dir)
+
+        hash = compute_hash(p_path, True)
+        self.annotate({'sha_hash': hash, 'signature': self.signature.lower()})
 
     _input_ports = [('value', Directory)]
     _output_ports = [('value', Directory)]
