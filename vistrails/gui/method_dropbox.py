@@ -164,7 +164,7 @@ class QVerticalWidget(QPromptWidget):
         Add an input form for the function
         
         """
-        inputForm = self.formType(self)
+        inputForm = QMethodInputWidget(self.formType, self)
         inputForm.moduleId = module.id
         inputForm.fId = fId
 
@@ -208,6 +208,26 @@ class QVerticalWidget(QPromptWidget):
         methodBox.emit(QtCore.SIGNAL("paramsAreaChanged"))
 
 
+class QMethodInputWidget(QtGui.QDockWidget):
+    def __init__(self, formType, parent=None):
+        QtGui.QDockWidget.__init__(self, parent)
+        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable)
+        self.group_box = formType(self)
+        self.setWidget(self.group_box)
+
+    def updateFunction(self, function, port_spec):
+        self.setWindowTitle(function.name)
+        self.group_box.updateFunction(function, port_spec)
+
+    def closeEvent(self, event):
+        self.emit(QtCore.SIGNAL('deleted(QWidget*)'), self)
+
+    def keyPressEvent(self, e):
+        if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
+            self.close()
+        else:
+            QtGui.QDockWidget.keyPressEvent(self, e)
+
 class QMethodInputForm(QtGui.QGroupBox):
     """
     QMethodInputForm is a widget with multiple input lines depends on
@@ -221,20 +241,15 @@ class QMethodInputForm(QtGui.QGroupBox):
         """
         QtGui.QGroupBox.__init__(self, parent)
         self.setLayout(QtGui.QGridLayout())
-        self.setCheckable(True)
-        self.setChecked(True)
-        self.connect(self, QtCore.SIGNAL('clicked(bool)'),
-                     self.wasClicked)
         self.layout().setMargin(5)
         self.layout().setSpacing(5)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
+                           QtGui.QSizePolicy.Fixed)
         self.palette().setColor(QtGui.QPalette.Window,
                                 CurrentTheme.METHOD_SELECT_COLOR)
         self.fId = -1
         self.function = None
-
-    def wasClicked(self):
-        self.emit(QtCore.SIGNAL('deleted(QWidget*)'), self)
 
     def focusInEvent(self, event):
         """ gotFocus() -> None
@@ -256,7 +271,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         Update the method values to vistrail
         
         """
-        methodBox = self.parent().parent().parent()
+        methodBox = self.parent().parent().parent().parent()
         if methodBox.controller:
             methodBox.lockUpdate()
             methodBox.controller.update_function(methodBox.module,
@@ -274,7 +289,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         Returns True if the current pipeline already has the alias name
 
         """
-        methodBox = self.parent().parent().parent()
+        methodBox = self.parent().parent().parent().parent()
         if methodBox.controller:
             return methodBox.controller.check_alias(name)
         return False
@@ -286,7 +301,6 @@ class QMethodInputForm(QtGui.QGroupBox):
         
         """
         reg = module_registry.get_module_registry()
-        self.setTitle(function.name)
         self.function = function
         self.widgets = []
         self.labels = []
@@ -321,17 +335,6 @@ class QMethodInputForm(QtGui.QGroupBox):
             if('file' in function.name.lower() and p.type == 'String'):
                 browseButton = FileChooserToolButton(self, constant_widget)
                 self.layout().addWidget(browseButton, pIndex, 2)
-
-    def keyPressEvent(self, e):
-        """ keyPressEvent(e: QKeyEvent) -> None
-        Handle Del/Backspace to delete the input form
-        
-        """
-        if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
-            self.emit(QtCore.SIGNAL('deleted(QWidget*)'), self)
-        else:
-            QtGui.QGroupBox.keyPressEvent(self, e)
-            # super(QMethodInputForm, self).keyPressEvent(e)
 
 class QHoverAliasLabel(QtGui.QLabel):
     """

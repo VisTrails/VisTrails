@@ -94,13 +94,13 @@ class QFunctionQueryForm(QMethodInputForm):
         self.function = None
         self.fields = []
 
-    def updateFunction(self, function):
-        """ updateFunction(function: ModuleFunction) -> None
+    def updateFunction(self, function, port_spec):
+        """ updateFunction(function: ModuleFunction,
+                           port_spec: PortSpec) -> None
         Auto create widgets to describes the function 'function'
         
         """
         self.function = function
-        self.setTitle(function.name)
         gLayout = self.layout()
         for pIdx in xrange(len(function.params)):
             p = function.params[pIdx]
