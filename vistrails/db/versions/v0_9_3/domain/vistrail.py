@@ -41,6 +41,20 @@ class DBVistrail(_DBVistrail):
         self.log_filename = None
         self.log = None
 
+    def __copy__(self):
+        return DBVistrail.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = _DBVistrail.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = DBVistrail
+        
+        cp.idScope = copy.copy(self.idScope)
+        cp.db_objects = copy.copy(self.db_objects)
+        cp.log_filename = self.log_filename
+        cp.log = copy.copy(self.log)
+        
+        return cp
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
