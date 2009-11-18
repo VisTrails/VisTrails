@@ -386,6 +386,7 @@ class DBLocator(BaseLocator):
         self._conn_id = connection_id
         self._vnode = version_node
         self._vtag = version_tag
+        self._hash = ''
 
     def _get_host(self):
         return self._host
@@ -464,18 +465,18 @@ class DBLocator(BaseLocator):
         return connection
 
     def load(self, type, tmp_dir=None):
-        _hash = self.hash()
+        self._hash = self.hash()
         
-        if DBLocator.cache.has_key(_hash):
-            save_bundle = DBLocator.cache[_hash]
+        if DBLocator.cache.has_key(self._hash):
+            save_bundle = DBLocator.cache[self._hash]
             obj = save_bundle.get_primary_obj()
             ts = io.get_db_object_modification_time(self.get_connection(),
                                                     obj.db_id,
                                                     obj.vtType)
-            ts = datetime(*strptime(str(ts), '%Y-%m-%d %H:%M:%S')[0:6])
+            ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
             
-            #print DBLocator.cache_timestamps[_hash],ts
-            if DBLocator.cache_timestamps[_hash] == ts:
+            #print DBLocator.cache_timestamps[self._hash],ts
+            if DBLocator.cache_timestamps[self._hash] == ts:
                 # If thumbnail cache was cleared, get thumbs from db
                 if tmp_dir is not None:
                     for absfname in save_bundle.thumbnails:
@@ -490,9 +491,13 @@ class DBLocator(BaseLocator):
         self._name = primary_obj.db_name
         for obj in save_bundle.get_db_objs():
             obj.locator = self
-        _hash = self.hash()
-        DBLocator.cache[_hash] = save_bundle
-        DBLocator.cache_timestamps[_hash] = primary_obj.db_last_modified
+        #The problem of computing the hash again is that will always be
+        #different from what the locator is created because we don't know
+        #the name of the locator before it is loaded. So we will use the
+        #one that was created before loading the vistrail
+        #_hash = self.hash()
+        DBLocator.cache[self._hash] = save_bundle.do_copy()
+        DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
 
     def save(self, save_bundle, do_copy=False, version=None):
@@ -505,6 +510,11 @@ class DBLocator(BaseLocator):
         self._obj_type = primary_obj.vtType
         for obj in save_bundle.get_db_objs():
             obj.locator = self
+        #update the cache with a copy of the new bundle
+        if self._hash != '':
+            self_hash = self.hash()
+        DBLocator.cache[self._hash] = save_bundle.do_copy()
+        DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
 
     def serialize(self, dom, element):

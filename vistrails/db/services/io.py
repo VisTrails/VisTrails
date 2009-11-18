@@ -32,6 +32,7 @@ import os
 import os.path
 import shutil
 import tempfile
+import copy
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
@@ -101,6 +102,23 @@ class SaveBundle(object):
         """
         return getattr(self, self.bundle_type)
 
+    def __copy__(self):
+        return SaveBundle.do_copy(self)
+    
+    def do_copy(self):
+        cp = SaveBundle(self.bundle_type)
+        cp.vistrail = copy.copy(self.vistrail)
+        cp.workflow = copy.copy(self.workflow)
+        cp.log = copy.copy(self.log)
+        cp.registry = copy.copy(self.registry)
+        cp.opm_graph = copy.copy(self.opm_graph)
+        for a in self.abstractions:
+            cp.abstractions.append(a)
+        
+        for t in self.thumbnails:
+            cp.thumbnails.append(t)
+        
+        return cp
 
 _db_lib = None
 def get_db_lib():

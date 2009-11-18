@@ -86,7 +86,9 @@ class ImageViewerCellWidget(QCellWidget):
             img = QtGui.QImage()
             if img.load(fileValue.name):
                 self.originalPix = QtGui.QPixmap.fromImage(img)
-                self.label.setPixmap(self.originalPix)
+                self.label.setPixmap(self.originalPix.scaled(self.label.size(),
+                                                         QtCore.Qt.KeepAspectRatio,
+                                                         QtCore.Qt.SmoothTransformation))
             else:
                 self.label.setText("Invalid image file!")
 
