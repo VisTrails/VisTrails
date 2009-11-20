@@ -41,6 +41,8 @@ class DBLog(_DBLog):
         cp = _DBLog.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = DBLog
         cp.id_scope = copy.copy(self.id_scope)
+        
+        return cp
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
