@@ -51,7 +51,10 @@ class DBVistrail(_DBVistrail):
         cp.idScope = copy.copy(self.idScope)
         cp.db_objects = copy.copy(self.db_objects)
         cp.db_log_filename = self.db_log_filename
-        cp.log = copy.copy(self.log)
+        if self.log is not None:
+            cp.log = copy.copy(self.log)
+        else:
+            cp.log = None
         
         return cp
 
