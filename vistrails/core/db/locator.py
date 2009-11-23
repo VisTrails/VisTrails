@@ -526,8 +526,8 @@ class FileLocator(CoreLocator):
         try:
             version = int(version)
         except:
-            tag = version
             pass
+
         if tag is None:
             tag = '';
         ## execute and showSpreadsheetOnly should be written to the current
