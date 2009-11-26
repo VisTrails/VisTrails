@@ -1666,7 +1666,8 @@ class VistrailController(object):
                 pipeline.add_module(module)
             for connection in self.current_pipeline.connections.itervalues():
                 pipeline.add_connection(connection)
-            locator.save_as(pipeline)
+            save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
+            locator.save_as(save_bundle)
 
     def write_expanded_workflow(self, locator):
         if self.current_pipeline:
@@ -1682,4 +1683,11 @@ class VistrailController(object):
                                             self.vistrail.db_log_filename)
             else:
                 log = self.log
-            locator.save_as(log)
+            print log
+            save_bundle = SaveBundle(log.vtType,log=log)
+            locator.save_as(save_bundle)
+
+    def write_registry(self, locator):
+        registry = core.modules.module_registry.get_module_registry()
+        save_bundle = SaveBundle(registry.vtType, registry=registry)
+        locator.save_as(save_bundle)

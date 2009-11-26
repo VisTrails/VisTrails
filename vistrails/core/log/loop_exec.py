@@ -31,8 +31,8 @@ class LoopExec(DBLoopExec):
     def __copy__(self):
         return self.do_copy()
 
-    def do_copy(self):
-        cp = DBLoopExec.__copy__(self)
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBLoopExec.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = LoopExec
         return cp
 

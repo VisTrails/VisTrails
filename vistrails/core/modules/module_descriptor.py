@@ -122,9 +122,10 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._widget_item = None
             self._is_hidden = False
             self._namespace_hidden = False
+            self.children = []
         else:
             # FIXME this will break things, I think
-            self.children = copy.copy(self.children)
+            self.children = copy.copy(other.children)
             
             self._base_descriptor = other._base_descriptor
             self.module = other.module

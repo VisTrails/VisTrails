@@ -1616,9 +1616,6 @@ class VistrailController(QtCore.QObject, BaseController):
                                  workflow=self.current_pipeline)
             locator.save_as(opm_graph)
 
-    def write_registry(self, locator):
-        locator.save_as(core.modules.module_registry.get_module_registry())
-
     def query_by_example(self, pipeline):
         """ query_by_example(pipeline: Pipeline) -> None
         Perform visual query on the current vistrail

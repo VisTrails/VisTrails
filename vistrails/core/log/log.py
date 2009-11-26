@@ -33,8 +33,8 @@ class Log(DBLog):
     def __copy__(self):
         return self.do_copy()
 
-    def do_copy(self):
-        cp = DBLog.__copy__(self)
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBLog.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Log
         return cp
 

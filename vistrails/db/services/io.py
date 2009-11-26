@@ -416,6 +416,12 @@ def save_bundle_to_zip_xml(save_bundle, filename, tmp_dir=None, version=None):
     bundle_type = save_bundle.bundle_type
     if bundle_type == DBVistrail.vtType:
         return save_vistrail_bundle_to_zip_xml(save_bundle, filename, tmp_dir, version)
+    elif bundle_type == DBLog.vtType:
+        return save_log_bundle_to_xml(save_bundle, filename, version)
+    elif bundle_type == DBWorkflow.vtType:
+        return save_workflow_bundle_to_xml(save_bundle, filename, version)
+    elif bundle_type == DBRegistry.vtType:
+        return save_registry_bundle_to_xml(save_bundle, filename, version)
     else:
         raise VistrailsDBException("cannot save bundle of type '%s' to zip" % \
                                        bundle_type)
@@ -431,6 +437,12 @@ def save_bundle_to_db(save_bundle, connection, do_copy=False, version=None):
     bundle_type = save_bundle.bundle_type
     if bundle_type == DBVistrail.vtType:
         return save_vistrail_bundle_to_db(save_bundle, connection, do_copy, version)
+    elif bundle_type == DBLog.vtType:
+        return save_log_bundle_to_db(save_bundle, connection, do_copy, version)
+    elif bundle_type == DBWorkflow.vtType:
+        return save_workflow_bundle_to_db(save_bundle, connection, do_copy, version)
+    elif bundle_type == DBRegistry.vtType:
+        return save_registry_bundle_to_db(save_bundle, connection, do_copy, version)
     else:
         raise VistrailsDBException("cannot save bundle of type '%s' to db" % \
                                        bundle_type)
@@ -862,6 +874,13 @@ def save_workflow_to_xml(workflow, filename, version=None):
     workflow = translate_workflow(workflow, version)
     return workflow
 
+def save_workflow_bundle_to_xml(save_bundle, filename, version=None):
+    if save_bundle.workflow is None:
+        raise VistrailsDBException('save_workflow_bundle_to_xml failed, '
+                                   'bundle does not contain a workflow')
+    workflow = save_workflow_to_xml(save_bundle.workflow, filename, version)
+    return SaveBundle(DBWorkflow.vtType, workflow=workflow)
+
 def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
@@ -881,6 +900,15 @@ def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
     db_connection.commit()
     workflow = translate_workflow(workflow, version)
     return workflow
+
+def save_workflow_bundle_to_db(save_bundle, db_connection, do_copy=False, 
+                               version=None):
+    if save_bundle.workflow is None:
+        raise VistrailsDBException('save_workflow_bundle_to_db failed, '
+                                   'bundle does not contain a workflow')
+    workflow = save_workflow_to_db(save_bundle.workflow, db_connection, do_copy, 
+                                   version)
+    return SaveBundle(DBWorkflow.vtType, workflow=workflow)
 
 ##############################################################################
 # Logging I/O
@@ -958,6 +986,14 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
     log = translate_log(log, version)
     return log
 
+def save_log_bundle_to_xml(save_bundle, filename, version=None):
+    if save_bundle.log is None:
+        raise VistrailsDBException('save_log_bundle_to_xml failed, '
+                                   'bundle does not contain a log')
+        
+    log = save_log_to_xml(save_bundle.log, filename, version)
+    return SaveBundle(DBLog.vtType, log=log)
+
 def save_log_to_db(log, db_connection, do_copy=False, version=None):
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
@@ -977,6 +1013,15 @@ def save_log_to_db(log, db_connection, do_copy=False, version=None):
     db_connection.commit()
     log = translate_log(log, version)
     return log
+
+def save_log_bundle_to_db(save_bundle, db_connection, do_copy=False, 
+                          version=None):
+    if save_bundle.log is None:
+        raise VistrailsDBException('save_log_bundle_to_db failed, '
+                                   'bundle does not contain a log')
+        
+    log = save_log_to_db(save_bundle.log, db_connection, do_copy, version)
+    return SaveBundle(DBLog.vtType, log=log)
 
 def merge_logs(new_log, vt_log_fname):
     log = open_log_from_xml(vt_log_fname, True)
@@ -1045,6 +1090,14 @@ def save_registry_to_xml(registry, filename, version=None):
     registry = translate_registry(registry, version)
     return registry
 
+def save_registry_bundle_to_xml(save_bundle, filename, version=None):
+    if save_bundle.registry is None:
+        raise VistrailsDBException('save_registry_bundle_to_xml failed, '
+                                   'bundle does not contain a registry')
+        
+    registry = save_registry_to_xml(save_bundle.registry, filename, version)
+    return SaveBundle(DBRegistry.vtType, registry=registry)
+
 def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
@@ -1064,6 +1117,16 @@ def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
     db_connection.commit()
     registry = translate_registry(registry, version)
     return registry
+
+def save_registry_bundle_to_db(save_bundle, db_connection, do_copy=False, 
+                               version=None):
+    if save_bundle.registry is None:
+        raise VistrailsDBException('save_registry_bundle_to_db failed, '
+                                   'bundle does not contain a registry')
+        
+    registry = save_registry_to_db(save_bundle.registry, db_connection, do_copy, 
+                                   version)
+    return SaveBundle(DBRegistry.vtType, registry=registry)
 
 ##############################################################################
 # Abstraction I/O
