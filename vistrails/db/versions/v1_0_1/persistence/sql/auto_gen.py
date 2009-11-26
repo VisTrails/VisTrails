@@ -2384,7 +2384,6 @@ class DBPackageSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             identifier = self.convertFromDB(row[2], 'str', 'varchar(1023)')
             codepath = self.convertFromDB(row[3], 'str', 'varchar(1023)')
@@ -2466,8 +2465,6 @@ class DBPackageSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
         if not do_copy and not obj.is_dirty:

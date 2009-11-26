@@ -1653,7 +1653,7 @@
     
     <property name="id" type="long" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:int"/>
-      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="int" autoInc="true"/>
     </property>
     
     <property name="name" type="str">
