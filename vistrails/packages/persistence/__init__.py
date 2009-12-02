@@ -42,10 +42,12 @@ name = 'Persistence'
 
 global_db = None
 local_db = None
+search_dbs = None
 compress_by_default = False
 temp_persist_files = []
 configuration = ConfigurationObject(global_db=(None, str), 
                                     local_db=(None, str),
+                                    search_dbs=(None, str),
                                     compress_by_default=False)
 
 class PersistentPath(NotCacheable, Module):
@@ -54,7 +56,7 @@ class PersistentPath(NotCacheable, Module):
         self.persistent_path = None
 
     def updateUpstream(self):
-        global local_db
+        global search_dbs
         # FIXME not sure if we need this
         self.persistent_path = None
         if not hasattr(self, 'signature'):
@@ -62,18 +64,20 @@ class PersistentPath(NotCacheable, Module):
         # FIXME really we need this to be everything upstream of 
         # PersistentFile but not including itself and its own parameters
         # may be able to use a different hasher...
-        print 'signature:', self.signature
-        if not os.path.exists(local_db):
-            raise ModuleError(self, 'local_db "%s" does not exist' % local_db)
-        dir = self.signature[:2]
-        fname = self.signature[2:]
-        full_path = os.path.join(local_db, dir, fname)
-        if os.path.exists(full_path):
-            self.persistent_path = full_path
-            return
-        elif os.path.exists(full_path + '.zip'):
-            self.persistent_path = full_path + '.zip'
-            return
+        # print 'signature:', self.signature
+        for search_db in search_dbs:
+            if not os.path.exists(search_db):
+                raise ModuleError(self, 'search_db "%s" does not exist' % \
+                                      search_db)
+            dir = self.signature[:2]
+            fname = self.signature[2:]
+            full_path = os.path.join(search_db, dir, fname)
+            if os.path.exists(full_path):
+                self.persistent_path = full_path
+                return
+            elif os.path.exists(full_path + '.zip'):
+                self.persistent_path = full_path + '.zip'
+                return
         Module.updateUpstream(self)
 
     def unzip(self, zip_file, is_dir=None):
@@ -137,7 +141,6 @@ class PersistentPath(NotCacheable, Module):
         return True
 
     def find(self, is_dir=None):
-        global local_db
         if self.persistent_path is not None:
             if not os.path.exists(self.persistent_path):
                 raise ModuleError(self, 
@@ -264,7 +267,7 @@ def persistent_file_hasher(pipeline, module, constant_hasher_map={}):
 _modules = [PersistentPath, PersistentFile, PersistentDirectory]
 
 def initialize():
-    global global_db, local_db, compress_by_default
+    global global_db, local_db, search_dbs, compress_by_default
 
     if configuration.check('compress_by_default'):
         compress_by_default = configuration.compress_by_default
@@ -281,6 +284,18 @@ def initialize():
                 os.mkdir(local_db)
             except:
                 raise Exception('local_db "%s" does not exist' % local_db)
+    
+    search_dbs = [local_db,]
+    if configuration.check('search_dbs'):
+        try:
+            check_paths = eval(configuration.search_dbs)
+        except:
+            print "*** persistence error: cannot parse search_dbs ***"
+        for path in check_paths:
+            if os.path.exists(path):
+                search_dbs.append(path)
+            else:
+                print '*** persistence warning: cannot find path "%s"' % path
 
 def finalize():
     # delete all temporary files/directories used by zip
