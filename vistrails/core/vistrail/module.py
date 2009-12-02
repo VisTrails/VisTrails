@@ -138,6 +138,8 @@ class Module(DBModule):
     functions = property(_get_functions, _set_functions)
     def add_function(self, function):
         self.db_add_function(function)
+    def has_function_with_real_id(self, f_id):
+        return self.db_has_function_with_id(f_id)
 
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
