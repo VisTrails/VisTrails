@@ -182,6 +182,19 @@ by startup.py. This should only be called after init()."""
             """
             self._package_manager.add_package(packageName)
 
+        def create_user_packages_init(userpackagesname):
+            try:
+                name = os.path.join(userpackagesname, '__init__.py')
+                f = file(name, 'w')
+                f.write('pass\n')
+                f.close()
+            except:
+                msg = ("""Failed to create file '%s'. This could indicate a
+                rare combination of a race condition and a permissions problem.
+                Please make sure it is writable.""" % name)
+                debug.critical(msg)
+                sys.exit(1)
+
         def create_user_packages_dir(userpackagesname=None):
             debug.warning('Will try to create userpackages directory')
             if userpackagesname is None:
@@ -201,17 +214,7 @@ by startup.py. This should only be called after init()."""
                             self.configuration.dotVistrails))
                     debug.critical(msg)
                     sys.exit(1)
-            try:
-                name = os.path.join(userpackagesname, '__init__.py')
-                f = file(name, 'w')
-                f.write('pass\n')
-                f.close()
-            except:
-                msg = ("""Failed to create file '%s'. This could indicate a
-                rare combination of a race condition and a permissions problem.
-                Please make sure it is writable.""" % name)
-                debug.critical(msg)
-                sys.exit(1)
+            create_user_packages_init(userpackagesname)
                 
         def create_thumbnails_dir(thumbnails_dir=None):
             debug.log('Will try to create thumbnails directory')
@@ -374,6 +377,9 @@ by startup.py. This should only be called after init()."""
                                           'thumbs')
                 if not os.path.isdir(userpackages):
                     create_user_packages_dir(userpackages)
+                if not os.path.isfile(os.path.join(userpackages, 
+                                                   '__init__.py')):
+                    create_user_packages_init(userpackages)
                 if not os.path.isdir(abstractions):
                     create_abstractions_dir(abstractions)
                 if not os.path.isdir(thumbnails):
