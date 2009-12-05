@@ -520,6 +520,9 @@ class FileLocator(CoreLocator):
         url = convert_from_str(data,'str')
         data = node.get('vistrail', None)
         vtcontent = convert_from_str(data,'base64')
+        data = node.get('filename', None)
+        vtname = convert_from_str(data, 'str')
+        
         #asking to show only the spreadsheet force the workflow to be executed
         if showSpreadsheetOnly:
             execute = True
@@ -530,11 +533,13 @@ class FileLocator(CoreLocator):
 
         if tag is None:
             tag = '';
+            
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration
         config = get_vistrails_configuration()
         config.executeWorkflows = execute
         config.showSpreadsheetOnly = showSpreadsheetOnly
+        
         if host is not None:
             user = ""
             passwd = ""
@@ -542,11 +547,21 @@ class FileLocator(CoreLocator):
             return DBLocator(host, port, database,
                              user, passwd, None, vt_id, 'vistrail',
                              None, version, tag)
-        elif url is not None:
-            basename = url.split('/')[-1]
-            base,ext = os.path.splitext(basename)
-            dirname = os.path.dirname(filename)
-            fname = os.path.join(dirname,basename)
+        elif vtname is not None:
+            return FileLocator(vtname, version)
+        
+        elif vtcontent is not None:
+            if url is not None:
+                basename = url.split('/')[-1]
+                base,ext = os.path.splitext(basename)
+                dirname = os.path.dirname(filename)
+                fname = os.path.join(dirname,basename)
+            else:
+                basename = os.path.basename(filename)
+                base,ext = os.path.splitext(basename)
+                ext = '.xml'
+                dirname = os.path.dirname(filename)
+                fname = os.path.join(dirname,base,ext)
             i = 1
             while os.path.exists(fname):
                 newbase = "%s_%s%s" % (base, i, ext)
@@ -556,6 +571,7 @@ class FileLocator(CoreLocator):
             f.write(vtcontent)
             f.close()
             return FileLocator(fname, version, tag)
+        
         
     ##########################################################################
 def untitled_locator():

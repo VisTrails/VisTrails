@@ -203,6 +203,7 @@ Designing New Modules
         # also used for talking back and forth between the spreadsheet
         # and the builder besides Parameter Exploration.
         self.moduleInfo = {
+            'locator': None,
             'vistrailName': 'Unknown',
             'version': -1,
             'pipeline': None,
