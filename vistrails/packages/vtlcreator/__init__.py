@@ -25,7 +25,7 @@ workflow it is contained into."""
 import base64
 import os
 import core.db.action
-from core.modules.basic_modules import File, Boolean, String
+from core.modules.basic_modules import File, Boolean, String, Directory
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.vistrail.vistrail import Vistrail
 from db.services.locator import DBLocator
@@ -34,7 +34,7 @@ from db.services import io
 ElementTree = get_elementtree_library()
 
 identifier = 'edu.utah.sci.vistrails.vtlcreator'
-version = '0.0.1'
+version = '0.0.2'
 name = 'vtlCreator'
 
 class VtlFileCreator(NotCacheable, Module):
@@ -42,7 +42,8 @@ class VtlFileCreator(NotCacheable, Module):
     present.
     By default it generates a string with an <vtlink> </vtlink> XML
     element or it can write the vtl file to disk if filename is
-    provided.
+    provided. If directory is provided, the final filename will be
+    the concatenation of directory and filename.
     
     Other input ports:
     
@@ -116,8 +117,12 @@ class VtlFileCreator(NotCacheable, Module):
             node.set('vtcontent',vtcontent)
             
         xmlstring = ElementTree.tostring(node)
+            
         if self.hasInputFromPort('filename'):
             filename = self.getInputFromPort('filename')
+            if self.hasInputFromPort('directory'):
+                directory = self.getInputFromPort('directory').name
+                filename = os.path.join(directory,filename)
             file_ = open(filename,'w')
             file_.write(xmlstring)
             file_.close()
@@ -125,7 +130,7 @@ class VtlFileCreator(NotCacheable, Module):
         self.setResult("xmlstring", xmlstring)
         
     _input_ports = [('execute', Boolean, True), ('showspreadsheetOnly', Boolean, True),
-                    ('embedWorkflow', Boolean, True), ('filename', String)]
+                    ('embedWorkflow', Boolean, True), ('filename', String), ('directory', Directory)]
     
     _output_ports = [('xmlstring', String)]
 
