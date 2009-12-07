@@ -277,12 +277,17 @@ def perform_analogy_on_vistrail(vistrail,
                     c_parameters[(op.parentObjId, op.data.pos)] = op.data
             elif op.what == 'port':
                 port = op.data
-                if ('module', port.moduleId) in id_remap:
-                    temp_id = id_remap[('module', port.moduleId)]
+                # check the input/output module remaps since that is
+                # what we use to modify the ids
+                if port.type == 'source' and \
+                        port.moduleId in output_module_remap:
+                    temp_id = output_module_remap[port.moduleId]
+                elif port.type == 'destination' and \
+                        port.moduleId in input_module_remap:
+                    temp_id = input_module_remap[port.moduleId]
                 else:
                     temp_id = port.moduleId
                 if temp_id in c_modules:
-                #if id_remap.has_key(('module', port.moduleId)):
                     if port.type == 'source':
                         try:
                             port.moduleName = output_module_name_remap[port.moduleId]
