@@ -20,6 +20,8 @@
 ##
 ############################################################################
 
+from db import VistrailsDBException
+
 class SQLDAO:
     def __init__(self):
 	pass
@@ -50,7 +52,8 @@ class SQLDAO:
     def convertToDB(self, value, type, db_type):
         if value is not None:
             if type == 'str':
-                return "'" + str(value).replace("'", "''") + "'"
+                # return "'" + str(value).replace("'", "''") + "'"
+                return str(value)
             elif type == 'long':
                 return str(value)
             elif type == 'float':
@@ -58,23 +61,25 @@ class SQLDAO:
             elif type == 'int':
                 return str(value)
             elif type == 'date':
-                return "'" + value.isoformat() + "'"
+                return value.isoformat()
             elif type == 'datetime':
-                return "'" + value.strftime('%Y-%m-%d %H:%M:%S') + "'"
+                return value.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
 
-        return "''"
+        return None
 
     def createSQLSelect(self, table, columns, whereMap, orderBy=None, 
                         forUpdate=False):
         columnStr = ', '.join(columns)
         whereStr = ''
         whereClause = ''
+        values = []
         for column, value in whereMap.iteritems():
-            whereStr += '%s %s = %s' % \
-                        (whereClause, column, value)
-            whereClause = ' AND'
+            whereStr += '%s%s = %%s' % \
+                        (whereClause, column)
+            values.append(value)
+            whereClause = ' AND '
         dbCommand = """SELECT %s FROM %s WHERE %s""" % \
                     (columnStr, table, whereStr)
         if orderBy is not None:
@@ -82,7 +87,7 @@ class SQLDAO:
         if forUpdate:
             dbCommand += " FOR UPDATE"
         dbCommand += ";"
-        return dbCommand
+        return (dbCommand, tuple(values))
 
     def createSQLInsert(self, table, columnMap):
         columns = []
@@ -93,50 +98,64 @@ class SQLDAO:
 	    columns.append(column)
 	    values.append(value)
         columnStr = ', '.join(columns)
-        valueStr = ', '.join(values)
+        # valueStr = '%s, '.join(values)
+        valueStr = ''
+        if len(values) > 1:
+            valueStr = '%s,' * (len(values) - 1) + '%s'
         dbCommand = """INSERT INTO %s(%s) VALUES (%s);""" % \
                     (table, columnStr, valueStr)
-        return dbCommand
+        return (dbCommand, tuple(values))
 
     def createSQLUpdate(self, table, columnMap, whereMap):
         setStr = ''
         comma = ''
+        values = []
         for column, value in columnMap.iteritems():
-	    if value is None:
-		value = 'NULL'
-	    setStr += '%s %s = %s' % (comma, column, value)
-	    comma = ','
+# 	    if value is None:
+# 		value = 'NULL'
+	    setStr += '%s%s = %%s' % (comma, column)
+	    comma = ', '
+            values.append(value)
         whereStr = ''
         whereClause = ''
         for column, value in whereMap.iteritems():
-            whereStr += '%s %s = %s' % \
-                        (whereClause, column, value)
-            whereClause = ' AND'
+            whereStr += '%s%s = %%s' % (whereClause, column)
+            values.append(value)
+            whereClause = ' AND '
         dbCommand = """UPDATE %s SET %s WHERE %s;""" % \
                     (table, setStr, whereStr)
-        return dbCommand
+        return (dbCommand, tuple(values))
 
     def createSQLDelete(self, table, whereMap):
         whereStr = ''
         whereClause = ''
+        values = []
         for column, value in whereMap.iteritems():
-            whereStr += '%s%s = %s' % \
+            whereStr += '%s %s = %%s' % \
                 (whereClause, column, value)
+            values.append(value)
             whereClause = ' AND '
         dbCommand = """DELETE FROM %s WHERE %s;""" % \
             (table, whereStr)
-        return dbCommand
+        return (dbCommand, tuple(values))
 
-    def executeSQL(self, db, dbCommand, isFetch):
-        print 'db: %s' % dbCommand
+    def executeSQL(self, db, cmd_tuple, isFetch):
+        dbCommand, values = cmd_tuple
+        # print 'db: %s' % dbCommand
+        # print 'values:', values
         data = None
         cursor = db.cursor()
-        cursor.execute(dbCommand)
-        if isFetch:
-            data = cursor.fetchall()
-        else:
-            data = cursor.lastrowid
-        cursor.close()
+        try:
+            cursor.execute(dbCommand, values)
+            if isFetch:
+                data = cursor.fetchall()
+            else:
+                data = cursor.lastrowid
+        except Exception, e:
+            raise VistrailsDBException('Command "%s" with values "%s" '
+                                       'failed: %s' % (dbCommand, values, e))
+        finally:
+            cursor.close()
         return data
 
     def start_transaction(self, db):
