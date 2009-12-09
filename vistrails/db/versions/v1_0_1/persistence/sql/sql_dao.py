@@ -131,8 +131,7 @@ class SQLDAO:
         whereClause = ''
         values = []
         for column, value in whereMap.iteritems():
-            whereStr += '%s %s = %%s' % \
-                (whereClause, column, value)
+            whereStr += '%s %s = %%s' % (whereClause, column)
             values.append(value)
             whereClause = ' AND '
         dbCommand = """DELETE FROM %s WHERE %s;""" % \

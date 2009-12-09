@@ -107,7 +107,7 @@ class DAOList(dict):
         all_objects.update(res_objects)
         res = res_objects.values()[0]
         global_props = {'entity_id': res.db_id,
-                        'entity_type': "'" + res.vtType + "'"}
+                        'entity_type': res.vtType}
 
         for dao_type, dao in self['sql'].iteritems():
             if (dao_type == DBVistrail.vtType or
@@ -149,7 +149,7 @@ class DAOList(dict):
         children = obj.db_children()
         children.reverse()
         if global_props is None:
-            global_props = {'entity_type': "'" + obj.vtType + "'"}
+            global_props = {'entity_type': obj.vtType}
         # print 'global_props:', global_props
 
         # assumes not deleting entire thing

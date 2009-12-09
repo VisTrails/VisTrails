@@ -127,7 +127,7 @@ class DAOList(dict):
         children = obj.db_children() # forSQL=True)
         children.reverse()
         if global_props is None:
-            global_props = {'entity_type': "'" + obj.vtType + "'"}
+            global_props = {'entity_type': obj.vtType}
         # print 'global_props:', global_props
 
         # assumes not deleting entire thing
