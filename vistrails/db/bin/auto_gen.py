@@ -392,9 +392,10 @@ class AutoGen:
                                             field.getPythonType() == 'hash' \
                                             else ''))
 
-        self.printLine('cp.is_dirty = self.is_dirty\n')
+        self.printLine('if not new_ids:\n')
+        self.indentLine('cp.is_dirty = self.is_dirty\n')
         self.printLine('cp.is_new = self.is_new\n')
-        self.printLine('return cp\n\n')
+        self.unindentLine('return cp\n\n')
 
         # create static update_version
         self.unindentLine('@staticmethod\n')

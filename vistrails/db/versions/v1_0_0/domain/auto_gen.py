@@ -51,8 +51,9 @@ class DBOpmProcessIdEffect(object):
                 cp._db_id = id_remap[('opm_process', self._db_id)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -149,8 +150,9 @@ class DBOpmWasGeneratedBy(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -409,8 +411,9 @@ class DBOpmAccounts(object):
         
         # recreate indices and set flags
         cp.db_accounts_id_index = dict((v.db_id, v) for v in cp._db_accounts)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -581,8 +584,9 @@ class DBPortSpec(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -802,8 +806,9 @@ class DBModule(object):
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
         cp.db_portSpecs_id_index = dict((v.db_id, v) for v in cp._db_portSpecs)
         cp.db_portSpecs_name_index = dict(((v.db_name,v.db_type), v) for v in cp._db_portSpecs)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -1253,8 +1258,9 @@ class DBModuleDescriptor(object):
         # recreate indices and set flags
         cp.db_portSpecs_id_index = dict((v.db_id, v) for v in cp._db_portSpecs)
         cp.db_portSpecs_name_index = dict(((v.db_name,v.db_type), v) for v in cp._db_portSpecs)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -1492,8 +1498,9 @@ class DBTag(object):
                 cp._db_id = id_remap[('action', self._db_id)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -1580,8 +1587,9 @@ class DBOpmRole(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -1661,8 +1669,9 @@ class DBOpmProcesses(object):
         
         # recreate indices and set flags
         cp.db_processs_id_index = dict((v.db_id, v) for v in cp._db_processs)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -1782,8 +1791,9 @@ class DBOpmAccountId(object):
                 cp._db_id = id_remap[('opm_account', self._db_id)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -1863,8 +1873,9 @@ class DBPort(object):
                 cp._db_moduleId = id_remap[('module', self._db_moduleId)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -2036,8 +2047,9 @@ class DBOpmArtifact(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -2234,8 +2246,9 @@ class DBGroup(object):
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -2652,8 +2665,9 @@ class DBLog(object):
         # recreate indices and set flags
         cp.db_workflow_execs_id_index = dict((v.db_id, v) for v in cp._db_workflow_execs)
         cp.db_machines_id_index = dict((v.db_id, v) for v in cp._db_machines)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -2957,8 +2971,9 @@ class DBOpmAgents(object):
         
         # recreate indices and set flags
         cp.db_agents_id_index = dict((v.db_id, v) for v in cp._db_agents)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -3078,8 +3093,9 @@ class DBOpmProcessIdCause(object):
                 cp._db_id = id_remap[('opm_process', self._db_id)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -3159,8 +3175,9 @@ class DBMachine(object):
                 cp._db_vistrailId = id_remap[('vistrail', self._db_vistrailId)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -3335,8 +3352,9 @@ class DBAdd(object):
                 cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -3574,8 +3592,9 @@ class DBOther(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -3684,8 +3703,9 @@ class DBLocation(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -3798,8 +3818,9 @@ class DBOpmOverlaps(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -3907,8 +3928,9 @@ class DBOpmArtifacts(object):
         
         # recreate indices and set flags
         cp.db_artifacts_id_index = dict((v.db_id, v) for v in cp._db_artifacts)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -4034,8 +4056,9 @@ class DBOpmDependencies(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -4163,8 +4186,9 @@ class DBParameter(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -4352,8 +4376,9 @@ class DBOpmUsed(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -4593,8 +4618,9 @@ class DBPluginData(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -4698,8 +4724,9 @@ class DBFunction(object):
         
         # recreate indices and set flags
         cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -4919,8 +4946,9 @@ class DBAbstraction(object):
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -5365,8 +5393,9 @@ class DBWorkflow(object):
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_plugin_datas_id_index = dict((v.db_id, v) for v in cp._db_plugin_datas)
         cp.db_others_id_index = dict((v.db_id, v) for v in cp._db_others)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -5867,8 +5896,9 @@ class DBOpmArtifactIdCause(object):
                 cp._db_id = id_remap[('opm_artifact', self._db_id)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -5939,8 +5969,9 @@ class DBOpmArtifactValue(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -6035,8 +6066,9 @@ class DBOpmArtifactIdEffect(object):
                 cp._db_id = id_remap[('opm_artifact', self._db_id)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -6123,8 +6155,9 @@ class DBOpmGraph(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -6370,8 +6403,9 @@ class DBRegistry(object):
         # recreate indices and set flags
         cp.db_packages_id_index = dict((v.db_id, v) for v in cp._db_packages)
         cp.db_packages_identifier_index = dict(((v.db_identifier,v.db_version), v) for v in cp._db_packages)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -6607,8 +6641,9 @@ class DBOpmAccount(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -6699,8 +6734,9 @@ class DBAnnotation(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -6825,8 +6861,9 @@ class DBChange(object):
                 cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -7107,8 +7144,9 @@ class DBOpmWasDerivedFrom(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -7384,8 +7422,9 @@ class DBOpmWasControlledBy(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -7668,8 +7707,9 @@ class DBOpmAgentId(object):
                 cp._db_id = id_remap[('opm_agent', self._db_id)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -7785,8 +7825,9 @@ class DBGroupExec(object):
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -8166,8 +8207,9 @@ class DBOpmTime(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -8299,8 +8341,9 @@ class DBPackage(object):
         # recreate indices and set flags
         cp.db_module_descriptors_id_index = dict((v.db_id, v) for v in cp._db_module_descriptors)
         cp.db_module_descriptors_name_index = dict(((v.db_name,v.db_namespace,v.db_version), v) for v in cp._db_module_descriptors)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -8587,8 +8630,9 @@ class DBWorkflowExec(object):
         
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -8958,8 +9002,9 @@ class DBLoopExec(object):
         
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -9214,8 +9259,9 @@ class DBConnection(object):
         # recreate indices and set flags
         cp.db_ports_id_index = dict((v.db_id, v) for v in cp._db_ports)
         cp.db_ports_type_index = dict((v.db_type, v) for v in cp._db_ports)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -9372,8 +9418,9 @@ class DBOpmProcess(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -9550,8 +9597,9 @@ class DBOpmWasTriggeredBy(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -9792,8 +9840,9 @@ class DBOpmProcessValue(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -9930,8 +9979,9 @@ class DBAction(object):
         cp.db_operations_id_index = dict((v.db_id, v) for v in cp._db_operations)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -10253,8 +10303,9 @@ class DBOpmAgent(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -10399,8 +10450,9 @@ class DBDelete(object):
                 cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
         
         # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -10594,8 +10646,9 @@ class DBVistrail(object):
         cp.db_tags_name_index = dict((v.db_name, v) for v in cp._db_tags)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
@@ -10994,8 +11047,9 @@ class DBModuleExec(object):
         # recreate indices and set flags
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_loop_execs_id_index = dict((v.db_id, v) for v in cp._db_loop_execs)
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
         return cp
 
     @staticmethod
