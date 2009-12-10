@@ -287,6 +287,8 @@ def perform_analogy_on_vistrail(vistrail,
                     temp_id = input_module_remap[port.moduleId]
                 else:
                     temp_id = port.moduleId
+                if ('module', temp_id) in id_remap:
+                    temp_id = id_remap[('module', temp_id)]
                 if temp_id in c_modules:
                     if port.type == 'source':
                         try:
