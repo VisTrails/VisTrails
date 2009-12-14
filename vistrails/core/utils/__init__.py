@@ -29,8 +29,10 @@ from core.utils.tracemethod import trace_method, bump_trace, report_stack, \
      trace_method_options, trace_method_args
 from core.utils.color import ColorByName
 from core.utils.lockmethod import lock_method
+import copy
 import errno
 import itertools
+import sys
 
 ################################################################################
 
@@ -153,9 +155,26 @@ class InvalidPipeline(Exception):
     """InvalidPipeline is raised when a pipeline cannot be instantiated due 
     to missing information in the registry, like unloaded packages or missing
     modules.
+
+    parameters:
+
+    exception_set: list of all exceptions related to why this is an
+    invalid pipeline
+
+    pipeline: pipeline that is invalid (potentially incomplete, in the
+    case where modules could not be found, etc). This is stored here
+    so that pipeline upgrades can be performed appropriately. Since
+    Controller.do_version_switch (sensibly) bails before setting the
+    invalid pipeline to current_pipeline and the new value to
+    current_version, these need to percolate through the exceptions so
+    the values can be fixed.
+
+    version: version id of the pipeline in the vistrail
     """
-    def __init__(self, exception_set):
+    def __init__(self, exception_set, pipeline=None, version=None):
         self._exception_set = exception_set
+        self._pipeline = copy.copy(pipeline)
+        self._version = version
 
     def __str__(self):
         return "Pipeline cannot be instantiated:\n  " + \
@@ -258,22 +277,29 @@ def debug(func):
 
 ################################################################################
 
-def all(bool_list, pred = lambda x: x):
-    """all(list, [pred]) -> Boolean - Returns true if all elements are
-    true.  If pred is given, it is applied to the list elements first"""
-    for b in bool_list:
-        if not pred(b):
-            return False
-    return True
+# Write our own all() and any() if python version < 2.5
+if sys.version_info < (2, 5):
+    def any(iterable):
+        """any(iterable) -> Boolean - Returns true if any element
+        is true. This is meant to be the equivalent of python 2.5's any
+        when running on python < 2.5"""
+        for b in iterable:
+            if b:
+                return True
+        return False
 
-def any(bool_list, pred = lambda x: x):
-    """any(bool_list, [pred]) -> Boolean - Returns true if any element
-    is true.  If pred is given, it is applied to the list elements
-    first"""
-    for b in bool_list:
-        if pred(b):
-            return True
-    return False
+    def all(iterable):
+        """all(iterable) -> Boolean - Returns true if no elements are
+        False.  This is meant to be the equivalent of python 2.5's
+        all() when running on python < 2.5"""
+        for b in iterable:
+            if not b:
+                return False
+        return True
+else:
+    import __builtin__
+    any = __builtin__.any
+    all = __builtin__.all
 
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator

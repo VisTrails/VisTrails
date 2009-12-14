@@ -643,7 +643,7 @@ class QUserFunctionEditor(QtGui.QFrame):
             return [evaluate(i) for i in xrange(self.size)]
         result = get()
         
-        if not all(result, module.validate):
+        if not all(module.validate(x) for x in result):
             show_warning('Failed Validation',
                          'One of the <i>%s</i>\'s user defined '
                          'functions has failed validation, '

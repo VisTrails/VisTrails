@@ -25,8 +25,6 @@ from itertools import izip
 
 from core.data_structures.bijectivedict import Bidict
 from core.utils import enum, VistrailsInternalError
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
 from db.domain import DBPortSpec
 
 ################################################################################
@@ -61,7 +59,6 @@ class PortSpec(DBPortSpec):
                     kwargs['optional'] = 1
                 else:
                     kwargs['optional'] = 0
-#                 kwargs['optional'] = 1 if kwargs['optional'] else 0
             else:
                 raise VistrailsInternalError("Cannot parse 'optional' kw "
                                              "-- must be an int or bool")
@@ -241,10 +238,6 @@ class PortSpec(DBPortSpec):
         else:
             self._entries.extend(canonicalize(item) for item in signature)
 
-#         (long_, short) = self.create_both_sigstrings()
-#         self._short_sigstring = short
-#         self._long_sigstring = long_
-
     def create_sigstring_and_descriptors(self):
         """create_sigstring() -> None
 
@@ -307,31 +300,6 @@ class PortSpec(DBPortSpec):
                 break
             self._entries.append((d.module, '<no description>'))
 
-#         recompute_sigstring = False
-#         vs = self.sigstring[1:-1].split(',')
-#         for v in vs:
-#             k = v.split(':')
-#             if len(k) < 2:
-#                 try:
-#                     descriptor = registry.get_descriptor_from_name_only(k[0])
-#                     klass = descriptor.module
-#                     if klass is None:
-#                         self._entries = None
-#                         break
-#                     self._entries.append((klass, '<no description>'))
-#                     recompute_sigstring = True
-#                 except Exception:
-#                     raise VistrailsInternalError("Cannot determine package for"
-#                                                  "module '%s'" % k[0])
-#             else:
-#                 klass = registry.get_descriptor_by_name(*k).module
-#                 if klass is None:
-#                     self._entries = None
-#                     break
-#                 self._entries.append((klass, '<no description>'))
-#         if recompute_sigstring and self._entries is not None:
-#             self.create_sigstring()
-
     def create_tooltip(self):
         """Creates a short_sigstring that does not include package names for
         use with the tooltip. Note, however, that such sigstrings
@@ -354,12 +322,17 @@ class PortSpec(DBPortSpec):
                                             self._short_sigstring)
         
     # FIXME DAK: Can I move this?
+    # FIXME cscheid: I hope so, because I need to import port_spec from
+    #                module_function and so I'm pushing the circular import
+    #                under this.
     def create_module_function(self):
         """create_module_function() -> ModuleFunction
 
         creates a ModuleFunction object from self.
 
         """
+        from core.vistrail.module_function import ModuleFunction
+        from core.vistrail.module_param import ModuleParam
         def from_source_port():
             f = ModuleFunction()
             f.name = self.name

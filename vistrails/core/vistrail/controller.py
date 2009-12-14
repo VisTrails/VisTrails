@@ -59,6 +59,7 @@ from db.domain import IdScope
 from db.services.io import create_temp_folder, remove_temp_folder
 from db.services.io import SaveBundle
 from db.services.vistrail import getSharedRoot
+from core.utils import any
 
 class VistrailController(object):
     def __init__(self, vistrail=None, id_scope=None):
@@ -1543,7 +1544,10 @@ class VistrailController(object):
                 else:
                     self.current_pipeline = self.vistrail.getPipeline(0)
                     self.current_version = 0
-                    raise InvalidPipeline(unhandled_exceptions)
+                    # We reraise the exception, passing the pipeline along
+                    raise InvalidPipeline(unhandled_exceptions,
+                                          e._pipeline,
+                                          new_version)
 
     def change_selected_version(self, new_version, report_all_errors=False):
         try:

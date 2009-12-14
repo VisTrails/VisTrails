@@ -472,7 +472,20 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
     def execute(self, pipeline, **kwargs):
-        """execute(controller, pipeline, vistrailLocator, currentVersion, view):
+        """execute(pipeline, **kwargs):
+
+        kwargs:
+          controller = fetch('controller', None)
+          locator = fetch('locator', None)
+          current_version = fetch('current_version', None)
+          view = fetch('view', DummyView())
+          aliases = fetch('aliases', None)
+          logger = fetch('logger', DummyLogController())
+          reason = fetch('reason', None)
+          actions = fetch('actions', None)
+          done_summon_hooks = fetch('done_summon_hooks', [])
+          module_executed_hook = fetch('module_executed_hook', [])
+
         Executes a pipeline using caching. Caching works by reusing
         pipelines directly.  This means that there exists one global
         pipeline whose parts get executed over and over again.

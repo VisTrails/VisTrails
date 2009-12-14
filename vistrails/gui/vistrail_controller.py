@@ -34,7 +34,8 @@ from core.utils import VistrailsInternalError, ModuleAlreadyExists, \
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.basic_modules import Variant
-from core.modules.module_registry import ModuleRegistryException, MissingPort
+from core.modules.module_registry import ModuleRegistryException, \
+     MissingPort, PackageMustUpgradeModule, ObsoletePackageVersion
 from core.modules.package import Package
 from core.modules.sub_module import InputPort, OutputPort, new_abstraction, \
     read_vistrail
@@ -45,6 +46,7 @@ from core.query.visual import VisualQuery
 import core.system
 from core.system import vistrails_default_file_type
 from core.thumbnails import ThumbnailCache
+from core.upgradeworkflow import UpgradeWorkflowHandler
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
@@ -300,23 +302,33 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         return self.delete_module_list([module_id])
 
+    def create_module_list_deletion_action(self, pipeline, module_ids):
+        """ create_module_list_deletion_action(
+               pipeline: Pipeline,
+               module_ids: [int]) -> Action
+        Create action that will delete multiple modules from the given pipeline.
+
+        """
+        graph = pipeline.graph
+        connect_ids = self.get_module_connection_ids(module_ids, graph)
+        action_list = []
+        for c_id in connect_ids:
+            action_list.append(('delete', 
+                                pipeline.connections[c_id]))
+        for m_id in module_ids:
+            action_list.append(('delete',
+                                pipeline.modules[m_id]))
+        return core.db.action.create_action(action_list)
+
+
     def delete_module_list(self, module_ids):
         """ delete_module_list(module_ids: [int]) -> [version id]
         Delete multiple modules from the current pipeline
         
         """
         self.flush_move_actions()
-
-        graph = self.current_pipeline.graph
-        connect_ids = self.get_module_connection_ids(module_ids, graph)
-        action_list = []
-        for c_id in connect_ids:
-            action_list.append(('delete', 
-                                self.current_pipeline.connections[c_id]))
-        for m_id in module_ids:
-            action_list.append(('delete',
-                                self.current_pipeline.modules[m_id]))
-        action = core.db.action.create_action(action_list)
+        action = self.create_module_list_deletion_action(self.current_pipeline,
+                                                         module_ids)
         self.add_new_action(action)
         return self.perform_action(action)
 
@@ -764,11 +776,26 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def change_selected_version(self, new_version, report_all_errors=False):
         """change_selected_version(new_version: int,
-                                   report_all_errors: boolean) -> None
+                                   report_all_errors: boolean)
+
         Change the current vistrail version into new_version and emit a
-        notification signal
+        notification signal.
+
+        NB: in most situations, the following post-condition holds:
+
+        >>> controller.change_selected_version(v)
+        >>> assert v == controller.current_version
+
+        In some occasions, however, the controller will not be able to
+        switch to the desired version. One example where this can
+        happen is when the selected version has obsolete modules (that
+        is, the currently installed package for those modules has
+        module upgrades). In these cases, change_selected_version will
+        return a new version which corresponds to a workflow that was
+        created by the upgrading mechanism that packages can provide.
         
         """
+
         try:
             self.do_version_switch(new_version, report_all_errors)
         except InvalidPipeline, e:
@@ -802,11 +829,40 @@ class VistrailController(QtCore.QObject, BaseController):
                     QtGui.QMessageBox.critical(
                         VistrailsApplication.builderWindow,
                         'Invalid Pipeline', str(e))
-            if report_all_errors:
-                for err in e._exception_set:
-                    process_err(err)
-            elif len(e._exception_set) > 0:
-                process_err(e._exception_set.__iter__().next())
+
+            # VisTrails will not raise upgrade exceptions unless
+            # configured to do so. To get the upgrade requests,
+            # configuration option upgradeModules must be set to True.
+
+            if len(e._exception_set) > 0:
+                # If all exceptions are upgrade requests, we invoke
+                # the workflow upgrade mechanism
+                if (all(isinstance(k, PackageMustUpgradeModule) for
+                       k in e._exception_set)):
+                    # FIXME MAKE SURE THE PIPELINE THAT GETS HERE MAKES SENSE
+                    assert e._pipeline
+                    handler = UpgradeWorkflowHandler(self,
+                                                     e._exception_set,
+                                                     e._pipeline)
+                    # if handle_all_requests succeeds, we're ready to add the actions
+                    # to the vistrail.
+                    self.current_version = e._version
+                    self.current_pipeline = copy.copy(e._pipeline)
+                    result = handler.handle_all_requests()
+                    QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
+                                              'Workflow upgrade',
+                                              'Workflow successfully upgraded.')
+                    for action in result:
+                        self.add_new_action(action)
+                        self.vistrail.change_description("Upgrade", action.id)
+                        self.perform_action(action)
+                else:
+                    # Process all errors as usual
+                    if report_all_errors:
+                        for err in e._exception_set:
+                            process_err(err)
+                    else:
+                        process_err(e._exception_set.__iter__().next())
         except Exception, e:
             from gui.application import VistrailsApplication
             QtGui.QMessageBox.critical(

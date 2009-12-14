@@ -163,12 +163,14 @@ class QPackagesWidget(QtGui.QWidget):
         grid_layout.addWidget(l1, 0, 0)
         l2 = QtGui.QLabel("Identifier:", grid_frame)
         grid_layout.addWidget(l2, 1, 0)
-        l3 = QtGui.QLabel("Dependencies:", grid_frame)
+        l3 = QtGui.QLabel("Version:", grid_frame)
         grid_layout.addWidget(l3, 2, 0)
-        l4 = QtGui.QLabel("Reverse Dependencies:", grid_frame)
+        l4 = QtGui.QLabel("Dependencies:", grid_frame)
         grid_layout.addWidget(l4, 3, 0)
-        l5 = QtGui.QLabel("Description:", grid_frame)
+        l5 = QtGui.QLabel("Reverse Dependencies:", grid_frame)
         grid_layout.addWidget(l5, 4, 0)
+        l6 = QtGui.QLabel("Description:", grid_frame)
+        grid_layout.addWidget(l6, 5, 0)
 
         self._name_label = QtGui.QLabel("", grid_frame)
         grid_layout.addWidget(self._name_label, 0, 1)
@@ -176,17 +178,21 @@ class QPackagesWidget(QtGui.QWidget):
         self._identifier_label = QtGui.QLabel("", grid_frame)
         grid_layout.addWidget(self._identifier_label, 1, 1)
 
+        self._version_label = QtGui.QLabel("", grid_frame)
+        grid_layout.addWidget(self._version_label, 2, 1)
+
         self._dependencies_label = QtGui.QLabel("", grid_frame)
-        grid_layout.addWidget(self._dependencies_label, 2, 1)
+        grid_layout.addWidget(self._dependencies_label, 3, 1)
 
         self._reverse_dependencies_label = QtGui.QLabel("", grid_frame)
-        grid_layout.addWidget(self._reverse_dependencies_label, 3, 1)
+        grid_layout.addWidget(self._reverse_dependencies_label, 4, 1)
 
         self._description_label = QtGui.QLabel("", grid_frame)
-        grid_layout.addWidget(self._description_label, 4, 1)
+        grid_layout.addWidget(self._description_label, 5, 1)
 
-        for lbl in [l1, l2, l3, l4, l5,
+        for lbl in [l1, l2, l3, l4, l5, l6,
                     self._name_label,
+                    self._version_label,
                     self._dependencies_label,
                     self._identifier_label,
                     self._reverse_dependencies_label,
@@ -345,6 +351,7 @@ class QPackagesWidget(QtGui.QWidget):
         except Exception, e:
             msg = 'ERROR: Could not load package.'
             self._name_label.setText(msg)
+            self._version_label.setText(msg)
             self._identifier_label.setText(msg)
             self._dependencies_label.setText(msg)
             self._description_label.setText(msg + str(e))
@@ -361,6 +368,7 @@ class QPackagesWidget(QtGui.QWidget):
                 reverse_deps = ("Reverse dependencies only " +
                                 "available for enabled packages.")
             self._identifier_label.setText(p.identifier)
+            self._version_label.setText(p.version)
             self._dependencies_label.setText(deps)
             self._description_label.setText(p.description)
             self._reverse_dependencies_label.setText(reverse_deps)

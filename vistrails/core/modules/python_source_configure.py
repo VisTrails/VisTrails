@@ -214,48 +214,6 @@ class PythonSourceConfigurationWidget(PortTableConfigurationWidget):
             self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
         self.performPortConnection(self.connect)
 
-#     def newInputOutputPorts(self):
-#         ports = []
-#         for i in xrange(self.inputPortTable.rowCount()):
-#             model = self.inputPortTable.model()
-#             name = str(model.data(model.index(i, 0), QtCore.Qt.DisplayRole).toString())
-#             sigstring = str(model.data(model.index(i,1), QtCore.Qt.UserRole).toString())
-#             print sigstring
-#             # typeName = str(model.data(model.index(i, 1), QtCore.Qt.DisplayRole).toString())
-#             if name != '' and sigstring != '':
-#                 print 'input', name, sigstring
-#                 ports.append(('input', name, '(' + sigstring + ')'))
-#         for i in xrange(self.outputPortTable.rowCount()):
-#             model = self.outputPortTable.model()
-#             name = str(model.data(model.index(i, 0), QtCore.Qt.DisplayRole).toString())
-#             sigstring = str(model.data(model.index(i,1), QtCore.Qt.UserRole).toString())
-#             print sigstring
-#             # typeName = str(model.data(model.index(i, 1), QtCore.Qt.DisplayRole).toString())
-#             if name!='' and sigstring != '':
-#                 print 'output', name, sigstring
-#                 ports.append(('output', name, '(' + sigstring + ')'))
-#         return ports
-
-#     def specsFromPorts(self, portType, ports):
-#         return [(portType,
-#                  p.name,
-#                  '('+registry.get_descriptor(p.spec.signature[0][0]).name+')')
-#                 for p in ports[0][1]]
-
-#     def registryChanges(self, oldRegistry, newPorts):
-#         if oldRegistry:
-#             oldIn = self.specsFromPorts('input',
-#                                         oldRegistry.all_destination_ports(self.module_descriptor))
-#             oldOut = self.specsFromPorts('output',
-#                                          oldRegistry.all_source_ports(self.module_descriptor))
-#         else:
-#             oldIn = []
-#             oldOut = []
-#         deletePorts = [p for p in oldIn if not p in newPorts]
-#         deletePorts += [p for p in oldOut if not p in newPorts]
-#         addPorts = [p for p in newPorts if ((not p in oldIn) and (not p in oldOut))]
-#         return (deletePorts, addPorts)
-
     def updateVistrail(self):
         """updateVistrail() -> None
         Update vistrail to contain changes to the python source
@@ -284,49 +242,3 @@ class PythonSourceConfigurationWidget(PortTableConfigurationWidget):
             QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
             return False
         return True
-
-#     def updateActionsHandler(self, controller):
-#         oldRegistry = self.module.registry
-#         newPorts = self.newInputOutputPorts()
-#         (deletePorts, addPorts) = self.registryChanges(oldRegistry, newPorts)
-#         for (cid, c) in controller.current_pipeline.connections.items():
-#             if ((c.sourceId==self.module.id and
-#                  any(c.source.name==p[1] for p in deletePorts)) or
-#                 (c.destinationId==self.module.id and
-#                  any(c.destination.name==p[1] for p in deletePorts))):
-#                 controller.delete_connection(cid)
-#         for p in deletePorts:
-#             controller.delete_module_port(self.module.id, p)
-#         for p in addPorts:
-#             controller.add_module_port(self.module.id, p)
-#         if self.codeEditor.document().isModified():
-#             code = urllib.quote(str(self.codeEditor.toPlainText()))
-#             fid = self.findSourceFunction()
-            
-#             # FIXME make sure that this makes sense
-#             if fid==-1:
-#                 # do add function
-#                 fid = self.module.getNumFunctions()
-#                 f = ModuleFunction(pos=fid,
-#                                    name='source')
-#                 param = ModuleParam(type='String',
-#                                     val=code,
-#                                     alias='',
-#                                     name='<no description>',
-#                                     pos=0)
-#                 f.addParameter(param)
-#                 controller.add_method(self.module.id, f)
-#             else:
-#                 # do change parameter
-#                 paramList = [(code, 'String', None, 
-#                               'edu.utah.sci.vistrails.basic', '')]
-#                 controller.replace_method(self.module, fid, paramList)
-#             action = ChangeParameterAction()
-#             action.addParameter(self.module.id, fid, 0, 'source',
-#                                 '<no description>',code,'String', '')
-#             controller.performAction(action)
-                
-#     def okTriggered(self, checked = False):
-#         self.updateActionsHandler(self.controller)
-#         self.emit(QtCore.SIGNAL('doneConfigure()'))
-#         self.close()

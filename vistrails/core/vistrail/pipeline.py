@@ -23,12 +23,14 @@
 """ This module defines the class Pipeline """
 
 from core.cache.hasher import Hasher
+from core.configuration import get_vistrails_configuration
 from core.data_structures.bijectivedict import Bidict
 from core.data_structures.graph import Graph
 from core import debug
 from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException
+    ModuleRegistryException, ObsoletePackageVersion, \
+    PackageMustUpgradeModule
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
@@ -756,17 +758,8 @@ class Pipeline(DBWorkflow):
         Returns a list of actions that can be used to create a copy of the
         pipeline."""
 
+        # FIXME: Remove this call so we can find who calls it
         raise Exception('broken')
-#         result = []
-#         for m in self.modules:
-#             add_module = core.vistrail.action.AddModuleAction()
-#             add_module.module = copy.copy(m)
-#             result.append(add_module)
-#         for c in self.connections:
-#             add_connection = core.vistrail.action.AddConnectionAction()
-#             add_connection.connection = copy.copy(c)
-#             result.append(add_connection)
-#         return result
 
     ##########################################################################
     # Registry-related
@@ -828,18 +821,40 @@ class Pipeline(DBWorkflow):
         
         def find_descriptors(pipeline, module_ids=None):
             registry = get_module_registry()
+            conf = get_vistrails_configuration()
             if module_ids == None:
                 module_ids = pipeline.modules.iterkeys()
             exceptions = set()
             for mid in module_ids:
                 module = pipeline.modules[mid]
                 try:
-                    descriptor = \
-                        registry.get_similar_descriptor(module.package,
-                                                        module.name,
-                                                        module.namespace,
-                                                        module.version,
-                                                        module.internal_version)
+                    descriptor = registry.get_similar_descriptor(
+                        module.package,
+                        module.name,
+                        module.namespace,
+                        module.version,
+                        module.internal_version)
+                    pkg = registry.get_package_by_name(module.package)
+                    pkg_version = pkg.version.split('.')
+                    module_version = module.version.split('.')
+                    # FIXME: this split('.') should be a function somewhere.
+                    # The goal is to be able to compare them lexicographically
+
+                    # Skip basic modules for upgrade check, since
+                    # these don't seem to be consistent (in particular
+                    # for inputport and outputport in groups)
+
+                    if conf.automaticallyUpgradeWorkflows:
+                        if module.package <> "edu.utah.sci.vistrails.basic":
+                            if pkg_version < module_version:
+                                raise ObsoletePackageVersion(descriptor,
+                                                             pkg.version,
+                                                             module.version)
+                            if pkg_version > module_version:
+                                raise PackageMustUpgradeModule(descriptor,
+                                                               pkg.version,
+                                                               module.version,
+                                                               mid)
                     module.module_descriptor = descriptor
                     if (module.vtType == Group.vtType or 
                         module.vtType == Abstraction.vtType):
@@ -852,7 +867,7 @@ class Pipeline(DBWorkflow):
 
         exceptions = find_descriptors(self, module_ids)
         if len(exceptions) > 0:
-            raise InvalidPipeline(exceptions)
+            raise InvalidPipeline(exceptions, self)
 
     def ensure_parameter_positions(self):
         exceptions = []

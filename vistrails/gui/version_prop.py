@@ -301,7 +301,7 @@ class QVersionNotes(QtGui.QTextEdit):
         cursor = QtGui.QTextCursor(doc)
         cursor.select(QtGui.QTextCursor.LineUnderCursor)
         sel = cursor.selection().toPlainText()
-        if all(sel, lambda c: c == ' '):
+        if all(c == ' ' for c in sel):
             cursor.removeSelectedText()
             cursor = QtGui.QTextCursor(doc)
             cursor.deleteChar()

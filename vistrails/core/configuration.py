@@ -167,6 +167,7 @@ def default():
 
     base_dir = {
         'abstractionsDirectory': (None, str),
+        'automaticallyUpgradeWorkflows': False,
         'autosave': True,
         'dataDirectory': (None, str),
         'dbDefault': False,

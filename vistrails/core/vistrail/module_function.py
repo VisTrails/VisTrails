@@ -27,6 +27,7 @@
 from db.domain import DBFunction
 from core.utils import enum, VistrailsInternalError, all, eprint
 from core.vistrail.module_param import ModuleParam
+from core.vistrail.port_spec import PortSpec
 from itertools import izip
 import copy
 import __builtin__
@@ -124,6 +125,22 @@ class ModuleFunction(DBFunction):
 		p.serialize(doc,child)
 	element.appendChild(child)
 
+    def get_spec(self, port_type):
+        """ get_spec(port_type) -> PortSpec
+
+        Returns a PortSpec corresponding to the function parameter
+        types set.  This is useful to make module functions look more
+        like they are 'regular' modules and connections (which is what
+        they get compiled down to in execution).
+
+        port_type is either 'input' or 'output', as strings, which
+        simply gets set on the spec being returned.
+        """
+        # FIXME cscheid: what's the right call if getSignature is deprecated?
+        assert port_type == 'input' or port_type == 'output'
+        result = PortSpec(signature=self.getSignature())
+        result.type = port_type
+        return result
 
     def getSignature(self):
         """ getSignature() -> str - Returns the function signature..

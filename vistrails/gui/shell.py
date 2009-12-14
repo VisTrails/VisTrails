@@ -43,6 +43,7 @@ import core.system
 from core.vistrail.port_spec import PortSpec
 import gui.application
 from gui.common_widgets import QToolWindowInterface, QToolWindow
+from core.utils import all
 
 ################################################################################
 

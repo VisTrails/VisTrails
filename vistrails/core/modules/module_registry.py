@@ -299,7 +299,38 @@ class MissingPort(ModuleRegistryException):
             (self._port_type, self._port_name, self._module_name, 
              self._package_name)
 
+class ObsoletePackageVersion(ModuleRegistryException):
+    def __init__(self, descriptor,
+                 package_version, module_version):
+        ModuleRegistryException.__init__(self,
+                                         descriptor.identifier,
+                                         descriptor.name,
+                                         descriptor.namespace)
+        self._package_version = package_version
+        self._module_version = module_version
+    def __str__(self):
+        return "Package %s has lower version for module %s: %s vs %s" % \
+               (self._package_name, self._module_name,
+                self._package_version, self._module_version)
         
+
+class PackageMustUpgradeModule(ModuleRegistryException):
+    def __init__(self, descriptor,
+                 package_version, module_version,
+                 module_id):
+        ModuleRegistryException.__init__(self,
+                                         descriptor.identifier,
+                                         descriptor.name,
+                                         descriptor.namespace)
+        self._package_version = package_version
+        self._module_version = module_version
+        self._module_id = module_id
+    def __str__(self):
+        return "Package %s must upgrade module %s (id: %s) %s vs %s" % \
+               (self._package_name, self._module_name,
+                self._module_id,
+                self._package_version, self._module_version)
+
 class MissingBaseClass(Exception):
     def __init__(self, base):
         Exception.__init__(self)
