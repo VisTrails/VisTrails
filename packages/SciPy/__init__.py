@@ -41,7 +41,7 @@ identifier = 'edu.utah.sci.vistrails.scipy'
 from scipy import sparse
 
 def initialize(*args, **keywords):
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     basic = core.modules.basic_modules
 
     reg.add_module(SciPy)
@@ -49,6 +49,10 @@ def initialize(*args, **keywords):
     reg.add_module(MatrixOperation)
     reg.add_module(DSP)
     reg.add_module(DSPFilters, name="DSP Window Filters")
+
+    reg.add_module(SparseMatrix)
+    reg.add_input_port(SparseMatrix, "size", (basic.Integer, 'Matrix Size'))
+    reg.add_output_port(SparseMatrix, "output", (SparseMatrix, 'Output Matrix'))
 
     reg.add_module(HanningWindow)
     reg.add_input_port(HanningWindow, "Window Size", (basic.Integer, 'Window Size'))
@@ -103,10 +107,6 @@ def initialize(*args, **keywords):
     reg.add_module(NuttallBlackmanHarrisWindow)
     reg.add_input_port(NuttallBlackmanHarrisWindow, "Window Size", (basic.Integer, 'Window Size'))
     reg.add_output_port(NuttallBlackmanHarrisWindow, "Window", (SparseMatrix, 'Window'))
-
-    reg.add_module(SparseMatrix)
-    reg.add_input_port(SparseMatrix, "size", (basic.Integer, 'Matrix Size'))
-    reg.add_output_port(SparseMatrix, "output", (SparseMatrix, 'Output Matrix'))
 
     reg.add_module(PrintMatrix)
     reg.add_input_port(PrintMatrix, "InputMatrix", (Matrix, 'Matrix'))
@@ -207,7 +207,7 @@ def initialize(*args, **keywords):
     reg.add_output_port(ShortTimeFourierTransform, "Signal Output", (SparseMatrix, 'Signal Output'), True)
     
     reg.add_module(vtkDataSetToMatrix)
-    reg.add_input_port(vtkDataSetToMatrix, "vtkUnstructuredGrid", (reg.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput').module, 'Input Unstructured Grid'))
+    reg.add_input_port(vtkDataSetToMatrix, "vtkUnstructuredGrid", (reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput').module, 'Input Unstructured Grid'))
     reg.add_output_port(vtkDataSetToMatrix, "Output Matrix", (SparseMatrix, 'Output Matrix'))
 
     reg.add_module(PhaseHistogramToVTKPoints)
@@ -215,7 +215,7 @@ def initialize(*args, **keywords):
     reg.add_input_port(PhaseHistogramToVTKPoints, "Num Bins", (basic.Integer, 'Number of Phase Bins'))
     reg.add_output_port(PhaseHistogramToVTKPoints, "Num Slices", (basic.Integer, 'Number of Histogram Timeslices'), True)
     reg.add_output_port(PhaseHistogramToVTKPoints, "Phase Histogram", (SparseMatrix, 'Phase Histogram'), True)
-    reg.add_output_port(PhaseHistogramToVTKPoints, "Phase Geometry", (reg.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput').module, 'Phase Geometry Connection'))
+    reg.add_output_port(PhaseHistogramToVTKPoints, "Phase Geometry", (reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput').module, 'Phase Geometry Connection'))
 
 def package_dependencies():
     import core.packagemanager
