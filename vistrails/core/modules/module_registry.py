@@ -1225,17 +1225,25 @@ class ModuleRegistry(DBRegistry):
                 # modules inside package might use each other as ports
                 for module in modules:
                     self.auto_add_module(module)
+
+            # allow all modules to auto_add_ports!
+            added_descriptors = set()
+            for descriptor in package.descriptor_list:
+                if hasattr(descriptor, 'module'):
+                    self.auto_add_ports(descriptor.module)
+                    added_descriptors.add(descriptor)
             # Perform auto-initialization of abstractions
             if hasattr(package.module, '_subworkflows'):
                 subworkflows = \
                     _toposort_abstractions(package, 
                                            package.module._subworkflows)
                 for subworkflow in subworkflows:
-                    self.add_subworkflow(subworkflow)
-            # allow all modules to auto_add_ports!
+                    self.auto_add_subworkflow(subworkflow)
             for descriptor in package.descriptor_list:
-                if hasattr(descriptor, 'module'):
-                    self.auto_add_ports(descriptor.module)
+                if descriptor not in added_descriptors:
+                    if hasattr(descriptor, 'module'):
+                        self.auto_add_ports(descriptor.module)
+                        added_descriptors.add(descriptor)
         except Exception, e:
             raise package.InitializationFailed(package, e, 
                                                traceback.format_exc())
