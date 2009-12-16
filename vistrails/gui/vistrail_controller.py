@@ -1089,7 +1089,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
             self.change_selected_version(new_version)
             # case 1:
-            if not dest_node_in_terse_tree and not current_node_will_be_visible:
+            if not dest_node_in_terse_tree and \
+                    not current_node_will_be_visible and not current == 0:
                 # we're going from one boring node to another,
                 # so just rename the node on the terse graph
                 self._current_terse_graph.rename_vertex(current, new_version)

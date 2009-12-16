@@ -845,6 +845,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # update version item
         v = self.versions[old_version]
+        old_desc = controller.vistrail.get_description(old_version)
+        new_desc = controller.vistrail.get_description(new_version)
+        if old_desc != new_desc:
+            v.descriptionLabel = new_desc
+            v.text.changed(v.text.centerX, v.text.centerY, new_desc, False)
+            v.updateWidthFromLabel()
         self.versions[new_version] = v
         del self.versions[old_version]
         v.id = new_version
