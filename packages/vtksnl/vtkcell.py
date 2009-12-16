@@ -1009,7 +1009,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             
             if not camera:
                 # Create camera
-                vtk_package = 'edu.utah.sci.vistrails.vtk'
+                vtk_package = 'edu.utah.sci.vistrails.vtksnl'
                 camera = controller.create_module(vtk_package, 'vtkCamera', '',
                                                   0.0, 0.0)
                 ops.append(('add', camera))
@@ -1075,7 +1075,7 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
-    identifier = 'edu.utah.sci.vistrails.vtk'
+    identifier = 'edu.utah.sci.vistrails.vtksnl'
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)

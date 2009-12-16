@@ -887,11 +887,12 @@ def class_dict(base_module, node):
     return class_dict_
 
 disallowed_modules = set([
-        'vtkGeoAlignedImageCache',
-        'vtkGeoTerrainCache',
-        'vtkPlotWriter',
-        'vtkMimeTypeStrategy',
-        'vtkMPIGroup'
+#        'vtkGeoAlignedImageCache',
+#        'vtkGeoTerrainCache',
+#        'vtkMimeTypeStrategy',
+#        'vtkMPIGroup',
+        'vtkPlotWriter', # Segfaults when being destroyed (when created without a reference, or when last reference is removed)
+        'vtkRenderedLandscapeRepresentation' # Segfaults when calling: GetPeakLabelStopWords()
         ])
 def createModule(baseModule, node):
     """ createModule(baseModule: a Module subclass, node: TreeNode) -> None

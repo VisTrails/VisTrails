@@ -143,7 +143,7 @@ class vtkBaseModule(Module):
                 function = 'SetInputConnection'
             if function=='AddInputConnection':
                 desc = registry.get_descriptor_by_name(
-                    'edu.utah.sci.vistrails.vtk',
+                    'edu.utah.sci.vistrails.vtksnl',
                     'vtkAlgorithmOutput')
                 for i in xrange(len(paramList)):
                     if type(paramList[i])==desc.module:
@@ -197,7 +197,7 @@ class vtkBaseModule(Module):
         
         """
         result = registry.get_descriptor_by_name(
-            'edu.utah.sci.vistrails.vtk',
+            'edu.utah.sci.vistrails.vtksnl',
             classname).module()
         result.vtkInstance = instance
         return result
