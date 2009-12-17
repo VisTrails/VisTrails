@@ -386,7 +386,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
                                         setter[1][0] in typeMapDict)
             else:
                 classes = [typeMap(i) for i in setter[1]]
-                if all(classes, is_class_allowed):
+                if all(is_class_allowed(x) for x in classes):
                     registry.add_input_port(module, n, classes, True)
             # Wrap SetFileNames for VisTrails file access
             if file_name_pattern.match(name):
@@ -484,7 +484,7 @@ def addStatePorts(module, state_dict):
                                             setter[1][0] in typeMapDict)
                 else:
                     classes = [typeMap(i) for i in setter[1]]
-                    if all(classes, is_class_allowed):
+                    if all(is_class_allowed(x) for x in classes):
                         registry.add_input_port(module, n, classes, True)
 
 disallowed_other_ports = set(
@@ -556,7 +556,7 @@ def addOtherPorts(module, other_list):
                 else:
                     types = [[]]
                 if types:
-                    if not all(types, is_class_allowed):
+                    if not all(is_class_allowed(x) for x in types):
                         continue
                     n = resolve_overloaded_name(name, ix, signatures)
                     if len(types)<=1:
@@ -578,7 +578,7 @@ def addOtherPorts(module, other_list):
                     types = [typeMap(p) for p in params]
                 else:
                     types = []
-                if not all(types, is_class_allowed):
+                if not all(is_class_allowed(x) for x in types):
                     continue
                 if types==[] or (result==None):
                     n = resolve_overloaded_name(name, ix, signatures)
@@ -695,12 +695,13 @@ def class_dict(base_module, node):
             # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
             # it has other ways of specifying files, like SetFilePrefix for
             # multiple files
-            if any([vtksnl.vtkBYUReader,
+            if any(issubclass(self.vtkClass, x)
+                   for x in
+                   [vtksnl.vtkBYUReader,
                     vtksnl.vtkImageReader,
                     vtksnl.vtkPLOT3DReader,
                     vtksnl.vtkDICOMImageReader,
-                    vtksnl.vtkTIFFReader],
-                   lambda x: issubclass(self.vtkClass, x)):
+                    vtksnl.vtkTIFFReader]):
                 old_compute(self)
                 return
             if self.hasInputFromPort('SetFileName'):
