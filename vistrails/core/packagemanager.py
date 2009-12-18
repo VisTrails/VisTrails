@@ -24,6 +24,11 @@
 with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
 
+import copy
+import os
+import sys
+from PyQt4 import QtCore
+
 from core import debug
 from core.configuration import ConfigurationObject
 import core.data_structures.graph
@@ -31,9 +36,6 @@ import core.db.io
 from core.modules.module_registry import ModuleRegistry
 from core.modules.package import Package
 from core.utils import VistrailsInternalError, InstanceObject
-import os
-import sys
-from PyQt4 import QtCore
 ##############################################################################
 
 
@@ -78,34 +80,45 @@ class PackageManager(QtCore.QObject):
         in the right place.
 
         """
+        if self._packages is not None:
+            return self._packages
         # Imports standard packages directory
         conf = self._configuration
-        old_sys_path = sys.path
+        old_sys_path = copy.copy(sys.path)
         if conf.check('packageDirectory'):
-            sys.path.append(conf.packageDirectory)
+            sys.path.insert(0, conf.packageDirectory)
         try:
             import packages
+        except ImportError:
+            print 'ImportError: sys.path:', sys.path
+            raise
         finally:
             sys.path = old_sys_path
+        self._packages = packages
         return packages
-
 
     def import_user_packages_module(self):
         """Imports the packages module using path trickery to find it
         in the right place.
 
         """
+        if self._userpackages is not None:
+            return self._userpackages
         # Imports user packages directory
         conf = self._configuration
-        old_sys_path = sys.path
+        old_sys_path = copy.copy(sys.path)
         if conf.check('userPackageDirectory'):
-            sys.path.append(conf.userPackageDirectory + '/' + os.path.pardir)
+            sys.path.insert(0, os.path.join(conf.userPackageDirectory,
+                                            os.path.pardir))
         try:
             import userpackages
+        except ImportError:
+            print 'ImportError: sys.path:', sys.path
+            raise
         finally:
             sys.path = old_sys_path
+        self._userpackages = userpackages
         return userpackages
-
 
     def __init__(self, configuration):
         """__init__(configuration: ConfigurationObject) -> PackageManager
@@ -123,6 +136,8 @@ class PackageManager(QtCore.QObject):
         self._identifier_map = {}
         self._dependency_graph = core.data_structures.graph.Graph()
         self._registry = None
+        self._userpackages = None
+        self._packages = None
 
     def init_registry(self, registry_filename=None):
         if registry_filename is not None:
@@ -456,11 +471,12 @@ creating a class that behaves similarly)."""
             return ((path.endswith('.py') and
                      not path.endswith('__init__.py') and
                      os.path.isfile(path)) or
-                    os.path.isdir(path) and os.path.isfile(path + '/__init__.py'))
+                    os.path.isdir(path) and \
+                        os.path.isfile(os.path.join(path, '__init__.py')))
 
         def visit(_, dirname, names):
             for name in names:
-                if is_vistrails_package(dirname + '/' + name):
+                if is_vistrails_package(os.path.join(dirname, name)):
                     if name.endswith('.py'):
                         name = name[:-3]
                     lst.append(name)
@@ -468,9 +484,9 @@ creating a class that behaves similarly)."""
             del names[:]
 
         # Finds standard packages
-        import packages
+        packages = self.import_packages_module()
         os.path.walk(os.path.dirname(packages.__file__), visit, None)
-        import userpackages
+        userpackages = self.import_user_packages_module()
         os.path.walk(os.path.dirname(userpackages.__file__), visit, None)
 
         return lst
