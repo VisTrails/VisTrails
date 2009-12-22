@@ -160,7 +160,11 @@ def parse_meminfo():
     info = OSXSystemProfiler()
     mem = info['physical_memory'][0]
     if mem.upper().endswith(' GB'):
-        result = int(mem[:-3]) * 1024 * 1024 * 1024L
+        #there are some systems that have non integer numbers
+        #FIXME: the database complains for computers with lots of memory because
+        #the number is too big and it is being truncated
+        #we should store as MB instead of Bytes.
+        result = int(float(mem[:-3]) * 1024) * 1024 * 1024L
     elif mem.upper().endswidth(' MB'):
         result = int(mem[:-3]) * 1024 * 1024L
     return result
