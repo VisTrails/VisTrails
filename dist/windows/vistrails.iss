@@ -49,7 +49,6 @@ Source: C:\Python25\libs\*; DestDir: {app}\vistrails\Python25\libs
 Source: C:\Python25\Scripts\*; DestDir: {app}\vistrails\Python25\Scripts
 Source: C:\Python25\tcl\*; DestDir: {app}\vistrails\Python25\tcl; Flags: recursesubdirs
 Source: C:\Python25\Tools\*; DestDir: {app}\vistrails\Python25\Tools; Flags: recursesubdirs
-Source: E:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
@@ -101,15 +100,29 @@ Source: Input\qt.conf; DestDir: {app}\vistrails\Python25
 ;Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails\Python25
 Source: E:\src\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
 Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
+Source: E:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: E:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
+;;;; --------    ITK FILES    ----------;;;;
+;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
+;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\Configuration\*; DestDir: {app}\Configuration; Flags: recursesubdirs
+;Source: E:\src\itk\bin\Release\*.dll; DestDir: {app}\vistrails
+;Source: E:\src\itk\bin\Release\*.pyd; DestDir: {app}\vistrails
+;Source: E:\src\itk\bin\Release\*.py; DestDir: {app}\vistrails
+;;;; --------- END OF ITK FILES --------- ;;;;
+Source: E:\src\fftw-3.2.2.pl1-dll32\libfftw3-3.dll; DestDir: {app}\vistrails
+Source: E:\emanuele\src\hdf5-1.8.4-32bit-VS2008-IVF101\*; DestDir: {app}\vistrails\libsrc\hdf5-1.8.4-32bit-VS2008-IVF101; Flags: recursesubdirs
 [Dirs]
 Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
+;;Name: {app}\Configuration
+;;Name: {app}\itkExtras
 Name: {app}\examples; Components: examples; Tasks: 
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
 Name: {app}\scripts
 Name: {app}\scripts\gen_vtk_examples
+Name: {app}\vistrails\libsrc
 Name: {app}\vistrails\Python25
 Name: {app}\vistrails\vtk
 Name: {app}\vistrails\vistrails\vtk
