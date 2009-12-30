@@ -24,6 +24,7 @@ It contains modules to represent a geolocation, to get an image and a sound memo
 Executing on a desktop will do nothing for now.
 
 """
+import base64
 from datetime import datetime
 
 from core.configuration import ConfigurationObject
@@ -75,13 +76,13 @@ class LocationCoordinate2D(Constant):
     
     @staticmethod
     def translate_to_python(x):
-        result = self.from_xml_string(x)
+        result = LocationCoordinate2D.from_xml_string(x)
         result.setResult("value", result)
         return result
 
     @staticmethod
     def translate_to_string(x):
-        return self.to_xml_string(x)
+        return LocationCoordinate2D.to_xml_string(x)
         
     def compute(self):
         if self.hasInputFromPort("value"):
@@ -190,13 +191,13 @@ class Location(Constant):
     
     @staticmethod
     def translate_to_python(x):
-        result = self.from_xml_str(x)
+        result = Location.from_xml_string(x)
         result.setResult("value", result)
         return result
 
     @staticmethod
     def translate_to_string(x):
-        return self.to_xml_string(x)
+        return Location.to_xml_string(x)
     
     def compute(self):
         if self.hasInputFromPort("value"):
@@ -311,10 +312,10 @@ class B64EncodedContents(Constant):
             self.contents = data.contents
         
         if self.contents is None:
-            self.checkInputPort("file")
-            file_ = self.getInputFromPort("file")
-            c = open(file_)
-            self.contents = base64.b64encode(c.read()) 
+            if self.hasInputFromPort("file"):
+                file_ = self.getInputFromPort("file")
+                c = open(file_.name)
+                self.contents = base64.b64encode(c.read()) 
             
         self.setResult("value", self)
         self.setResult("value_as_string", self.translate_to_string(self))
