@@ -1,10 +1,20 @@
 #!/usr/bin/env sh
-# usage: make_app
-# Based on the modified script posted on Mac OS X Hints
-# http://www.macosxhints.com/article.php?story=20020311215452999
+# usage: make_app volname
+#      example: ./make_app vistrails-mac-10.5-intel-1.3.1-rev1646
+#
 # Creates a disk image (dmg) of VisTrails on Mac OS X from the command line.
 #
-# The result will be VisTrails folder with the application and examples inside
+# The result will be a compressed dmg image with a README file, a LICENSE
+# file and VisTrails folder containing the application and examples
+# It uses py2app to build the bundle and
+# DMG Canvas - http://www.araelium.com/dmgcanvas/ to generate the dmg
+
+if [ $# != 1 ]; then
+echo "Usage: make_app volname"
+exit 0
+fi
+VOL="$1"
+DMG="$VOL.dmg"
 
 echo "removing build and dist folders..."
 rm -rf dist/ build/
@@ -17,6 +27,25 @@ cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/xml dist/V
 echo "copying Ft/Data directory"
 cp -r /usr/local/share/4Suite/Data dist/VisTrails.app/Contents/Resources/lib/python2.5/Ft/
 cp -r /usr/local/share/4Suite/default.cat dist/VisTrails.app/Contents/Resources/lib/python2.5/Ft/
+echo "copying python headers and libs..."
+cp -r /Library/Frameworks/Python.framework/Versions/2.5/include/python2.5/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.5/include/python2.5
+cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config
+echo "creating links to python frameworks"
+curdir=`pwd`                                               
+frameworkdir="dist/VisTrails.app/Contents/Frameworks/Python.framework/"
+cd $frameworkdir
+ln -s Versions/2.5/include/python2.5 Headers
+ln -s Versions/2.5/Python Python
+ln -s Versions/2.5/Resources Resources
+cd $curdir
+echo "copying hdf5 headers and libs..."
+mkdir dist/VisTrails.app/Contents/Resources/hdf5
+cp -r /Users/emanuele/src/hdf5-1.8.4/hdf5/include dist/VisTrails.app/Contents/Resources/hdf5/
+cp -r /Users/emanuele/src/hdf5-1.8.4/hdf5/lib dist/VisTrails.app/Contents/Resources/hdf5/
+install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.dylib
+install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.6.dylib
+install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.dylib
+install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.6.dylib 
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."
@@ -34,4 +63,6 @@ mv dist/examples dist/VisTrails/
 #uncomment the following lines for itk support
 #echo "including itk..."
 #python fix_itk_libraries.py ~/src/itk dist/VisTrails/VisTrails.app/Contents
-echo "Done. Now use DMG Canvas to create the compressed dmg file"
+echo "using dmgcanvas to create the compressed dmg file..."
+/usr/local/bin/dmgcanvas -t vistrails.dmgCanvas -o ${DMG} -v ${VOL}
+echo "Done."
