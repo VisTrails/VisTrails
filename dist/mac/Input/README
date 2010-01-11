@@ -16,7 +16,178 @@ Please see the About Message for Licensing and Disclaimers.
 
 RELEASE NOTES
 -------------
-Release Name v1.3 build 1561
+Release Name: v1.4 build 1682
+
+Enhancements: 
+ - EXPERIMENTAL: Packages can handle workflow upgrade requests. Still very much 
+work-in-progress. If you want to enable this, set 'automaticallyUpgradeWorkflows' 
+to True in the Expert Configuration tab in the Preferences menu.   (r1665)
+ - Module Packages tab in Preferences menu now shows package version. (r1665)
+ - Initial revision of a sql scripting package (r1664)
+ - Improve error messages when sql statements fail (r1660)
+ - Ticket #318: Add support for generating a .vtl file within a workflow (r1657)
+ - Allow persistence package to search for persistent entities
+in multiple stores (r1654)
+ - Added script that generates nightly source releases. (r1648)
+ - Better delete buttons on the parameters. (r1646)
+ - Add data provenance support for persistent files. (r1644)
+ - Removed "Tag" entry in the method palette (r1643)
+ - Ticket #276: Make method deletion more visible (r1642)
+ - Ticket #287: Allow parameters to be named (r1642)
+ - Ticket #291: Allow functions to be populated with default values (r1642)
+ - Can delete functions/methods by clicking the check box next to the name (r1642)
+ - Can define default values for parameters (r1642)
+ - Can define labels for parameters (r1642)
+ - Added script for (re)starting vistrails in server mode with Xvfb.
+ - Visual Diff now shows matches in white; modules shared by history are colored
+gray while modules shared by matching are colored white. (r1634)
+ - Added better default descriptions to version tree. (r1634)
+ - Enabled the 'SetInputArrayToProcess' method of vtkAlgorithm class to use 
+for the InfoVis package. This port was disallowed earlier for some reason, so 
+we have to watch if this will cause any issue. (r1632)
+ - Added support for storing logs and thumbnails on the database. (r1625)
+ - Add a new module that allows the user to control the order of execution of 
+two sinks. (r1618)
+ - Use the module descriptor to do hashing instead of the module since the 
+descriptor used may be a different version. (r1615)
+ - Fix so core and gui controllers both use the same change_selected_version 
+logic. (r1614)
+ - Streamline error handling for workflow materialization. (r1614)
+ - Added Path and Directory constants and updated File constant
+along with configuration widgets. (r1611)
+ - Updated persistence package to support persistent directories
+and compression. (r1611)
+ - Initial version of a persistence package that aims to cache
+files across VisTrails sessions. (r1598)
+ - Adds support for viewing web documents in a WebViewCell using
+Qt's QWebView which is based on WebKit (r1596)
+ - Moved the controlflow package from packages to vistrails/packages. (r1588)
+ - Moved doc folder to root. (r1581)
+ - First version of source tree documentation. (r1580)
+ - Added the InfoVis example using the new VTKViewCell. (r1564)
+ - Enable more intuitive command-line interactions with
+pipelines (r1563)
+ - Added VTKViewCell for displaying vtkRenderView compatible with the current VTK trunk. Just connect vtkRenderView to VTKViewCell. First attempt, only tested on Linux. (r1562)
+
+Bug fixes: 
+ - Ticket #334: Programmatic change_parameter problem (r1679)
+ - Add translation to new ids back after input/output remap. (r1663)
+ - Ticket #328: Backslashes in SQL Problem (r1662)
+ - Use prepared statements for the relational database
+persistence. (r1662)
+ - Ticket #330: Ungroup and save to db fails (r1661)
+ - Make sure that new objects are saved to the database. (r1661)
+ - Ticket #328: Backslashes in SQL Problem (r1660)
+ - Added prepared statement support for db version 1.0.1 (r1660)
+ - Ticket #329: Analogy port remap needs to check input/output remaps (r1659)
+ - Check the correct remap when changing ports. (r1659)
+ - Check for __init__.py in userpackages on startup. (r1656)
+ - Improve feedback for undo/redo (r1655)
+ - Ticket #327: Bug in exporting registry to DB (r1653)
+ - Removed global setting on package ids from sql spec. (r1653)
+ - Fixed exporting Log, Workflow and Registry to XML (r1652)
+ - Fixed exporting Log and Workflow to DB (r1652)
+ - tag "tag" was being ignored when "version" was empty in .vtl file (r1651)
+ - Copying DBLog objects was not working (r1650) 
+ - DBVistrail.do_copy doesn't fail when log is None (r1649)
+ - Add copy methods to enhanced DBVistrail (r1645)
+ - Don't disable entire vistrails when they contain **unused**
+invalid port specs (r1641)
+ - Ticket #323: Subworkflows with version mismatches in underlying pipelines don't fail gracefully (r1640)
+ - Subworkflows that fail to load fail gracefully and print the
+exception (r1640)
+ - Ticket #321: Save As... doesn't save log (r1639)
+ - Save As and Export now save log data from files to files or
+files to db. (r1639)
+ - Ticket #259: Undo not available (r1636)
+ - Undo and redo are now available when the should be. (r1636)
+ - Execute Version Difference menu item is enabled at the correct
+times and functions correctly. (r1636)
+ - Ticket #326: Visual difference not considering namespace (r1634)
+ - Modules from different packages or namespaces no longer
+match (r1634)
+ - Groups try to match on their tag during heuristic
+matches (r1634)
+ - Ticket #325: DB version translation loses deleted entities (r1633)
+ - Translating to different database versions now transfers
+deleted entites from the old object to new object. (r1633)
+ -  wiki vistrails tags containing "tag" attributes were not executed on the wiki  (r1627)
+ - Ticket #320: Version Tree Display Inconsistent Across Serializations (r1617)
+ - Fix to make version tree layout consistent across
+serializations. (r1617)
+ - Ticket #319: Database copy/pastes saves not working correctly (r1616)
+ - Version updates now update the id scope to avoid strange
+errors when using VisTrails with an older database schema. (r1616)
+ - Copy and paste operations reset the id of a group's pipeline
+to None in order to allow the database to assign the correct
+id. (r1616)
+ - Unserialization now sets the unserialized object's is_new flag
+to True instead of allowing it to default to False. (r1616)
+ - Add version support into module signatures so that persistent
+files will be recomputed when upstream modules are updated. (r1615)
+ - Analogies now replace annotations of the same key and
+parameter values instead of adding new copies. (r1614)
+ - Bring unit tests up-to-date. (r1614)
+ - Ensure that debug messages are written in core controller. (r1614)
+ - Make code that adds parameters after executions work again. (r1614)
+ - core.system.executable_in_path now checks the correct error code from core.system.execute_cmdline() (r1613)
+ - Ticket #314: Visual Diff Broken when PythonSource loses/gains a connection (r1612)
+ - Fix issue with dynamic modules and the visual diff when ports
+have been re-typed. (r1612)
+ - Update documentation on create_action. (r1611)
+ - Ticket #311: Method palette doesn't obey port overloading (r1610)
+ - Ensure that ports are only displayed once in method palette
+and obey port overriding. (r1610)
+ - Ticket #309: Subworkflows crash on package version mismatch (r1607)
+ - Run ensure_modules, ensure_connection_specs on subworkflows
+during loading to try to avoid package version mismatch
+errors. (r1607)
+ - Ticket #308: Analogies fail on changed location (r1606)
+ - Fix bug with analogies where module's locations were added
+instead of changed causing problems when that module was
+deleted. (r1606)
+ - Fixed issue with deletes in sql persistence for versions 0.9.5
+and 1.0.0 (r1603)
+ - Ticket #307: Error messages when executing a workflow more than once (r1602)
+ - This fixes bug where error messages would be printed to the terminal when executing a pipeline with cached modules more than once (r1602)
+ - Fixed a typo in create_port, we don't need to call the vistrails_port
+object that was created. (r1601)
+ - Fixes some of the shell interaction methods. (r1600)
+ - Remove ternary operator for python 2.4 compatibility (r1599)
+ - Ticket #305: vistrails.sql script in schema v1.0.0 is broken (r1595)
+ - Fixed issues with versions 0.9.5 and 1.0.0 of the relational schema. (r1595)
+ - Ticket #304: VisTrails does not check if the connection to the database is still alive before performing an sql command (r1594)
+ -  This fixes bug where the MySQL has gone away error would show up when connected to a database and VisTrails was not being used for a while (r1594)
+ - Ticket #303: Thumbnail error when saving a vistrail (r1593)
+ -  Fixes bug that prevented a vistrail to be saved because of an error related with thumbnails. (r1593)
+ - Ticket #301: Double-clicking .vt and .vtl files does not cause them to be open by an already running VisTrails (Mac only) (r1592)
+ - Moving condition check to the right place so FileOpen events are captured correctly on a Mac (r1592)
+ - Ticket #299: Delete ops in analogies broken (r1591)
+ - Add some checks to make analogies better behaved. (r1591)
+ - Ticket #300: Null actions being added to the tree (r1590)
+ - Parameter selections don't generate null actions. (r1590)
+ - Ticket #297: MissingPort exception not raised (r1589)
+ - Fixes bug where user is never notified if a module on the
+registry is missing the requested port. (r1589)
+ - Updated VisTrails Server code in the trunk to be consistent with the server 
+running in vistrails.sci.utah.edu (r1583)
+ - Fixed small bug that prevented load a vistrail from the database 
+using the GUI. (r1582)
+ - Partial fix to deprecation messages. Not closing the ticket because it's 
+not fixed on Windows. (r1576)
+ - Ticket #283: Fold Type Mismatch Error (r1575)
+ - Fix the type mismatch error message. (r1575)
+ - Update current list of ignored classes in vtk package. (r1573)
+ - Ticket #279: Analogies broken with namespaces (r1572)
+ - Use module's _get_module_descriptor call to get the descriptor to fix
+namespace issues with analogies. (r1572)
+ - Fixes a bug that shouldn't currently be exposed to an end-user.
+Specifically, the registry's udpate_id_scope method didn't add 1 to
+the begin id. (r1571)
+ - Fixed the pipeline execution mechanism in the spreadsheet that didn't work
+with the new interpreter interface. (r1567)
+
+From Release v1.3 build 1561
 
 Bug Fixes:
  - Fixed bug that was preventing files from being saved on Windows

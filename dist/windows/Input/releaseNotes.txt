@@ -1,7 +1,7 @@
 RELEASE NOTES
 -------------
 
-Release Name: v1.4 build 1675
+Release Name: v1.4 build 1682
 
 Enhancements: 
  - EXPERIMENTAL: Packages can handle workflow upgrade requests. Still very much 
@@ -55,6 +55,7 @@ pipelines (r1563)
  - Added VTKViewCell for displaying vtkRenderView compatible with the current VTK trunk. Just connect vtkRenderView to VTKViewCell. First attempt, only tested on Linux. (r1562)
 
 Bug fixes: 
+ - Ticket #334: Programmatic change_parameter problem (r1679)
  - Add translation to new ids back after input/output remap. (r1663)
  - Ticket #328: Backslashes in SQL Problem (r1662)
  - Use prepared statements for the relational database

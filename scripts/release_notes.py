@@ -26,8 +26,8 @@ def rev(n):
 client = pysvn.Client()
 client.callback_get_login = userpass
 
-version_start = 1562
-version_end = 1675
+version_start = 1676
+version_end = 1680
 release_name = "1.4"
 logs = client.log('https://vistrails.sci.utah.edu/svn',
                   revision_end=rev(version_start))
