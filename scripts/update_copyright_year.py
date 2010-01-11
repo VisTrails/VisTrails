@@ -2,9 +2,9 @@
 # and updates 2007 year with 2008 in the file header. 
 import re
 import os
-new_copyright = ["## Copyright (C) 2006-2009 University of Utah. All rights reserved.\n"]
+new_copyright = ["## Copyright (C) 2006-2010 University of Utah. All rights reserved.\n"]
 
-re_copyright = re.compile(r"\s+## Copyright \(C\) 2006-2008 University of Utah\. All rights reserved\.\s+")
+re_copyright = re.compile(r"\s+## Copyright \(C\) 2006-2009 University of Utah\. All rights reserved\.\s+")
 
 files = []
 for (path, dnames, fnames) in os.walk('.'):

@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2009 University of Utah. All rights reserved.
+## Copyright (C) 2006-2010 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -290,7 +290,7 @@ def about_string():
    """about_string() -> string - Returns the about string for VisTrails."""
    return """VisTrails version %s.%s -- vistrails@sci.utah.edu
 
-Copyright (c) 2006-2007 University of Utah. All rights reserved.
+Copyright (c) 2006-2010 University of Utah. All rights reserved.
 http://www.vistrails.org
 
 THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY \
