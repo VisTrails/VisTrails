@@ -1039,7 +1039,7 @@ class VistrailController(object):
             for operation in action.operations:
                 if operation.vtType == 'add' or \
                         operation.vtType == 'change':
-                    if operation.data.vtType == Abstraction.vtType:
+                    if operation.data is not None and operation.data.vtType == Abstraction.vtType:
                         abstraction = operation.data
                         if abstraction.package == abstraction_pkg:
                             abstractions.append(abstraction)
@@ -1243,6 +1243,10 @@ class VistrailController(object):
                 param_values_len = len(param_values)
             except TypeError:
                 param_values = [param_values]
+            # FIXME should use registry to determine parameter types
+            # and then call the translate_to_string method on each
+            # parameter
+            param_values = [str(x) for x in param_values]
             module = self.current_pipeline.modules[m_id]
             # FIXME remove this code when aliases move
             old_id = -1
@@ -1265,12 +1269,11 @@ class VistrailController(object):
 
         action = core.db.action.create_action(op_list)
         self.add_new_action(action)
-        new_id = self.perform_action(action)
 
         self.current_pipeline = current_pipeline
         self.current_version = current_version
         
-        return new_id
+        return action.id
     
     ##########################################################################
     # Workflow Execution
