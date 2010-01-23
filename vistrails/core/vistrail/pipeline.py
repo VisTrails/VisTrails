@@ -46,7 +46,7 @@ from core.vistrail.port_spec import PortSpec
 from db.domain import DBWorkflow
 from types import ListType
 import core.vistrail.action
-from core.utils import profile, InvalidPipeline
+from core.utils import profile, InvalidPipeline, versions_increasing
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -275,7 +275,7 @@ class Pipeline(DBWorkflow):
             self.perform_operation(op)
 
     def perform_operation(self, op):
-        # print "doing %s %s" % (op.vtType, op.what)
+        # print "doing %s %s %s" % (op.id, op.vtType, op.what)
         if op.db_what == 'abstraction' or op.db_what == 'group':
             what = 'module'
         else:
@@ -836,9 +836,12 @@ class Pipeline(DBWorkflow):
                         module.internal_version)
                     pkg = registry.get_package_by_name(module.package)
                     pkg_version = pkg.version.split('.')
-                    module_version = module.version.split('.')
                     # FIXME: this split('.') should be a function somewhere.
                     # The goal is to be able to compare them lexicographically
+                    if module.version:
+                        module_version = module.version.split('.')
+                    else:
+                        module_version = [0]
 
                     # Skip basic modules for upgrade check, since
                     # these don't seem to be consistent (in particular
@@ -846,11 +849,13 @@ class Pipeline(DBWorkflow):
 
                     if conf.automaticallyUpgradeWorkflows:
                         if module.package <> "edu.utah.sci.vistrails.basic":
-                            if pkg_version < module_version:
+                            if versions_increasing(pkg_version, 
+                                                   module_version):
                                 raise ObsoletePackageVersion(descriptor,
                                                              pkg.version,
                                                              module.version)
-                            if pkg_version > module_version:
+                            elif versions_increasing(module_version,
+                                                     pkg_version):
                                 raise PackageMustUpgradeModule(descriptor,
                                                                pkg.version,
                                                                module.version,
