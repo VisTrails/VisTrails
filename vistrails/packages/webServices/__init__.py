@@ -20,8 +20,14 @@
 ##
 ############################################################################
 """ This package defines a set of methods to deal with web services.
-It requires ZSI library to be installed. Click on
-configure to add wsdl urls to the package (use a ; to separate the urls).
+It requires ZSI library to be installed (please use the trunk version as it has
+important fixes. Click on configure to add wsdl urls to the package 
+(use a ; to separate the urls).
+
+ChangeLog
+2010-10-25  (by VisTrails Team)
+    * Updated package to version 0.9.1 
+    * Expanded map of simple types
 """
 
 from core.configuration import ConfigurationObject
@@ -51,9 +57,7 @@ from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.basic_modules import Constant
 import enumeration_widget
 
-import subprocess
 import platform
-import popen2
 import cPickle
 
 package_directory = None
@@ -63,7 +67,7 @@ complexsdict ={}
 
 configuration = ConfigurationObject(wsdlList=(None, str))
 identifier = 'edu.utah.sci.vistrails.webservices'
-version = '0.9.0'
+version = '0.9.1'
 name = 'Web Services'
 
 pm = core.packagemanager.get_package_manager()
@@ -785,12 +789,20 @@ def addPortsToMethods(w):
 #Dictionary of primitive types
 wsdlTypesDict = { 'string' : core.modules.basic_modules.String,
                 'int' : core.modules.basic_modules.Integer,
+                'short' : core.modules.basic_modules.Integer,
+                'byte' : core.modules.basic_modules.Integer,
+                'nonNegativeInteger' : core.modules.basic_modules.Integer,
                 'long' : core.modules.basic_modules.Integer,
+                'unsignedLong' : core.modules.basic_modules.Integer,
                 'float': core.modules.basic_modules.Float,
                 'decimal': core.modules.basic_modules.Float,
                 'double': core.modules.basic_modules.Float,
                 'boolean': core.modules.basic_modules.Boolean,
                 'anyType': core.modules.basic_modules.Variant,
+                'anyURI': core.modules.basic_modules.String,
+                'IDREFS': core.modules.basic_modules.String,
+                'ID': core.modules.basic_modules.String,
+                'DataHandler':core.modules.basic_modules.String,
                 'dateTime': core.modules.basic_modules.String,
                 'time': core.modules.basic_modules.String,
                 'date': core.modules.basic_modules.String,
@@ -1017,7 +1029,7 @@ be loaded again: %s"% w
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
         except Exception, e:
-            msg = "Problem importing the generated stub files: %s",str(e)
+            msg = "Problem importing the generated stub files: %s", str(e)
             not_loaded.append((w,msg))
             result = False
             continue
