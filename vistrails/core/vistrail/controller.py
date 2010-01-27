@@ -21,7 +21,6 @@
 ############################################################################
 
 import copy
-from itertools import izip
 import os
 import uuid
 import shutil
@@ -38,13 +37,15 @@ from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
-    MissingModuleVersion, MissingModule, MissingPackageVersion
+    MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort
+from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail
-from core.packagemanager import get_package_manager
+from core.packagemanager import PackageManager, get_package_manager
 from core.thumbnails import ThumbnailCache
 from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
 from core.vistrail.abstraction import Abstraction
+from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.group import Group
 from core.vistrail.location import Location
@@ -55,6 +56,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
+from db import VistrailsDBException
 from db.domain import IdScope
 from db.services.io import create_temp_folder, remove_temp_folder
 from db.services.io import SaveBundle
@@ -84,7 +86,6 @@ class VistrailController(object):
         self._current_full_graph = None
 
     def logging_on(self):
-        from core.configuration import get_vistrails_configuration
         return not get_vistrails_configuration().check('nologger')
             
     def get_logger(self):
@@ -206,7 +207,6 @@ class VistrailController(object):
 
     def create_module(self, identifier, name, namespace='', x=0.0, y=0.0,
                       internal_version=-1):
-        reg = core.modules.module_registry.get_module_registry()
         loc_id = self.id_scope.getNewId(Location.vtType)
         location = Location(id=loc_id,
                             x=x, 
@@ -240,9 +240,7 @@ class VistrailController(object):
         return module
 
     def create_connection(self, output_module, output_port_spec,
-                          input_module, input_port_spec):
-        reg = core.modules.module_registry.get_module_registry()
-            
+                          input_module, input_port_spec):     
         if type(output_port_spec) == type(""):
             output_port_spec = \
                 output_module.get_port_spec(output_port_spec, 'output')
@@ -269,7 +267,6 @@ class VistrailController(object):
         return connection
 
     def create_param(self, port_spec, pos, value):
-        reg = core.modules.module_registry.get_module_registry()
         param_id = self.id_scope.getNewId(ModuleParam.vtType)
         descriptor = port_spec.descriptors()[pos]
         param_type = descriptor.sigstring
@@ -340,7 +337,6 @@ class VistrailController(object):
             port_info = (p[1], p[0])
             if module.has_portSpec_with_name(port_info):
                 port = module.get_portSpec_by_name(port_info)
-                port_sigstring = port.sigstring
                 deleted_port_info.add(port_info + (port.sigstring,))
         for p in added_ports:
             port_info = (p[1], p[0], p[2])
@@ -558,7 +554,6 @@ class VistrailController(object):
         old_id_scope = self.id_scope
         self.set_id_scope(id_scope)
         
-        modules = [full_pipeline.modules[m_id] for m_id in module_ids]
         connections = [full_pipeline.connections[c_id] 
                        for c_id in connection_ids]
 
@@ -1020,7 +1015,6 @@ class VistrailController(object):
 
     def export_abstraction(self, new_name, pkg_name, dir, name, namespace, 
                            module_version):
-        reg = core.modules.module_registry.get_module_registry()
         descriptor = self.get_abstraction_desc(name, namespace, module_version)
         if descriptor is None:
             raise VistrailsInternalError("Abstraction %s|%s not on registry" %\
@@ -1596,6 +1590,10 @@ class VistrailController(object):
                 locator.save_temporary(self.vistrail)
                 
     def write_vistrail(self, locator, version=None):
+        """write_vistrail(locator,version) -> Boolean
+        It will return a boolean that tells if the tree needs to be 
+        invalidated"""
+        result = False
         if self.vistrail and (self.changed or self.locator != locator):
             abs_save_dir = None
             is_abstraction = self.vistrail.is_abstraction
@@ -1649,6 +1647,7 @@ class VistrailController(object):
                 new_version = new_vistrail.db_currentVersion
                 self.set_vistrail(new_vistrail, locator)
                 self.change_selected_version(new_version)
+                result = True
             self.set_changed(False)
             if abs_save_dir is not None:
                 try:
@@ -1659,6 +1658,7 @@ class VistrailController(object):
                 except OSError, e:
                     raise VistrailsDBException("Can't remove %s: %s" % \
                                                    (abs_save_dir, str(e)))
+            return result
 
 
     def write_workflow(self, locator):

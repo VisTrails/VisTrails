@@ -79,14 +79,14 @@ class UnimplementedException(Exception):
     been implemented yet. This is an internal error that should never
     be seen by a user. Please report a bug if you see this."""
     def __str__(self):
-	return "Object is Unimplemented"
+        return "Object is Unimplemented"
 
 class AbstractException(Exception):
     """AbstractException is raised when an abstract method is called.
     This is an internal error that should never be seen by a
     user. Please report a bug if you see this."""
     def __str__(self):
-	return "Abstract Method was called"
+        return "Abstract Method was called"
 
 class VistrailsInternalError(Exception):
     """VistrailsInternalError is raised when an unexpected internal
@@ -105,10 +105,10 @@ class VersionTooLow(Exception):
         self.sw = sw
         self.required_version = required_version
     def __str__(self):
-	return ("Your version of '" +
-                sw +
+        return ("Your version of '" +
+                self.sw +
                 "' is too low. Please upgrade to " +
-                required_version +
+                self.required_version +
                 " or later")
 
 class InvalidModuleClass(Exception):
@@ -412,13 +412,13 @@ def versions_increasing(v1, v2):
 # DummyView
 
 class DummyView(object):
-    def set_module_active(*args, **kwargs): pass
-    def set_module_computing(*args, **kwargs): pass
-    def set_module_success(*args, **kwargs): pass
-    def set_module_error(*args, **kwargs): pass
-    def set_module_not_executed(*args, **kwargs): pass
-    def set_module_progress(*args, **kwargs): pass
-    def set_module_persistent(*args, **kwargs): pass
+    def set_module_active(self, *args, **kwargs): pass
+    def set_module_computing(self, *args, **kwargs): pass
+    def set_module_success(self, *args, **kwargs): pass
+    def set_module_error(self, *args, **kwargs): pass
+    def set_module_not_executed(self, *args, **kwargs): pass
+    def set_module_progress(self, *args, **kwargs): pass
+    def set_module_persistent(self, *args, **kwargs): pass
 
 ##############################################################################    
 # FIXME: Add tests

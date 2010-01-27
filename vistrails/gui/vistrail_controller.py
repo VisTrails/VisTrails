@@ -21,59 +21,39 @@
 ############################################################################
 from PyQt4 import QtCore, QtGui
 from core.common import *
-from core.configuration import get_vistrails_configuration, \
-    get_vistrails_temp_configuration
+from core.configuration import get_vistrails_configuration
 import core.db.action
 import core.db.locator
 import core.modules.module_registry
 import core.modules.vistrails_module
 from core.data_structures.graph import Graph
-from core.data_structures.point import Point
-from core.utils import VistrailsInternalError, ModuleAlreadyExists, \
-    InvalidPipeline
+from core.utils import VistrailsInternalError, InvalidPipeline
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
-from core.modules.basic_modules import Variant
-from core.modules.module_registry import ModuleRegistryException, \
-     MissingPort, PackageMustUpgradeModule, ObsoletePackageVersion
+from core.modules.module_registry import MissingPort, PackageMustUpgradeModule
 from core.modules.package import Package
-from core.modules.sub_module import InputPort, OutputPort, new_abstraction, \
-    read_vistrail
-from core.packagemanager import PackageManager, get_package_manager
-from core.vistrail.action import Action
+from core.packagemanager import PackageManager
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 import core.system
 from core.system import vistrails_default_file_type
-from core.thumbnails import ThumbnailCache
 from core.upgradeworkflow import UpgradeWorkflowHandler
-from core.vistrail.abstraction import Abstraction
 from core.vistrail.annotation import Annotation
-from core.vistrail.connection import Connection
 from core.vistrail.controller import VistrailController as BaseController
-from core.vistrail.group import Group
 from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.pipeline import Pipeline
-from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
 from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
-from core.inspector import PipelineInspector
-from db.domain import IdScope
-from db.services.vistrail import getSharedRoot
-from db.services.io import create_temp_folder, remove_temp_folder
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 
-import core.packagerepository
 import core.analogy
 import copy
 import os.path
 import math
-import uuid
-import shutil
 
 ################################################################################
 
@@ -1655,11 +1635,10 @@ class VistrailController(QtCore.QObject, BaseController):
             self.emit(QtCore.SIGNAL('stateChanged'))
 
     def write_vistrail(self, locator, version=None):
-        BaseController.write_vistrail(self, locator, version)
-        if self.vistrail and (self.changed or self.locator != locator):
-            if id(self.vistrail) != id(new_vistrail):
-                self.invalidate_version_tree(False)
-            self.set_changed(False)
+        need_invalidate = BaseController.write_vistrail(self, locator, version)
+        if need_invalidate:
+            self.invalidate_version_tree(False)
+            #self.set_changed(False)
 
     def write_opm(self, locator):
         if self.log:

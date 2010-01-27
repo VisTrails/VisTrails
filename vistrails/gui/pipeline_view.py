@@ -1139,20 +1139,21 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         pip = self.controller.current_pipeline
         sc = self.scene()
         result = []
-        try:
-            for (_, edge_id) in pip.graph.edges_from(self.module.id):
-                result.append((sc.connections[edge_id], False))
-        except KeyError:
-            # On module about to be deleted, the
-            # qmodulegraphicsitem exists, but the pipeline is gone
-            pass
-        try:
-            for (_, edge_id) in pip.graph.edges_to(self.module.id):
-                result.append((sc.connections[edge_id], True))
-        except KeyError:
-            # On module about to be deleted, the
-            # qmodulegraphicsitem exists, but the pipeline is gone
-            pass
+        if pip:
+            try:
+                for (_, edge_id) in pip.graph.edges_from(self.module.id):
+                    result.append((sc.connections[edge_id], False))
+            except KeyError:
+                # On module about to be deleted, the
+                # qmodulegraphicsitem exists, but the pipeline is gone
+                pass
+            try:
+                for (_, edge_id) in pip.graph.edges_to(self.module.id):
+                    result.append((sc.connections[edge_id], True))
+            except KeyError:
+                # On module about to be deleted, the
+                # qmodulegraphicsitem exists, but the pipeline is gone
+                pass
         return result
 
     def itemChange(self, change, value):

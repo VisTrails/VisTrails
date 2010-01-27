@@ -93,6 +93,7 @@ import core.utils.color
 import core.utils.enum
 import core.utils.uxml
 import core.vistrail.connection
+import core.vistrail.controller
 import core.vistrail.module
 import core.vistrail.module_function
 import core.vistrail.pipeline

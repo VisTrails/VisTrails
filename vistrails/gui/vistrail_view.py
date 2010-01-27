@@ -22,16 +22,14 @@
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
 
-import os.path
 from PyQt4 import QtCore, QtGui
 from core.debug import critical
-from gui.common_widgets import QDockContainer, QToolWindowInterface
+from gui.common_widgets import QDockContainer
 from gui.paramexplore.pe_tab import QParameterExplorationTab
 from gui.pipeline_tab import QPipelineTab
 from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
-from core.utils import any, profile
 from core.system import vistrails_default_file_type
 ################################################################################
 

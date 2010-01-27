@@ -25,7 +25,7 @@ specifies colors, background images and other measurements
 """
 
 from PyQt4 import QtCore, QtGui
-from core.utils.color import ColorByName, ColorManipulator
+from core.utils.color import ColorByName
 import core.system
 ################################################################################
 
@@ -331,7 +331,7 @@ class DefaultTheme(object):
         # Font showing on the Legend window of Visual Diff
         self.VISUAL_DIFF_LEGEND_FONT = QtGui.QFont('Arial', 9)
 
-         # Font for PythonSource
+        # Font for PythonSource
         self.PYTHON_SOURCE_EDITOR_FONT = QtGui.QFont('Courier', 10, 
                                                      QtGui.QFont.Normal)
         
