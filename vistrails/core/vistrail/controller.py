@@ -41,6 +41,7 @@ from core.modules.module_registry import ModuleRegistryException, \
 from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail
 from core.packagemanager import PackageManager, get_package_manager
+import core.packagerepository
 from core.thumbnails import ThumbnailCache
 from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
