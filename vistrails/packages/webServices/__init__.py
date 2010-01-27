@@ -25,7 +25,12 @@ important fixes. Click on configure to add wsdl urls to the package
 (use a ; to separate the urls).
 
 ChangeLog
-2010-10-25  (by VisTrails Team)
+2010-01-27  (by VisTrails Team)
+    * Updated package to version 0.9.2 
+    * Supporting hierarchy of types (not fully tested yet)
+    * Changing the default port names of modules to 'self', keeping the old 
+      names (as optional ports) for backwards compatibility 
+2010-01-25  (by VisTrails Team)
     * Updated package to version 0.9.1 
     * Expanded map of simple types
 """
@@ -67,7 +72,7 @@ complexsdict ={}
 
 configuration = ConfigurationObject(wsdlList=(None, str))
 identifier = 'edu.utah.sci.vistrails.webservices'
-version = '0.9.1'
+version = '0.9.2'
 name = 'Web Services'
 
 pm = core.packagemanager.get_package_manager()
@@ -102,6 +107,7 @@ class WBModule:
         self.isEmptySequence = False
         self.isExtension = False
         self.ExtensionBase = ''
+        self.superClass = ''
 
 def webServiceNameClassifier():
     """  """
@@ -173,6 +179,7 @@ def webServiceTypesDict(WBobj):
                 inputport = self.getInputFromPort(nameport)
                 self.holder = inputport
                 self.setResult(WBobj.name,self)
+                self.setResult('self',self)
         else:
             #Check if it is a request type
             modbyname = reg.get_module_by_name(identifier = identifier, name = WBobj.name, namespace = WBobj.namespace)
@@ -248,6 +255,7 @@ def webServiceTypesDict(WBobj):
                             nameport = WBobj.vistrailsname
                             break
                 self.setResult(nameport,req)
+                self.setResult('self',req)
             else:
                 nameport = str(WBobj.name)
                 for ports in WBobj.ports:
@@ -308,6 +316,7 @@ def webServiceTypesDict(WBobj):
                                 nameport = WBobj.vistrailsname
                                 break
                     self.setResult(nameport,self)
+                    self.setResult('self',self)
 
     return {'compute':compute}
 
@@ -518,11 +527,14 @@ def generatename(name):
 
 def processType(complexschema,w):
     contentschema = ''
-
     modulename = str(complexschema.attributes['name'])
+    try:
+        moduletype = str(complexschema.attributes['type'][1])
+    except KeyError:
+        moduletype = ''
     modulekey = w + "." + modulename
     objModule = WBModule(modulename)
-
+    objModule.superClass = moduletype
     if complexschema.isSimple():
         objModule.typeobj = 'Enumeration'
         objModule.ports.append(processEnumeration(complexschema))
@@ -635,17 +647,53 @@ def processExtension(w, server):
 def addTypesModules(w,modclient,server):
     """ Create a VisTrails module for each complex type specified in
     webservicesmodulesDict dictionary. """
-    reg = core.modules.module_registry.get_module_registry()
-    namespace = w + "|Types"
-    complexsdict = webServicesmodulesDict[namespace]
-    keys = complexsdict.keys()
-    keys.sort()
-    for dictkey in keys:
-        obj = complexsdict[dictkey]
-        obj.namespace = namespace
-        if obj.typeobj == 'Enumeration':
-            mt = enumeration_widget.initialize(obj.name, namespace,identifier,
-                                               version)
+    def addObj(obj, namespace):
+        if hasattr(obj,"superClass"):
+            SuperType = str(obj.superClass)
+        else:
+            SuperType = ''
+        #print "Adding obj ", obj.name, " ", SuperType
+        if SuperType != '':
+            try:
+                if isArray(SuperType):
+                    SuperType = 'Array'
+                SuperType = wsdlTypesDict[SuperType]
+                mt = new_module(SuperType,str(obj.name), webServiceTypesDict(obj))
+                mt.name = obj.name
+                mt.webservice = w
+                mt.modclient = modclient
+                mt.server = server
+                mt.isEnumeration = False
+                mt.namespace = namespace
+                #print "  add to reg: ", mt.name, namespace, identifier
+                reg.add_module(mt, namespace=namespace, 
+                               package=identifier, package_version=version)
+            except KeyError:
+                try:
+                    modname = SuperType
+                    dictkey = w + "|Types"
+                    typedict = webServicesmodulesDict[dictkey]
+                    dictkey = w + "." + modname
+                    typeObj = typedict[dictkey]
+                    try:
+                        SuperType = reg.get_module_by_name(identifier =identifier,
+                                                       name=typeObj.name,
+                                                       namespace = typeObj.namespace)
+                        mt = new_module(SuperType,str(obj.name), webServiceTypesDict(obj))
+                        mt.name = obj.name
+                        mt.webservice = w
+                        mt.modclient = modclient
+                        mt.server = server
+                        mt.isEnumeration = False
+                        mt.namespace = namespace
+                        #print "  add to reg: ", mt.name, namespace, identifier
+                        reg.add_module(mt, namespace=namespace, 
+                               package=identifier, package_version=version)
+                    except:
+                        addObj(typeObj,namespace)
+
+                except KeyError:
+                    pass
         else:
             mt = new_module(WebService,str(obj.name), webServiceTypesDict(obj))
             mt.name = obj.name
@@ -654,8 +702,34 @@ def addTypesModules(w,modclient,server):
             mt.server = server
             mt.isEnumeration = False
             mt.namespace = namespace
+            #print "  add to reg: ", mt.name, namespace, identifier
             reg.add_module(mt, namespace=namespace, 
-                           package=identifier, package_version=version)
+                           package=identifier, package_version=version)    
+             
+    reg = core.modules.module_registry.get_module_registry()
+    namespace = w + "|Types"
+    complexsdict = webServicesmodulesDict[namespace]
+    keys = complexsdict.keys()
+    keys.sort()
+    for dictkey in keys:
+        obj = complexsdict[dictkey]
+        #print "key: ", dictkey, " obj: ", obj.name
+        obj.namespace = namespace
+        if obj.typeobj == 'Enumeration':
+            mt = enumeration_widget.initialize(obj.name, namespace,identifier,
+                                               version)
+        else:
+            
+            addObj(obj,namespace)
+            #mt = new_module(WebService,str(obj.name), webServiceTypesDict(obj))
+            #mt.name = obj.name
+            #mt.webservice = w
+            #mt.modclient = modclient
+            #mt.server = server
+            #mt.isEnumeration = False
+            #mt.namespace = namespace
+            #reg.add_module(mt, namespace=namespace, 
+            #               package=identifier, package_version=version)
 
 def addMethodsModules(w,modclient,server):
     """ Create a VisTrails module for each complex type specified in
@@ -694,12 +768,13 @@ def addPortsToTypes(w):
             objtype = reg.get_module_by_name(identifier=identifier,
                                              name=obj.name,
                                              namespace=obj.namespace)
-            
-            portname = obj.name
+            #print "Adding ports to ", obj.name
+            portname = 'self'
             if obj.typeobj != 'Enumeration':
                 for ports in obj.ports:
                     #This step is to warranty that the name are not going
                     #to repeat
+                    #print " > ", ports
                     if str(portname.strip()) == str(ports[0].strip()):
                         obj.vistrailsname = generatename(portname)
                         portname = obj.vistrailsname
@@ -714,6 +789,12 @@ def addPortsToTypes(w):
                             break
             reg.add_input_port(objtype,portname,(objtype, ''))
             reg.add_output_port(objtype,portname,(objtype, ''))
+            
+            # this is to keep compatibility with previous versions
+            # we will add as optional ports.
+            reg.add_input_port(objtype,obj.name,(objtype, ''), optional=True)
+            reg.add_output_port(objtype,obj.name,(objtype, ''), optional=True)
+            
             if obj.typeobj != 'Enumeration':
                 #Add ports according to the input and output parameters
                 for ports in obj.ports:
