@@ -168,9 +168,6 @@ Would you like to create one?"
                      QtCore.SIGNAL('itemSelectionChanged()'),
                      self.updateButtons)
         self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemClicked(QListWidgetItem *)'),
-                     self.updateDBObjectsList)
-        self.connect(self.connectionList,
                      QtCore.SIGNAL("reloadConnections"),
                      self.updateDBObjectsList)
         self.connect(self.objectList,
@@ -182,7 +179,7 @@ Would you like to create one?"
         self.connect(self.objectList,
                      QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem *)'),
                      self.accept)
-        
+
     def updateDBObjectsList(self):
         """ updateDBObjectsList() -> None
         It reloads the vistrails object list for the selected connection. 
