@@ -27,7 +27,7 @@ client = pysvn.Client()
 client.callback_get_login = userpass
 
 version_start = 1681
-version_end = 1691
+version_end = 1692
 release_name = "1.4.1"
 logs = client.log('https://vistrails.sci.utah.edu/svn',
                   revision_end=rev(version_start))
@@ -79,6 +79,7 @@ def build_release_notes(release):
         if len(lf) > 0:
             features[v] = []
             for f in lf:
+                print f
                 features[v].append(f)
         if len(lt) > 0:
             tickets[v] = []
@@ -111,6 +112,27 @@ def build_release_notes(release):
                 except Exception, e:
                     tickets[r].remove(t)
                     print "revision %s: Could not get info for ticket %s"%(r,t)
+
+    #place tickets on bugfixes or enhancements
+    for (r,tlist) in tickets.iteritems():
+        for t in tlist:
+            txt = "Ticket %s: %s"%(t,ticket_info[t][3]['summary'])
+            if ticket_info[t][3]['type'] == 'enhancement':
+                if features.has_key(r):
+                    features[r].insert(0,txt)
+                else:
+                    features[r] = [txt]
+            elif ticket_info[t][3]['type'] == 'defect':
+                if bugfixes.has_key(r):
+                    bugfixes[r].insert(0,txt)
+                else:
+                    bugfixes[r] = [txt]
+            else:
+                #put the rest as changes
+                if changes.has_key(r):
+                    changes[r].insert(0,txt)
+                else:
+                    changes[r] = [txt]
     print
     print
     print "Release Name: v%s build %s"%(release_name,version_end)
@@ -119,22 +141,15 @@ def build_release_notes(release):
     revisions = sorted(features.keys())
     revisions.reverse()
     for r in revisions:
-        if tickets.has_key(r):
-            for t in tickets[r]:
-                if ticket_info[t][3]['type'] == 'enhancement':
-                    print " - Ticket %s: %s (r%s)"%(t,ticket_info[t][3]['summary'],r)
         rfeats = features[r]
         for f in rfeats:
             print " - %s (r%s)" %(f,r)
+    
     print
     print "Bug fixes: "
     revisions = sorted(bugfixes.keys())
     revisions.reverse()
     for r in revisions:
-        if tickets.has_key(r):
-            for t in tickets[r]:
-                if ticket_info[t][3]['type'] == 'defect':
-                    print " - Ticket %s: %s (r%s)"%(t,ticket_info[t][3]['summary'],r)
         rbugs = bugfixes[r]
         for b in rbugs:
             print " - %s (r%s)" %(b,r)

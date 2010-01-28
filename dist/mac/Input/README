@@ -17,7 +17,7 @@ Please see the About Message for Licensing and Disclaimers.
 RELEASE NOTES
 -------------
 
-Release Name: v1.4.1 build 1692
+Release Name: v1.4.1 build 1693
 
 Enhancements: 
  - Code cleanup: removed unnecessary imports in a few files (r1687)
@@ -28,6 +28,7 @@ Bug fixes:
  - In the pipeline view, if you changed a module (moving it, for
  example) and deselected the current node in the PIP view, VisTrails
  would throw an error (r1687)
+ - Ticket #338: The DB Connection Setup Dialog opens twice (r1686)
  - Package Web Services: expanded simple types map to include all
  simple types defined in http://www.w3.org/2001/XMLSchema (r1685)
  - Ticket #337: Web Services package fails to load a wsdl (r1684)
