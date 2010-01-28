@@ -1,7 +1,27 @@
 RELEASE NOTES
 -------------
 
-Release Name: v1.4 build 1682
+Release Name: v1.4.1 build 1692
+
+Enhancements: 
+ - Code cleanup: removed unnecessary imports in a few files (r1687)
+
+Bug fixes: 
+ - Using VisTrails as a library: added more imports to
+ init_for_library.py file (r1687)
+ - In the pipeline view, if you changed a module (moving it, for
+ example) and deselected the current node in the PIP view, VisTrails
+ would throw an error (r1687)
+ - Package Web Services: expanded simple types map to include all
+ simple types defined in http://www.w3.org/2001/XMLSchema (r1685)
+ - Ticket #337: Web Services package fails to load a wsdl (r1684)
+ - Web Services package: Expanded simple types map to include missing types (r1684)
+ - Upgraded ZSI library in the binary releases to use trunk r1495
+ - Ticket #336: VisTrails fails when opening files with an older schema (r1683)
+ - Fix upgrades when module's version does not exist. (r1683)
+ 
+
+From Release: v1.4 build 1682
 
 Enhancements: 
  - EXPERIMENTAL: Packages can handle workflow upgrade requests. Still very much 
