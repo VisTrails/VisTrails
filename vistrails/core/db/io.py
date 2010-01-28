@@ -23,7 +23,6 @@
 from core.vistrail.action import Action
 from core.log.log import Log
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from core.vistrail.vistrail import Vistrail
 from db.services.io import SaveBundle
 import db.services.io
 import db.services.vistrail
@@ -59,21 +58,23 @@ def save_vistrail_to_xml(vistrail, filename):
     db.services.io.save_vistrail_to_xml(vistrail, filename)
 
 def load_vistrail(locator, is_abstraction=False):
-        abstraction_files = []
-        thumbnail_files = []
-        vistrail = None
-        if locator is None:
-            vistrail = Vistrail()
+    from core.vistrail.vistrail import Vistrail
+
+    abstraction_files = []
+    thumbnail_files = []
+    vistrail = None
+    if locator is None:
+        vistrail = Vistrail()
+    else:
+        res = locator.load()
+        if type(res) == type(SaveBundle(None)):
+            vistrail = res.vistrail
+            abstraction_files.extend(res.abstractions)
+            thumbnail_files.extend(res.thumbnails)
         else:
-            res = locator.load()
-            if type(res) == type(SaveBundle(None)):
-                vistrail = res.vistrail
-                abstraction_files.extend(res.abstractions)
-                thumbnail_files.extend(res.thumbnails)
-            else:
-                vistrail = res
-        vistrail.is_abstraction = is_abstraction
-        return (vistrail, abstraction_files, thumbnail_files)
+            vistrail = res
+    vistrail.is_abstraction = is_abstraction
+    return (vistrail, abstraction_files, thumbnail_files)
     
 def open_registry(filename):
     from core.modules.module_registry import ModuleRegistry
