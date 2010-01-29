@@ -22,6 +22,7 @@
 
 from datetime import datetime
 from core import debug
+from core.bundles import py_import
 from core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline, systemType
 import core.requirements
@@ -124,7 +125,9 @@ _db_lib = None
 def get_db_lib():
     global _db_lib
     if _db_lib is None:
-        import MySQLdb
+        MySQLdb = py_import('MySQLdb', {'linux-ubuntu':'python-mysqldb',
+                                        'linux-fedora':'MySQL-python'})
+        #import MySQLdb
         # import sqlite3
         _db_lib = MySQLdb
     return _db_lib
