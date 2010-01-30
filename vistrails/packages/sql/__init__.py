@@ -19,12 +19,25 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+"""
+SQL Scripting package. It supports MySQL and PostgreSQL.
 
+Preliminary work at adding DBConnection and SQLSource modules.
+Interfaces may change so don't write any critical code using this
+package!
+
+"""
 identifier = 'edu.utah.sci.vistrails.sql'
-version = '0.0.1'
+version = '0.0.2'
 name = 'SQL'
 
-import MySQLdb
+from core.bundles import py_import
+
+MySQLdb = py_import('MySQLdb', {'linux-ubuntu':'python-mysqldb',
+                                'linux-fedora':'MySQL-python'})
+
+psycopg2 = py_import('psycopg2', {'linux-ubuntu':'python-psycopg2',
+                                  'linux-fedora':'python-psycopg2'})
 from PyQt4 import QtCore, QtGui
 import urllib
 
@@ -62,45 +75,85 @@ class QPasswordEntry(QtGui.QDialog):
         return str(self.line_edit.text())
 
 class DBConnection(Module):
-#     def __init__(self):
-#         Module.__init__(self)
-        
-    def compute(self):
-        self.checkInputPort('db_name')
-        host = self.forceGetInputFromPort('host', 'localhost')
-        port = self.forceGetInputFromPort('port', 3306)
-        user = self.forceGetInputFromPort('user', None)
-        db_name = self.getInputFromPort('db_name')
-        protocol = self.forceGetInputFromPort('protocol', 'mysql')
-        if self.hasInputFromPort('password'):
-            password = self.getInputFromPort('password')
-        else:
-            password = None
-
-        config = {'host': host,
-                  'port': port,
-                  'user': user,
-                  'db': db_name}
-        if password is not None:
-            config['passwd': password]
-
-        if protocol == 'mysql':
-            retry = True
-            while retry:
-                try:
-                    self.conn = MySQLdb.connect(**config)
-                    break
-                except MySQLdb.Error, e:
-                    if e[0] == 1045 and password is None:
-                        passwd_dlg = QPasswordEntry()
-                        if passwd_dlg.exec_():
-                            config['passwd'] = passwd_dlg.get_password()
-                        else:
-                            retry = False
-                    else:
-                        raise ModuleError(self, str(e))
+    def __init__(self):
+         Module.__init__(self)
+         self.conn = None
+         self.protocol = 'mysql'
+    
+    def get_db_lib(self):
+        if self.protocol == 'mysql':
+            return MySQLdb
+        elif self.protocol == 'postgresql':
+            return psycopg2
         else:
             raise ModuleError(self, "Currently no support for '%s'" % protocol)
+        
+    def ping(self):
+        """ping() -> boolean 
+        It will ping the database to check if the connection is alive.
+        It returns True if it is, False otherwise. 
+        This can be used for preventing the "MySQL Server has gone away" error. 
+        """
+        result = False
+        if self.conn:
+            try:
+                self.conn.ping()
+                result = True
+            except self.get_db_lib().OperationalError, e:
+                result = False
+            except AttributeError, e:
+                #psycopg2 connections don't have a ping method
+                try:
+                    if self.conn.status == 1:
+                        result = True
+                except Exception, e:
+                    result = False
+        return result
+    
+    def open(self):        
+        retry = True
+        while retry:
+            config = {'host': self.host,
+                      'port': self.port,
+                      'user': self.user}
+            
+            # unfortunately keywords are not standard across libraries
+            if self.protocol == 'mysql':    
+                config['db'] = self.db_name
+                if self.password is not None:
+                    config['passwd'] = self.password
+            elif self.protocol == 'postgresql':
+                config['database'] = self.db_name
+                if self.password is not None:
+                    config['password'] = self.password
+            try:
+                self.conn = self.get_db_lib().connect(**config)
+                break
+            except self.get_db_lib().Error, e:
+                print str(e)
+                if (e[0] == 1045 or self.get_db_lib().OperationalError 
+                    and self.password is None):
+                    passwd_dlg = QPasswordEntry()
+                    if passwd_dlg.exec_():
+                        self.password = passwd_dlg.get_password()
+                    else:
+                        retry = False
+                else:
+                    raise ModuleError(self, str(e))
+             
+    def compute(self):
+        self.checkInputPort('db_name')
+        self.host = self.forceGetInputFromPort('host', 'localhost')
+        self.port = self.forceGetInputFromPort('port', 3306)
+        self.user = self.forceGetInputFromPort('user', None)
+        self.db_name = self.getInputFromPort('db_name')
+        self.protocol = self.forceGetInputFromPort('protocol', 'mysql')
+        if self.hasInputFromPort('password'):
+            self.password = self.getInputFromPort('password')
+        else:
+            self.password = None
+
+        self.open()
 
     # nice to have enumeration constant type
     _input_ports = [('host', '(edu.utah.sci.vistrails.basic:String)'),
@@ -111,20 +164,42 @@ class DBConnection(Module):
     _output_ports = [('self', '(edu.utah.sci.vistrails.sql:DBConnection)')]
 
 class SQLSource(Module):
-
+    def __init__(self):
+        Module.__init__(self)
+        self.is_cacheable = self.cachedOff
+        
     def compute(self):
+        cached = False
+        if self.hasInputFromPort('cacheResults'):
+            cached = self.getInputFromPort('cacheResults')
         self.checkInputPort('connection')
         connection = self.getInputFromPort('connection')
         inputs = [self.getInputFromPort(k) for k in self.inputPorts
-                  if k != 'source' and k != 'connection']
+                  if k != 'source' and k != 'connection' and k!= 'cacheResults']
         print 'inputs:', inputs
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        if not connection.ping():
+            connection.open()
         cur = connection.conn.cursor()
         cur.execute(s, inputs)
+    
+        if cached:
+            self.is_cacheable = self.cachedOn
+        else:
+            self.is_cacheable = self.cachedOff
+            
         self.setResult('resultSet', cur.fetchall())
 
+    def cachedOn(self):
+        return True
+    
+    def cachedOff(self):
+        return False
+    
     _input_ports = [('connection', \
                          '(edu.utah.sci.vistrails.sql:DBConnection)'),
+                    ('cacheResults', \
+                      '(edu.utah.sci.vistrails.basic:Boolean)'),    
                     ('source', '(edu.utah.sci.vistrails.basic:String)')]
     _output_ports = \
         [('resultSet', '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
