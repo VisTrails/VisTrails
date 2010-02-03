@@ -20,9 +20,12 @@
 ##
 ############################################################################
 
+import __builtin__
 import copy
 import os
+import sys
 import traceback
+import xml.dom
 from PyQt4 import QtCore
 
 from core.utils import versions_increasing
@@ -100,12 +103,18 @@ class Package(DBPackage):
         self.setup_indices()
         if other is None:
             self._module = None
+            self._init_module = None
             self._initialized = False
             self.package_dir = None
+            self.prefix = None
+            self.py_dependencies = set()
         else:
             self._module = other._module
+            self._init_module = other._init_module
             self._initialized = other._initialized
             self.package_dir = other.package_dir
+            self.prefix = other.prefix
+            self.py_dependencies = copy.copy(other.py_dependencies)
         # FIXME decide whether we want None or ''
         if self.version is None:
             self.version = ''
@@ -170,6 +179,10 @@ class Package(DBPackage):
         return self._module
     module = property(_get_module)
 
+    def _get_init_module(self):
+        return self._init_module
+    init_module = property(_get_init_module)
+
     def _get_configuration(self):
         if hasattr(self._module, 'configuration'):
             return self._module.configuration
@@ -184,9 +197,60 @@ class Package(DBPackage):
     configuration = property(_get_configuration, _set_configuration)
 
     ##########################################################################
+    # Operators
+
+    def __hash__(self):
+        if self.identifier and self.version:
+            return (type(self), self.identifier, self.version).__hash__()
+        return (type(self), self.codepath).__hash__()
+
+    def __eq__(self, other):
+        return (type(self) == type(other) and 
+                self.identifier == other.identifier and
+                self.version == other.version)
+
+    def __str__(self):
+        return ("Package(id=%s, identifier=%s, version=%s, name=%s, "
+                "codepath=%s") % (self.id, self.identifier,
+                                  self.version, self.name,
+                                  self.codepath)
+
+    ##########################################################################
     # Methods
     
-    def load(self, module=None):
+    def _override_import(self, existing_paths=None):
+        self._real_import = __builtin__.__import__
+        self._imported_paths = set()
+        if existing_paths is not None:
+            self._existing_paths = existing_paths
+        else:
+            self._existing_paths = set(sys.modules.iterkeys())
+        __builtin__.__import__ = self._import
+        
+    def _reset_import(self):
+        __builtin__.__import__ = self._real_import
+        return self._imported_paths
+
+    def _import(self, name, globals=None, locals=None, fromlist=None, level=-1):
+        # if name != 'core.modules.module_registry':
+        #     print 'running import', name, fromlist
+        res = apply(self._real_import, 
+                    (name, globals, locals, fromlist, level))
+        if res.__name__ not in self._existing_paths:
+            # print '  adding', name, res.__name__
+            self._imported_paths.add(res.__name__)
+        # else:
+        #     if name != 'core.modules.module_registry':
+        #         print '  already exists', name, res.__name__
+        return res
+
+    def get_py_deps(self):
+        return self.py_dependencies
+
+    def remove_py_deps(self, deps):
+        self.py_dependencies.difference_update(deps)
+
+    def load(self, prefix=None, existing_paths=None):
         """load(module=None). Loads package's module. If module is not None,
         then uses that as the module instead of 'import'ing it.
 
@@ -195,33 +259,42 @@ class Package(DBPackage):
         """
 
         errors = []
-        def module_import(name):
+        if self._initialized:
+            # print 'initialized'
             return
 
-        if self._initialized:
-            return
-        if module is not None:
-            self._module = module
-            self._package_type = self.Other
-            self.set_properties()
-            return
-        def import_from(prefix):
+        def import_from(p_path):
+            # print 'running import_from'
             try:
-                self._module = getattr(__import__(prefix+self.codepath,
-                                                  globals(),
-                                                  locals(), []),
-                                       self.codepath)
+                # print p_path + self.codepath
+                module = __import__(p_path+self.codepath,
+                                    globals(),
+                                    locals(), []),
+                self._module = sys.modules[p_path + self.codepath]
+                self._imported_paths.add(p_path + self.codepath)
                 self._package_type = self.Base
+                self.prefix = p_path
             except ImportError, e:
                 errors.append((e, traceback.format_exc()))
                 return False
             return True
 
         try:
-            r = (not import_from('packages.') and
-                 not import_from('userpackages.'))
+            # override __import__ so that we can track what needs to
+            # be unloaded, try imports, and then stop overriding,
+            # updating the set of python dependencies
+            self._override_import(existing_paths)
+            if self.prefix is not None:
+                r = not import_from(self.prefix)
+            elif prefix is not None:
+                r = not import_from(prefix)
+            else:
+                r = (not import_from('packages.') and
+                     not import_from('userpackages.'))
         except Exception, e:
             raise self.LoadFailed(self, e, traceback.format_exc())
+        finally:
+            self.py_dependencies.update(self._reset_import())
             
         if r:
             debug.critical("Could not enable package %s" % self.codepath)
@@ -245,6 +318,34 @@ class Package(DBPackage):
             self.create_startup_package_node()
 
         self.set_properties()
+
+    def initialize(self, existing_paths=None):
+        self._override_import(existing_paths)
+        try:
+            try:
+                name = self.prefix + self.codepath + '.init'
+                __import__(name, globals(), locals(), [])
+                self._init_module = sys.modules[name]
+                self._imported_paths.add(name)
+            except ImportError, e:
+                self._init_module = self._module
+
+            if hasattr(self._init_module, 'initialize'):
+                # override __import__ so that we can track what needs to
+                # be unloaded, try imports, and then stop overriding,
+                # updating the set of python dependencies
+                try:
+                    self._init_module.initialize(self.configuration)
+                except TypeError:
+                    self._init_module.initialize()
+        finally:
+            self.py_dependencies.update(self._reset_import())
+
+    def unload(self):
+        for path in self.py_dependencies:
+            # print 'deleting path:', path, path in sys.modules
+            del sys.modules[path]
+        self.py_dependencies.clear()
 
     def set_properties(self):
         # Set properties
@@ -313,6 +414,9 @@ class Package(DBPackage):
         # Save configuration
         if self.configuration:
             self.set_persistent_configuration()
+        self.unload()
+        self._module = None
+        self._init_module = None
         self._initialized = False
 
     def dependencies(self):
@@ -324,9 +428,9 @@ class Package(DBPackage):
         else:
             deps = callable_()
 
-        if self.module is not None and \
-                hasattr(self.module, '_dependencies'):
-            deps.extend(self.module._dependencies)
+        if self._module is not None and \
+                hasattr(self._module, '_dependencies'):
+            deps.extend(self._module._dependencies)
         return deps
 
     def initialized(self):
@@ -374,8 +478,11 @@ class Package(DBPackage):
         assert oldpackage_element is None
         packages = enter_named_element(doc, 'packages')
         disabledpackages = enter_named_element(doc, 'disabledpackages')
-        packages.removeChild(package_node)
-        disabledpackages.appendChild(package_node)
+        try:
+            packages.removeChild(package_node)
+            disabledpackages.appendChild(package_node)
+        except xml.dom.NotFoundErr:
+            pass
         startup.write_startup_dom(dom)
 
     def reset_configuration(self):

@@ -33,7 +33,7 @@ from core import debug
 from core.configuration import ConfigurationObject
 import core.data_structures.graph
 import core.db.io
-from core.modules.module_registry import ModuleRegistry
+from core.modules.module_registry import ModuleRegistry, MissingPackage
 from core.modules.package import Package
 from core.utils import VistrailsInternalError, InstanceObject
 ##############################################################################
@@ -148,14 +148,11 @@ class PackageManager(QtCore.QObject):
             self._registry.set_global()
 
             def setup_basic_package():
-                import core.modules.basic_modules
-
                 # setup basic package
                 basic_package = self.add_package('basic_modules')
                 self._registry._default_package = basic_package
-                package_dictionary = {'basic_modules': \
-                                          core.modules.basic_modules}
-                self.initialize_packages(package_dictionary)
+                prefix_dictionary = {'basic_modules': 'core.modules.'}
+                self.initialize_packages(prefix_dictionary)
             setup_basic_package()
 
     def finalize_packages(self):
@@ -168,11 +165,11 @@ exiting VisTrails."""
         global _package_manager
         _package_manager = None
 
-    def add_package(self, packageName):
+    def add_package(self, codepath):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
-        package = self._registry.create_package(packageName)
-        self._package_list[packageName] = package
+        package = self._registry.create_package(codepath)
+        self._package_list[codepath] = package
         return package
 
     def remove_package(self, codepath):
@@ -269,7 +266,7 @@ Returns true if given package identifier is present."""
                 self._dependency_graph.adjacency_list[package.identifier]):
                 self._dependency_graph.add_edge(package.identifier, dep_name)
 
-    def late_enable_package(self, package_codepath, package_dictionary={}):
+    def late_enable_package(self, package_codepath, prefix_dictionary={}):
         """late_enable_package enables a package 'late', that is,
         after VisTrails initialization. All dependencies need to be
         already enabled.
@@ -280,7 +277,7 @@ Returns true if given package identifier is present."""
         self.add_package(package_codepath)
         pkg = self.get_package_by_codepath(package_codepath)
         try:
-            pkg.load(package_dictionary.get(pkg.codepath, None))
+            pkg.load(prefix_dictionary.get(pkg.codepath, None))
         except Exception, e:
             # invert self.add_package
             del self._package_list[package_codepath]
@@ -289,14 +286,20 @@ Returns true if given package identifier is present."""
         self._identifier_map[pkg.identifier] = pkg
         try:
             self.add_dependencies(pkg)
+            pkg.check_requirements()
+            self._registry.initialize_package(pkg)
         except Exception, e:
             del self._identifier_map[pkg.identifier]
             self._dependency_graph.delete_vertex(pkg.identifier)
             # invert self.add_package
             del self._package_list[package_codepath]
+            # if we adding the package to the registry, make sure we
+            # remove it if initialization fails
+            try:
+                self._registry.remove_package(pkg)
+            except MissingPackage:
+                pass
             raise
-        pkg.check_requirements()
-        self._registry.initialize_package(pkg)
         self.add_menu_items(pkg)
 
     def late_disable_package(self, package_codepath):
@@ -308,24 +311,43 @@ Returns true if given package identifier is present."""
         self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
 
-    def initialize_packages(self,package_dictionary={}):
-        """initialize_packages(package_dictionary={}): None
+    def reload_package(self, package_codepath):
+        # for all reverse dependencies, disable them
+        prefix_dictionary = {}
+        pkg = self.get_package_by_codepath(package_codepath)
+        reverse_deps = [self._identifier_map[dep_id] 
+                        for dep_id in \
+                            self.all_reverse_dependencies(pkg.identifier)]
+        for dep_pkg in reverse_deps:
+            prefix_dictionary[dep_pkg.codepath] = dep_pkg.prefix
+            self.late_disable_package(dep_pkg.codepath)
 
-        Initializes all installed packages. If module_dictionary is
-not {}, then it should be a dictionary from package names to preloaded
-package-like objects (in theory they have to be modules that respect
-the correct interface, but nothing actually prevents anyone from
-creating a class that behaves similarly)."""
+        # for all reverse dependencies, enable them
+        for dep_pkg in reversed(reverse_deps):
+            self.late_enable_package(dep_pkg.codepath, prefix_dictionary)
+
+    def initialize_packages(self,prefix_dictionary={}):
+        """initialize_packages(prefix_dictionary={}): None
+
+        Initializes all installed packages. If prefix_dictionary is
+        not {}, then it should be a dictionary from package names to
+        the prefix such that prefix + package_name is a valid python
+        import."""
+
         packages = self.import_packages_module()
         userpackages = self.import_user_packages_module()
 
         failed = []
         # import the modules
+        existing_paths = set(sys.modules.iterkeys())
         for package in self._package_list.itervalues():
+            # print '+ initializing', package.codepath, id(package)
             if package.initialized():
+                # print '- already initialized'
                 continue
             try:
-                package.load(package_dictionary.get(package.codepath, None))
+                package.load(prefix_dictionary.get(package.codepath, None),
+                             existing_paths)
             except Package.LoadFailed, e:
                 debug.critical("Will disable package %s" % package.name)
                 debug.critical(str(e))
@@ -397,6 +419,8 @@ creating a class that behaves similarly)."""
 #                     pkg.remove_own_dom_element()
 #                     failed.append(package)
                 else:
+                    pkg.remove_py_deps(existing_paths)
+                    existing_paths.update(pkg.get_py_deps())
                     self.add_menu_items(pkg)
 
     def add_menu_items(self, pkg):
@@ -506,6 +530,33 @@ creating a class that behaves similarly)."""
         lst = [x[0] for x in
                self._dependency_graph.inverse_adjacency_list[identifier]]
         return lst
+
+    def get_all_dependencies(self, identifier, reverse=False):
+        if reverse:
+            adj_list = self._dependency_graph.inverse_adjacency_list
+        else:
+            adj_list = self._dependency_graph.adjacency_list
+            
+        all = [identifier]
+        last_adds = [identifier]
+        while len(last_adds) != 0:
+            adds = [x[0] for y in last_adds for x in adj_list[y]]
+            all.extend(adds)
+            last_adds = adds
+        
+        seen = set()
+        order = []
+        for pkg in reversed(all):
+            if pkg not in seen:
+                order.append(pkg)
+                seen.add(pkg)
+        return order        
+
+    def all_dependencies(self, identifier):
+        return self.get_all_dependencies(identifier, False)
+
+    def all_reverse_dependencies(self, identifier):
+        return self.get_all_dependencies(identifier, True)
 
 def get_package_manager():
     global _package_manager

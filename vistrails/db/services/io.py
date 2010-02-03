@@ -48,6 +48,24 @@ from db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
     translate_object, translate_vistrail, translate_workflow, translate_log, \
     translate_registry
 
+_db_lib = None
+def get_db_lib():
+    global _db_lib
+    if _db_lib is None:
+        # FIXME use core.bundles.py_import here
+        import MySQLdb
+        # import sqlite3
+        _db_lib = MySQLdb
+    return _db_lib
+def set_db_lib(lib):
+    global _db_lib
+    _db_lib = lib
+
+# load MySQLdb early if it exists, o/w don't error out
+try:
+    get_db_lib()
+except ImportError:
+    pass
 
 class SaveBundle(object):
     """Transient bundle of objects to be saved or loaded.
@@ -120,20 +138,6 @@ class SaveBundle(object):
             cp.thumbnails.append(t)
         
         return cp
-
-_db_lib = None
-def get_db_lib():
-    global _db_lib
-    if _db_lib is None:
-        MySQLdb = py_import('MySQLdb', {'linux-ubuntu':'python-mysqldb',
-                                        'linux-fedora':'MySQL-python'})
-        #import MySQLdb
-        # import sqlite3
-        _db_lib = MySQLdb
-    return _db_lib
-def set_db_lib(lib):
-    global _db_lib
-    _db_lib = lib
 
 def format_prepared_statement(statement):
     """format_prepared_statement(statement: str) -> str
@@ -269,6 +273,7 @@ def get_db_object_version(db_connection, obj_id, obj_type):
 
     try:
         c = db_connection.cursor()
+        print command % (translate_to_tbl_name(obj_type), obj_id)
         c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
         version = c.fetchall()[0][0]
         c.close()
@@ -293,6 +298,36 @@ def get_db_version(db_connection):
         # just return None if we hit an error
         return None
     return version
+
+def get_db_id_from_name(db_connection, obj_type, name):
+    command = """
+    SELECT o.id 
+    FROM %s o
+    WHERE o.name = '%s'
+    """
+
+    try:
+        c = db_connection.cursor()
+        c.execute(command % (translate_to_tbl_name(obj_type), name))
+        rows = c.fetchall()
+        if len(rows) != 1:
+            if len(rows) == 0:
+                c.close()
+                msg = "Cannot find object of type '%s' named '%s'" % \
+                    (obj_type, name)
+                raise VistrailsDBException(msg)
+            elif len(rows) > 1:
+                c.close()
+                msg = "Found more than one object of type '%s' named '%s'" % \
+                    (obj_type, name)
+                raise VistrailsDBException(msg)
+        else:
+            c.close()
+            return int(rows[0][0])
+    except get_db_lib().Error, e:
+        c.close()
+        msg = "Connection error when trying to get db id from name"
+        raise VisrailsDBException(msg)
 
 def get_matching_abstraction_id(db_connection, abstraction):
     last_action_id = -1

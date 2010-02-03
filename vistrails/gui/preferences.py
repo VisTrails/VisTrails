@@ -103,7 +103,7 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 class QPackagesWidget(QtGui.QWidget):
 
     ##########################################################################
-    # Initalization
+    # Initialization
 
     def __init__(self, parent, status_bar):
         QtGui.QWidget.__init__(self, parent)
@@ -220,10 +220,16 @@ class QPackagesWidget(QtGui.QWidget):
         self.connect(self._configure_button,
                      QtCore.SIGNAL("clicked()"),
                      self.configure_current_package)
+        self._reload_button = QtGui.QPushButton("&Reload")
+        self._reload_button.setEnabled(False)
+        self.connect(self._reload_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.reload_current_package)
         button_box = QtGui.QDialogButtonBox()
         button_box.addButton(self._enable_button, QtGui.QDialogButtonBox.ActionRole)
         button_box.addButton(self._disable_button, QtGui.QDialogButtonBox.ActionRole)
         button_box.addButton(self._configure_button, QtGui.QDialogButtonBox.ActionRole)
+        button_box.addButton(self._reload_button, QtGui.QDialogButtonBox.ActionRole)
         right_layout.addWidget(button_box)
         
         self.populate_lists()
@@ -235,11 +241,13 @@ class QPackagesWidget(QtGui.QWidget):
         enabled_pkgs = sorted(pkg_manager.enabled_package_list())
         enabled_pkg_dict = dict([(pkg.codepath, pkg) for
                                    pkg in enabled_pkgs])
+        self._enabled_packages_list.clear()
         for pkg in enabled_pkgs:
             self._enabled_packages_list.addItem(pkg.codepath)
         available_pkg_names = [pkg for pkg in 
                                sorted(pkg_manager.available_package_names_list())
                                if pkg not in enabled_pkg_dict]
+        self._available_packages_list.clear()
         for pkg in available_pkg_names:
             self._available_packages_list.addItem(pkg)
 
@@ -278,6 +286,12 @@ class QPackagesWidget(QtGui.QWidget):
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
+            except self._current_package.InitializationFailed, e:
+                QtGui.QMessageBox.critical(self,
+                                           "Initialization Failed",
+                                           ("Initialization of package '%s' "
+                                            "failed: %s" % (codepath, str(e))))
+                raise
             finally:
                 palette.setUpdatesEnabled(True)
                 palette.treeWidget.expandAll()
@@ -319,6 +333,28 @@ class QPackagesWidget(QtGui.QWidget):
         dlg = QPackageConfigurationDialog(self, self._current_package)
         dlg.exec_()
 
+    def reload_current_package(self):
+        inst = self._enabled_packages_list
+        item = inst.currentItem()
+        pm = get_package_manager()
+        codepath = str(item.text())
+        
+        identifier = pm.get_package_by_codepath(codepath).identifier
+        palette = QtGui.QApplication.instance().builderWindow.modulePalette
+        palette.setUpdatesEnabled(False)
+        try:
+            pm.reload_package(codepath)
+        except self._current_package.InitializationFailed, e:
+            QtGui.QMessageBox.critical(self,
+                                       "Initialization Failed",
+                                       ("Initialization of package '%s' "
+                                        "failed: %s" % (codepath, str(e))))
+            raise
+        finally:
+            self.populate_lists()
+            palette.setUpdatesEnabled(True)
+            palette.treeWidget.expandAll()
+
     def set_buttons_to_enabled_package(self):
         self._enable_button.setEnabled(False)
         assert self._current_package
@@ -333,11 +369,13 @@ class QPackagesWidget(QtGui.QWidget):
             self._disable_button.setToolTip("")
         conf = self._current_package.configuration is not None
         self._configure_button.setEnabled(conf)
+        self._reload_button.setEnabled(True)
 
     def set_buttons_to_available_package(self):
         self._configure_button.setEnabled(False)
         self._disable_button.setEnabled(False)
         self._enable_button.setEnabled(True)
+        self._reload_button.setEnabled(False)
 
     def set_package_information(self):
         """Looks at current package and sets all labels (name,
@@ -354,8 +392,9 @@ class QPackagesWidget(QtGui.QWidget):
             self._version_label.setText(msg)
             self._identifier_label.setText(msg)
             self._dependencies_label.setText(msg)
-            self._description_label.setText(msg + str(e))
+            self._description_label.setText(msg)
             self._reverse_dependencies_label.setText(msg)
+            QtGui.QMessageBox.critical(self, 'Cannot load package', str(e))
         else:
             self._name_label.setText(p.name)
             deps = ', '.join(p.dependencies()) or 'No package dependencies.'

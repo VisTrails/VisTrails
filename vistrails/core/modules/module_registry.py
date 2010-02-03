@@ -331,6 +331,26 @@ class PackageMustUpgradeModule(ModuleRegistryException):
                 self._module_id,
                 self._package_version, self._module_version)
 
+class DuplicateModule(ModuleRegistryException):
+    def __init__(self, old_descriptor, new_identifier, new_name, 
+                 new_namespace):
+        ModuleRegistryException.__init__(self,
+                                         new_identifier,
+                                         new_name,
+                                         new_namespace)
+        self.old_descriptor = old_descriptor
+
+    def __str__(self):
+        if self.old_descriptor.namespace:
+            old_name = "%s|%s" % (self.old_descriptor.namespace,
+                                  self.old_descriptor.name)
+        else:
+            old_name = self.old_descriptor.name
+        return ("Module %s in package %s already exists as "
+                "%s in package %s") % \
+                (self._module_name, self._package_name, old_name, 
+                 self.old_descriptor.identifier)
+
 class MissingBaseClass(Exception):
     def __init__(self, base):
         Exception.__init__(self)
@@ -983,6 +1003,9 @@ class ModuleRegistry(DBRegistry):
                 raise MissingBaseClass(baseClass)
             base_descriptor = self.get_descriptor(baseClass)
 
+        if module in self._module_key_map:
+            raise DuplicateModule(self.get_descriptor(module), identifier,
+                                  name, namespace)
         descriptor = self.update_registry(base_descriptor, module, identifier, 
                                           name, namespace, package_version,
                                           version)
@@ -1216,11 +1239,10 @@ class ModuleRegistry(DBRegistry):
             self.add_package(package)
         self.set_current_package(package)
         try:
-            if hasattr(package.module, 'initialize'):
-                package.module.initialize()
+            package.initialize()
             # Perform auto-initialization
-            if hasattr(package.module, '_modules'):
-                modules = _toposort_modules(package.module._modules)
+            if hasattr(package.init_module, '_modules'):
+                modules = _toposort_modules(package.init_module._modules)
                 # We add all modules before adding ports because
                 # modules inside package might use each other as ports
                 for module in modules:
@@ -1233,10 +1255,10 @@ class ModuleRegistry(DBRegistry):
                     self.auto_add_ports(descriptor.module)
                     added_descriptors.add(descriptor)
             # Perform auto-initialization of abstractions
-            if hasattr(package.module, '_subworkflows'):
+            if hasattr(package.init_module, '_subworkflows'):
                 subworkflows = \
                     _toposort_abstractions(package, 
-                                           package.module._subworkflows)
+                                           package.init_module._subworkflows)
                 for subworkflow in subworkflows:
                     self.auto_add_subworkflow(subworkflow)
             for descriptor in package.descriptor_list:
@@ -1270,6 +1292,8 @@ class ModuleRegistry(DBRegistry):
         """
         # graph is the class hierarchy graph for this subset
         graph = Graph()
+        if package.identifier not in self.packages:
+            raise MissingPackage(package.identifier)
         package = self.packages[package.identifier]
         for descriptor in package.descriptor_list:
             graph.add_vertex(descriptor.sigstring)

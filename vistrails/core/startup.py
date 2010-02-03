@@ -136,7 +136,10 @@ class VistrailsStartup(object):
             is_value = (lambda node: node.nodeName in
                         set(['bool', 'str', 'int', 'float']))
             package_name = str(node.attributes['name'].value)
-            self._package_manager.add_package(package_name)
+            # FIXME use more robust checks here!
+            if package_name != 'basic_modules' and \
+                    package_name != 'abstraction':
+                self._package_manager.add_package(package_name)
         dom = self.startup_dom()
         doc = dom.documentElement
         packages_node = enter_named_element(doc, 'packages')
@@ -526,8 +529,8 @@ by startup.py. This should only be called after init()."""
 
         # Enable abstractions
         import core.modules.abstraction
-        abstraction_pkg = "subworkflows"
-        abstraction_dict = {abstraction_pkg: core.modules.abstraction}
+        abstraction_pkg = "abstraction"
+        abstraction_dict = {abstraction_pkg: 'core.modules.'}
         self._package_manager.late_enable_package(abstraction_pkg,
                                                   abstraction_dict)
 
