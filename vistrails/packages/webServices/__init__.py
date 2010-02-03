@@ -281,6 +281,22 @@ def webServiceTypesDict(WBobj):
                             sentence = "inputport" + "." + nameattrib
                             outputport = eval(sentence)
                             self.setResult(attributes[0],outputport)
+                elif self.hasInputFromPort('self'):
+                    #Now we use the 'self' input port name
+                    #we keep the old for backwards compatibility
+                    #Output modules
+                    inputport = self.getInputFromPort('self')
+                    for nameport in WBobj.ports:
+                        nameattrib = nameport[0][0].upper() + nameport[0][1:]
+                        sentence = "inputport" + "." + nameattrib
+                        outputport = eval(sentence)
+                        self.setResult(nameport[0],outputport)
+                    if WBobj.hasAttributes:
+                        for attributes in WBobj.attributes:
+                            nameattrib = attributes[0][0].upper() + attributes[0][1:]
+                            sentence = "inputport" + "." + nameattrib
+                            outputport = eval(sentence)
+                            self.setResult(attributes[0],outputport)
                 else:    
                     #Set the values in the input ports
                     #Input modules
@@ -411,6 +427,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         for elemlist in dirmodule:
             if elemlist.find('Locator') != -1:
                 namelocator = elemlist
+                break
         #Get the port name
         loc = getattr(self.modclient, namelocator)()
         dirloc = dir(loc)
