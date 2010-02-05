@@ -253,12 +253,46 @@ class Pipeline(DBWorkflow):
         else:
             raise VistrailsInternalError("port with bogus information")
         return result
-    
+
+    def connections_to_module(self, moduleId):
+        """ connections_to_module(int moduleId) -> list of module ids
+        returns a list of module ids that are inputs to the given moduleId
+
+        """
+
+        modules = []
+        for edge in self.graph.edges_to(moduleId):
+            modules.append(self.modules[edge[0]].id)
+        return modules
+
+    def get_inputPort_modules(self, moduleId, portName):
+        """ get_inputPort_modules(int moduleId, string portName)-> list of module ids
+        returns a list of module ids that are the input to a given port
+        on a given module
+
+        """
+        modules = []
+        for edge in self.graph.edges_to(moduleId):
+            if self.connections[edge[1]].ports[0].name == portName:
+                modules.append(self.modules[edge[0]].id)
+        return modules
+
+    def get_outputPort_modules(self, moduleId, portName):
+        """ get_outputPort_modules(int moduleId, string portName)-> list of module ids
+        returns a list of module ids that are the output to a given port
+        on a given module
+        """
+        modules = []
+        for edge in self.graph.edges_from(moduleId):
+            if self.connections[edge[1]].ports[1].name == portName:
+                modules.append(self.modules[edge[0]].id)
+        return modules
+
     def perform_action_chain(self, actionChain):
         # BEWARE: if actionChain is long, you're probably better off
         # going through general_action_chain, because it optimizes
         # away unnecessary operations.
-        for action in actionChain: 
+        for action in actionChain:
             self.perform_action(action)
 
     def perform_action(self, action):
