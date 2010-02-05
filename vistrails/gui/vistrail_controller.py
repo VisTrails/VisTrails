@@ -678,7 +678,12 @@ class VistrailController(QtCore.QObject, BaseController):
         op_list.extend(('add', c) for c in connections)
         action = core.db.action.create_action(op_list)
         self.add_new_action(action)
-        return self.perform_action(action)
+        res = self.perform_action(action)
+        self.current_pipeline.ensure_modules_are_on_registry(
+            [m.id for m in modules])
+        self.current_pipeline.ensure_connection_specs(
+            [c.id for c in connections])
+        return res
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
                                        name=""):
