@@ -571,6 +571,7 @@ class DBLocator(BaseLocator):
         node.set('port', str(self._port))
         node.set('db', str(self._db))
         node.set('vt_id', str(self._obj_id))
+        node.set('user', str(self._user))
     
         childnode = ElementTree.SubElement(node,'name')
         childnode.text = str(self._name)
@@ -624,7 +625,8 @@ class DBLocator(BaseLocator):
             database = convert_from_str(data,'str')
             data = node.get('vt_id')
             vt_id = convert_from_str(data, 'str')
-            user = ""
+            data = node.get('user')
+            user = convert_from_str(data, 'str')
             passwd = ""
             
             for child in node.getchildren():
