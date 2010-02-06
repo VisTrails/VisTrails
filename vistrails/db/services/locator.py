@@ -491,11 +491,8 @@ class DBLocator(BaseLocator):
         self._name = primary_obj.db_name
         for obj in save_bundle.get_db_objs():
             obj.locator = self
-        #The problem of computing the hash again is that will always be
-        #different from what the locator is created because we don't know
-        #the name of the locator before it is loaded. So we will use the
-        #one that was created before loading the vistrail
-        #_hash = self.hash()
+        
+        _hash = self.hash()
         DBLocator.cache[self._hash] = save_bundle.do_copy()
         DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
@@ -511,8 +508,7 @@ class DBLocator(BaseLocator):
         for obj in save_bundle.get_db_objs():
             obj.locator = self
         #update the cache with a copy of the new bundle
-        if self._hash != '':
-            self_hash = self.hash()
+        self_hash = self.hash()
         DBLocator.cache[self._hash] = save_bundle.do_copy()
         DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
@@ -572,9 +568,7 @@ class DBLocator(BaseLocator):
         node.set('db', str(self._db))
         node.set('vt_id', str(self._obj_id))
         node.set('user', str(self._user))
-    
-        childnode = ElementTree.SubElement(node,'name')
-        childnode.text = str(self._name)
+
         return node
 
     @staticmethod
@@ -628,14 +622,11 @@ class DBLocator(BaseLocator):
             data = node.get('user')
             user = convert_from_str(data, 'str')
             passwd = ""
-            
-            for child in node.getchildren():
-                if child.tag == 'name':
-                    name = str(child.text).strip(" \n\t")
-                    return DBLocator(host, port, database,
-                                     user, passwd, name, vt_id, None)
+        
+            return DBLocator(host, port, database,
+                             user, passwd, name, vt_id, None)
+        else:
             return None
-        return None
 
     def __str__(self):
         return '<DBLocator host="%s" port="%s" database="%s" vistrail_id="%s" \
