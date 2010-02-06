@@ -118,6 +118,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         item = self.findModule(descriptor)
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
+        del item.descriptor
 
     def deletedPackage(self, package):
         """ deletedPackage(package):

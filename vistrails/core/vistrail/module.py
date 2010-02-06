@@ -25,6 +25,7 @@
 
 import copy
 from itertools import izip
+import weakref
 
 from db.domain import DBModule
 from core.data_structures.point import Point
@@ -192,13 +193,14 @@ class Module(DBModule):
     descriptor_info = property(_get_descriptor_info)
 
     def _get_module_descriptor(self):
-        if self._module_descriptor is None:
+        if self._module_descriptor is None or \
+                self._module_descriptor() is None:
             reg = get_module_registry()
             self._module_descriptor = \
-                reg.get_descriptor_by_name(*self.descriptor_info)
-        return self._module_descriptor
+                weakref.ref(reg.get_descriptor_by_name(*self.descriptor_info))
+        return self._module_descriptor()
     def _set_module_descriptor(self, descriptor):
-        self._module_descriptor = descriptor
+        self._module_descriptor = weakref.ref(descriptor)
     module_descriptor = property(_get_module_descriptor, 
                                  _set_module_descriptor)
 

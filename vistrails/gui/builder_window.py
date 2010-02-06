@@ -42,7 +42,6 @@ from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
-from gui.preferences import QPreferencesDialog
 from gui.vis_diff import QVisualDiff
 from gui.utils import build_custom_window
 import copy
@@ -1287,8 +1286,16 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         dialog = QPreferencesDialog(self)
-        dialog.exec_()
-
+        retval = dialog.exec_()
+        if retval != 0:
+            self.flush_cache()
+            currentView = self.viewManager.currentWidget()
+            if currentView:
+                current_pipeline = currentView.controller.current_pipeline
+                current_pipeline.ensure_modules_are_on_registry()
+                current_pipeline.ensure_connection_specs()
+                current_pipeline.ensure_parameter_positions()
+            
         # Update the state of the icons if changing between db and file
         # support
         dbState = getattr(get_vistrails_configuration(), 'dbDefault')

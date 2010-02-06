@@ -235,6 +235,7 @@ class QPackagesWidget(QtGui.QWidget):
         self.populate_lists()
 
         self._current_package = None
+        self.erase_cache = False
 
     def populate_lists(self):
         pkg_manager = get_package_manager()
@@ -301,6 +302,7 @@ class QPackagesWidget(QtGui.QWidget):
             inst.addItem(item)
             inst.sortItems()
             inst.clearSelection()
+            self.erase_cache = True
 
     def disable_current_package(self):
         av = self._available_packages_list
@@ -328,6 +330,7 @@ class QPackagesWidget(QtGui.QWidget):
             av.sortItems()
             av.clearSelection()
             inst.clearSelection()
+            self.erase_cache = True
 
     def configure_current_package(self):
         dlg = QPackageConfigurationDialog(self, self._current_package)
@@ -354,6 +357,7 @@ class QPackagesWidget(QtGui.QWidget):
             self.populate_lists()
             palette.setUpdatesEnabled(True)
             palette.treeWidget.expandAll()
+            self.erase_cache = True
 
     def set_buttons_to_enabled_package(self):
         self._enable_button.setEnabled(False)
@@ -499,7 +503,10 @@ class QPreferencesDialog(QtGui.QDialog):
         l.addWidget(self._status_bar)
 
     def close_dialog(self):
-        self.done(0)
+        retval = 0
+        if self._packages_tab.erase_cache:
+            retval = 1
+        self.done(retval)
 
     def create_general_tab(self):
         """ create_general_tab() -> QGeneralConfiguration

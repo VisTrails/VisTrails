@@ -338,9 +338,13 @@ class Package(DBPackage):
                     self._init_module.initialize(self.configuration)
                 except TypeError:
                     self._init_module.initialize()
-        finally:
+        except Exception, e:
             self.py_dependencies.update(self._reset_import())
-
+            self.unload()
+            raise
+        else:
+            self.py_dependencies.update(self._reset_import())
+        
     def unload(self):
         for path in self.py_dependencies:
             # print 'deleting path:', path, path in sys.modules
