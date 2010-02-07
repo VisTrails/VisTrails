@@ -23,17 +23,21 @@
 from core.vistrail.location import Location
 import db.services.action
 
-def create_action(action_list):
-    from core.vistrail.action import Action
-    action = db.services.action.create_action(action_list)
-    Action.convert(action)
-    return action
+def create_action(op_list):
+    if len(op_list) > 0:
+        from core.vistrail.action import Action
+        action = db.services.action.create_action(op_list)
+        Action.convert(action)
+        return action
+    return None
 
-def create_action_from_ops(op_list):
-    from core.vistrail.action import Action
-    action = db.services.action.create_action_from_ops(op_list)
-    Action.convert(action)
-    return action
+def create_action_from_ops(ops):
+    if len(ops) > 0:
+        from core.vistrail.action import Action
+        action = db.services.action.create_action_from_ops(ops)
+        Action.convert(action)
+        return action
+    return None
 
 def create_paste_action(pipeline, id_scope, id_remap=None):
     action_list = []

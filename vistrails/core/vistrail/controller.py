@@ -146,10 +146,12 @@ class VistrailController(object):
         Performs given action on current pipeline.
         
         """
-        self.current_pipeline.perform_action(action)
-        self.current_version = action.db_id
-        return action.db_id
-    
+        if action is not None:
+            self.current_pipeline.perform_action(action)
+            self.current_version = action.db_id
+            return action.db_id
+        return None
+
     def add_new_action(self, action):
         """add_new_action(action) -> None
 
@@ -160,11 +162,12 @@ class VistrailController(object):
         and get notified of the change.
 
         """
-        self.vistrail.add_action(action, self.current_version, 
-                                 self.current_session)
-        self.set_changed(True)
-        self.current_version = action.db_id
-        self.recompute_terse_graph()
+        if action is not None:
+            self.vistrail.add_action(action, self.current_version, 
+                                     self.current_session)
+            self.set_changed(True)
+            self.current_version = action.db_id
+            self.recompute_terse_graph()
 
     def create_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
                                       internal_version=-1):

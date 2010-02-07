@@ -207,15 +207,17 @@ class VistrailController(QtCore.QObject, BaseController):
         updated.)
         
         """
-        BaseController.perform_action(self,action)
-        
-        if quiet is None:
-            if not self.quiet:
-                self.invalidate_version_tree(False)
-        else:
-            if not quiet:
-                self.invalidate_version_tree(False)
-        return action.db_id
+        if action is not None:
+            BaseController.perform_action(self,action)
+
+            if quiet is None:
+                if not self.quiet:
+                    self.invalidate_version_tree(False)
+            else:
+                if not quiet:
+                    self.invalidate_version_tree(False)
+            return action.db_id
+        return None
 
     def add_new_action(self, action):
         """add_new_action(action) -> None
@@ -227,9 +229,10 @@ class VistrailController(QtCore.QObject, BaseController):
         and get notified of the change.
 
         """
-        BaseController.add_new_action(self, action)
-        self.emit(QtCore.SIGNAL("new_action"), action)
-        self.recompute_terse_graph()
+        if action is not None:
+            BaseController.add_new_action(self, action)
+            self.emit(QtCore.SIGNAL("new_action"), action)
+            self.recompute_terse_graph()
 
     ##########################################################################
 
