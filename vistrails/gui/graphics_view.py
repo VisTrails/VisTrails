@@ -519,6 +519,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         else:
             if self.resetButton:
                 self.resetButton.hide()
+            self.scene().update()
 
     def resetQuery(self):
         """ resetQuery() -> None
