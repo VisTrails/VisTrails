@@ -26,11 +26,10 @@ operations exposed by the ImageMagick package.
 
 """
 
-import core.configuration
-import core.requirements
+from core.configuration import ConfigurationObject
 
 identifier = 'edu.utah.sci.vistrails.imagemagick'
 name = 'ImageMagick'
 version = '0.9.3'
-configuration = core.configuration.ConfigurationObject(quiet=False,
-                                                       path=(None, str))
+configuration = ConfigurationObject(quiet=False,
+                                    path=(None, str))

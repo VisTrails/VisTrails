@@ -236,12 +236,20 @@ class Package(DBPackage):
         #     print 'running import', name, fromlist
         res = apply(self._real_import, 
                     (name, globals, locals, fromlist, level))
-        if res.__name__ not in self._existing_paths:
-            # print '  adding', name, res.__name__
-            self._imported_paths.add(res.__name__)
-        # else:
-        #     if name != 'core.modules.module_registry':
-        #         print '  already exists', name, res.__name__
+        if len(name) > len(res.__name__):
+            res_name = name
+        else:
+            res_name = res.__name__
+        qual_name = ''
+        for m in res_name.split('.'):
+           qual_name += m
+           if qual_name not in self._existing_paths:
+               # print '  adding', name, qual_name
+               self._imported_paths.add(qual_name)
+           # else:
+           #     if name != 'core.modules.module_registry':
+           #         print '  already exists', name, res.__name__
+	   qual_name += '.'
         return res
 
     def get_py_deps(self):
@@ -327,6 +335,12 @@ class Package(DBPackage):
                 __import__(name, globals(), locals(), [])
                 self._init_module = sys.modules[name]
                 self._imported_paths.add(name)
+                # Copy attributes (shallow) from _module into _init_module's namespace and point _module to _init_module
+                module_attributes = ['identifier', 'name', 'version', 'configuration', 'package_dependencies', 'package_requirements']
+                for attr in module_attributes:
+                    if hasattr(self._module, attr):
+                        setattr(self._init_module, attr, getattr(self._module, attr))
+                self._module = self._init_module
             except ImportError, e:
                 self._init_module = self._module
 
@@ -334,10 +348,7 @@ class Package(DBPackage):
                 # override __import__ so that we can track what needs to
                 # be unloaded, try imports, and then stop overriding,
                 # updating the set of python dependencies
-                try:
-                    self._init_module.initialize(self.configuration)
-                except TypeError:
-                    self._init_module.initialize()
+                self._init_module.initialize()
         except Exception, e:
             self.py_dependencies.update(self._reset_import())
             self.unload()

@@ -22,59 +22,6 @@
 """dialogs provides modules for user-based interaction on execution.
 Users can then enter file names, numbers, strings, etc."""
 
-from core.modules.vistrails_module import Module, ModuleError
-import core.modules
-import core.modules.basic_modules
-import core.modules.module_registry
-import core.system
-import gui.application
-from PyQt4 import QtCore, QtGui
-
-version = '0.9.0'
 identifier = 'edu.utah.sci.vistrails.dialogs'
 name = 'Dialogs'
-
-##############################################################################
-
-class Dialog(Module):
-    pass
-
-class TextDialog(Dialog):
-
-    def is_cacheable(self):
-        return False
-
-    def compute(self):
-        if self.hasInputFromPort('title'):
-            title = self.getInputFromPort('title')
-        else:
-            title = 'VisTrails Dialog'
-        if self.hasInputFromPort('label'):
-            label = self.getInputFromPort('label')
-        else:
-            label = ''
-        if self.hasInputFromPort('default'):
-            default = QtCore.QString(self.getInputFromPort('default'))
-        else:
-            default = QtCore.QString('')
-            
-        (result, ok) = QtGui.QInputDialog.getText(None, title, label,
-                                                  QtGui.QLineEdit.Normal,
-                                                  default)
-        if not ok:
-            raise ModuleError(self, "Canceled")
-        self.setResult('result', str(result))
-
-##############################################################################
-
-def initialize(*args, **keywords):
-    reg = core.modules.module_registry.get_module_registry()
-    basic = core.modules.basic_modules
-    reg.add_module(Dialog)
-    reg.add_module(TextDialog)
-
-    reg.add_input_port(TextDialog, "title", basic.String)
-    reg.add_input_port(TextDialog, "label", basic.String)
-    reg.add_input_port(TextDialog, "default", basic.String)
-    reg.add_output_port(TextDialog, "result", basic.String)
-    
+version = '0.9.0'

@@ -19,12 +19,6 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-"""ImageMagick package for VisTrails.
-
-This package defines a set of modules that perform some of the
-operations exposed by the ImageMagick package.
-
-"""
 
 ##############################################################################
 # Changes
@@ -51,8 +45,6 @@ import core.system
 from core.system import list2cmdline
 import core.bundles
 import os
-
-configuration = None
 
 ################################################################################
 
@@ -255,10 +247,7 @@ dynamically create a VisTrails module."""
 
 ################################################################################
 
-def initialize(config=None):
-    global configuration
-    configuration = config
-
+def initialize():
     def parse_error_if_not_equal(s, expected):
         if s != expected:
             err = "Parse error on version line. Was expecting '%s', got '%s'"
