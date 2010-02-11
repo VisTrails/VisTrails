@@ -201,6 +201,8 @@ def default():
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
         'workflowInfo': (None, str),
+        'webRepositoryLogin': (None, str),
+        'webRepositoryURL': "http://vis-7.sci.utah.edu:8000/",
         }
     specific_dir = add_specific_config(base_dir)
     return ConfigurationObject(**specific_dir)

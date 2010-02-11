@@ -36,6 +36,7 @@ from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
 from gui.open_db_window import QOpenDBWindow
 from gui.preferences import QPreferencesDialog
+from gui.repository import QRepositoryDialog
 from gui.shell import QShellDialog
 from gui.debugger import QDebugger
 from gui.pipeline_view import QPipelineView
@@ -333,6 +334,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.selectAllAction.setStatusTip('Select all modules in '
                                           'the current pipeline view')
 
+        self.repositoryOptions = QtGui.QAction('Web Repository Options', self)
+        self.repositoryOptions.setEnabled(True)
+        self.repositoryOptions.setStatusTip('Add this VisTrail to VisTrails Repository')
+
         self.editPreferencesAction = QtGui.QAction('Preferences...', self)
         self.editPreferencesAction.setEnabled(True)
         self.editPreferencesAction.setStatusTip('Edit system preferences')
@@ -467,6 +472,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.importAbstractionAction)
         self.editMenu.addAction(self.exportAbstractionAction)
         self.editMenu.addSeparator()        
+        self.editMenu.addAction(self.repositoryOptions)
+        self.editMenu.addSeparator()        
         self.editMenu.addAction(self.editPreferencesAction)
 
         self.viewMenu = self.menuBar().addMenu('&View')
@@ -597,6 +604,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.hideBranchAction, self.hideBranch),
             (self.showAllAction, self.showAll),
             (self.helpAction, self.showAboutMessage),
+            (self.repositoryOptions, self.showRepositoryOptions),
             (self.editPreferencesAction, self.showPreferences),
             (self.executeCurrentWorkflowAction,
              self.execute_current_pipeline),
@@ -1279,6 +1287,11 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         #QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
         #                        self.tr(system.about_string()))
+
+    def showRepositoryOptions(self):
+        """ Displays Repository Options for authentication and pushing VisTrail to Repository """
+        dialog = QRepositoryDialog(self)
+        dialog.exec_()
 
     def showPreferences(self):
         """showPreferences() -> None
