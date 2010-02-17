@@ -29,7 +29,7 @@ OPTIONS = {'argv_emulation': True,
 			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
                         shelve, uuid, gridfield, gridfield.core, \
                         gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
-                        sine,st,Numeric,pexpect,_geoslib',
+                        sine,st,smt,Numeric,pexpect,_geoslib',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,ZSI,api,twisted,pyGridWare,Ft,Scientific,mpl_toolkits,dbflib,shapelib,distutils,h5py',
            'plist': plist,
            }

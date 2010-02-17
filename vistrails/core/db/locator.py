@@ -495,6 +495,14 @@ class FileLocator(CoreLocator):
                     elif type == 'base64':
                         return base64.b64decode(value)
             return None
+        
+        def guess_extension_from_contents(contents):
+            print contents[:100]
+            if contents.startswith("<vistrail"):
+                return ".xml"
+            else:
+                return ".vt"
+            
         tree = ElementTree.parse(filename)
         node = tree.getroot()
         if node.tag != 'vtlink':
@@ -518,10 +526,12 @@ class FileLocator(CoreLocator):
         showSpreadsheetOnly = convert_from_str(data, 'bool')
         data = node.get('url', None)
         url = convert_from_str(data,'str')
-        data = node.get('vistrail', None)
+        data = node.get('vtcontent', None)
         vtcontent = convert_from_str(data,'base64')
         data = node.get('filename', None)
         vtname = convert_from_str(data, 'str')
+        data = node.get('forceDB',None)
+        forceDB = convert_from_str(data,'bool')
         
         #asking to show only the spreadsheet force the workflow to be executed
         if showSpreadsheetOnly:
@@ -539,7 +549,28 @@ class FileLocator(CoreLocator):
         config = get_vistrails_configuration()
         config.executeWorkflows = execute
         config.showSpreadsheetOnly = showSpreadsheetOnly
-        
+        if not forceDB:
+            if vtcontent is not None:
+                if url is not None:
+                    basename = url.split('/')[-1]
+                    base,ext = os.path.splitext(basename)
+                    dirname = os.path.dirname(filename)
+                    fname = os.path.join(dirname,basename)
+                else:
+                    basename = os.path.basename(filename)
+                    base,ext = os.path.splitext(basename)
+                    ext = guess_extension_from_contents(vtcontent)
+                    dirname = os.path.dirname(filename)
+                    fname = os.path.join(dirname,"%s%s"%(base,ext))
+                i = 1
+                while os.path.exists(fname):
+                    newbase = "%s_%s%s" % (base, i, ext)
+                    fname = os.path.join(dirname,newbase)
+                    i+=1
+                f = open(fname,'wb')
+                f.write(vtcontent)
+                f.close()
+                return FileLocator(fname, version, tag)
         if host is not None:
             user = ""
             passwd = ""
@@ -549,28 +580,6 @@ class FileLocator(CoreLocator):
                              None, version, tag)
         elif vtname is not None:
             return FileLocator(vtname, version)
-        
-        elif vtcontent is not None:
-            if url is not None:
-                basename = url.split('/')[-1]
-                base,ext = os.path.splitext(basename)
-                dirname = os.path.dirname(filename)
-                fname = os.path.join(dirname,basename)
-            else:
-                basename = os.path.basename(filename)
-                base,ext = os.path.splitext(basename)
-                ext = '.xml'
-                dirname = os.path.dirname(filename)
-                fname = os.path.join(dirname,base,ext)
-            i = 1
-            while os.path.exists(fname):
-                newbase = "%s_%s%s" % (base, i, ext)
-                fname = os.path.join(dirname,newbase)
-                i+=1
-            f = open(fname,'wb')
-            f.write(vtcontent)
-            f.close()
-            return FileLocator(fname, version, tag)
         
         
     ##########################################################################

@@ -58,7 +58,7 @@ echo "copying LICENSE file..."
 cp Input/LICENSE dist/
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
-mv dist/Vistrails.app dist/VisTrails/
+mv dist/VisTrails.app dist/VisTrails/
 mv dist/examples dist/VisTrails/
 #uncomment the following lines for itk support
 #echo "including itk..."

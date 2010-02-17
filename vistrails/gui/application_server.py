@@ -22,7 +22,7 @@
 """ This is the application for vistrails when running as a server.
 
 """
-
+import base64
 import hashlib
 import sys
 import logging
@@ -35,7 +35,9 @@ from gui.application import VistrailsApplicationInterface
 from gui import qt
 from core.db.locator import DBLocator
 from core.db import io 
+
 from core.utils import InstanceObject
+from core.vistrail.vistrail import Vistrail
 from core import command_line
 from core import system
 
@@ -133,6 +135,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                          "get_tag_version")
         self.rpcserver.register_function(self.get_vt_xml, "get_vt_xml")
         self.rpcserver.register_function(self.get_wf_xml, "get_wf_xml")
+        self.rpcserver.register_function(self.get_vt_zip, "get_vt_zip")
+        self.rpcserver.register_function(self.get_wf_vt_zip, "get_wf_vt_zip")
         self.rpcserver.register_function(self.get_db_vistrail_list,
                                          "get_db_vt_list")
         self.rpcserver.register_function(self.quit_server, "quit")
@@ -265,6 +269,39 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             self.server_logger.info("Error: %s"%str(e))
             return "FAILURE: %s" %str(e)
     
+    def get_vt_zip(self, host, port, db_name, vt_id):
+        """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
+        Returns a .vt file encoded as base64 string
+        
+        """
+        self.server_logger.info("Request: get_vt_zip(%s,%s,%s,%s)"%(host,
+                                                                 port,
+                                                                 db_name,
+                                                                 vt_id))
+        try:
+            locator = DBLocator(host=host,
+                                port=int(port),
+                                database=db_name,
+                                user='vtserver',
+                                passwd='',
+                                obj_id=int(vt_id),
+                                obj_type=None,
+                                connection_id=None)
+            save_bundle = locator.load()
+            #create temporary file
+            (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
+                                          suffix='.vt')
+            os.close(fd)
+            fileLocator = FileLocator(name)
+            fileLocator.save(save_bundle)
+            contents = open(name).read()
+            result = base64.b64encode(contents)
+            self.server_logger.info("SUCCESS!")
+            return result
+        except Exception, e:
+            self.server_logger.info("Error: %s"%str(e))
+            return "FAILURE: %s" %str(e)
+        
     def get_wf_xml(self, host, port, db_name, vt_id, version):
         self.server_logger.info("Request: get_wf_xml(%s,%s,%s,%s,%s)"%(host,
                                                                        port,
@@ -286,6 +323,51 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             if p:
                 result = io.serialize(p)
                 print result
+            else:
+                result = "Error: Pipeline was not materialized"
+                self.server_logger.info(result)
+        except Exception, e:
+            result = "Error: %s"%str(e)
+            self.server_logger.info(result)
+            
+        return result
+    
+    def get_wf_vt_zip(self, host, port, db_name, vt_id, version):
+        """get_wf_vt_zip(host:str, port:str, db_name:str, vt_id:str,
+                         version:str) -> str
+        Returns a vt file containing the single workflow defined by version 
+        encoded as base64 string
+        
+        """
+        self.server_logger.info("Request: get_wf_vt_zip(%s,%s,%s,%s,%s)"%(host,
+                                                                       port,
+                                                                       db_name,
+                                                                       vt_id,
+                                                                       version))
+        try:
+            locator = DBLocator(host=host,
+                                port=int(port),
+                                database=db_name,
+                                user='vtserver',
+                                passwd='',
+                                obj_id=int(vt_id),
+                                obj_type=None,
+                                connection_id=None)
+        
+            (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+            p = v.getPipeline(long(version))
+            if p:
+                vistrail = Vistrail()
+                action_list = []
+                for module in self.pipeline.module_list:
+                    action_list.append(('add', module))
+                for connection in self.pipeline.connection_list:
+                    action_list.append(('add', connection))
+                action = core.db.action.create_action(action_list)
+                vistrail.add_action(action, 0L)
+                vistrail.addTag("Imported workflow", action.id)
+                pipxmlstr = io.serialize(vistrail)
+                result = base64.b64encode(pipxmlstr)
             else:
                 result = "Error: Pipeline was not materialized"
                 self.server_logger.info(result)

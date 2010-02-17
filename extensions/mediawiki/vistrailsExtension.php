@@ -20,6 +20,7 @@
 // WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 //
 ////////////////////////////////////////////////////////////////////////////
+require_once 'functions.php';
 
 $wgExtensionFunctions[] = 'registerVistrailTag';
 $wgExtensionCredits['parserhook'][] = array(
@@ -62,7 +63,10 @@ function printVistrailTag($input,$params, &$parser) {
     $version_tag = "";
     $execute = "False";
     $showspreadsheetonly = "False";
-    $force_build = False;
+    $force_build = 'False';
+    $embedWorkflow = 'False';
+    $includeFullTree = 'False';
+    $forceDB = 'False';
 	foreach ($params as $key=>$value) {
 		if($key == "vtid")
             $vtid = "".$value;
@@ -91,7 +95,13 @@ function printVistrailTag($input,$params, &$parser) {
         if ($key == "showspreadsheetonly")
             $showspreadsheetonly = $value;
         if ($key == "buildalways")
-            $force_build = (bool) $value;
+            $force_build = $value;
+        if ($key == 'embedworkflow')
+            $embedWorkflow = $value;
+        if ($key == 'includefulltree')
+            $includeFullTree = $value;
+        if ($key == 'forcedb')
+            $forceDB = $value;
 	}    
    
 	$destdir = $PATH_TO_IMAGES;
@@ -100,7 +110,7 @@ function printVistrailTag($input,$params, &$parser) {
 	$destdir = $destdir . $destversion;
 	//echo $destdir;
     $result = '';
-	if((!file_exists($destdir)) or $force_build) {
+	if((!file_exists($destdir)) or strcasecmp($force_build,'True') == 0) {
         if(!file_exists($destdir)){
             mkdir($destdir,0770);
             chmod($destdir, 0770);
@@ -130,7 +140,9 @@ function printVistrailTag($input,$params, &$parser) {
 	$linkParams = "getvt=" . $vtid . "&version=" . $version . "&db=" .$dbname .
 				  "&host=" . $host . "&port=" . $port . "&tag=" .
                   $version_tag . "&execute=" . $execute . 
-                  "&showspreadsheetonly=" . $showspreadsheetonly;
+                  "&showspreadsheetonly=" . $showspreadsheetonly .
+                  "&embedWorkflow=" . $embedWorkflow . "&includeFullTree=" .
+                  $includeFullTree . "&forceDB=" . $forceDB;
 	$files = scandir($destdir);
     $n = sizeof($files);
     if($n > 2){
@@ -153,53 +165,28 @@ function printVistrailTag($input,$params, &$parser) {
 	}
 	return($res);
 }
-
-//The next 3 functions are xml-parsing related
 function contents($parser, $data){
-    global $resp_result;
-	$resp_result = $resp_result . $data;
-}
-
-function  start_tag($parser, $data){
-         //do nothing
-} 
-
-function end_tag($parser, $data){
-		//do nothing
-}
-
-function get_result_from_response($response) {
-	global $resp_result;
-	$resp_result = '';
-	$xml_parser = xml_parser_create();
-	xml_set_element_handler($xml_parser, "start_tag", "end_tag");
-	xml_set_character_data_handler($xml_parser, "contents");
-	if(!(xml_parse($xml_parser, $response, True))){
-		die("Error on line " . xml_get_current_line_number($xml_parser));	
-	}
-	xml_parser_free($xml_parser);
-	return trim($resp_result);
-}
-
-function do_call($host, $port, $request) {
- 
-    $url = "http://$host:$port/";
-    $header[] = "Content-type: text/xml";
-    $header[] = "Content-length: ".strlen($request);
-   
-    $ch = curl_init();  
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
-   
-    $data = curl_exec($ch);      
-    if (curl_errno($ch)) {
-        print curl_error($ch);
-    } else {
-        curl_close($ch);
-        return $data;
+        global $resp_result;
+        $resp_result = $resp_result . $data;
     }
+
+    function  start_tag($parser, $data){
+         //do nothing
+    } 
+
+    function end_tag($parser, $data){
+        //do nothing
+    }
+function get_result_from_response($response) {
+    global $resp_result;
+    $resp_result = '';
+    $xml_parser = xml_parser_create();
+    xml_set_element_handler($xml_parser, "start_tag", "end_tag");
+    xml_set_character_data_handler($xml_parser, "contents");
+    if(!(xml_parse($xml_parser, $response, True))){
+        die("Error on line " . xml_get_current_line_number($xml_parser));   
+    }
+    xml_parser_free($xml_parser);
+    return trim($resp_result);
 }
 ?>

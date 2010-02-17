@@ -29,6 +29,8 @@ from core.vistrail.vistrail import Vistrail
 from db.services.locator import DBLocator
 from core.system import get_elementtree_library
 from db.services import io
+from db.versions import currentVersion
+
 ElementTree = get_elementtree_library()
 
 class VtlFileCreator(NotCacheable, Module):
@@ -62,6 +64,7 @@ class VtlFileCreator(NotCacheable, Module):
         self.execute = False
         self.embedWorkflow = False
         self.showSpreadsheetOnly = False
+        self.forceDB = False
         
     def get_locator_and_version(self):
         self.locator = self.moduleInfo['locator']
@@ -73,45 +76,71 @@ class VtlFileCreator(NotCacheable, Module):
         if self.version is None:
             raise ModuleError(self, 'could not get the version number of this peline')
     
-    def compute(self):
-        self.get_locator_and_version()
-        
+    @staticmethod
+    def generate_vtl(locator,version,pipeline,execute=False,forceDB=False,
+                     showSpreadsheetOnly=False,embedWorkflow=False):
+        """generate_vtl(locator:DBLocator or XMLLocator,
+                        version: str, pipeline:Pipeline, execute:boolean,
+                        forceDB:boolean, showspreadsheetOnly:boolean,
+                        embedWorkflow: boolean) -> str
+           It generates the contents of a .vtl file with the information
+           given.
+        """
         node = ElementTree.Element('vtlink')
         
-        if isinstance(self.locator, DBLocator):
-            node.set('host', str(self.locator.host))
-            node.set('port', str(self.locator.port))
-            node.set('database', str(self.locator.db))
-            node.set('vtid', str(self.locator.obj_id))
+        if isinstance(locator, DBLocator):
+            node.set('host', str(locator.host))
+            node.set('port', str(locator.port))
+            node.set('database', str(locator.db))
+            node.set('vtid', str(locator.obj_id))
         else:
-            node.set('filename', str(self.locator.name))
+            node.set('filename', str(locator.name))
             
-        node.set('version', str(self.version))
-        if self.hasInputFromPort('execute'):
-            self.execute = self.getInputFromPort('execute')
-        node.set('execute', str(self.execute))
-        
-        if self.hasInputFromPort('showSpreadsheetOnly'):
-            self.showSpreadsheetOnly = self.getInputFromPort('showSpreadsheetOnly')
-        node.set('showSpreadsheetOnly', str(self.showSpreadsheetOnly))
-        if self.hasInputFromPort('embedWorkflow'):
-            self.embedWorkflow = self.getInputFromPort('embedWorkflow')
-        if self.embedWorkflow == True:
+        node.set('version', str(version))    
+        node.set('execute', str(execute))
+        node.set('forceDB', str(forceDB))
+        node.set('showSpreadsheetOnly', str(showSpreadsheetOnly))
+            
+        if embedWorkflow == True:
             vistrail = Vistrail()
             action_list = []
-            for module in self.pipeline.module_list:
+            for module in pipeline.module_list:
                 action_list.append(('add', module))
-            for connection in self.pipeline.connection_list:
+            for connection in pipeline.connection_list:
                 action_list.append(('add', connection))
             action = core.db.action.create_action(action_list)
             vistrail.add_action(action, 0L)
             vistrail.addTag("Imported workflow", action.id)
+            if not forceDB:
+                node.set('version', str(action.id))
+            if not vistrail.db_version:
+                vistrail.db_version = currentVersion
             pipxmlstr = io.serialize(vistrail)
             vtcontent = base64.b64encode(pipxmlstr)
             node.set('vtcontent',vtcontent)
             
-        xmlstring = ElementTree.tostring(node)
+        return ElementTree.tostring(node)
             
+            
+    def compute(self):
+        self.get_locator_and_version()
+        
+        if self.hasInputFromPort('execute'):
+            self.execute = self.getInputFromPort('execute')
+        
+        if self.hasInputFromPort('forceDB'):
+            self.forceDB = self.getInputFromPort('forceDB')
+        
+        if self.hasInputFromPort('showSpreadsheetOnly'):
+            self.showSpreadsheetOnly = self.getInputFromPort('showSpreadsheetOnly')
+            
+        if self.hasInputFromPort('embedWorkflow'):
+            self.embedWorkflow = self.getInputFromPort('embedWorkflow')
+        
+        xmlstring = self.generate_vtl(self.locator,self.version,self.pipeline,
+                                      self.execute,self.forceDB,
+                                      self.showSpreadsheetOnly,self.embedWorkflow)
+        
         if self.hasInputFromPort('filename'):
             filename = self.getInputFromPort('filename')
             if self.hasInputFromPort('directory'):
@@ -123,8 +152,12 @@ class VtlFileCreator(NotCacheable, Module):
         
         self.setResult("xmlstring", xmlstring)
         
-    _input_ports = [('execute', Boolean, True), ('showspreadsheetOnly', Boolean, True),
-                    ('embedWorkflow', Boolean, True), ('filename', String), ('directory', Directory)]
+    _input_ports = [('execute', Boolean, True), 
+                    ('showspreadsheetOnly', Boolean, True),
+                    ('embedWorkflow', Boolean, True),
+                    ('forceDB', Boolean, True), 
+                    ('filename', String), 
+                    ('directory', Directory)]
     
     _output_ports = [('xmlstring', String)]
 

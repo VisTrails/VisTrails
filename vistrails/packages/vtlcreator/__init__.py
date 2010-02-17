@@ -24,4 +24,4 @@ workflow it is contained into."""
 
 identifier = 'edu.utah.sci.vistrails.vtlcreator'
 name = 'vtlCreator'
-version = '0.0.2'
+version = '0.0.3'
