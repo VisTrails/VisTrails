@@ -142,6 +142,10 @@ class RepoSync(HTTP):
         self.base_url = \
                 get_vistrails_persistent_configuration().webRepositoryURL
 
+        # TODO: this '/' check should probably be done in core/configuration.py
+        if self.base_url[-1] == '/':
+            self.base_url = self.base_url[:-1]
+
     # used for invaliding cache when user isn't logged in to crowdLabs
     # but wants to upload data
     def invalidate_cache(self):
@@ -156,15 +160,17 @@ class RepoSync(HTTP):
     def checksum_lookup(self):
         """ checks if the repository has the wanted data """
 
-        checksum_url = "%sdatasets/exists/%s/" % (self.base_url, self.checksum)
+        checksum_url = "%s/datasets/exists/%s/" % (self.base_url, self.checksum)
         self.on_server = False
         try:
             check_dataset_on_repo = urllib2.urlopen(url=checksum_url)
             self.up_to_date = True if \
                     check_dataset_on_repo.read() == 'uptodate' else False
             self.on_server = True
+            print 'checksum lookup'
         except urllib2.HTTPError:
             self.up_to_date = True
+            print 'checksum lookup2'
 
     def data_sync(self):
         """ downloads/uploads/uses the local file depending on availability """
@@ -181,7 +187,7 @@ class RepoSync(HTTP):
                           'origin': 'vistrails',
                           'checksum': self.checksum}
 
-                upload_url = "%sdatasets/upload/" % self.base_url
+                upload_url = "%s/datasets/upload/" % self.base_url
 
                 datagen, headers = multipart_encode(params)
                 request = urllib2.Request(upload_url, datagen, headers)
@@ -218,7 +224,7 @@ class RepoSync(HTTP):
                 self.setResult("file", self.in_file)
             else:
                 # local file not present or out of date, download or used cached
-                self.url = "%sdatasets/download/%s" % (self.base_url,
+                self.url = "%s/datasets/download/%s" % (self.base_url,
                                                        self.checksum)
                 local_filename = package_directory + '/' + \
                         urllib.quote_plus(self.url)

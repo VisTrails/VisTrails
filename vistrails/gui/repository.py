@@ -55,6 +55,10 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
         self.config = get_vistrails_persistent_configuration()
 
+        # TODO: this '/' check should probably be done in core/configuration.py
+        if self.config.webRepositoryURL[-1] == '/':
+            self.config.webRepositoryURL = self.config.webRepositoryURL[:-1]
+
         ######################################################################
         # Push info
         right_layout = QtGui.QVBoxLayout(right)
@@ -103,7 +107,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
         else:
             self.repository_supports_vt = True
             # get packages supported by VisTrails repository
-            packages_url = "%spackages/supported_packages/" % \
+            packages_url = "%s/packages/supported_packages/" % \
                     self.config.webRepositoryURL
             get_supported_packages = urllib2.urlopen(url=packages_url)
             server_packages = get_supported_packages.read().split('||')
@@ -204,7 +208,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                                               len(self.local_data_modules)),
                       'vt_id': 0}
 
-            upload_url = "%svistrails/remote_upload/" % \
+            upload_url = "%s/vistrails/remote_upload/" % \
                     self.config.webRepositoryURL
 
             datagen, headers = multipart_encode(params)
@@ -244,10 +248,16 @@ class QRepositoryLoginWidget(QtGui.QWidget):
         base_layout.addWidget(QtGui.QLabel("Username:"))
 
         self.config = get_vistrails_persistent_configuration()
+
+        # TODO: this '/' check should probably be done in core/configuration.py
+        if self.config.webRepositoryURL[-1] == '/':
+            self.config.webRepositoryURL = self.config.webRepositoryURL[:-1]
+
         if self.config.check('webRepositoryLogin'):
             self.loginUser = QtGui.QLineEdit(self.config.webRepositoryLogin)
         else:
             self.loginUser = QtGui.QLineEdit("")
+
         self.loginUser.setFixedWidth(200)
         self.loginUser.setSizePolicy(QtGui.QSizePolicy.Fixed,
                                      QtGui.QSizePolicy.Fixed)
@@ -261,7 +271,7 @@ class QRepositoryLoginWidget(QtGui.QWidget):
                                      QtGui.QSizePolicy.Fixed)
         base_layout.addWidget(self.loginPassword)
 
-        self.saveLogin = QtGui.QCheckBox("Save user login")
+        self.saveLogin = QtGui.QCheckBox("Save username")
         if self.config.check('webRepositoryLogin'):
             self.saveLogin.setChecked(True)
         base_layout.addWidget(self.saveLogin)
@@ -321,7 +331,7 @@ class QRepositoryLoginWidget(QtGui.QWidget):
         self.loginOpener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.dialog.cookiejar))
 
         # FIXME doesn't use https
-        login_url = "%saccount/login/" % self.config.webRepositoryURL
+        login_url = "%s/account/login/" % self.config.webRepositoryURL
         request = urllib2.Request(login_url, params)
         url = self.loginOpener.open(request)
 
@@ -370,7 +380,7 @@ class QRepositoryDialog(QtGui.QDialog):
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
         self._status_bar = QtGui.QStatusBar(self)
-        self.setWindowTitle('VisTrails Repository')
+        self.setWindowTitle('Web Repository Options')
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
@@ -391,7 +401,7 @@ class QRepositoryDialog(QtGui.QDialog):
         self._tab_widget.addTab(self._login_tab, 'Login to Repository')
 
         self._push_tab = self.create_push_tab()
-        self._tab_widget.addTab(self._push_tab, 'Push VisTrail to Repository')
+        self._tab_widget.addTab(self._push_tab, 'Push VisTrails to Repository')
 
         self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
                                                   QtCore.Qt.Horizontal,
