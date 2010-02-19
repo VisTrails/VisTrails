@@ -163,11 +163,17 @@ class QLegendBox(QtGui.QFrame):
         self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
-        self.palette().setBrush(QtGui.QPalette.Window, brush)
+        palette = QtGui.QPalette(self.palette())
+        palette.setBrush(QtGui.QPalette.Window, brush)
+        self.setPalette(palette)
         self.setFixedSize(*size)
         if system.systemType in ['Darwin']:
-            #the mac's nice looking mess up with the colors
-            self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
+            #the mac's nice looking messes up with the colors
+            if QtCore.QT_VERSION < 0x40500:
+                self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
+            else:
+                self.setAttribute(QtCore.Qt.WA_MacBrushedMetal, False)
+            
         
 class QLegendWindow(QtGui.QWidget):
     """

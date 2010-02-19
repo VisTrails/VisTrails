@@ -1372,8 +1372,9 @@ class VistrailController(object):
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
         if pkg:
-            if confirmed or not self.enable_missing_package(identifier):
-                return False
+            if not confirmed:
+                if not self.enable_missing_package(identifier):
+                    return False
             # Ok, user wants to late-enable it. Let's give it a shot
             try:
                 pm.late_enable_package(pkg.codepath)

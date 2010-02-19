@@ -715,8 +715,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         QtGui.QGraphicsItem.__init__(self, parent, scene)
         self.paddedRect = QtCore.QRectF()
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
-                      QtGui.QGraphicsItem.ItemIsMovable)
+        if QtCore.QT_VERSION >= 0x40600:
+            #Qt 4.6 specific flags
+            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
+                          QtGui.QGraphicsItem.ItemIsMovable |
+                          QtGui.QGraphicsItem.ItemSendsGeometryChanges)
+        else:
+            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
+                          QtGui.QGraphicsItem.ItemIsMovable)
         self.setZValue(0)
         self.labelFont = CurrentTheme.MODULE_FONT
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC

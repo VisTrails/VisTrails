@@ -1,7 +1,7 @@
 <?php
 ////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2006-2008 University of Utah. All rights reserved.
+// Copyright (C) 2006-2010 University of Utah. All rights reserved.
 //
 // This file is part of VisTrails.
 //
@@ -21,29 +21,19 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-// This file will execute vistrails and return a page containing the images 
-// generated.
+// This file will connect to VisTrails XML RPC Server and return the url for
+// the pdf file of a workflow.
 // The url should follow this format:
-// run_vistrails.php?host=vistrails.sci.utah.edu&db=vistrails&vt=8&version=598
+// get_wf_pdf.php?host=vistrails.sci.utah.edu&db=vistrails&vt=8&version=598
 // host and dbname are optional and you can set the default values below
 // if the port is different from the dafault you can also pass the new value on
 // the url
 
-// This is where vistrails XML-RPC is running
-$USE_VISTRAILS_XML_RPC_SERVER = True;
+//functions.php is located inside the ./mediawiki folder
+require_once 'functions.php';
 
 $VT_HOST = "vistrails.sci.utah.edu";
 $VT_PORT = 8080;
-
-// Change this to point to the folder where vistrails.py is 
-// You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
-$PATH_TO_VISTRAILS = '/server/wiki/vistrails/main/vistrails/v1.2/vistrails';
-
-// Change this to point to the folder where the images should be generated
-$PATH_TO_IMAGES = '/server/wiki/vistrails/main/images/vistrails/';
-
-// Change this to the web accessible path to the folder where the images were generated
-$WEB_PATH_TO_IMAGES = '/images/vistrails/';
 
 // set variables with default values
 $host = 'vistrails.sci.utah.edu';
@@ -83,38 +73,14 @@ if(array_key_exists('buildalways',$_GET))
 //Check if vtid and version were provided
 //echo $vtid . $version;
 if($vtid != '' and $version != ''){
-    if($USE_VISTRAILS_XML_RPC_SERVER){
 	//echo $host . $port . $dbname . $vtid . $version;
-        $request = xmlrpc_encode_request('get_wf_pdf',
-                                          array($host, $port, $dbname, $vtid, $version));
+	$request = xmlrpc_encode_request('get_wf_pdf',
+                                     array($host, $port, $dbname, $vtid, $version));
 	//echo $request;
-			$response = do_call($VT_HOST,$VT_PORT,$request);		
-    }
+	$response = do_call($VT_HOST,$VT_PORT,$request);		
 }
 else{
 	echo "ERROR: Vistrails id or version not provided.\n";
-}
-
-function do_call($host, $port, $request) {
- 
-    $url = "http://$host:$port/";
-    $header[] = "Content-type: text/xml";
-    $header[] = "Content-length: ".strlen($request);
-   
-    $ch = curl_init();  
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
-   
-    $data = curl_exec($ch);      
-    if (curl_errno($ch)) {
-        print curl_error($ch);
-    } else {
-        curl_close($ch);
-        return $data;
-    }
 }
 
 ?>

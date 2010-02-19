@@ -582,12 +582,18 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         metalstyle = self.temp_configuration.check('useMacBrushedMetalStyle')
-            
-        if(metalstyle and event.type() == QtCore.QEvent.Create and 
-           issubclass(type(o),QtGui.QWidget) and
-           type(o) != QtGui.QSplashScreen):
-            o.setAttribute(QtCore.Qt.WA_MacMetalStyle)
-        elif event.type() == QtCore.QEvent.FileOpen:
+        if metalstyle:
+            if QtCore.QT_VERSION < 0x40600:    
+                create_event = QtCore.QEvent.Create
+                mac_attribute = QtCore.Qt.WA_MacMetalStyle
+            else:
+                create_event = 15
+                mac_attribute = QtCore.Qt.WA_MacBrushedMetal
+            if(event.type() == create_event and 
+               issubclass(type(o),QtGui.QWidget) and
+               type(o) != QtGui.QSplashScreen):
+                o.setAttribute(mac_attribute)
+        if event.type() == QtCore.QEvent.FileOpen:
             self.input = [str(event.file())]
             self.process_interactive_input()
         return QtGui.QApplication.eventFilter(self,o,event)
