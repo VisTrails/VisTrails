@@ -358,8 +358,11 @@ class Package(DBPackage):
         
     def unload(self):
         for path in self.py_dependencies:
-            # print 'deleting path:', path, path in sys.modules
-            del sys.modules[path]
+            if path not in sys.modules:
+                print "skipping %s"%path
+            else:
+                # print 'deleting path:', path, path in sys.modules
+                del sys.modules[path]
         self.py_dependencies.clear()
 
     def set_properties(self):

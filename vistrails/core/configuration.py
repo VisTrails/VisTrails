@@ -187,7 +187,7 @@ def default():
         'packageDirectory': (None, str),
         'pythonPrompt': False,
         'repositoryLocalPath': (None, str),
-        'repositoryHTTPURL': (None, str),
+        'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,
         'rootDirectory': (None, str),
         'shell': default_shell(),
