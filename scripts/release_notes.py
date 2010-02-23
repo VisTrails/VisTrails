@@ -26,9 +26,9 @@ def rev(n):
 client = pysvn.Client()
 client.callback_get_login = userpass
 
-version_start = 1681
-version_end = 1692
-release_name = "1.4.1"
+version_start = 1693
+version_end = 1715
+release_name = "1.4.2"
 logs = client.log('https://vistrails.sci.utah.edu/svn',
                   revision_end=rev(version_start))
 
@@ -59,11 +59,20 @@ def print_changes(release):
 re_ticket = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
 re_bugfix = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
 re_feature = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
+re_skip = re.compile(r'<skip>(.*?)</skip>', re.M | re.S)
 
 def build_release_notes(release):
     global username
     global password
 
+    def check_inside_skip(skip_list, message):
+        found = False
+        for s in skip_list:
+            if s.find(message) != -1:
+                found = True
+                break
+        return found
+            
     #populate dictionaries
     bugfixes = {}
     tickets = {}
@@ -73,24 +82,34 @@ def build_release_notes(release):
     if release not in release_changes:
         return
     for (v, log, diff_summaries) in release_changes[release]:
+        ls = re_skip.findall(log.message)
         lf = re_feature.findall(log.message)
         lt = re_ticket.findall(log.message)
         lb = re_bugfix.findall(log.message)
+        if len(ls) > 0:
+            changes[v] = []
+            for s in ls:
+                changes[v].append(s)
         if len(lf) > 0:
             features[v] = []
             for f in lf:
-                print f
-                features[v].append(f)
+                if not check_inside_skip(ls,f):
+                    features[v].append(f)
         if len(lt) > 0:
             tickets[v] = []
             for t in lt:
-                tickets[v].append(t)
+                if not check_inside_skip(ls,t):
+                    tickets[v].append(t)
         if len(lb) > 0:
             bugfixes[v] = []
             for b in lb:
-                bugfixes[v].append(b)
-        if  len(lf) == 0 and len(lt) == 0 and len(lb) == 0:
-            changes[v] = log.message
+                if not check_inside_skip(ls,b):
+                    bugfixes[v].append(b)
+        if len(ls) == 0 and len(lf) == 0 and len(lt) == 0 and len(lb) == 0:
+            if not changes.has_key(v):
+                changes[v] = []
+            changes[v].append(log.message)
+                
 
     #get ticket summaries from xmlrpc plugin installed on vistrails trac
     print "Will connect to VisTrails Trac with authentication..."
@@ -159,7 +178,8 @@ def build_release_notes(release):
     revisions.reverse()
     for r in revisions:
         print "(r%s): "%r
-        print "  - %s... "%changes[r][0:100]
+        for c in changes[r]:
+            print "  - %s... "%c[0:100]
 
 def get_features(release):
     if release not in release_changes:

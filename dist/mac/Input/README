@@ -17,7 +17,67 @@ Please see the About Message for Licensing and Disclaimers.
 RELEASE NOTES
 -------------
 
-Release Name: v1.4.1 build 1693
+Release Name: v1.4.2 build 1716
+
+Enhancements: 
+ - Ticket #290: Reload packages without restating VisTrails (r1714)
+ - Package reloading support should now be fully functional (r1714)
+ - Enabling access to a Web package repository. (r1712)
+ - Started adding support for Qt4.6.x (r1711)
+ - Package vtlcreator: Exposing the function to create the contents
+of a .vtl file as a static method, so it can be called from other
+packages  (r1709)
+ - Added support for embedding workflows when using the Web extensions (r1709)
+ - VisTrails Server: Added support for creating a .vt file for a given
+vistrail/workflow on the DB so it can be embedded on a .vtl file (r1709)
+ - New module, RepoSync, has been added to the HTTP package, which enables data files to be synced with an online repository (crowdLabs) (r1708)
+ - Added basic online web repository (crowdLabs) user authentication dialog (r1707)
+ - Added ability to upload VisTrail files to online web repository (crowdLabs) (r1707)
+ - Improved package reloading support (r1703)
+ - Added helper methods, get_inputPort_modules and get_outputPort_modules, to get modules that connect to a given input port or output port (r1701)
+ - Added helper method, connections_to_module, that returns a list of all modules that connect into a given module (r1701)
+ - Ticket #290: Reload packages without restating VisTrails (r1697)
+ - Enable package reloading without the need to restart VisTrails. (r1697)
+ - SQL package also connects to a PostgreSQL database server (r1696)
+ - SQL package: added cacheResults parameter to SQLSource (r1696)
+ - SQL package also handles connection timeouts (r1696)
+
+Bug fixes: 
+ - Package menu items (on the toolbar) are now properly removed when the package is disabled (r1714)
+ - Package lists can now be traversed with the keyboard (r1714)
+ - Fixed bug that when enabling a package dynamically sometimes VisTrails 
+would say that it failed but if you just selected the version node again the 
+pipeline would be loaded without problems (r1711)
+ - MAC and Qt4.6: VisTrails would fail to start when using MacBrushMetalStyle (r1711)
+ - Mac and Qt4.6: There was not text anti-aliasing in modules and version
+nodes (r1711)
+ - Qt4.6: Moving a module in the pipeline view would not move the 
+connections attached to it (r1711)
+ - Qt4.6: Legend Window in Visual Diff would not properly display the
+colors (r1711)
+ - Fixed a bug with opening .vtl files that embedded workflows (r1709)
+ - Package vtlcreator: Fixed a bug that the version of the embedded
+vistrail was not being set (r1709)
+ - Fixed the Capitalization error in the VisTrails App Bundle name (r1709)
+ - Properly track all modules in the hierarchy of a module loaded by a package for correct packing reloading (r1706)
+ - Made reset query work immediately for the version search box (r1705)
+ - Stop creating empty actions (r1704)
+ - DBLocator: Removing object name from XML serialization. 
+This was causing inconsistencies with caching locators because we don't
+know the name of the object before we load it  (r1702)
+ - Ticket #345: db connection edit bug (r1700)
+ - DBLocator: Serializing also db connection user so current 
+permissions are not overriden by the cached version (r1700)
+ - Ticket #344: Ungroup failing (r1699)
+ - Ensure correct modules after ungrouping (r1699)
+ - Ticket #342: Method responses return None in Web Services Package (r1698)
+ - Complex types were ignoring the new 'self' input port when 
+unwrapping contents (r1698)
+ - Ticket #341: On Ubuntu, VisTrails doesn't try to install MySQLdb (if not present) when accessing the database (r1695)
+ - Move Vistrail import into load_vistrail method to avoid
+circular imports. (r1694)
+
+From Release: v1.4.1 build 1693
 
 Enhancements: 
  - Code cleanup: removed unnecessary imports in a few files (r1687)
