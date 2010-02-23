@@ -35,7 +35,8 @@ from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
 from core import debug
 import core.db.io
-from core.utils import enum, VistrailsInternalError, InstanceObject
+from core.utils import enum, VistrailsInternalError, InstanceObject, \
+     InvalidPipeline
 from core.vistrail.action import Action
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.annotation import Annotation
@@ -227,7 +228,10 @@ class Vistrail(DBVistrail):
         Return a pipeline object given a version number or a version name. 
 
         """
-        return Vistrail.getPipelineDispatcher[type(version)](self, version)
+        try:
+            return Vistrail.getPipelineDispatcher[type(version)](self, version)
+        except Exception, e:
+            raise InvalidPipeline([e])
     
     def getPipelineVersionName(self, version):
         """getPipelineVersionName(version:str) -> Pipeline

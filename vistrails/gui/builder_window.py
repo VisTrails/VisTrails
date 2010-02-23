@@ -28,6 +28,7 @@ from core import system
 from core.configuration import get_vistrails_configuration
 from core.db.locator import DBLocator, FileLocator, XMLFileLocator, untitled_locator
 from core.packagemanager import get_package_manager
+import core.interpreter.cached
 import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
@@ -45,9 +46,6 @@ from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
 from gui.vis_diff import QVisualDiff
 from gui.utils import build_custom_window
-import copy
-import core.interpreter.cached
-import os
 import sys
 
 ################################################################################
@@ -1179,10 +1177,11 @@ class QBuilderWindow(QtGui.QMainWindow):
                                self.shell)
             self.shell.show()
             currentView = self.viewManager.currentWidget()
-            controller = currentView.controller
-            pipeline = controller.current_pipeline
-            self.shell.shell.add_controller(controller)
-            self.shell.shell.add_pipeline(pipeline)
+            if currentView:
+                controller = currentView.controller
+                pipeline = controller.current_pipeline
+                self.shell.shell.add_controller(controller)
+                self.shell.shell.add_pipeline(pipeline)
         else:
             if self.shell:
                 self.shell.hide()

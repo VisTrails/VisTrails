@@ -497,7 +497,6 @@ class FileLocator(CoreLocator):
             return None
         
         def guess_extension_from_contents(contents):
-            print contents[:100]
             if contents.startswith("<vistrail"):
                 return ".xml"
             else:

@@ -37,7 +37,8 @@ from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
-    MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort
+    MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort, \
+    MissingPackage
 from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail
 from core.packagemanager import PackageManager, get_package_manager
@@ -1382,7 +1383,7 @@ class VistrailController(object):
                 for dependency in e.dependencies:
                     if not self.try_to_enable_package(dependency):
                         return False
-
+                return self.try_to_enable_package(identifier, True)
             # there's a new package in the system, so we retry
             # changing the version by recursing, since other
             # packages/modules might still be needed.
@@ -1402,28 +1403,39 @@ class VistrailController(object):
         pm = get_package_manager()
         for err in e._exception_set:
             if isinstance(err, ModuleRegistryException):
-                try:
-                    # if package is present, then we first let the
-                    # package know that the module is missing - this
-                    # might trigger some new modules.
-                    pkg = pm.get_package_by_identifier(err._identifier)
-                    res = pkg.report_missing_module(err._name,
+                if isinstance(err, MissingModule):
+                    try:
+                        # if package is present, then we first let the
+                        # package know that the module is missing - this
+                        # might trigger some new modules.
+                        pkg = pm.get_package_by_identifier(err._identifier)
+                        res = pkg.report_missing_module(err._name,
                                                     err._namespace)
-                    if not res:
-                        # print 'report missing module failed'
-                        unhandled_exceptions.append(err)
+                        if not res:
+                            # print 'report missing module failed'
+                            unhandled_exceptions.append(err)
+                            if not report_all_errors:
+                                break
+                    except Exception, other_exception:
+                        unhandled_exceptions.append(other_exception)
                         if not report_all_errors:
                             break
-                except pm.MissingPackage:
-                    pass
-                try:
-                    # print 'trying to enable package'
-                    if not self.try_to_enable_package(err._identifier):
-                        # print 'failed to enable package'
-                        unhandled_exceptions.append(err)
-                except Exception, enable_exception:
-                    # print 'hit other exception'
-                    unhandled_exceptions.append(enable_exception)
+                elif isinstance(err, MissingPackage):
+                    #check if the package was already installed before (because
+                    #it was in the dependency list of a previous package
+                    if not pm.has_package(err._identifier):
+                        try:
+                            # print 'trying to enable package'
+                            if not self.try_to_enable_package(err._identifier):
+                                # print 'failed to enable package'
+                                unhandled_exceptions.append(err)
+                        except Exception, enable_exception:
+                            # print 'hit other exception'
+                            unhandled_exceptions.append(enable_exception)
+                        if not report_all_errors:
+                            break
+                else:
+                    unhandled_exceptions.append(err)
                     if not report_all_errors:
                         break
             else:

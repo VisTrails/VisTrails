@@ -173,7 +173,12 @@ class InvalidPipeline(Exception):
     """
     def __init__(self, exception_set, pipeline=None, version=None):
         self._exception_set = exception_set
-        self._pipeline = copy.copy(pipeline)
+        #the problem here is that sometimes the pipeline can't be copied when
+        # it is invalid. So if it throws an Exception, we will just ignore
+        try:
+            self._pipeline = copy.copy(pipeline)
+        except:
+            self._pipeline = None
         self._version = version
 
     def __str__(self):

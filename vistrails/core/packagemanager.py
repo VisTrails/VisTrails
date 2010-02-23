@@ -308,7 +308,7 @@ Returns true if given package identifier is present."""
                 self._registry.remove_package(pkg)
             except MissingPackage:
                 pass
-            raise
+            raise e
         self.add_menu_items(pkg)
 
     def late_disable_package(self, package_codepath):
