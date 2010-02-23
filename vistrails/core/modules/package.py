@@ -243,7 +243,7 @@ class Package(DBPackage):
         qual_name = ''
         for m in res_name.split('.'):
            qual_name += m
-           if qual_name not in self._existing_paths:
+           if qual_name not in self._existing_paths and not qual_name.endswith('_rc'):
                # print '  adding', name, qual_name
                self._imported_paths.add(qual_name)
            # else:

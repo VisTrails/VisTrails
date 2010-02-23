@@ -48,9 +48,12 @@ class PackageManager(QtCore.QObject):
     add_package_menu_signal = QtCore.SIGNAL("add_package_menu")
     # remove_package_menu_signal is emitted with the package identifier
     remove_package_menu_signal = QtCore.SIGNAL("remove_package_menu")
-    #package_error_message_signal is emitted with the package identifier,
+    # package_error_message_signal is emitted with the package identifier,
     # package name and the error message
     package_error_message_signal = QtCore.SIGNAL("package_error_message_signal")
+    # reloading_package_signal is emitted when a package reload has disabled
+    # the packages, but has not yet enabled them
+    reloading_package_signal = QtCore.SIGNAL("reloading_package_signal")
 
     class DependencyCycle(Exception):
         def __init__(self, p1, p2):
@@ -177,8 +180,8 @@ To do so, call initialize_packages()"""
         pkg = self._package_list[codepath]
         self._dependency_graph.delete_vertex(pkg.identifier)
         del self._identifier_map[pkg.identifier]
-        pkg.finalize()
         self.remove_menu_items(pkg)
+        pkg.finalize()
         del self._package_list[codepath]
         self._registry.remove_package(pkg)
 
@@ -288,6 +291,12 @@ Returns true if given package identifier is present."""
             self.add_dependencies(pkg)
             pkg.check_requirements()
             self._registry.initialize_package(pkg)
+            # FIXME Empty packages still need to be added, but currently they are not
+            # because newPackage is typically only called for the first module inside
+            # a package.
+            from core.modules.abstraction import identifier as abstraction_identifier
+            if pkg.identifier == abstraction_identifier:
+                self._registry.signals.emit_new_package(abstraction_identifier, True)
         except Exception, e:
             del self._identifier_map[pkg.identifier]
             self._dependency_graph.delete_vertex(pkg.identifier)
@@ -311,7 +320,7 @@ Returns true if given package identifier is present."""
         self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
 
-    def reload_package(self, package_codepath):
+    def reload_package_disable(self, package_codepath):
         # for all reverse dependencies, disable them
         prefix_dictionary = {}
         pkg = self.get_package_by_codepath(package_codepath)
@@ -322,6 +331,14 @@ Returns true if given package identifier is present."""
             prefix_dictionary[dep_pkg.codepath] = dep_pkg.prefix
             self.late_disable_package(dep_pkg.codepath)
 
+        # Queue the re-enabling of the packages so event loop can free
+        # any QObjects whose deleteLater() method is invoked
+        self.emit(self.reloading_package_signal,
+                  package_codepath,
+                  reverse_deps,
+                  prefix_dictionary)
+
+    def reload_package_enable(self, reverse_deps, prefix_dictionary):
         # for all reverse dependencies, enable them
         for dep_pkg in reversed(reverse_deps):
             self.late_enable_package(dep_pkg.codepath, prefix_dictionary)

@@ -126,6 +126,8 @@ class ModuleRegistrySignals(QtCore.QObject):
 
     # new_module_signal is emitted with descriptor of new module
     new_module_signal = QtCore.SIGNAL("new_module")
+    # new_package_signal is emitted with identifier of new package (only for abstractions)
+    new_package_signal = QtCore.SIGNAL("new_package")
     # deleted_module_signal is emitted with descriptor of deleted module
     deleted_module_signal = QtCore.SIGNAL("deleted_module")
     # deleted_package_signal is emitted with package identifier
@@ -143,6 +145,9 @@ class ModuleRegistrySignals(QtCore.QObject):
 
     def __init__(self):
         QtCore.QObject.__init__(self)
+
+    def emit_new_package(self, identifier, prepend=False):
+        self.emit(self.new_package_signal, identifier, prepend)
 
     def emit_new_module(self, descriptor):
         self.emit(self.new_module_signal, descriptor)
