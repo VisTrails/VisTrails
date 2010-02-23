@@ -53,6 +53,8 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
     def connect_registry_signals(self):
         registry = get_module_registry()
+        self.connect(registry.signals, registry.signals.new_package_signal,
+                     self.newPackage)
         self.connect(registry.signals, registry.signals.new_module_signal, 
                      self.newModule)
         self.connect(registry.signals, registry.signals.deleted_module_signal,

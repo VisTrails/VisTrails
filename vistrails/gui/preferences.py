@@ -102,6 +102,9 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 
 class QPackagesWidget(QtGui.QWidget):
 
+    # Signals that a package should be selected after the event loop updates (to remove old references)
+    select_package_after_update_signal = QtCore.SIGNAL("select_package_after_update_signal")
+
     ##########################################################################
     # Initialization
 
@@ -130,18 +133,14 @@ class QPackagesWidget(QtGui.QWidget):
         left_layout.addWidget(self._enabled_packages_list)
 
         self.connect(self._available_packages_list,
-                     QtCore.SIGNAL('itemClicked(QListWidgetItem*)'),
-                     self.clicked_on_available_list)
-        self.connect(self._available_packages_list,
-                     QtCore.SIGNAL('itemPressed(QListWidgetItem*)'),
-                     self.pressed_available_list)
+                     QtCore.SIGNAL('itemSelectionChanged()'),
+                     self.selected_available_list,
+                     QtCore.Qt.QueuedConnection)
 
         self.connect(self._enabled_packages_list,
-                     QtCore.SIGNAL('itemClicked(QListWidgetItem*)'),
-                     self.clicked_on_enabled_list)
-        self.connect(self._enabled_packages_list,
-                     QtCore.SIGNAL('itemPressed(QListWidgetItem*)'),
-                     self.pressed_enabled_list)
+                     QtCore.SIGNAL('itemSelectionChanged()'),
+                     self.selected_enabled_list,
+                     QtCore.Qt.QueuedConnection)
 
         sm = QtGui.QAbstractItemView.SingleSelection
         self._available_packages_list.setSelectionMode(sm)
@@ -231,6 +230,17 @@ class QPackagesWidget(QtGui.QWidget):
         button_box.addButton(self._configure_button, QtGui.QDialogButtonBox.ActionRole)
         button_box.addButton(self._reload_button, QtGui.QDialogButtonBox.ActionRole)
         right_layout.addWidget(button_box)
+
+        self.connect(self,
+                     self.select_package_after_update_signal,
+                     self.select_package_after_update_slot,
+                     QtCore.Qt.QueuedConnection)
+
+        pm = get_package_manager()
+        self.connect(pm,
+                     pm.reloading_package_signal,
+                     self.reload_current_package_finisher,
+                     QtCore.Qt.QueuedConnection)
         
         self.populate_lists()
 
@@ -245,12 +255,14 @@ class QPackagesWidget(QtGui.QWidget):
         self._enabled_packages_list.clear()
         for pkg in enabled_pkgs:
             self._enabled_packages_list.addItem(pkg.codepath)
+        self._enabled_packages_list.sortItems()
         available_pkg_names = [pkg for pkg in 
                                sorted(pkg_manager.available_package_names_list())
                                if pkg not in enabled_pkg_dict]
         self._available_packages_list.clear()
         for pkg in available_pkg_names:
             self._available_packages_list.addItem(pkg)
+        self._available_packages_list.sortItems()
 
     ##########################################################################
 
@@ -264,9 +276,9 @@ class QPackagesWidget(QtGui.QWidget):
 
         dependency_graph = pm.dependency_graph()
         new_deps = self._current_package.dependencies()
-        # FIXME don't hardcode this
-        if self._current_package.identifier != 'edu.utah.sci.vistrails.basic':
-            new_deps.append('edu.utah.sci.vistrails.basic')
+        from core.modules.basic_modules import identifier as basic_modules_identifier
+        if self._current_package.identifier != basic_modules_identifier:
+            new_deps.append(basic_modules_identifier)
 
         unmet_dep = None
 
@@ -296,13 +308,11 @@ class QPackagesWidget(QtGui.QWidget):
             finally:
                 palette.setUpdatesEnabled(True)
                 palette.treeWidget.expandAll()
-            self._current_package = pm.get_package_by_codepath(codepath)
             av.takeItem(pos)
-            av.clearSelection()
             inst.addItem(item)
             inst.sortItems()
-            inst.clearSelection()
             self.erase_cache = True
+            self.select_package_after_update(codepath)
 
     def disable_current_package(self):
         av = self._available_packages_list
@@ -328,44 +338,71 @@ class QPackagesWidget(QtGui.QWidget):
             inst.takeItem(pos)
             av.addItem(item)
             av.sortItems()
-            av.clearSelection()
-            inst.clearSelection()
             self.erase_cache = True
+            self.select_package_after_update(codepath)
 
     def configure_current_package(self):
         dlg = QPackageConfigurationDialog(self, self._current_package)
         dlg.exec_()
 
     def reload_current_package(self):
+        # DISABLES the current package and all reverse dependencies
         inst = self._enabled_packages_list
         item = inst.currentItem()
         pm = get_package_manager()
         codepath = str(item.text())
         
-        identifier = pm.get_package_by_codepath(codepath).identifier
         palette = QtGui.QApplication.instance().builderWindow.modulePalette
         palette.setUpdatesEnabled(False)
+        pm.reload_package_disable(codepath)
+        self.erase_cache = True
+
+    def reload_current_package_finisher(self, codepath, reverse_deps, prefix_dictionary):
+        # REENABLES the current package and all reverse dependencies
+        pm = get_package_manager()
         try:
-            pm.reload_package(codepath)
+            pm.reload_package_enable(reverse_deps, prefix_dictionary)
         except self._current_package.InitializationFailed, e:
             QtGui.QMessageBox.critical(self,
-                                       "Initialization Failed",
-                                       ("Initialization of package '%s' "
+                                       "Re-initialization Failed",
+                                       ("Re-initialization of package '%s' "
                                         "failed: %s" % (codepath, str(e))))
             raise
         finally:
             self.populate_lists()
+            palette = QtGui.QApplication.instance().builderWindow.modulePalette
             palette.setUpdatesEnabled(True)
             palette.treeWidget.expandAll()
             self.erase_cache = True
+            self.select_package_after_update(codepath)
+
+    def select_package_after_update(self, codepath):
+        # Selecting the package causes self._current_package to be set,
+        # which reference prevents the package from being freed, so we
+        # queue it to select after the event loop completes.
+        self.emit(self.select_package_after_update_signal, codepath)
+
+    def select_package_after_update_slot(self, codepath):
+        inst = self._enabled_packages_list
+        av = self._available_packages_list
+        for item in av.findItems(codepath, QtCore.Qt.MatchExactly):
+            av.setCurrentItem(item)
+        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
+            inst.setCurrentItem(item)
 
     def set_buttons_to_enabled_package(self):
         self._enable_button.setEnabled(False)
         assert self._current_package
         pm = get_package_manager()
-        can_disable = pm.can_be_disabled(self._current_package.identifier)
+        from core.modules.basic_modules import identifier as basic_modules_identifier
+        from core.modules.abstraction import identifier as abstraction_identifier
+        is_not_basic_modules = (self._current_package.identifier != basic_modules_identifier)
+        is_not_abstraction = (self._current_package.identifier != abstraction_identifier)
+        can_disable = (pm.can_be_disabled(self._current_package.identifier) and
+                       is_not_basic_modules and
+                       is_not_abstraction)
         self._disable_button.setEnabled(can_disable)
-        if not can_disable:
+        if not can_disable and is_not_basic_modules and is_not_abstraction:
             msg = ("Module has reverse dependencies that must\n"+
                    "be first disabled.")
             self._disable_button.setToolTip(msg)
@@ -373,7 +410,7 @@ class QPackagesWidget(QtGui.QWidget):
             self._disable_button.setToolTip("")
         conf = self._current_package.configuration is not None
         self._configure_button.setEnabled(conf)
-        self._reload_button.setEnabled(True)
+        self._reload_button.setEnabled(is_not_basic_modules)
 
     def set_buttons_to_available_package(self):
         self._configure_button.setEnabled(False)
@@ -420,25 +457,29 @@ class QPackagesWidget(QtGui.QWidget):
     ##########################################################################
     # Signal handling
 
-    def pressed_enabled_list(self, item):
-        self._available_packages_list.clearSelection()
-
-    def pressed_available_list(self, item):
-        self._enabled_packages_list.clearSelection()
-
-    def clicked_on_enabled_list(self, item):
+    def selected_enabled_list(self):
+        item = self._enabled_packages_list.currentItem()
+        if item is None:
+            return # prevent back and forth looping when clearing selection
+        self._available_packages_list.setCurrentItem(None)
         codepath = str(item.text())
         pm = get_package_manager()
         self._current_package = pm.get_package_by_codepath(codepath)
         self.set_buttons_to_enabled_package()
         self.set_package_information()
+        self._enabled_packages_list.setFocus()
 
-    def clicked_on_available_list(self, item):
+    def selected_available_list(self):
+        item = self._available_packages_list.currentItem()
+        if item is None:
+            return # prevent back and forth looping when clearing selection
+        self._enabled_packages_list.setCurrentItem(None)
         codepath = str(item.text())
         pm = get_package_manager()
         self._current_package = pm.look_at_available_package(codepath)
         self.set_buttons_to_available_package()
         self.set_package_information()
+        self._available_packages_list.setFocus()
 
 
 
