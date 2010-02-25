@@ -22,9 +22,7 @@
 
 from PyQt4 import QtCore, QtGui
 from core import system
-from core.modules.module_configure import StandardModuleConfigurationWidget
-from core.modules.tuple_configuration import PortTableConfigurationWidget, \
-    PortTable
+from core.modules.source_configure import SourceConfigurationWidget
 from core.utils import PortAlreadyExists
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
@@ -136,109 +134,7 @@ class PythonEditor(QtGui.QTextEdit):
             # super(PythonEditor, self).keyPressEvent(event)
             QtGui.QTextEdit.keyPressEvent(self, event)
                  
-class PythonSourceConfigurationWidget(PortTableConfigurationWidget):
-
+class PythonSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
-        PortTableConfigurationWidget.__init__(self, module, controller, parent)
-
-    def doLayout(self):
-        self.setWindowTitle('PythonSource Configuration')
-        self.setLayout(QtGui.QVBoxLayout())
-        self.layout().setMargin(0)
-        self.layout().setSpacing(0)
-        self.createPortTable()
-        self.createEditor()
-        self.createButtons()        
-
-
-    def createPortTable(self):
-        self.inputPortTable = PortTable(self)
-        labels = QtCore.QStringList() << "Input Port Name" << "Type"
-        self.inputPortTable.setHorizontalHeaderLabels(labels)
-        self.outputPortTable = PortTable(self)
-        labels = QtCore.QStringList() << "Output Port Name" << "Type"
-        self.outputPortTable.setHorizontalHeaderLabels(labels)
-        self.inputPortTable.initializePorts(self.module.input_port_specs)
-        self.outputPortTable.initializePorts(self.module.output_port_specs, 
-                                             True)
-        self.layout().addWidget(self.inputPortTable)
-        self.layout().addWidget(self.outputPortTable)
-        self.performPortConnection(self.connect)
-        self.inputPortTable.fixGeometry()
-        self.outputPortTable.fixGeometry()
-
-    def findSourceFunction(self):
-        fid = -1
-        for i in xrange(self.module.getNumFunctions()):
-            if self.module.functions[i].name=='source':
-                fid = i
-                break
-        return fid
-
-    def createEditor(self):
-        self.codeEditor = PythonEditor(self)
-        fid = self.findSourceFunction()
-        if fid!=-1:
-            f = self.module.functions[fid]
-            self.codeEditor.setPlainText(urllib.unquote(f.params[0].strValue))
-        self.codeEditor.document().setModified(False)
-        self.layout().addWidget(self.codeEditor, 1)
-        
-        self.cursorLabel = QtGui.QLabel()
-        self.layout().addWidget(self.cursorLabel)
-        self.connect(self.codeEditor, QtCore.SIGNAL('cursorPositionChanged()'),
-                     self.updateCursorLabel)
-        self.updateCursorLabel()
-
-    def updateCursorLabel(self):
-        cursor = self.codeEditor.textCursor()
-        self.cursorLabel.setText('Line: %d / Col: %d' % (cursor.blockNumber()+1,
-                                                            cursor.columnNumber()+1))
-
-    def sizeHint(self):
-        return QtCore.QSize(512, 512)
-
-    def performPortConnection(self, operation):
-        operation(self.inputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
-        operation(self.outputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
-
-    def portTableResize(self, logicalIndex, oldSize, newSize):
-        self.performPortConnection(self.disconnect)
-        if self.inputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
-            self.inputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
-        if self.outputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
-            self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
-        self.performPortConnection(self.connect)
-
-    def updateVistrail(self):
-        """updateVistrail() -> None
-        Update vistrail to contain changes to the python source
-
-        """
-        (deleted_ports, added_ports) = \
-            self.getPortDiff('input', self.inputPortTable)
-        (output_deleted_ports, output_added_ports) = \
-            self.getPortDiff('output', self.outputPortTable)
-        deleted_ports.extend(output_deleted_ports)
-        added_ports.extend(output_added_ports)
-
-        functions = []
-        if self.codeEditor.document().isModified():
-            code = urllib.quote(str(self.codeEditor.toPlainText()))
-            functions.append(('source', [code]))
-        if len(deleted_ports) + len(added_ports) + len(functions) == 0:
-            # nothing changed
-            return
-        try:
-            self.controller.update_ports_and_functions(self.module.id, 
-                                                       deleted_ports, 
-                                                       added_ports,
-                                                       functions)
-        except PortAlreadyExists, e:
-            QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
-            return False
-        return True
+        SourceConfigurationWidget.__init__(self, module, controller, 
+                                           PythonEditor, True, True, parent)

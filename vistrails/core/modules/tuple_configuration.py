@@ -194,10 +194,6 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         """
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
-        self.doLayout()
-
-    def doLayout(self):
-        raise VistrailsInternalError("Must implement doLayout in subclass")
 
     def updateVistrail(self):
         msg = "Must implement updateVistrail in subclass"
@@ -296,8 +292,6 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         PortTableConfigurationWidget.__init__(self, module,
                                               controller, parent)
 
-
-    def doLayout(self):
         # Give it a nice window title
         self.setWindowTitle('Tuple Configuration')
 
@@ -371,8 +365,6 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         PortTableConfigurationWidget.__init__(self, module,
                                               controller, parent)
 
-
-    def doLayout(self):
         # Give it a nice window title
         self.setWindowTitle('Untuple Configuration')
 

@@ -23,12 +23,11 @@
 widget
 
 """
-from PyQt4 import QtCore, QtGui
 from core.modules.basic_modules import PythonSource
 from core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from core.modules.module_configure import StandardModuleConfigurationWidget
-from core.modules.python_source_configure import \
-    PythonSourceConfigurationWidget, PythonEditor
+from core.modules.source_configure import SourceConfigurationWidget
+from core.modules.python_source_configure import PythonEditor
 import urllib
 
 ############################################################################
@@ -61,16 +60,15 @@ class MplPlot(PythonSource):
                     s += 'get_current_fig_manager().toolbar.hide()\n'
                 self.run_code(s, use_input=True, use_output=True)
 
-class MplPlotConfigurationWidget(PythonSourceConfigurationWidget):
+class MplPlotConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
         """ MplPlotConfigurationWidget(module: Module,
                                        controller: VistrailController,
                                        parent: QWidget)
-                                       -> MplPlotConfigurationWidget                                       
+                                       -> MplPlotConfigurationWidget
         Setup the dialog to similar to PythonSource but with a
         different name
         
         """
-        PythonSourceConfigurationWidget.__init__(self, module,
-                                                 controller, parent)
-        self.setWindowTitle('MplPlot Script Editor')
+        SourceConfigurationWidget.__init__(self, module, controller, 
+                                           PythonEditor, True, False, parent)
