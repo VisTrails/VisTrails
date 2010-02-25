@@ -40,7 +40,6 @@ import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, new_module
-from packages.HTTP import HTTPFile
 from PyQt4 import QtCore, QtGui
 from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.basic_modules import Constant
@@ -1326,7 +1325,9 @@ def verify_wsdl(wsdlList):
         isoutdated = False
         if remoteHeader != None:
             localFile = client_file
-            httpfile = HTTPFile()
+            reg = core.modules.module_registry.get_module_registry()
+            httpfile = reg.get_descriptor_by_name('edu.utah.sci.vistrails.http',
+                                                  'HTTPFile').module()
             try:
                 isoutdated = httpfile.is_outdated(remoteHeader, localFile)
             except OSError:
@@ -1391,7 +1392,7 @@ def initialize(*args, **keywords):
             webServicesmodulesDict = cPickle.load(inf)
             inf.close()
         except Exception, e:
-            msg = "Error loading configuration file"
+            msg = "Error loading configuration file: ", pathfile
             raise Exception(msg)
     
     #print wsdlList, outdated_list, updated_list

@@ -25,6 +25,13 @@ important fixes. Click on configure to add wsdl urls to the package
 (use a ; to separate the urls).
 
 ChangeLog
+2010-02-25  (by VisTrails Team)
+    * Updated package to version 0.9.3
+    * Fixed bug with new package reloading
+    * If you see the error ('Error loading configuration file: ',
+                             '~/.vistrails/webServices/modules.conf')
+      Just remove your ~/.vistrails/webServices and enable the package again
+    * Adding http package to package dependencies
 2010-01-27  (by VisTrails Team)
     * Updated package to version 0.9.2 
     * Supporting hierarchy of types (not fully tested yet)
@@ -39,9 +46,12 @@ from core.configuration import ConfigurationObject
 
 identifier = 'edu.utah.sci.vistrails.webservices'
 name = 'Web Services'
-version = '0.9.2'
+version = '0.9.3'
 configuration = ConfigurationObject(wsdlList=(None, str))
 
+def package_dependencies():
+    return ['edu.utah.sci.vistrails.http']
+    
 def package_requirements():
     import core.requirements
     if not core.requirements.python_module_exists('ZSI'):
