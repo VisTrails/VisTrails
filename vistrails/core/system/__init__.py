@@ -251,11 +251,14 @@ def current_user():
 def current_ip():
     """ current_ip() -> str
     Gets current IP address trying to avoid the IPv6 interface """
-    info = socket.getaddrinfo(socket.gethostname(), None)
-    for i in info:
-        if len(i[4][0]) <= 15:
-            return i[4][0]
-    else:
+    try:
+        info = socket.getaddrinfo(socket.gethostname(), None)
+        for i in info:
+            if len(i[4][0]) <= 15:
+                return i[4][0]
+            else:
+                return '0.0.0.0'
+    except:
         return '0.0.0.0'
 
 def current_time():
