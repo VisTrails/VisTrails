@@ -120,33 +120,50 @@ class Constant(Module):
     def get_widget_class():
         return StandardConstantWidget
 
-def new_constant(name, conversion, default_value,
-                 validation,
-                 widget_type=StandardConstantWidget):
-    """new_constant(name: str, conversion: callable,
+def new_constant(name, py_conversion, default_value, validation,
+                 widget_type=StandardConstantWidget,
+                 str_conversion=None, base_class=Constant,
+                 compute=None):
+    """new_constant(name: str, 
+                    py_conversion: callable,
                     default_value: python_type,
-                    validation: callable
-                    widget_type: QWidget type) -> Module
+                    validation: callable,
+                    widget_type: QWidget type,
+                    str_conversion: callable,
+                    base_class: class,
+                    compute: callable) -> Module
 
-    new_constant dynamically creates a new Module derived from Constant
-    with a given conversion function, a corresponding python type and a
-    widget type. conversion is a python callable that takes a string and
-    returns a python value of the type that the class should hold.
+    new_constant dynamically creates a new Module derived from
+    Constant with given py_conversion and str_conversion functions, a
+    corresponding python type and a widget type. py_conversion is a
+    python callable that takes a string and returns a python value of
+    the type that the class should hold. str_conversion does the reverse.
 
     This is the quickest way to create new Constant Modules."""
     
-    def __init__(self):
-        Constant.__init__(self)
+    def create_init(base_class):
+        def __init__(self):
+            base_class.__init__(self)
+        return __init__
 
     @staticmethod
     def get_widget_class():
         return widget_type
-    
-    m = new_module(Constant, name, {'__init__': __init__,
-                                    'validate': validation,
-                                    'translate_to_python': conversion,
-                                    'get_widget_class': get_widget_class,
-                                    'default_value': default_value})
+
+    d = {'__init__': create_init(base_class),
+         'validate': validation,
+         'translate_to_python': py_conversion,
+         'get_widget_class': get_widget_class,
+         'default_value': default_value,
+         }
+    if str_conversion is not None:
+        d['translate_to_string'] = str_conversion
+    if compute is not None:
+        d['compute'] = compute
+
+    m = new_module(base_class, name, d)
+    m._input_ports = [('value', m)]
+    m._output_ports = [('value', m)]
     return m
 
 def bool_conv(x):
@@ -530,27 +547,57 @@ class ConcatenateString(Module):
         self.setResult("value", result)
 
 ##############################################################################
+# List
 
-# TODO: Create a better Module for List.
-class List(Module):
-    """List represents a single cons cell of a linked list.
+def list_conv(v):
+    v_list = eval(v)
+    return v_list
 
-    This class will probably be replaced with a better API in the
-    future."""
+def list_compute(self):
+    if (not self.hasInputFromPort("value") and 
+        not self.hasInputFromPort("tail") and
+        not self.hasInputFromPort("head")):
+        # fail at getting the value port
+        self.getInputFromPort("value")
+            
+    head, middle, tail = [], [], []
+    if self.hasInputFromPort("value"):
+        # run the regular compute here
+        Constant.compute(self)
+        middle = self.outputPorts['value']
+    if self.hasInputFromPort("head"):
+        head = [self.getInputFromPort("head")]
+    if self.hasInputFromPort("tail"):
+        tail = self.getInputFromPort("tail")
+    self.setResult("value", head + middle + tail)
 
-    def compute(self):
+List = new_constant('List' , staticmethod(list_conv),
+                    [], staticmethod(lambda x: type(x) == list),
+                    compute=list_compute)
 
-        if self.hasInputFromPort("head"):
-            head = [self.getInputFromPort("head")]
-        else:
-            head = []
+##############################################################################
+# Dictionary
+                    
+def dict_conv(v):
+    v_dict = eval(v)
+    return v_dict
 
-        if self.hasInputFromPort("tail"):
-            tail = self.getInputFromPort("tail")
-        else:
-            tail = []
-
-        self.setResult("value", head + tail)
+def dict_compute(self):
+    d = {}
+    if self.hasInputFromPort('value'):
+        Constant.compute(self)
+        d.update(self.outputPorts['value'])
+    if self.hasInputFromPort('addPair'):
+        pairs_list = self.getInputListFromPort('addPair')
+        d.update(pairs_list)
+    if self.hasInputFromPort('addPairs'):
+        d.update(self.getInputFromPort('addPairs'))
+        
+    self.setResult("d", d)
+        
+Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
+                          {}, staticmethod(lambda x: type(x) == dict),
+                          compute=dict_compute)
 
 ##############################################################################
 
@@ -775,10 +822,10 @@ def initialize(*args, **kwargs):
 
     reg.add_module(Constant)
 
-    init_constant(Boolean)
-    init_constant(Float)
-    init_constant(Integer)
-    init_constant(String)
+    reg.add_module(Boolean)
+    reg.add_module(Float)
+    reg.add_module(Integer)
+    reg.add_module(String)
     
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
@@ -829,11 +876,12 @@ def initialize(*args, **kwargs):
     reg.add_output_port(ConcatenateString, "value", String)
 
     reg.add_module(List)
-
     reg.add_input_port(List, "head", Module)
     reg.add_input_port(List, "tail", List)
-    reg.add_output_port(List, "value", List)
 
+    reg.add_module(Dictionary)
+    reg.add_input_port(Dictionary, "addPair", [Module, Module])
+    reg.add_input_port(Dictionary, "addPairs", List)
     reg.add_module(Null)
 
     reg.add_module(PythonSource,
