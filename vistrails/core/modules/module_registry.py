@@ -877,7 +877,6 @@ class ModuleRegistry(DBRegistry):
               type(module[0]) == type and
               type(module[1]) == dict):
             descriptor = self.add_module(module[0], **module[1])
-            module = module[0]
             return descriptor
         else:
             raise TypeError("Expected module or (module, kwargs)")
@@ -1246,8 +1245,21 @@ class ModuleRegistry(DBRegistry):
         try:
             package.initialize()
             # Perform auto-initialization
-            if hasattr(package.init_module, '_modules'):
-                modules = _toposort_modules(package.init_module._modules)
+            if hasattr(package.module, '_modules'):
+                modules = package.module._modules
+                if type(modules) == dict:
+                    module_list = []
+                    for namespace, m_list in modules.iteritems():
+                        for module in m_list:
+                            m_dict = {'namespace': namespace}
+                            if type(module) == tuple:
+                                m_dict.update(module[1])
+                                module_list.append((module[0], m_dict))
+                            else:
+                                module_list.append((module, m_dict))
+                else:
+                    module_list = modules
+                modules = _toposort_modules(module_list)
                 # We add all modules before adding ports because
                 # modules inside package might use each other as ports
                 for module in modules:
@@ -1260,10 +1272,10 @@ class ModuleRegistry(DBRegistry):
                     self.auto_add_ports(descriptor.module)
                     added_descriptors.add(descriptor)
             # Perform auto-initialization of abstractions
-            if hasattr(package.init_module, '_subworkflows'):
+            if hasattr(package.module, '_subworkflows'):
                 subworkflows = \
-                    _toposort_abstractions(package, 
-                                           package.init_module._subworkflows)
+                    _toposort_abstractions(package,
+                                           package.module._subworkflows)
                 for subworkflow in subworkflows:
                     self.auto_add_subworkflow(subworkflow)
             for descriptor in package.descriptor_list:
