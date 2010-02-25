@@ -333,6 +333,15 @@ class Package(DBPackage):
             try:
                 name = self.prefix + self.codepath + '.init'
                 __import__(name, globals(), locals(), [])
+            except ImportError, e:
+                # FIXME !!! Want to differentiate between .init not
+                # existing and an error with an import in the .init
+                # file !!!
+                if str(e) != 'No module named init':
+                    raise
+                else:
+                    self._init_module = self._module
+            else:
                 self._init_module = sys.modules[name]
                 self._imported_paths.add(name)
                 # Copy attributes (shallow) from _module into _init_module's namespace and point _module to _init_module
@@ -341,8 +350,6 @@ class Package(DBPackage):
                     if hasattr(self._module, attr):
                         setattr(self._init_module, attr, getattr(self._module, attr))
                 self._module = self._init_module
-            except ImportError, e:
-                self._init_module = self._module
 
             if hasattr(self._init_module, 'initialize'):
                 # override __import__ so that we can track what needs to
