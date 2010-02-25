@@ -115,18 +115,22 @@ class ModuleParam(DBParameter):
     alias = DBParameter.db_alias
 
     def parse_db_type(self):
-        if self.db_type and self.db_type.find(':') != -1:
-            (self._identifier, name) = self.db_type.split(':', 1)
-            if name.find('|') != -1:
-                (self._namespace, self._type) = name.rsplit('|', 1)
-            else:
-                self._namespace = None
-                self._type = name
+        if self.db_type:
+            k = self.db_type.split(':', 2)
         else:
+            k = []
+        if len(k) < 2:
             # FIXME don't hardcode this
             self._identifier = "edu.utah.sci.vistrails.basic"
             self._namespace = None
             self._type = self.db_type
+        else:
+            self._identifier, self._type = k[:2]
+            if len(k) > 2:
+                self._namespace = k[2]
+            else:
+                self._namespace = None
+
     def update_db_type(self):
         if not self._type:
             self.db_type = None
@@ -134,11 +138,11 @@ class ModuleParam(DBParameter):
             if not self._identifier:
                 # FIXME don't hardcode this
                 self._identifier = "edu.utah.sci.vistrails.basic"
+            type_list = [self._identifier, self._type]
             if self._namespace:
-                self.db_type = self._identifier + ':' + self._namespace + \
-                    '|' + self._type
-            else:
-                self.db_type = self._identifier + ':' + self._type
+                type_list.append(self._namespace)
+            self.db_type = ':'.join([self._identifier, self._type,
+                                     self._namespace])
 
     def _get_type(self):
         if not hasattr(self, '_type'):
