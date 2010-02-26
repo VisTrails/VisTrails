@@ -7,7 +7,6 @@ import urllib
 old_sys_path = sys.path
 sys.path.append(os.path.dirname(__file__))
 import rpy2.robjects as robjects
-import rpy2.rinterface as rinterface
 sys.path = old_sys_path
 
 from core.modules.basic_modules import File
@@ -373,8 +372,8 @@ _modules = {None: [(RSource,
                                           RFigureConfigurationWidget})]
             }
 
-def initialize():
-    rinterface.initr()
+# def initialize():
+#     rinterface.initr()
 
 def finalize():
     # rinterface.endEmbeddedR()

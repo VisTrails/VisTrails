@@ -1,0 +1,11 @@
+On the Mac, I needed to patch rpy2 2.0.8:
+
+rinterface/__init__.py:
+- R_HOME = os.popen("R RHOME").readlines()
++ p = os.popen("R RHOME")
++ time.sleep(1)
++ R_HOME = p.readlines()
+
+robjects/__init__.py:
+- import rpy2.robjects.conversion
++ import conversion
