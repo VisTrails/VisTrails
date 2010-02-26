@@ -593,7 +593,7 @@ def dict_compute(self):
     if self.hasInputFromPort('addPairs'):
         d.update(self.getInputFromPort('addPairs'))
         
-    self.setResult("d", d)
+    self.setResult("value", d)
         
 Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
                           {}, staticmethod(lambda x: type(x) == dict),
