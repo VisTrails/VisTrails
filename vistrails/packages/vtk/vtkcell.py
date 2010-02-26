@@ -291,7 +291,7 @@ class QVTKWidget(QCellWidget):
                     #This was change for PyQt4.2
                     if isinstance(QtGui.QX11Info.display(),QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
-                        vp = '_%s_void_p' % (hex(display)[2:])
+                        vp = '_%s_void_p\0x00' % (hex(display)[2:])
                 self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
