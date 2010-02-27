@@ -289,7 +289,8 @@ Returns true if given package identifier is present."""
         self._identifier_map[pkg.identifier] = pkg
         try:
             self.add_dependencies(pkg)
-            pkg.check_requirements()
+            #check_requirements is now called in pkg.initialize()
+            #pkg.check_requirements()
             self._registry.initialize_package(pkg)
             # FIXME Empty packages still need to be added, but currently they are not
             # because newPackage is typically only called for the first module inside
@@ -421,7 +422,8 @@ Returns true if given package identifier is present."""
         for name in sorted_packages:
             pkg = self._identifier_map[name]
             if not pkg.initialized():
-                pkg.check_requirements()
+                #check_requirements is now called in pkg.initialize()
+                #pkg.check_requirements()
                 try:
                     self._registry.initialize_package(pkg)
                 except Package.InitializationFailed, e:

@@ -350,7 +350,8 @@ class Package(DBPackage):
                     if hasattr(self._module, attr):
                         setattr(self._init_module, attr, getattr(self._module, attr))
                 self._module = self._init_module
-
+            
+            self.check_requirements()
             if hasattr(self._init_module, 'initialize'):
                 # override __import__ so that we can track what needs to
                 # be unloaded, try imports, and then stop overriding,

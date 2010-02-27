@@ -273,7 +273,7 @@ def get_db_object_version(db_connection, obj_id, obj_type):
 
     try:
         c = db_connection.cursor()
-        print command % (translate_to_tbl_name(obj_type), obj_id)
+        #print command % (translate_to_tbl_name(obj_type), obj_id)
         c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
         version = c.fetchall()[0][0]
         c.close()
