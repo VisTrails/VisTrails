@@ -164,7 +164,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
             r = self.table.visualRect(index)
             painter.setClipRegion(QtGui.QRegion(r))
             r.adjust(self.padding/2,self.padding/2,-self.padding/2,-self.padding/2)
-            painter.drawRoundRect(r, self.padding, self.padding)
+            painter.drawRoundedRect(r, self.padding, self.padding)
             painter.restore()
             
             
@@ -394,14 +394,44 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         else:
             self.helpers.hide()
 
+    def getRealLocation(self, vRow, vCol, visual=False):
+        """ getRealLocation(vRow: int, vCol: int, visual: bool) -> (int, int)
+        Return the actual location even if there is spanning at (vRow, vCol)
+        
+        """
+        # Qt doesn't provide a mechanism to map from a cell to its
+        # span region, so we have to scan the whole spreadsheet N^2
+        # for now, but our spreadsheet is usuallly small enough.
+        if visual:
+            (row, col) = (vRow, vCol)
+        else:
+            row = self.verticalHeader().logicalIndex(vRow)
+            col = self.horizontalHeader().logicalIndex(vCol)
+        cellSet = set()
+        for r in xrange(self.rowCount()):
+            for c in xrange(self.columnCount()):
+                cellSet.add((r, c))
+        for r in xrange(self.rowCount()):
+            for c in xrange(self.columnCount()):
+                if (r, c) not in cellSet:
+                    continue
+                rect = self.visualRect(self.model().index(r, c))
+                rSpan = self.rowSpan(r, c)
+                cSpan = self.columnSpan(r, c)
+                for rs in xrange(rSpan):
+                    for cs in xrange(cSpan):
+                        if (row==r+rs) and (col==c+cs):
+                            return (r, c)
+                        if (r+rs, c+cs) in cellSet:
+                            cellSet.remove((r+rs, c+cs))
+        return (-1, -1)        
+
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget
         Get cell at a specific row and column
         
         """
-        row = self.verticalHeader().logicalIndex(row)
-        col = self.horizontalHeader().logicalIndex(col)
-        return self.cellWidget(row, col)
+        return self.cellWidget(*self.getRealLocation(row, col))
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect
@@ -409,9 +439,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         in parent coordinates
         
         """
-        row = self.verticalHeader().logicalIndex(row)
-        col = self.horizontalHeader().logicalIndex(col)
-        idx = self.model().index(row, col)
+        idx = self.model().index(*self.getRealLocation(row, col))
         return self.visualRect(idx)
 
     def getCellGlobalRect(self, row, col):
@@ -420,8 +448,6 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         in global coordinates
         
         """
-        row = self.verticalHeader().logicalIndex(row)
-        col = self.horizontalHeader().logicalIndex(col)
         rect = self.getCellRect(row, col)
         rect.moveTo(self.viewport().mapToGlobal(rect.topLeft()))
         return rect
@@ -438,8 +464,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             cellWidget.setMinimumSize(QtCore.QSize(0, 0))
             cellWidget.setMaximumSize(QtCore.QSize(16777215, 16777215))
             cellWidget.setParent(self)
-        row = self.verticalHeader().logicalIndex(row)
-        col = self.horizontalHeader().logicalIndex(col)
+        (row, col) = self.getRealLocation(row, col)
         index = self.model().index(row, col)
         self.setCellWidget(row, col, cellWidget)
         if cellWidget:
@@ -450,6 +475,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         Select a cell based on its current selection
         
         """
+        (row, col) = self.getRealLocation(row, col, visual=True)
         if toggling:
             self.selectionModel().setCurrentIndex(self.model().index(row, col),
                                                   QtGui.QItemSelectionModel.Toggle)
@@ -473,6 +499,17 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         self.activeCell = (row, col)
         toolBar = self.parent().getCellToolBar(row, col)
-        if (toolBar):
+        if toolBar:
             toolBar.snapTo(row, col)
         self.parent().toolBar.setCellToolBar(toolBar)
+
+    def adjustWidgetGeometry(self, row, col):
+        """ setActiveCell(row: int, col: int) -> None        
+        Adjust the widget at cell (row, col) to fit inside the cell
+
+        """
+        cellWidget = self.getCell(row, col)
+        if cellWidget:
+            index = self.model().index(*self.getRealLocation(row, col))
+            self.delegate.updateEditorGeometry(cellWidget, None, index)
+        

@@ -48,6 +48,8 @@ class DisplayCellEvent(QtCore.QEvent):
         self.sheetReference = None
         self.row = -1
         self.col = -1
+        self.rowSpan = -1
+        self.colSpan = -1
         self.cellType = None
         self.inputPorts = None
         self.vistrail = None

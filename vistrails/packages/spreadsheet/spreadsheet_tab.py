@@ -143,8 +143,9 @@ class StandardWidgetSheetTabInterface(object):
     """
     ### Belows are API Wrappers to connect to self.sheet
 
-    def __init(self):
+    def __init__(self):
         self.lastCellLocation = (0, 0)
+        self.emptyCellToolBar = None
 
     def isSheetTabWidget(self):
         """ isSheetTabWidget() -> boolean
@@ -228,7 +229,10 @@ class StandardWidgetSheetTabInterface(object):
                 if container.toolBar==None:
                     container.toolBar = toolBarType(self)
                 return container.toolBar
-        return None
+        else:
+            if self.emptyCellToolBar==None:
+                self.emptyCellToolBar = QCellToolBar(self)
+            return self.emptyCellToolBar
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect
@@ -247,20 +251,19 @@ class StandardWidgetSheetTabInterface(object):
         return QtCore.QRect()
 
     def getFreeCell(self):
-        """ getFreeCell() -> tuple
-        Get a free cell location (row, col) on the spreadsheet 
+        """ getFreeCell() -> tuple        
+        Get a free cell location (row, col) on the spreadsheet
 
         """
         (rowCount, colCount) = self.getDimension()
         for r in xrange(rowCount):
             for c in xrange(colCount):
                 w = self.getCell(r, c)
-                row = self.sheet.verticalHeader().logicalIndex(r)
-                col = self.sheet.horizontalHeader().logicalIndex(c)
                 if w==None or (type(w)==QCellPresenter and w.cellWidget==None):
                     return (r,c)
         (r, c) = self.lastCellLocation
-        index = (colCount * r + c + 1) % (rowCount*colCount)        
+        (rs, cs) = self.getSpan(r, c)
+        index = (colCount * r + c + cs) % (rowCount*colCount)
         return (index/colCount, index%colCount)
 
     def setCellByType(self, row, col, cellType, inputPorts):
@@ -317,12 +320,27 @@ class StandardWidgetSheetTabInterface(object):
         return self.pipelineInfo[(row,col)]
 
     def getSelectedLocations(self):
-        """ getSelectedLocations() -> tuple
+        """ getSelectedLocations() -> list
         Return the selected locations (row, col) of the current sheet
         
         """
         return []
 
+    def clearSelection(self):
+        """ clearSelection() -> None
+        Clear all the selection in the current sheet
+        
+        """
+        pass
+    
+    def deleteCell(self, row, col):
+        """ deleteCell(row, col: int) -> None
+        Delete a cell in the sheet
+        
+        """
+        self.setCellByType(row, col, None, None)
+        self.setCellPipelineInfo(row, col, None)
+        
     def deleteAllCells(self):
         """ deleteAllCells() -> None
         Delete all cells in the sheet
@@ -331,7 +349,7 @@ class StandardWidgetSheetTabInterface(object):
         (rowCount, columnCount) = self.getDimension()
         for r in xrange(rowCount):
             for c in xrange(columnCount):
-                self.setCellByType(r, c, None, None)
+                self.deleteCell(r, c)
 
     def takeCell(self, row, col):
         """ takeCell(row, col) -> QWidget        
@@ -506,6 +524,24 @@ class StandardWidgetSheetTabInterface(object):
                                                    str(r+1)+
                                                    '.'+format)
 
+    def setSpan(self, row, col, rowSpan, colSpan):
+        """ setSpan(row, col, rowSpan, colSpan: int) -> None
+        Set the spanning at location (row, col). This is only a place
+        holder. Subclasses should implement this and getSpan for a
+        fully functioning spanning feature.
+        
+        """
+        pass
+
+    def getSpan(self, row, col):
+        """ setSpan(row, col: int) -> (rowSpan, colSpan: int)
+        Return the spanning at location (row, col). This is only a
+        place holder. Subclasses should implement this and setSpan for
+        a fully functioning spanning feature.
+        
+        """
+        return (1, 1)
+
 class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     """
     StandardWidgetSheetTab is a container of StandardWidgetSheet with
@@ -521,6 +557,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                                 
         """
         QtGui.QWidget.__init__(self, None)
+        StandardWidgetSheetTabInterface.__init__(self)
         if not row:
             row = configuration.rowCount
         if not col:
@@ -614,13 +651,20 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.sheet.showHelpers(show, row, col)
         
     def getSelectedLocations(self):
-        """ getSelectedLocations() -> tuple
+        """ getSelectedLocations() -> list
         Return the selected locations (row, col) of the current sheet
         
         """
         indexes = self.sheet.selectedIndexes()
         return [(idx.row(), idx.column()) for idx in indexes]
 
+    def clearSelection(self):
+        """ clearSelection() -> None
+        Clear all the selection in the current sheet
+        
+        """
+        self.sheet.clearSelection()
+    
     def setCellWidget(self, row, col, cellWidget):
         """ setCellWidget(row: int,
                             col: int,                            
@@ -679,6 +723,41 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         else:
             event.ignore()
 
+    def setSpan(self, row, col, rowSpan, colSpan):
+        """ setSpan(row, col, rowSpan, colSpan: int) -> None
+        Set the spanning at location (row, col).
+        
+        """
+        colSpan = max(colSpan, 1)
+        rowSpan = max(rowSpan, 1)
+        (curRowSpan, curColSpan) = self.getSpan(row, col)
+        if rowSpan!=curRowSpan or colSpan!=curColSpan:
+            # Need to remove all cell except the top-left
+            for r in xrange(rowSpan):
+                for c in xrange(colSpan):
+                    if r!=0 or c!=0:
+                        self.deleteCell(row+r, col+c)
+                        
+            # Take the current widget out
+            curWidget = self.takeCell(row, col)
+
+            #  ... before setting the span
+            self.sheet.setSpan(row, col, rowSpan, colSpan)
+
+            # Then put it back in
+            if curWidget:
+                self.setCellByWidget(row, col, curWidget)
+
+    def getSpan(self, row, col):
+        """ setSpan(row, col: int) -> (rowSpan, colSpan: int)
+        Return the spanning at location (row, col). This is only a
+        place holder. Subclasses should implement this and setSpan for
+        a fully functioning spanning feature.
+        
+        """
+        return (self.sheet.rowSpan(row, col), self.sheet.columnSpan(row, col))
+
+    
 class StandardWidgetTabBarEditor(QtGui.QLineEdit):    
     """
     StandardWidgetTabBarEditor overrides QLineEdit to enable canceling

@@ -121,6 +121,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             help="Show the spreadsheet in the reviewing mode")
         add("-q", "--quickstart", action="store",
             help="Start VisTrails using the specified static registry")
+        add("-D", "--detachHistoryView", action="store_true",
+            help="Detach the history view from the builder windows")
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -199,6 +201,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.nologger = bool(get('nologger'))
         if get('quickstart') != None:
             self.temp_configuration.staticRegistry = str(get('quickstart'))
+        if get('detachHistoryView')!= None:
+            self.temp_configuration.detachHistoryView = bool(get('detachHistoryView'))
         self.input = command_line.CommandLineParser().positional_arguments()
     
     def init(self, optionsDict=None):

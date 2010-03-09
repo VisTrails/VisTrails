@@ -72,7 +72,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.setWindowTitle('Version Tree <' +
                                 self.toolWindow().parent().windowTitle()+'>')
         else:
-            self.setWindowTitle('Pipeline')
+            self.setWindowTitle('Version Tree')
 
     def twoVersionsSelected(self, id1, id2):
         """ twoVersionsSelected(id1: Int, id2: Int) -> None

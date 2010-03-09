@@ -28,6 +28,7 @@ QVistrailInteractionToolBar
 """
 
 from PyQt4 import QtCore, QtGui
+from core.configuration import get_vistrails_configuration
 from gui.theme import CurrentTheme
 
 ################################################################################
@@ -51,8 +52,10 @@ class QVistrailViewToolBar(QtGui.QToolBar):
 
         self.addAction(self.executeAction())
         self.addSeparator()
+        self.detachedHistoryView = getattr(get_vistrails_configuration(), 'detachHistoryView')
         self.addAction(self.pipelineViewAction())
-        self.addAction(self.historyViewAction())
+        if not self.detachedHistoryView:
+            self.addAction(self.historyViewAction())
         self.addAction(self.queryViewAction())
         self.addAction(self.exploreViewAction())
         
@@ -179,7 +182,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         """
         if viewIndex == 0:
             self.pipelineViewAction().setChecked(True)
-        elif viewIndex == 1:
+        elif (not self.detachedHistoryView) and viewIndex == 1:
             self.historyViewAction().setChecked(True)
         elif viewIndex == 2:
             self.queryViewAction().setChecked(True)
@@ -195,7 +198,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         """
         if self.pipelineViewAction().isChecked():
             self.currentViewIndex = 0
-        elif self.historyViewAction().isChecked():
+        elif (not self.detachedHistoryView) and self.historyViewAction().isChecked():
             self.currentViewIndex = 1
         elif self.queryViewAction().isChecked():
             self.currentViewIndex = 2

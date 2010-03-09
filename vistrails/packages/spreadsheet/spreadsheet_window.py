@@ -428,6 +428,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             sheet.tabWidget.setCurrentWidget(sheet)
             sheet.setCellPipelineInfo(row, col,
                                       (e.vistrail, pid, cid))
+            if e.rowSpan>=1 or e.colSpan>=1:
+                sheet.setSpan(row, col, e.rowSpan, e.colSpan)
             if e.inputPorts!=None:
                 sheet.setCellByType(row, col, e.cellType, e.inputPorts)
             else:

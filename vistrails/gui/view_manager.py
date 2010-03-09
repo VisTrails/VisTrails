@@ -30,6 +30,7 @@ from gui.theme import CurrentTheme
 from gui.utils import getBuilderWindow
 from gui.vistrail_view import QVistrailView
 from core import system
+from core.configuration import get_vistrails_configuration
 from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
 from core.db.io import load_vistrail
 from core.log.log import Log
@@ -43,7 +44,31 @@ from core.modules.module_registry import ModuleRegistry, \
 import copy
 
 ################################################################################
+class QDetachedView(QtGui.QStackedWidget):
+    """
+    QDetachedView is a stacked widget holding detached views
+    (e.g. Pipeline, History, etc) from the main view manager.
+    
+    """
+    
+    def __init__(self, title, parent=None):
+        """ QDetachedView(parent: QWidget) -> QDetachedView
+        Create an empty stacked widget
+        
+        """
+        QtGui.QStackedWidget.__init__(self, parent)
+        self.title = title
+        self.setWindowTitle(self.title)
 
+    def sizeHint(self):
+        """ sizeHint() -> QRect
+        Return the recommended size of a detached view
+
+        """
+        return QtCore.QSize(800, 600)
+        
+
+################################################################################
 class QViewManager(QtGui.QTabWidget):
     """
     QViewManager is a tabbed widget to containing multiple Vistrail
@@ -61,7 +86,6 @@ class QViewManager(QtGui.QTabWidget):
         self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
         self.closeButton.setAutoRaise(True)
         self.setCornerWidget(self.closeButton)
-        self.splittedViews = {}
         self.activeIndex = -1
         
         self.connect(self, QtCore.SIGNAL('currentChanged(int)'),
@@ -71,6 +95,20 @@ class QViewManager(QtGui.QTabWidget):
         
         self._views = {}
         self.single_document_mode = False
+
+        self.createDetachedViews()
+
+    def createDetachedViews(self):
+        """ createDetachedViews() -> None
+        Create a set of QStackedWidget for displaying detached views
+        based on the input configuration
+        
+        """
+        if getattr(get_vistrails_configuration(), 'detachHistoryView'):
+            self.historyView = QDetachedView('History View')
+            self.historyView.show()
+        else:
+            self.historyView = None
         
     def set_single_document_mode(self, on):
         """ set_single_document_mode(on: bool) -> None
@@ -82,7 +120,6 @@ class QViewManager(QtGui.QTabWidget):
             self.tabBar().hide()
         else:
             self.tabBar().show()
-        
 
     def add_vistrail_view(self, view):
         """ add_vistrail_view(view: QVistrailView) -> None
@@ -92,7 +129,10 @@ class QViewManager(QtGui.QTabWidget):
         self._views[view] = view.controller
         if self.indexOf(view)!=-1:
             return
-        
+
+        if self.historyView!=None:
+            self.historyView.addWidget(view.versionTab)
+                
         view.installEventFilter(self)
         self.connect(view.pipelineTab,
                      QtCore.SIGNAL('moduleSelectionChange'),
@@ -141,10 +181,10 @@ class QViewManager(QtGui.QTabWidget):
             self.emit(QtCore.SIGNAL('vistrailViewRemoved'), view)
             index = self.indexOf(view) 
             if index !=-1:
+                if self.historyView:
+                    self.historyView.removeWidget(self.historyView.widget(self.currentIndex()))
                 self.removeTab(self.currentIndex())
                 self.activeIndex = self.currentIndex()
-            elif self.splittedViews.has_key(view):
-                del self.splittedViews[view]
             view.controller.cleanup()
             view.close()
             view.deleteLater()
@@ -614,9 +654,6 @@ class QViewManager(QtGui.QTabWidget):
         everything is closed correctly
         
         """
-        for view in self.splittedViews.keys():
-            if not self.closeVistrail(view):
-                return False
         while self.count()>0:
             if not self.closeVistrail():
                 return False
@@ -637,6 +674,11 @@ class QViewManager(QtGui.QTabWidget):
         else:
             self.emit(QtCore.SIGNAL('versionSelectionChange'), 
                       -1)
+        if self.historyView:
+            self.historyView.setCurrentIndex(index)
+            if self.currentView()!=None:
+                self.historyView.setWindowTitle('History View - ' +
+                                                self.currentView().windowTitle())
         
     def eventFilter(self, object, event):
         """ eventFilter(object: QVistrailView, event: QEvent) -> None
@@ -713,10 +755,6 @@ class QViewManager(QtGui.QTabWidget):
         vistrails from locator has been opened. If not, it will return None.
         
         """
-        for view in self.splittedViews.keys():
-            if view.controller.vistrail.locator == locator:
-                self.setCurrentWidget(view)
-                return view
         for i in xrange(self.count()):
             view = self.widget(i)
             if view.controller.vistrail.locator == locator:
@@ -728,12 +766,15 @@ class QViewManager(QtGui.QTabWidget):
         self._first_view = view
 
     def viewModeChanged(self, mode):
-        """ viewModeChanged(mode: Int) -> None
+        """ viewModeChanged(mode: int) -> None
         
         """
-        for viewIndex in xrange(self.count()):            
+        for viewIndex in xrange(self.count()):
             vistrailView = self.widget(viewIndex)
-            vistrailView.viewModeChanged(mode)
+            if self.historyView!=None and mode>1:
+                vistrailView.viewModeChanged(mode-1)
+            else:
+                vistrailView.viewModeChanged(mode)
     
     def changeCursor(self, mode):
         """ changeCursor(mode: Int) -> None

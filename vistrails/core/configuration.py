@@ -173,6 +173,7 @@ def default():
         'dbDefault': False,
         'debugSignals': False,
         'defaultFileType':system.vistrails_default_file_type(),
+        'detachHistoryView': False,
         'dotVistrails': system.default_dot_vistrails(),
         'executeWorkflows': False,
         'fileDirectory': (None, str),

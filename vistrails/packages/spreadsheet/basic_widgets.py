@@ -60,6 +60,8 @@ def registerWidget(reg, basicModules, basicWidgets):
                        basicModules.String, True)
     reg.add_input_port(CellLocation, "Row", basicModules.Integer, True)
     reg.add_input_port(CellLocation, "Column", basicModules.Integer, True)
+    reg.add_input_port(CellLocation, "RowSpan", basicModules.Integer, True)
+    reg.add_input_port(CellLocation, "ColumnSpan", basicModules.Integer, True)
     reg.add_input_port(CellLocation, "SheetReference", SheetReference)
     reg.add_output_port(CellLocation, "self", CellLocation)
 
@@ -122,6 +124,8 @@ class CellLocation(Module):
         Module.__init__(self)
         self.row = -1
         self.col = -1
+        self.rowSpan = -1
+        self.colSpan = -1
         self.sheetReference = None
 
     def compute(self):
@@ -139,7 +143,9 @@ class CellLocation(Module):
         ref = self.forceGetInputFromPort("SheetReference")
         if ref:
             self.sheetReference = ref.getSheetReference()
-            
+
+        self.rowSpan = self.forceGetInputFromPort("RowSpan", -1)
+        self.colSpan = self.forceGetInputFromPort("ColumnSpan", -1)
         if self.hasInputFromPort("Row") and self.hasInputFromPort("Column"):
             self.row = self.getInputFromPort("Row")-1
             self.col = self.getInputFromPort("Column")-1
@@ -175,6 +181,28 @@ class SpreadsheetCell(NotCacheable, Module):
         
         """
         self.location = location
+
+    def createDisplayEvent(self, cellType, inputPorts):
+        """ display(cellType: python type, iputPorts: tuple) -> None        
+        Create a DisplayEvent with all the parameters from the cell
+        locations and inputs
+        
+        """
+        e = DisplayCellEvent()
+        e.vistrail = self.moduleInfo
+        if self.location:
+            location = self.location
+        else:
+            location = self.forceGetInputFromPort("Location")
+        if location:
+            e.row = location.row
+            e.col = location.col
+            e.rowSpan = location.rowSpan
+            e.colSpan = location.colSpan
+            e.sheetReference = location.sheetReference
+        e.cellType = cellType
+        e.inputPorts = inputPorts
+        return e
     
     def display(self, cellType, inputPorts):
         """ display(cellType: python type, iputPorts: tuple) -> None
@@ -188,18 +216,7 @@ class SpreadsheetCell(NotCacheable, Module):
         """
         if spreadsheetController.echoMode():
             return self.displayAndWait(cellType, inputPorts)
-        e = DisplayCellEvent()
-        e.vistrail = self.moduleInfo
-        if self.location:
-            location = self.location
-        else:
-            location = self.forceGetInputFromPort("Location")
-        if location:
-            e.row = location.row
-            e.col = location.col
-            e.sheetReference = location.sheetReference
-        e.cellType = cellType
-        e.inputPorts = inputPorts
+        e = self.createDisplayEvent(cellType, inputPorts)
         spreadsheetController.postEventToSpreadsheet(e)
 
     def displayAndWait(self, cellType, inputPorts):
@@ -212,18 +229,7 @@ class SpreadsheetCell(NotCacheable, Module):
         inputPorts --- a tuple of input data that cellType() will understand
         
         """
-        e = DisplayCellEvent()
-        e.vistrail = self.moduleInfo
-        if self.location:
-            location = self.location
-        else:
-            location = self.forceGetInputFromPort("Location")
-        if location:
-            e.row = location.row
-            e.col = location.col
-            e.sheetReference = location.sheetReference
-        e.cellType = cellType
-        e.inputPorts = inputPorts
+        e = self.createDisplayEvent(cellType, inputPorts)
         QtCore.QCoreApplication.processEvents()
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         if spreadsheetWindow.echoMode == False:

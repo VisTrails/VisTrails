@@ -30,6 +30,7 @@ import datetime
 import os
 from core import system
 import cell_rc
+import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
 
@@ -224,6 +225,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
         self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
+        self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
 
     def addAnimationButtons(self):
@@ -233,7 +235,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.appendAction(QCellToolBarCaptureToHistory(self))
         self.appendAction(QCellToolBarPlayHistory(self))
         self.appendAction(QCellToolBarClearHistory(self))
-            
+
     def createToolBar(self):
         """ createToolBar() -> None        
         A user-defined method for customizing the toolbar. This is
@@ -339,11 +341,107 @@ class QCellToolBarRemoveCell(QtGui.QAction):
                                        QtGui.QMessageBox.No,
                                        QtGui.QMessageBox.No)
         if (r==QtGui.QMessageBox.Yes):
-            self.toolBar.sheet.setCellByType(self.toolBar.row, self.toolBar.col,
-                                             None, None)
-            self.toolBar.sheet.setCellPipelineInfo(self.toolBar.row,
-                                                   self.toolBar.col, None)
+            self.toolBar.sheet.deleteCell(self.toolBar.row, self.toolBar.col)
 
+    def updateStatus(self, info):
+        """ updateStatus(info: tuple) -> None
+        Updates the status of the button based on the input info
+        
+        """
+        (sheet, row, col, cellWidget) = info
+        self.setVisible(cellWidget!=None)
+        
+class QCellToolBarMergeCells(QtGui.QAction):
+    """
+    QCellToolBarMergeCells is the action to merge selected cells to a
+    single cell if they are in consecutive poisitions
+
+    """
+    def __init__(self, icon, parent=None):
+        """ QCellToolBarMergeCells(icon: QIcon, parent: QWidget)
+                                   -> QCellToolBarMergeCells
+        Setup the image, status tip, etc. of the action
+        
+        """
+        QtGui.QAction.__init__(self,
+                               icon,
+                               "&Merge cells",
+                               parent)
+        self.setStatusTip("Merge selected cells to a single cell if "
+                          "they are in consecutive poisitions")
+        self.setCheckable(True)
+
+    def triggeredSlot(self):
+        """ toggledSlot() -> None
+        Execute the action when the button is clicked
+        
+        """
+        # Merge
+        if self.isChecked():
+            sheet = self.toolBar.sheet
+            selectedCells = sorted(sheet.getSelectedLocations())
+            topLeft = selectedCells[0]
+            bottomRight = selectedCells[-1]
+            sheet.setSpan(topLeft[0], topLeft[1],
+                          bottomRight[0]-topLeft[0]+1,
+                          bottomRight[1]-topLeft[1]+1)
+        else:
+            sheet = self.toolBar.sheet
+            selectedCells = sorted(sheet.getSelectedLocations())
+            for (row, col) in selectedCells:
+                sheet.setSpan(row, col, 1, 1)
+        sheet.clearSelection()
+        self.toolBar.updateToolBar()
+
+    def updateStatus(self, info):
+        """ updateStatus(info: tuple) -> None
+        Updates the status of the button based on the input info
+        
+        """
+        (sheet, row, col, cellWidget) = info
+        selectedCells = sorted(sheet.getSelectedLocations())
+
+        # Will not show up if there is no cell selected
+        if len(selectedCells)==0:            
+            self.setVisible(False)
+            
+        # If there is a single cell selected, only show up if it has
+        # been merged before so that user can un-merge cells
+        elif len(selectedCells)==1:
+            showUp = False
+            if selectedCells[0]==(row, col):
+                span = sheet.getSpan(row, col)
+                if span[0]>1 or span[1]>1:
+                    showUp = True
+            if showUp:
+                self.setChecked(True)
+                self.setVisible(True)
+            else:
+                self.setVisible(False)
+                
+        # If there are multiple cells selected, only show up if they
+        # can be merged, i.e. cells are in consecutive position and
+        # none of them is already merged
+        else:
+            showUp = False
+            validRange = False
+            topLeft = selectedCells[0]
+            bottomRight = selectedCells[-1]
+            fullCount = (bottomRight[0]-topLeft[0]+1)*(bottomRight[1]-topLeft[1]+1)
+            validRange = len(selectedCells)==fullCount
+            if validRange:
+                showUp = True
+                for (r, c) in selectedCells:
+                    span = sheet.getSpan(r, c)
+                    if span[0]>1 or span[1]>1:
+                        showUp = False
+                        break
+            if showUp:
+                self.setChecked(False)
+                self.setVisible(True)
+            else:
+                self.setVisible(False)
+            
 class QCellToolBarCaptureToHistory(QtGui.QAction):
     """
     QCellToolBarCaptureToHistory is the action to capture the

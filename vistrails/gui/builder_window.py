@@ -95,6 +95,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         # This keeps track of the menu items for each package
         self._package_menu_items = {}
 
+        self.detachedHistoryView = getattr(get_vistrails_configuration(), 'detachHistoryView')
+
     def create_first_vistrail(self):
         """ create_first_vistrail() -> None
         Create untitled vistrail in interactive mode
@@ -105,7 +107,6 @@ class QBuilderWindow(QtGui.QMainWindow):
             if not FileLocator().prompt_autosave(self):
                 untitled_locator().clean_temporaries()
         if self.viewManager.newVistrail(True):
-            self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
             self.viewModeChanged(0)
         self.viewManager.set_first_view(self.viewManager.currentView())
 
@@ -861,6 +862,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         Update the state of the view buttons
 
         """
+        if self.detachedHistoryView and index==1:
+            index = 0
+        self.emit(QtCore.SIGNAL("changeViewState(int)"), index)
         self.viewIndex = index
         self.execStateChange()
         self.viewManager.viewModeChanged(index)
@@ -924,7 +928,6 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         if self.viewManager.newVistrail(False):
-            self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
             self.viewModeChanged(0)
 
     def open_vistrail(self, locator_class):
@@ -961,10 +964,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.exportFileAction.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
             if version:
-                self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
                 self.viewModeChanged(0)
             else:
-                self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
                 self.viewModeChanged(1)
             if execute_workflow:
                 self.execute_current_pipeline()
@@ -1063,7 +1064,6 @@ class QBuilderWindow(QtGui.QMainWindow):
                 self.saveFileAsAction.setEnabled(True)
                 self.exportFileAction.setEnabled(True)
                 self.vistrailMenu.menuAction().setEnabled(True)
-                self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
                 self.viewModeChanged(1)
 
     def import_workflow_default(self):
@@ -1386,7 +1386,6 @@ class QBuilderWindow(QtGui.QMainWindow):
                             self.groupPipelineView = pipelineView
                             pipelineView.show()
                             pipelineMainWindow.show()
-                            print pipelineView.scene().controller
 
     def openAbstraction(self, filename):
         locator = XMLFileLocator(filename)
@@ -1466,7 +1465,6 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         if self.viewIndex > 1:
-            self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
             self.viewModeChanged(1)
         self.viewManager.queryVistrail()
 
