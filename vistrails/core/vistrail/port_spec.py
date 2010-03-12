@@ -220,9 +220,7 @@ class PortSpec(DBPortSpec):
         registry = get_module_registry()
         self._entries = []
         def canonicalize(sig_item):
-            if type(sig_item) == __builtin__.type:
-                return (sig_item, '<no description>')
-            elif type(sig_item) == __builtin__.tuple:
+            if type(sig_item) == __builtin__.tuple:
                 # assert len(sig_item) == 2
                 # assert type(sig_item[0]) == __builtin__.type
                 # assert type(sig_item[1]) == __builtin__.str
@@ -231,6 +229,8 @@ class PortSpec(DBPortSpec):
                 return (registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
                                                         'List').module,
                         '<no description>')
+            else:
+                return (sig_item, '<no description>')
 
         # def _add_entry(sig_item):
         if type(signature) != __builtin__.list:
