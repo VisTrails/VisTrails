@@ -1447,18 +1447,8 @@ mutual connections."""
         self.modules[m_id]._old_connection_ids = None
 
     def module_text_has_changed(self, m1, m2):
-        # 2008-06-25 cscheid
-        # This is a hot-path for QPipelineView.setupScene, so we cut
-        # some corners
-        #
-        # 2008-07-08 cscheid
-        # Can't use direct __dict__ lookup because both groups and
-        # modules end up here.
-        if m1.db_tag != m2.db_tag: 
-            return True
         m1_has = '__desc__' in m1.db_annotations_key_index
-        if (m1_has !=
-            '__desc__' in m2.db_annotations_key_index):
+        if m1_has != ('__desc__' in m2.db_annotations_key_index):
             return True
         if (m1_has and
             # m2_has, since m1_has and previous condition
