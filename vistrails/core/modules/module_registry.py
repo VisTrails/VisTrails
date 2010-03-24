@@ -1056,7 +1056,7 @@ class ModuleRegistry(DBRegistry):
             return self.add_subworkflow(subworkflow)
         elif (type(subworkflow) == tuple and
               len(subworkflow) == 2 and
-              type(subworkflow[0]) == type and
+              type(subworkflow[0]) == str and
               type(subworkflow[1]) == dict):
             descriptor = self.add_subworkflow(subworkflow[0], **subworkflow[1])
             return descriptor
