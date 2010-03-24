@@ -178,6 +178,11 @@ class QViewManager(QtGui.QTabWidget):
             self.disconnect(view.versionTab,
                             QtCore.SIGNAL('vistrailChanged()'),
                             self.vistrailChanged)
+
+            # FIXME move this elsewhere?
+            self.disconnect(view.versionTab.versionView.scene(),
+                            QtCore.SIGNAL('selectionChanged()'),
+                            view.versionTab.versionView.scene().selectionChanged)
             self.emit(QtCore.SIGNAL('vistrailViewRemoved'), view)
             index = self.indexOf(view) 
             if index !=-1:

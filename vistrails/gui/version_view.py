@@ -548,71 +548,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 painter.setFont(CurrentTheme.VERSION_FONT)
                 painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.label)
 
-    def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
-        # Do not allow links to be selected with version
-        
-        """
-
-        if change == QtGui.QGraphicsItem.ItemSelectedChange:
-            addingToSelection = value.toBool()
-            if not addingToSelection:
-                self.text.hide()
-
-            selectedItems = self.scene().selectedItems()
-            selectedId = -1
-            selectByClick = not self.scene().multiSelecting
-            
-            if addingToSelection and len(selectedItems) == 0:
-                selectedId = self.id
-            elif not addingToSelection and len(selectedItems)==2:
-                # here, we know addingToSelection is False so the
-                # other id becomes the selected one
-                if selectedItems[0]==self:
-                    selectedId = selectedItems[1].id
-                else:
-                    selectedId = selectedItems[0].id
-
-            selectByClick = self.scene().mouseGrabberItem() == self
-            if not selectByClick:
-                for item in self.scene().items():
-                    if type(item)==QGraphicsRubberBandItem:
-                        selectByClick = True
-                        break
-
-            self.scene().emit(QtCore.SIGNAL('versionSelected(int, bool)'),
-                              selectedId, selectByClick)
-
-            # Update the selected items list to include only versions and 
-            # check if two versions selected
-            otherSelectedVersions = [item for item in 
-                                     self.scene().selectedItems() 
-                                     if type(item) == QGraphicsVersionItem
-                                     and item != self]
-            # print 'selectedVersions:', otherSelectedVersions
-            # print 'addingToSelection:', addingToSelection
-
-            if addingToSelection and len(otherSelectedVersions) == 1:
-                # If adding a version, the ids are self and other
-                # selected version
-
-                # print 'emitting twoVersionsSelected', \
-                #     otherSelectedVersions[0].id, self.id
-                self.scene().emit(
-                    QtCore.SIGNAL('twoVersionsSelected(int,int)'),
-                    otherSelectedVersions[0].id, self.id)
-            elif not addingToSelection and len(otherSelectedVersions) == 2:
-                # If deleting a version, the ids are the two selected
-                # versions that are not self
-
-                # print 'emitting twoVersionsSelected', \
-                #     otherSelectedVersions[0].id, otherSelectedVersions[1].id
-                self.scene().emit(
-                    QtCore.SIGNAL('twoVersionsSelected(int,int)'),
-                    otherSelectedVersions[0].id, otherSelectedVersions[1].id)
-
-        return QtGui.QGraphicsItem.itemChange(self, change, value)    
-
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
         Start dragging a version to someplaces...
@@ -661,8 +596,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         self.dragging = False
         qt_super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
-        if self.id != 0:
-            self.text.show()
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -739,6 +672,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.timer = QtCore.QBasicTimer()
         self.animation_step = 1
         self.num_animation_steps = 1
+        self.emit_selection = True
+        self.select_by_click = True
+        self.connect(self, QtCore.SIGNAL("selectionChanged()"),
+                     self.selectionChanged)
    
     def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: DBTag) -> None
@@ -890,7 +827,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # Clean the previous scene
         # self.clear()
-        
+
+        self.select_by_click = False        
         self.controller = controller
 
         # perform graph layout
@@ -916,21 +854,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                                 t in removeNodeSet or
                                 not tree.has_edge(s, t)))
 
-        # remove gui edges from scene
-        for (v1, v2) in removeEdgeSet:
-            self.removeLink(v1,v2)
-
-        # remove gui nodes from scene
-        for v in removeNodeSet:
-            self.removeVersion(v)
-
-        tCreate = time.clock()
-
         # loop on the nodes of the tree
         tm = controller.vistrail.tagMap
         am = controller.vistrail.actionMap
         last_n = controller.vistrail.getLastActions(controller.num_versions_always_shown)
 
+        self.emit_selection = False
         for node in layout.nodes.itervalues():
 
             # version id
@@ -947,9 +876,25 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 versionShape.setupVersion(node, action, tag, description)
             else:
                 self.addVersion(node, action, tag, description)
-
-            # set as selected
             self.versions[v].setSelected(v == controller.current_version)
+
+        self.emit_selection = True
+        if controller.current_version >= 0:
+            self.versions[controller.current_version].setSelected(True)
+        else:
+            # get selectionChanged to emit version -1
+            self.selectionChanged()
+
+
+        # remove gui edges from scene
+        for (v1, v2) in removeEdgeSet:
+            self.removeLink(v1,v2)
+
+        # remove gui nodes from scene
+        for v in removeNodeSet:
+            self.removeVersion(v)
+
+        tCreate = time.clock()
 
         # adjust the colors
         self.adjust_version_colors(controller)
@@ -995,6 +940,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             self.timer.start(0, self)
         tUpdate = time.clock() - tUpdate
 
+        self.select_by_click = True
+
         t = time.clock() - t
         # print "time in msec to setupScene total: %f  refine %f  layout %f  create %f" % (t, tClearRefine, tCreate)
 
@@ -1036,6 +983,31 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                  self.controller.prune_versions(versions)
          qt_super(QVersionTreeScene, self).keyPressEvent(event)
         
+    def selectionChanged(self):
+        if not self.emit_selection:
+            return
+
+        selected_items = self.selectedItems()
+        # print 'selected_items:', [x.id for x in selected_items]
+        for item in self.versions.itervalues():
+            if item.id != 0:
+                item.text.hide()
+        if len(selected_items) == 1:
+            # emit versionSelected selected_id
+            self.emit(QtCore.SIGNAL('versionSelected(int, bool)'),
+                      selected_items[0].id, self.select_by_click)
+            if selected_items[0].id != 0:
+                selected_items[0].text.show()
+        else:
+            # emit versionSelected -1
+            self.emit(QtCore.SIGNAL('versionSelected(int, bool)'),
+                      -1, self.select_by_click)
+
+        if len(selected_items) == 2:
+            self.emit(
+                QtCore.SIGNAL('twoVersionsSelected(int, int)'),
+                selected_items[0].id, selected_items[1].id)
+
 class QVersionTreeView(QInteractiveGraphicsView):
     """
     QVersionTreeView inherits from QInteractiveGraphicsView that will
