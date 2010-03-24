@@ -751,9 +751,9 @@ class RequestHandler(object):
             if p:
                 vistrail = Vistrail()
                 action_list = []
-                for module in self.pipeline.module_list:
+                for module in p.module_list:
                     action_list.append(('add', module))
-                for connection in self.pipeline.connection_list:
+                for connection in p.connection_list:
                     action_list.append(('add', connection))
                 action = core.db.action.create_action(action_list)
                 vistrail.add_action(action, 0L)
