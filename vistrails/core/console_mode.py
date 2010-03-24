@@ -34,9 +34,9 @@ from core.vistrail.vistrail import Vistrail
 ################################################################################
     
 def run_and_get_results(w_list, parameters='', workflow_info=None, 
-                        update_thumbs=False):
+                        update_vistrail=False, extra_info=None):
     """run_and_get_results(w_list: list of (locator, version), parameters: str,
-                           workflow_info:str, update_thumbs: boolean)
+                           workflow_info:str, update_vistrail: boolean)
     Run all workflows in w_list, and returns an interpreter result object.
     version can be a tag name or a version id.
     
@@ -80,8 +80,12 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             base_fname = "%s_%s_pipeline.xml" % (locator.short_name, version)
             filename = os.path.join(workflow_info, base_fname)
             core.db.io.save_workflow(pip, filename)
-       
-        (results, changed) = controller.execute_current_workflow(aliases)
+        if not update_vistrail:
+            conf = get_vistrails_configuration()
+            if conf.has('thumbs'):
+                conf.thumbs.autoSave = False    
+        (results, changed) = controller.execute_current_workflow(aliases,
+                                                                 extra_info)
         run = results[0]
         run.workflow_info = (locator.name, version)
         run.pipeline = controller.current_pipeline
@@ -89,18 +93,20 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
 
         #not sure if you need to add the abstractions back
         #but just to be safe
-        controller.write_vistrail(locator)
+        if update_vistrail:
+            controller.write_vistrail(locator)
         result.append(run)
     return result
     
-def run(w_list, parameters='', workflow_info=None, update_thumbs=False):
+def run(w_list, parameters='', workflow_info=None, update_vistrail=False,
+        extra_info=None):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns list of errors (empty list if there are no errors)
     """
     all_errors = []
     results = run_and_get_results(w_list, parameters, workflow_info, 
-                                  update_thumbs)
+                                  update_vistrail,extra_info)
     for result in results:
         (objs, errors, executed) = (result.objects,
                                     result.errors, result.executed)

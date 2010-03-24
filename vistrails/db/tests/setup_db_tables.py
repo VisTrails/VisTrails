@@ -1,6 +1,5 @@
 # MACOSX binary install stuff
 import os
-os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'
 import sys
 sys.path.append("../..")
 from db.services import io

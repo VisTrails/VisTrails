@@ -523,9 +523,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 workflow_info = self.temp_configuration.workflowInfo
             else:
                 workflow_info = None
+            extra_info = None
+            if self.temp_configuration.check('spreadsheetDumpCells'):
+                extra_info = \
+                {'pathDumpCells': self.temp_configuration.spreadsheetDumpCells}
             errs = core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
-                                      workflow_info)
+                                      workflow_info, extra_info=extra_info)
             if len(errs) > 0:
                 for err in errs:
                     print "*** Error in %s:%s:%s -- %s" % err

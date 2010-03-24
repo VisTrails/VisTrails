@@ -110,6 +110,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
         reason = fetch('reason', None)
@@ -248,6 +249,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
         reason = fetch('reason', None)
@@ -353,6 +355,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['version'] = current_version
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
+            if extra_info is not None:
+                obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:
                 obj.moduleInfo['reason'] = reason
             if actions is not None:
@@ -480,6 +484,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
           current_version = fetch('current_version', None)
           view = fetch('view', DummyView())
           aliases = fetch('aliases', None)
+          extra_info = fetch('extra_info', None)
           logger = fetch('logger', DummyLogController())
           reason = fetch('reason', None)
           actions = fetch('actions', None)
@@ -522,6 +527,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
         reason = fetch('reason', None)

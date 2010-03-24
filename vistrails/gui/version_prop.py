@@ -250,6 +250,7 @@ class QVersionNotes(QtGui.QTextEdit):
         self.controller = None
         self.versionNumber = -1
         self.update_on_focus_out = True
+        self.setAcceptRichText(False)
         # Reset text to black, for some reason it is grey by default on the mac
         self.palette().setBrush(QtGui.QPalette.Text,
                                 QtGui.QBrush(QtGui.QColor(0,0,0,255)))

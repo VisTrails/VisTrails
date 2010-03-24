@@ -39,8 +39,8 @@ the filename if true, or an empty string if false."""
     if result == 1:
         return ""
     if result != 0:
-        msg = ("'%s' failed. Return code %s" %
-               (cmdline, result))
+        msg = ("'%s' failed. Return code %s. Output: %s" %
+               (cmdline, result, output))
         raise core.utils.VistrailsInternalError(msg)
     else:
         output = output[0][:-1]
@@ -65,7 +65,7 @@ def executable_is_in_pythonpath(filename):
 
 def list2cmdline(lst):
     for el in lst:
-        assert type(el) == str
+        assert type(el) in [str,unicode]
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):

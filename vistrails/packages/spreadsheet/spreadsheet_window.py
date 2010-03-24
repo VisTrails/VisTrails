@@ -438,28 +438,37 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             cell = sheet.getCell(row, col) 
             if self.editingModeAction().isChecked():
                 sheet.setCellEditingMode(row, col, True)
+            #If a cell has to dump its contents to a file, it will be in the
+            #extra_info dictionary
+            if e.vistrail.has_key('extra_info'):
+                extra_info = e.vistrail['extra_info']
+                if extra_info.has_key('pathDumpCells'):
+                    dumppath = extra_info['pathDumpCells']
+                    if extra_info.has_key('nameDumpCells'):
+                        name = extra_info['nameDumpCells']
+                        base_fname = os.path.join(dumppath,
+                                                  name)
+                    else:
+                        locator = e.vistrail['locator']
+                        if locator is not None:
+                            name = e.vistrail['locator'].short_name
+                        else:
+                            name = 'untitled'
+                        version = e.vistrail['version']
+                        if version is None:
+                            version = 0L
+                        base_fname = os.path.join(dumppath,"%s_%s" % \
+                                                  (name, e.vistrail['version']))
 
-            if self.visApp.temp_configuration.check('spreadsheetDumpCells'):
-                dumppath = self.visApp.temp_configuration.spreadsheetDumpCells
-                locator = e.vistrail['locator']
-                if locator is not None:
-                    name = e.vistrail['locator'].short_name
-                else:
-                    name = 'untitled'
-                version = e.vistrail['version']
-                if version is None:
-                    version = 0L
-                base_fname = os.path.join(dumppath,"%s_%s" % \
-                                              (name, e.vistrail['version']))
+                    # make a unique filename
+                    filename = base_fname + ".png"
+                    counter = 2
+                    while os.path.exists(filename):
+                        filename = base_fname + "_%d.png" % counter
+                        counter += 1
 
-                # make a unique filename
-                filename = base_fname + ".png"
-                counter = 2
-                while os.path.exists(filename):
-                    filename = base_fname + "_%d.png" % counter
-                    counter += 1
-
-                cell.dumpToFile(filename)
+                    cell.dumpToFile(filename)
+            print cell.size()
             return cell 
 
     def batchDisplayCellEvent(self, batchEvent):

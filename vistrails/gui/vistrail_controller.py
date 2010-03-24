@@ -736,6 +736,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          self.current_version,
                                          self.current_pipeline,
                                          self.current_pipeline_view,
+                                         None,
                                          None)])
 
     def enable_missing_package(self, identifier):

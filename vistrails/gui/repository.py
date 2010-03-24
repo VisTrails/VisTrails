@@ -1,5 +1,5 @@
 ############################################################################ ##
-## Copyright (C) 2006-2009 University of Utah. All rights reserved.
+## Copyright (C) 2006-2010 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -24,7 +24,7 @@ Includes login and upload tabs
 """
 
 from PyQt4 import QtGui, QtCore
-from core.configuration import get_vistrails_persistent_configuration
+from core.configuration import get_vistrails_configuration
 from core.repository.poster.encode import multipart_encode
 from core.repository.poster.streaminghttp import register_openers
 from core.vistrail.controller import VistrailController
@@ -53,7 +53,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
         self._repository_status = {}
 
-        self.config = get_vistrails_persistent_configuration()
+        self.config = get_vistrails_configuration()
 
         # TODO: this '/' check should probably be done in core/configuration.py
         if self.config.webRepositoryURL[-1] == '/':
@@ -244,15 +244,16 @@ class QRepositoryLoginWidget(QtGui.QWidget):
         base_layout = QtGui.QVBoxLayout(main)
         base_layout.setMargin(2)
         base_layout.setSpacing(2)
-
-        base_layout.addWidget(QtGui.QLabel("Username:"))
-
-        self.config = get_vistrails_persistent_configuration()
-
+        
+        self.config = get_vistrails_configuration()
         # TODO: this '/' check should probably be done in core/configuration.py
         if self.config.webRepositoryURL[-1] == '/':
             self.config.webRepositoryURL = self.config.webRepositoryURL[:-1]
-
+            
+        base_layout.addWidget(
+            QtGui.QLabel("Repository location: %s"%self.config.webRepositoryURL))
+        base_layout.addWidget(QtGui.QLabel("Username:"))
+            
         if self.config.check('webRepositoryLogin'):
             self.loginUser = QtGui.QLineEdit(self.config.webRepositoryLogin)
         else:

@@ -23,6 +23,7 @@
 
 import xmlrpclib
 import sys
+import socket
 
 def usage():
     return "%s server_url"%sys.argv[0]
@@ -33,7 +34,10 @@ try:
 except Exception, e:
     print usage()
     sys.exit(1)
-
-proxy = xmlrpclib.ServerProxy(uri)
-print proxy.quit()
+try:
+    proxy = xmlrpclib.ServerProxy(uri)
+    print proxy.quit()
+except socket.error, e:
+    print "Vistrails was not running on ", uri
+    
 #print proxy.run_from_db('vistrails.sci.utah.edu', 3306,'vt_test',1,'/tmp/spreadsheet',598)

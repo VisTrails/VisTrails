@@ -1284,36 +1284,40 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
-            (locator, version, pipeline, view, aliases) = vis
+            (locator, version, pipeline, view, aliases, extra_info) = vis
+            
+            temp_folder_used = False
+            if (not extra_info or not extra_info.has_key('pathDumpCells') or 
+                not extra_info['pathDumpCells']):
+                if extra_info is None:
+                    extra_info = {}
+                extra_info['pathDumpCells'] = create_temp_folder(prefix='vt_thumb')
+                temp_folder_used = True
+#           
             kwargs = {'locator': locator,
                       'current_version': version,
                       'view': view,
                       'logger': self.get_logger(),
                       'controller': self,
                       'aliases': aliases,
-                      }
-            conf = get_vistrails_configuration()
-            temp_folder_used = False
-            if not conf.check('spreadsheetDumpCells'):
-                conf.spreadsheetDumpCells = create_temp_folder(prefix='vt_thumb')
-                temp_folder_used = True
-                
+                      'extra_info': extra_info,
+                      }    
             result = interpreter.execute(pipeline, **kwargs)
             
             thumb_cache = ThumbnailCache.getInstance()
+            
             if len(result.errors) == 0 and thumb_cache.conf.autoSave:
                 old_thumb_name = self.vistrail.actionMap[version].thumbnail
                 fname = thumb_cache.add_entry_from_cell_dump(
-                                        conf.spreadsheetDumpCells, 
+                                        extra_info['pathDumpCells'], 
                                         old_thumb_name)
                 if fname is not None: 
                     self.vistrail.change_thumbnail(fname, version)
                     self.set_changed(True)
                     changed = True
-                
+              
             if temp_folder_used:
-                remove_temp_folder(conf.spreadsheetDumpCells)
-                conf.spreadsheetDumpCells = (None, str)
+                remove_temp_folder(extra_info['pathDumpCells'])
             
             if result.parameter_changes:
                 l = result.parameter_changes
@@ -1329,10 +1333,14 @@ class VistrailController(object):
             interpreter.debugger.update_values()
         return (results,changed)
     
-    def execute_current_workflow(self, custom_aliases=None):
-        """ execute_current_workflow() -> (list, bool)
+    def execute_current_workflow(self, custom_aliases=None, extra_info=None):
+        """ execute_current_workflow(custo_aliases: dict, extra_info: dict) -> (list, bool)
         Execute the current workflow (if exists)
-        
+        extra_info is a dictionary containing extra information for execution.
+        As we want to make the executions thread safe, we will pass information
+        specific to each pipeline through this parameter
+        As, an example, this will be useful for telling the spreadsheet where
+        to dump the images.
         """
         if self.current_pipeline:
             locator = self.get_locator()
@@ -1344,7 +1352,8 @@ class VistrailController(object):
                                                 self.current_version,
                                                 self.current_pipeline,
                                                 view,
-                                                custom_aliases)])
+                                                custom_aliases,
+                                                extra_info)])
 
     def recompute_terse_graph(self):
         """recomputes just the full graph, gui.VistrailController
