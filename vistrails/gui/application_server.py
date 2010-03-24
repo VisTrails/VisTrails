@@ -64,7 +64,11 @@ ElementTree = core.system.get_elementtree_library()
 import core.requirements
 import core.console_mode
 
-db_host = 'vistrails.sci.utah.edu'
+db_host = 'host.example.com'
+db_read_user = 'vtserver'
+db_read_pass = ''
+db_write_user = 'repository'
+db_write_pass = 'somepass'
 
 ################################################################################
 class StoppableXMLRPCServer(SimpleXMLRPCServer):
@@ -182,8 +186,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -262,7 +266,7 @@ class RequestHandler(object):
                 vistrail.set_annotation('repository_creator', repository_creator)
             #print "name=%s"%filename
             db_locator = DBLocator(host=host, port=int(port), database=db_name, 
-                                   name=filename, user=user, passwd='r3P0:4uTH')
+                                   name=filename, user=db_write_user, passwd=db_write_pass)
             #print "db_locator %s" % db_locator
             db_locator.save_as(locator)
             return db_locator.obj_id
@@ -279,8 +283,8 @@ class RequestHandler(object):
         config['host'] = host
         config['port'] = int(port)
         config['db'] = db_name
-        config['user'] = user
-        config['passwd'] = 'pass'
+        config['user'] = db_write_user
+        config['passwd'] = db_write_pass
         try:
             conn = db.services.io.open_db_connection(config)
             db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
@@ -298,8 +302,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -367,8 +371,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -441,8 +445,8 @@ class RequestHandler(object):
                 locator = DBLocator(host=host,
                                     port=int(port),
                                     database=db_name,
-                                    user='repository',
-                                    passwd='r3P0:4uTH',
+                                    user=db_write_user,
+                                    passwd=db_write_pass,
                                     obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
@@ -488,8 +492,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -514,8 +518,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -538,8 +542,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -560,135 +564,138 @@ class RequestHandler(object):
             self.server_logger.info(result)
 
         return result
-
-    def getPDFWorkflow(self, m_id):
-        self.server_logger.info( "getPDFWorkflow(%s) request received"%m_id)
-        print "getPDFWorkflow(%s) request received"%m_id
-        try:
-            m_id = int(m_id)
-            medley = self.medley_objs[m_id]
-        except Exception, e:
-            print str(e)
-
-        try:
-            locator = DBLocator(host=db_host,
-                                        port=3306,
-                                        database='vistrails',
-                                        user='vtserver',
-                                        passwd='',
-                                        obj_id=medley._vtid,
-                                        obj_type=None,
-                                        connection_id=None)
-
-            version = long(medley._version)
-            subdir = os.path.join('workflows',
-                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
-                                  subdir)
-            base_fname = "%s_%s.pdf" % (str(locator.short_name), version)
-            filename = os.path.join(filepath,base_fname)
-            if ((not os.path.exists(filepath) or
-                os.path.exists(filepath) and not os.path.exists(filename)) 
-                and self.proxies_queue is not None):
-                #this server can send requests to other instances
-                proxy = self.proxies_queue.get()
-                try:
-                    print "Sending request to ", proxy
-                    result = proxy.getPDFWorkflow(m_id)
-                    self.proxies_queue.put(proxy)
-                    print "returning %s"% result
-                    self.server_logger.info("returning %s"% result)
-                    return result
-                except Exception, e:
-                    print "Exception: ", str(e)
-                    return ""
-            
-            if not os.path.exists(filepath):
-                os.mkdir(filepath)
-           
-            if not os.path.exists(filename):
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
-                controller.change_selected_version(version)
-
-                print medley._vtid, " ", medley._version
-                p = controller.current_pipeline
-                from gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPDF(filename)
-                del pipeline_view
-            else:
-                print "found cached pdf: ", filename
-            return os.path.join(subdir,base_fname)
-        except Exception, e:
-            print "Error when saving pdf: ", str(e)
-            
-    def getPNGWorkflow(self, m_id):
-        self.server_logger.info( "getPNGWorkflow(%s) request received"%m_id)
-        print "getPNGWorkflow(%s) request received"%m_id
-        try:
-            m_id = int(m_id)
-            medley = self.medley_objs[m_id]
-        except Exception, e:
-            print str(e)
-
-        try:
-            locator = DBLocator(host=db_host,
-                                        port=3306,
-                                        database='vistrails',
-                                        user='vtserver',
-                                        passwd='',
-                                        obj_id=medley._vtid,
-                                        obj_type=None,
-                                        connection_id=None)
-
-            version = long(medley._version)
-            subdir = os.path.join('workflows',
-                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
-                                  subdir)
-            base_fname = "%s_%s.png" % (str(locator.short_name), version)
-            filename = os.path.join(filepath,base_fname)
-            
-            if ((not os.path.exists(filepath) or
-                os.path.exists(filepath) and not os.path.exists(filename)) 
-                and self.proxies_queue is not None):
-                #this server can send requests to other instances
-                proxy = self.proxies_queue.get()
-                try:
-                    print "Sending request to ", proxy
-                    result = proxy.getPNGWorkflow(m_id)
-                    self.proxies_queue.put(proxy)
-                    print "returning %s"% result
-                    self.server_logger.info("returning %s"% result)
-                    return result
-                except Exception, e:
-                    print "Exception: ", str(e)
-                    return ""
-            #if it gets here, this means that we will execute on this instance
-            if not os.path.exists(filepath):
-                os.mkdir(filepath)
-
-            if not os.path.exists(filename):
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
-                controller.change_selected_version(version)
-
-                print medley._vtid, " ", medley._version
-                p = controller.current_pipeline
-                from gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPNG(filename)
-                del pipeline_view
-            else:
-                print "Found cached image: ", filename
-            return os.path.join(subdir,base_fname)
-        except Exception, e:
-            print "Error when saving png: ", str(e)
+    
+#These currently don't work for vistrails
+#FIXME: Create versions that don't depend on the medleys code
+#    def getPDFWorkflow(self, m_id):
+#        """This works for medleys only"""
+#        self.server_logger.info( "getPDFWorkflow(%s) request received"%m_id)
+#        print "getPDFWorkflow(%s) request received"%m_id
+#        try:
+#            m_id = int(m_id)
+#            medley = self.medley_objs[m_id]
+#        except Exception, e:
+#            print str(e)
+#
+#        try:
+#            locator = DBLocator(host=db_host,
+#                                port=3306,
+#                                database='vistrails',
+#                                user='vtserver',
+#                                passwd='',
+#                                obj_id=medley._vtid,
+#                                obj_type=None,
+#                                connection_id=None)
+#
+#            version = long(medley._version)
+#            subdir = os.path.join('workflows',
+#                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
+#            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
+#                                  subdir)
+#            base_fname = "%s_%s.pdf" % (str(locator.short_name), version)
+#            filename = os.path.join(filepath,base_fname)
+#            if ((not os.path.exists(filepath) or
+#                os.path.exists(filepath) and not os.path.exists(filename)) 
+#                and self.proxies_queue is not None):
+#                #this server can send requests to other instances
+#                proxy = self.proxies_queue.get()
+#                try:
+#                    print "Sending request to ", proxy
+#                    result = proxy.getPDFWorkflow(m_id)
+#                    self.proxies_queue.put(proxy)
+#                    print "returning %s"% result
+#                    self.server_logger.info("returning %s"% result)
+#                    return result
+#                except Exception, e:
+#                    print "Exception: ", str(e)
+#                    return ""
+#            
+#            if not os.path.exists(filepath):
+#                os.mkdir(filepath)
+#           
+#            if not os.path.exists(filename):
+#                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+#                controller = VistrailController()
+#                controller.set_vistrail(v, locator, abstractions, thumbnails)
+#                controller.change_selected_version(version)
+#
+#                print medley._vtid, " ", medley._version
+#                p = controller.current_pipeline
+#                from gui.pipeline_view import QPipelineView
+#                pipeline_view = QPipelineView()
+#                pipeline_view.scene().setupScene(p)
+#                pipeline_view.scene().saveToPDF(filename)
+#                del pipeline_view
+#            else:
+#                print "found cached pdf: ", filename
+#            return os.path.join(subdir,base_fname)
+#        except Exception, e:
+#            print "Error when saving pdf: ", str(e)
+#            
+#    def getPNGWorkflow(self, m_id):
+#        self.server_logger.info( "getPNGWorkflow(%s) request received"%m_id)
+#        print "getPNGWorkflow(%s) request received"%m_id
+#        try:
+#            m_id = int(m_id)
+#            medley = self.medley_objs[m_id]
+#        except Exception, e:
+#            print str(e)
+#
+#        try:
+#            locator = DBLocator(host=db_host,
+#                                        port=3306,
+#                                        database='vistrails',
+#                                        user='vtserver',
+#                                        passwd='',
+#                                        obj_id=medley._vtid,
+#                                        obj_type=None,
+#                                        connection_id=None)
+#
+#            version = long(medley._version)
+#            subdir = os.path.join('workflows',
+#                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
+#            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
+#                                  subdir)
+#            base_fname = "%s_%s.png" % (str(locator.short_name), version)
+#            filename = os.path.join(filepath,base_fname)
+#            
+#            if ((not os.path.exists(filepath) or
+#                os.path.exists(filepath) and not os.path.exists(filename)) 
+#                and self.proxies_queue is not None):
+#                #this server can send requests to other instances
+#                proxy = self.proxies_queue.get()
+#                try:
+#                    print "Sending request to ", proxy
+#                    result = proxy.getPNGWorkflow(m_id)
+#                    self.proxies_queue.put(proxy)
+#                    print "returning %s"% result
+#                    self.server_logger.info("returning %s"% result)
+#                    return result
+#                except Exception, e:
+#                    print "Exception: ", str(e)
+#                    return ""
+#            #if it gets here, this means that we will execute on this instance
+#            if not os.path.exists(filepath):
+#                os.mkdir(filepath)
+#
+#            if not os.path.exists(filename):
+#                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+#                controller = VistrailController()
+#                controller.set_vistrail(v, locator, abstractions, thumbnails)
+#                controller.change_selected_version(version)
+#
+#                print medley._vtid, " ", medley._version
+#                p = controller.current_pipeline
+#                from gui.pipeline_view import QPipelineView
+#                pipeline_view = QPipelineView()
+#                pipeline_view.scene().setupScene(p)
+#                pipeline_view.scene().saveToPNG(filename)
+#                del pipeline_view
+#            else:
+#                print "Found cached image: ", filename
+#            return os.path.join(subdir,base_fname)
+#        except Exception, e:
+#            print "Error when saving png: ", str(e)
             
     def get_vt_zip(self, host, port, db_name, vt_id):
         """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
@@ -703,8 +710,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -740,8 +747,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
@@ -777,8 +784,8 @@ class RequestHandler(object):
         config['host'] = host
         config['port'] = int(port)
         config['db'] = db_name
-        config['user'] = 'vtserver'
-        config['passwd'] = ''
+        config['user'] = db_read_user
+        config['passwd'] = db_read_pass
         try:
             rows = io.get_db_vistrail_list(config)
             return rows
@@ -794,8 +801,8 @@ class RequestHandler(object):
         config['host'] = host
         config['port'] = int(port)
         config['db'] = db_name
-        config['user'] = 'vtserver'
-        config['passwd'] = ''
+        config['user'] = db_read_user
+        config['passwd'] = db_read_pass
         try:
             rows = io.get_db_vistrail_list(config)
             result = '<vistrails>'
@@ -816,8 +823,8 @@ class RequestHandler(object):
             locator = DBLocator(host=host,
                                 port=int(port),
                                 database=db_name,
-                                user='vtserver',
-                                passwd='',
+                                user=db_read_user,
+                                passwd=db_read_pass,
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
