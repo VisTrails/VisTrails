@@ -64,6 +64,8 @@ ElementTree = core.system.get_elementtree_library()
 import core.requirements
 import core.console_mode
 
+from db.versions import currentVersion
+
 db_host = 'host.example.com'
 db_read_user = 'vtserver'
 db_read_pass = ''
@@ -765,6 +767,8 @@ class RequestHandler(object):
                 action = core.db.action.create_action(action_list)
                 vistrail.add_action(action, 0L)
                 vistrail.addTag("Imported workflow", action.id)
+                if not vistrail.db_version:
+                    vistrail.db_version = currentVersion
                 pipxmlstr = io.serialize(vistrail)
                 result = base64.b64encode(pipxmlstr)
             else:
