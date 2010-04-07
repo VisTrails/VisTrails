@@ -195,6 +195,26 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         self.render(painter, QtCore.QRectF(), b_rect)
         painter.end()
         self.setBackgroundBrush(brush)
+    
+    def saveToPNG(self, filename, width=800):
+        try:
+            self.updateSceneBoundingRect(False)
+            b_rect = self.sceneBoundingRect
+            print "PNG %sx%s" % (b_rect.width(), b_rect.height())
+            pixmap = QtGui.QPixmap(QtCore.QSize(int(math.ceil(b_rect.width())),
+                                                int(math.ceil(b_rect.height()))))
+            print pixmap.size()
+            painter = QtGui.QPainter(pixmap)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+            brush = self.backgroundBrush()
+            self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(255,255,255)))
+            self.render(painter, QtCore.QRectF(), b_rect)
+            painter.end()
+            pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
+            pixmap.save(filename)
+            self.setBackgroundBrush(brush)
+        except Exception, e:
+            print "Exception: ", str(e)
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """
