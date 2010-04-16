@@ -154,6 +154,19 @@ def last_minute_changes():
     try:
         clist_filename = os.path.join(EXPORT_DIRNAME, "CHANGELIST")
         if int(REVISION) > int(last_revision):
+            pattern = re.compile(r"(^r[0-9]+ \| )(\S+ \| )", re.MULTILINE)
+            info("Getting number of revisions in CHANGELIST ...")
+            f = open(clist_filename, "wb")
+            proc.call("%s log -q -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
+            f.close()
+            f = open(clist_filename, "rb")
+            data = f.read()
+            f.close()
+            (data, expected_count) = pattern.subn(r"\g<1>", data)
+            revision_diff_count = int(REVISION) - int(last_revision)
+            if expected_count != revision_diff_count:
+                debug("Revision Count (%s) in CHANGELIST != Num Revisions (%s) since last release.  This could mean revisions were made on a different branch." % (expected_count, revision_diff_count))
+            info("Writing verbose CHANGELIST ...")
             f = open(clist_filename, "wb")
             proc.call("%s log -v -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
             f.close()
@@ -161,9 +174,7 @@ def last_minute_changes():
             f = open(clist_filename, "rb")
             data = f.read()
             f.close()
-            pattern = re.compile(r"(^r[0-9]+ \| )(\S+ \| )", re.MULTILINE)
             (data, count) = pattern.subn(r"\g<1>", data)
-            expected_count = int(REVISION) - int(last_revision)
             if count != expected_count:
                 raise Exception("Removed %s developer names from CHANGELIST (should have been %s)." % (count, expected_count))
             f = open(clist_filename, "wb")
