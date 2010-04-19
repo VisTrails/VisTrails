@@ -219,7 +219,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
-        self.searchBox = QSearchBox(False, self)
+        self.searchBox = QSearchBox(False, True, self)
         vLayout.addWidget(self.searchBox)
 
         self.treeWidget = self.createTreeWidget()
@@ -431,7 +431,7 @@ class MultiLineWidget(StandardConstantWidget):
          QtGui.QLineEdit.keyPressEvent(self,event)
 
 class QSearchEditBox(QtGui.QComboBox):
-    def __init__(self, parent=None):
+    def __init__(self, incremental=True, parent=None):
         QtGui.QComboBox.__init__(self, parent)
         self.setEditable(True)
         self.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
@@ -446,11 +446,18 @@ class QSearchEditBox(QtGui.QComboBox):
         font = QtGui.QFont(item.font())
         font.setItalic(True)
         item.setFont(font)
+        self.is_incremental = incremental
 
     def keyPressEvent(self, e):
         if e.key() in (QtCore.Qt.Key_Return,QtCore.Qt.Key_Enter):
-            if not self.currentText():
-                self.emit(QtCore.SIGNAL('resetText'))
+            if self.currentText():
+                if not self.is_incremental:
+                    self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
+                              self.currentText())
+                self.insertItem(0, self.currentText())
+            else:
+                self.emit(QtCore.SIGNAL('resetText()'))
+            return
         QtGui.QComboBox.keyPressEvent(self, e)
         
 class QSearchBox(QtGui.QWidget):
@@ -459,7 +466,7 @@ class QSearchBox(QtGui.QWidget):
     a search icon.
 
     """
-    def __init__(self, refine=True, parent=None):
+    def __init__(self, refine=True, incremental=True, parent=None):
         """ QSearchBox(parent: QWidget) -> QSearchBox
         Intialize all GUI components
         
@@ -504,7 +511,7 @@ class QSearchBox(QtGui.QWidget):
             self.searchLabel.setMargin(4)
             hLayout.addWidget(self.searchLabel)
         
-        self.searchEdit = QSearchEditBox(self)
+        self.searchEdit = QSearchEditBox(incremental, self)
         self.setFocusProxy(self.searchEdit)
         #TODO: Add separator!
         self.searchEdit.clearEditText()
@@ -520,12 +527,20 @@ class QSearchBox(QtGui.QWidget):
 
         self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
                      self.resetSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('editTextChanged(QString)'),
-                     self.executeIncrementalSearch)
         self.connect(self.searchEdit, QtCore.SIGNAL('activated(int)'),
                      self.executeSearch)
         self.connect(self.searchEdit, QtCore.SIGNAL('resetText'),
                      self.resetSearch)
+        self.connect(self.searchEdit, QtCore.SIGNAL('executeSearch(QString)'),
+                     self.executeTextSearch)
+        if incremental:
+            self.connect(self.searchEdit, 
+                         QtCore.SIGNAL('editTextChanged(QString)'),
+                         self.executeIncrementalSearch)
+        else:
+            self.connect(self.searchEdit,
+                         QtCore.SIGNAL('editTextChanged(QString)'),
+                         self.resetToggle)
 
     def resetSearch(self):
         """
@@ -561,6 +576,9 @@ class QSearchBox(QtGui.QWidget):
         """
         self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
 
+    def resetToggle(self, text):
+        self.resetButton.setEnabled(str(text)!='')
+
     def executeIncrementalSearch(self, text):
         """
         executeIncrementalSearch(text: QString) -> None
@@ -569,6 +587,10 @@ class QSearchBox(QtGui.QWidget):
         """
         self.resetButton.setEnabled(str(text)!='')
         self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
+
+    def executeTextSearch(self, text):
+        self.emit(QtCore.SIGNAL('executeSearch(QString)'),
+                  text)
 
     def executeSearch(self, index):
         """

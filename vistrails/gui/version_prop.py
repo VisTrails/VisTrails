@@ -58,7 +58,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
 
-        self.searchBox = QSearchBox(self)
+        self.searchBox = QSearchBox(True, False, self)
         vLayout.addWidget(self.searchBox)
         
         gLayout = QtGui.QGridLayout()
