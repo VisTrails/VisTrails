@@ -544,6 +544,11 @@ class QPreferencesDialog(QtGui.QDialog):
         l.addWidget(self._status_bar)
 
     def close_dialog(self):
+        pm = get_package_manager()
+        self.disconnect(pm,
+                        pm.reloading_package_signal,
+                        self._packages_tab.reload_current_package_finisher)
+
         retval = 0
         if self._packages_tab.erase_cache:
             retval = 1
