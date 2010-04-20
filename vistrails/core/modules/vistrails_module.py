@@ -246,6 +246,15 @@ possible for modules to be cacheable depending on their execution
 context."""
         return True
 
+    def updateUpstreamPort(self, port):
+        # update single port
+        if port in self.inputPorts:
+            for connector in self.inputPorts[port]:
+                connector.obj.update()
+            for connector in copy.copy(self.inputPorts[port]):
+                if connector.obj.get_output(connector.port) is InvalidOutput:
+                    self.removeInputConnector(port, connector)
+
     def updateUpstream(self):
         """ updateUpstream() -> None        
         Go upstream from the current module, then update its upstream
@@ -294,6 +303,8 @@ context."""
         except ModuleBreakpoint:
             raise
         except Exception, e: 
+            import traceback
+            traceback.print_exc()
             raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
         self.upToDate = True
         self.logging.end_update(self)
