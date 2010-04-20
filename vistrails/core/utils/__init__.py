@@ -183,7 +183,11 @@ class InvalidPipeline(Exception):
 
     def __str__(self):
         return "Pipeline cannot be instantiated:\n  " + \
-            '\n  '.join(str(e) for e in self._exception_set)
+            '\n  '.join(line for e in self._exception_set 
+                        for line in str(e).splitlines())
+
+    def get_exception_set(self):
+        return self._exception_set
 
 ################################################################################
 
@@ -394,7 +398,9 @@ def version_string_to_list(version):
 
 def versions_increasing(v1, v2):
     v1_list = v1.split('.')
+    v1_list.reverse()
     v2_list = v2.split('.')
+    v2_list.reverse()
     try:
         while len(v1_list) > 0 and len(v2_list) > 0:
             v1_num = int(v1_list.pop())
@@ -410,7 +416,7 @@ def versions_increasing(v1, v2):
     except ValueError:
         print "ERROR: cannot compare versions whose components " \
             "are not integers"
-    return True
+    return False
                 
 
 ##############################################################################
