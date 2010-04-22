@@ -590,7 +590,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 persistent_module.id = persistent_id
                 self._persistent_pipeline.add_module(persistent_module)
                 self._persistent_pipeline.modules[persistent_id]._signature = \
-                    base64.b16encode(new_sig)
+                    base64.b16encode(new_sig).lower()
                 module_id_map[new_module_id] = persistent_id
                 modules_added.add(new_module_id)
             else:
