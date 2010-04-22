@@ -42,25 +42,7 @@ class QGraphicsItemInterface(object):
     qgraphicsitem.cpp::QGrahpicsItem::mouseReleaseEvent
     
     """
-    def mouseReleaseEvent(self, event):
-        """ mouseReleaseEvent(event: QMouseEvent) -> None        
-        Make sure the current item is not selected before
-        clearSelection and perform the selected again
-        
-        """
-        if ((self.flags() & QtGui.QGraphicsItem.ItemIsSelectable) and
-            event.scenePos()==event.buttonDownScenePos(QtCore.Qt.LeftButton)):
-            multiSelect = event.modifiers() & QtCore.Qt.ControlModifier
-            if multiSelect:
-                self.setSelected(not self.isSelected())
-            else:
-                if self.scene():
-                    for item in self.scene().selectedItems():
-                        if item!=self:
-                            item.setSelected(False)
-                self.setSelected(True)
-        else:
-            qt_super(QGraphicsItemInterface, self).mouseReleaseEvent(event)
+    pass
 
 class QGraphicsRubberBandItem(QtGui.QGraphicsRectItem):
     """

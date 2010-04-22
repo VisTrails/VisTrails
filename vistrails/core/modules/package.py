@@ -31,7 +31,7 @@ from PyQt4 import QtCore
 from core.utils import versions_increasing
 from core.utils.uxml import (named_elements, enter_named_element)
 from core import debug
-from core.configuration import ConfigurationObject
+from core.configuration import ConfigurationObject, get_vistrails_configuration
 from core.modules.module_descriptor import ModuleDescriptor
 from db.domain import DBPackage
 
@@ -75,9 +75,19 @@ class Package(DBPackage):
             self.package = package
             self.dependencies = dependencies
         def __str__(self):
-            return ("Package '%s' has unmet dependencies: %s" %
+            def dep_string(dep):
+                retval = dep[0]
+                if dep[1] is not None:
+                    retval += ': requires version >= %s' % dep[1]
+                    if dep[2] is not None:
+                        retval += ' and <= %s' % dep[2]
+                elif dep[2] is not None:
+                    retval += ': requires version <= %s' % dep[2]
+                return retval
+
+            return ("Package '%s' has unmet dependencies:\n  %s" %
                     (self.package.name,
-                     self.dependencies))
+                     '\n  '.join([dep_string(d) for d in self.dependencies])))
 
     def __init__(self, *args, **kwargs):
         if 'load_configuration' in kwargs:
@@ -330,8 +340,8 @@ class Package(DBPackage):
     def initialize(self, existing_paths=None):
         self._override_import(existing_paths)
         try:
+            name = self.prefix + self.codepath + '.init'
             try:
-                name = self.prefix + self.codepath + '.init'
                 __import__(name, globals(), locals(), [])
             except ImportError, e:
                 # FIXME !!! Want to differentiate between .init not
@@ -357,8 +367,8 @@ class Package(DBPackage):
                 # be unloaded, try imports, and then stop overriding,
                 # updating the set of python dependencies
                 self._init_module.initialize()
-        except Exception, e:
-            self.py_dependencies.update(self._reset_import())
+        except Exception:
+            self.py_dependencies.update(self._reset_import())            
             self.unload()
             raise
         else:
@@ -367,7 +377,8 @@ class Package(DBPackage):
     def unload(self):
         for path in self.py_dependencies:
             if path not in sys.modules:
-                print "skipping %s"%path
+                # print "skipping %s"%path
+                pass
             else:
                 # print 'deleting path:', path, path in sys.modules
                 del sys.modules[path]
@@ -392,25 +403,31 @@ class Package(DBPackage):
         else:
             self.description = "No description available"
             
-    def report_missing_module(self, module_name, module_namespace):
+    def can_handle_all_errors(self):
+        return hasattr(self._init_module, 'handle_all_errors')
+
+    def can_handle_upgrades(self):
+        return hasattr(self._init_module, 'handle_module_upgrade_request')
+    
+    def can_handle_missing_modules(self):
+        return hasattr(self._init_module, 'handle_missing_module')
+
+    def handle_all_errors(self, *args, **kwargs):
+        return self._init_module.handle_all_errors(*args, **kwargs)
+
+    def handle_module_upgrade_request(self, *args, **kwargs):
+        return self._init_module.handle_module_upgrade_request(*args, **kwargs)
+        
+    def handle_missing_module(self, *args, **kwargs):
         """report_missing_module(name, namespace):
 
         Calls the package's module handle_missing_module function, if
         present, to allow the package to dynamically add a missing
         module.
         """
-        try:
-            handle = self._module.handle_missing_module
-        except AttributeError:
-            return False
-        try:
-            return handle(module_name, module_namespace)
-        except Exception, e:
-            debug.critical("Call to handle_missing_module in package '%s'"
-                           " raised exception '%s'. Assuming package could not"
-                           " handle call" % (self.name, str(e)))
-        return False
-
+        
+        return self._init_module.handle_missing_module(*args, **kwargs)
+        
     def check_requirements(self):
         try:
             callable_ = self._module.package_requirements

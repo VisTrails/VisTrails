@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+from db.services.action_chain import simplify_ops
 from db.domain import DBAction, DBAdd, DBDelete, DBChange
 import copy
 
@@ -151,7 +152,10 @@ def create_action(action_list):
                       operations=ops)
     return action
 
-def create_action_from_ops(ops):
+def create_action_from_ops(ops, simplify=False):
+    if simplify:
+        ops = simplify_ops(ops)
+
     action = DBAction(id=-1,
                       operations=ops)
     return action

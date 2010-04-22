@@ -87,9 +87,11 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('new_action'),
                      self.new_action)
 
+        # self.versionTab.versionView.scene()._vistrail_view = self
         self.connect(self.versionTab.versionView.scene(),
-                     QtCore.SIGNAL('versionSelected(int,bool)'),
-                     self.versionSelected)
+                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
+                     self.versionSelected,
+                     QtCore.Qt.QueuedConnection)
 
         self.connect(self.versionTab,
                      QtCore.SIGNAL('twoVersionsSelected(int,int)'),
@@ -157,7 +159,9 @@ class QVistrailView(QDockContainer):
         if version is None:
             self.controller.select_latest_version()
             version = self.controller.current_version
-        self.versionSelected(version, True)
+        self.versionSelected(version, True, True, False)
+        self.controller.recompute_terse_graph()
+        self.controller.invalidate_version_tree(True)
         self.setPIPMode(True)
         self.setQueryMode(False)
        
@@ -335,19 +339,24 @@ class QVistrailView(QDockContainer):
         """
         self.peTab.performParameterExploration()
 
-    def versionSelected(self, versionId, byClick):
+    def versionSelected(self, versionId, byClick, doValidate=True, 
+                        fromRoot=False):
         """ versionSelected(versionId: int, byClick: bool) -> None
         A version has been selected/unselected, update the controller
         and the pipeline view
         
         """
         if self.controller:
-            # print 'versionSelected', versionId, byClick
+            print '$$$$$$ START versionSelected', versionId, byClick
             if byClick:
+                print "doing byClick stuff"
                 if self.controller.current_version > 0:
                     self.controller.flush_move_actions()
                 self.controller.reset_pipeline_view = byClick
-                self.controller.change_selected_version(versionId)
+                print "running change_selected_version!"
+                self.controller.change_selected_version(versionId, True,
+                                                        doValidate, fromRoot)
+                versionId = self.controller.current_version
                 # self.controller.invalidate_version_tree(False)
                 self.controller.current_pipeline_view.fitToAllViews(True)
                 self.redo_stack = []
@@ -358,6 +367,10 @@ class QVistrailView(QDockContainer):
             self.execDiffEnabled = False
             self.execExploreChange = False
             self.emit(QtCore.SIGNAL('execStateChange()'))
+            print '$$$$$$ END versionSelected', versionId, byClick
+            
+
+            return versionId
 
     def twoVersionsSelected(self, id1, id2):
         """ twoVersionsSelected(id1: Int, id2: Int) -> None

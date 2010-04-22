@@ -69,12 +69,14 @@ class Module(DBModule):
     def set_defaults(self, other=None):                
         if other is None:
             self.portVisible = set()
+            self.is_valid = False
             self.is_breakpoint = False
             self.is_watched = False
             self._descriptor_info = None
             self._module_descriptor = None
         else:
             self.portVisible = copy.copy(other.portVisible)
+            self.is_valid = other.is_valid
             self.is_breakpoint = other.is_breakpoint
             self.is_watched = other.is_watched
             self._descriptor_info = None
@@ -103,6 +105,8 @@ class Module(DBModule):
 
     @staticmethod
     def convert(_module):
+        if _module.__class__ == Module:
+            return
 	_module.__class__ = Module
         for _port_spec in _module.db_portSpecs:
             PortSpec.convert(_port_spec)
@@ -227,9 +231,9 @@ class Module(DBModule):
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
         if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.destinationPorts()]
+            result.input_ports_order = [p.name for p in self.input_port_specs]
         if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.sourcePorts()]
+            result.output_ports_order = [p.name for p in self.output_port_specs]
             # output_ports are reversed for display purposes...
             result.output_ports_order.reverse()
         # FIXME this may not be quite right because we don't have self.registry

@@ -150,9 +150,6 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         self.MODULE_LABEL_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
-        # Pen to draw module label when it is unmatched due to a query
-        self.GHOSTED_MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         # Brush to draw a module shape at different states
         self.MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_grey'))))
@@ -169,9 +166,19 @@ class DefaultTheme(object):
         self.PERSISTENT_MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('slate_blue'))))
 
+        self.INVALID_MODULE_PEN = QtGui.QPen(QtGui.QBrush(
+                QtGui.QColor(51, 51, 51, 255)), 2)
+        self.INVALID_MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(51, 51, 51, 255)), 2)
+        self.INVALID_MODULE_BRUSH = QtGui.QBrush(
+            QtGui.QColor(125, 92, 92, 255))
+
         # Pen and brush for un-matched queried modules
         self.GHOSTED_MODULE_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
+                QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
+        # Pen to draw module label when it is unmatched due to a query
+        self.GHOSTED_MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
+                QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         self.GHOSTED_MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
 
@@ -208,6 +215,11 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         self.GHOSTED_PORT_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
+
+        self.INVALID_PORT_PEN = QtGui.QPen(QtGui.QBrush(
+                QtGui.QColor(51, 51, 51, 255)), 2)
+        self.INVALID_PORT_BRUSH = QtGui.QBrush(
+            QtGui.QColor(125, 92, 92, 255))
 
         # Pen and brush for drawing the configure button
         self.CONFIGURE_PEN = QtGui.QPen(QtGui.QBrush(

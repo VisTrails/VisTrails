@@ -43,6 +43,7 @@ from core.vistrail.connection import Connection
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import PortEndPoint
+from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from core.interpreter.default import get_default_interpreter
 from gui.graphics_view import (QInteractiveGraphicsScene,
@@ -52,8 +53,12 @@ from gui.module_annotation import QModuleAnnotation
 from gui.module_palette import QModuleTreeWidget
 from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
-import math
+
 import copy
+from itertools import izip
+import math
+import operator
+
 
 ##############################################################################
 # 2008-06-24 cscheid
@@ -91,7 +96,9 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         self.dragging = False
         self.connection = None
         self.ghosted = None
+        self.invalid = None
         self.setGhosted(ghosted)
+        self.setInvalid(False)
 
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
@@ -106,6 +113,17 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             else:
                 self.setPen(CurrentTheme.PORT_PEN)
                 self.setBrush(CurrentTheme.PORT_BRUSH)
+
+    def setInvalid(self, invalid):
+        if self.invalid != invalid:
+            self.invalid = invalid
+            if not self.ghosted:
+                if invalid:
+                    self.setPen(CurrentTheme.INVALID_PORT_PEN)
+                    self.setBrush(CurrentTheme.INVALID_PORT_BRUSH)
+                else:
+                    self.setPen(CurrentTheme.PORT_PEN)
+                    self.setBrush(CurrentTheme.PORT_BRUSH)
 
     def paintEllipse(self, painter, option, widget=None):
         """ paintEllipse(painter: QPainter, option: QStyleOptionGraphicsItem,
@@ -493,6 +511,10 @@ if __old_connection:
             else:
                 self.connectionPen = CurrentTheme.CONNECTION_PEN
 
+        def set_custom_brush(self, brush):
+            self.connectionPen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
+            self.connectionPen.setBrush(brush)
+
         def paint(self, painter, option, widget=None):
             """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
                       widget: QWidget) -> None
@@ -646,6 +668,10 @@ else:
             else:
                 self.connectionPen = CurrentTheme.CONNECTION_PEN
 
+        def set_custom_brush(self, brush):
+            self.connectionPen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
+            self.connectionPen.setBrush(brush)
+
         def paint(self, painter, option, widget=None):
             """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
                       widget: QWidget) -> None
@@ -743,9 +769,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.controller = None
         self.module = None
         self.ghosted = False
+        self.invalid = False
         self._module_shape = None
         self._original_module_shape = None
-        self._moved = False
         self._old_connection_ids = None
         self.is_breakpoint = False
         self._needs_state_updated = True
@@ -761,22 +787,23 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
         """
         labelRect = self.labelFontMetric.boundingRect(self.label)
-        labelRect.translate(-labelRect.center().x(), -labelRect.center().y())
         if self.description:
+            self.description = '(' + self.description + ')'
             descRect = self.descFontMetric.boundingRect(self.description)
+            # adjust labelRect in case descRect is wider
+            labelRect = labelRect.united(descRect)
             descRect.adjust(0, 0, 0, CurrentTheme.MODULE_PORT_MARGIN[3])
         else:
             descRect = QtCore.QRectF(0, 0, 0, 0)
+
+        labelRect.translate(-labelRect.center().x(), -labelRect.center().y())
         self.paddedRect = QtCore.QRectF(
             labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0],
-                              -CurrentTheme.MODULE_LABEL_MARGIN[1]
-                              -descRect.height()/2,
-                              CurrentTheme.MODULE_LABEL_MARGIN[2],
-                              CurrentTheme.MODULE_LABEL_MARGIN[3]
-                              +descRect.height()/2))
-        self.description = self.descFontMetric.elidedText(
-            self.description, QtCore.Qt.ElideRight, labelRect.width())
-        self.description.prepend('(').append(')')
+                                -CurrentTheme.MODULE_LABEL_MARGIN[1]
+                                -descRect.height()/2,
+                                CurrentTheme.MODULE_LABEL_MARGIN[2],
+                                CurrentTheme.MODULE_LABEL_MARGIN[3]
+                                +descRect.height()/2))
         
         self.labelRect = QtCore.QRectF(
             self.paddedRect.left(),
@@ -812,6 +839,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         elif self.ghosted:
             self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
             self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
+        elif self.invalid:
+            self.modulePen = CurrentTheme.INVALID_MODULE_PEN
+            self.labelPen = CurrentTheme.INVALID_MODULE_LABEL_PEN
         else:
             self.labelPen = CurrentTheme.MODULE_LABEL_PEN
             if self.module is not None and self.module.is_abstraction():
@@ -825,6 +855,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
         elif self.ghosted:
             self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
+        elif self.invalid:
+            self.moduleBrush = CurrentTheme.INVALID_MODULE_BRUSH
         elif self.statusBrush:
             self.moduleBrush = self.statusBrush
         elif self.customBrush:
@@ -853,6 +885,15 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 #                 self.modulePen = CurrentTheme.MODULE_PEN
 #                 self.moduleBrush = CurrentTheme.MODULE_BRUSH
 #                 self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+
+    def setInvalid(self, invalid):
+        if self.invalid != invalid:
+            self.invalid = invalid
+            for port in self.inputPorts.itervalues():
+                port.setInvalid(invalid)
+            for port in self.outputPorts.itervalues():
+                port.setInvalid(invalid)
+            self._needs_state_updated = True
 
     def setBreakpoint(self, breakpoint):
         if self.is_breakpoint != breakpoint:
@@ -948,44 +989,45 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.computeBoundingRect()
         self.resetMatrix()
         self.translate(module.center.x, -module.center.y)
-        registry = get_module_registry()
-        c = registry.get_module_color(module.package, module.name, 
-                                      module.namespace)
-        if c:
-            ic = [int(cl*255) for cl in c]
-            b = QtGui.QBrush(QtGui.QColor(ic[0], ic[1], ic[2]))
-            self.set_custom_brush(b)
 
         # Check to see which ports will be shown on the screen
         # setupModule is in a hotpath, performance-wise, which is the
         # reason for the strange ._db_name lookup - we're
         # avoiding property calls
         inputPorts = []
+        self.inputPorts = {}
         visibleOptionalPorts = []
         self.optionalInputPorts = []
-        d = PortEndPoint.Destination
-        
-        for p in module.destinationPorts():
-            if not p.optional:
-                inputPorts.append(p)
-            elif (d, p.name) in module.portVisible:
-                visibleOptionalPorts.append(p)
-            else:
-                self.optionalInputPorts.append(p)
-        inputPorts += visibleOptionalPorts
 
         outputPorts = []
+        self.outputPorts = {}
         visibleOptionalPorts = []
         self.optionalOutputPorts = []
-        s = PortEndPoint.Source
-        for p in module.sourcePorts():
-            if not p.optional:
-                outputPorts.append(p)
-            elif (s, p.name) in module.portVisible:
-                visibleOptionalPorts.append(p)
-            else:
-                self.optionalOutputPorts.append(p)
-        outputPorts += visibleOptionalPorts
+
+        error = None
+        if module.is_valid:
+            try:
+                d = PortEndPoint.Destination
+                for p in module.destinationPorts():
+                    if not p.optional:
+                        inputPorts.append(p)
+                    elif (d, p.name) in module.portVisible:
+                        visibleOptionalPorts.append(p)
+                    else:
+                        self.optionalInputPorts.append(p)
+                inputPorts += visibleOptionalPorts
+
+                s = PortEndPoint.Source
+                for p in module.sourcePorts():
+                    if not p.optional:
+                        outputPorts.append(p)
+                    elif (s, p.name) in module.portVisible:
+                        visibleOptionalPorts.append(p)
+                    else:
+                        self.optionalOutputPorts.append(p)
+                outputPorts += visibleOptionalPorts
+            except ModuleRegistryException, e:
+                error = e
 
         # Local dictionary lookups are faster than global ones..
         t = CurrentTheme
@@ -1000,21 +1042,22 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     t.MODULE_PORT_PADDED_SPACE)
         self.adjustWidthToMin(minWidth)
 
+        self.nextInputPortPos = [self.paddedRect.x() + mpm0,
+                                 self.paddedRect.y() + mpm1]
+        self.nextOutputPortPos = [self.paddedRect.right() - \
+                                      t.PORT_WIDTH - mpm2,
+                                  self.paddedRect.bottom() - \
+                                      t.PORT_HEIGHT - mpm3]
+
         # Update input ports
-        y = self.paddedRect.y() + mpm1
-        x = self.paddedRect.x() + mpm0
-        self.inputPorts = {}
+        [x, y] = self.nextInputPortPos
         for port in inputPorts:
             self.inputPorts[port] = self.createPortItem(port, x, y)
             x += t.PORT_WIDTH + t.MODULE_PORT_SPACE
         self.nextInputPortPos = [x,y]
 
         # Update output ports
-        y = (self.paddedRect.bottom() - t.PORT_HEIGHT
-             - mpm3)
-        x = (self.paddedRect.right() - t.PORT_WIDTH
-             - mpm2)
-        self.outputPorts = {}
+        [x, y] = self.nextOutputPortPos
         for port in outputPorts:            
             self.outputPorts[port] = self.createPortItem(port, x, y)
             x -= t.PORT_WIDTH + t.MODULE_PORT_SPACE
@@ -1025,14 +1068,29 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         x = (self.paddedRect.right() - t.CONFIGURE_WIDTH
              - mpm2)
         self.createConfigureItem(x, y)
-        
-        # Update module shape, if necessary
-        fringe = registry.get_module_fringe(module.package,
-                                            module.name,
-                                            module.namespace)
-        if fringe:
-            self.set_module_shape(self.create_shape_from_fringe(fringe))
 
+        if module.is_valid:
+            try:
+                # update module color and shape
+                descriptor = module.module_descriptor
+    #             c = registry.get_module_color(module.package, module.name, 
+    #                                       module.namespace)
+                c = descriptor.module_color()
+                if c:
+                    ic = [int(cl*255) for cl in c]
+                    b = QtGui.QBrush(QtGui.QColor(ic[0], ic[1], ic[2]))
+                    self.set_custom_brush(b)
+    #             fringe = registry.get_module_fringe(module.package,
+    #                                                 module.name,
+    #                                                 module.namespace)
+                fringe = descriptor.module_fringe()
+                if fringe:
+                    self.set_module_shape(self.create_shape_from_fringe(fringe))
+            except ModuleRegistryException, e:
+                error = e
+        else:
+            self.setInvalid(True)
+            
     def create_shape_from_fringe(self, fringe):
         left_fringe, right_fringe = fringe
         if left_fringe[0] != (0.0, 0.0):
@@ -1082,64 +1140,115 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Create a item from the configure spec
         
         """
-        configureShape = QGraphicsConfigureItem(self, self.scene())
-        configureShape.controller = self.controller
-        configureShape.moduleId = self.id
-        configureShape.setGhosted(self.ghosted)
-        configureShape.setBreakpoint(self.module.is_breakpoint)
-        configureShape.translate(x, y)
-        return configureShape
+        if self.module.is_valid:
+            configureShape = QGraphicsConfigureItem(self, self.scene())
+            configureShape.controller = self.controller
+            configureShape.moduleId = self.id
+            configureShape.setGhosted(self.ghosted)
+            configureShape.setBreakpoint(self.module.is_breakpoint)
+            configureShape.translate(x, y)
+            return configureShape
+        return None
 
-    def getPortPosition(self, port, portDict):
+    def getPortPosition(self, port, port_dict, optional_ports, next_pos, 
+                        next_op, default_sig):
         """ getPortPosition(port: Port,
-                            portDict: {Port:QGraphicsPortItem})
+                            port_dict: {PortSpec: QGraphicsPortItem},
+                            optional_ports: [PortSpec],
+                            next_pos: [float, float],
+                            next_op: operator (operator.add, operator.sub),
+                            default_sig: str
+                            )
                             -> QPointF
-        Return the scene position of a port matched 'port' in portDict
+        Return the scene position of a port matched 'port' in port_dict
         
         """
         registry = get_module_registry()
-        for (p, item) in portDict.iteritems():
-            if registry.port_and_port_spec_match(port, p):
+
+        # if we haven't validated pipeline, don't try to use the registry
+        if self.module.is_valid:
+            # check enabled ports
+            for (p, item) in port_dict.iteritems():
+                if registry.port_and_port_spec_match(port, p):
+                    return item.sceneBoundingRect().center()
+                
+            # check optional ports
+            for p in optional_ports:
+                if registry.port_and_port_spec_match(port, p):
+                    item = self.createPortItem(p, *next_pos)
+                    port_dict[p] = item
+                    next_pos[0] = next_op(next_pos[0], 
+                                          (CurrentTheme.PORT_WIDTH +
+                                           CurrentTheme.MODULE_PORT_SPACE))
+                    return item.sceneBoundingRect().center()
+        
+        # FIXME Raise Error!
+        # else not available for some reason, just draw port and raise error?
+        # can also decide to use Variant/Module types
+        # or use types from the signature
+        # port_descs = port.descriptors()
+                
+        # first, check if we've already added the port
+        for (p, item) in port_dict.iteritems():
+            if (PortSpec.port_type_map.inverse[port.type] == p.type and
+                port.name == p.name and 
+                port.sigstring == p.sigstring):
                 return item.sceneBoundingRect().center()
-        return None
+        
+        print "PORT SIG:", port.signature
+        if not port.signature or port.signature == '()':
+            # or len(port_descs) == 0:
+            sigstring = default_sig
+        else:
+            sigstring = port.signature
+        port_type = PortSpec.port_type_map.inverse[port.type]
+        names = []
+        for sig in sigstring[1:-1].split(','):
+            k = sig.split(':', 2)
+            if len(k) < 2:
+                names.append(k[0])
+            else:
+                names.append(k[1])
+        short_sigstring = '(' + ','.join(names) + ')'
+        tooltip = "%s port %s\n%s" % (port_type.capitalize(),
+                                      port.name,
+                                      short_sigstring)
+        new_spec = PortSpec(id=-1,
+                            name=port.name,
+                            type=port_type,
+                            sigstring=sigstring,
+                            tooltip=tooltip,
+                            optional=True)
+
+        item = self.createPortItem(new_spec, *next_pos)
+        item.setInvalid(True)
+        port_dict[new_spec] = item
+        next_pos[0] = next_op(next_pos[0], 
+                              (CurrentTheme.PORT_WIDTH +
+                               CurrentTheme.MODULE_PORT_SPACE))
+        return item.sceneBoundingRect().center()
 
     def getInputPortPosition(self, port):
         """ getInputPortPosition(port: Port) -> QPointF
         Just an overload function of getPortPosition to get from input ports
         
-        """
-        pos = self.getPortPosition(port, self.inputPorts)
-        if pos==None:
-            registry = get_module_registry()
-            for p in self.optionalInputPorts:
-                if registry.port_and_port_spec_match(port, p):
-                    portShape = self.createPortItem(p,*self.nextInputPortPos)
-                    self.inputPorts[p] = portShape
-                    self.nextInputPortPos[0] += (CurrentTheme.PORT_WIDTH +
-                                                 CurrentTheme.MODULE_PORT_SPACE)
-                    return portShape.sceneBoundingRect().center()
-            raise VistrailsInternalError("Error: did not find input port "
-                                         "%s in %s" % (port,self.label))
-        return pos
+        """        
+        return self.getPortPosition(port, self.inputPorts, 
+                                    self.optionalInputPorts,
+                                    self.nextInputPortPos,
+                                    operator.add,
+                                    '(edu.utah.sci.vistrails.basic:Variant)')
         
     def getOutputPortPosition(self, port):
         """ getOutputPortPosition(port: Port} -> QRectF
         Just an overload function of getPortPosition to get from output ports
         
         """
-        pos = self.getPortPosition(port, self.outputPorts)
-        if pos==None:
-            registry = get_module_registry()
-            for p in self.optionalOutputPorts:
-                if registry.port_and_port_spec_match(port, p):
-                    portShape = self.createPortItem(p,*self.nextOutputPortPos)
-                    self.outputPorts[p] = portShape
-                    self.nextOutputPortPos[0] -= (CurrentTheme.PORT_WIDTH +
-                                                  CurrentTheme.MODULE_PORT_SPACE)
-                    return portShape.sceneBoundingRect().center()
-            raise VistrailsInternalError("Error: did not find output port "
-                                         "%s in %s" % (port,self.label))
-        return pos
+        return self.getPortPosition(port, self.outputPorts,
+                                    self.optionalOutputPorts,
+                                    self.nextOutputPortPos,
+                                    operator.sub,
+                                    '(edu.utah.sci.vistrails.basic:Module)')
 
     def dependingConnectionItems(self):
         pip = self.controller.current_pipeline
@@ -1170,7 +1279,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         # Move connections with modules
         if change==QtGui.QGraphicsItem.ItemPositionChange:
-            self._moved = True
             oldPos = self.pos()
             newPos = value.toPointF()
             dis = newPos - oldPos
@@ -1312,6 +1420,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.pipeline_tab = None
         self._old_module_ids = set()
         self._old_connection_ids = set()
+        self.pipeline = None
 
 #        menu = QtGui.QMenu()
 #        self._create_abstraction = QtGui.QAction("Create abstraction", self)
@@ -1341,7 +1450,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_module_ids.add(module.id)
         return moduleItem
 
-    def addConnection(self, connection):
+    def addConnection(self, connection, connectionBrush=None):
         """ addConnection(connection: Connection) -> QGraphicsConnectionItem
         Add a connection to the scene
         
@@ -1355,6 +1464,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                                  connection)
         connectionItem.id = connection.id
         connectionItem.connection = connection
+        if connectionBrush:
+            connectionItem.set_custom_brush(connectionBrush)
         self.addItem(connectionItem)
         self.connections[connection.id] = connectionItem
         self._old_connection_ids.add(connection.id)
@@ -1462,116 +1573,129 @@ mutual connections."""
         Construct the scene to view a pipeline
         
         """
+        old_pipeline = self.pipeline
+        self.pipeline = pipeline
+
         if self.noUpdate: return
+        if (pipeline is None or 
+            (old_pipeline and not old_pipeline.is_valid) or 
+            (pipeline and not pipeline.is_valid)):
+            # clear things
+            self.clear()
+        if not pipeline: return 
+            
         needReset = len(self.items())==0
         registry = get_module_registry()
         try:
-            if pipeline:
-                new_modules = set(pipeline.modules)
-                modules_to_be_added = new_modules - self._old_module_ids
-                modules_to_be_deleted = self._old_module_ids - new_modules
-                common_modules = new_modules.intersection(self._old_module_ids)
+            new_modules = set(pipeline.modules)
+            modules_to_be_added = new_modules - self._old_module_ids
+            modules_to_be_deleted = self._old_module_ids - new_modules
+            common_modules = new_modules.intersection(self._old_module_ids)
 
-                new_connections = set(pipeline.connections)
-                connections_to_be_added = new_connections - self._old_connection_ids
-                connections_to_be_deleted = self._old_connection_ids - new_connections
-                common_connections = new_connections.intersection(self._old_connection_ids)
-                
-                # Check if connections to be added require 
-                # optional ports in modules to be visible
-                for c_id in connections_to_be_added:
-                    connection = pipeline.connections[c_id]
-                    smid = connection.source.moduleId
-                    s = connection.source.spec
-                    if s.optional:
-                        smm = pipeline.modules[smid]
-                        smm.portVisible.add((PortEndPoint.Source,s.name))
-                    dmid = connection.destination.moduleId   
-                    d = connection.destination.spec
-                    if d.optional:
-                        dmm = pipeline.modules[dmid]
-                        dmm.portVisible.add((PortEndPoint.Destination,d.name))
-                        
-                # remove old module shapes
-                for m_id in modules_to_be_deleted:
-                    self.removeItem(self.modules[m_id])
-                    del self.modules[m_id]
+            new_connections = set(pipeline.connections)
+            connections_to_be_added = new_connections - self._old_connection_ids
+            connections_to_be_deleted = self._old_connection_ids - new_connections
+            common_connections = new_connections.intersection(self._old_connection_ids)
 
-                selected_modules = []
-                # create new module shapes
-                for m_id in modules_to_be_added:
-                    self.addModule(pipeline.modules[m_id])
-                    if self.modules[m_id].isSelected:
-                        selected_modules.append(m_id)
+            # Check if connections to be added require 
+            # optional ports in modules to be visible
+            for c_id in connections_to_be_added:
+                connection = pipeline.connections[c_id]
+                smid = connection.source.moduleId
+                s = connection.source.spec
+                if s and s.optional:
+                    smm = pipeline.modules[smid]
+                    smm.portVisible.add((PortEndPoint.Source,s.name))
+                dmid = connection.destination.moduleId   
+                d = connection.destination.spec
+                if d and d.optional:
+                    dmm = pipeline.modules[dmid]
+                    dmm.portVisible.add((PortEndPoint.Destination,d.name))
 
-                moved = set()
-                # Update common modules
-                for m_id in common_modules:
-                    tm_item = self.modules[m_id]
-                    tm = tm_item.module
-                    nm = pipeline.modules[m_id]
-                    if tm_item.center != nm.center:
-                        self.recreate_module(pipeline, m_id)
-                        moved.add(m_id)
-                    elif self.module_text_has_changed(tm, nm):
-                        self.recreate_module(pipeline, m_id)                    
-                    tm_item.module = nm
-                    m = self.modules[m_id]
-                    if m._moved:
-                        self.recreate_module(pipeline, m_id)
-                        moved.add(m_id)
-                        m._moved = False
-                    # Check for changed ports
-                    # _db_name because this shows up in the profile.
-                    cip = sorted([x.key_no_id() for x in tm_item.inputPorts])
-                    cop = sorted([x.key_no_id() for x in tm_item.outputPorts])
-                    d = PortEndPoint.Destination
-                    s = PortEndPoint.Source
-                    pv = nm.portVisible
+            # remove old module shapes
+            for m_id in modules_to_be_deleted:
+                self.removeItem(self.modules[m_id])
+                del self.modules[m_id]
+
+            selected_modules = []
+            # create new module shapes
+            for m_id in modules_to_be_added:
+                print 'adding module', m_id
+                self.addModule(pipeline.modules[m_id])
+                if self.modules[m_id].isSelected:
+                    selected_modules.append(m_id)
+
+            moved = set()
+            # Update common modules
+            for m_id in common_modules:
+                tm_item = self.modules[m_id]
+                tm = tm_item.module
+                nm = pipeline.modules[m_id]
+                if tm_item.center != nm.center:
+                    self.recreate_module(pipeline, m_id)
+                    moved.add(m_id)
+                elif self.module_text_has_changed(tm, nm):
+                    self.recreate_module(pipeline, m_id)                    
+                tm_item.module = nm
+                # Check for changed ports
+                # _db_name because this shows up in the profile.
+                cip = sorted([x.key_no_id() for x in tm_item.inputPorts])
+                cop = sorted([x.key_no_id() for x in tm_item.outputPorts])
+                d = PortEndPoint.Destination
+                s = PortEndPoint.Source
+                pv = nm.portVisible
+                new_ip = []
+                new_op = []
+                try:
                     new_ip = sorted([x.key_no_id() for x in nm.destinationPorts()
                                      if (not x.optional or
                                          (d, x._db_name) in pv)])
                     new_op = sorted([x.key_no_id() for x in nm.sourcePorts()
                                      if (not x.optional or
                                          (s, x._db_name) in pv)])
-                    if cip <> new_ip or cop <> new_op:
-                        self.recreate_module(pipeline, m_id)
-                    if tm_item.isSelected:
-                        selected_modules.append(m_id)
-                    if self.controller and self.controller.search:
-                        moduleQuery = (self.controller.current_version, nm)
-                        matched = \
-                            self.controller.search.matchModule(*moduleQuery)
-                        tm_item.setGhosted(not matched)
-                    else:
-                        tm_item.setGhosted(False)
-                    tm_item.setBreakpoint(nm.is_breakpoint)
-                
-                # remove old connection shapes
-                for c_id in connections_to_be_deleted:
-                    self.removeItem(self.connections[c_id])
-                    del self.connections[c_id]
+                except ModuleRegistryException, e:
+                    print "MODULE REGISTRY EXCEPTION", e
+                if cip <> new_ip or cop <> new_op:
+                    self.recreate_module(pipeline, m_id)
+                if tm_item.isSelected:
+                    selected_modules.append(m_id)
+                if self.controller and self.controller.search:
+                    moduleQuery = (self.controller.current_version, nm)
+                    matched = \
+                        self.controller.search.matchModule(*moduleQuery)
+                    tm_item.setGhosted(not matched)
+                else:
+                    tm_item.setGhosted(False)
+                tm_item.setBreakpoint(nm.is_breakpoint)
 
-                # create new connection shapes
-                for c_id in connections_to_be_added:
-                    self.addConnection(pipeline.connections[c_id])
+            # remove old connection shapes
+            for c_id in connections_to_be_deleted:
+                self.removeItem(self.connections[c_id])
+                del self.connections[c_id]
 
-                # Update common connections
-                for c_id in common_connections:
-                    connection = pipeline.connections[c_id]
-                    pip_c = self.connections[c_id]
-                    pip_c.connectingModules = (self.modules[connection.source.moduleId],
-                                               self.modules[connection.destination.moduleId])
-                    (srcModule, dstModule) = pip_c.connectingModules
-                    if (srcModule.module.id in moved) or (dstModule.module.id in moved):
-                        srcPoint = srcModule.getOutputPortPosition(connection.source)
-                        dstPoint = dstModule.getInputPortPosition(connection.destination)
+            # create new connection shapes
+            for c_id in connections_to_be_added:
+                self.addConnection(pipeline.connections[c_id])
 
-                self._old_module_ids = new_modules
-                self._old_connection_ids = new_connections
-                self.unselect_all()
-                self.reset_module_colors()
+            # Update common connections
+            for c_id in common_connections:
+                connection = pipeline.connections[c_id]
+                pip_c = self.connections[c_id]
+                pip_c.connectingModules = (self.modules[connection.source.moduleId],
+                                           self.modules[connection.destination.moduleId])
+                (srcModule, dstModule) = pip_c.connectingModules
+                if (srcModule.module.id in moved) or (dstModule.module.id in moved):
+                    print 'got to moved, doing set'
+                    # srcPoint = srcModule.getOutputPortPosition(connection.source)
+                    # dstPoint = dstModule.getInputPortPosition(connection.destination)
+
+            self._old_module_ids = new_modules
+            self._old_connection_ids = new_connections
+            self.unselect_all()
+            self.reset_module_colors()
         except ModuleRegistryException, e:
+            import traceback
+            traceback.print_exc()
             views = self.views()
             assert len(views) > 0
             QtGui.QMessageBox.critical(views[0],

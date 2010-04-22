@@ -377,7 +377,10 @@ class QViewManager(QtGui.QTabWidget):
         """
 
         if type(version) == type(""):
-            version = vistrail.get_version_number(version)
+            try:
+                version = vistrail.get_version_number(version)
+            except:
+                version = None
         elif version is None:
             version = vistrail.get_latest_version()
 
@@ -388,7 +391,6 @@ class QViewManager(QtGui.QTabWidget):
         self.setCurrentWidget(vistrailView)
         vistrailView.setup_view(version)
         self.versionSelectionChange(version)
-        vistrailView.versionTab.vistrailChanged()
         return vistrailView
 
     def open_vistrail(self, locator, version=None, is_abstraction=False):
@@ -404,6 +406,14 @@ class QViewManager(QtGui.QTabWidget):
             self.closeVistrail()
         view = self.ensureVistrail(locator)
         if view:
+            if version is not None:
+                if type(version) == type(""):
+                    try:
+                        version = view.vistrail.get_version_number(version)
+                    except:
+                        version = None
+                if version is not None:
+                    view.setup_view(version)
             return view
         try:
             (vistrail, abstraction_files, thumbnail_files) = \
@@ -414,6 +424,7 @@ class QViewManager(QtGui.QTabWidget):
             return result
         except ModuleRegistryException, e:
             QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
+            raise
         except Exception, e:
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',

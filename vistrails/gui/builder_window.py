@@ -1304,9 +1304,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             currentView = self.viewManager.currentWidget()
             if currentView:
                 current_pipeline = currentView.controller.current_pipeline
-                current_pipeline.ensure_modules_are_on_registry()
-                current_pipeline.ensure_connection_specs()
-                current_pipeline.ensure_parameter_positions()
+                current_pipeline.validate()
             
         # Update the state of the icons if changing between db and file
         # support

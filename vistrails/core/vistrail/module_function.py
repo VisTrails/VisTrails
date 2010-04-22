@@ -60,8 +60,10 @@ class ModuleFunction(DBFunction):
     def set_defaults(self, other=None):
         if other is None:
             self.returnType = "void"
+            self.is_valid = False
         else:
             self.returnType = other.returnType
+            self.is_valid = other.is_valid
         self.parameter_idx = self.db_parameters_id_index
 
     def __copy__(self):
@@ -90,6 +92,10 @@ class ModuleFunction(DBFunction):
     pos = DBFunction.db_pos
     real_id = DBFunction.db_id
     name = DBFunction.db_name   
+
+    def _get_sigstring(self):
+        return '(' + ','.join(p.typeStr for p in self.params) + ')'
+    sigstring = property(_get_sigstring)
 
     def _get_params(self):
         self.db_parameters.sort(key=lambda x: x.db_pos)

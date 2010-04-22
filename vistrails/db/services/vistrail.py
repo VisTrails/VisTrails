@@ -23,7 +23,7 @@
 from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstraction, \
     DBModule, DBConnection, DBPort, DBFunction, DBParameter, DBGroup
 from db.services.action_chain import getActionChain, getCurrentOperationDict, \
-    getCurrentOperations
+    getCurrentOperations, simplify_ops
 from db import VistrailsDBException
 import copy
 import datetime
@@ -380,43 +380,6 @@ def normalOperations(adds, deletes, do_copy=False):
         new_ops.append(new_op)
     return new_ops        
 
-def simplifyOps(ops):
-    addDict = {}
-    deleteDict = {}
-    opCount = -1
-    for op in ops:
-        op.db_id = opCount
-        if op.vtType == 'add':
-            addDict[(op.db_what, op.db_objectId)] = op
-        elif op.vtType == 'delete':
-            try:
-                del addDict[(op.db_what, op.db_objectId)]
-            except KeyError:
-                deleteDict[(op.db_what, op.db_objectId)] = op
-        elif op.vtType == 'change':
-            try:
-                k = addDict[(op.db_what, op.db_oldObjId)]
-            except KeyError:
-                addDict[(op.db_what, op.db_newObjId)] = op
-            else:
-                old_old_id = getOldObjId(k)
-                del addDict[(op.db_what, op.db_oldObjId)]
-                addDict[(op.db_what, op.db_newObjId)] = \
-                    DBChange(id=opCount,
-                             what=op.db_what,
-                             oldObjId=old_old_id,
-                             newObjId=op.db_newObjId,
-                             parentObjId=op.db_parentObjId,
-                             parentObjType=op.db_parentObjType,
-                             )
-        opCount -= 1
-
-    deletes = deleteDict.values()
-    deletes.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
-    adds = addDict.values()
-    adds.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
-    return deletes + adds
-
 def getPathAsAction(vistrail, v1, v2, do_copy=False):
     sharedRoot = getSharedRoot(vistrail, [v1, v2])
     sharedActionChain = getActionChain(vistrail, sharedRoot)
@@ -444,7 +407,7 @@ def getPathAsAction(vistrail, v1, v2, do_copy=False):
     v2Ops = normalOperations(v2Adds, v2Deletes, do_copy)
 
     allOps = v1InverseOps + v2Ops
-    simplifiedOps = simplifyOps(allOps)
+    simplifiedOps = simplify_ops(allOps)
     return DBAction(id=-1, 
                     operations=simplifiedOps,
                     )

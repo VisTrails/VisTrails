@@ -83,13 +83,15 @@ class PortSpec(DBPortSpec):
         if not self.sigstring and self._entries is not None:
             # create sigstring from entries
             self.create_sigstring_and_descriptors()
-        elif self._entries is None and self.sigstring:
-            # create entries from sigstring
-            self.create_entries_and_descriptors()
-        else:
-            raise VistrailsInternalError("Need to specify signature or "
-                                         "sigstring to create PortSpec")
-        if self._tooltip is None or self._short_sigstring is None:
+# DAKOOP: removed this---we will check in module_registry and pipeline 
+# validation, this way, we can let errors go all the way up
+#         elif self._entries is None and self.sigstring:
+#             # create entries from sigstring
+#             self.create_entries_and_descriptors()
+#         else:
+#             raise VistrailsInternalError("Need to specify signature or "
+#                                          "sigstring to create PortSpec")
+        if self._entries is not None and self._tooltip is None:
             self.create_tooltip()
 
     def __copy__(self):
@@ -104,7 +106,8 @@ class PortSpec(DBPortSpec):
         cp._defaults = self._defaults
         cp._tooltip = self._tooltip
         cp.__class__ = PortSpec
-        cp.create_tooltip()
+        if cp._entries is not None:
+            cp.create_tooltip()
         return cp
 
     @staticmethod
@@ -118,13 +121,15 @@ class PortSpec(DBPortSpec):
         _port_spec._labels = None
         _port_spec._defaults = None
         _port_spec._tooltip = None
+        # FIXME probably can just let validation take care of this...
         if module_registry_loaded():
             try:
                 _port_spec.create_entries_and_descriptors()
                 _port_spec.create_tooltip()
-            except ModuleRegistryException:
+            except ModuleRegistryException, e:
                 _port_spec._descriptors = None
                 _port_spec._entries = None
+                # raise e
         else:
             _port_spec._descriptors = None
             _port_spec._entries = None
@@ -230,6 +235,7 @@ class PortSpec(DBPortSpec):
                                                         'List').module,
                         '<no description>')
             else:
+                # type(sig_item) == __builtin__.type:
                 return (sig_item, '<no description>')
 
         # def _add_entry(sig_item):
@@ -281,8 +287,8 @@ class PortSpec(DBPortSpec):
                     self._descriptors.append(d)
 
         if recompute_sigstring:
-            self.sigstring = "(" + ",".join(d.sigstring 
-                                            for d in self._descriptors) + ")"
+            self.sigstring = "(" + \
+                ",".join(d.sigstring for d in self._descriptors) + ")"
             self.create_tooltip()
 
     def create_entries_and_descriptors(self):

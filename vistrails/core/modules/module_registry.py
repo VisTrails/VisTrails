@@ -195,13 +195,14 @@ get_descriptor           = None
 
 class ModuleRegistryException(Exception):
     def __init__(self, identifier, name=None, namespace=None,
-                 package_version=None, module_version=None):
+                 package_version=None, module_version=None, module_id=None):
         Exception.__init__(self)
         self._identifier = identifier
         self._name = name
         self._namespace = namespace
         self._package_version = package_version
         self._module_version = module_version
+        self._module_id = module_id
 
     def __str__(self):
         p_version_str = ""
@@ -225,11 +226,13 @@ class ModuleRegistryException(Exception):
             self._name == other._name and \
             self._namespace == other._namespace and \
             self._package_version == other._package_version and \
-            self._module_version == other._module_version
+            self._module_version == other._module_version and \
+            self._module_id == other._module_id
 
     def __hash__(self):
         return (type(self), self._identifier, self._name, self._namespace,
-                self._package_version, self._module_version).__hash__()
+                self._package_version, self._module_version, 
+                self._module_id).__hash__()
 
     def _get_module_name(self):
         if self._namespace:
@@ -252,9 +255,10 @@ class MissingPackage(ModuleRegistryException):
         return "Missing package: %s" % self._identifier
 
 class MissingModule(ModuleRegistryException):
-    def __init__(self, identifier, name, namespace, package_version=None):
+    def __init__(self, identifier, name, namespace, package_version=None,
+                 module_id=None):
         ModuleRegistryException.__init__(self, identifier, name, namespace,
-                                         package_version)
+                                         package_version, None, module_id)
 
     def __str__(self):
         return "Missing module %s in package %s" % (self._module_name,
@@ -303,38 +307,6 @@ class MissingPort(ModuleRegistryException):
         return "Missing %s port %s from module %s in package %s" % \
             (self._port_type, self._port_name, self._module_name, 
              self._package_name)
-
-class ObsoletePackageVersion(ModuleRegistryException):
-    def __init__(self, descriptor,
-                 package_version, module_version):
-        ModuleRegistryException.__init__(self,
-                                         descriptor.identifier,
-                                         descriptor.name,
-                                         descriptor.namespace)
-        self._package_version = package_version
-        self._module_version = module_version
-    def __str__(self):
-        return "Package %s has lower version for module %s: %s vs %s" % \
-               (self._package_name, self._module_name,
-                self._package_version, self._module_version)
-        
-
-class PackageMustUpgradeModule(ModuleRegistryException):
-    def __init__(self, descriptor,
-                 package_version, module_version,
-                 module_id):
-        ModuleRegistryException.__init__(self,
-                                         descriptor.identifier,
-                                         descriptor.name,
-                                         descriptor.namespace)
-        self._package_version = package_version
-        self._module_version = module_version
-        self._module_id = module_id
-    def __str__(self):
-        return "Package %s must upgrade module %s (id: %s) %s vs %s" % \
-               (self._package_name, self._module_name,
-                self._module_id,
-                self._package_version, self._module_version)
 
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
@@ -625,9 +597,8 @@ class ModuleRegistry(DBRegistry):
         module_version = module_version or ''
 
         try:
-            if not package_version:
-                package = self.packages[identifier]
-            else:
+            package = self.packages[identifier]
+            if package_version:
                 package_version_key = (identifier, package_version)
                 package = self.package_versions[package_version_key]
             if not module_version:
@@ -640,12 +611,12 @@ class ModuleRegistry(DBRegistry):
         except KeyError:
             if identifier not in self.packages:
                 raise MissingPackage(identifier)
-            elif package_version and \
-                    package_version_key not in self.package_versions:
-                raise MissingPackageVersion(identifier, package_version)
             elif (name, namespace) not in package.descriptors:
                 raise MissingModule(identifier, name, namespace, 
                                     package_version)
+            elif package_version and \
+                    package_version_key not in self.package_versions:
+                raise MissingPackageVersion(identifier, package_version)
             elif module_version and descriptor_version_key not in \
                     package.descriptor_versions:
                 raise MissingModuleVersion(identifier, name, namespace,
@@ -1175,6 +1146,11 @@ class ModuleRegistry(DBRegistry):
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
                                      labels, defaults)
+
+        # need to check if the spec is valid
+        if spec._entries is None:
+            spec.create_entries_and_descriptors()
+
         descriptor.add_port_spec(spec)
         if port_type == 'input':
             self.signals.emit_new_input_port(descriptor.identifier,
@@ -1239,7 +1215,7 @@ class ModuleRegistry(DBRegistry):
         if package.initialized():
             return
         print "Initializing", package.codepath
-        if package.identifier not in self.packages:
+        if (package.identifier, package.version) not in self.package_versions:
             self.add_package(package)
         self.set_current_package(package)
         try:
@@ -1401,6 +1377,8 @@ class ModuleRegistry(DBRegistry):
             return False
         if port.name != port_spec.name:
             return False
+        if port.sigstring == port_spec.sigstring:
+            return True
         return self.are_specs_matched(port, port_spec)
 
     def ports_can_connect(self, sourceModulePort, destinationModulePort):
@@ -1437,14 +1415,17 @@ class ModuleRegistry(DBRegistry):
         sub_descs = []
         if sub:
             sub_descs = sub.descriptors()
-        if sub_descs == [variant_desc]:
+        if sub_descs is None:
+            return False
+        elif sub_descs == [variant_desc]:
             return True
         super_descs = []
         if super:
             super_descs = super.descriptors()
-        if super_descs == [variant_desc]:
+        if super_descs is None:
+            return False
+        elif super_descs == [variant_desc]:
             return True
-
         if len(sub_descs) != len(super_descs):
             return False
         

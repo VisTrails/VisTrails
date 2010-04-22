@@ -39,6 +39,12 @@ def create_action_from_ops(ops):
         return action
     return None
 
+def merge_actions(action_list):
+    ops = []
+    for action in action_list:
+        ops.extend(action.operations)
+    return create_action_from_ops(ops, True)
+
 def create_paste_action(pipeline, id_scope, id_remap=None):
     action_list = []
     if id_remap is None:

@@ -632,14 +632,42 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         for item in selectedItems:
             controller.perform_analogy(analogy_name, item.id)
 
+    def show_raw_pipeline(self):
+        self.scene().emit_selection = False
+        for item in self.scene().selectedItems():
+            item.setSelected(False)
+        self.setSelected(True)
+        self.scene().emit_selection = True
+        self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
+                          self.id, True, False, True)
+            
+    def construct_from_root(self):
+        self.scene().emit_selection = False
+        for item in self.scene().selectedItems():
+            item.setSelected(False)
+        self.setSelected(True)
+        self.scene().emit_selection = True
+        self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
+                          self.id, True, True, True)
+
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
         Captures context menu event.
 
         """
         controller = self.scene().controller
+        menu = QtGui.QMenu()
+        raw_action = QtGui.QAction("Display raw pipeline", self.scene())
+        from_root_action = QtGui.QAction("Construct from root", self.scene())
+        QtCore.QObject.connect(raw_action,
+                               QtCore.SIGNAL("triggered()"),
+                               self.show_raw_pipeline)
+        QtCore.QObject.connect(from_root_action,
+                               QtCore.SIGNAL("triggered()"),
+                               self.construct_from_root)
+        menu.addAction(raw_action)
+        menu.addAction(from_root_action)
         if len(controller.analogy) > 0:
-            menu = QtGui.QMenu()
             analogies = QtGui.QMenu("Perform analogy...")
             for title in sorted(controller.analogy.keys()):
                 act = QtGui.QAction(title, self.scene())
@@ -648,7 +676,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                                        QtCore.SIGNAL("triggered()"),
                                        self.perform_analogy)
             menu.addMenu(analogies)
-            menu.exec_(event.screenPos())
+        menu.exec_(event.screenPos())
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """
@@ -879,11 +907,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             self.versions[v].setSelected(v == controller.current_version)
 
         self.emit_selection = True
-        if controller.current_version >= 0:
-            self.versions[controller.current_version].setSelected(True)
-        else:
-            # get selectionChanged to emit version -1
-            self.selectionChanged()
+        self.selectionChanged()
 
 
         # remove gui edges from scene
@@ -982,7 +1006,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
              if res == gui.utils.YES_BUTTON:
                  self.controller.prune_versions(versions)
          qt_super(QVersionTreeScene, self).keyPressEvent(event)
-        
+
     def selectionChanged(self):
         if not self.emit_selection:
             return
@@ -994,14 +1018,14 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 item.text.hide()
         if len(selected_items) == 1:
             # emit versionSelected selected_id
-            self.emit(QtCore.SIGNAL('versionSelected(int, bool)'),
-                      selected_items[0].id, self.select_by_click)
+            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
+                      selected_items[0].id, self.select_by_click, True, False)
             if selected_items[0].id != 0:
                 selected_items[0].text.show()
         else:
             # emit versionSelected -1
-            self.emit(QtCore.SIGNAL('versionSelected(int, bool)'),
-                      -1, self.select_by_click)
+            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
+                      -1, self.select_by_click, True, False)
 
         if len(selected_items) == 2:
             self.emit(

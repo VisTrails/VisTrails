@@ -58,18 +58,19 @@ class Port(DBPort):
         """
 
         self._spec = None
+        self._descriptors = None
         if 'spec' in kwargs:
-            self.spec = kwargs['spec']
+            self._spec = kwargs['spec']
             del kwargs['spec']
             if 'name' not in kwargs:
-                kwargs['name'] = self.spec.name
+                kwargs['name'] = self._spec.name
             if 'type' not in kwargs:
-                if self.spec.type in PortSpec.port_type_map:
-                    kwargs['type'] = PortSpec.port_type_map[self.spec.type]
+                if self._spec.type in PortSpec.port_type_map:
+                    kwargs['type'] = PortSpec.port_type_map[self._spec.type]
             if 'signature' not in kwargs:
-                kwargs['signature'] = self.spec.sigstring
-        else:
-            self.spec = None
+                kwargs['signature'] = self._spec.sigstring
+#         else:
+#             self.spec = None
         if 'id' not in kwargs:
             kwargs['id'] = -1
         if 'moduleId' not in kwargs:
@@ -83,21 +84,29 @@ class Port(DBPort):
 
 	DBPort.__init__(self, *args, **kwargs)
 
-        self.find_port_types()
+        self.set_defaults()
+
 #             # if there is no spec, create it
 #             spec_type = PortSpec.port_type_map.inverse[self.type]
 #             self._spec = PortSpec(name=self.name, 
 #                                   type=spec_type,
 #                                   sigstring=self.signature)
         
+    def set_defaults(self, other=None):                
+        if other is None:
+            self.is_valid = False
+        else:
+            self.is_valid = other.is_valid
+            self._spec = copy.copy(other._spec)
+            self._descriptors = copy.copy(other._descriptors)
+
     def __copy__(self):
         return Port.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPort.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Port
-        cp._descriptors = copy.copy(self._descriptors)
-        cp._spec = copy.copy(self._spec)
+        cp.set_defaults(self)
         return cp
 
     @staticmethod
@@ -107,28 +116,7 @@ class Port(DBPort):
         _port.__class__ = Port
         _port._spec = None
         _port._descriptors = None
-        _port.find_port_types()
-
-    def find_port_types(self):
-        from core.modules.module_registry import get_module_registry, \
-            ModuleRegistryException
-        registry = get_module_registry()
-        self._descriptors = []
-        if self.signature:
-            signature_str = self.signature[1:-1].strip()
-            if signature_str != "":
-                try:
-                    for type_str in signature_str.split(','):
-                        desc = registry.get_descriptor_by_name( \
-                            *(type_str.split(':', 2)))
-                        self._descriptors.append(desc)
-                except ModuleRegistryException, e:
-#                     print ('Cannot find module "%s" in \n' 
-#                            'package "%s". Make sure package is \n' 
-#                            'enabled in the Preferences dialog.' % \
-#                                (e._name, e._identifier))
-                    self._descriptors = []
-                    return
+        _port.set_defaults()
 
     ##########################################################################
     # Properties
@@ -157,14 +145,17 @@ class Port(DBPort):
     def _set_signature(self, signature):
         self.db_signature = signature
     signature = property(_get_signature, _set_signature)
+    sigstring = signature
     
     def _get_spec(self):
         return self._spec
     def _set_spec(self, spec):
         self._spec = spec
         if self._spec is not None:
+            self.name = self._spec.name
+            self.type = PortSpec.port_type_map[self._spec.type]
             self.signature = self._spec.sigstring
-            self.find_port_types()
+            # self.find_port_types()
         else:
             self.signature = ""
     spec = property(_get_spec, _set_spec)
@@ -175,7 +166,11 @@ class Port(DBPort):
     sig = property(_get_sig)
 
     def descriptors(self):
-        return self._descriptors
+        if self._spec is not None:
+            return self._spec.descriptors()
+        return None
+
+    # return self._descriptors
 
     ##########################################################################
     # Debugging

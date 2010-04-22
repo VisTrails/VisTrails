@@ -82,8 +82,8 @@ class VistrailsTreeLayoutLW(object):
         X.add(0)
 
         # include the tagged nodes
-        for id, tag in vistrail.tagMap.items():
-            if id in graph.vertices.keys():
+        for id, tag in vistrail.tagMap.iteritems():
+            if id in graph.vertices:
                 nodes.append((id,tag.name))
                 X.add(id)
 
@@ -91,7 +91,7 @@ class VistrailsTreeLayoutLW(object):
         # preserving the order given by
         # "graph.edges_from()".
         edges = []
-        for id in graph.vertices.keys():
+        for id in graph.vertices:
             froom = graph.edges_from(id)
             for (first,second) in froom:
                 # print "arc %d -> %d" % (id, first)                

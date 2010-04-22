@@ -29,8 +29,7 @@ from core.data_structures.graph import Graph
 from core import debug
 from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException, ObsoletePackageVersion, \
-    PackageMustUpgradeModule
+    ModuleRegistryException, MissingModule
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
@@ -68,14 +67,42 @@ class Pipeline(DBWorkflow):
             self.id = 0
         if self.name is None:
             self.name = 'untitled'
+        self.set_defaults()
+
+    def set_defaults(self, other=None):
+        if other is None:
+            self.is_valid = False
+            self.aliases = Bidict()
+            self._subpipeline_signatures = Bidict()
+            self._module_signatures = Bidict()
+            self._connection_signatures = Bidict()
+        else:
+            self.is_valid = other.is_valid
+            self.aliases = Bidict([(k,copy.copy(v))
+                                   for (k,v) in other.aliases.iteritems()])
+            self._connection_signatures = \
+                Bidict([(k,copy.copy(v))
+                        for (k,v) in other._connection_signatures.iteritems()])
+            self._subpipeline_signatures = \
+                Bidict([(k,copy.copy(v))
+                        for (k,v) in other._subpipeline_signatures.iteritems()])
+            self._module_signatures = \
+                Bidict([(k,copy.copy(v))
+                        for (k,v) in other._module_signatures.iteritems()])
+
+        self.graph = Graph()
         for module in self.module_list:
-            if module.vtType == Module.vtType:
-                Module.convert(module)
-            elif module.vtType == Abstraction.vtType:
-                Abstraction.convert(module)
-            elif module.vtType == Group.vtType:
-                Group.convert(module)
             self.graph.add_vertex(module.id)
+            # there should be another way to do this
+            m_id = module.id
+            for fun in module.functions:
+                for par in fun.parameters:
+                    self.change_alias(par.alias,
+                                      par.vtType,
+                                      par.real_id,
+                                      fun.vtType,
+                                      fun.real_id,
+                                      m_id)
         for connection in self.connection_list:
             self.graph.add_edge(connection.source.moduleId,
                                 connection.destination.moduleId,
@@ -88,26 +115,7 @@ class Pipeline(DBWorkflow):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBWorkflow.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Pipeline
-        if id_remap:
-            vertex_map = dict((old, new) for ((type, old), new) in id_remap.iteritems()
-                              if type == 'module')
-            edge_map = dict((old, new) for ((type, old), new) in id_remap.iteritems()
-                              if type == 'connection')
-            cp.graph = Graph.map_vertices(self.graph, vertex_map, edge_map)
-        else:
-            cp.graph = copy.copy(self.graph)
-        cp.aliases = Bidict([(k,copy.copy(v))
-                           for (k,v)
-                           in self.aliases.iteritems()])
-        cp._connection_signatures = Bidict([(k,copy.copy(v))
-                                            for (k,v)
-                                            in self._connection_signatures.iteritems()])
-        cp._subpipeline_signatures = Bidict([(k,copy.copy(v))
-                                             for (k,v)
-                                             in self._subpipeline_signatures.iteritems()])
-        cp._module_signatures = Bidict([(k,copy.copy(v))
-                                        for (k,v)
-                                        in self._module_signatures.iteritems()])
+        cp.set_defaults(self)
         return cp
 
     @staticmethod
@@ -116,11 +124,6 @@ class Pipeline(DBWorkflow):
             return
         # do clear plus get the modules and connections
 	_workflow.__class__ = Pipeline
-        _workflow.graph = Graph()
-        _workflow.aliases = Bidict()
-        _workflow._subpipeline_signatures = Bidict()
-        _workflow._module_signatures = Bidict()
-        _workflow._connection_signatures = Bidict()
 	for _module in _workflow.db_modules:
             if _module.vtType == Module.vtType:
                 Module.convert(_module)
@@ -128,26 +131,11 @@ class Pipeline(DBWorkflow):
                 Abstraction.convert(_module)
             elif _module.vtType == Group.vtType:
                 Group.convert(_module)
-            _workflow.graph.add_vertex(_module.id)
 	for _connection in _workflow.db_connections:
             Connection.convert(_connection)
-            _workflow.graph.add_edge( \
-                _connection.source.moduleId,
-                _connection.destination.moduleId,
-                _connection.db_id)
         for _plugin_data in _workflow.db_plugin_datas:
             PluginData.convert(_plugin_data)
-        #there should be another way to do this
-        for _mod in _workflow.modules.itervalues():
-            mid = _mod.id
-            for _fun in _mod.functions:
-                for _par in _fun.parameters:
-                    _workflow.change_alias(_par.alias,
-                                           _par.vtType,
-                                           _par.real_id,
-                                           _fun.vtType,
-                                           _fun.real_id,
-                                           mid)
+        _workflow.set_defaults()
 
     ##########################################################################
 
@@ -798,6 +786,56 @@ class Pipeline(DBWorkflow):
     ##########################################################################
     # Registry-related
 
+    def validate(self):
+        print '--- validating ---'
+        # want to check entire pipeline and reconcile it with the
+        # registry - if anything fails, generate invalid pipeline with
+        # the errors
+        exceptions = set()
+        try:
+            self.ensure_modules_are_on_registry()
+        except InvalidPipeline, e:
+            exceptions.update(e.get_exception_set())
+
+        # do this before we check connection specs because it is
+        # possible that a subpipeline invalidates the module, meaning
+        # we shouldn't check the connection specs
+        for module in self.modules.itervalues():
+            if module.is_valid and (module.is_group() or 
+                                    module.is_abstraction()):
+                try:
+                    subpipeline = module.pipeline
+                    subpipeline.validate()
+                except InvalidPipeline, e:
+                    module.is_valid = False
+                    e._module_id = module.id
+                    exceptions.add(e)
+        
+        try:
+            self.ensure_port_specs()
+        except InvalidPipeline, e:
+            exceptions.update(e.get_exception_set())
+        try:
+            self.ensure_connection_specs()
+        except InvalidPipeline, e:
+            exceptions.update(e.get_exception_set())
+        try:
+            self.ensure_functions()
+        except InvalidPipeline, e:
+            exceptions.update(e.get_exception_set())
+#         try:
+#             self.ensure_parameter_positions()
+#         except InvalidPipeline, e:
+#             exceptions.update(e.get_exception_set())
+
+        
+        if len(exceptions) > 0:
+            raise InvalidPipeline(exceptions, self)
+
+        # else
+        self.is_valid = True
+        return True
+
     def ensure_old_modules_have_package_names(self):
         """ensure_old_modules_have_package_names()
 
@@ -815,29 +853,46 @@ class Pipeline(DBWorkflow):
         """
         exceptions = set()
 
+        # print 'ensure_connection_specs:', sorted(self.modules.keys())
+
         def find_spec(port):
             module = self.get_module_by_id(port.moduleId)
             port_type_map = PortSpec.port_type_map
-            spec = None
             try:
-                spec = module.get_port_spec(port.name, 
+                # print 'running get_port_spec', port.name
+                port.spec = module.get_port_spec(port.name, 
                                             port_type_map.inverse[port.type])
+                # print 'got spec', spec, spec.sigstring
             except ModuleRegistryException, e:
+                print 'CONNECTION EXCEPTION', e
                 exceptions.add(e)
-            return spec
+            else:
+                port.is_valid = True
             
         if connection_ids is None:
             connection_ids = self.connections.iterkeys()
         for conn_id in connection_ids:
-            # print 'checking connection', conn_id
             conn = self.connections[conn_id]
-            if not conn.source.spec:
-                conn.source.spec = find_spec(conn.source)
-            if not conn.destination.spec:
-                conn.destination.spec = find_spec(conn.destination)
+            # print 'checking connection', conn_id, conn.source.moduleId, conn.source.moduleName, conn.source.name, conn.destination.moduleId, conn.destination.moduleName, conn.destination.name
+            src_module = self.modules[conn.source.moduleId]
+            if src_module.is_valid:
+                # print 'src_module:', src_module.name, src_module.id
+                find_spec(conn.source)
+            
+            dst_module = self.modules[conn.destination.moduleId]
+            if dst_module.is_valid:
+                # print 'dst_module:', dst_module.name, dst_module.id
+                find_spec(conn.destination)
+
+            # if not conn.source.spec:
+            # conn.source.spec = find_spec(conn.source)
+            # if not conn.destination.spec:
+            # conn.destination.spec = find_spec(conn.destination)
+            # print 'source spec:', conn.source.spec.sigstring
+            # print 'dest spec:', conn.destination.spec.sigstring
 
         if len(exceptions) > 0:
-            raise InvalidPipeline(exceptions)
+            raise InvalidPipeline(exceptions, self)
 
     def ensure_modules_are_on_registry(self, module_ids=None):
         """ensure_modules_are_on_registry(module_ids: optional list of module ids) -> None
@@ -852,7 +907,6 @@ class Pipeline(DBWorkflow):
 
         if no module_ids list is given, we assume every module in the pipeline.
         """
-        
         def find_descriptors(pipeline, module_ids=None):
             registry = get_module_registry()
             conf = get_vistrails_configuration()
@@ -862,45 +916,14 @@ class Pipeline(DBWorkflow):
             for mid in module_ids:
                 module = pipeline.modules[mid]
                 try:
-                    descriptor = registry.get_similar_descriptor(
-                        module.package,
-                        module.name,
-                        module.namespace,
-                        module.version,
-                        module.internal_version)
-                    pkg = registry.get_package_by_name(module.package)
-                    pkg_version = pkg.version.split('.')
-                    # FIXME: this split('.') should be a function somewhere.
-                    # The goal is to be able to compare them lexicographically
-                    if module.version:
-                        module_version = module.version.split('.')
-                    else:
-                        module_version = [0]
-
-                    # Skip basic modules for upgrade check, since
-                    # these don't seem to be consistent (in particular
-                    # for inputport and outputport in groups)
-
-                    if conf.automaticallyUpgradeWorkflows:
-                        if module.package <> "edu.utah.sci.vistrails.basic":
-                            if versions_increasing(pkg_version, 
-                                                   module_version):
-                                raise ObsoletePackageVersion(descriptor,
-                                                             pkg.version,
-                                                             module.version)
-                            elif versions_increasing(module_version,
-                                                     pkg_version):
-                                raise PackageMustUpgradeModule(descriptor,
-                                                               pkg.version,
-                                                               module.version,
-                                                               mid)
-                    module.module_descriptor = descriptor
-                    if (module.vtType == Group.vtType or 
-                        module.vtType == Abstraction.vtType):
-                        subpipeline = module.pipeline
-                        exceptions.update(find_descriptors(subpipeline))
+                    # FIXME check for upgrades, otherwise use similar
+                    # descriptor, the old behavior
+                    descriptor = module.module_descriptor
                 except ModuleRegistryException, e:
+                    e._module_id = mid
                     exceptions.add(e)
+                else:
+                    module.is_valid = True
             return exceptions
         # end find_descriptors
 
@@ -908,24 +931,57 @@ class Pipeline(DBWorkflow):
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)
 
-    def ensure_parameter_positions(self):
-        exceptions = []
+    def ensure_functions(self):
+        exceptions = set()
+        reg = get_module_registry()
         for module in self.modules.itervalues():
             for function in module.functions:
+                is_valid = True
+                # FIXME also check for the corresponding spec for a function?
                 pos_map = {}
-                for parameter in function.parameters:
-                    if parameter.pos in pos_map:
+                for p in function.parameters:
+                    if p.identifier == '':
+                        idn = 'edu.utah.sci.vistrails.basic'
+                    else:
+                        idn = p.identifier
+
+                    try:
+                        desc = reg.get_module_by_name(idn,
+                                                      p.type,
+                                                      p.namespace)
+                    except ModuleRegistryException, e:
+                        is_valid = False
+                        e._module_id = module.id
+                        exceptions.add(e)
+
+                    if p.pos in pos_map:
+                        is_valid = False
                         e = VistrailsInternalError("Module %d has multiple "
                                                    "values for parameter %d "
                                                    "of function %s (%d)" % \
                                                        (module.id,
-                                                        parameter.pos,
+                                                        p.pos,
                                                         function.name,
                                                         function.real_id))
                         exceptions.append(e)
-                    pos_map[parameter.pos] = parameter
+                    pos_map[p.pos] = p
+                function.is_valid = is_valid
         if len(exceptions) > 0:
-            raise InvalidPipeline(exceptions)
+            raise InvalidPipeline(exceptions, self)
+
+    def ensure_port_specs(self):
+        exceptions = set()
+        for module in self.modules.itervalues():
+            for port_spec in module.port_specs.itervalues():
+                try:
+                    port_spec.create_entries_and_descriptors()
+                except ModuleRegistryException, e:
+                    is_valid = False
+                    e._module_id = module.id
+                    exceptions.add(e)
+    
+        if len(exceptions) > 0:
+            raise InvalidPipeline(exceptions, self)
                 
     ##########################################################################
     # Debugging

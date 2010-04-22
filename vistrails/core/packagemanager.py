@@ -35,7 +35,8 @@ import core.data_structures.graph
 import core.db.io
 from core.modules.module_registry import ModuleRegistry, MissingPackage
 from core.modules.package import Package
-from core.utils import VistrailsInternalError, InstanceObject
+from core.utils import VistrailsInternalError, InstanceObject, \
+    versions_increasing
 ##############################################################################
 
 
@@ -136,7 +137,7 @@ class PackageManager(QtCore.QObject):
         _package_manager = self
         self._configuration = configuration
         self._package_list = {}
-        self._identifier_map = {}
+        self._package_versions = {}
         self._dependency_graph = core.data_structures.graph.Graph()
         self._registry = None
         self._userpackages = None
@@ -164,7 +165,7 @@ exiting VisTrails."""
         for package in self._package_list.itervalues():
             package.finalize()
         self._package_list = {}
-        self._identifier_map = {}        
+        self._package_versions = {}
         global _package_manager
         _package_manager = None
 
@@ -179,16 +180,21 @@ To do so, call initialize_packages()"""
         """remove_package(name): Removes a package from the system."""
         pkg = self._package_list[codepath]
         self._dependency_graph.delete_vertex(pkg.identifier)
-        del self._identifier_map[pkg.identifier]
+        del self._package_versions[pkg.identifier][pkg.version]
+        if len(self._package_versions[pkg.identifier]) == 0:
+            del self._package_versions[pkg.identifier]
         self.remove_menu_items(pkg)
         pkg.finalize()
         del self._package_list[codepath]
         self._registry.remove_package(pkg)
 
-    def has_package(self, identifier):
+    def has_package(self, identifier, version=None):
         """has_package(identifer: string) -> Boolean.
 Returns true if given package identifier is present."""
-        return self._identifier_map.has_key(identifier)
+        if identifier in self._package_versions:
+            return (version is None or 
+                    version in self._package_versions[identifier])
+        return False
 
     def look_at_available_package(self, codepath):
         """look_at_available_package(codepath: string) -> Package
@@ -197,6 +203,19 @@ Returns true if given package identifier is present."""
         NOT install a package.
         """
         return self._registry.create_package(codepath, False)
+
+    def get_package(self, identifier, version=None):
+        package_versions = self._package_versions[identifier]
+        if version is not None:
+            return package_versions[version]
+
+        max_version = '0'
+        max_pkg = None
+        for version, pkg in package_versions.iteritems():
+            if versions_increasing(max_version, version):
+                max_version = version
+                max_pkg = pkg
+        return max_pkg
 
     def get_package_by_codepath(self, codepath):
         """get_package_by_codepath(codepath: string) -> Package.
@@ -217,14 +236,6 @@ Returns true if given package identifier is present."""
             raise self.MissingPackage(identifier)
         return self._registry.packages[identifier]
 
-#         # FIXME: This should really be handled better
-#         if identifier == 'edu.utah.sci.vistrails.basic':
-#             return InstanceObject(name='Basic Modules')
-#         if identifier not in self._identifier_map:
-#             raise self.MissingPackage(identifier)
-#         else:
-#             return self._identifier_map[identifier]
-
     def get_package_configuration(self, codepath):
         """get_package_configuration(codepath: string) ->
         ConfigurationObject or None
@@ -244,6 +255,41 @@ Returns true if given package identifier is present."""
                 raise self.PackageInternalError(codepath, d)
             return c
 
+    def check_dependencies(self, package, deps):
+        # want to check that necessary version also exists, if specified
+        missing_deps = []
+        for dep in deps:
+            min_version = None
+            max_version = None
+            if type(dep) == tuple:
+                identifier = dep[0]
+                if len(dep) > 1:
+                    min_version = dep[1]
+                    if len(dep) > 2:
+                        max_version = dep[2]
+            else:
+                identifier = dep
+
+            if identifier not in self._package_versions:
+                missing_deps.append((identifier, None, None))
+            else:
+                if min_version is None and max_version is None:
+                    continue
+                found_version = False
+                for version, pkg in \
+                        self._package_versions[identifier].iteritems():
+                    if ((min_version is None or
+                         versions_increasing(min_version, version)) and
+                        (max_version is None or
+                         versions_increasing(version, max_version))):
+                        found_version = True
+                if not found_version:
+                    missing_deps.append((identifier, min_version, max_version))
+
+        if len(missing_deps) > 0:
+            raise Package.MissingDependency(package, missing_deps)
+        return True
+
     def add_dependencies(self, package):
         """add_dependencies(package) -> None.  Register all
         dependencies a package contains by calling the appropriate
@@ -257,16 +303,17 @@ Returns true if given package identifier is present."""
         from core.modules.basic_modules import identifier as basic_pkg
         if package.identifier != basic_pkg:
             deps.append(basic_pkg)
-        missing_packages = [identifier
-                            for identifier in deps
-                            if identifier not in self._dependency_graph.vertices]
-        if len(missing_packages):
-            raise Package.MissingDependency(package,
-                                            missing_packages)
 
-        for dep_name in deps:
-            if (dep_name not in
-                self._dependency_graph.adjacency_list[package.identifier]):
+        self.check_dependencies(package, deps)
+
+        for dep in deps:
+            if type(dep) == tuple:
+                dep_name = dep[0]
+            else:
+                dep_name = dep
+
+            if not self._dependency_graph.has_edge(package.identifier,
+                                                   dep_name):
                 self._dependency_graph.add_edge(package.identifier, dep_name)
 
     def late_enable_package(self, package_codepath, prefix_dictionary={}):
@@ -286,7 +333,9 @@ Returns true if given package identifier is present."""
             del self._package_list[package_codepath]
             raise
         self._dependency_graph.add_vertex(pkg.identifier)
-        self._identifier_map[pkg.identifier] = pkg
+        if pkg.identifier not in self._package_versions:
+            self._package_versions[pkg.identifier] = {}
+        self._package_versions[pkg.identifier][pkg.version] = pkg
         try:
             self.add_dependencies(pkg)
             #check_requirements is now called in pkg.initialize()
@@ -299,7 +348,9 @@ Returns true if given package identifier is present."""
             if pkg.identifier == abstraction_identifier:
                 self._registry.signals.emit_new_package(abstraction_identifier, True)
         except Exception, e:
-            del self._identifier_map[pkg.identifier]
+            del self._package_versions[pkg.identifier][pkg.version]
+            if len(self._package_versions[pkg.identifier]) == 0:
+                del self._package_versions[pkg.identifier]
             self._dependency_graph.delete_vertex(pkg.identifier)
             # invert self.add_package
             del self._package_list[package_codepath]
@@ -325,9 +376,10 @@ Returns true if given package identifier is present."""
         # for all reverse dependencies, disable them
         prefix_dictionary = {}
         pkg = self.get_package_by_codepath(package_codepath)
-        reverse_deps = [self._identifier_map[dep_id] 
-                        for dep_id in \
-                            self.all_reverse_dependencies(pkg.identifier)]
+        reverse_deps = []
+        for dep_id in self.all_reverse_dependencies(pkg.identifier):
+            reverse_deps.append(self.get_package(dep_id))
+
         for dep_pkg in reverse_deps:
             prefix_dictionary[dep_pkg.codepath] = dep_pkg.prefix
             self.late_disable_package(dep_pkg.codepath)
@@ -385,11 +437,21 @@ Returns true if given package identifier is present."""
                 package.remove_own_dom_element()
                 failed.append(package)
             else:
-                if self._dependency_graph.vertices.has_key(package.identifier):
-                    raise VistrailsInternalError('duplicate package identifier: %s' %
-                                                 package.identifier)
-                self._dependency_graph.add_vertex(package.identifier)
-                self._identifier_map[package.identifier] = package
+                if package.identifier not in self._package_versions:
+                    self._package_versions[package.identifier] = {}
+                    self._dependency_graph.add_vertex(package.identifier)
+                elif package.version in \
+                        self._package_versions[package.identifier]:
+                    raise VistrailsInternalError("Duplicate package version: "
+                                                 "'%s' (version %s) in %s" % \
+                                                     (package.identifier, 
+                                                      package.version, 
+                                                      package_codepath))
+                else:
+                    debug.warning('Duplicate package identifier: %s' % \
+                                      package.identifier)
+                self._package_versions[package.identifier][package.version] = \
+                    package
 
         for pkg in failed:
             del self._package_list[pkg.codepath]
@@ -405,7 +467,9 @@ Returns true if given package identifier is present."""
                 # print "DEPENDENCIES FAILED TO LOAD, let's disable this"
                 package.remove_own_dom_element()
                 self._dependency_graph.delete_vertex(package.identifier)
-                del self._identifier_map[package.identifier]
+                del self._package_versions[package.identifier][package.version]
+                if len(self._package_versions[package.identifier]) == 0:
+                    del self._package_versions[package.identifier]
                 failed.append(package)
 
         for pkg in failed:
@@ -420,7 +484,7 @@ Returns true if given package identifier is present."""
                                        e.back_edge[1])
 
         for name in sorted_packages:
-            pkg = self._identifier_map[name]
+            pkg = self.get_package(name)
             if not pkg.initialized():
                 #check_requirements is now called in pkg.initialize()
                 #pkg.check_requirements()
@@ -550,11 +614,47 @@ Returns true if given package identifier is present."""
                self._dependency_graph.inverse_adjacency_list[identifier]]
         return lst
 
-    def get_all_dependencies(self, identifier, reverse=False):
+    # use this call if we're not necessarily loading
+    def build_dependency_graph(self, pkg_identifiers):
+        dep_graph = core.data_structures.graph.Graph()
+
+        def process_dependencies(identifier):
+            pkg = self.identifier_is_available(identifier)
+            if pkg:
+                dep_graph.add_vertex(identifier)
+                deps = pkg.dependencies()
+                for dep in deps:
+                    if type(dep) == tuple:
+                        dep_name = dep[0]
+                    else:
+                        dep_name = dep
+
+                    if dep_name not in self._dependency_graph.vertices and \
+                            not dep_graph.has_edge(identifier, dep_name):
+                        dep_graph.add_edge(identifier, dep_name)
+                        process_dependencies(dep_name)
+        
+        for pkg_identifier in pkg_identifiers:
+            process_dependencies(pkg_identifier)
+
+        return dep_graph
+
+    def get_ordered_dependencies(self, dep_graph, identifiers=None):
+        try:
+            sorted_packages = dep_graph.vertices_topological_sort(identifiers)
+        except core.data_structures.graph.Graph.GraphContainsCycles, e:
+            raise self.DependencyCycle(e.back_edge[0],
+                                       e.back_edge[1])
+        return sorted_packages
+        
+    def get_all_dependencies(self, identifier, reverse=False, dep_graph=None):
+        if dep_graph is None:
+            dep_graph = self._dependency_graph
+
         if reverse:
-            adj_list = self._dependency_graph.inverse_adjacency_list
+            adj_list = dep_graph.inverse_adjacency_list
         else:
-            adj_list = self._dependency_graph.adjacency_list
+            adj_list = dep_graph.adjacency_list
             
         all = [identifier]
         last_adds = [identifier]
@@ -571,11 +671,11 @@ Returns true if given package identifier is present."""
                 seen.add(pkg)
         return order        
 
-    def all_dependencies(self, identifier):
-        return self.get_all_dependencies(identifier, False)
+    def all_dependencies(self, identifier, dep_graph=None):
+        return self.get_all_dependencies(identifier, False, dep_graph)
 
-    def all_reverse_dependencies(self, identifier):
-        return self.get_all_dependencies(identifier, True)
+    def all_reverse_dependencies(self, identifier, dep_graph=None):
+        return self.get_all_dependencies(identifier, True, dep_graph)
 
 def get_package_manager():
     global _package_manager

@@ -691,6 +691,14 @@ class Vistrail(DBVistrail):
         return self.change_annotation(Action.ANNOTATION_THUMBNAIL,
                                       thumbnail, version_number)
         
+    def change_upgrade(self, upgrade, version_number):
+        """ change_upgrade(upgrade:str, version_number:int) -> None 
+        Changes the most recent upgrade of a version
+                  
+        """
+        return self.change_annotation(Action.ANNOTATION_UPGRADE,
+                                      upgrade, version_number)
+
     def get_description(self, version_number):
         """ get_description(version_number: int) -> str
         Compute the description of a version

@@ -80,13 +80,19 @@ class QMethodTreeWidget(QSearchTreeWidget):
         """
         self.clear()
 
-        if module:
+        if module and module.is_valid:
             registry = get_module_registry()
             try:
                 descriptor = module.module_descriptor
             except ModuleRegistryException, e:
                 # FIXME handle this the same way as
                 # vistrail_controller:change_selected_version
+                
+                # FIXME add what we know and let the rest be blank
+                # in other words, add the methods as base and the 
+                # set methods
+                # probably want to disable adding methods!
+                # need a "COPY values method FROM m1 to m2"
                 raise
             moduleHierarchy = registry.get_module_hierarchy(descriptor)
 

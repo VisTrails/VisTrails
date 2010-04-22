@@ -26,8 +26,11 @@ upgrade requests."""
 from core import debug
 import core.db.action
 from core.modules.module_registry import get_module_registry, \
-     PackageMustUpgradeModule, ModuleDescriptor
+     ModuleDescriptor, MissingModule
 from core.packagemanager import get_package_manager
+from core.vistrail.connection import Connection
+from core.vistrail.port import Port
+from core.vistrail.port_spec import PortSpec
 import copy
 
 ##############################################################################
@@ -67,7 +70,6 @@ class UpgradeWorkflowHandler(object):
             # already removed the invalid module of this request. In
             # that case, disregard the request.
             print "module %s already handled. skipping" % request._module_id
-            print current_pipeline.modules
             return []
         invalid_module = self._pipeline.modules[request._module_id]
         pkg = pm.get_package_by_identifier(invalid_module.package)
@@ -78,10 +80,13 @@ class UpgradeWorkflowHandler(object):
         else:
             debug.critical('Package cannot handle upgrade request. ' +
                            'VisTrails will attempt automatic upgrade.')
-            return self.attempt_automatic_upgrade(request._module_id,
-                                                  current_pipeline)
+            auto_upgrade = UpgradeWorkflowHandler.attempt_automatic_upgrade
+            return auto_upgrade(self._controller, current_pipeline,
+                                request._module_id)
 
-    def attempt_automatic_upgrade(self, module_id, pipeline):
+
+    @staticmethod
+    def attempt_automatic_upgrade(controller, pipeline, module_id):
         """attempt_automatic_upgrade(module_id, pipeline): [Action]
 
         Attempts to automatically upgrade module by simply adding a
@@ -96,7 +101,7 @@ class UpgradeWorkflowHandler(object):
         reg = get_module_registry()
         get_descriptor = reg.get_descriptor_by_name
         pm = get_package_manager()
-        invalid_module = self._pipeline.modules[module_id]
+        invalid_module = pipeline.modules[module_id]
         mpkg, mname, mnamespace, mid = (invalid_module.package,
                                         invalid_module.name,
                                         invalid_module.namespace,
@@ -122,72 +127,211 @@ class UpgradeWorkflowHandler(object):
         
         def check_connection_port(port):
             try:
-                s = d.get_port_spec(port.name, port.type)
-                if s <> port.spec:
-                    msg = ("%s connection to port %s has mismatched type" %
-                           (port.type, port.name))
-                    raise UpgradeWorkflowError(msg)
-            except Exception:
+                s = d.get_port_spec(port.name, 
+                                    PortSpec.port_type_map.inverse[port.type])
+                # the old port spec doesn't actually exist for
+                # the invalid module so we cannot compare!
+                # if s <> port.spec:
+                #     msg = ("%s connection to port %s has mismatched type" %
+                #            (PortSpec.port_type_map.inverse[port.type], 
+                #             port.name))
+                #     raise UpgradeWorkflowError(msg)
+            except Exception, e:
+                import traceback
+                traceback.print_exc()
                 msg = ("%s connection to port %s does not exist." %
-                       (port.type, port.name))
+                       (PortSpec.port_type_map.inverse[port.type], port.name))
                 raise UpgradeWorkflowError(msg)
             
         # check if connections are still valid
-        for conn_id in pipeline.graph.edges_from(module_id):
+        for _, conn_id in pipeline.graph.edges_from(module_id):
             port = pipeline.connections[conn_id].source
             check_connection_port(port)
-        for conn_id in pipeline.graph.edges_to(module_id):
-            conn = pipeline.connections[conn_id].destination
+        for _, conn_id in pipeline.graph.edges_to(module_id):
+            port = pipeline.connections[conn_id].destination
             check_connection_port(port)
 
         # check if function values are still valid
         for function in invalid_module.functions:
-            function_spec = function.get_spec('input')
-            registry_spec = d.get_port_spec(port.name, port.type)
-            if function_spec <> registry_spec:
-                msg = ("mismatch on function %s." % function.name)
-                raise UpgradeWorkflowError(msg)
+            # function_spec = function.get_spec('input')
+            try:
+                reg_spec = d.get_port_spec(function.name, 'input')
+            except:
+                raise UpgradeWorkflowError('cannot find function "%s" for'
+                                           'upgrade' % function.name)
+            if reg_spec.sigstring != function.sigstring:
+                raise UpgradeWorkflowError('mismatch on function "%s"' % \
+                                               function.name)
 
         # If we passed all of these checks, then we consider module to
         # be automatically upgradeable. Now create actions that will delete
         # functions, module, and connections, and add new module with corresponding
         # functions and connections.
 
-        ctrl = self._controller
-        delete_action = ctrl.create_module_list_deletion_action(pipeline, [mid])
+        return UpgradeWorkflowHandler.replace_module(controller, pipeline, 
+                                                     module_id, d)
+
+    @staticmethod
+    def replace_generic(controller, pipeline, old_module, new_module,
+                        function_remap={}, src_port_remap={}, 
+                        dst_port_remap={}, annotation_remap={}):
+        ops = []
+        ops.extend(controller.delete_module_list_ops(pipeline, [old_module.id]))
+        ops.append(('add', new_module))
         
-        addition_op_list = []
-        new_module = ctrl.create_module_from_descriptor(
-            d,
-            invalid_module.location.x,
-            invalid_module.location.y)
-        addition_op_list.append(('add', new_module))
-        for function in invalid_module.functions:
-            new_function = ctrl.create_function(new_module, function.name)
-            addition_action_list.append(('add', new_function,
-                                         new_module.vtType, new_module.id))
-            pvalues = []
-            for param in function.params:
-                pvalues.append(param.value)
-            addition_op_list.extend(ctrl.update_function_ops(new_module,
-                                                             [(function.name,
-                                                               pvalues,
-                                                               -1, True)]))
-        for conn_id in pipeline.graph.edges_from(module_id):
+        for annotation in old_module.annotations:
+            if annotation.key not in annotation_remap:
+                annotation_key = annotation.key
+            else:
+                remap = annotation_remap[annotation.key]
+                if remap is None:
+                    # don't add the annotation back in
+                    continue
+                elif type(remap) != type(""):
+                    ops.extend(remap(annotation))
+                    continue
+                else:
+                    annotation_key = remap
+
+            ops.extend(
+                controller.update_annotation_ops(new_module,
+                                                 [(annotation_key,
+                                                   annotation.value)]))
+
+        for function in old_module.functions:
+            if function.name not in function_remap:
+                function_name = function.name
+            else:
+                remap = function_remap[function.name]
+                if remap is None:
+                    # don't add the function back in
+                    continue                    
+                elif type(remap) != type(""):
+                    ops.extend(remap(function))
+                    continue
+                else:
+                    function_name = remap
+
+            new_param_vals = [p.strValue for p in function.parameters]
+            ops.extend(controller.update_function_ops(new_module,
+                                                      function_name,
+                                                      new_param_vals))
+
+        def create_new_connection(src_module, src_port, dst_module, dst_port):
+            # spec -> name, type, signature
+            output_port_id = controller.id_scope.getNewId(Port.vtType)
+            if type(src_port) == type(""):
+                output_port_spec = \
+                    src_module.get_port_spec(src_port, 'output')
+                output_port = Port(id=output_port_id,
+                                   spec=output_port_spec,
+                                   moduleId=src_module.id,
+                                   moduleName=src_module.name)
+            else:
+                output_port = Port(id=output_port_id,
+                                   name=src_port.name,
+                                   type=src_port.type,
+                                   signature=src_port.signature,
+                                   moduleId=src_module.id,
+                                   moduleName=src_module.name)
+
+            input_port_id = controller.id_scope.getNewId(Port.vtType)
+            if type(dst_port) == type(""):
+                input_port_spec = \
+                    dst_module.get_port_spec(dst_port, 'input')
+                input_port = Port(id=input_port_id,
+                                  spec=input_port_spec,
+                                  moduleId=dst_module.id,
+                                  moduleName=dst_module.name)
+            else:
+                input_port = Port(id=input_port_id,
+                                  name=dst_port.name,
+                                  type=dst_port.type,
+                                  signature=dst_port.signature,
+                                  moduleId=dst_module.id,
+                                  moduleName=dst_module.name)
+            conn_id = controller.id_scope.getNewId(Connection.vtType)
+            connection = Connection(id=conn_id,
+                                    ports=[input_port, output_port])
+            return connection
+
+        for _, conn_id in pipeline.graph.edges_from(old_module.id):
             old_conn = pipeline.connections[conn_id]
-            new_conn = ctrl.create_connection_from_ids(new_module.id,
-                                                       old_conn.source.spec,
-                                                       old_conn.destination.id,
-                                                       old_conn.destination.spec)
-            addition_op_list.append(('add', new_conn))
+            if old_conn.source.name not in src_port_remap:
+                source_name = old_conn.source.name
+            else:
+                remap = src_port_remap[old_conn.source.name]
+                if remap is None:
+                    # don't add this connection back in
+                    continue
+                elif type(remap) != type(""):
+                    ops.extend(remap(old_conn))
+                    continue
+                else:
+                    source_name = remap
+                    
+            old_dst_module = pipeline.modules[old_conn.destination.moduleId]
+
+            new_conn = create_new_connection(new_module,
+                                             source_name,
+                                             old_dst_module,
+                                             old_conn.destination)
+            ops.append(('add', new_conn))
             
-        for conn_id in pipeline.graph.edges_to(module_id):
+        for _, conn_id in pipeline.graph.edges_to(old_module.id):
             old_conn = pipeline.connections[conn_id]
-            new_conn = ctrl.create_connection_from_ids(old_conn.source.id,
-                                                       old_conn.source.spec,
-                                                       new_module.id,
-                                                       old_conn.destination.spec)
-            addition_op_list.append(('add', new_conn))
-        print addition_op_list
-        add_action = core.db.action.create_action(addition_op_list)
-        return [delete_action, add_action]
+            if old_conn.destination.name not in dst_port_remap:
+                destination_name = old_conn.destination.name
+            else:
+                remap = dst_port_remap[old_conn.destination.name]
+                if remap is None:
+                    # don't add this connection back in
+                    continue
+                elif type(remap) != type(""):
+                    ops.extend(remap(old_conn))
+                    continue
+                else:
+                    destination_name = remap
+                    
+            old_src_module = pipeline.modules[old_conn.source.moduleId]
+            new_conn = create_new_connection(old_src_module,
+                                             old_conn.source,
+                                             new_module,
+                                             destination_name)
+            ops.append(('add', new_conn))
+        
+        return [core.db.action.create_action(ops)]
+
+    @staticmethod
+    def replace_group(controller, pipeline, module_id, new_subpipeline):
+        old_group = pipeline.modules[module_id]
+        new_group = controller.create_module('edu.utah.sci.vistrails.basic', 
+                                             'Group', '', 
+                                             old_group.location.x, 
+                                             old_group.location.y)
+        new_group.pipeline = new_subpipeline
+        return UpgradeWorkflowHandler.replace_generic(controller, pipeline, 
+                                                      old_group, new_group)
+    
+    @staticmethod
+    def replace_abstraction(controller, pipeline, module_id, new_actions):
+        old_abstraction = pipeline.modules[module_id]
+        # new_abstraction = controller.
+        # FIXME complete this!
+
+    @staticmethod
+    def replace_module(controller, pipeline, module_id, new_descriptor,
+                       function_remap={}, src_port_remap={}, dst_port_remap={},
+                       annotation_remap={}):
+        old_module = pipeline.modules[module_id]
+        new_module = \
+            controller.create_module_from_descriptor(new_descriptor,
+                                                     old_module.location.x,
+                                                     old_module.location.y)
+
+        return UpgradeWorkflowHandler.replace_generic(controller, pipeline, 
+                                                      old_module, new_module,
+                                                      function_remap, 
+                                                      src_port_remap, 
+                                                      dst_port_remap,
+                                                      annotation_remap)

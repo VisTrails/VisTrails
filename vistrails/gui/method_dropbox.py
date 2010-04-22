@@ -164,12 +164,17 @@ class QVerticalWidget(QPromptWidget):
         Add an input form for the function
         
         """
+        if not function.is_valid:
+            print "!! FUNCTION NOT VALID"
+            return
         inputForm = QMethodInputWidget(self.formType, self)
         inputForm.moduleId = module.id
         inputForm.fId = fId
 
-        # call module.get_port_spec(function.name) to get labels
-        port_spec = module.get_port_spec(function.name, 'input')
+        port_spec = None
+        if module.is_valid:
+            # call module.get_port_spec(function.name) to get labels
+            port_spec = module.get_port_spec(function.name, 'input')
         inputForm.updateFunction(function, port_spec)
         self.connect(inputForm, QtCore.SIGNAL('deleted(QWidget*)'), 
                      self.delete_form)
@@ -305,7 +310,9 @@ class QMethodInputForm(QtGui.QGroupBox):
         self.widgets = []
         self.labels = []
 
-        ps_labels = port_spec.labels
+        ps_labels = None
+        if port_spec is not None:
+            ps_labels = port_spec.labels
         for pIndex in xrange(len(function.params)):
             p = function.params[pIndex]
             # FIXME: Find the source of this problem instead
@@ -314,9 +321,15 @@ class QMethodInputForm(QtGui.QGroupBox):
                 idn = 'edu.utah.sci.vistrails.basic'
             else:
                 idn = p.identifier
-            p_module = reg.get_module_by_name(idn,
-                                              p.type,
-                                              p.namespace)
+
+            p_module = None
+            try:
+                p_module = reg.get_module_by_name(idn,
+                                                  p.type,
+                                                  p.namespace)
+            except module_registry.ModuleRegistryException:
+                print "HIT MRE in DROPBOX"
+                pass
             if p_module is not None:
                 widget_type = p_module.get_widget_class()
             else:
@@ -325,7 +338,8 @@ class QMethodInputForm(QtGui.QGroupBox):
             if ps_labels is not None and len(ps_labels) > pIndex:
                 ps_label = str(ps_labels[pIndex])
             label = QHoverAliasLabel(p.alias, p.type, ps_label)
-            constant_widget = widget_type(p, self)            
+
+            constant_widget = widget_type(p, self)
             self.widgets.append(constant_widget)
             self.labels.append(label)
             self.layout().addWidget(label, pIndex, 0)

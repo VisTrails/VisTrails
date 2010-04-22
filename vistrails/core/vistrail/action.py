@@ -63,6 +63,7 @@ class Action(DBAction):
     ANNOTATION_DESCRIPTION = '__description__'
     ANNOTATION_ANALOGY_INFO = '__analogy_info__'
     ANNOTATION_THUMBNAIL = '__thumb__'
+    ANNOTATION_UPGRADE = '__upgrade__'
 
     ##########################################################################
     # Properties
@@ -127,6 +128,13 @@ class Action(DBAction):
         return None
     thumbnail = property(_get_thumbnail)
     
+    def _get_upgrade(self):
+        if self.db_has_annotation_with_key(self.ANNOTATION_UPGRADE):
+            ann = self.db_get_annotation_by_key(self.ANNOTATION_UPGRADE)
+            return ann.value
+        return None
+    upgrade = property(_get_upgrade)
+
     def add_operation(self, operation):
         self.db_operations.db_add_operation(operation)
 

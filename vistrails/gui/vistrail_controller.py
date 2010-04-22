@@ -30,14 +30,13 @@ from core.data_structures.graph import Graph
 from core.utils import VistrailsInternalError, InvalidPipeline
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
-from core.modules.module_registry import MissingPort, PackageMustUpgradeModule
+from core.modules.module_registry import MissingPort
 from core.modules.package import Package
 from core.packagemanager import PackageManager
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 import core.system
 from core.system import vistrails_default_file_type
-from core.upgradeworkflow import UpgradeWorkflowHandler
 from core.vistrail.annotation import Annotation
 from core.vistrail.controller import VistrailController as BaseController
 from core.vistrail.location import Location
@@ -269,15 +268,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.perform_action(action)
         return module
             
-    def get_module_connection_ids(self, module_ids, graph):
-        connection_ids = set()
-        for module_id in module_ids:
-            for v, id in graph.edges_from(module_id):
-                connection_ids.add(id)
-            for v, id in graph.edges_to(module_id):
-                connection_ids.add(id)
-        return connection_ids
-
     def delete_module(self, module_id):
         """ delete_module(module_id: int) -> version id
         Delete a module from the current pipeline
@@ -292,17 +282,8 @@ class VistrailController(QtCore.QObject, BaseController):
         Create action that will delete multiple modules from the given pipeline.
 
         """
-        graph = pipeline.graph
-        connect_ids = self.get_module_connection_ids(module_ids, graph)
-        action_list = []
-        for c_id in connect_ids:
-            action_list.append(('delete', 
-                                pipeline.connections[c_id]))
-        for m_id in module_ids:
-            action_list.append(('delete',
-                                pipeline.modules[m_id]))
-        return core.db.action.create_action(action_list)
-
+        ops = BaseController.delete_module_list_ops(self, pipeline, module_ids)
+        return core.db.action.create_action(ops)
 
     def delete_module_list(self, module_ids):
         """ delete_module_list(module_ids: [int]) -> [version id]
@@ -339,13 +320,6 @@ class VistrailController(QtCore.QObject, BaseController):
         action = core.db.action.create_action(action_list)
         self.add_new_action(action)
         return self.perform_action(action)
-
-    def create_connection_from_ids(self, output_id, output_port_spec,
-                                       input_id, input_port_spec):
-        output_module = self.current_pipeline.modules[output_id]
-        input_module = self.current_pipeline.modules[input_id]
-        return self.create_connection(output_module, output_port_spec, 
-                                      input_module, input_port_spec)
 
     def add_connection(self, output_id, output_port_spec, 
                        input_id, input_port_spec):
@@ -739,17 +713,22 @@ class VistrailController(QtCore.QObject, BaseController):
                                          None,
                                          None)])
 
-    def enable_missing_package(self, identifier):
+    def enable_missing_package(self, identifier, deps):
         from gui.application import VistrailsApplication
+        msg = "VisTrails needs to enable package '%s'." % identifier
+        if len(deps) > 0:
+            msg += (" This will also enable the dependencies: %s." 
+                    " Do you want to enable these packages?") % str(deps)
+        else:
+            msg += " Do you want to enable this package?"
         res = show_question('Enable package?',
-                            "VisTrails need to enable package '%s'."
-                            " Do you want to enable that package?"  % \
-                                identifier, [YES_BUTTON, NO_BUTTON], 
+                            msg,
+                            [YES_BUTTON, NO_BUTTON], 
                             YES_BUTTON)
         if res == NO_BUTTON:
-            QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
-                                      'Missing modules',
-                                      'Some necessary modules will be missing.')
+#             QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
+#                                       'Missing modules',
+#                                       'Some necessary modules will be missing.')
             return False
         return True
 
@@ -763,9 +742,12 @@ class VistrailController(QtCore.QObject, BaseController):
                             YES_BUTTON)
         return res == YES_BUTTON
 
-    def change_selected_version(self, new_version, report_all_errors=False):
+    def change_selected_version(self, new_version, report_all_errors=True,
+                                do_validate=True, from_root=False):
         """change_selected_version(new_version: int,
-                                   report_all_errors: boolean)
+                                   report_all_errors: boolean,
+                                   do_validate: boolean,
+                                   from_root: boolean)
 
         Change the current vistrail version into new_version and emit a
         notification signal.
@@ -786,77 +768,71 @@ class VistrailController(QtCore.QObject, BaseController):
         """
 
         try:
-            self.do_version_switch(new_version, report_all_errors)
+            self.do_version_switch(new_version, report_all_errors,
+                                   do_validate, from_root)
         except InvalidPipeline, e:
             from gui.application import VistrailsApplication
 
-            def process_err(err):
-                if isinstance(err, Package.InitializationFailed):
-                    QtGui.QMessageBox.critical(
-                        VistrailsApplication.builderWindow,
-                        'Package load failed',
-                        'Package "%s" failed during initialization. '
-                        'Please contact the developer of that package '
-                        'and report a bug.' % err.package.name)
-                elif isinstance(err, PackageManager.MissingPackage):
-                    QtGui.QMessageBox.critical(
-                        VistrailsApplication.builderWindow,
-                        'Unavailable package',
-                        'Cannot find package "%s" in\n'
-                        'list of available packages. \n'
-                        'Please install it first.' % err._identifier)
-                elif issubclass(err.__class__, MissingPort):
-                    msg = ('Cannot find %s port "%s" for module "%s" '
-                           'in loaded package "%s". A different package '
-                           'version might be necessary.') % \
-                           (err._port_type, err._port_name, 
-                            err._module_name, err._package_name)
-                    QtGui.QMessageBox.critical(
-                        VistrailsApplication.builderWindow, 'Missing port',
-                        msg)
-                else:
-                    QtGui.QMessageBox.critical(
-                        VistrailsApplication.builderWindow,
-                        'Invalid Pipeline', str(e))
+
+#             def process_err(err):
+#                 if isinstance(err, Package.InitializationFailed):
+#                     QtGui.QMessageBox.critical(
+#                         VistrailsApplication.builderWindow,
+#                         'Package load failed',
+#                         'Package "%s" failed during initialization. '
+#                         'Please contact the developer of that package '
+#                         'and report a bug.' % err.package.name)
+#                 elif isinstance(err, PackageManager.MissingPackage):
+#                     QtGui.QMessageBox.critical(
+#                         VistrailsApplication.builderWindow,
+#                         'Unavailable package',
+#                         'Cannot find package "%s" in\n'
+#                         'list of available packages. \n'
+#                         'Please install it first.' % err._identifier)
+#                 elif issubclass(err.__class__, MissingPort):
+#                     msg = ('Cannot find %s port "%s" for module "%s" '
+#                            'in loaded package "%s". A different package '
+#                            'version might be necessary.') % \
+#                            (err._port_type, err._port_name, 
+#                             err._module_name, err._package_name)
+#                     QtGui.QMessageBox.critical(
+#                         VistrailsApplication.builderWindow, 'Missing port',
+#                         msg)
+#                 else:
+#                     QtGui.QMessageBox.critical(
+#                         VistrailsApplication.builderWindow,
+#                         'Invalid Pipeline', str(err))
 
             # VisTrails will not raise upgrade exceptions unless
             # configured to do so. To get the upgrade requests,
             # configuration option upgradeModules must be set to True.
 
-            if len(e._exception_set) > 0:
-                # If all exceptions are upgrade requests, we invoke
-                # the workflow upgrade mechanism
-                if (all(isinstance(k, PackageMustUpgradeModule) for
-                       k in e._exception_set)):
-                    # FIXME MAKE SURE THE PIPELINE THAT GETS HERE MAKES SENSE
-                    assert e._pipeline
-                    handler = UpgradeWorkflowHandler(self,
-                                                     e._exception_set,
-                                                     e._pipeline)
-                    # if handle_all_requests succeeds, we're ready to add the actions
-                    # to the vistrail.
-                    self.current_version = e._version
-                    self.current_pipeline = copy.copy(e._pipeline)
-                    result = handler.handle_all_requests()
-                    QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
-                                              'Workflow upgrade',
-                                              'Workflow successfully upgraded.')
-                    for action in result:
-                        self.add_new_action(action)
-                        self.vistrail.change_description("Upgrade", action.id)
-                        self.perform_action(action)
-                else:
-                    # Process all errors as usual
-                    if report_all_errors:
-                        for err in e._exception_set:
-                            process_err(err)
-                    else:
-                        process_err(e._exception_set.__iter__().next())
+            exception_set = e.get_exception_set()
+            if len(exception_set) > 0:
+                msg_box = QtGui.QMessageBox(VistrailsApplication.builderWindow)
+                msg_box.setIcon(QtGui.QMessageBox.Warning)
+                msg_box.setText("The current workflow could not be validated.")
+                msg_box.setInformativeText("Errors occurred when trying to "
+                                           "construct this workflow.")
+                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
+                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
+                msg_box.setDetailedText(str(e))
+                msg_box.exec_()
+#                 print 'got to exception set'
+#                 # Process all errors as usual
+#                 if report_all_errors:
+#                     for exc in exception_set:
+#                         print 'processing', exc
+#                         process_err(exc)
+#                 else:
+#                     process_err(exception_set.__iter__().next())
+
         except Exception, e:
             from gui.application import VistrailsApplication
             QtGui.QMessageBox.critical(
                 VistrailsApplication.builderWindow,
                 'Unexpected Exception', str(e))
+            raise
         
         self.emit(QtCore.SIGNAL('versionWasChanged'), self.current_version)
 

@@ -97,10 +97,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         Setup the pipeline to display and control a specific pipeline
         
         """
-        if pipeline is None:
-            self.pipelineView.scene().clear()
-        else:
-            self.pipelineView.scene().setupScene(pipeline)
+        self.pipelineView.scene().setupScene(pipeline)
 
     def updateWindowTitle(self, topLevel):
         """ updateWindowTitle(topLevel: bool) -> None

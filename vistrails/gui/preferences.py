@@ -276,23 +276,17 @@ class QPackagesWidget(QtGui.QWidget):
 
         dependency_graph = pm.dependency_graph()
         new_deps = self._current_package.dependencies()
+
         from core.modules.basic_modules import identifier as basic_modules_identifier
         if self._current_package.identifier != basic_modules_identifier:
             new_deps.append(basic_modules_identifier)
 
-        unmet_dep = None
-
-        for dep in new_deps:
-            if dep not in dependency_graph.vertices:
-                unmet_dep = dep
-                break
-        if unmet_dep:
+        try:
+            pm.check_dependencies(self._current_package, new_deps)
+        except MissingDependency, e:
             msg = QtGui.QMessageBox(QtGui.QMessageBox.Critical,
-                                    "Missing dependency",
-                                    ("This package requires package '%s'\n" +
-                                     "to be enabled. (Complete dependency list is:\n" +
-                                     "%s)") % (dep, new_deps),
-                                    QtGui.QMessageBox.Ok, self)
+                                    "Missing Dependencies",
+                                    str(e), QtGuiQMessageBox.Ok, self)
             msg.exec_()
         else:
             palette = QtGui.QApplication.instance().builderWindow.modulePalette
@@ -438,7 +432,8 @@ class QPackagesWidget(QtGui.QWidget):
             QtGui.QMessageBox.critical(self, 'Cannot load package', str(e))
         else:
             self._name_label.setText(p.name)
-            deps = ', '.join(p.dependencies()) or 'No package dependencies.'
+            deps = ', '.join(str(d) for d in p.dependencies()) or \
+                'No package dependencies.'
             try:
                 pm = get_package_manager()
                 reverse_deps = \
