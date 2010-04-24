@@ -31,10 +31,10 @@ def create_action(op_list):
         return action
     return None
 
-def create_action_from_ops(ops):
+def create_action_from_ops(ops, simplify=False):
     if len(ops) > 0:
         from core.vistrail.action import Action
-        action = db.services.action.create_action_from_ops(ops)
+        action = db.services.action.create_action_from_ops(ops, simplify)
         Action.convert(action)
         return action
     return None
