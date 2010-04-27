@@ -4742,6 +4742,8 @@ class DBAction(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
+            if hasattr(self, 'db_prevId') and ('action', self._db_prevId) in id_remap:
+                cp._db_prevId = id_remap[('action', self._db_prevId)]
         
         # recreate indices and set flags
         cp.db_operations_id_index = dict((v.db_id, v) for v in cp._db_operations)
