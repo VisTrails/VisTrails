@@ -165,8 +165,8 @@ class TotalDays(Module):
         totals = self.calc_time(vistrail)
         self.setResult('completed', totals)
 
-class TimevsTags(Module):
+#class TimevsTags(Module):
     #Compare a few workflows to see how long the project took vs. how many tags were made
-    pass
+ #   pass
 
 _modules = [Vistrail, Log, ReadVistrail, CountActions, CountExecutedWorkflows, TotalDays]
