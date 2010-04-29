@@ -38,7 +38,8 @@ from core.query.visual import VisualQuery
 import core.system
 from core.system import vistrails_default_file_type
 from core.vistrail.annotation import Annotation
-from core.vistrail.controller import VistrailController as BaseController
+from core.vistrail.controller import VistrailController as BaseController, \
+    vt_action
 from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
@@ -235,19 +236,20 @@ class VistrailController(QtCore.QObject, BaseController):
 
     ##########################################################################
 
-    def add_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
-                                   internal_version=-1):
-        self.flush_move_actions()
-
+    @vt_action
+    def add_module_action(self, module):
         if not self.current_pipeline:
             raise Exception("No version is selected")
-        
+        action = core.db.action.create_action([('add', module)])
+        return action
+
+    def add_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
+                                   internal_version=-1):
         module = self.create_module_from_descriptor(descriptor, x, y, 
                                                     internal_version)
-        action = core.db.action.create_action([('add', module)])
-        self.add_new_action(action)
-        self.perform_action(action)
+        action = self.add_module_action(module)
         return module
+
 
     def add_module(self, x, y, identifier, name, namespace='', 
                    internal_version=-1):
@@ -256,16 +258,9 @@ class VistrailController(QtCore.QObject, BaseController):
         Add a new module into the current pipeline
         
         """
-        self.flush_move_actions()
-
-        if not self.current_pipeline:
-            raise Exception("No version is selected")
-        
         module = self.create_module(identifier, name, namespace, x, y,
                                     internal_version)
-        action = core.db.action.create_action([('add', module)])
-        self.add_new_action(action)
-        self.perform_action(action)
+        action = self.add_module_action(module)
         return module
             
     def delete_module(self, module_id):
@@ -285,16 +280,15 @@ class VistrailController(QtCore.QObject, BaseController):
         ops = BaseController.delete_module_list_ops(self, pipeline, module_ids)
         return core.db.action.create_action(ops)
 
+    @vt_action
     def delete_module_list(self, module_ids):
         """ delete_module_list(module_ids: [int]) -> [version id]
         Delete multiple modules from the current pipeline
         
         """
-        self.flush_move_actions()
         action = self.create_module_list_deletion_action(self.current_pipeline,
                                                          module_ids)
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
     def move_module_list(self, move_list):
         """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
@@ -321,6 +315,11 @@ class VistrailController(QtCore.QObject, BaseController):
         self.add_new_action(action)
         return self.perform_action(action)
 
+    @vt_action
+    def add_connection_action(self, connection):
+        action = core.db.action.create_action([('add', connection)])
+        return action
+
     def add_connection(self, output_id, output_port_spec, 
                        input_id, input_port_spec):
         """ add_connection(output_id: long,
@@ -330,15 +329,10 @@ class VistrailController(QtCore.QObject, BaseController):
         Add a new connection into Vistrail
         
         """
-        self.flush_move_actions()
         connection = \
             self.create_connection_from_ids(output_id, output_port_spec, 
                                             input_id, input_port_spec)
-        action = core.db.action.create_action([('add', connection)])
-        self.add_new_action(action)
-        result = self.perform_action(action)
-
-        self.current_pipeline.ensure_connection_specs([connection.id])
+        action = self.add_connection_action(connection)
         return connection
     
     def delete_connection(self, id):
@@ -348,41 +342,40 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         return self.delete_connection_list([id])
 
+    @vt_action
     def delete_connection_list(self, connect_ids):
         """ delete_connection_list(connect_ids: list) -> version id
         Delete a list of connections
         
         """
-        self.flush_move_actions()
-        
         action_list = []
         for c_id in connect_ids:
             action_list.append(('delete', 
                                 self.current_pipeline.connections[c_id]))
         action = core.db.action.create_action(action_list)
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
-    def add_function(self, module, function_name):
-        self.flush_move_actions()
-        function = self.create_function(module, function_name)
+    @vt_action
+    def add_function_action(self, module, function):
         action = core.db.action.create_action([('add', function, 
                                                 module.vtType, module.id)])
-        self.add_new_action(action)
-        result = self.perform_action(action)
+        return action
+
+    def add_function(self, module, function_name):
+        function = self.create_function(module, function_name)
+        action = self.add_function_action(module, function)
         return function
 
+    @vt_action
     def update_function(self, module, function_name, param_values, old_id=-1L,
                         aliases=[]):
-        self.flush_move_actions()
         op_list = self.update_function_ops(module, function_name, param_values,
                                            old_id, aliases=aliases)
         action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        return self.perform_action(action)
-        
+        return action
+
+    @vt_action
     def update_parameter(self, function, old_param_id, new_value):
-        self.flush_move_actions()
         old_param = function.parameter_idx[old_param_id]
         new_param = BaseController.update_parameter(self, old_param, new_value)
         if new_param is None:
@@ -390,71 +383,40 @@ class VistrailController(QtCore.QObject, BaseController):
         op = ('change', old_param, new_param, 
               function.vtType, function.real_id)
         action = core.db.action.create_action([op])
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
+    @vt_action
     def delete_method(self, function_pos, module_id):
         """ delete_method(function_pos: int, module_id: int) -> version id
         Delete a method with function_pos from module module_id
 
         """
-        self.flush_move_actions()
 
         module = self.current_pipeline.get_module_by_id(module_id)
         function = module.functions[function_pos]
         action = core.db.action.create_action([('delete', function,
-                                                    module.vtType, module.id)])
-        self.add_new_action(action)
-        return self.perform_action(action)
+                                                module.vtType, module.id)])
+        return action
 
-    def add_method(self, module_id, function):
-        """ add_method(module_id: int, function: ModuleFunction) -> version_id
-        Add a new method into the module's function list
-        
-        """
-        self.flush_move_actions()
-
-        module = self.current_pipeline.get_module_by_id(module_id)
-        function_id = self.vistrail.idScope.getNewId(ModuleFunction.vtType)
-        function.real_id = function_id
-        
-        # We can only touch the parameters property once during this loop.
-        # Otherwise, ModuleFunction._get_params will sort the list from
-        # under us and change all the indices.
-        params = function.parameters[:]
-        
-        for i in xrange(len(params)):
-            param = params[i]
-            param_id = self.vistrail.idScope.getNewId(ModuleParam.vtType)
-            param.real_id = param_id
-            param.pos = i
-        action = core.db.action.create_action([('add', function,
-                                                    Module.vtType, module.id)])
-        self.add_new_action(action)
-        return self.perform_action(action)
-        
+    @vt_action
     def delete_annotation(self, key, module_id):
         """ delete_annotation(key: str, module_id: long) -> version_id
         Deletes an annotation from a module
         
         """
-        self.flush_move_actions()
-
         module = self.current_pipeline.get_module_by_id(module_id)
         annotation = module.get_annotation_by_key(key)
         action = core.db.action.create_action([('delete', annotation,
                                                 module.vtType, module.id)])
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
+    @vt_action
     def add_annotation(self, pair, module_id):
         """ add_annotation(pair: (str, str), moduleId: int)        
         Add/Update a key/value pair annotation into the module of
         moduleId
         
         """
-        self.flush_move_actions()
-
         assert type(pair[0]) == type('')
         assert type(pair[1]) == type('')
         if pair[0].strip()=='':
@@ -476,8 +438,7 @@ class VistrailController(QtCore.QObject, BaseController):
             action = core.db.action.create_action([('add', annotation,
                                                         module.vtType, 
                                                         module.id)])
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
     def update_functions_ops_from_ids(self, module_id, functions):
         module = self.current_pipeline.modules[module_id]
@@ -488,28 +449,28 @@ class VistrailController(QtCore.QObject, BaseController):
         module = self.current_pipeline.modules[module_id]
         return self.update_port_spec_ops(module, deleted_ports, added_ports)
 
+    @vt_action
     def update_functions(self, module, functions):
         op_list = self.update_functions_ops(module, functions)
         action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
+    @vt_action
     def update_ports_and_functions(self, module_id, deleted_ports, added_ports,
                                    functions):
         op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
                                                      added_ports)
         op_list.extend(self.update_functions_ops_from_ids(module_id, functions))
         action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
+    @vt_action
     def update_ports(self, module_id, deleted_ports, added_ports):
         op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
                                                      added_ports)
         action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        return self.perform_action(action)
-        
+        return action
+
     def has_module_port(self, module_id, port_tuple):
         """ has_module_port(module_id: int, port_tuple: (str, str)): bool
         Parameters
@@ -526,6 +487,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return len([x for x in module.db_portSpecs
                     if x.name == name and x.type == type]) > 0
 
+    @vt_action
     def add_module_port(self, module_id, port_tuple):
         """ add_module_port(module_id: int, port_tuple: (str, str, list)
         Parameters
@@ -535,8 +497,6 @@ class VistrailController(QtCore.QObject, BaseController):
         - port_tuple : (portType, portName, portSpec)
         
         """
-        self.flush_move_actions()
-        
         module = self.current_pipeline.get_module_by_id(module_id)
         p_id = self.vistrail.idScope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
@@ -546,10 +506,9 @@ class VistrailController(QtCore.QObject, BaseController):
                              )
         action = core.db.action.create_action([('add', port_spec,
                                                 module.vtType, module.id)])
-        
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
+    @vt_action
     def delete_module_port(self, module_id, port_tuple):
         """
         Parameters
@@ -559,8 +518,6 @@ class VistrailController(QtCore.QObject, BaseController):
         - port_tuple : (portType, portName, portSpec)
         
         """
-        self.flush_move_actions()
-
         spec_id = -1
         module = self.current_pipeline.get_module_by_id(module_id)
         port_spec = module.get_portSpec_by_name((port_tuple[1], port_tuple[0]))
@@ -570,8 +527,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 action_list.append(('delete', function, 
                                     module.vtType, module.id))
         action = core.db.action.create_action(action_list)
-        self.add_new_action(action)
-        return self.perform_action(action)
+        return action
 
     def create_group(self, module_ids, connection_ids):
         self.flush_move_actions()

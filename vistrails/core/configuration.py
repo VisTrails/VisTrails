@@ -167,7 +167,6 @@ def default():
 
     base_dir = {
         'abstractionsDirectory': (None, str),
-        'automaticallyUpgradeWorkflows': False,
         'autosave': True,
         'dataDirectory': (None, str),
         'dbDefault': False,
@@ -198,6 +197,8 @@ def default():
         'spreadsheetDumpCells': (None, str),
         'staticRegistry': (None, str),
         'thumbs': default_thumbs(),
+        'upgradeOn': True,
+        'upgradeDelay': True,
         'useCache': True,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),

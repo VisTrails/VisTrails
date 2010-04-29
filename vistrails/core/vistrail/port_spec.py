@@ -114,6 +114,8 @@ class PortSpec(DBPortSpec):
     def convert(_port_spec):
         from core.modules.module_registry import module_registry_loaded, \
             ModuleRegistryException
+        if _port_spec.__class__ == PortSpec:
+            return
         _port_spec.__class__ = PortSpec
         _port_spec._entries = None
         _port_spec._descriptors = None

@@ -1028,10 +1028,8 @@ class TestGraph(unittest.TestCase):
                leave_vertex=after)
          assert inc == [0,1,2,3,4,5,6,7,8,9]
          assert inc == list(reversed(dec))
-         assert all(izip(inc[:-1], inc[1:]),
-                    lambda (a, b): a < b)
-         assert all(izip(dec[:-1], dec[1:]),
-                    lambda (a, b): a > b)
+         assert all(a < b for a, b in izip(inc[:-1], inc[1:]))
+         assert all(a > b for a, b in izip(dec[:-1], dec[1:]))
 
      def test_parent_source(self):
          g = self.make_linear(10)

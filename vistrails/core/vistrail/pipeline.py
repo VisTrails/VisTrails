@@ -787,7 +787,6 @@ class Pipeline(DBWorkflow):
     # Registry-related
 
     def validate(self):
-        print '--- validating ---'
         # want to check entire pipeline and reconcile it with the
         # registry - if anything fails, generate invalid pipeline with
         # the errors
@@ -972,13 +971,14 @@ class Pipeline(DBWorkflow):
     def ensure_port_specs(self):
         exceptions = set()
         for module in self.modules.itervalues():
-            for port_spec in module.port_specs.itervalues():
-                try:
-                    port_spec.create_entries_and_descriptors()
-                except ModuleRegistryException, e:
-                    is_valid = False
-                    e._module_id = module.id
-                    exceptions.add(e)
+            if module.is_valid:
+                for port_spec in module.port_specs.itervalues():
+                    try:
+                        port_spec.create_entries_and_descriptors()
+                    except ModuleRegistryException, e:
+                        is_valid = False
+                        e._module_id = module.id
+                        exceptions.add(e)
     
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)

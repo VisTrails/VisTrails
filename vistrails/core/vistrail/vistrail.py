@@ -1106,7 +1106,7 @@ class TestVistrail(unittest.TestCase):
 
         """
         v = Vistrail()
-        self.assertRaises(VistrailsDBException, lambda: v.getPipeline(-1))
+        self.assertRaises(InvalidPipeline, lambda: v.getPipeline(-1))
 
     def test_version_graph(self):
         from core.db.locator import XMLFileLocator
@@ -1164,25 +1164,34 @@ class TestVistrail(unittest.TestCase):
         import core.system
         import sys
 
-        def do_test(filename, locator_class):
+        def do_test(filename, locator_class, old_v=None, new_v=None):
             v = locator_class(core.system.vistrails_root_directory() +
                                filename).load()
-            if type(v) == type([]):
-                v = v[0][1]
+            if type(v) != Vistrail:
+                v = v.vistrail
             version_ids = v.actionMap.keys()
-            old_v = random.choice(version_ids)
+            if old_v is None:
+                old_v = random.choice(version_ids)
             p = v.getPipeline(old_v)
-            for i in xrange(10):
-                new_v = random.choice(version_ids)
-                p2 = v.getPipeline(new_v)
-                a = v.general_action_chain(old_v, new_v)
+
+            def do_single_test(start_v, end_v):
+                p2 = v.getPipeline(end_v)
+                a = v.general_action_chain(start_v, end_v)
                 p.perform_action(a)
                 if not check_pipelines(p, p2):
-                    print i
-                    
+                    print start_v, end_v
+
                 assert p == p2
-                old_v = new_v
                 sys.stderr.flush()
+
+            if new_v is not None:
+                do_single_test(old_v, new_v)
+            else:
+                for i in xrange(10):
+                    new_v = random.choice(version_ids)
+                    do_single_test(old_v, new_v)
+                    old_v = new_v
+                    
 
         do_test('/tests/resources/dummy.xml', XMLFileLocator)
         do_test('/tests/resources/terminator.vt', FileLocator)

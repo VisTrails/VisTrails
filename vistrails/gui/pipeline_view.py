@@ -1620,7 +1620,7 @@ mutual connections."""
             selected_modules = []
             # create new module shapes
             for m_id in modules_to_be_added:
-                print 'adding module', m_id
+                # print 'adding module', m_id
                 self.addModule(pipeline.modules[m_id])
                 if self.modules[m_id].isSelected:
                     selected_modules.append(m_id)
@@ -1684,10 +1684,6 @@ mutual connections."""
                 pip_c.connectingModules = (self.modules[connection.source.moduleId],
                                            self.modules[connection.destination.moduleId])
                 (srcModule, dstModule) = pip_c.connectingModules
-                if (srcModule.module.id in moved) or (dstModule.module.id in moved):
-                    print 'got to moved, doing set'
-                    # srcPoint = srcModule.getOutputPortPosition(connection.source)
-                    # dstPoint = dstModule.getInputPortPosition(connection.destination)
 
             self._old_module_ids = new_modules
             self._old_connection_ids = new_connections

@@ -347,13 +347,10 @@ class QVistrailView(QDockContainer):
         
         """
         if self.controller:
-            print '$$$$$$ START versionSelected', versionId, byClick
             if byClick:
-                print "doing byClick stuff"
                 if self.controller.current_version > 0:
                     self.controller.flush_move_actions()
                 self.controller.reset_pipeline_view = byClick
-                print "running change_selected_version!"
                 self.controller.change_selected_version(versionId, True,
                                                         doValidate, fromRoot)
                 versionId = self.controller.current_version
@@ -367,8 +364,6 @@ class QVistrailView(QDockContainer):
             self.execDiffEnabled = False
             self.execExploreChange = False
             self.emit(QtCore.SIGNAL('execStateChange()'))
-            print '$$$$$$ END versionSelected', versionId, byClick
-            
 
             return versionId
 

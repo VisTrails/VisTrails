@@ -81,6 +81,8 @@ class Module(DBModule):
             self.is_watched = other.is_watched
             self._descriptor_info = None
             self._module_descriptor = other._module_descriptor
+        if not self.namespace:
+            self.namespace = None
         self.function_idx = self.db_functions_id_index
         self.setup_indices()
 
@@ -167,17 +169,21 @@ class Module(DBModule):
     def get_portSpec_by_name(self, name):
         return self.db_get_portSpec_by_name(name)
     def add_port_spec(self, spec):
-        self.db_add_portSpec(spec)
+        DBModule.db_add_portSpec(self, spec)
         if spec.type == 'input':
             self._input_port_specs.append(spec)
         elif spec.type == 'output':
             self._output_port_specs.append(spec)
+    # override DBModule.db_add_portSpec so that _*_port_specs are updated
+    db_add_portSpec = add_port_spec
     def delete_port_spec(self, spec):
         if spec.type == 'input':
             self._input_port_specs.remove(spec)
         elif spec.type == 'output':
             self._output_port_specs.remove(spec)
-        self.db_delete_portSpec(spec)
+        DBModule.db_delete_portSpec(self, spec)
+    # override DBModule.db_delete_portSpec so that _*_port_specs are updated
+    db_delete_portSpec = delete_port_spec
 
     def _get_input_port_specs(self):
         return sorted(self._input_port_specs, 
@@ -421,7 +427,7 @@ class TestModule(unittest.TestCase):
         x.cache = 1
         self.assertEquals(x.cache, 1)
         self.assertEquals(x.location.x, -1.0)
-        x.location = Point(1, x.location.y)
+        x.location = Location(x=1, y=x.location.y)
         self.assertEquals(x.location.x, 1)
         self.assertEquals(x.name, "")
 

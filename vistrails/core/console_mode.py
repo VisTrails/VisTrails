@@ -135,14 +135,15 @@ class TestConsoleMode(unittest.TestCase):
         if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
             return
 
+#         m = __import__('console_mode_test')
+#         sys.path = old_path
         old_path = sys.path
         sys.path.append(core.system.vistrails_root_directory() +
                         '/tests/resources')
-        m = __import__('console_mode_test')
-        sys.path = old_path
-        d = {'console_mode_test': m}
+#         d = {'console_mode_test': 'tests.resources.'}
         manager.add_package('console_mode_test')
-        manager.initialize_packages(d)
+        manager.initialize_packages()
+        sys.path = old_path
 
     def test1(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +

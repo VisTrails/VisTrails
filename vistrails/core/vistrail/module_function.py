@@ -142,24 +142,9 @@ class ModuleFunction(DBFunction):
         port_type is either 'input' or 'output', as strings, which
         simply gets set on the spec being returned.
         """
-        # FIXME cscheid: what's the right call if getSignature is deprecated?
         assert port_type == 'input' or port_type == 'output'
-        result = PortSpec(signature=self.getSignature())
+        result = PortSpec(signature=self.sigstring)
         result.type = port_type
-        return result
-
-    def getSignature(self):
-        """ getSignature() -> str - Returns the function signature..
-
-        This is a deprecated call! """
-        result = self.returnType + "("
-        for p in self.params:
-            result = result + p.type + ", "
-        if result.rfind(",") != -1:
-            result = result[0:result.rfind(",")]
-        else:
-            result = result + " "
-        result = result + ")"
         return result
 
     ##########################################################################

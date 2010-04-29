@@ -141,8 +141,7 @@ class ModuleParam(DBParameter):
             type_list = [self._identifier, self._type]
             if self._namespace:
                 type_list.append(self._namespace)
-            self.db_type = ':'.join([self._identifier, self._type,
-                                     self._namespace])
+            self.db_type = ':'.join(type_list)
 
     def _get_type(self):
         if not hasattr(self, '_type'):
