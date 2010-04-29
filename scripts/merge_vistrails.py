@@ -3,9 +3,10 @@
 #FIXME !!! DOES NOT MERGE EXECUTION LOGS STORED IN VT FILE !!!
 
 import sys
-sys.path.append('../vistrails')
+if '/vistrails/src/trunk/vistrails' not in sys.path:
+    sys.path.append('/vistrails/src/trunk/vistrails')
 
-from db.domain import DBModule, DBConnection, DBPort, DBFunction, \
+from db.domain import DBAction, DBModule, DBConnection, DBPort, DBFunction, \
     DBParameter, DBLocation, DBPortSpec, DBTag, DBAnnotation, DBVistrail
 from db.services import io
 
@@ -21,7 +22,9 @@ def merge_vistrails(vt, next_vt):
             while vt.db_has_tag_with_name(tag.db_name + str(copy_no)):
                 copy_no += 1
             tag.db_name = tag.db_name + str(copy_no)
-        new_tag = tag.do_copy(True, vt.idScope, id_remap)
+        new_tag = tag.do_copy()
+        if (DBAction.vtType, new_tag.db_id) in id_remap:
+            new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
         vt.db_add_tag(new_tag)
 
     for annotation in next_vt.db_annotations:
