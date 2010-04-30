@@ -321,6 +321,89 @@ def synchronize(old_vistrail, new_vistrail, current_action_id):
     old_vistrail.db_currentVersion = new_action_id
     return new_action_id
 
+checkout_key = "__checkout_version_"
+
+def merge(vt, next_vt, app='crowdlabs'):
+    """ appends all changes from next_vt onto vt. The changes in vt can then be
+        uploaded to the database.
+        """
+    id_remap = {}
+
+    # first vt is old from db, last vt is new one with correct checkout id
+    checkinId = 0
+    if next_vt.db_has_annotation_with_key(checkout_key + app):
+        co = next_vt.db_get_annotation_by_key(checkout_key + app)
+        print "found checkin id annotation"
+        checkinId = int(co._db_value)
+    else:
+        print "calculating checkin id"
+        # create unique identifiers for all actions
+        actions = []
+        actionDict = {}
+        for action in vt.db_actions:
+            unique = action._db_user + str(action._db_date)
+            copy_no = 0
+            while (unique + str(copy_no)) in actionDict:
+                copy_no += 1
+            unique = unique + str(copy_no)
+            actions.append(unique)
+            actionDict[unique] = action
+        actionNexts = []
+        actionDictNext = {}
+        for action in next_vt.db_actions:
+            unique = action._db_user + str(action._db_date)
+            copy_no = 0
+            while (unique + str(copy_no)) in actionDictNext:
+                copy_no += 1
+            unique = unique + str(copy_no)
+            actionNexts.append(unique)
+            actionDictNext[unique] = action
+
+        # find last checkin action (only works for centralized syncs)
+        while checkinId < len(actions) and checkinId < len(actionNexts) and actions[checkinId] == actionNexts[checkinId]:
+            checkinId += 1
+    print "checkinId =", checkinId
+
+    for action in next_vt.db_actions:
+        # check for identical actions
+        if action._db_id > checkinId: # actionDictInvNext[action] not in actionDict:
+            new_action = action.do_copy(True, vt.idScope, id_remap)
+            vt.db_add_action(new_action)
+
+    for tag in next_vt.db_tags:
+        if vt.db_has_tag_with_name(tag.db_name):
+            # find out if it is the same
+            # if the same do nothing
+            if tag._db_id > checkinId:
+                # not the same, find available id and copy
+                copy_no = 2
+                while vt.db_has_tag_with_name(tag.db_name + str(copy_no)) or \
+                    next_vt.db_has_tag_with_name(tag.db_name + str(copy_no)):
+                    copy_no += 1
+                tag.db_name = tag.db_name + str(copy_no)
+
+                new_tag = tag.do_copy()
+                if (DBAction.vtType, new_tag.db_id) in id_remap:
+                    new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
+                vt.db_add_tag(new_tag)
+        else:
+            # new_tag = tag.do_copy(True, vt.idScope, id_remap)
+            new_tag = tag.do_copy()
+            if (DBAction.vtType, new_tag.db_id) in id_remap:
+                new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
+            vt.db_add_tag(new_tag)
+
+    for annotation in next_vt.db_annotations:
+        if vt.db_has_annotation_with_key(annotation.db_key):
+            copy_no = 2
+            while vt.db_has_annotation_with_key(annotation.db_key + \
+                                                    str(copy_no)):
+                copy_no += 1
+            annotation.db_key = annotation.db_key + str(copy_no)
+        new_annotation = annotation.do_copy(True, vt.idScope, id_remap)
+        vt.db_add_annotation(new_annotation)
+
+
 ################################################################################
 # Analogy methods
 
