@@ -127,8 +127,9 @@ class UpgradeWorkflowHandler(object):
         
         def check_connection_port(port):
             try:
-                s = d.get_port_spec(port.name, 
-                                    PortSpec.port_type_map.inverse[port.type])
+                port_type = PortSpec.port_type_map.inverse[port.type]
+                s = reg.get_port_spec_from_descriptor(d, port.name, port_type)
+
                 # the old port spec doesn't actually exist for
                 # the invalid module so we cannot compare!
                 # if s <> port.spec:
@@ -139,8 +140,10 @@ class UpgradeWorkflowHandler(object):
             except Exception, e:
                 import traceback
                 traceback.print_exc()
-                msg = ("%s connection to port %s does not exist." %
-                       (PortSpec.port_type_map.inverse[port.type], port.name))
+                msg = ("%s connection to port %s of module %s "
+                       "does not exist." % \
+                           (PortSpec.port_type_map.inverse[port.type], 
+                            port.name, invalid_module.name))
                 raise UpgradeWorkflowError(msg)
             
         # check if connections are still valid
@@ -155,7 +158,8 @@ class UpgradeWorkflowHandler(object):
         for function in invalid_module.functions:
             # function_spec = function.get_spec('input')
             try:
-                reg_spec = d.get_port_spec(function.name, 'input')
+                reg_spec = reg.get_port_spec_from_descriptor(d, function.name,
+                                                             'input')
             except:
                 raise UpgradeWorkflowError('cannot find function "%s" for'
                                            'upgrade' % function.name)
