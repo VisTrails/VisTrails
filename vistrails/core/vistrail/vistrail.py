@@ -945,6 +945,12 @@ class Vistrail(DBVistrail):
             c.id = fresh_id
 
         raise Exception("not finished")
+    
+    def update_checkout_version(self, app=''):
+        checkout_key = "__checkout_version_"
+        key = checkout_key + app
+        value = str(len(self.actions))
+        self.set_annotation(key, value)
         
 ##############################################################################
 

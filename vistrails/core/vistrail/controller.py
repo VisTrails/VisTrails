@@ -68,8 +68,6 @@ from db.services.io import SaveBundle
 from db.services.vistrail import getSharedRoot
 from core.utils import any
 
-checkout_key = "__checkout_version_"
-
 def vt_action(f):
     def new_f(self, *args, **kwargs):
         self.flush_delayed_actions()
@@ -2130,6 +2128,4 @@ class VistrailController(object):
         locator.save_as(save_bundle)
 
     def update_checkout_version(self, app=''):
-        key = checkout_key + app
-        value = str(len(self.vistrail.actions))
-        self.vistrail.set_annotation(key, value)
+        self.vistrail.update_checkout_version(app)
