@@ -311,7 +311,6 @@ def perform_analogy_on_vistrail(vistrail,
                                             candidate_port.name == port.name):
                                             #print "found perfect match"
                                             port.spec = candidate_port
-                                            port.find_port_types()
                                             return True
                                 # Now try to find an imperfect one
                                 for (klass_name, ports) in all_ports:
@@ -321,7 +320,6 @@ def perform_analogy_on_vistrail(vistrail,
                                             #print "found imperfect match"
                                             port.name = candidate_port.name
                                             port.spec = candidate_port
-                                            port.find_port_types()
                                             return True
                                 return False
                             if not remap():
@@ -351,7 +349,6 @@ def perform_analogy_on_vistrail(vistrail,
                                             candidate_port.name == port.name):
                                             # print "found perfect match"
                                             port.spec = candidate_port
-                                            port.find_port_types()
                                             return True
                                 # Now try to find an imperfect one
                                 for (klass_name, ports) in all_ports:
@@ -360,7 +357,6 @@ def perform_analogy_on_vistrail(vistrail,
                                             # print "found imperfect match"
                                             port.name = candidate_port.name
                                             port.spec = candidate_port
-                                            port.find_port_types()
                                             return True
                                 return False
                             if not remap():
