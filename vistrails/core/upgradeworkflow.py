@@ -28,6 +28,7 @@ import core.db.action
 from core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort
 from core.packagemanager import get_package_manager
+from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
@@ -188,7 +189,6 @@ class UpgradeWorkflowHandler(object):
                         dst_port_remap={}, annotation_remap={}):
         ops = []
         ops.extend(controller.delete_module_list_ops(pipeline, [old_module.id]))
-        ops.append(('add', new_module))
         
         for annotation in old_module.annotations:
             if annotation.key not in annotation_remap:
@@ -204,12 +204,12 @@ class UpgradeWorkflowHandler(object):
                 else:
                     annotation_key = remap
 
-            ops.extend(
-                controller.update_annotation_ops(new_module,
-                                                 [(annotation_key,
-                                                   annotation.value)]))
+            new_annotation = \
+                Annotation(id=controller.id_scope.getNewId(Annotation.vtType),
+                           key=annotation_key,
+                           value=annotation.value)
+            new_module.add_annotation(new_annotation)
 
-        local_port_specs = {}
         for port_spec in old_module.port_spec_list:
             if port_spec.type == 'input':
                 if port_spec.name not in dst_port_remap:
@@ -237,10 +237,7 @@ class UpgradeWorkflowHandler(object):
                         spec_name = remap                
             new_spec = port_spec.do_copy(True, controller.id_scope, {})
             new_spec.name = spec_name
-            local_port_specs[(new_spec.name, new_spec.type)] = new_spec
-            ops.append(('add', new_spec, 'module', new_module.id))
-
-        print local_port_specs
+            new_module.add_port_spec(new_spec)
 
         for function in old_module.functions:
             if function.name not in function_remap:
@@ -257,19 +254,19 @@ class UpgradeWorkflowHandler(object):
                     function_name = remap
 
             new_param_vals = [p.strValue for p in function.parameters]
-            ops.extend(controller.update_function_ops(new_module,
+            new_function = controller.create_function(new_module, 
                                                       function_name,
-                                                      new_param_vals))
+                                                      new_param_vals)
+            new_module.add_function(new_function)
+
+        # add the new module
+        ops.append(('add', new_module))
 
         def create_new_connection(src_module, src_port, dst_module, dst_port):
             # spec -> name, type, signature
             output_port_id = controller.id_scope.getNewId(Port.vtType)
             if type(src_port) == type(""):
-                if ((src_port, 'output')) in local_port_specs:
-                    output_port_spec = local_port_specs[(src_port, 'output')]
-                else:
-                    output_port_spec = \
-                        src_module.get_port_spec(src_port, 'output')
+                output_port_spec = src_module.get_port_spec(src_port, 'output')
                 output_port = Port(id=output_port_id,
                                    spec=output_port_spec,
                                    moduleId=src_module.id,
@@ -284,11 +281,7 @@ class UpgradeWorkflowHandler(object):
 
             input_port_id = controller.id_scope.getNewId(Port.vtType)
             if type(dst_port) == type(""):
-                if ((dst_port, 'input')) in local_port_specs:
-                    input_port_spec = local_port_specs[(dst_port, 'input')]
-                else:
-                    input_port_spec = \
-                        dst_module.get_port_spec(dst_port, 'input')
+                input_port_spec = dst_module.get_port_spec(dst_port, 'input')
                 input_port = Port(id=input_port_id,
                                   spec=input_port_spec,
                                   moduleId=dst_module.id,
