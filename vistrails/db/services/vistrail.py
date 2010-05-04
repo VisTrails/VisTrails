@@ -324,15 +324,19 @@ def synchronize(old_vistrail, new_vistrail, current_action_id):
 def merge(vt, next_vt, app=''):
     """ appends all changes from next_vt onto vt. The changes in vt can then be
         uploaded to the database.
+        first vt is old from db, last vt is new one with correct checkout id.
         """
     id_remap = {}
 
     checkout_key = "__checkout_version_"
+    action_key = checkout_key + app
+    tag_key = action_key + '_taghash'
+    annotation_key = action_key + '_annotationhash'
 
-    # first vt is old from db, last vt is new one with correct checkout id
+    # find the highest common checkin id
     checkinId = 0
-    if next_vt.db_has_annotation_with_key(checkout_key + app):
-        co = next_vt.db_get_annotation_by_key(checkout_key + app)
+    if next_vt.db_has_annotation_with_key(action_key):
+        co = next_vt.db_get_annotation_by_key(action_key)
         print "found checkin id annotation"
         checkinId = int(co._db_value)
     else:
@@ -365,15 +369,34 @@ def merge(vt, next_vt, app=''):
             checkinId += 1
         checkinId = actionDict[actions[checkinId-1]].db_id
 
-    print "checkinId =", checkinId
+    print "checkinId:", checkinId
 
-    # check if someone else have checked something in
-    merge_needed = False
-    other_checkin = max(v.db_id for v in vt.db_actions)
-    if other_checkin > checkinId:
-        merge_needed = True
+    # delete previous checkout annotations in vt
+    deletekeys = [action_key, tag_key, annotation_key]
+    for key in deletekeys:
+        while vt.db_has_annotation_with_key(key):
+            a = vt.db_get_annotation_by_key(key)
+            self.db_delete_annotation(a)
 
-    # merge actions
+    # check if someone else have changed the tags
+    mergeTags = True
+    if next_vt.db_has_annotation_with_key(tag_key):
+        print "found taghash"
+        co = next_vt.db_get_annotation_by_key(tag_key)
+        old_taghash = co._db_value
+        mergeTags = (old_taghash != vt.hashTags())
+    print "merge tags:", mergeTags
+
+    # check if someone else have changed the annotations
+    mergeAnnotations = True
+    if next_vt.db_has_annotation_with_key(annotation_key):
+        print "found annotationhash"
+        co = next_vt.db_get_annotation_by_key(annotation_key)
+        old_annotationhash = co._db_value
+        mergeAnnotations = (old_annotationhash != vt.hashAnnotations())
+    print "merge annotations:", mergeAnnotations
+
+    ######################## merge actions #############################
     for action in next_vt.db_actions:
         # check for identical actions
         if action._db_id > checkinId:
@@ -381,7 +404,7 @@ def merge(vt, next_vt, app=''):
             vt.db_add_action(new_action)
 
     ######################## merge tags ################################
-    if not merge_needed:
+    if not mergeTags:
         # replace all the tags. Needed because tags can be deleted.
         for tag in [t for t in vt.db_tags]:
             vt.db_delete_tag(tag)
@@ -407,7 +430,7 @@ def merge(vt, next_vt, app=''):
                              next_vt.db_has_tag_with_name(old_tag.db_name + str(copy_no)):
                             copy_no += 1
                         old_tag.db_name += str(copy_no)
-                    print "tags merged", old_tag.db_id, old_tag.db_name
+                    print "tags merged:", old_tag.db_id, old_tag.db_name
                     old_tag.is_dirty = True
             else:
                 if vt.db_has_tag_with_name(new_tag.db_name):
@@ -420,7 +443,7 @@ def merge(vt, next_vt, app=''):
                 vt.db_add_tag(new_tag)
 
     ################## merge annotations ##################
-    if not merge_needed:
+    if not mergeAnnotations:
         # replace all the annotations. Needed because they can be deleted.
         for annotation in [a for a in vt.db_annotations]:
             vt.db_delete_annotation(annotation)

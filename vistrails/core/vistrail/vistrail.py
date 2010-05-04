@@ -28,6 +28,7 @@ import itertools
 import string
 import traceback
 import xml.dom.minidom
+import hashlib
 
 from db.domain import DBVistrail
 from db import VistrailsDBException
@@ -948,9 +949,54 @@ class Vistrail(DBVistrail):
     
     def update_checkout_version(self, app=''):
         checkout_key = "__checkout_version_"
-        key = checkout_key + app
-        value = max(v.db_id for v in self.db_actions)
-        self.set_annotation(key, value)
+        action_key = checkout_key + app
+        tag_key = action_key + '_taghash'
+        annotation_key = action_key + '_annotationhash'
+
+        # delete previous checkout annotations
+        deletekeys = [action_key, tag_key, annotation_key]
+        for key in deletekeys:
+            while self.db_has_annotation_with_key(key):
+                a = self.db_get_annotation_by_key(key)
+                self.db_delete_annotation(a)
+        
+        # annotation hash - requires annotations to be clean
+        value = self.hashAnnotations()
+        self.set_annotation(annotation_key, value)
+        # last action id
+        if len(self.db_actions) == 0:
+            value = 0
+        else:
+            value = max(v.db_id for v in self.db_actions)
+        self.set_annotation(action_key, value)
+        # tag hash
+        self.set_annotation(tag_key, self.hashTags())
+
+    def hashTags(self):
+        tagKeys = self.tagMap.keys()
+        tagKeys.sort()
+        m = hashlib.md5()
+        for k in tagKeys:
+            m.update(str(k))
+            m.update(self.tagMap[k].name)
+        return m.hexdigest()
+
+    def hashAnnotations(self):
+        annotations = {}
+        for annotation in self.db_annotations:
+            if annotation._db_key not in annotations:
+                annotations[annotation._db_key] = []
+            if annotation._db_value not in annotation[annotation._db_key]:
+                annotations[annotation._db_key].append(annotation._db_value)
+        keys = annotations.keys()
+        keys.sort()
+        m = hashlib.md5()
+        for k in keys:
+            m.update(k)
+            annotations[k].sort()
+            for v in annotations[k]:
+                m.update(v)
+        return m.hexdigest()
         
 ##############################################################################
 
