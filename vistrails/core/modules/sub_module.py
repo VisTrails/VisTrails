@@ -85,6 +85,11 @@ class Group(Module):
             iport_obj.set_input_port('ExternalPipe', conn[0])
         
         kwargs = {'logger': self.logging.log, 'clean_pipeline': True}
+        module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
+        for arg in module_info_args:
+            if arg in self.moduleInfo:
+                kwargs[arg] = self.moduleInfo[arg]
+
 #         if hasattr(self, 'group_exec'):
 #             kwargs['parent_exec'] = self.group_exec
 
@@ -200,12 +205,14 @@ def read_vistrail(vt_fname):
     Vistrail.convert(vistrail)
     return vistrail
 
-def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L):
+def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
+                    pipeline=None):
     """make_abstraction(name: str, 
                         vistrail: (str or Vistrail), 
                         registry: ModuleRegistry,
                         vt_fname: str,
-                        internal_version: long) -> type
+                        internal_version: long,
+                        pipeline: Pipeline) -> type
 
     Creates a new VisTrails module that is a subclass of Abstraction
     according to the vistrail file provided and the version.  The version
@@ -222,10 +229,10 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L):
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
     action = vistrail.actionMap[internal_version]
-    pipeline = vistrail.getPipeline(internal_version)
-    # try to make the subworkflow work with the package versions we have
-    pipeline.ensure_modules_are_on_registry()
-    pipeline.ensure_connection_specs()
+    if pipeline is None:
+        pipeline = vistrail.getPipeline(internal_version)
+        # try to make the subworkflow work with the package versions we have
+        pipeline.validate()
     uuid = vistrail.get_annotation('__abstraction_uuid__').value
 
     if action.notes is not None:
