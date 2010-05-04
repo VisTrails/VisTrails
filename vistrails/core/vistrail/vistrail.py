@@ -949,7 +949,7 @@ class Vistrail(DBVistrail):
     def update_checkout_version(self, app=''):
         checkout_key = "__checkout_version_"
         key = checkout_key + app
-        value = str(len(self.actions))
+        value = max(v.db_id for v in self.db_actions)
         self.set_annotation(key, value)
         
 ##############################################################################

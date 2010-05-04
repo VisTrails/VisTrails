@@ -321,13 +321,13 @@ def synchronize(old_vistrail, new_vistrail, current_action_id):
     old_vistrail.db_currentVersion = new_action_id
     return new_action_id
 
-checkout_key = "__checkout_version_"
-
-def merge(vt, next_vt, app='crowdlabs'):
+def merge(vt, next_vt, app=''):
     """ appends all changes from next_vt onto vt. The changes in vt can then be
         uploaded to the database.
         """
     id_remap = {}
+
+    checkout_key = "__checkout_version_"
 
     # first vt is old from db, last vt is new one with correct checkout id
     checkinId = 0
@@ -360,49 +360,88 @@ def merge(vt, next_vt, app='crowdlabs'):
             actionDictNext[unique] = action
 
         # find last checkin action (only works for centralized syncs)
-        while checkinId < len(actions) and checkinId < len(actionNexts) and actions[checkinId] == actionNexts[checkinId]:
+        while checkinId < len(actions) and checkinId < len(actionNexts) and \
+              actions[checkinId] == actionNexts[checkinId]:
             checkinId += 1
+        checkinId = actionDict[actions[checkinId-1]].db_id
+
     print "checkinId =", checkinId
 
+    # check if someone else have checked something in
+    merge_needed = False
+    other_checkin = max(v.db_id for v in vt.db_actions)
+    if other_checkin > checkinId:
+        merge_needed = True
+
+    # merge actions
     for action in next_vt.db_actions:
         # check for identical actions
-        if action._db_id > checkinId: # actionDictInvNext[action] not in actionDict:
+        if action._db_id > checkinId:
             new_action = action.do_copy(True, vt.idScope, id_remap)
             vt.db_add_action(new_action)
 
-    for tag in next_vt.db_tags:
-        if vt.db_has_tag_with_name(tag.db_name):
-            # find out if it is the same
-            # if the same do nothing
-            if tag._db_id > checkinId:
-                # not the same, find available id and copy
-                copy_no = 2
-                while vt.db_has_tag_with_name(tag.db_name + str(copy_no)) or \
-                    next_vt.db_has_tag_with_name(tag.db_name + str(copy_no)):
-                    copy_no += 1
-                tag.db_name = tag.db_name + str(copy_no)
-
-                new_tag = tag.do_copy()
-                if (DBAction.vtType, new_tag.db_id) in id_remap:
-                    new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
-                vt.db_add_tag(new_tag)
-        else:
-            # new_tag = tag.do_copy(True, vt.idScope, id_remap)
+    ######################## merge tags ################################
+    if not merge_needed:
+        # replace all the tags. Needed because tags can be deleted.
+        for tag in [t for t in vt.db_tags]:
+            vt.db_delete_tag(tag)
+        for tag in next_vt.db_tags:
             new_tag = tag.do_copy()
             if (DBAction.vtType, new_tag.db_id) in id_remap:
                 new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
             vt.db_add_tag(new_tag)
+    else:
+        # go through new, adding nonexistent and appending existent if different
+        for tag in next_vt.db_tags:
+            new_tag = tag.do_copy()
+            if (DBAction.vtType, new_tag.db_id) in id_remap:
+                new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
+            if vt.db_has_tag_with_id(new_tag.db_id):
+                old_tag = vt.db_get_tag_by_id(new_tag.db_id)
+                if old_tag.db_name != new_tag.db_name:
+                    old_tag.db_name += " or " + new_tag.db_name
+                    if vt.db_has_tag_with_name(old_tag.db_name):
+                        # find available name
+                        copy_no = 2
+                        while vt.db_has_tag_with_name(old_tag.db_name + str(copy_no)) or \
+                             next_vt.db_has_tag_with_name(old_tag.db_name + str(copy_no)):
+                            copy_no += 1
+                        old_tag.db_name += str(copy_no)
+                    print "tags merged", old_tag.db_id, old_tag.db_name
+                    old_tag.is_dirty = True
+            else:
+                if vt.db_has_tag_with_name(new_tag.db_name):
+                    # find available name
+                    copy_no = 2
+                    while vt.db_has_tag_with_name(new_tag.db_name + str(copy_no)) or \
+                            next_vt.db_has_tag_with_name(new_tag.db_name + str(copy_no)):
+                        copy_no += 1
+                    new_tag.db_name += str(copy_no)
+                vt.db_add_tag(new_tag)
 
-    for annotation in next_vt.db_annotations:
-        if vt.db_has_annotation_with_key(annotation.db_key):
-            copy_no = 2
-            while vt.db_has_annotation_with_key(annotation.db_key + \
-                                                    str(copy_no)):
-                copy_no += 1
-            annotation.db_key = annotation.db_key + str(copy_no)
-        new_annotation = annotation.do_copy(True, vt.idScope, id_remap)
-        vt.db_add_annotation(new_annotation)
-
+    ################## merge annotations ##################
+    if not merge_needed:
+        # replace all the annotations. Needed because they can be deleted.
+        for annotation in [a for a in vt.db_annotations]:
+            vt.db_delete_annotation(annotation)
+        for annotation in next_vt.db_annotations:
+            new_annotation = annotation.do_copy(True, vt.idScope, id_remap)
+            vt.db_add_annotation(new_annotation)
+    else:
+        annotations = {}
+        for annotation in next_vt.db_annotations+vt.db_annotations:
+            if annotation._db_key not in annotations:
+                annotations[annotation._db_key] = []
+            if annotation._db_value not in annotation[annotation._db_key]:
+                annotations[annotation._db_key].append(annotation._db_value)
+        for annotation in [a for a in vt.db_annotations]:
+            vt.db_delete_annotation(annotation)
+        index = 0
+        for annotation_key, annotation_values in annotations.iteritems():
+            for annotation_value in annotation_values:
+                annotation = DBAnnotation(index, annotation_key, annotation_value)
+                vt.db_add_annotation(annotation)
+                index += 1
 
 ################################################################################
 # Analogy methods
