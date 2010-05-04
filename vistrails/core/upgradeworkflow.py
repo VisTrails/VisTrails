@@ -26,7 +26,7 @@ upgrade requests."""
 from core import debug
 import core.db.action
 from core.modules.module_registry import get_module_registry, \
-     ModuleDescriptor, MissingModule
+     ModuleDescriptor, MissingModule, MissingPort
 from core.packagemanager import get_package_manager
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port
@@ -84,6 +84,30 @@ class UpgradeWorkflowHandler(object):
             return auto_upgrade(self._controller, current_pipeline,
                                 request._module_id)
 
+    @staticmethod
+    def check_port_spec(module, port_name, port_type, descriptor=None, 
+                        sigstring=None):
+        reg = get_module_registry()
+        found = False
+        try:
+            if descriptor is not None:
+                s = reg.get_port_spec_from_descriptor(descriptor, port_name,
+                                                      port_type)
+                found = True
+                if s.sigstring != sigstring:
+                    msg = ('%s port "%s" of module "%s" exists, but'
+                           'signatures differ "%s" != "%s"') % \
+                           (port_type.capitalize(), port_name, module.name,
+                            s.sigstring, sigstring)
+                    raise UpgradeWorkflowError(msg)
+        except MissingPort:
+            pass
+
+        if not found and \
+                not module.has_portSpec_with_name((port_name, port_type)):
+            msg = '%s port "%s" of module "%s" does not exist.' % \
+                (port_type.capitalize(), port_name, module.name)
+            raise UpgradeWorkflowError(msg)
 
     @staticmethod
     def attempt_automatic_upgrade(controller, pipeline, module_id):
@@ -111,10 +135,13 @@ class UpgradeWorkflowHandler(object):
             try:
                 d = get_descriptor(mpkg, mname, mnamespace)
             except MissingModule, e:
-                r = pkg.report_missing_module(mname, mnamespace)
+                r = None
+                if pkg.can_handle_missing_modules():
+                    r = pkg.handle_missing_module(controller, module_id, 
+                                                  pipeline)
+                    d = get_descriptor(mpkg, mname, mnamespace)
                 if not r:
                     raise e
-                d = get_descriptor(mpkg, mname, mnamespace)
         except MissingModule, e:
             if mnamespace:
                 nss = mnamespace + '|' + mname
@@ -126,25 +153,10 @@ class UpgradeWorkflowHandler(object):
         assert isinstance(d, ModuleDescriptor)
         
         def check_connection_port(port):
-            try:
-                port_type = PortSpec.port_type_map.inverse[port.type]
-                s = reg.get_port_spec_from_descriptor(d, port.name, port_type)
-
-                # the old port spec doesn't actually exist for
-                # the invalid module so we cannot compare!
-                # if s <> port.spec:
-                #     msg = ("%s connection to port %s has mismatched type" %
-                #            (PortSpec.port_type_map.inverse[port.type], 
-                #             port.name))
-                #     raise UpgradeWorkflowError(msg)
-            except Exception, e:
-                import traceback
-                traceback.print_exc()
-                msg = ("%s connection to port %s of module %s "
-                       "does not exist." % \
-                           (PortSpec.port_type_map.inverse[port.type], 
-                            port.name, invalid_module.name))
-                raise UpgradeWorkflowError(msg)
+            port_type = PortSpec.port_type_map.inverse[port.type]
+            UpgradeWorkflowHandler.check_port_spec(invalid_module,
+                                                   port.name, port_type,
+                                                   d, port.sigstring)
             
         # check if connections are still valid
         for _, conn_id in pipeline.graph.edges_from(module_id):
@@ -157,15 +169,10 @@ class UpgradeWorkflowHandler(object):
         # check if function values are still valid
         for function in invalid_module.functions:
             # function_spec = function.get_spec('input')
-            try:
-                reg_spec = reg.get_port_spec_from_descriptor(d, function.name,
-                                                             'input')
-            except:
-                raise UpgradeWorkflowError('cannot find function "%s" for'
-                                           'upgrade' % function.name)
-            if reg_spec.sigstring != function.sigstring:
-                raise UpgradeWorkflowError('mismatch on function "%s"' % \
-                                               function.name)
+            UpgradeWorkflowHandler.check_port_spec(invalid_module,
+                                                   function.name, 
+                                                   'input', d,
+                                                   function.sigstring)
 
         # If we passed all of these checks, then we consider module to
         # be automatically upgradeable. Now create actions that will delete
@@ -202,6 +209,39 @@ class UpgradeWorkflowHandler(object):
                                                  [(annotation_key,
                                                    annotation.value)]))
 
+        local_port_specs = {}
+        for port_spec in old_module.port_spec_list:
+            if port_spec.type == 'input':
+                if port_spec.name not in dst_port_remap:
+                    spec_name = port_spec.name
+                else:
+                    remap = dst_port_remap[port_spec.name]
+                    if remap is None:
+                        continue
+                    elif type(remap) != type(""):
+                        ops.extend(remap(port_spec))
+                        continue
+                    else:
+                        spec_name = remap
+            elif port_spec.type == 'output':
+                if port_spec.name not in src_port_remap:
+                    spec_name = port_spec.name
+                else:
+                    remap = src_port_remap[port_spec.name]
+                    if remap is None:
+                        continue
+                    elif type(remap) != type(""):
+                        ops.extend(remap(port_spec))
+                        continue
+                    else:
+                        spec_name = remap                
+            new_spec = port_spec.do_copy(True, controller.id_scope, {})
+            new_spec.name = spec_name
+            local_port_specs[(new_spec.name, new_spec.type)] = new_spec
+            ops.append(('add', new_spec, 'module', new_module.id))
+
+        print local_port_specs
+
         for function in old_module.functions:
             if function.name not in function_remap:
                 function_name = function.name
@@ -225,8 +265,11 @@ class UpgradeWorkflowHandler(object):
             # spec -> name, type, signature
             output_port_id = controller.id_scope.getNewId(Port.vtType)
             if type(src_port) == type(""):
-                output_port_spec = \
-                    src_module.get_port_spec(src_port, 'output')
+                if ((src_port, 'output')) in local_port_specs:
+                    output_port_spec = local_port_specs[(src_port, 'output')]
+                else:
+                    output_port_spec = \
+                        src_module.get_port_spec(src_port, 'output')
                 output_port = Port(id=output_port_id,
                                    spec=output_port_spec,
                                    moduleId=src_module.id,
@@ -241,8 +284,11 @@ class UpgradeWorkflowHandler(object):
 
             input_port_id = controller.id_scope.getNewId(Port.vtType)
             if type(dst_port) == type(""):
-                input_port_spec = \
-                    dst_module.get_port_spec(dst_port, 'input')
+                if ((dst_port, 'input')) in local_port_specs:
+                    input_port_spec = local_port_specs[(dst_port, 'input')]
+                else:
+                    input_port_spec = \
+                        dst_module.get_port_spec(dst_port, 'input')
                 input_port = Port(id=input_port_id,
                                   spec=input_port_spec,
                                   moduleId=dst_module.id,
