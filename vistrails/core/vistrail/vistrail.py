@@ -952,9 +952,10 @@ class Vistrail(DBVistrail):
         action_key = checkout_key + app
         tag_key = action_key + '_taghash'
         annotation_key = action_key + '_annotationhash'
+        action_annotation_key = action_key + '_actionannotationhash'
 
         # delete previous checkout annotations
-        deletekeys = [action_key, tag_key, annotation_key]
+        deletekeys = [action_key,tag_key,annotation_key,action_annotation_key]
         for key in deletekeys:
             while self.db_has_annotation_with_key(key):
                 a = self.db_get_annotation_by_key(key)
@@ -963,7 +964,10 @@ class Vistrail(DBVistrail):
         # annotation hash - requires annotations to be clean
         value = self.hashAnnotations()
         self.set_annotation(annotation_key, value)
-        # last action id
+        # action annotation hash
+        value = self.hashActionAnnotations()
+        self.set_annotation(action_annotation_key, value)
+        # last action id hash
         if len(self.db_actions) == 0:
             value = 0
         else:
@@ -986,7 +990,7 @@ class Vistrail(DBVistrail):
         for annotation in self.db_annotations:
             if annotation._db_key not in annotations:
                 annotations[annotation._db_key] = []
-            if annotation._db_value not in annotation[annotation._db_key]:
+            if annotation._db_value not in annotations[annotation._db_key]:
                 annotations[annotation._db_key].append(annotation._db_value)
         keys = annotations.keys()
         keys.sort()
@@ -995,6 +999,25 @@ class Vistrail(DBVistrail):
             m.update(k)
             annotations[k].sort()
             for v in annotations[k]:
+                m.update(v)
+        return m.hexdigest()
+
+    def hashActionAnnotations(self):
+        action_annotations = {}
+        for id, annotations in [[action.db_id, action.annotations] for action in self.db_actions]:
+            for annotation in annotations:
+                index = (str(id), annotation._db_key)
+                if index not in action_annotations:
+                    action_annotations[index] = []
+                if annotation._db_value not in action_annotations[index]:
+                    action_annotations[index].append(annotation._db_value)
+        keys = action_annotations.keys()
+        keys.sort()
+        m = hashlib.md5()
+        for k in keys:
+            m.update(k[0] + k[1])
+            action_annotations[k].sort()
+            for v in action_annotations[k]:
                 m.update(v)
         return m.hexdigest()
         

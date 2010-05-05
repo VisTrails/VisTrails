@@ -332,6 +332,7 @@ def merge(vt, next_vt, app=''):
     action_key = checkout_key + app
     tag_key = action_key + '_taghash'
     annotation_key = action_key + '_annotationhash'
+    action_annotation_key = action_key + '_actionannotationhash'
 
     # find the highest common checkin id
     checkinId = 0
@@ -366,13 +367,14 @@ def merge(vt, next_vt, app=''):
         # find last checkin action (only works for centralized syncs)
         while checkinId < len(actions) and checkinId < len(actionNexts) and \
               actions[checkinId] == actionNexts[checkinId]:
-            checkinId += 1
-        checkinId = actionDict[actions[checkinId-1]].db_id
-
+                  print actions[checkinId], actionNexts[checkinId]
+                  checkinId += 1
+        if checkinId > 0:
+            checkinId = actionDict[actions[checkinId-1]].db_id
     print "checkinId:", checkinId
 
     # delete previous checkout annotations in vt
-    deletekeys = [action_key, tag_key, annotation_key]
+    deletekeys = [action_key,tag_key,annotation_key,action_annotation_key]
     for key in deletekeys:
         while vt.db_has_annotation_with_key(key):
             a = vt.db_get_annotation_by_key(key)
@@ -395,6 +397,15 @@ def merge(vt, next_vt, app=''):
         old_annotationhash = co._db_value
         mergeAnnotations = (old_annotationhash != vt.hashAnnotations())
     print "merge annotations:", mergeAnnotations
+
+    # check if someone else have changed the action annotations
+    mergeActionAnnotations = True
+    if next_vt.db_has_annotation_with_key(action_annotation_key):
+        print "found actionannotationhash"
+        co = next_vt.db_get_annotation_by_key(action_annotation_key)
+        old_hash = co._db_value
+        mergeActionAnnotations = (old_hash != vt.hashActionAnnotations())
+    print "merge actionannotations:", mergeActionAnnotations
 
     ######################## merge actions #############################
     for action in next_vt.db_actions:
@@ -460,11 +471,54 @@ def merge(vt, next_vt, app=''):
         for annotation in [a for a in vt.db_annotations]:
             vt.db_delete_annotation(annotation)
         index = 0
-        for annotation_key, annotation_values in annotations.iteritems():
-            for annotation_value in annotation_values:
-                annotation = DBAnnotation(index, annotation_key, annotation_value)
+        for key, values in annotations.iteritems():
+            for value in values:
+                annotation = DBAnnotation(index, key, value)
                 vt.db_add_annotation(annotation)
                 index += 1
+
+    ################# merge action annotations #############
+    def merge_annotations(old_action, new_action):
+        for new_annotation in new_action.db_annotations:
+            if old_action.db_has_annotation_with_key(new_annotation._db_key):
+                # notes should be merged (the user need to resolv)
+                if annotation_db_key == '__notes__':
+                    old_annotation = \
+                        old_action.db_get_annotation_by_key(new_annotation._db_key)
+                    if new_annotation.db_value != old_annotation.db_value:
+                        old_annotation.db_value += \
+                            "<br/> #### conflicting versions #### <br/>" + \
+                            new_annotation.db_value
+                # thumbs should be updated (we loose the other update)
+                elif annotation_db_key == '__thumb__': 
+                    old_annotation = \
+                        old_action.db_get_annotation_by_key(new_annotation._db_key)
+                    if new_annotation.db_value != old_annotation.db_value:
+                        old_annotation.db_value =  new_annotation.db_value
+                # others should be appended if not already there
+                else:
+                    values = []
+                    for old_annotation in old_action.db_annotations:
+                        if old_annotation.db_key == new_annotation.db_key:
+                            values.append(old_annotation.db_value)
+                    if new_annotation.db_value not in values:
+                        annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
+                        old_action.db_add_annotation(annotation)
+            else:
+                annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
+                old_action.db_add_annotation(annotation)
+
+    for action in vt.db_actions:
+        # we only need to update actions that already existed
+        if action.db_id <= checkinId:
+            next_action = next_vt.db_get_action_by_id(action.db_id)
+            if not mergeActionAnnotations:
+                action.db_annotations = next_action.db_annotations
+            else:
+                merge_annotations(action,next_action)
+
+
+            
 
 ################################################################################
 # Analogy methods
