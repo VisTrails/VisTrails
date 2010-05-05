@@ -37,11 +37,10 @@ from eigen import *
 
 _debug = True
 
-def perform_analogy_on_vistrail(vistrail,
-                                version_a, version_b,
-                                version_c, alpha=0.85):
+def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c, 
+                                pipeline_a=None, pipeline_c=None, alpha=0.85):
     """perform_analogy(vistrail, version_a, version_b, version_c,
-                       alpha=0.15): action
+                       pipeline_a=None, pipeline_c=None, alpha=0.15): action
     Creates a new action version_d to the vistrail such that the difference
     between a and b is the same as between c and d, and returns this
     action."""
@@ -57,10 +56,12 @@ def perform_analogy_on_vistrail(vistrail,
         print 'version_b:', version_b
         print 'version_c:', version_c
 
-    pipeline_a = core.db.io.get_workflow(vistrail, version_a)
-    pipeline_a.ensure_modules_are_on_registry()
-    pipeline_c = core.db.io.get_workflow(vistrail, version_c)
-    pipeline_c.ensure_modules_are_on_registry()
+    if pipeline_a is None:
+        pipeline_a = core.db.io.get_workflow(vistrail, version_a)
+        pipeline_a.validate()
+    if pipeline_c is None:
+        pipeline_c = core.db.io.get_workflow(vistrail, version_c)
+        pipeline_c.validate()
     
     e = EigenPipelineSimilarity2(pipeline_a, pipeline_c, alpha=alpha)
     e._debug = _debug
@@ -152,10 +153,10 @@ def perform_analogy_on_vistrail(vistrail,
     # this creates a new action with new operations
     baAction = core.db.io.getPathAsAction(vistrail, version_a, version_b, True)
 
-    for operation in baAction.operations:
-        print "ba_op0:", operation.id,  operation.vtType, operation.what, 
-        print operation.old_obj_id, "to", operation.parentObjType,
-        print operation.parentObjId
+#     for operation in baAction.operations:
+#         print "ba_op0:", operation.id,  operation.vtType, operation.what, 
+#         print operation.old_obj_id, "to", operation.parentObjType,
+#         print operation.parentObjId
 
     ############################################################################
     # STEP 3: remap (b-a) using mapping in STEP 1 so it can be applied to c
@@ -184,7 +185,12 @@ def perform_analogy_on_vistrail(vistrail,
 
     for op in baAction.operations:
         if op.vtType == 'delete':
-            if op.what == 'module':
+            parent_obj_type = op.parentObjType
+            if parent_obj_type == 'abstraction' or parent_obj_type == 'group':
+                parent_obj_type = 'module'
+            if (op.what == 'module' or 
+                op.what == 'abstraction' or 
+                op.what == 'group'):
                 if module_remap.has_key(op.old_obj_id):
                     remap_id = module_remap[op.old_obj_id]
                     module = pipeline_c.modules[remap_id]
@@ -209,7 +215,7 @@ def perform_analogy_on_vistrail(vistrail,
                 else:
                     ops.append(op)
                     c_connections.discard(op.old_obj_id)
-            elif (op.parentObjType, op.parentObjId) not in id_remap:
+            elif (parent_obj_type, op.parentObjId) not in id_remap:
                 if op.what == 'location':
                     c_locations.pop(op.parentObjId, None)
                 if op.what == 'annotation':
@@ -229,18 +235,24 @@ def perform_analogy_on_vistrail(vistrail,
             new_id = vistrail.idScope.getNewId(op.what)
             op.new_obj_id = new_id
             op.data.db_id = new_id
-            id_remap[(op.what, old_id)] = new_id
-            if op.what == 'module':
+            op_what = op.what
+            if op_what == 'abstraction' or op_what == 'group':
+                op_what = 'module'
+            id_remap[(op_what, old_id)] = new_id
+            if (op.what == 'module' or 
+                op.what == 'abstraction' or 
+                op.what == 'group'):
                 module_name_remap[old_id] = op.data.name
                 c_modules.add(new_id)
             elif op.what == 'connection':
                 c_connections.add(new_id)
 
+            parent_obj_type = op.parentObjType
+            if parent_obj_type == 'abstraction' or parent_obj_type == 'group':
+                parent_obj_type = 'module'
             if op.parentObjId is not None and \
-                    id_remap.has_key((op.parentObjType, 
-                                      op.parentObjId)):
-                op.parentObjId = id_remap[(op.parentObjType,
-                                           op.parentObjId)]
+                    id_remap.has_key((parent_obj_type, op.parentObjId)):
+                op.parentObjId = id_remap[(parent_obj_type, op.parentObjId)]
             if op.what == 'location':
                 # need to make this a 'change' if it's an 'add' and
                 # the module already exists
@@ -248,7 +260,7 @@ def perform_analogy_on_vistrail(vistrail,
                     if op.parentObjId in c_locations:
                         new_op_list = core.db.io.create_change_op_chain(
                             c_locations[op.parentObjId], op.data,
-                            (Module.vtType, op.parentObjId))
+                            (op.parentObjType, op.parentObjId))
                         op = new_op_list[0]
                     c_locations[op.parentObjId] = op.data
                 elif op.vtType == 'change':
@@ -397,22 +409,21 @@ def perform_analogy_on_vistrail(vistrail,
     # get operationDict for c, do update with baAction but discard ops
     # that don't make sense
 
-    for operation in baAction.operations:
-        print "ba_op1:", operation.id, operation.vtType, operation.what, 
-        print operation.old_obj_id, "to", operation.parentObjType,
-        print operation.parentObjId
+#     for operation in baAction.operations:
+#         print "ba_op1:", operation.id, operation.vtType, operation.what, 
+#         print operation.old_obj_id, "to", operation.parentObjType,
+#         print operation.parentObjId
 
     baAction.prevId = version_c
     core.db.io.fixActions(vistrail, version_c, [baAction])
-    print "got here"
     for operation in baAction.operations:
         if operation.what == 'location' and (operation.vtType == 'add' or
                                              operation.vtType == 'change'):
             operation.data.x -= avg_ax - avg_cx
             operation.data.y -= avg_ay - avg_cy
-        print "ba_op2:", operation.id, operation.vtType, operation.what, 
-        print operation.old_obj_id, "to", operation.parentObjType,
-        print operation.parentObjId
+#         print "ba_op2:", operation.id, operation.vtType, operation.what, 
+#         print operation.old_obj_id, "to", operation.parentObjType,
+#         print operation.parentObjId
     # this will be taken care by the controller
     #vistrail.add_action(baAction, version_c)
     return baAction

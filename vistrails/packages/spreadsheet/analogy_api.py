@@ -112,7 +112,7 @@ class SpreadsheetAnalogyObject(object):
 
         controller = get_controller_by_locator(p3_locator)
         vt = controller.vistrail
-        action = perform( vt, p1_number, p2_number, p3_number, 0.15)
+        action = perform( vt, p1_number, p2_number, p3_number)
         
         controller.add_new_action(action)
         controller.perform_action(action)
