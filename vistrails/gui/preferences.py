@@ -283,10 +283,10 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             pm.check_dependencies(self._current_package, new_deps)
-        except MissingDependency, e:
+        except self._current_package.MissingDependency, e:
             msg = QtGui.QMessageBox(QtGui.QMessageBox.Critical,
                                     "Missing Dependencies",
-                                    str(e), QtGuiQMessageBox.Ok, self)
+                                    str(e), QtGui.QMessageBox.Ok, self)
             msg.exec_()
         else:
             palette = QtGui.QApplication.instance().builderWindow.modulePalette
