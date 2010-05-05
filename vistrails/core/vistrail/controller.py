@@ -926,11 +926,11 @@ class VistrailController(object):
         except InvalidPipeline, e:
             # handle_invalid_pipeline will raise it's own InvalidPipeline
             # exception if it fails
-            new_version = \
+            (new_version, new_pipeline) = \
                 self.handle_invalid_pipeline(e, long(module_version), 
                                              abs_vistrail, False)
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
-                                          new_version)
+                                          new_version, new_pipeline)
 
         old_desc = None
         if is_global:
