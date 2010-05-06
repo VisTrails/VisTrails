@@ -151,8 +151,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         to_delete = []
         errors = {}
 
-        pipeline.ensure_modules_are_on_registry()
-        pipeline.ensure_connection_specs()
+        pipeline.validate()
 
         self.resolve_aliases(pipeline, aliases)
 

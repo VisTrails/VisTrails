@@ -612,10 +612,7 @@ class VistrailController(QtCore.QObject, BaseController):
         action = core.db.action.create_action(op_list)
         self.add_new_action(action)
         res = self.perform_action(action)
-        self.current_pipeline.ensure_modules_are_on_registry(
-            [m.id for m in modules])
-        self.current_pipeline.ensure_connection_specs(
-            [c.id for c in connections])
+        self.validate(False)
         return res
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
@@ -1386,8 +1383,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.add_new_action(action)
             self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)
-            self.current_pipeline.ensure_modules_are_on_registry()
-            self.current_pipeline.ensure_connection_specs(connections)
+            self.validate(False)
         return modules
 
     def get_abstraction_name(self, name="", check_exists=True):
@@ -1631,25 +1627,38 @@ class VistrailController(QtCore.QObject, BaseController):
         if analogy_name not in self.analogy:
             raise VistrailsInternalError("missing analogy '%s'" %
                                          analogy_name)
+
+
+        # remove delayed actions since we're not necessarily using
+        # current_version
+        self._delayed_actions = []
+
         (a, b) = self.analogy[analogy_name]
         c = analogy_target
+
+        try:
+            pipeline_a = self.vistrail.getPipeline(a)
+            pipeline_a.validate()
+        except InvalidPipeline, e:
+            (_, pipeline_a) = \
+                self.handle_invalid_pipeline(e, a, Vistrail())
+        try:
+            pipeline_c = self.vistrail.getPipeline(c)
+            pipeline_c.validate()
+        except InvalidPipeline, e:
+            (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
+                                                     
         action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
-                                                          a, b, c)
-#         id_remap = {}
-#         action = action.do_copy(True, self.vistrail.idScope, id_remap)
+                                                          a, b, c, 
+                                                          pipeline_a,
+                                                          pipeline_c)
         self.add_new_action(action)
         self.vistrail.change_description("Analogy", action.id)
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
                                           action.id)
         self.perform_action(action)
-        self.current_pipeline.ensure_modules_are_on_registry()
-        self.current_pipeline.ensure_connection_specs()
+        self.current_pipeline.validate(False)
         self.current_pipeline_view.setupScene(self.current_pipeline)
-
-        # this is not necessary anymore
-        #self.set_changed(True)
-        #if invalidate:
-            #self.invalidate_version_tree(False)
     
 ################################################################################
 # Testing

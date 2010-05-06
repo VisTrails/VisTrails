@@ -173,8 +173,8 @@ class QLegendBox(QtGui.QFrame):
                 self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
             else:
                 self.setAttribute(QtCore.Qt.WA_MacBrushedMetal, False)
-            
         
+
 class QLegendWindow(QtGui.QWidget):
     """
     QLegendWindow contains a list of QLegendBox and its description
@@ -497,10 +497,8 @@ class QVisualDiff(QtGui.QMainWindow):
         # Interprete the diff result
         (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
             self.diff
-        p1.ensure_modules_are_on_registry()
-        p1.ensure_connection_specs()
-        p2.ensure_modules_are_on_registry()
-        p2.ensure_connection_specs()
+        p1.validate(False)
+        p2.validate(False)
         p_both = Pipeline()
         # the abstraction map is the same for both p1 and p2
         # p_both.set_abstraction_map(p1.abstraction_map)
