@@ -367,7 +367,6 @@ def merge(vt, next_vt, app=''):
         # find last checkin action (only works for centralized syncs)
         while checkinId < len(actions) and checkinId < len(actionNexts) and \
               actions[checkinId] == actionNexts[checkinId]:
-                  print actions[checkinId], actionNexts[checkinId]
                   checkinId += 1
         if checkinId > 0:
             checkinId = actionDict[actions[checkinId-1]].db_id
@@ -378,7 +377,7 @@ def merge(vt, next_vt, app=''):
     for key in deletekeys:
         while vt.db_has_annotation_with_key(key):
             a = vt.db_get_annotation_by_key(key)
-            self.db_delete_annotation(a)
+            vt.db_delete_annotation(a)
 
     # check if someone else have changed the tags
     mergeTags = True
@@ -394,8 +393,8 @@ def merge(vt, next_vt, app=''):
     if next_vt.db_has_annotation_with_key(annotation_key):
         print "found annotationhash"
         co = next_vt.db_get_annotation_by_key(annotation_key)
-        old_annotationhash = co._db_value
-        mergeAnnotations = (old_annotationhash != vt.hashAnnotations())
+        old_hash = co._db_value
+        mergeAnnotations = (old_hash != vt.hashAnnotations())
     print "merge annotations:", mergeAnnotations
 
     # check if someone else have changed the action annotations
@@ -482,15 +481,15 @@ def merge(vt, next_vt, app=''):
         for new_annotation in new_action.db_annotations:
             if old_action.db_has_annotation_with_key(new_annotation._db_key):
                 # notes should be merged (the user need to resolv)
-                if annotation_db_key == '__notes__':
+                if new_annotation.db_key == '__notes__':
                     old_annotation = \
                         old_action.db_get_annotation_by_key(new_annotation._db_key)
                     if new_annotation.db_value != old_annotation.db_value:
                         old_annotation.db_value += \
-                            "<br/> #### conflicting versions #### <br/>" + \
+                            "<br/>#### conflicting versions! ####" + \
                             new_annotation.db_value
                 # thumbs should be updated (we loose the other update)
-                elif annotation_db_key == '__thumb__': 
+                elif new_annotation.db_key == '__thumb__': 
                     old_annotation = \
                         old_action.db_get_annotation_by_key(new_annotation._db_key)
                     if new_annotation.db_value != old_annotation.db_value:
