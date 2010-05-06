@@ -1515,27 +1515,6 @@ class VistrailController(object):
         self._asked_packages.add(identifier)
         return False
 
-    def try_upgrades(self, exception_set, pipeline, vistrail, new_version):
-        # FIXME MAKE SURE THE PIPELINE THAT GETS HERE MAKES SENSE
-        assert pipeline
-        handler = UpgradeWorkflowHandler(self,
-                                         exception_set,
-                                         pipeline)
-        # if handle_all_requests succeeds, we're ready to add the actions
-        # to the vistrail.
-
-        start_version = new_version
-        result = handler.handle_all_requests()
-        for action in result:
-            vistrail.add_action(action, new_version, self.current_session)
-            vistrail.change_description("Upgrade", action.id)
-            new_version = action.id
-            print 'action id, prevId', action.id, action.prevId
-        if new_version != start_version:
-            self.set_changed(True)
-            self.recompute_terse_graph()
-        return new_version
-
     def set_action_annotation(self, action, key, value):
         if action.has_annotation_with_key(key):
             old_annotation = action.get_annotation_by_key(key)
@@ -1695,12 +1674,31 @@ class VistrailController(object):
                     except Exception, new_e:
                         new_exceptions.append(new_e)
                         if not report_all_errors:
-                            return
-                elif pkg.can_handle_upgrades():
-                    print '  handle upgrades'
+                            return new_actions
+#                 elif pkg.can_handle_upgrades():
+#                     print '  handle upgrades'
+#                     for err in err_list:
+#                         try:
+#                             actions = pkg.handle_module_upgrade_request(
+#                                 self, err._module_id, pipeline)
+#                             if actions is not None:
+#                                 print 'handled', pipeline.modules[err._module_id].name
+#                                 for action in actions:
+#                                     pipeline.perform_action(action)
+#                                 new_actions.extend(actions)
+#                                 print 'OK'
+#                                 err._was_handled = True
+#                         except Exception, new_e:
+#                             new_exceptions.append(new_e)
+#                             if not report_all_errors:
+#                                 return
+                else:
+                    print '  default upgrades'
+                    # process default upgrades
+                    # handler = UpgradeWorkflowHandler(self, pipeline)
                     for err in err_list:
                         try:
-                            actions = pkg.handle_module_upgrade_request(
+                            actions = UpgradeWorkflowHandler.dispatch_request(
                                 self, err._module_id, pipeline)
                             if actions is not None:
                                 for action in actions:
@@ -1708,28 +1706,9 @@ class VistrailController(object):
                                 new_actions.extend(actions)
                                 err._was_handled = True
                         except Exception, new_e:
+                            import traceback
+                            traceback.print_exc()
                             new_exceptions.append(new_e)
-                            if not report_all_errors:
-                                return
-                else:
-                    print '  default upgrades'
-                    # process default upgrades
-                    try:
-                        handler = UpgradeWorkflowHandler(self, err_list,
-                                                         pipeline)
-                        actions = handler.handle_all_requests()
-                        if actions is not None:
-                            for action in actions:
-                                pipeline.perform_action(action)
-                            new_actions.extend(actions)
-                            for err in err_list:
-                                err._was_handled = True
-                    except Exception, new_e:
-                        import traceback
-                        traceback.print_exc()
-                        new_exceptions.append(new_e)
-                        if not report_all_errors:
-                            return
 
                 if pkg.can_handle_missing_modules():
                     for err in err_list + new_exceptions:
@@ -1755,19 +1734,19 @@ class VistrailController(object):
                             except Exception, new_e:
                                 new_exceptions.append(new_e)
                                 if not report_all_errors:
-                                    return
+                                    return new_actions
             return new_actions
 
         if get_vistrails_configuration().check('upgradeOn'):
             cur_pipeline = copy.copy(e._pipeline)
+            # note that cur_pipeline is modified to be the result of
+            # applying the actions in new_actions
             new_actions = process_package_exceptions(root_exceptions, 
                                                      cur_pipeline)
         else:
             new_actions = []
             cur_pipeline = e._pipeline
 
-        if len(new_exceptions) > 0:
-            pass
         if len(new_actions) > 0:
             upgrade_action = self.create_upgrade_action(new_actions)
             if get_vistrails_configuration().check('upgradeDelay'):
@@ -1802,7 +1781,7 @@ class VistrailController(object):
             print '-->', left
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
             raise InvalidPipeline(left_exceptions + new_exceptions, 
-                                  cur_pipeline, e._version)
+                                  cur_pipeline, new_version)
         return (new_version, cur_pipeline)
 
     def do_version_switch(self, new_version, report_all_errors=False, 
@@ -1938,13 +1917,13 @@ class VistrailController(object):
             was_upgraded = False
             if upgrade_version is not None:
                 try:
+                    self.current_pipeline = \
+                        switch_version(int(upgrade_version))
                     new_version = int(upgrade_version)
-                    # print 'trying to load upgrade version', new_version
-                    self.current_pipeline = switch_version(new_version)
                     self.current_version = new_version
                     # print 'self.current_version:', self.current_version
                     was_upgraded = True
-                except InvalidPipeline, e:
+                except InvalidPipeline:
                     # try to handle using the handler and create
                     # new upgrade
                     pass
@@ -1965,8 +1944,10 @@ class VistrailController(object):
                     # traceback.print_exc()
                     new_error = e
                     
-                    # just do the version switch, anyway, but allow failure
-                    self.current_pipeline = switch_version(new_version, True)
+                    # just do the version switch, anyway, but alert the
+                    # user to the remaining issues
+                    self.current_pipeline = e._pipeline
+                    new_version = e._version
                     self.current_version = new_version
 
             if new_version != start_version:

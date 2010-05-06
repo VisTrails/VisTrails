@@ -47,43 +47,26 @@ class UpgradeWorkflowError(Exception):
 
 class UpgradeWorkflowHandler(object):
 
-    def __init__(self, controller, exception_set, pipeline):
-        self._controller = controller
-        self._exception_set = exception_set
-        self._pipeline = copy.copy(pipeline)
-
-    def handle_all_requests(self):
-        current_pipeline = copy.copy(self._pipeline)
-        all_actions = []
-        for request in self._exception_set:
-            print "New request: ", request
-            new_actions = self.dispatch_request(request, current_pipeline)
-            for action in new_actions:
-                current_pipeline.perform_action(action)
-            all_actions.extend(new_actions)
-        return all_actions
-
-    def dispatch_request(self, request, current_pipeline):
+    @staticmethod
+    def dispatch_request(controller, module_id, current_pipeline):
         reg = get_module_registry()
         pm = get_package_manager()
-        if request._module_id not in current_pipeline.modules:
+        if module_id not in current_pipeline.modules:
             # It is possible that some other upgrade request has
             # already removed the invalid module of this request. In
             # that case, disregard the request.
-            print "module %s already handled. skipping" % request._module_id
+            print "module %s already handled. skipping" % module_id
             return []
-        invalid_module = self._pipeline.modules[request._module_id]
+        invalid_module = current_pipeline.modules[module_id]
         pkg = pm.get_package_by_identifier(invalid_module.package)
         if hasattr(pkg.module, 'handle_module_upgrade_request'):
             f = pkg.module.handle_module_upgrade_request
-            return f(self._controller, request._module_id,
-                     current_pipeline)
+            return f(controller, module_id, current_pipeline)
         else:
             debug.critical('Package cannot handle upgrade request. ' +
                            'VisTrails will attempt automatic upgrade.')
             auto_upgrade = UpgradeWorkflowHandler.attempt_automatic_upgrade
-            return auto_upgrade(self._controller, current_pipeline,
-                                request._module_id)
+            return auto_upgrade(controller, current_pipeline, module_id)
 
     @staticmethod
     def check_port_spec(module, port_name, port_type, descriptor=None, 
@@ -210,34 +193,35 @@ class UpgradeWorkflowHandler(object):
                            value=annotation.value)
             new_module.add_annotation(new_annotation)
 
-        for port_spec in old_module.port_spec_list:
-            if port_spec.type == 'input':
-                if port_spec.name not in dst_port_remap:
-                    spec_name = port_spec.name
-                else:
-                    remap = dst_port_remap[port_spec.name]
-                    if remap is None:
-                        continue
-                    elif type(remap) != type(""):
-                        ops.extend(remap(port_spec))
-                        continue
+        if not old_module.is_group() and not old_module.is_abstraction():
+            for port_spec in old_module.port_spec_list:
+                if port_spec.type == 'input':
+                    if port_spec.name not in dst_port_remap:
+                        spec_name = port_spec.name
                     else:
-                        spec_name = remap
-            elif port_spec.type == 'output':
-                if port_spec.name not in src_port_remap:
-                    spec_name = port_spec.name
-                else:
-                    remap = src_port_remap[port_spec.name]
-                    if remap is None:
-                        continue
-                    elif type(remap) != type(""):
-                        ops.extend(remap(port_spec))
-                        continue
+                        remap = dst_port_remap[port_spec.name]
+                        if remap is None:
+                            continue
+                        elif type(remap) != type(""):
+                            ops.extend(remap(port_spec))
+                            continue
+                        else:
+                            spec_name = remap
+                elif port_spec.type == 'output':
+                    if port_spec.name not in src_port_remap:
+                        spec_name = port_spec.name
                     else:
-                        spec_name = remap                
-            new_spec = port_spec.do_copy(True, controller.id_scope, {})
-            new_spec.name = spec_name
-            new_module.add_port_spec(new_spec)
+                        remap = src_port_remap[port_spec.name]
+                        if remap is None:
+                            continue
+                        elif type(remap) != type(""):
+                            ops.extend(remap(port_spec))
+                            continue
+                        else:
+                            spec_name = remap                
+                new_spec = port_spec.do_copy(True, controller.id_scope, {})
+                new_spec.name = spec_name
+                new_module.add_port_spec(new_spec)
 
         for function in old_module.functions:
             if function.name not in function_remap:

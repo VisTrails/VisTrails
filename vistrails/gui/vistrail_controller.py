@@ -612,7 +612,7 @@ class VistrailController(QtCore.QObject, BaseController):
         action = core.db.action.create_action(op_list)
         self.add_new_action(action)
         res = self.perform_action(action)
-        self.validate(False)
+        self.current_pipeline.validate(False)
         return res
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
@@ -1383,7 +1383,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.add_new_action(action)
             self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)
-            self.validate(False)
+            self.current_pipeline.validate(False)
         return modules
 
     def get_abstraction_name(self, name="", check_exists=True):
