@@ -158,15 +158,15 @@ class ThumbnailCache(object):
         image = self._merge_thumbnails(folder)
         fname = None
         if image != None:
-            if key:
-                fname = key
-            else:
-                fname = "%s.png" % str(uuid.uuid1())
+            fname = "%s.png" % str(uuid.uuid1())
             abs_fname = self._save_thumbnail(image, fname) 
             statinfo = os.stat(abs_fname)
             size = int(statinfo[6])
             time = float(statinfo[8])
             entry = CacheEntry(abs_fname, fname, time, size)
+            #remove old element
+            if key:
+                self.remove(key)
             if self.size() + size > self.conf.cacheSize*1024*1024:
                 self.remove_lru(10)
                 
