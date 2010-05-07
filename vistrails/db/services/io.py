@@ -715,10 +715,12 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         xml_fname = os.path.join(vt_save_dir, 'log')
         if save_bundle.vistrail.db_log_filename != xml_fname:
             shutil.copyfile(save_bundle.vistrail.db_log_filename, xml_fname)
+            save_bundle.vistrail.db_log_filename = xml_fname
 
     if save_bundle.log is not None:
         xml_fname = os.path.join(vt_save_dir, 'log')
         save_log_to_xml(save_bundle.log, xml_fname, version, True)
+        save_bundle.vistrail.db_log_filename = xml_fname
 
     # Save Abstractions
     saved_abstractions = []
