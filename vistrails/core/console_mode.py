@@ -53,7 +53,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         elif type(workflow) in [ type(1), long]:
             version = workflow
         elif workflow is None:
-            version = v.get_latest_version()
+            version = controller.get_latest_version_in_graph()
         else:
             msg = "Invalid version tag or number: %s" % workflow
             raise VistrailsInternalError(msg)

@@ -99,6 +99,7 @@ class VistrailController(object):
         self._cache_pipelines = True
         self._pipelines = {0: Pipeline()}
         self._current_full_graph = None
+        self._current_terse_graph = None
         self._asked_packages = set()
         self._delayed_actions = []
 
@@ -1456,6 +1457,22 @@ class VistrailController(object):
         """
         self._current_full_graph = self.vistrail.tree.getVersionTree()
 
+    def get_latest_version_in_graph(self):
+        if not self._current_terse_graph:
+            # DAK do we want refine_graph here?
+            # (current, full, layout) = self.refine_graph()
+            self.recompute_terse_graph()
+        if self._current_terse_graph:
+            return max(self._current_terse_graph.iter_vertices())
+        return max(self.actions)
+
+    def select_latest_version(self):
+        """ select_latest_version() -> None
+        Try to select the latest visible version on the tree
+        
+        """
+        self.change_selected_version(self.get_latest_version_in_graph())
+
     def enable_missing_package(self, identifier, deps):
         """callback for try_to_enable_package"""
         return True
@@ -1917,12 +1934,14 @@ class VistrailController(object):
             was_upgraded = False
             if upgrade_version is not None:
                 try:
-                    self.current_pipeline = \
-                        switch_version(int(upgrade_version))
-                    new_version = int(upgrade_version)
-                    self.current_version = new_version
-                    # print 'self.current_version:', self.current_version
-                    was_upgraded = True
+                    upgrade_version = int(upgrade_version)
+                    if upgrade_version in self.vistrail.actionMap and \
+                            not self.vistrail.actionMap[upgrade_version].prune:
+                        self.current_pipeline = switch_version(upgrade_version)
+                        new_version = upgrade_version
+                        self.current_version = new_version
+                        # print 'self.current_version:', self.current_version
+                        was_upgraded = True
                 except InvalidPipeline:
                     # try to handle using the handler and create
                     # new upgrade

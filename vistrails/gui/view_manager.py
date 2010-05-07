@@ -381,8 +381,6 @@ class QViewManager(QtGui.QTabWidget):
                 version = vistrail.get_version_number(version)
             except:
                 version = None
-        elif version is None:
-            version = vistrail.get_latest_version()
 
         vistrailView = QVistrailView()
         vistrailView.set_vistrail(vistrail, locator, abstraction_files,
@@ -390,7 +388,7 @@ class QViewManager(QtGui.QTabWidget):
         self.add_vistrail_view(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.setup_view(version)
-        self.versionSelectionChange(version)
+        self.versionSelectionChange(vistrailView.controller.current_version)
         return vistrailView
 
     def open_vistrail(self, locator, version=None, is_abstraction=False):

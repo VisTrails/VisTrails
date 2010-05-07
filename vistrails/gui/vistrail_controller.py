@@ -118,7 +118,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
 
-        self._current_terse_graph = None
         self._previous_graph_layout = None
         self._current_graph_layout = VistrailsTreeLayoutLW()
         self.animate_layout = False
@@ -787,6 +786,10 @@ class VistrailController(QtCore.QObject, BaseController):
                 'Unexpected Exception', str(e))
             raise
         
+        if not self._current_terse_graph or \
+                new_version not in self._current_terse_graph.vertices:
+            self.recompute_terse_graph()
+
         self.emit(QtCore.SIGNAL('versionWasChanged'), self.current_version)
 
     def set_search(self, search, text=''):
@@ -854,8 +857,13 @@ class VistrailController(QtCore.QObject, BaseController):
                 break
 
             # mount childs list
-            children = [to for (to, _) in fullVersionTree.adjacency_list[current]
-                        if (to in am) and not am[to].prune]
+            if current in am and am[current].prune:
+                children = []
+            else:
+                children = \
+                    [to for (to, _) in fullVersionTree.adjacency_list[current]
+                     if (to in am) and (not am[to].prune or 
+                                        to == self.current_version)]
 
             if (self.full_tree or 
                 (current == 0) or  # is root
@@ -1231,16 +1239,6 @@ class VistrailController(QtCore.QObject, BaseController):
             self.set_changed(True)
             self.recompute_terse_graph()
             self.invalidate_version_tree(False)
-
-    def select_latest_version(self):
-        """ select_latest_version() -> None
-        Try to select the latest visible version on the tree
-        
-        """
-        current = self._current_terse_graph
-        if not current:
-            (current, full, layout) = self.refine_graph()        
-        self.change_selected_version(max(current.iter_vertices()))
 
     def setSavedQueries(self, queries):
         """ setSavedQueries(queries: list of (str, str, str)) -> None
