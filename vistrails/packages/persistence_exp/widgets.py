@@ -715,7 +715,7 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
         from core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         ManagedRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
+            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence.exp', 
                                        'ManagedRef').module
 
         def func_to_bool(function):
@@ -776,7 +776,7 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
         from core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         ManagedRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
+            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence.exp', 
                                        'ManagedRef').module
 
         functions = []

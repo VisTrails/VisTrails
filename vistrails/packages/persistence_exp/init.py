@@ -106,9 +106,9 @@ class ManagedRef(Constant):
         return type(x) == ManagedRef
 
     _input_ports = [('value', 
-                     '(edu.utah.sci.vistrails.persistence:ManagedRef)')]
+                     '(edu.utah.sci.vistrails.persistence.exp:ManagedRef)')]
     _output_ports = [('value', 
-                     '(edu.utah.sci.vistrails.persistence:ManagedRef)')]
+                     '(edu.utah.sci.vistrails.persistence.exp:ManagedRef)')]
 
 class ManagedPath(Module):
     def __init__(self):
@@ -393,6 +393,8 @@ class ManagedPath(Module):
             path = self.persistent_path            
         elif self.hasInputFromPort('ref'):
             ref = ManagedRef.translate_to_python(self.getInputFromPort('ref'))
+            if ref.id is None:
+                ref.id = str(uuid.uuid1())
         else:
             # create a new reference
             ref = ManagedRef()
@@ -420,14 +422,6 @@ class ManagedPath(Module):
                 # get specific ref.uuid path
                 path = self.git_get_path(ref.id)
         elif self.persistent_path is None:
-            if not self.hasInputFromPort('ref'):
-                # do something? create a new reference
-                ref = ManagedRef()
-                ref.id = str(uuid.uuid1())
-            else:
-                ref = ManagedRef.translate_to_python(
-                    self.getInputFromPort('ref'))
-
             # copy path to persistent directory with uuid as name
             if is_input and ref.local_path and ref.local_read:
                 print 'using local_path'
