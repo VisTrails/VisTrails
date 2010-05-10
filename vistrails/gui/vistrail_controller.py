@@ -1067,6 +1067,7 @@ class VistrailController(QtCore.QObject, BaseController):
         else:
             full = self._current_full_graph
         changed = False
+        new_current_version = None
         for v in versions:
             if v!=0: # not root
                 highest = v
@@ -1079,9 +1080,13 @@ class VistrailController(QtCore.QObject, BaseController):
                     highest = p
                 if highest!=0:
                     changed = True
+                    if highest == self.current_version:
+                        new_current_version = full.parent(highest)
                 self.vistrail.pruneVersion(highest)
         if changed:
             self.set_changed(True)
+        if new_current_version is not None:
+            self.change_selected_version(new_current_version)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
 
