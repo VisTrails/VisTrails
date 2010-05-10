@@ -135,6 +135,10 @@ class DAOList(dict):
         self['sql'][child.vtType].set_sql_columns(db_connection, child, 
                                                       global_props, do_copy)
         self['sql'][child.vtType].to_sql_fast(child, do_copy)
+
+        global_props = {'entity_id': child.db_id,
+                        'entity_type': child.vtType}
+
         if not do_copy:
             for (child, _, _) in children:
                 for c in child.db_deleted_children(True):

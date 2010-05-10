@@ -1634,11 +1634,24 @@ class VistrailController(object):
                     continue
                 print '+++ trying to fix', str(err)
                 if isinstance(err, InvalidPipeline):
-                    # FIXME need to do group/subworkflow-specific stuff
-                    # for these---replace group module, for example...
-                    new_pipeline = copy.copy(err._pipeline)
+                    id_scope = IdScope(1, {Group.vtType: Module.vtType,
+                                           Abstraction.vtType: Module.vtType})
+                    id_remap = {}
+                    new_pipeline = err._pipeline.do_copy(True, id_scope, 
+                                                         id_remap)
+                    new_exception_set = []
+                    for sub_err in err.get_exception_set():
+                        key = (Module.vtType, sub_err._module_id)
+                        if key in id_remap:
+                            sub_err._module_id = id_remap[key]
+                            new_exception_set.append(sub_err)
+                        else:
+                            new_exception_set.append(sub_err)
+                            
+                    # set id to None so db saves correctly
+                    new_pipeline.id = None
                     inner_actions = \
-                        process_package_exceptions(err.get_exception_set(),
+                        process_package_exceptions(new_exception_set,
                                                    new_pipeline)
                     if len(inner_actions) > 0:
                         # create action that recreates group/subworkflow

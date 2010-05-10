@@ -158,6 +158,9 @@ class DAOList(dict):
                                                   global_props, do_copy)
         self['sql'][child.vtType].to_sql_fast(child, do_copy)
 
+        global_props = {'entity_id': child.db_id,
+                        'entity_type': child.vtType}
+
         # do deletes
         if not do_copy:
             for (child, _, _) in children:
