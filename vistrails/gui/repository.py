@@ -121,7 +121,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             self.local_data_modules = ['File', 'FileSink', 'Path']
             self.unavailable_data = []
-            for version_id in vistrail.tagMap.iterkeys():
+            for version_id in vistrail.get_tagMap():
                 pipeline = vistrail.getPipeline(version_id)
                 for module in pipeline.module_list:
                     # count modules that use data unavailable to web repository

@@ -82,9 +82,9 @@ class VistrailsTreeLayoutLW(object):
         X.add(0)
 
         # include the tagged nodes
-        for id, tag in vistrail.tagMap.iteritems():
+        for id, tag_name in vistrail.get_tagMap().iteritems():
             if id in graph.vertices:
-                nodes.append((id,tag.name))
+                nodes.append((id, tag_name))
                 X.add(id)
 
         # mount list of edges (parent, child).

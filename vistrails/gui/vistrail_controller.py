@@ -631,8 +631,7 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         self.flush_move_actions()
         
-        if self.vistrail.change_notes(str(notes),self.current_version):
-            self.set_changed(True)
+        if self.vistrail.set_notes(self.current_version, str(notes)):
             self.emit(QtCore.SIGNAL('notesChanged()'))
 
     ##########################################################################
@@ -847,7 +846,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         # cache actionMap and tagMap because they're properties, sort of slow
         am = self.vistrail.actionMap
-        tm = self.vistrail.tagMap
+        tm = self.vistrail.get_tagMap()
         last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
 
         while 1:
@@ -857,13 +856,13 @@ class VistrailController(QtCore.QObject, BaseController):
                 break
 
             # mount childs list
-            if current in am and am[current].prune:
+            if current in am and self.vistrail.is_pruned(current):
                 children = []
             else:
                 children = \
                     [to for (to, _) in fullVersionTree.adjacency_list[current]
-                     if (to in am) and (not am[to].prune or 
-                                        to == self.current_version)]
+                     if (to in am) and (not self.vistrail.is_pruned(to) or \
+                                            to == self.current_version)]
 
             if (self.full_tree or 
                 (current == 0) or  # is root
@@ -931,8 +930,10 @@ class VistrailController(QtCore.QObject, BaseController):
                 # Find closest child of contained in both graphs
                 while not self._previous_graph_layout.nodes.has_key(p_id):
                     # Should always have exactly one child
-                    p_id = [to for (to, _) in self._current_full_graph.adjacency_list[p_id]
-                            if (to in am) and not am[to].prune][0]
+                    p_id = [to for (to, _) in \
+                                self._current_full_graph.adjacency_list[p_id]
+                            if (to in am) and \
+                                not self.vistrail.is_pruned(to)][0]
                 p_node = self._previous_graph_layout.nodes[p_id]
 
             # Interpolate position
@@ -945,16 +946,20 @@ class VistrailController(QtCore.QObject, BaseController):
             if not self._current_graph_layout.nodes.has_key(p_id):
                 # Find closest parent contained in both graphs
                 shared_parent = p_id
-                while shared_parent > 0 and not self._current_graph_layout.nodes.has_key(shared_parent):
-                    shared_parent = self._current_full_graph.parent(shared_parent)
+                while (shared_parent > 0 and 
+                       shared_parent not in self._current_graph_layout.nodes):
+                    shared_parent = \
+                        self._current_full_graph.parent(shared_parent)
 
                 # Find closest child contained in both graphs
                 c_id = p_id
                 while not self._current_graph_layout.nodes.has_key(c_id):
                     # Should always have exactly one child
-                    c_id = [to for (to, _) in self._current_full_graph.adjacency_list[c_id]
-                        if (to in am) and not am[to].prune][0]
-
+                    c_id = [to for (to, _) in \
+                                self._current_full_graph.adjacency_list[c_id]
+                            if (to in am) and \
+                                not self.vistrail.is_pruned(to)][0]
+                    
                 # Don't show edge that skips the disappearing nodes
                 if terse_graph.has_edge(shared_parent, c_id):
                     terse_graph.delete_edge(shared_parent, c_id)
@@ -970,8 +975,10 @@ class VistrailController(QtCore.QObject, BaseController):
                 p_child = p_id
                 while p_child not in self._current_graph_layout.nodes:
                     # Should always have exactly one child
-                    p_child = [to for (to, _) in self._current_full_graph.adjacency_list[p_child]
-                        if (to in am) and not am[to].prune][0]
+                    p_child = [to for (to, _) in \
+                                   self._current_full_graph.adjacency_list[p_child]
+                               if (to in am) and \
+                                   not self.vistrail.is_pruned(to)][0]
                 if not terse_graph.has_edge(p_id, p_child):
                     terse_graph.add_edge(p_id, p_child)
 
@@ -1007,10 +1014,10 @@ class VistrailController(QtCore.QObject, BaseController):
             # same logic as recompute_terse_graph except for current
             children_count = len([x for (x, _) in tree.adjacency_list[current]
                                   if (x in self.vistrail.actionMap and
-                                      not self.vistrail.actionMap[x].prune)])
+                                      not self.vistrail.is_pruned(x))])
             current_node_will_be_visible = \
                 (self.full_tree or
-                 (self.current_version in self.vistrail.tagMap) or
+                 self.vistrail.has_tag(self.current_version) or
                  children_count <> 1)
 
             self.change_selected_version(new_version)
@@ -1099,7 +1106,6 @@ class VistrailController(QtCore.QObject, BaseController):
         x = [v]
 
         am = self.vistrail.actionMap
-        tm = self.vistrail.tagMap
 
         changed = False
 
@@ -1110,7 +1116,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 break
 
             children = [to for (to, _) in full.adjacency_list[current]
-                        if (to in am) and not am[to].prune]
+                        if (to in am) and \
+                            not self.vistrail.is_pruned(to)]
             self.vistrail.hideVersion(current)
             changed = True
 
@@ -1161,7 +1168,7 @@ class VistrailController(QtCore.QObject, BaseController):
         x = [v]
 
         am = self.vistrail.actionMap
-        tm = self.vistrail.tagMap
+        tm = self.vistrail.get_tagMap()
 
         changed = False
 
@@ -1172,7 +1179,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 break
 
             children = [to for (to, _) in full.adjacency_list[current]
-                        if (to in am) and not am[to].prune]
+                        if (to in am) and not self.vistrail.is_pruned(to)]
             if len(children) > 1:
                 break;
             self.vistrail.collapseVersion(current)
@@ -1197,7 +1204,6 @@ class VistrailController(QtCore.QObject, BaseController):
         x = [v]
         
         am = self.vistrail.actionMap
-        tm = self.vistrail.tagMap
 
         changed = False
 
@@ -1208,7 +1214,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 break
 
             children = [to for (to, _) in full.adjacency_list[current]
-                        if (to in am) and not am[to].prune]
+                        if (to in am) and not self.vistrail.is_pruned(to)]
             if expand:
                 self.vistrail.expandVersion(current)
             else:
@@ -1630,7 +1636,6 @@ class VistrailController(QtCore.QObject, BaseController):
         if analogy_name not in self.analogy:
             raise VistrailsInternalError("missing analogy '%s'" %
                                          analogy_name)
-
 
         # remove delayed actions since we're not necessarily using
         # current_version

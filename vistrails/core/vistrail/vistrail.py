@@ -39,6 +39,7 @@ from core.utils import enum, VistrailsInternalError, InstanceObject, \
      InvalidPipeline
 from core.vistrail.action import Action
 from core.vistrail.abstraction import Abstraction
+from core.vistrail.action_annotation import ActionAnnotation
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location
@@ -49,7 +50,6 @@ from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.plugin_data import PluginData
 from core.vistrail.port_spec import PortSpec
-from core.vistrail.tag import Tag
 ################################################################################
 
 class Vistrail(DBVistrail):
@@ -65,13 +65,10 @@ class Vistrail(DBVistrail):
 
     self.actionMap: dictionary from version number to action object.
 
-    self.tagMap: dictionary from version number to tag object.
-
-
     Simple use cases:
 
     To get a version number given a tag name, use
-    get_tag_by_name(tag_name).id
+    get_tag_str(tag_name).action_id
 
     """
 	
@@ -116,12 +113,23 @@ class Vistrail(DBVistrail):
 
 	for action in _vistrail.actions:
 	    Action.convert(action)
-	for tag in _vistrail.tags:
-            Tag.convert(tag)
+# 	for tag in _vistrail.tags:
+#             Tag.convert(tag)
         for annotation in _vistrail.annotations:
             Annotation.convert(annotation)
+        for annotation in _vistrail.action_annotations:
+            ActionAnnotation.convert(annotation)
 
         _vistrail.set_defaults()
+
+    ##########################################################################
+    # Constants
+
+    TAG_ANNOTATION = '__tag__'
+    NOTES_ANNOTATION = '__notes__'
+    THUMBNAIL_ANNOTATION = '__thumb__'
+    PRUNE_ANNOTATION = '__prune__'
+    UPGRADE_ANNOTATION = '__upgrade__'
 
     ##########################################################################
     # Properties
@@ -130,19 +138,11 @@ class Vistrail(DBVistrail):
     actions = DBVistrail.db_actions # This is now read-write
     tags = DBVistrail.db_tags # This is now read-write
     annotations = DBVistrail.db_annotations
+    action_annotations = DBVistrail.db_actionAnnotations
     
     def _get_actionMap(self):
         return self.db_actions_id_index
     actionMap = property(_get_actionMap)
-
-    def _get_tagMap(self):
-        return self.db_tags_id_index
-    tagMap = property(_get_tagMap)
-
-    def get_tag_by_name(self, name):
-        return self.db_get_tag_by_name(name)
-    def has_tag_with_name(self, name):
-        return self.db_has_tag_with_name(name)
     
     def get_annotation(self, key):
         if self.db_has_annotation_with_key(key):
@@ -190,10 +190,9 @@ class Vistrail(DBVistrail):
         if it doesn't. 
         
         """
-        try:
-            return self.tagMap[version].name
-        except KeyError:
-            return ""
+        if self.has_tag(version):
+            return self.get_tag(version)
+        return ""
 
     def get_version_count(self):
         """get_version_count() -> Integer
@@ -207,7 +206,7 @@ class Vistrail(DBVistrail):
         Returns the version number given a tag.
 
         """
-        return self.get_tag_by_name(version).time
+        return self.get_tag_str(version).action_id
     
     def get_latest_version(self):
         """get_latest_version() -> Integer
@@ -219,7 +218,7 @@ class Vistrail(DBVistrail):
 
         """
         try:
-            return max(v.id for v in self.actions if not v.prune)
+            return max(v.id for v in self.actions if not self.is_pruned(v.id))
         except:
             return 0
                    
@@ -239,21 +238,12 @@ class Vistrail(DBVistrail):
         it will return None.
 
         """
-        if self.has_tag_with_name(version):
-#             number = self.tagMap[version]
-	    number = self.get_tag_by_name(version).time
+        if self.has_tag_str(version):
+            number = self.get_tag_str(version).action_id
             return self.getPipelineVersionNumber(number)
         else:
             return None
 
-    def getPipelineVersionTag(self, version):
-        """getPipelineVersionTag(version:Tag) -> Pipeline
-        Returns a pipeline given a version tag. If version tag doesn't exist
-        it will return None.
-
-        """
-	return self.getPipelineVersionNumber(version.time)
-    
     def getPipelineVersionNumber(self, version):
         """getPipelineVersionNumber(version:int) -> Pipeline
         Returns a pipeline given a version number.
@@ -585,9 +575,9 @@ class Vistrail(DBVistrail):
        
         """
         if type(tag) == type(0) or type(tag) == type(0L):
-            return tag in self.tagMap
+            return self.has_tag(tag)
         elif type(tag) == type('str'):
-            return self.has_tag_with_name(tag)
+            return self.has_tag_str(tag)
         
     def addTag(self, version_name, version_number):
         """addTag(version_name, version_number) -> None
@@ -596,17 +586,13 @@ class Vistrail(DBVistrail):
         """
         if version_name == '':
             return None
-        if version_number in self.tagMap:
+        if self.has_tag(version_number):
             debug.log("Version is already tagged")
             raise VersionAlreadyTagged()
-        if self.has_tag_with_name(version_name):
+        if self.has_tag_str(version_name):
             debug.log("Tag already exists")
             raise TagExists()
-        tag = Tag(id=long(version_number),
-                  name=version_name,
-                  )
-        self.db_add_tag(tag)
-        self.changed = True
+        self.set_tag(version_number, version_name)
         
     def changeTag(self, version_name, version_number):
         """changeTag(version_name, version_number) -> None        
@@ -615,22 +601,128 @@ class Vistrail(DBVistrail):
         untagged.
                   
         """
-        if not version_number in self.tagMap:
+        if not self.has_tag(version_number):
             debug.log("Version is not tagged")
             raise VersionNotTagged()
-        if self.tagMap[version_number].name == version_name:
+        if self.get_tag(version_number) == version_name:
             return None
-        if self.has_tag_with_name(version_name):
+        if self.has_tag_str(version_name):
             debug.log("Tag already exists")
             raise TagExists()
-        self.db_delete_tag(self.tagMap[version_number])
-        if version_name != '':
-            tag = Tag(id=long(version_number),
-                      name=version_name,
-                      )
-            self.db_add_tag(tag)
-        self.changed = True
+        self.set_tag(version_number, version_name)
 
+    def has_action_annotation(self, action_id, key):
+        return self.db_has_actionAnnotation_with_action_id((action_id, key))
+    
+    def get_action_annotation(self, action_id, key):
+        if self.has_action_annotation(action_id, key):
+            return self.db_get_actionAnnotation_by_action_id((action_id, key))
+        return None
+
+    def delete_action_annotation(self, action_id, key):
+        annotation = self.get_action_annotation(action_id, key)
+        self.db_delete_actionAnnotation(annotation)
+
+    def set_action_annotation(self, action_id, key, value):
+        changed = False
+        if self.has_action_annotation(action_id, key):
+            annotation = self.get_action_annotation(action_id, key)
+            if annotation.value == value:
+                return False
+            self.db_delete_actionAnnotation(annotation)
+            changed = True
+        if value is not None and value.strip() != '':
+            new_id = self.idScope.getNewId(ActionAnnotation.vtType)
+            annotation = ActionAnnotation(id=new_id,
+                                          action_id=action_id,
+                                          key=key,
+                                          value=value,
+                                          date=self.getDate(),
+                                          user=self.getUser())
+            print 'doing addAnnotation', action_id, key, value
+            self.db_add_actionAnnotation(annotation)
+            changed = True
+        if changed:
+            self.changed = True
+            return True
+        return False
+
+    def get_tagMap(self):
+        tagMap = {}
+        for annotation in self.action_annotations:
+            if annotation.db_key == Vistrail.TAG_ANNOTATION:
+                tagMap[annotation.db_action_id] = annotation.db_value
+        return tagMap
+    def has_tag_str(self, value):
+        return self.db_has_actionAnnotation_with_key((Vistrail.TAG_ANNOTATION,
+                                                      value))
+    def get_tag_str(self, value):
+        return self.db_get_actionAnnotation_by_key((Vistrail.TAG_ANNOTATION,
+                                                     value))
+    def has_tag(self, action_id):
+        return self.has_action_annotation(action_id, Vistrail.TAG_ANNOTATION)
+    def get_tag(self, action_id):
+        a = self.get_action_annotation(action_id, Vistrail.TAG_ANNOTATION)
+        if a is not None:
+            return a.value
+        return None
+    def set_tag(self, action_id, value):
+        return self.set_action_annotation(action_id, Vistrail.TAG_ANNOTATION,
+                                          value)
+
+    def has_notes(self, action_id):
+        return self.has_action_annotation(action_id, Vistrail.NOTES_ANNOTATION)
+    def get_notes(self, action_id):
+        a = self.get_action_annotation(action_id, Vistrail.NOTES_ANNOTATION)
+        if a is not None:
+            return a.value
+        return None
+    def set_notes(self, action_id, value):
+        return self.set_action_annotation(action_id, Vistrail.NOTES_ANNOTATION,
+                                          value)
+
+    def has_thumbnail(self, action_id):
+        return self.has_action_annotation(action_id,
+                                          Vistrail.THUMBNAIL_ANNOTATION)
+    def get_thumbnail(self, action_id):
+        a = self.get_action_annotation(action_id, 
+                                       Vistrail.THUMBNAIL_ANNOTATION)
+        if a is not None:
+            return a.value
+        return None
+    def set_thumbnail(self, action_id, value):
+        return self.set_action_annotation(action_id,
+                                          Vistrail.THUMBNAIL_ANNOTATION,
+                                          value)
+
+    def has_prune(self, action_id):
+        return self.has_action_annotation(action_id, Vistrail.PRUNE_ANNOTATION)
+    def get_prune(self, action_id):
+        a = self.get_action_annotation(action_id, Vistrail.PRUNE_ANNOTATION)
+        if a is not None:
+            return a.value
+        return None
+    def set_prune(self, action_id, value):
+        if type(value) == type(True):
+            value = str(value)
+        return self.set_action_annotation(action_id, Vistrail.PRUNE_ANNOTATION,
+                                          value)
+    def is_pruned(self, action_id):
+        return self.get_prune(action_id) == str(True)
+
+    def has_upgrade(self, action_id):
+        return self.has_action_annotation(action_id, 
+                                          Vistrail.UPGRADE_ANNOTATION)
+    def get_upgrade(self, action_id):
+        a = self.get_action_annotation(action_id, Vistrail.UPGRADE_ANNOTATION)
+        if a is not None:
+            return a.value
+        return None
+    def set_upgrade(self, action_id, value):
+        return self.set_action_annotation(action_id, 
+                                          Vistrail.UPGRADE_ANNOTATION,
+                                          value)
+    
     def change_annotation(self, key, value, version_number):
         """ change_annotation(key:str, value:str, version_number:long) -> None 
         Changes the annotation of (key, value) for version version_number
@@ -655,15 +747,6 @@ class Vistrail(DBVistrail):
             return True
         return False
 
-    def change_notes(self, notes, version_number):
-        """ change_notes(notes:str, version_number:int) -> None 
-        Changes the notes of a version
-                  
-        """
-    
-        return self.change_annotation(Action.ANNOTATION_NOTES, 
-                                 notes, version_number)
-        
     def change_description(self, description, version_number): 
         """ change_description(description:str, version_number:int) -> None 
         Changes the description of a version
@@ -681,23 +764,6 @@ class Vistrail(DBVistrail):
 
         return self.change_annotation(Action.ANNOTATION_ANALOGY_INFO,
                                       analogy_info, version_number)
-
-    def change_thumbnail(self, thumbnail, version_number):
-        """ change_thumbnail(thumbnail:str, version_number:int) -> None 
-        Changes the filename of the thumbnail of a version
-                  
-        """
-
-        return self.change_annotation(Action.ANNOTATION_THUMBNAIL,
-                                      thumbnail, version_number)
-        
-    def change_upgrade(self, upgrade, version_number):
-        """ change_upgrade(upgrade:str, version_number:int) -> None 
-        Changes the most recent upgrade of a version
-                  
-        """
-        return self.change_annotation(Action.ANNOTATION_UPGRADE,
-                                      upgrade, version_number)
 
     def get_description(self, version_number):
         """ get_description(version_number: int) -> str
@@ -835,7 +901,7 @@ class Vistrail(DBVistrail):
             # pruned. Remember that pruning is only marked for the
             # topmost invisible action.
             if (action.parent in result.vertices and
-                action.prune != 1):
+                not self.is_pruned(action.id)):
                 result.add_edge(action.parent,
                                 action.timestep,
                                0)
@@ -858,22 +924,25 @@ class Vistrail(DBVistrail):
         Add a version into the prunedVersion set
         
         """
+        tagMap = self.get_tagMap()
         if version!=0: # not root
             def delete_tag(version):
-                if version in self.tagMap:
-                    self.db_delete_tag(self.tagMap[version])
+                if version in tagMap:
+                    # delete tag
+                    self.set_tag(version, '')
             current_graph = self.getVersionGraph()
             current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
-            self.actionMap[version].prune = 1
+            self.set_prune(version, str(True))
 
             # self.prunedVersions.add(version)
+
     def hideVersion(self, version):
         """ hideVersion(version: int) -> None
         Set the prune flag for the version
 
         """
         if version != 0:
-            self.actionMap[version].prune = 1
+            self.set_prune(version, str(True))
 
     def showVersion(self, version):
         """ showVersion(version: int) -> None
@@ -881,7 +950,7 @@ class Vistrail(DBVistrail):
 
         """
         if version != 0:
-            self.actionMap[version].prune = 0
+            self.set_prune(version, str(False))
 
     def expandVersion(self, version):
         """ expandVersion(version: int) -> None
@@ -911,7 +980,6 @@ class Vistrail(DBVistrail):
     getPipelineDispatcher[type(0)] = getPipelineVersionNumber
     getPipelineDispatcher[type(0L)] = getPipelineVersionNumber
     getPipelineDispatcher[type('0')] = getPipelineVersionName
-    getPipelineDispatcher[Tag] = getPipelineVersionTag
 
     class InvalidAbstraction(Exception):
         pass
@@ -1033,11 +1101,11 @@ class TestVistrail(unittest.TestCase):
         vistrail.addTag('second action', action2.id)
         return vistrail
 
-    def test_get_tag_by_name(self):
+    def test_get_tag_str(self):
         v = self.create_vistrail()
-        self.failUnlessRaises(KeyError, lambda: v.get_tag_by_name('not here'))
-        v.get_tag_by_name('first action')
-        v.get_tag_by_name('second action')
+        self.failUnlessRaises(KeyError, lambda: v.get_tag_str('not here'))
+        v.get_tag_str('first action')
+        v.get_tag_str('second action')
 
     def test_copy(self):
         v1 = self.create_vistrail()

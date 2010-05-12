@@ -401,8 +401,8 @@ class UserSearchStmt(SearchStmt):
 
 class NotesSearchStmt(SearchStmt):
     def match(self, vistrail, action):
-        if action.notes is not None:
-            notes = xml.sax.saxutils.unescape(action.notes)
+        if vistrail.has_notes(action.id):
+            notes = xml.sax.saxutils.unescape(vistrail.get_notes(action.id))
             fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
             plainNotes = str(fragment.toPlainText())
             return self.content.search(plainNotes)
@@ -411,8 +411,9 @@ class NotesSearchStmt(SearchStmt):
 class NameSearchStmt(SearchStmt):
     def match(self, vistrail, action):
         m = 0
-        if vistrail.tagMap.has_key(action.timestep):
-            m = self.content.match(vistrail.tagMap[action.timestep].name)
+        tm = vistrail.get_tagMap()
+        if action.timestep in tm:
+            m = self.content.match(tm[action.timestep])
         if bool(m) == False:
             m = self.content.match(vistrail.get_description(action.timestep))
         return bool(m)

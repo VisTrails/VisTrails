@@ -265,8 +265,9 @@ class QVersionNotes(QtGui.QTextEdit):
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
-                if action.notes:
-                    self.setHtml(action.notes)
+                notes = self.controller.vistrail.get_notes(versionNumber)
+                if notes:
+                    self.setHtml(notes)
                     # work around a strange bug where an empty new paragraph gets added every time
                     self.trim_first_paragraph()
                 else:
@@ -451,8 +452,9 @@ class QVersionPropOverlay(QtGui.QFrame):
                 self.description.setText(self.truncate(QtCore.QString(description)))
                 self.user.setText(self.truncate(QtCore.QString(action.user)))
                 self.date.setText(self.truncate(QtCore.QString(action.date)))
-                if action.notes:
-                    s = self.convertHtmlToText(QtCore.QString(action.notes))
+                notes = self.controller.vistrail.get_notes(action.id)
+                if notes:
+                    s = self.convertHtmlToText(QtCore.QString(notes))
                     self.notes.setText(self.truncate(s))
                 else:
                     self.notes.setText('')
@@ -805,11 +807,13 @@ class QVersionThumbs(QtGui.QWidget):
 
         """
         if self.controller:
-            if versionNumber in self.controller.vistrail.actionMap.keys():
-                action = self.controller.vistrail.actionMap[versionNumber]
-                if action and action.thumbnail:
+            vistrail = self.controller.vistrail
+            if versionNumber in vistrail.actionMap.keys():
+                action = vistrail.actionMap[versionNumber]
+                if action and vistrail.has_thumbnail(action.id):
                     cache = ThumbnailCache.getInstance()
-                    fname = cache.get_abs_name_entry(action.thumbnail)
+                    fname = cache.get_abs_name_entry(
+                        vistrail.get_thumbnail(action.id))
                     if fname is not None:
                         pixmap = QtGui.QPixmap(fname)
                         self.thumbs.setPixmap(pixmap)

@@ -246,7 +246,7 @@ def select_version(version, ctrl=None):
         ctrl = get_current_controller()
     vistrail = ctrl.vistrail
     if type(version) == str:
-        version = vistrail.get_tag_by_name(version).id
+        version = vistrail.get_tag_str(version).action_id
     ctrl.change_selected_version(version)
     ctrl.invalidate_version_tree(False)
 
@@ -265,8 +265,7 @@ def get_available_versions():
     """
     ctrl = get_current_controller()
     vistrail = ctrl.vistrail
-    return (vistrail.actionMap.keys(),
-            dict([(t.time, t.name) for t in vistrail.tagMap.values()]))
+    return (vistrail.actionMap.keys(), vistrail.get_tagMap())
 
 def open_vistrail_from_file(filename):
     from core.db.locator import FileLocator

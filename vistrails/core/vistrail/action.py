@@ -41,12 +41,8 @@ class Action(DBAction):
             self.parent = -1
         if self.user is None:
             self.user = ''
-        if self.prune is None:
-            self.prune = 0
         if self.expand is None:
             self.expand = 0
-#         if kwargs.has_key('notes'):
-#             self.notes = kwargs['notes']
 
     def __copy__(self):
         return Action.do_copy(self)
@@ -59,11 +55,8 @@ class Action(DBAction):
     ##########################################################################
     # Constants
 
-    ANNOTATION_NOTES = '__notes__'
     ANNOTATION_DESCRIPTION = '__description__'
     ANNOTATION_ANALOGY_INFO = '__analogy_info__'
-    ANNOTATION_THUMBNAIL = '__thumb__'
-    ANNOTATION_UPGRADE = '__upgrade__'
 
     ##########################################################################
     # Properties
@@ -74,7 +67,6 @@ class Action(DBAction):
     prevId = DBAction.db_prevId
     session = DBAction.db_session
     user = DBAction.db_user
-    prune = DBAction.db_prune
     expand = 0
     annotations = DBAction.db_annotations
     operations = DBAction.db_operations
@@ -101,12 +93,6 @@ class Action(DBAction):
     def delete_annotation(self, annotation):
         self.db_delete_annotation(annotation)
 
-    def _get_notes(self):
-        if self.db_has_annotation_with_key(self.ANNOTATION_NOTES):
-            return self.db_get_annotation_by_key(self.ANNOTATION_NOTES).value
-        return None
-    notes = property(_get_notes)
-
     def _get_description(self):
         if self.db_has_annotation_with_key(self.ANNOTATION_DESCRIPTION):
             return \
@@ -120,20 +106,6 @@ class Action(DBAction):
             return ann.value
         return None
     analogy_info = property(_get_analogy_info)
-
-    def _get_thumbnail(self):
-        if self.db_has_annotation_with_key(self.ANNOTATION_THUMBNAIL):
-            ann = self.db_get_annotation_by_key(self.ANNOTATION_THUMBNAIL)
-            return ann.value
-        return None
-    thumbnail = property(_get_thumbnail)
-    
-    def _get_upgrade(self):
-        if self.db_has_annotation_with_key(self.ANNOTATION_UPGRADE):
-            ann = self.db_get_annotation_by_key(self.ANNOTATION_UPGRADE)
-            return ann.value
-        return None
-    upgrade = property(_get_upgrade)
 
     def add_operation(self, operation):
         self.db_operations.db_add_operation(operation)
@@ -192,13 +164,12 @@ class Action(DBAction):
 
         """
         msg = "<<type='%s' timestep='%s' parent='%s' date='%s'" + \
-            "user='%s' notes='%s'>>"
+            "user='%s'>>"
         return msg % (type(self),
                       self.timestep,
                       self.parent,
                       self.date,
-                      self.user,
-                      self.notes)
+                      self.user)
 
 ################################################################################
 # Unit tests

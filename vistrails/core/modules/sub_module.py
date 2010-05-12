@@ -235,8 +235,8 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
         pipeline.validate()
     uuid = vistrail.get_annotation('__abstraction_uuid__').value
 
-    if action.notes is not None:
-        docstring = action.notes
+    if vistrail.has_notes(action.id):
+        docstring = vistrail.get_notes(action.id)
     else:
         docstring = None
 

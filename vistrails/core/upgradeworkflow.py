@@ -79,7 +79,7 @@ class UpgradeWorkflowHandler(object):
                                                       port_type)
                 found = True
                 if s.sigstring != sigstring:
-                    msg = ('%s port "%s" of module "%s" exists, but'
+                    msg = ('%s port "%s" of module "%s" exists, but '
                            'signatures differ "%s" != "%s"') % \
                            (port_type.capitalize(), port_name, module.name,
                             s.sigstring, sigstring)

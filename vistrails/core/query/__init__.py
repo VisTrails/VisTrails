@@ -182,7 +182,7 @@ class Query1a(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.tagMap.values()
+        versions = vistrail.get_tagMap().itervalues()
         for version in versions:
             p = vistrail.getPipeline(version)
             for module_id, module in p.modules.iteritems():
@@ -202,7 +202,7 @@ class Query1b(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.tagMap.values()
+        versions = vistrail.get_tagMap().itervalues()
         for version in versions:
             p = vistrail.getPipeline(version)
             ms = []
@@ -420,7 +420,7 @@ class Query5(Query):
                 version_module[wf_version] = set([module_id])
             else:
                 version_module[wf_version].add(module_id)
-        print vistrail.tagMap
+        print vistrail.get_tagMap()
         for wf_version, module_ids in version_module.iteritems():
             print wf_version
             p = self.pipeline(vistrail, int(wf_version))
@@ -490,7 +490,7 @@ class Query8(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.tagMap.values()
+        versions = vistrail.get_tagMap().itervalues()
         for version in versions:
             s = set()
             p = vistrail.getPipeline(version)
@@ -519,7 +519,7 @@ class Query9(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.tagMap.values()
+        versions = vistrail.get_tagMap().itervalues()
         for version in versions:
             s = set()
             p = vistrail.getPipeline(version)

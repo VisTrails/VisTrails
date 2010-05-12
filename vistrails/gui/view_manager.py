@@ -609,7 +609,7 @@ class QViewManager(QtGui.QTabWidget):
                                   vistrailView.controller.locator)
             if not locator:
                 return False
-            vistrailView.controller.write_vistrail(locator, '0.9.3')
+            vistrailView.controller.write_vistrail(locator, '1.0.1')
             return True
         return False
 

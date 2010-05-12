@@ -20,4 +20,4 @@
 ##
 ############################################################################
 
-from db.versions.v1_0_1.domain import *
+from db.versions.v1_0_2.domain import *

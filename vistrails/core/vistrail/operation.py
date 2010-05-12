@@ -23,7 +23,7 @@
 from db.domain import DBAdd, DBChange, DBDelete
 from db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
     DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \
-    DBPortSpec, DBTag
+    DBPortSpec
 
 from core.vistrail.annotation import Annotation
 from core.vistrail.abstraction import Abstraction
@@ -36,7 +36,6 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.plugin_data import PluginData
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
-from core.vistrail.tag import Tag
 
 def convert_data(_data):
     map = {
@@ -51,7 +50,6 @@ def convert_data(_data):
         DBPluginData.vtType: PluginData,
         DBPort.vtType: Port,
         DBPortSpec.vtType: PortSpec,
-        DBTag.vtType: Tag,
         }
     try:
         map[_data.vtType].convert(_data)

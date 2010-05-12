@@ -468,7 +468,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     def setupVersion(self, node, action, tag, description):
         """ setupPort(node: DotNode,
                       action: DBAction,
-                      tag: DBTag) -> None
+                      tag: str,
+                      description: str) -> None
         Update the version dimensions and id
         
         """
@@ -492,7 +493,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             label = ''
             validLabel=False
         else:
-            label = tag.name
+            label = tag
 
         self.id = node.id
         self.label = label
@@ -706,7 +707,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                      self.selectionChanged)
    
     def addVersion(self, node, action, tag, description):
-        """ addModule(node, action: DBAction, tag: DBTag) -> None
+        """ addModule(node, action: DBAction, tag: str, description: str) 
+                -> None
         Add a module to the scene.
         
         """
@@ -820,8 +822,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         del self.versions[old_version]
         v.id = new_version
 
-        tm = controller.vistrail.tagMap
- 
         # update link items
         dst = controller._current_terse_graph.edges_from(new_version)
         for eto, _ in dst:
@@ -883,9 +883,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                                 not tree.has_edge(s, t)))
 
         # loop on the nodes of the tree
-        tm = controller.vistrail.tagMap
-        am = controller.vistrail.actionMap
-        last_n = controller.vistrail.getLastActions(controller.num_versions_always_shown)
+        vistrail = controller.vistrail
+        tm = vistrail.get_tagMap()
+        am = vistrail.actionMap
+        last_n = vistrail.getLastActions(controller.num_versions_always_shown)
 
         self.emit_selection = False
         for node in layout.nodes.itervalues():
@@ -896,7 +897,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             # version tag
             tag = tm.get(v, None)
             action = am.get(v, None)
-            description = controller.vistrail.get_description(v)
+            description = vistrail.get_description(v)
 
             # if the version gui object already exists...
             if self.versions.has_key(v):
@@ -931,10 +932,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 guiTarget = self.versions[target]
                 sourceChildren = [to for (to, _) in 
                                   self.fullGraph.adjacency_list[source]
-                                  if (to in am) and not am[to].prune]
+                                  if (to in am) and not vistrail.is_pruned(to)]
                 targetChildren = [to for (to, _) in
                                   self.fullGraph.adjacency_list[target]
-                                  if (to in am) and not am[to].prune]
+                                  if (to in am) and not vistrail.is_pruned(to)]
                 expand = self.fullGraph.parent(target)!=source
                 collapse = (self.fullGraph.parent(target)==source and # No in betweens
                             len(targetChildren) == 1 and # target is not a leaf or branch

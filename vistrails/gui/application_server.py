@@ -319,7 +319,7 @@ class RequestHandler(object):
             local_data_modules = ['File', 'FileSink', 'Path']
 
             # find runnable workflows
-            for version_id in vistrail.tagMap.iterkeys():
+            for version_id, version_tag in vistrail.get_tagMap().iteritems():
                 pipeline = vistrail.getPipeline(version_id)
                 workflow_packages = []
                 for module in pipeline.module_list:
@@ -331,7 +331,8 @@ class RequestHandler(object):
                             if pipeline.modules[edge[0]].name in ['HTTPFile', 'RepoSync']:
                                 on_repo = True
                         if on_repo and version_id not in runnable_workflows:
-                            print "\n\nAdding %s to runnable list\n\n"%vistrail.tagMap[version_id].name
+                            print "\n\nAdding %s to runnable list\n\n" % \
+                                version_tag
                             runnable_workflows.append(version_id)
                     else:
                         runnable_workflows.append(version_id)
@@ -348,7 +349,7 @@ class RequestHandler(object):
             self.server_logger.info("SUCCESS!")
             print "\n\nRunnable Workflows Return"
             for wf_id in runnable_workflows:
-                print vistrail.tagMap[wf_id].name
+                print vistrail.get_tag(wf_id)
             print "\n\n"
             return runnable_workflows
 
@@ -501,8 +502,8 @@ class RequestHandler(object):
                                 connection_id=None)
 
             (v, _ , _)  = io.load_vistrail(locator)
-            if v.has_tag_with_name(vt_tag):
-                version = v.get_tag_by_name(vt_tag).time
+            if v.has_tag_str(vt_tag):
+                version = v.get_tag_str(vt_tag).action_id
             self.server_logger.info("Answer: %s"%version)
 
         except Exception, e:
@@ -835,13 +836,16 @@ class RequestHandler(object):
 
             result = []
             v = locator.load().vistrail
-            for elem in v.tagMap.iterkeys():
+            for elem, tag in v.get_tagMap().iteritems():
                 action_map = v.actionMap[long(elem)]
-                result.append({'id':elem, 'name':v.tagMap[elem].name,\
-                               'notes':action_map.notes or '',\
-                               'user':action_map.user or '', 'date':action_map.date,\
-                               'thumbnail':"%s/%s"%(get_vistrails_configuration().thumbs.cacheDirectory,\
-                                                    action_map.thumbnail) if action_map.thumbnail else ""})
+                thumbnail_fname = os.path.join(
+                    get_vistrails_configuration().thumbs.cacheDirectory,
+                    v.get_thumbnail(elem) or "")
+                result.append({'id': elem, 'name': tag,
+                               'notes': v.get_notes(elem) or '',
+                               'user':action_map.user or '', 
+                               'date':action_map.date,
+                               'thumbnail': thumbnail_fname})
             self.server_logger.info("SUCCESS!")
             return result
         except Exception, e:

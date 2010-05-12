@@ -175,9 +175,7 @@ class VistrailController(object):
             # HACK to populate upgrade information
             if (action.has_annotation_with_key(desc_key) and
                 action.get_annotation_by_key(desc_key).value == 'Upgrade'):
-                self.set_action_annotation(
-                    self.vistrail.actionMap[start_version], 
-                    Action.ANNOTATION_UPGRADE, str(action.id))
+                self.vistrail.set_upgrade(start_version, str(action.id))
             self.current_version = action.id
             start_version = action.id
 
@@ -1305,16 +1303,17 @@ class VistrailController(object):
         thumbnails = []
         thumb_cache = ThumbnailCache.getInstance()
         for action in self.vistrail.actions:
-            if action.thumbnail is not None:
-                if tags_only and action.timestep not in self.vistrail.tagMap.keys():
-                    thumb_cache.remove(action.thumbnail)
-                    self.vistrail.change_thumbnail("", action.timestep)
+            if self.vistrail.has_thumbnail(action.id):
+                thumbnail = self.vistrail.get_thumbnail(action.id)
+                if tags_only and not self.vistrail.has_tag(action.timestep):
+                    thumb_cache.remove(thumbnail)
+                    self.vistrail.set_thumbnail(action.timestep, "")
                 else:
-                    abs_fname = thumb_cache.get_abs_name_entry(action.thumbnail)
+                    abs_fname = thumb_cache.get_abs_name_entry(thumbnail)
                     if abs_fname is not None:
                         thumbnails.append(abs_fname)
                     else:
-                        self.vistrail.change_thumbnail("", action.timestep)
+                        self.vistrail.set_thumbnail(action.timestep, "")
         return thumbnails
     
     def add_parameter_changes_from_execution(self, pipeline, version,
@@ -1402,13 +1401,12 @@ class VistrailController(object):
             thumb_cache = ThumbnailCache.getInstance()
             
             if len(result.errors) == 0 and thumb_cache.conf.autoSave:
-                old_thumb_name = self.vistrail.actionMap[version].thumbnail
+                old_thumb_name = self.vistrail.get_thumbnail(version)
                 fname = thumb_cache.add_entry_from_cell_dump(
                                         extra_info['pathDumpCells'], 
                                         old_thumb_name)
                 if fname is not None: 
-                    self.vistrail.change_thumbnail(fname, version)
-                    self.set_changed(True)
+                    self.vistrail.set_thumbnail(version, fname)
                     changed = True
               
             if temp_folder_used:
@@ -1532,7 +1530,9 @@ class VistrailController(object):
         self._asked_packages.add(identifier)
         return False
 
-    def set_action_annotation(self, action, key, value):
+    def set_action_annotation(self, action, key, value, id_scope=None):
+        if id_scope is None:
+            id_scope = self.id_scope
         if action.has_annotation_with_key(key):
             old_annotation = action.get_annotation_by_key(key)
             if old_annotation.value == value:
@@ -1540,7 +1540,7 @@ class VistrailController(object):
             action.delete_annotation(old_annotation)
         if value.strip() != '':
             annotation = \
-                Annotation(id=self.id_scope.getNewId(Annotation.vtType),
+                Annotation(id=id_scope.getNewId(Annotation.vtType),
                            key=key,
                            value=value,
                            )
@@ -1602,8 +1602,9 @@ class VistrailController(object):
                     if not report_all_errors:
                         raise new_e
             else:
-                for err in missing_packages[identifier]:
-                    err._was_handled = True
+                if identifier in missing_packages:
+                    for err in missing_packages[identifier]:
+                        err._was_handled = True
             # else assume the package was already enabled
 
         if len(new_exceptions) > 0:
@@ -1782,11 +1783,9 @@ class VistrailController(object):
             if get_vistrails_configuration().check('upgradeDelay'):
                 self._delayed_actions.append(upgrade_action)
             else:
-                self.vistrail.add_action(upgrade_action, new_version, 
-                                         self.current_session)
-                self.set_action_annotation(
-                    self.vistrail.actionMap[new_version], 
-                    Action.ANNOTATION_UPGRADE, str(upgrade_action.id))
+                vistrail.add_action(upgrade_action, new_version, 
+                                    self.current_session)
+                vistrail.set_upgrade(new_version, str(upgrade_action.id))
                 new_version = upgrade_action.id
                 self.set_changed(True)
                 self.recompute_terse_graph()
@@ -1908,7 +1907,7 @@ class VistrailController(object):
                         result = copy.copy(self.current_pipeline)
                     result.perform_action(action)
                 if self._cache_pipelines and \
-                        long(version) in self.vistrail.tagMap:
+                        self.vistrail.has_tag(long(version)):
                     # stash a copy for future use
                     if do_validate:
                         try:
@@ -1942,14 +1941,13 @@ class VistrailController(object):
             # get the result back
 
             start_version = new_version
-            upgrade_version = \
-                self.vistrail.actionMap[new_version].upgrade
+            upgrade_version = self.vistrail.get_upgrade(new_version)
             was_upgraded = False
             if upgrade_version is not None:
                 try:
                     upgrade_version = int(upgrade_version)
-                    if upgrade_version in self.vistrail.actionMap and \
-                            not self.vistrail.actionMap[upgrade_version].prune:
+                    if (upgrade_version in self.vistrail.actionMap and \
+                            not self.vistrail.is_pruned(upgrade_version)):
                         self.current_pipeline = switch_version(upgrade_version)
                         new_version = upgrade_version
                         self.current_version = new_version
