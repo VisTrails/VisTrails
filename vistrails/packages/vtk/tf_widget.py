@@ -26,6 +26,8 @@
 from PyQt4 import QtCore, QtGui
 from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.basic_modules import new_constant, init_constant, Module
+from core.system import get_elementtree_library
+ElementTree = get_elementtree_library()
 from core.utils.color import ColorByName
 import vtk
 import math
@@ -119,6 +121,61 @@ class TransferFunction(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def serialize(self, node=None):
+        """serialize(node: ElementTree.Element) -> str
+        Convert this object to an XML representation in string format.
+        """
+        if node is None:
+            node = ElementTree.Element('transfer_function')
+            
+        node.set('min_range', str(self._min_range))
+        node.set('max_range', str(self._max_range))
+        for pt in self._pts:
+            ptNode = ElementTree.SubElement(node, 'point')
+            ptNode.set('scalar', str(pt[0]))
+            ptNode.set('opacity', str(pt[1]))
+            color = pt[2]
+            colorNode = ElementTree.SubElement(ptNode, 'color')
+            colorNode.set('R', str(color[0]))
+            colorNode.set('G', str(color[1]))
+            colorNode.set('B', str(color[2]))
+            
+        return ElementTree.tostring(node)
+   
+    @staticmethod         
+    def parse(strNode):
+        """parse(strNode: str) -> TransferFunction
+        Parses a string representing a TransferFunction and returns a 
+        TransferFunction object 
+        """
+        try:
+            node = ElementTree.fromstring(strNode)
+        except SyntaxError:
+            #it was serialized using pickle
+            tf = pickle.loads(strNode.decode('hex'))
+            tf._pts.sort()
+            return tf
+        
+        if node.tag != 'transfer_function':
+            return None
+        #read attributes
+        tf = TransferFunction()
+        tf._min_range = float(node.get('min_range', "0.0")) 
+        tf._max_range = float(node.get('max_range', "1.0"))
+        for ptNode in node.getchildren():
+            if ptNode.tag == 'point':
+                scalar = float(ptNode.get('scalar','-1.0'))
+                opacity = float(ptNode.get('opacity', '1.0'))
+                for colorNode in ptNode.getchildren():
+                    if colorNode.tag == 'color':
+                        color = (float(colorNode.get('R','0.0')),
+                                 float(colorNode.get('G','0.0')),
+                                 float(colorNode.get('B','0.0')))
+                        break
+                tf._pts.append((scalar,opacity,color))
+        tf._pts.sort()
+        return tf
+    
 ##############################################################################
 # Graphics Items
 
@@ -139,6 +196,8 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtGui.QGraphicsItem.ItemIsFocusable) 
+        if QtCore.QT_VERSION >= 0x40600:
+            self.setFlag(QtGui.QGraphicsItem.ItemSendsGeometryChanges)
         self.setZValue(2.0)
 
         self._sx = 1.0
@@ -506,11 +565,11 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
         if not param.strValue:
             self._tf = copy.copy(default_tf)
         else:
-            self._tf = pickle.loads(param.strValue.decode('hex'))
+            self._tf = TransferFunction.parse(param.strValue)
         self._scene = TransferFunctionScene(self._tf, self)
         layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
-        self._view = TransferFunctionView()
+        self._view = TransferFunctionView(self)
         self._view.setScene(self._scene)
         self._view.setMinimumSize(200,200)
         self._view.show()
@@ -526,13 +585,13 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
         layout.addWidget(caption)
 
     def contents(self):
-        return pickle.dumps(self._scene.get_transfer_function()).encode('hex')
+        return self._scene.get_transfer_function().serialize()
     
     def setContents(self, strValue, silent=True):
         if not strValue:
             self._tf = copy.copy(default_tf)
         else:
-            self._tf = pickle.loads(strValue.decode('hex'))
+            self._tf = TransferFunction.parse(strValue)
         self._scene.reset_transfer_function(self._tf)
         if not silent:
             self.update_parent()    
@@ -559,8 +618,8 @@ class vtkScaledTransferFunction(Module):
             
         self.setResult('TransferFunction', new_tf)
 
-string_conversion = staticmethod(lambda x: pickle.dumps(x).encode('hex'))
-conversion = staticmethod(lambda x: pickle.loads(x.decode('hex')))
+string_conversion = staticmethod(lambda x: x.serialize())
+conversion = staticmethod(lambda x: TransferFunction.parse(x))
 validation = staticmethod(lambda x: isinstance(x, TransferFunction))
 TransferFunctionConstant = new_constant('TransferFunction',
                                         conversion,
@@ -573,3 +632,30 @@ TransferFunctionConstant.translate_to_string = string_conversion
 
 def initialize():
     init_constant(TransferFunctionConstant)
+    
+##############################################################################
+import unittest
+class TestTransferFunction(unittest.TestCase):
+    def test_serialization(self):
+        tf = TransferFunction()
+        tf._min_range = 0.1
+        tf._max_range = 2.0
+        tf._pts.append((0.3,0.5,(1.0,1.0,1.0)))
+        tf._pts.append((0.6,0.7,(1.0,0.5,1.0)))
+        tf._pts.append((0.2,0.8,(1.0,0.0,1.0)))
+        tf._pts.sort()
+        
+        #simulate old serialization method
+        ser1 = pickle.dumps(tf).encode('hex')
+        
+        ser2 = tf.serialize()
+        
+        tf1 = TransferFunction.parse(ser1)
+        tf2 = TransferFunction.parse(ser2)
+        
+        assert tf == tf1
+        assert tf == tf2
+        assert tf1 == tf2
+        
+if __name__ == "__main__":
+    unittest.main()
