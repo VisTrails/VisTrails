@@ -6,8 +6,12 @@ import shutil
 import tempfile
 
 from core.modules.vistrails_module import Module, ModuleError, ModuleConnector
-from core.modules.basic_modules import File, Directory
+from core.modules.basic_modules import File, Directory, new_constant
 from core.system import list2cmdline, execute_cmdline
+
+from widgets import ClimatePredictorListConfig
+
+identifier = 'gov.usgs.sahm'
 
 def run_cmd_line_jar(jar_name, args):
     arg_items = list(itertools.chain(*args.items()))
@@ -18,256 +22,74 @@ def run_cmd_line_jar(jar_name, args):
     res = execute_cmdline(['java', '-jar', jar_name] + arg_items, output)
     return res, output
      
+def path_value(value):
+    return value.name
+
+def map_ports(module, port_map):
+    args = {}
+    for port, (flag, access, required) in port_map.iteritems():
+        if required or module.hasInputFromPort(port):
+            value = module.getInputFromPort(port)
+            if access is not None:
+                value = access(value)
+            args[flag] = value
+    return args
+
 def create_file_module(fname, f=None):
     if f is None:
         f = File()
     f.name = fname
     f.upToDate = True
     return f
-                
-# class WorkingDir(Module):
-#     def __init__(self):
-#         self.field_data = None
-#         self.layers_dir = None
-#         self.models_dir = None
-#         self.report_file = None
-#         self.jpg_file = None
-#         self.tif_file = None
-#         self.model_images = None
-#         self.model_output = None
-#         self.dir = None
 
-#     def get_field_data(self):
-#         if self.field_data is not None:
-#             return self.field_data
-#         res = glob.glob(os.path.join(self.name, '*.csv'))
-#         if len(res) > 0:
-#             self.field_data = res[0]
-#             return res[0]
-#         return None
+def create_dir_module(dname, d=None):
+    if d is None:
+        d = Directory()
+    d.name = dname
+    d.upToDate = True
+    return d
 
-#     def get_layers_dir(self):
-#         if self.layers_dir is not None:
-#             return self.layers_dir
-#         layer_dir = os.path.join(self.dir, 'layers')
-#         if os.path.exists(layer_dir):
-#             self.layer_dir = layer_dir
-#         else:
-#             self.layer_dir = os.mkdir(layer_dir)
-#         return self.layer_dir
-
-#     def get_models_dir(self):
-#         if self.model_dir is not None:
-#             return self.model_dir
-#         model_dir = os.path.join(self.dir, 'models')
-#         if os.path.exists(model_dir):
-#             self.model_dir = model_dir
-#         else:
-#             self.model_dir = os.mkdir(model_dir)
-#         return self.model_dir
-
-#     def get_report_file(self):
-#         if self.report_file is None:
-#             fname = os.path.splitext(self.get_field_data())[0] + '.html'
-#             if os.path.exists(fname):
-#                 self.report_file = fname
-#         return self.report_file
-
-#     def get_model_output(self):
-#         if self.model_output is None:
-#             fname = os.path.splitext(self.get_field_data())[0] + '.xml'
-#             if os.path.exists(fname):
-#                 self.model_output = fname
-#         return self.model_output
-
-#     def get_jpg_file(self):
-#         if self.jpg_file is None:
-#             fname = os.path.splitext(self.get_field_data())[0] + '.jpg'
-#             if os.path.exists(fname):
-#                 self.jpg_file = fname
-#         return self.jpg_file
-
-#     def get_tif_file(self):
-#         if self.tif_file is None:
-#             fname = os.path.splitext(self.get_field_data())[0] + '.tif'
-#             if os.path.exists(fname):
-#                 self.tif_file = fname
-#         return self.tif_file
-
-#     def get_model_images(self):
-#         if self.model_images is not None:
-#             return self.model_images
-#         output_dir = os.path.join(self.dir, 'ancillaryOutput')
-#         if os.path.exists(output_dir):
-#             res = glob.glob(os.path.join(output_dir, '*.jpg'))
-#             res += glob.glob(os.path.join(output_dir, '*.tif'))
-#             self.model_images = res
-#         return self.model_images
-
-#     def compute(self):
-#         if self.hasInputFromPort('dir'):
-#             self.dir = self.getInputFromPort('dir').name
-
-#         # find the csv file
-#         if self.hasInputFromPort('fieldData'):
-#             field_data = self.getInputFromPort('fieldData')
-#             shutil.copy(field_data, self.dir)
-#             self.field_data = os.path.join(self.dir, 
-#                                            os.path.basename(field_data))
-#         if self.hasInputFromPort('addLayer'):
-#             all_layers = self.getInputListFromPort('addLayer')
-#             for layer in all_layers:
-#                 shutil.copy(layer.name, self.get_layers_dir())
-#         if self.hasInputFromPort('addModel'):
-#             all_models = self.getInputListFromPort('addModel')
-#             for model in all_models:
-#                 shutil.copy(model.name, self.get_models_dir())
-
-#         # self is already set by Module.__init__
-
-#     _input_ports = [('dir', '(edu.utah.sci.vistrails.basic:Directory)'),
-#                     ('fieldData', '(edu.utah.sci.vistrails.basic:File)'), 
-#                     ('addLayer', '(edu.utah.sci.vistrails.basic:File)'), 
-#                     ('addModel', '(edu.utah.sci.vistrails.basic:File)')]
-#     _output_ports = [('self', '(edu.utah.sci.vistrails.sahm:WorkingDir)')]
-
-# class CreateWorkingDir(Module):
-#     def compute(self):
-#         root_dir = self.getInputFromPort('rootDir')
-#         field_data = self.forceGetInputFromPort('fieldData')
-#         layers = self.forceGetInputListFromPort('addLayer')
-#         models = self.forceGetInputListFromPort('addModel')
-
-#         root_dir_name = root_dir.name
-#         now = datetime.today()
-#         wd_dir = os.path.join(root_dir_name, 'WD-%d-%d-%d-%d-%d-%d' %
-#                               (now.year, now.month, now.day, now.hour, 
-#                                now.minute, now.second))
-#         if os.path.exists(wd_dir):
-#             if not os.path.isdir(wd_dir):
-#                 raise ModuleError('Cannot create working directory "%s".'
-#                                   'File exists' %  wd_dir)
-#             else:
-#                 if not os.path.exists(os.path.join(wd_dir, 'ancillaryOutput')):
-#                     os.mkdir(os.path.join(wd_dir, 'ancillaryOutput'))
-#                 layers_dir = os.path.join(wd_dir, 'layers')
-#                 if not os.path.exists(layers_dir):
-#                     os.mkdir(layers_dir)
-#                     os.mkdir(os.path.join(layers_dir, 'categorical'))
-#                 models_dir = os.path.join(wd_dir, 'models')
-#                 if not os.path.exists(models_dir):
-#                     os.mkdir(models_dir)
-#         else:
-#             os.mkdir(wd_dir)
-#             os.mkdir(os.path.join(wd_dir, 'ancillaryOutput'))
-#             layers_dir = os.path.join(wd_dir, 'layers')
-#             os.mkdir(layers_dir)
-#             os.mkdir(os.path.join(layers_dir, 'categorical'))
-#             models_dir = os.path.join(wd_dir, 'models')
-#             os.mkdir(models_dir)
-
-#         wd = WorkingDir()
-#         wd.layers_dir = layers_dir
-#         wd.models_dir = models_dir
-#         wd.dir = wd_dir
-#         shutil.copy(field_data.name, wd_dir)
-#         wd.field_data = os.path.join(wd_dir, os.path.basename(field_data.name))
-#         for layer in layers:
-#             shutil.copy(layer.name, layers_dir)
-#         for model in models:
-#             shutil.copy(model.name, models_dir)
-
-#         self.setResult('workingDir', wd)
-
-#         # recreate this to do this ourselves
-#         # make the directory behind the scenes?
-#         # allow user to output?
-#         # res = run_cmd_line_jar('CreateWorkingDir.jar')
-
-#         # if res[0] != 0:
-#         #     raise ModuleError(self, output)
-    
-#     _input_ports = [('rootDir', '(edu.utah.sci.vistrails.basic:Directory)'),
-#                     ('fieldData', '(edu.utah.sci.vistrails.basic:File)'), 
-#                     ('addLayer', '(edu.utah.sci.vistrails.basic:File)'), 
-#                     ('addModel', '(edu.utah.sci.vistrails.basic:File)')]
-#     _output_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)')]
-
-# class MdsBuilder(Module):
-#     def compute(self):
-#         working_dir = self.getInputFromPort('workingDir')
-#         args = {'-f': working_dir.get_field_data(),
-#                 '-i': working_dir.get_layers_dir(),
-#                 '-o': working_dir.dir}
-#         res, output = run_cmd_line_jar('MdsBuilder.jar', args)
-#         if res != 0:
-#             raise ModuleError(self, ''.join(output))
-#         self.setResult('workingDir', working_dir)
-
-#     _input_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)')]
-#     _output_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)')]
-
-# class ModelBuilder(Module):
-#     def compute(self):
-#         working_dir = self.getInputFromPort('workingDir')
-#         args = {'-i': working_dir.dir,
-#                 '-o': working_dir.dir}
-#         res, output = run_cmd_line_jar('ModelBuilder.jar', args)
-#         if res != 0:
-#             raise ModuleError(self, ''.join(output))
-#         self.setResult('workingDir', working_dir)
-#         image_files = []
-#         for image in working_dir.get_model_images():
-#             image_files.append(File.translate_to_python(image))
-#         self.setResult('modelImages', image_files)
-
-#     _input_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)')]
-#     _output_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)'),
-#                      ('modelImages',
-#                       '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
-
-# class MapBuilder(Module):
-#     def compute(self):
-#         working_dir = self.getInputFromPort('workingDir')
-#         args = {'-f': working_dir.get_model_output(),
-#                 '-o': working_dir.dir}
-#         res, output = run_cmd_line_jar('MapBuilder.jar', args)
-#         if res != 0:
-#             raise ModuleError(self, ''.join(output))
-#         self.setResult('workingDir', working_dir)
-#         jpg_file = File.translate_to_python(working_dir.get_jpg_file())
-#         self.setResult('jpgFile', jpg_file)
-#         tif_file = File.translate_to_python(working_dir.get_tif_file())
-#         self.setResult('tifFile', tif_file)
-
-#     _input_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)')]
-#     _output_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)'),
-#                      ('jpgFile', '(edu.utah.sci.vistrails.basic:File)'),
-#                      ('tifFile', '(edu.utah.sci.vistrails.basic:File)')]
-
-# class RptBuilder(Module):
-#     def compute(self):
-#         working_dir = self.getInputFromPort('workingDir')
-#         args = {'-f': working_dir.get_model_output()}
-#         res, output = run_cmd_line_jar('RptBuilder.jar', args)
-#         if res != 0:
-#             raise ModuleError(self, ''.join(output))
-#         self.setResult('workingDir', working_dir)
-#         report_file = File.translate_to_python(working_dir.get_report_file())
-#         self.setResult('reportFile', report_file)
-
-#     _input_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)')]
-#     _output_ports = [('workingDir', \
-#                          '(edu.utah.sci.vistrails.sahm:WorkingDir)'),
-#                       ('reportFile', '(edu.utah.sci.vistrails.basic:File)')]
+def expand_ports(port_list):
+    new_port_list = []
+    for port in port_list:
+        port_spec = port[1]
+        if type(port_spec) == str: # or unicode...
+            if port_spec.startswith('('):
+                port_spec = port_spec[1:]
+            if port_spec.endswith(')'):
+                port_spec = port_spec[:-1]
+            new_spec_list = []
+            for spec in port_spec.split(','):
+                spec = spec.strip()
+                parts = spec.split(':', 1)
+                print 'parts:', parts
+                namespace = None
+                if len(parts) > 1:
+                    mod_parts = parts[1].rsplit('|', 1)
+                    if len(mod_parts) > 1:
+                        namespace, module_name = mod_parts
+                    else:
+                        module_name = parts[1]
+                    if len(parts[0].split('.')) == 1:
+                        id_str = 'edu.utah.sci.vistrails.' + parts[0]
+                    else:
+                        id_str = parts[0]
+                else:
+                    mod_parts = spec.rsplit('|', 1)
+                    if len(mod_parts) > 1:
+                        namespace, module_name = mod_parts
+                    else:
+                        module_name = spec
+                    id_str = identifier
+                if namespace:
+                    new_spec_list.append(id_str + ':' + module_name + ':' + \
+                                             namespace)
+                else:
+                    new_spec_list.append(id_str + ':' + module_name)
+            port_spec = '(' + ','.join(new_spec_list) + ')'
+        new_port_list.append((port[0], port_spec) + port[2:])
+    print new_port_list
+    return new_port_list
 
 class FieldData(File):
     # _input_ports = [('csvFile', '(edu.utah.sci.vistrails.basic:File)')]
@@ -281,12 +103,6 @@ class Predictor(File):
                      ('value_as_string', 
                       '(edu.utah.sci.vistrails.basic:String)', True)]
     
-# class CategoricalPredictor(Module):
-#     pass
-
-# class NonCategoricalPredictor(Module):
-#     pass
-
 class RemoteSensingPredictor(Predictor):
     pass
 
@@ -302,38 +118,6 @@ class SpatialDef(Module):
 class MergedDataSet(File):
     pass
 
-class MDSBuilder(Module):
-    _input_ports = [('fieldData', '(gov.usgs.sahm:FieldData:DataInput)'),
-                    ('predictor', '(gov.usgs.sahm:Predictor:DataInput)')]
-    _output_ports = [('dataset', '(gov.usgs.sahm:MergedDataSet:DataInput)')]
-
-    def compute(self):
-        field_data = self.getInputFromPort('fieldData')
-        predictors = self.getInputListFromPort('predictor')
-        predictor_dir = tempfile.mkdtemp(prefix='sahm')
-        os.mkdir(os.path.join(predictor_dir, 'categorical'))
-        for predictor in predictors:
-            shutil.copy(predictor.name, predictor_dir)
-        output_dir = tempfile.mkdtemp(prefix='sahm')
-        args = {'-f': field_data.name,
-                '-i': predictor_dir,
-                '-o': output_dir}
-        res, output = run_cmd_line_jar('MdsBuilder.jar', args)
-        if res != 0:
-            raise ModuleError(self, ''.join(output))
-        
-        dataset = create_file_module(os.path.join(output_dir, 
-                                                  os.listdir(output_dir)[0]),
-                                     MergedDataSet())
-#         dataset = MergedDataSet.translate_to_python(
-#             os.path.join(output_dir, os.listdir(output_dir)[0]))
-        self.setResult('dataset', dataset)
-
-class FieldDataQuery(Module):
-    _input_ports = [('dataset', '(gov.usgs.sahm:MergedDataSet:DataInput)'),
-                    ('spatial_def', '(gov.usgs.sahm:SpatialDef:DataInput)')]
-    _output_ports = [('dataset', '(gov.usgs.sahm:MergedDataSet:DataInput)')]
-
 class Resampler(Module):
     _input_ports = [('predictor', '(gov.usgs.sahm:Predictor:DataInput)'),
                     ('spatialDef', '(gov.usgs.sahm:SpatialDef:DataInput)')]
@@ -348,10 +132,6 @@ class Model(File):
     def compute(self):
         self.upToDate = True
         self.setResult('value', self)
-#         self.set_input_port('value', 
-#                             ModuleConnector(create_file_module(self.name), 'value'))
-#         File.compute(self)
-
         
 class GLM(Model):
     def __init__(self):
@@ -383,154 +163,205 @@ class BoostedRegressionTree(Model):
         Model.__init__(self)
         self.name = os.path.join(models_path, 'FIT_BRT_pluggable.r')
 
-class ModelBuilder(Module):
-    _input_ports = [('model', '(gov.usgs.sahm:Model:Models)'),
-                    ('dataset', '(gov.usgs.sahm:MergedDataSet:DataInput)'),
-                    ('predictor', '(gov.usgs.sahm:Predictor:DataInput)')]
-    _output_ports = [('modelRunOutput', '(edu.utah.sci.vistrails.basic:File)')]
-    
+class MDSBuilder(Module):
+    _input_ports = expand_ports([('fieldData', 'basic:File'),
+                                 ('minValue', 'basic:Float'),
+                                 ('addPredictor', 'DataInput|Predictor'),
+                                 ('predictorList', 'DataInput|PredictorList'),
+                                 ('sessionDir', 'basic:Directory')])
+    _output_ports = expand_ports([('mdsFile', 'basic:File')])
+
     def compute(self):
-        models = self.getInputListFromPort('model')
-        dataset = self.getInputFromPort('dataset')
-        predictors = self.getInputListFromPort('predictor')
-        working_dir = tempfile.mkdtemp(prefix='sahm')
-        shutil.copy(dataset.name, working_dir)
-        models_dir = os.path.join(working_dir, 'models')
-        os.mkdir(models_dir)
-        for model in models:
-            print model
-            shutil.copy(model.name, models_dir)
-        predictors_dir = os.path.join(working_dir, 'layers')
-        os.mkdir(predictors_dir)
-        for predictor in predictors:
+        port_map = {'fieldData': ('-f', path_value, False),
+                    'minValue': ('-m', None, False),
+                    'sessionDir': ('-s', path_value, False)}
+        args = map_ports(self, port_map)
+
+        predictor_list = self.forceGetInputFromPort('predictorList', [])
+        predictor_list.extend(self.getInputListFromPort('addPredictor'))
+
+        predictors_dir = tempfile.mkdtemp(prefix='sahm_layers')
+        for predictor in predictor_list:
             shutil.copy(predictor.name, predictors_dir)
-        ancillary_output_dir = os.path.join(working_dir, 'ancillaryOutput')
-        os.mkdir(ancillary_output_dir)
-        args = {'-i': working_dir,
-                '-o': working_dir}
-        res, output = run_cmd_line_jar('ModelBuilder.jar', args)
+
+        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.mds')
+        os.close(fd)
+        args['-o'] = output_fname
+        args['-i'] = predictors_dir
+
+        res, output = run_cmd_line_jar('MdsBuilder.jar', args)
+        if res != 0:
+            raise ModuleError(self, ''.join(output))
+
+        output_file = create_file_module(output_fname)
+        self.setResult('mdsFile', output_file)
+
+class FieldDataQuery(Module):
+    _input_ports = expand_ports([('siteConfig', 'basic:File'),
+                                 ('fieldData', 'basic:File'),
+                                 ('siteName', 'basic:String'),
+                                 ('sessionDir', 'basic:Directory'),
+                                 ('aggregateRows', 'basic:Boolean'),
+                                 ('aggregateRowsByYear', 'basic:Boolean')])
+    _output_ports = expand_ports([('outputDir', 'basic:Directory')])
+
+    def compute(self):
+        port_map = {'siteConfig': ('-c', path_value, True),
+                    'fieldData': ('-f', path_value, False),
+                    'siteName': ('-n', None, True),
+                    'sessionDir': ('-s', session_dir, False),
+                    'aggregateRows': ('-p', None, False),
+                    'aggregateRowsByYear': ('-y', None, False),
+                    }
+        args = map_ports(self, port_map)
+
+        output_dname = tempfile.mkdtemp(prefix='sahm')
+        args['-o'] = output_dname
+
+        res, output = run_cmd_line_jar('FieldDataQuery.jar', args)
         if res != 0:
             raise ModuleError(self, ''.join(output))
         
-        run_output = None
-        for file in os.listdir(working_dir):
-            if file.endswith('xml'):
-                run_output = file
-        print 'modelRunOutput', os.path.join(working_dir, run_output)
-#         modelRunOutput = File.translate_to_python(os.path.join(working_dir, 
-#                                                                run_output))
-#         modelRunOutput.set_input_port('value', ModuleConnector(modelRunOutput,
-#                                                                'value'))
-        modelRunOutput = create_file_module(os.path.join(working_dir, 
-                                                         run_output))
-        self.setResult('modelRunOutput', modelRunOutput)
+        output_dir = create_dir_module(output_dname)
+        self.setResult('outputDir', output_dir)
 
-#         image_files = []
-#         for image in working_dir.get_model_images():
-#             image_files.append(File.translate_to_python(image))
-#         self.setResult('modelImages', image_files)
-
-class MapBuilder(Module):
-    _input_ports = [('modelRunOutput', '(edu.utah.sci.vistrails.basic:File)')]
-    _output_ports = [('tiffImage', '(edu.utah.sci.vistrails.basic:File)')]
+class ModelBuilder(Module):
+    _input_ports = expand_ports([('mdsFile', 'basic:File'),
+                                 ('addModel', 'Models|Model'),
+                                 ('addPredictor', 'DataInput|Predictor'),
+                                 ('predictorList', 'DataInput|PredictorList'),
+                                 ('sessionDir', 'basic:Directory')])
+    _output_ports = expand_ports([('outputFile', 'basic:File'),
+                                  ('ancillaryDir', 'basic:Directory')])
 
     def compute(self):
-        model_output = self.getInputFromPort('modelRunOutput')
-        output_dir = tempfile.mkdtemp(prefix='sahm')
-        args = {'-f': model_output.name,
-                '-o': output_dir}
+        port_map = {'mdsFile': ('-f', path_value, True),
+                    'sessionDir': ('-s', path_value, False),
+                    }
+        args = map_ports(self, port_map)
+        
+        models = self.getInputListFromPort('addModel')
+        predictor_list = self.forceGetInputFromPort('predictorList', [])
+        predictor_list.extend(self.getInputListFromPort('addPredictor'))
+
+        ancillary_dname = tempfile.mkdtemp(prefix='sahm_ancillary')
+
+        models_dir = tempfile.mkdtemp(prefix='sahm_models')
+        for model in models:
+            print model
+            shutil.copy(model.name, models_dir)
+        predictors_dir = tempfile.mkdtemp(prefix='sahm_layers')
+        for predictor in predictor_list:
+            shutil.copy(predictor.name, predictors_dir)
+
+        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.xml')
+        os.close(fd)
+        args['-a'] = ancillary_dname
+        args['-o'] = output_fname
+        args['-m'] = models_dir
+        args['-i'] = predictors_dir
+
+        res, output = run_cmd_line_jar('ModelBuilder.jar', args)
+        if res != 0:
+            raise ModuleError(self, ''.join(output))
+
+        output_file = create_file_module(output_fname)
+        self.setResult('outputFile', output_file)
+
+        ancillary_dir = create_dir_module(ancillary_dname)
+        self.setResult('ancillaryDir', ancillary_dir)
+
+class MapBuilder(Module):
+    _input_ports = expand_ports([('xmlFile', 'basic:File'),
+                                 ('sessionDir', 'basic:Directory')])
+    _output_ports = expand_ports([('tiffImage', 'basic:File'),
+                                  ('jpgImage', 'basic:File')])
+    
+    def compute(self):
+        port_map = {'xmlFile': ('-f', path_value, True),
+                    'sessionDir': ('-s', path_value, False),
+                    }
+        args = map_ports(self, port_map)
+        
+        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.tif')
+        os.close(fd)
+        args['-o'] = output_fname
+
         res, output = run_cmd_line_jar('MapBuilder.jar', args)
         if res != 0:
             raise ModuleError(self, ''.join(output))
-        tiff_file = None
-        for file in os.listdir(output_dir):
-            if file.endswith('tif'):
-                tiff_file = file
-        print 'tiffImage', os.path.join(output_dir, tiff_file)
-#         tiffImage = File.translate_to_python(os.path.join(output_dir, 
-#                                                           tiff_file))
-#         tiffImage.set_input_port('value', ModuleConnector(tiffImage, 'value'))
-        tiffImage = create_file_module(os.path.join(output_dir, tiff_file))
-        self.setResult('tiffImage', tiffImage)
-        print 'done'
-#         self.setResult('workingDir', working_dir)
-#         jpg_file = File.translate_to_python(working_dir.get_jpg_file())
-#         self.setResult('jpgFile', jpg_file)
-#         tif_file = File.translate_to_python(working_dir.get_tif_file())
-#         self.setResult('tifFile', tif_file)
+
+        tif_file = create_file_module(output_fname)
+        self.setResult('tiffImage', tif_file)
+
+        # FIXME should be on the command line
+        jpg_file = \
+            create_file_module(os.path.splitext(output_fname)[0] + '.jpg')
+        self.setResult('jpgImage', jpg_file)
 
 class ReportBuilder(Module):
-    _input_ports = [('modelRunOutput', '(edu.utah.sci.vistrails.basic:File)'),
-                    ('tiffImage', '(edu.utah.sci.vistrails.basic:File)'),
-                    ('dataset', '(edu.utah.sci.vistrails.basic:File)')]
-    _output_ports = [('htmlFile', '(edu.utah.sci.vistrails.basic:File)')]
+    _input_ports = expand_ports([('fieldData', 'basic:File'),
+                                 ('jpgFile', 'basic:File'),
+                                 ('mdsFile', 'basic:File'),
+                                 ('tifFile', 'basic:File'),
+                                 ('xmlFile', 'basic:File'),
+                                 ('sessionDir', 'basic:Directory')])
+    _output_ports = expand_ports([('htmlFile', 'basic:File')])
 
     def compute(self):
-        print "running ReportBuilder"
-        model_output = self.getInputFromPort('modelRunOutput')
-        print "modelRunOuptut done"
-        tiff_image = self.getInputFromPort('tiffImage')
-        print "tiff_image done"
-        dataset = self.getInputFromPort('dataset')
-        print "dataset done"
-        report_dir = tempfile.mkdtemp(prefix='sahm')
-        shutil.copy(model_output.name, report_dir)
-        base_fname = os.path.splitext(model_output.name)[0]
-        tiff_fname = os.path.join(report_dir, base_fname + '.tif')
-        shutil.copy(tiff_image.name, tiff_fname)
-        dataset_fname = os.path.join(report_dir, base_fname + '.mds')
-        shutil.copy(dataset.name, dataset_fname)
-        args = {'-f': os.path.join(report_dir, model_output.name)}
+        port_map = {'fieldData': ('-f', path_value, True),
+                    'jpgFile': ('-j', path_value, True),
+                    'mdsFile': ('-m', path_value, True),
+                    'tifFile': ('-t', path_value, True),
+                    'xmlFile': ('-x', path_value, True),
+                    'sessionDir': ('-s', path_value, False)}
+        args = map_ports(self, port_map)
+        
+        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.html')
+        os.close(fd)
+        args['-o'] = output_fname
+
         res, output = run_cmd_line_jar('RptBuilder.jar', args)
         if res != 0:
             raise ModuleError(self, ''.join(output))
-        html_file = None
-        for file in os.listdir(os.path.dirname(model_output.name)):
-            if file.endswith('html'):
-                html_file = file
-        print 'html_file', os.path.join(os.path.dirname(model_output.name),  html_file)
-#         self.setResult('htmlFile', 
-#                        File.translate_to_python(os.path.join(os.path.dirname(model_output.name),  html_file)))
-        htmlFile = create_file_module(os.path.join(
-                os.path.dirname(model_output.name), html_file))
-        self.setResult('htmlFile', htmlFile)
 
-# def package_dependencies():
-#     return ['edu.utah.sci.vistrails.control_flow']
+        output_file = create_file_module(output_fname)
+        self.setResult('htmlFile', output_file)
+
+from core.modules.basic_modules import List
+
+PredictorList = new_constant("PredictorList",
+                             List.translate_to_python,
+                             [], staticmethod(lambda x: type(x) == list), 
+                             ClimatePredictorListConfig,
+                             base_class=List)
+
+class ClimatePredictors(Module):
+    _input_ports = [('selected_list', 
+                     '(gov.usgs.sahm:PredictorList:DataInput)')]
 
 def initialize():
     global sahm_path, models_path
     sahm_path = configuration.sahm_path
     models_path = configuration.models_path
 
-_modules = [(FieldData, {'namespace': 'DataInput'}),
-            (Predictor, {'namespace': 'DataInput'}),
-            (RemoteSensingPredictor, {'namespace': 'DataInput'}),
-            (ClimatePredictor, {'namespace': 'DataInput'}),
-            (StaticPredictor, {'namespace': 'DataInput'}),
-            (SpatialDef, {'namespace': 'DataInput'}),
-            (MergedDataSet, {'namespace': 'DataInput'}),
-            (Resampler, {'namespace': 'Tools'}),
-            (FieldDataQuery, {'namespace': 'Tools'}),
-            (MDSBuilder, {'namespace': 'Tools'}),
-            (ModelBuilder, {'namespace': 'Tools'}),
-            (MapBuilder, {'namespace': 'Tools'}),
-            (Model, {'namespace': 'Models'}),
-            (GLM, {'namespace': 'Models'}),
-            (RandomForest, {'namespace': 'Models'}),
-            (MARS, {'namespace': 'Models'}),
-            (MAXENT, {'namespace': 'Models'}),
-            (BoostedRegressionTree, {'namespace': 'Models'}),
-            (ReportBuilder, {'namespace': 'Reporting'}),
-             ]
- 
-# _modules = [WorkingDir, 
-#             CreateWorkingDir,
-#             MdsBuilder,
-#             ModelBuilder,
-#             MapBuilder,
-#             RptBuilder,
-#             (FieldData, {'namespace': 'DataInput'})
-#             (
-# ]
-# _subworkflows = ['QuickMap.xml']
+_modules = {'DataInput': [Predictor, 
+                          PredictorList,
+                          RemoteSensingPredictor,
+                          ClimatePredictor,
+                          StaticPredictor,
+                          ClimatePredictors,
+                          SpatialDef],
+            'Tools': [Resampler, 
+                      FieldDataQuery,
+                      MDSBuilder,
+                      ModelBuilder,
+                      MapBuilder],
+            'Models': [Model,
+                       GLM,
+                       RandomForest,
+                       MARS,
+                       MAXENT,
+                       BoostedRegressionTree],
+            'Reporting': [ReportBuilder],
+            }

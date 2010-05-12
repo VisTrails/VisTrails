@@ -2,7 +2,7 @@ from core.configuration import ConfigurationObject
 
 name = "SAHM"
 identifier = "gov.usgs.sahm"
-version = '0.0.2'
+version = '0.0.3'
 
 sahm_path = None
 models_path = None
