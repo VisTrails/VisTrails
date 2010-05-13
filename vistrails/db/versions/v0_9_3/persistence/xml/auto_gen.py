@@ -1296,6 +1296,8 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         
         # read children
         for child in node.getchildren():
+            if child.tag == 'module_exec':
+                child.tag = 'moduleExec'
             if child.tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 module_execs.append(_data)
