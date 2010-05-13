@@ -116,7 +116,7 @@ class DBModuleXMLDAOBase(XMLDAO):
             elif child.tag == 'portSpec':
                 _data = self.getDao('portSpec').fromXML(child)
                 portSpecs.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -297,7 +297,7 @@ class DBGroupXMLDAOBase(XMLDAO):
             elif child.tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -382,7 +382,7 @@ class DBLogXMLDAOBase(XMLDAO):
             elif child.tag == 'machine':
                 _data = self.getDao('machine').fromXML(child)
                 machines.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -531,7 +531,7 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child.tag == 'plugin_data':
                 _data = self.getDao('plugin_data').fromXML(child)
                 data = _data
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -623,7 +623,7 @@ class DBOtherXMLDAOBase(XMLDAO):
             if child.tag == 'value':
                 _data = self.convertFromStr(child.text,'')
                 value = _data
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -792,7 +792,7 @@ class DBFunctionXMLDAOBase(XMLDAO):
             if child.tag == 'parameter':
                 _data = self.getDao('parameter').fromXML(child)
                 parameters.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -866,7 +866,7 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             elif child.tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -966,7 +966,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             elif child.tag == 'group':
                 _data = self.getDao('group').fromXML(child)
                 modules.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -1127,7 +1127,7 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child.tag == 'plugin_data':
                 _data = self.getDao('plugin_data').fromXML(child)
                 data = _data
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -1241,7 +1241,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             if child.tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 module_execs.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -1311,7 +1311,7 @@ class DBConnectionXMLDAOBase(XMLDAO):
             if child.tag == 'port':
                 _data = self.getDao('port').fromXML(child)
                 ports.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -1379,7 +1379,7 @@ class DBActionXMLDAOBase(XMLDAO):
             elif child.tag == 'change':
                 _data = self.getDao('change').fromXML(child)
                 operations.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -1506,7 +1506,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child.tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
@@ -1588,7 +1588,7 @@ class DBModuleExecXMLDAOBase(XMLDAO):
             if child.tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
-            elif child.text.strip() == '':
+            elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
