@@ -483,6 +483,7 @@ class QViewManager(QtGui.QTabWidget):
                     action_list.append(('add', connection))
                 action = core.db.action.create_action(action_list)
                 vistrail.add_action(action, 0L)
+                vistrail.update_id_scope()
                 vistrail.addTag("Imported workflow", action.id)
                 # FIXME might need different locator?
         except ModuleRegistryException, e:
