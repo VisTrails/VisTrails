@@ -21,9 +21,10 @@
 ############################################################################
 
 import copy
+import hashlib
 from auto_gen import DBVistrail as _DBVistrail
 from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
-    DBModule
+    DBModule, DBAnnotation
 from id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
@@ -118,3 +119,83 @@ class DBVistrail(_DBVistrail):
         for (k, v) in kwargs.iteritems():
             if hasattr(real_obj, k):
                 setattr(real_obj, k, v)
+
+    def update_checkout_version(self, app=''):
+        checkout_key = "__checkout_version_"
+        action_key = checkout_key + app
+        annotation_key = action_key + '_annotationhash'
+        action_annotation_key = action_key + '_actionannotationhash'
+
+        # delete previous checkout annotations
+        deletekeys = [action_key,annotation_key,action_annotation_key]
+        for key in deletekeys:
+            while self.db_has_annotation_with_key(key):
+                a = self.db_get_annotation_by_key(key)
+                self.db_delete_annotation(a)
+        
+        # annotation hash - requires annotations to be clean
+        value = self.hashAnnotations()
+        if self.db_has_annotation_with_key(annotation_key):
+            annotation = self.db_get_annotation_by_key(annotation_key)
+            annotation.db_value = value
+        else:
+            annotation=DBAnnotation(self.idScope.getNewId(DBAnnotation.vtType), 
+                                  annotation_key, value)
+            self.db_add_annotation(annotation)
+        # action annotation hash
+        value = self.hashActionAnnotations()
+        if self.db_has_annotation_with_key(action_annotation_key):
+            annotation = self.db_get_annotation_by_key(action_annotation_key)
+            annotation.db_value = value
+        else:
+            annotation=DBAnnotation(self.idScope.getNewId(DBAnnotation.vtType), 
+                                    action_annotation_key, value)
+            self.db_add_annotation(annotation)
+        # last action id hash
+        if len(self.db_actions) == 0:
+            value = 0
+        else:
+            value = max(v.db_id for v in self.db_actions)
+        if self.db_has_annotation_with_key(action_key):
+            annotation = self.db_get_annotation_by_key(action_key)
+            annotation.db_value = value
+        else:
+            annotation=DBAnnotation(self.idScope.getNewId(DBAnnotation.vtType), 
+                                    action_key, value)
+            self.db_add_annotation(annotation)
+
+    def hashAnnotations(self):
+        annotations = {}
+        for annotation in self.db_annotations:
+            if annotation._db_key not in annotations:
+                annotations[annotation._db_key] = []
+            if annotation._db_value not in annotations[annotation._db_key]:
+                annotations[annotation._db_key].append(annotation._db_value)
+        keys = annotations.keys()
+        keys.sort()
+        m = hashlib.md5()
+        for k in keys:
+            m.update(k)
+            annotations[k].sort()
+            for v in annotations[k]:
+                m.update(v)
+        return m.hexdigest()
+
+    def hashActionAnnotations(self):
+        action_annotations = {}
+        for action_id, key, value in [[aa.db_action_id, aa.db_key, 
+                         aa.db_value] for aa in self.db_actionAnnotations]:
+            index = (str(action_id), key)
+            if index not in action_annotations:
+                action_annotations[index] = []
+            if value not in action_annotations[index]:
+                action_annotations[index].append(value)
+        keys = action_annotations.keys()
+        keys.sort()
+        m = hashlib.md5()
+        for k in keys:
+            m.update(k[0] + k[1])
+            action_annotations[k].sort()
+            for v in action_annotations[k]:
+                m.update(v)
+        return m.hexdigest()
