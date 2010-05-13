@@ -466,7 +466,8 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                 new_annotation = annotation.do_copy(True, vt.idScope, id_remap)
                 vt.db_add_actionAnnotation(new_annotation)
             else:
-                old_annotation = vt.db_get_actionAnnotation_by_id(annotation.db_id)
+                old_annotation = \
+                    vt.db_get_actionAnnotation_by_id(annotation.db_id)
                 if old_annotation.db_key != annotation.db_key:
                     # key changed
                     old_annotation.db_key = annotation.db_key
@@ -474,156 +475,179 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                     # value changed
                     old_annotation.db_value = annotation.db_value
     else:
-        # construct indexes
-        oas = {} # old actions
+        # construct old action index (oas)
+        oas = {}
         for a in vt.db_actionAnnotations:
             if not a.db_action_id in oas:
                 oas[a.db_action_id] = {}
             if not a.db_key in oas[a.db_action_id]:
                 oas[a.db_action_id][a.db_key] = []
             oas[a.db_action_id][a.db_key].append(a)
-        nas = {} # new actions
-        for a in next_vt.db_actionAnnotations:
-            if not a.db_action_id in nas:
-                nas[a.db_action_id] = {}
-            if not a.db_key in nas[a.db_action_id]:
-                nas[a.db_action_id][a.db_key] = []
-            nas[a.db_action_id][a.db_key].append(a)
         # merge per action
-        for action_key in nas:
-            new_action = nas[action_key]
-            old_action = oas[action_key]
-            for key in new_action:
-                for new_annotation in new_action[key]:
-                    if action_key <= checkinId and key in old_action:
-                        # we have a conflict
-                        # tags should be merged (the user need to resolve)
-                        if key == '__tag__':
-                            # there is only one
-                            old_annotation = old_action[key][0]
-                            if old_annotation.db_value != new_annotation.db_value:
-                                value = old_annotation.db_value + " or " + new_annotation.db_value
-                                if interactive:
-                                    if skip == 1:
-                                        pass
-                                    elif skip == 2:
-                                        old_annotation.db_value = new_annotation.db_value
-                                        old_annotation.db_date = new_annotation.db_date
-                                        old_annotation.db_user = new_annotation.db_user
-                                    else:
-                                        v, value = merge_gui.resolveTags(old_annotation, new_annotation, value)
-
-                                        if v == merge_gui.CHOICE_OTHER_ALL:
-                                            skip = 1
-                                        elif v == merge_gui.CHOICE_OTHER:
-                                            pass
-                                        elif v == merge_gui.CHOICE_RESOLVED:
-                                            print "Tag resolved:", value
-                                            old_annotation.db_value = value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                            pass
-                                        elif v == merge_gui.CHOICE_OWN:
-                                            old_annotation.db_value = new_annotation.db_value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                        elif v == merge_gui.CHOICE_OWN_ALL:
-                                            old_annotation.db_value = new_annotation.db_value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                            skip = 2
-                                else:
+        for new_annotation in next_vt.db_actionAnnotations:
+            # keep both upgrades but update action id in new
+            if new_annotation.db_key == '__upgrade__':
+                value = int(new_annotation.db_value)
+                if ['action', value] in id_remap:
+                    new_annotation.db_value = str(id_remap(['action', value]))
+                annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
+                vt.db_add_actionAnnotation(annotation)
+            elif new_annotation.db_action_id <= checkinId and \
+                    new_annotation.db_key in oas[new_annotation.db_action_id]:
+                old_action = oas[new_annotation.db_action_id]
+                # we have a conflict
+                # tags should be merged (the user need to resolve)
+                if new_annotation.db_key == '__tag__':
+                    # there is only one
+                    old_annotation = old_action[new_annotation.db_key][0]
+                    if old_annotation.db_value != new_annotation.db_value:
+                        value = old_annotation.db_value + " or " + \
+                            new_annotation.db_value
+                        if interactive:
+                            if skip == 1:
+                                pass
+                            elif skip == 2:
+                                old_annotation.db_value=new_annotation.db_value
+                                old_annotation.db_date = new_annotation.db_date
+                                old_annotation.db_user = new_annotation.db_user
+                            else:
+                                v, value = merge_gui.resolveTags(
+                                    old_annotation, new_annotation, value)
+                                if v == merge_gui.CHOICE_OTHER_ALL:
+                                    skip = 1
+                                elif v == merge_gui.CHOICE_OTHER:
+                                    pass
+                                elif v == merge_gui.CHOICE_RESOLVED:
+                                    print "Tag resolved:", value
                                     old_annotation.db_value = value
-                                    old_annotation.db_date = new_annotation.db_date
-                                    old_annotation.db_user = new_annotation.db_user
-
-
-                        # notes should be merged (the user need to resolve)
-                        elif key == '__notes__':
-                            # there is only one
-                            old_annotation = old_action[key][0]
-                            if new_annotation.db_value != old_annotation.db_value:
-                                value = "#### conflicting versions! ####<br/>## Other version - " + \
-                                    str(old_annotation.db_date) + " " + old_annotation.db_user + ":" + old_annotation.db_value + "<br/>## Your version - " + \
-                                    str(new_annotation.db_date) + " " + new_annotation.db_user + ":" + new_annotation.db_value
-                                if interactive:
-                                    if skip == 1:
-                                        pass
-                                    elif skip == 2:
-                                        old_annotation.db_value = new_annotation.db_value
-                                        old_annotation.db_date = new_annotation.db_date
-                                        old_annotation.db_user = new_annotation.db_user
-                                    else:
-                                        v, value = merge_gui.resolveNotes(old_annotation, new_annotation, value)
-
-                                        if v == merge_gui.CHOICE_OTHER_ALL:
-                                            skip = 1
-                                        elif v == merge_gui.CHOICE_OTHER:
-                                            pass
-                                        elif v == merge_gui.CHOICE_RESOLVED:
-                                            print "Note resolved:", value
-                                            old_annotation.db_value = value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                            pass
-                                        elif v == merge_gui.CHOICE_OWN:
-                                            old_annotation.db_value = new_annotation.db_value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                        elif v == merge_gui.CHOICE_OWN_ALL:
-                                            old_annotation.db_value = new_annotation.db_value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                            skip = 2
-                                else:
-                                    old_annotation.db_value = value
-                                    old_annotation.db_date = new_annotation.db_date
-                                    old_annotation.db_user = new_annotation.db_user
-
-                        # thumbs should be updated (we loose the other update)
-                        elif key == '__thumb__': 
-                            # there is only one
-                            old_annotation = old_action[key][0]
-                            ### TESTING: DELETE THE TRUE !!!!!!!!!!!
-                            if new_annotation.db_value != old_annotation.db_value or True:
-                                if interactive:
-                                    if skip == 1:
-                                        pass
-                                    elif skip == 2:
-                                        old_annotation.db_value = new_annotation.db_value
-                                        old_annotation.db_date = new_annotation.db_date
-                                        old_annotation.db_user = new_annotation.db_user
-                                    else:
-                                        v = merge_gui.resolveThumbs(old_annotation, new_annotation, tmp_dir, next_tmp_dir)
-                                        if v == merge_gui.CHOICE_OTHER_ALL:
-                                            skip = 1
-                                        elif v == merge_gui.CHOICE_OTHER:
-                                            pass
-                                        elif v == merge_gui.CHOICE_OWN:
-                                            old_annotation.db_value = new_annotation.db_value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                        elif v == merge_gui.CHOICE_OWN_ALL:
-                                            old_annotation.db_value = new_annotation.db_value
-                                            old_annotation.db_date = new_annotation.db_date
-                                            old_annotation.db_user = new_annotation.db_user
-                                            skip = 2
-
-                                else:
-                                    old_annotation.db_value = new_annotation.db_value
-                                    old_annotation.db_date = new_annotation.db_date
-                                    old_annotation.db_user = new_annotation.db_user
-                        # others should be appended if not already there
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                    pass
+                                elif v == merge_gui.CHOICE_OWN:
+                                    old_annotation.db_value = \
+                                        new_annotation.db_value
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                elif v == merge_gui.CHOICE_OWN_ALL:
+                                    old_annotation.db_value = \
+                                        new_annotation.db_value
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                    skip = 2
                         else:
-                            values = []
-                            for old_annotation in old_action[key]:
-                                    values.append(old_annotation.db_value)
-                            if new_annotation.db_value not in values:
-                                annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
-                                vt.db_add_actionAnnotation(annotation)
-                    else:
-                        annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
+                            old_annotation.db_value = value
+                            old_annotation.db_date = new_annotation.db_date
+                            old_annotation.db_user = new_annotation.db_user
+                # notes should be merged (the user need to resolve)
+                elif new_annotation.db_key == '__notes__':
+                    # there is only one
+                    old_annotation = old_action[new_annotation.db_key][0]
+                    if new_annotation.db_value != old_annotation.db_value:
+                        value = ("#### conflicting versions! ####<br/>" + 
+                                 "## Other version at %s by %s:%s<br/>" +
+                                 "## Your version at %s by %s:%s") % \
+                          (str(old_annotation.db_date), old_annotation.db_user,
+                          old_annotation.db_value, str(new_annotation.db_date),
+                          new_annotation.db_user, new_annotation.db_value)
+                        if interactive:
+                            if skip == 1:
+                                pass
+                            elif skip == 2:
+                                old_annotation.db_value=new_annotation.db_value
+                                old_annotation.db_date = new_annotation.db_date
+                                old_annotation.db_user = new_annotation.db_user
+                            else:
+                                v, value = merge_gui.resolveNotes(
+                                    old_annotation, new_annotation, value)
+                                if v == merge_gui.CHOICE_OTHER_ALL:
+                                    skip = 1
+                                elif v == merge_gui.CHOICE_OTHER:
+                                    pass
+                                elif v == merge_gui.CHOICE_RESOLVED:
+                                    print "Note resolved:", value
+                                    old_annotation.db_value = value
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                    pass
+                                elif v == merge_gui.CHOICE_OWN:
+                                    old_annotation.db_value = \
+                                        new_annotation.db_value
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                elif v == merge_gui.CHOICE_OWN_ALL:
+                                    old_annotation.db_value = \
+                                        new_annotation.db_value
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                    skip = 2
+                        else:
+                            old_annotation.db_value = value
+                            old_annotation.db_date = new_annotation.db_date
+                            old_annotation.db_user = new_annotation.db_user
+
+                # thumbs should be updated (we loose the other update)
+                elif new_annotation.db_key == '__thumb__': 
+                    # there is only one
+                    old_annotation = old_action[new_annotation.db_key][0]
+                    if new_annotation.db_value != old_annotation.db_value:
+                        if interactive:
+                            if skip == 1:
+                                pass
+                            elif skip == 2:
+                                old_annotation.db_value=new_annotation.db_value
+                                old_annotation.db_date = new_annotation.db_date
+                                old_annotation.db_user = new_annotation.db_user
+                            else:
+                                v = merge_gui.resolveThumbs(old_annotation, 
+                                         new_annotation, tmp_dir, next_tmp_dir)
+                                if v == merge_gui.CHOICE_OTHER_ALL:
+                                    skip = 1
+                                elif v == merge_gui.CHOICE_OTHER:
+                                    pass
+                                elif v == merge_gui.CHOICE_OWN:
+                                    old_annotation.db_value = \
+                                        new_annotation.db_value
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                elif v == merge_gui.CHOICE_OWN_ALL:
+                                    old_annotation.db_value = \
+                                        new_annotation.db_value
+                                    old_annotation.db_date = \
+                                        new_annotation.db_date
+                                    old_annotation.db_user = \
+                                        new_annotation.db_user
+                                    skip = 2
+                        else:
+                            old_annotation.db_value = new_annotation.db_value
+                            old_annotation.db_date = new_annotation.db_date
+                            old_annotation.db_user = new_annotation.db_user
+                #elif new_annotation.db_key == '__prune__': # keep both
+                # others should be appended if not already there
+                else:
+                    values = []
+                    for old_annotation in old_action[new_annotation.db_key]:
+                            values.append(old_annotation.db_value)
+                    if new_annotation.db_value not in values:
+                        annotation = new_annotation.do_copy(True, vt.idScope, \
+                                                                id_remap)
                         vt.db_add_actionAnnotation(annotation)
+            else:
+                annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
+                vt.db_add_actionAnnotation(annotation)
     # make this a valid checked out version
     vt.update_checkout_version()
 
