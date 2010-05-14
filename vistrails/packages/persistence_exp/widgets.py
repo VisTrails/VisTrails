@@ -25,6 +25,7 @@ import os
 import sqlite3
 import uuid
 
+from core.modules.basic_modules import Path
 from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from gui.common_widgets import QSearchBox, QSearchEditBox
@@ -729,6 +730,9 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
 
         ref_exists = False
         self.existing_ref = None
+        local_path = None
+        local_read = None
+        local_write = None
         for function in self.module.functions:
             if function.name == 'ref':
                 self.existing_ref = ManagedRef.translate_to_python(
@@ -742,6 +746,13 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
             elif function.name == 'value':
                 if self.new_file:
                     self.new_file.set_path(function.parameters[0].strValue)
+            elif function.name == 'localPath':
+                local_path = Path.translate_to_python(
+                    function.parameters[0].strValue).name
+            elif function.name == 'readLocal':
+                local_read = func_to_bool(function)
+            elif function.name == 'writeLocal':
+                local_write = func_to_bool(function)
 
         if ref_exists:
             self.managed_existing.setChecked(True)
@@ -772,6 +783,19 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
             self.keep_local.setChecked(False)
             self.local_toggle(False)
 
+        if local_path is not None:
+            if local_path:
+                self.keep_local.setChecked(True)
+                self.local_toggle(True)
+            else:
+                self.keep_local.setChecked(False)
+                self.local_toggle(False)
+            self.local_path.set_path(local_path)
+        if local_read is not None:
+            self.r_priority_local.setChecked(local_read)
+        if local_write is not None:
+            self.write_managed_checkbox.setChecked(local_write)
+
     def get_values(self):
         from core.modules.module_registry import get_module_registry
         reg = get_module_registry()
@@ -796,9 +820,14 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
             (ref.id, ref.version, ref.name, ref.tags) = \
                 self.ref_widget.get_info()
         if self.keep_local.isChecked():
-            ref.local_path = self.local_path.get_path()
-            ref.local_read = self.r_priority_local.isChecked()
-            ref.local_writeback = self.write_managed_checkbox.isChecked()
+            functions.append(('localPath', [self.local_path.get_path()]))
+            functions.append(('readLocal', 
+                              [self.r_priority_local.isChecked()]))
+            functions.append(('writeLocal',
+                              [self.write_managed_checkbox.isChecked()]))
+#             ref.local_path = self.local_path.get_path()
+#             ref.local_read = self.r_priority_local.isChecked()
+#             ref.local_writeback = self.write_managed_checkbox.isChecked()
         else:
             ref.local_path = None
             

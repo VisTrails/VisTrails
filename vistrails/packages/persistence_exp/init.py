@@ -390,7 +390,7 @@ class ManagedPath(Module):
         if self.persistent_path is not None:
             print 'using persistent path'
             ref = self.persistent_ref
-            path = self.persistent_path            
+            path = self.persistent_path
         elif self.hasInputFromPort('ref'):
             ref = ManagedRef.translate_to_python(self.getInputFromPort('ref'))
             if ref.id is None:
@@ -399,6 +399,13 @@ class ManagedPath(Module):
             # create a new reference
             ref = ManagedRef()
             ref.id = str(uuid.uuid1())
+
+        if self.hasInputFromPort('localPath'):
+            ref.local_path = self.getInputFromPort('localPath').name
+            if self.hasInputFromPort('readLocal'):
+                ref.local_read = self.getInputFromPort('readLocal')
+            if self.hasInputFromPort('writeLocal'):
+                ref.local_writeback = self.getInputFromPort('writeLocal')
 
         if is_input is None:
             is_input = False
@@ -473,11 +480,17 @@ class ManagedPath(Module):
         self.set_result(path)
 
     _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Path)'),
-                    ('ref', '(edu.utah.sci.vistrails.basic:String)')]
+                    ('ref', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('localPath', '(edu.utah.sci.vistrails.basic:Path)'),
+                    ('readLocal', '(edu.utah.sci.vistrails.basic:Boolean)', \
+                         True),
+                    ('writeLocal','(edu.utah.sci.vistrails.basic:Boolean)', \
+                         True)]
     _output_ports = [('value', '(edu.utah.sci.vistrails.basic:Path)')]
 
 class ManagedFile(ManagedPath):
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
+    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)'),
+                    ('localPath', '(edu.utah.sci.vistrails.basic:File)')]
     _output_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
 
     def set_result(self, path):
@@ -488,7 +501,8 @@ class ManagedFile(ManagedPath):
         self.setResult("value", persistent_path)
 
 class ManagedDir(ManagedPath):
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)')]
+    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)'),
+                    ('localPath', '(edu.utah.sci.vistrails.basic:Directory)')]
     _output_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)')]
 
     def updateUpstream(self, is_input=None):
@@ -504,22 +518,22 @@ class ManagedDir(ManagedPath):
         persistent_path.upToDate = True
         self.setResult("value", persistent_path)
 
-class ManagedFile(ManagedPath):
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
-    _output_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
+# class ManagedFile(ManagedPath):
+#     _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
+#     _output_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
 
-    def updateUpstream(self, is_input=None):
-        ManagedPath.updateUpstream(self, is_input, 'blob')
+#     def updateUpstream(self, is_input=None):
+#         ManagedPath.updateUpstream(self, is_input, 'blob')
 
-    def compute(self, is_input=None):
-        ManagedPath.compute(self, is_input, 'blob')
+#     def compute(self, is_input=None):
+#         ManagedPath.compute(self, is_input, 'blob')
 
-    def set_result(self, path):
-        persistent_path = File()
-        persistent_path.name = path
-        persistent_path.setResult('value', self)
-        persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+#     def set_result(self, path):
+#         persistent_path = File()
+#         persistent_path.name = path
+#         persistent_path.setResult('value', self)
+#         persistent_path.upToDate = True
+#         self.setResult("value", persistent_path)
 
 class ManagedInputDir(ManagedDir):
     _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)', True)]
