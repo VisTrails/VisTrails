@@ -26,6 +26,7 @@
 from PyQt4 import QtCore, QtGui
 from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.basic_modules import new_constant, init_constant, Module
+from core.modules.module_registry import get_module_registry
 from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 from core.utils.color import ColorByName
@@ -72,6 +73,17 @@ class TransferFunction(object):
         vp.SetScalarOpacity(of)
         vp.SetColor(cf)
 
+    def get_vtk_transfer_functions(self):
+        of = vtk.vtkPiecewiseFunction()
+        cf = vtk.vtkColorTransferFunction()
+        for pt in self._pts:
+            (scalar, opacity, color) = pt
+            # Map scalar to tf range
+            s = self._min_range + (self._max_range - self._min_range) * scalar
+            of.AddPoint(s, opacity)
+            cf.AddRGBPoint(s, color[0], color[1], color[2])
+        return (of,cf)
+    
     def add_point(self, scalar, opacity, color):
         self._pts.append((scalar, opacity, color))
         self._pts.sort()
@@ -602,6 +614,7 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
 class vtkScaledTransferFunction(Module):
 
     def compute(self):
+        reg = get_module_registry()
         tf = self.getInputFromPort('TransferFunction')
         new_tf = copy.copy(tf)
         if self.hasInputFromPort('Input'):
@@ -617,6 +630,18 @@ class vtkScaledTransferFunction(Module):
             (new_tf._min_range, new_tf._max_range) = self.getInputFromPort('Range')
             
         self.setResult('TransferFunction', new_tf)
+        (of,cf) = new_tf.get_vtk_transfer_functions()
+        
+        of_module = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 
+                                               'vtkPiecewiseFunction').module()
+        of_module.vtkInstance  = of
+        
+        cf_module = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 
+                                               'vtkColorTransferFunction').module()
+        cf_module.vtkInstance  = cf
+        
+        self.setResult('vtkPicewiseFunction', of_module)
+        self.setResult('vtkColorTransferFunction', cf_module)
 
 string_conversion = staticmethod(lambda x: x.serialize())
 conversion = staticmethod(lambda x: TransferFunction.parse(x))

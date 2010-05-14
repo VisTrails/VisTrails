@@ -1043,6 +1043,14 @@ def initialize():
     registry.add_output_port(tf_widget.vtkScaledTransferFunction,
                              'TransferFunction',
                              tf_widget.TransferFunctionConstant)
+    registry.add_output_port(tf_widget.vtkScaledTransferFunction,
+                             'vtkPiecewiseFunction',
+                             getter('edu.utah.sci.vistrails.vtk', 
+                                    'vtkPiecewiseFunction').module)
+    registry.add_output_port(tf_widget.vtkScaledTransferFunction,
+                             'vtkColorTransferFunction',
+                             getter('edu.utah.sci.vistrails.vtk', 
+                                    'vtkColorTransferFunction').module)
 
     inspectors.initialize()
 

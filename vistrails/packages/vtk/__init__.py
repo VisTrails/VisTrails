@@ -26,7 +26,7 @@ the world. http://www.vtk.org"""
 
 identifier = 'edu.utah.sci.vistrails.vtk'
 name = 'VTK'
-version = '0.9.1'
+version = '0.9.2'
 
 def package_dependencies():
     import core.packagemanager
