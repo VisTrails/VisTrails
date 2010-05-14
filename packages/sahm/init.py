@@ -12,6 +12,21 @@ from core.system import list2cmdline, execute_cmdline
 from widgets import ClimatePredictorListConfig
 
 identifier = 'gov.usgs.sahm'
+_temp_files = []
+_temp_dirs = []
+
+def mktempfile(*args, **kwargs):
+    global _temp_files
+    (fd, fname) = tempfile.mkstemp(*args, **kwargs)
+    os.close(fd)
+    _temp_files.append(fname)
+    return fname
+
+def mktempdir(*args, **kwargs):
+    global _temp_dirs
+    dname = tempfile.mkdtemp(*args, **kwargs)
+    _temp_dirs.append(dname)
+    return dname
 
 def run_cmd_line_jar(jar_name, args):
     arg_items = list(itertools.chain(*args.items()))
@@ -180,12 +195,11 @@ class MDSBuilder(Module):
         predictor_list = self.forceGetInputFromPort('predictorList', [])
         predictor_list.extend(self.getInputListFromPort('addPredictor'))
 
-        predictors_dir = tempfile.mkdtemp(prefix='sahm_layers')
+        predictors_dir = mktempdir(prefix='sahm_layers')
         for predictor in predictor_list:
             shutil.copy(predictor.name, predictors_dir)
 
-        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.mds')
-        os.close(fd)
+        output_fname = mktempfile(prefix='sahm', suffix='.mds')
         args['-o'] = output_fname
         args['-i'] = predictors_dir
 
@@ -215,7 +229,7 @@ class FieldDataQuery(Module):
                     }
         args = map_ports(self, port_map)
 
-        output_dname = tempfile.mkdtemp(prefix='sahm')
+        output_dname = mktempdir(prefix='sahm')
         args['-o'] = output_dname
 
         res, output = run_cmd_line_jar('FieldDataQuery.jar', args)
@@ -244,18 +258,17 @@ class ModelBuilder(Module):
         predictor_list = self.forceGetInputFromPort('predictorList', [])
         predictor_list.extend(self.getInputListFromPort('addPredictor'))
 
-        ancillary_dname = tempfile.mkdtemp(prefix='sahm_ancillary')
+        ancillary_dname = mktempdir(prefix='sahm_ancillary')
 
-        models_dir = tempfile.mkdtemp(prefix='sahm_models')
+        models_dir = mktempdir(prefix='sahm_models')
         for model in models:
             print model
             shutil.copy(model.name, models_dir)
-        predictors_dir = tempfile.mkdtemp(prefix='sahm_layers')
+        predictors_dir = mktempdir(prefix='sahm_layers')
         for predictor in predictor_list:
             shutil.copy(predictor.name, predictors_dir)
 
-        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.xml')
-        os.close(fd)
+        output_fname = mktempfile(prefix='sahm', suffix='.xml')
         args['-a'] = ancillary_dname
         args['-o'] = output_fname
         args['-m'] = models_dir
@@ -272,31 +285,35 @@ class ModelBuilder(Module):
         self.setResult('ancillaryDir', ancillary_dir)
 
 class MapBuilder(Module):
-    _input_ports = expand_ports([('xmlFile', 'basic:File'),
+    _input_ports = expand_ports([('ancillaryDir', 'basic:Directory'),
+                                 ('xmlFile', 'basic:File'),
                                  ('sessionDir', 'basic:Directory')])
     _output_ports = expand_ports([('tiffImage', 'basic:File'),
-                                  ('jpgImage', 'basic:File')])
+                                  ('jpgImage', 'basic:File'),
+                                  ('ancillaryDir', 'basic:Directory')])
     
     def compute(self):
         port_map = {'xmlFile': ('-f', path_value, True),
+                    'ancillaryDir': ('-a', path_value, True),
                     'sessionDir': ('-s', path_value, False),
                     }
+        self.setResult('ancillaryDir', self.getInputFromPort('ancillaryDir'))
+
         args = map_ports(self, port_map)
         
-        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.tif')
-        os.close(fd)
-        args['-o'] = output_fname
+        tif_fname = mktempfile(prefix='sahm', suffix='.tif')
+        args['-t'] = tif_fname
+        jpg_fname = mktempfile(prefix='sahm', suffix='.jpg')
+        args['-j'] = jpg_fname
 
         res, output = run_cmd_line_jar('MapBuilder.jar', args)
         if res != 0:
             raise ModuleError(self, ''.join(output))
 
-        tif_file = create_file_module(output_fname)
+        tif_file = create_file_module(tif_fname)
         self.setResult('tiffImage', tif_file)
 
-        # FIXME should be on the command line
-        jpg_file = \
-            create_file_module(os.path.splitext(output_fname)[0] + '.jpg')
+        jpg_file = create_file_module(jpg_fname)
         self.setResult('jpgImage', jpg_file)
 
 class ReportBuilder(Module):
@@ -317,8 +334,7 @@ class ReportBuilder(Module):
                     'sessionDir': ('-s', path_value, False)}
         args = map_ports(self, port_map)
         
-        (fd, output_fname) = tempfile.mkstemp(prefix='sahm', suffix='.html')
-        os.close(fd)
+        output_fname = mktempfile(prefix='sahm', suffix='.html')
         args['-o'] = output_fname
 
         res, output = run_cmd_line_jar('RptBuilder.jar', args)
@@ -344,6 +360,13 @@ def initialize():
     global sahm_path, models_path
     sahm_path = configuration.sahm_path
     models_path = configuration.models_path
+
+def finalize():
+    global _temp_files, _temp_dirs
+    for file in _temp_files:
+        os.remove(file)
+    for dir in _temp_dirs:
+        shutil.rmtree(dir)
 
 _modules = {'DataInput': [Predictor, 
                           PredictorList,
