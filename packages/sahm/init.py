@@ -6,7 +6,7 @@ import shutil
 import tempfile
 
 from core.modules.vistrails_module import Module, ModuleError, ModuleConnector
-from core.modules.basic_modules import File, Directory, new_constant
+from core.modules.basic_modules import File, Directory, new_constant, Constant
 from core.system import list2cmdline, execute_cmdline
 
 from widgets import ClimatePredictorListConfig
@@ -346,11 +346,35 @@ class ReportBuilder(Module):
 
 from core.modules.basic_modules import List
 
-PredictorList = new_constant("PredictorList",
-                             List.translate_to_python,
-                             [], staticmethod(lambda x: type(x) == list), 
-                             ClimatePredictorListConfig,
-                             base_class=List)
+
+# FIXME: OK on trunk, changed for current release
+#
+# PredictorList = new_constant("PredictorList",
+#                              List.translate_to_python,
+#                              [], staticmethod(lambda x: type(x) == list), 
+#                              ClimatePredictorListConfig,
+#                              base_class=List)
+
+class PredictorList(Constant):
+    _input_ports = expand_ports([('value', 'DataInput|PredictorList')])
+    _output_ports = expand_ports([('value', 'DataInput|PredictorList')])
+    
+    @staticmethod
+    def translate_to_string(v):
+        return str(v)
+
+    @staticmethod
+    def translate_to_python(v):
+        v_list = eval(v)
+        return v_list
+
+    @staticmethod
+    def validate(x):
+        return type(x) == list
+
+    @staticmethod
+    def get_widget_class():
+        return ClimatePredictorListConfig
 
 class ClimatePredictors(Module):
     _input_ports = [('selected_list', 
@@ -368,23 +392,38 @@ def finalize():
     for dir in _temp_dirs:
         shutil.rmtree(dir)
 
-_modules = {'DataInput': [Predictor, 
-                          PredictorList,
-                          RemoteSensingPredictor,
-                          ClimatePredictor,
-                          StaticPredictor,
-                          ClimatePredictors,
-                          SpatialDef],
-            'Tools': [Resampler, 
-                      FieldDataQuery,
-                      MDSBuilder,
-                      ModelBuilder,
-                      MapBuilder],
-            'Models': [Model,
-                       GLM,
-                       RandomForest,
-                       MARS,
-                       MAXENT,
-                       BoostedRegressionTree],
-            'Reporting': [ReportBuilder],
-            }
+# FIXME: no need for generate_namespaces on trunk, this is built in to the
+#        registry
+
+def generate_namespaces(modules):
+    module_list = []
+    for namespace, m_list in modules.iteritems():
+        for module in m_list:
+            m_dict = {'namespace': namespace}
+            if type(module) == tuple:
+                m_dict.update(module[1])
+                module_list.append((module[0], m_dict))
+            else:
+                module_list.append((module, m_dict))
+    return module_list
+
+_modules = generate_namespaces({'DataInput': [Predictor, 
+                                              PredictorList,
+                                              RemoteSensingPredictor,
+                                              ClimatePredictor,
+                                              StaticPredictor,
+                                              ClimatePredictors,
+                                              SpatialDef],
+                                'Tools': [Resampler, 
+                                          FieldDataQuery,
+                                          MDSBuilder,
+                                          ModelBuilder,
+                                          MapBuilder],
+                                'Models': [Model,
+                                           GLM,
+                                           RandomForest,
+                                           MARS,
+                                           MAXENT,
+                                           BoostedRegressionTree],
+                                'Reporting': [ReportBuilder],
+                                })
