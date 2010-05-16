@@ -73,34 +73,38 @@ class HTTP(core.modules.vistrails_module.Module):
 class HTTPFile(HTTP):
     """ Downloads file from URL """
 
-    def __init__(self):
-        HTTP.__init__(self)
-
-    def parse_url(self, url):
-        s = url.split('/')
+    # FIXME: the logic behind is_cacheable and compute is similar,
+    # but not exactly the same. We should refactor
+   
+    def is_cacheable(self):
+        self.checkInputPort('url')
+        url = self.getInputFromPort('url')
+        local_filename = self._local_filename(url)
+        # If file is not in cache, then we must re-run
+        if not self._file_is_in_local_cache(local_filename):
+            return False
+        conn = httplib.HTTPConnection(self.host)
         try:
-            self.host = s[2]
-            self.filename = '/' + '/'.join(s[3:])
-        except:
-            raise ModuleError(self, "Malformed URL: %s" % url)
-
-    def is_outdated(self, remoteHeader, localFile):
-        """Checks whether local file is outdated."""
-        local_time = \
-                datetime.datetime.utcfromtimestamp(os.path.getmtime(localFile))
-        remote_time = datetime.datetime.strptime(remoteHeader,
-                                                 "%a, %d %b %Y %H:%M:%S %Z")
-        return remote_time > local_time
-
-    def _file_is_in_local_cache(self, local_filename):
-        return os.path.isfile(local_filename)
-
+            conn.request("GET", self.filename)
+        except socket.gaierror, e:
+            # We could not get to the net, but file exists in local
+            # cache, so we'll simply reuse it
+            return True
+        response = conn.getresponse()
+        mod_header = response.msg.getheader('last-modified')
+        if not mod_header:
+            # server did not return a last-modified, assume cannot cache
+            return False
+        if self._is_outdated(mod_header, local_filename):
+            return False
+        return True
+            
     def compute(self):
         self.checkInputPort('url')
         url = self.getInputFromPort("url")
-        self.parse_url(url)
+        self._parse_url(url)
         conn = httplib.HTTPConnection(self.host)
-        local_filename = package_directory + '/' + urllib.quote_plus(url)
+        local_filename = self._local_filename(url)
         self.setResult("local_filename", local_filename)
         try:
             conn.request("GET", self.filename)
@@ -120,7 +124,7 @@ class HTTPFile(HTTP):
             result.name = local_filename
             if (not self._file_is_in_local_cache(local_filename) or
                 not mod_header or
-                self.is_outdated(mod_header, local_filename)):
+                self._is_outdated(mod_header, local_filename)):
                 try:
                     urllib.urlretrieve(url, local_filename)
                 except IOError, e:
@@ -130,6 +134,30 @@ class HTTPFile(HTTP):
                                              local_filename))
             conn.close()
             self.setResult("file", result)
+    
+    ##########################################################################
+
+    def _parse_url(self, url):
+        s = url.split('/')
+        try:
+            self.host = s[2]
+            self.filename = '/' + '/'.join(s[3:])
+        except:
+            raise ModuleError(self, "Malformed URL: %s" % url)
+
+    def _is_outdated(self, remoteHeader, localFile):
+        """Checks whether local file is outdated."""
+        local_time = \
+                datetime.datetime.utcfromtimestamp(os.path.getmtime(localFile))
+        remote_time = datetime.datetime.strptime(remoteHeader,
+                                                 "%a, %d %b %Y %H:%M:%S %Z")
+        return remote_time > local_time
+
+    def _file_is_in_local_cache(self, local_filename):
+        return os.path.isfile(local_filename)
+
+    def _local_filename(self, url):
+        return package_directory + '/' + urllib.quote_plus(url)
 
 class RepoSync(HTTP):
     """ enables data to be synced with a online repository. The designated file
@@ -308,7 +336,6 @@ def initialize(*args, **keywords):
             sys.exit(1)
         print "Ok."
 
-
 ##############################################################################
 
 import unittest
@@ -328,7 +355,7 @@ class TestHTTPFile(unittest.TestCase):
 
     def testParseURL(self):
         foo = HTTPFile()
-        foo.parse_url('http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip')
+        foo._parse_url('http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip')
         self.assertEquals(foo.host, 'www.sci.utah.edu')
         self.assertEquals(foo.filename, '/~cscheid/stuff/vtkdata-5.0.2.zip')
 
