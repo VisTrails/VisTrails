@@ -591,7 +591,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         """
         metalstyle = self.temp_configuration.check('useMacBrushedMetalStyle')
         if metalstyle:
-            if QtCore.QT_VERSION < 0x40600:    
+            if QtCore.QT_VERSION < 0x40500:    
                 create_event = QtCore.QEvent.Create
                 mac_attribute = QtCore.Qt.WA_MacMetalStyle
             else:

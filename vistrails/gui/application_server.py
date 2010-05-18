@@ -138,7 +138,7 @@ class RequestHandler(object):
     #utils
     def memory_usage(self):
         """memory_usage() -> dict
-        Memory usage of the current process in kilobytes. We will plan to 
+        Memory usage of the current process in kilobytes. We plan to 
         use this to clear cache on demand later. 
         I believe this works on Linux only.
         """
@@ -238,13 +238,8 @@ class RequestHandler(object):
                         documentation = module.module.__doc__
                     else:
                         documentation = "Documentation not available."
-                    info = {'name':module.name, 'package':module.package, 
-                            'documentation':documentation}
-                    package_dic[package.identifier]['modules'].append(info)
-                
-                package_dic[package.identifier]['description'] = \
-                package.description if package.description \
-                else "No description available"
+                    package_dic[package.identifier]['modules'].append({'name':module.name, 'package':module.package, 'documentation':documentation})
+                package_dic[package.identifier]['description'] = package.description if package.description else "No description available"
             return package_dic
         except Exception, e:
             self.server_logger.info("Error: %s"%str(e))
@@ -262,6 +257,7 @@ class RequestHandler(object):
         """                
         try:
             locator = ZIPFileLocator(vt_filepath).load()
+            # set some crowdlabs id info
             if repository_vt_id != -1:
                 vistrail = locator.vistrail
                 vistrail.set_annotation('repository_vt_id', repository_vt_id)
@@ -272,6 +268,20 @@ class RequestHandler(object):
             #print "db_locator %s" % db_locator
             db_locator.save_as(locator)
             return db_locator.obj_id
+        except Exception, e:
+            self.server_logger.info("Error: %s"%str(e))
+            return "FAILURE: %s" %str(e)
+
+    def merge_vt(self, host, port, db_name, user, new_vt_filepath,
+                 old_db_vt_id):
+        # XXX: It should be complete now, but I haven't tested it (--Manu).
+        try:
+            new_bundle = ZIPFileLocator(new_vt_filepath).load()
+            old_db_locator = DBLocator(host=host, port=int(port), database=db_name,
+                                       obj_id=old_db_vt_id, user=db_write_user, passwd=db_write_pass)
+            old_db_bundle = old_db_locator.load()
+            db.services.vistrail.merge(old_db_bundle.vistrail, new_bundle.vistrail, 'vistrails')
+            old_db_locator.save(old_db_bundle)
         except Exception, e:
             self.server_logger.info("Error: %s"%str(e))
             return "FAILURE: %s" %str(e)
@@ -316,42 +326,44 @@ class RequestHandler(object):
             local_packages = [x.identifier for x in module_registry().package_list]
 
             runnable_workflows = []
+            py_source_workflows = []
             local_data_modules = ['File', 'FileSink', 'Path']
 
             # find runnable workflows
             for version_id, version_tag in vistrail.get_tagMap().iteritems():
                 pipeline = vistrail.getPipeline(version_id)
-                workflow_packages = []
+                workflow_packages = set()
+                on_repo = True
+                has_python_source = False
                 for module in pipeline.module_list:
-                    on_repo = False
                     # count modules that use data unavailable to web repository
                     if module.name[-6:] == 'Reader' or module.name in local_data_modules:
                         for edge in pipeline.graph.edges_to(module.id):
                             # TODO check for RepoSync checksum param
-                            if pipeline.modules[edge[0]].name in ['HTTPFile', 'RepoSync']:
-                                on_repo = True
-                        if on_repo and version_id not in runnable_workflows:
-                            print "\n\nAdding %s to runnable list\n\n" % \
-                                version_tag
-                            runnable_workflows.append(version_id)
-                    else:
-                        runnable_workflows.append(version_id)
+                            if pipeline.modules[edge[0]].name not in ['HTTPFile', 'RepoSync']:
+                                on_repo = False
+                    elif module.name == "PythonSource":
+                        has_python_source = True
+
                     # get all packages used in tagged versions of this VisTrail
-                    if on_repo and module.package not in workflow_packages:
-                        workflow_packages.append(module.package)
-                # remove workflows from runnable_workflows if they have packages
-                # that aren't installed on the server
-                if (version_id in runnable_workflows and 
-                    filter(lambda p: p not in local_packages, workflow_packages)):
-                    print "\n\nRemoving %s to runnable list\n\n"%pipeline.name
-                    runnable_workflows.remove(version_id)
+                    workflow_packages.add(module.package)
+
+                # ensure workflow doesn't use unsupported packages
+                if not filter(lambda p: p not in local_packages, workflow_packages):
+                    if has_python_source and on_repo and version_id not in py_source_workflows:
+                        py_source_workflows.append(version_id)
+                    elif not has_python_source and on_repo and version_id not in runnable_workflows:
+                        runnable_workflows.append(version_id)
 
             self.server_logger.info("SUCCESS!")
             print "\n\nRunnable Workflows Return"
             for wf_id in runnable_workflows:
                 print vistrail.get_tag(wf_id)
+            print "\n\nPython Source Workflows Return"
+            for wf_id in py_source_workflows:
+                print vistrail.tagMap[wf_id].name
             print "\n\n"
-            return runnable_workflows
+            return runnable_workflows, py_source_workflows
 
         except Exception, e:
             self.server_logger.info("Error: %s"%str(e))
@@ -567,138 +579,197 @@ class RequestHandler(object):
             self.server_logger.info(result)
 
         return result
-    
-#These currently don't work for vistrails
-#FIXME: Create versions that don't depend on the medleys code
-#    def getPDFWorkflow(self, m_id):
-#        """This works for medleys only"""
-#        self.server_logger.info( "getPDFWorkflow(%s) request received"%m_id)
-#        print "getPDFWorkflow(%s) request received"%m_id
-#        try:
-#            m_id = int(m_id)
-#            medley = self.medley_objs[m_id]
-#        except Exception, e:
-#            print str(e)
-#
-#        try:
-#            locator = DBLocator(host=db_host,
-#                                port=3306,
-#                                database='vistrails',
-#                                user='vtserver',
-#                                passwd='',
-#                                obj_id=medley._vtid,
-#                                obj_type=None,
-#                                connection_id=None)
-#
-#            version = long(medley._version)
-#            subdir = os.path.join('workflows',
-#                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-#            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
-#                                  subdir)
-#            base_fname = "%s_%s.pdf" % (str(locator.short_name), version)
-#            filename = os.path.join(filepath,base_fname)
-#            if ((not os.path.exists(filepath) or
-#                os.path.exists(filepath) and not os.path.exists(filename)) 
-#                and self.proxies_queue is not None):
-#                #this server can send requests to other instances
-#                proxy = self.proxies_queue.get()
-#                try:
-#                    print "Sending request to ", proxy
-#                    result = proxy.getPDFWorkflow(m_id)
-#                    self.proxies_queue.put(proxy)
-#                    print "returning %s"% result
-#                    self.server_logger.info("returning %s"% result)
-#                    return result
-#                except Exception, e:
-#                    print "Exception: ", str(e)
-#                    return ""
-#            
-#            if not os.path.exists(filepath):
-#                os.mkdir(filepath)
-#           
-#            if not os.path.exists(filename):
-#                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
-#                controller = VistrailController()
-#                controller.set_vistrail(v, locator, abstractions, thumbnails)
-#                controller.change_selected_version(version)
-#
-#                print medley._vtid, " ", medley._version
-#                p = controller.current_pipeline
-#                from gui.pipeline_view import QPipelineView
-#                pipeline_view = QPipelineView()
-#                pipeline_view.scene().setupScene(p)
-#                pipeline_view.scene().saveToPDF(filename)
-#                del pipeline_view
-#            else:
-#                print "found cached pdf: ", filename
-#            return os.path.join(subdir,base_fname)
-#        except Exception, e:
-#            print "Error when saving pdf: ", str(e)
-#            
-#    def getPNGWorkflow(self, m_id):
-#        self.server_logger.info( "getPNGWorkflow(%s) request received"%m_id)
-#        print "getPNGWorkflow(%s) request received"%m_id
-#        try:
-#            m_id = int(m_id)
-#            medley = self.medley_objs[m_id]
-#        except Exception, e:
-#            print str(e)
-#
-#        try:
-#            locator = DBLocator(host=db_host,
-#                                        port=3306,
-#                                        database='vistrails',
-#                                        user='vtserver',
-#                                        passwd='',
-#                                        obj_id=medley._vtid,
-#                                        obj_type=None,
-#                                        connection_id=None)
-#
-#            version = long(medley._version)
-#            subdir = os.path.join('workflows',
-#                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-#            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
-#                                  subdir)
-#            base_fname = "%s_%s.png" % (str(locator.short_name), version)
-#            filename = os.path.join(filepath,base_fname)
-#            
-#            if ((not os.path.exists(filepath) or
-#                os.path.exists(filepath) and not os.path.exists(filename)) 
-#                and self.proxies_queue is not None):
-#                #this server can send requests to other instances
-#                proxy = self.proxies_queue.get()
-#                try:
-#                    print "Sending request to ", proxy
-#                    result = proxy.getPNGWorkflow(m_id)
-#                    self.proxies_queue.put(proxy)
-#                    print "returning %s"% result
-#                    self.server_logger.info("returning %s"% result)
-#                    return result
-#                except Exception, e:
-#                    print "Exception: ", str(e)
-#                    return ""
-#            #if it gets here, this means that we will execute on this instance
-#            if not os.path.exists(filepath):
-#                os.mkdir(filepath)
-#
-#            if not os.path.exists(filename):
-#                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
-#                controller = VistrailController()
-#                controller.set_vistrail(v, locator, abstractions, thumbnails)
-#                controller.change_selected_version(version)
-#
-#                print medley._vtid, " ", medley._version
-#                p = controller.current_pipeline
-#                from gui.pipeline_view import QPipelineView
-#                pipeline_view = QPipelineView()
-#                pipeline_view.scene().setupScene(p)
-#                pipeline_view.scene().saveToPNG(filename)
-#                del pipeline_view
-#            else:
-#                print "Found cached image: ", filename
-#            return os.path.join(subdir,base_fname)
-#        except Exception, e:
-#            print "Error when saving png: ", str(e)
+
+    def get_wf_graph_pdf(self, host, port, db_name, vt_id, version):
+        """get_wf_graph_pdf(host:str, port:int, db_name:str, vt_id:int, 
+                          version:int) -> str
+         Returns the relative url to the generated PDF
+         """
+        self.server_logger.info( "get_wf_graph_pdf(%s,%s,%s,%s,%s) request received"%(host,
+                                                                                    port,
+                                                                                    db_name,
+                                                                                    vt_id,
+                                                                                    version))
+        print "get_wf_graph_pdf(%s,%s,%s,%s,%s) request received"%(host,
+                                                      port,
+                                                      db_name,
+                                                      vt_id,
+                                                      version)
+        try:
+            vt_id = long(vt_id)
+            version = long(version)            
+            subdir = 'workflows'
+            filepath = os.path.join('/server/crowdlabs/site_media/media/graphs',
+                                  subdir)
+            base_fname = "graph_%s_%s.pdf" % (vt_id, version)
+            filename = os.path.join(filepath,base_fname)
+            if ((not os.path.exists(filepath) or
+                os.path.exists(filepath) and not os.path.exists(filename)) 
+                and self.proxies_queue is not None):
+                #this server can send requests to other instances
+                proxy = self.proxies_queue.get()
+                try:
+                    print "Sending request to ", proxy
+                    result = proxy.get_wf_graph_pdf(host,port,db_name, vt_id, version)
+                    self.proxies_queue.put(proxy)
+                    print "returning %s"% result
+                    self.server_logger.info("returning %s"% result)
+                    return result
+                except Exception, e:
+                    print "Exception: ", str(e)
+                    return ""
+            
+            if not os.path.exists(filepath):
+                os.mkdir(filepath)
+           
+            if not os.path.exists(filename):
+                locator = DBLocator(host=host,
+                                    port=port,
+                                    database=db_name,
+                                    user=db_read_user,
+                                    passwd=db_read_pass,
+                                    obj_id=vt_id,
+                                    obj_type=None,
+                                    connection_id=None)
+
+                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                controller = VistrailController()
+                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                controller.change_selected_version(version)
+
+                p = controller.current_pipeline
+                from gui.pipeline_view import QPipelineView
+                pipeline_view = QPipelineView()
+                pipeline_view.scene().setupScene(p)
+                pipeline_view.scene().saveToPDF(filename)
+                del pipeline_view
+            else:
+                print "found cached pdf: ", filename
+            return os.path.join(subdir,base_fname)
+        except Exception, e:
+            print "Error when saving pdf: ", str(e)
+            
+    def get_wf_graph_png(self, host, port, db_name, vt_id, version):
+        """get_wf_graph_png(host:str, port:int, db_name:str, vt_id:int, 
+                          version:int) -> str
+         Returns the relative url to the generated image
+         """
+        self.server_logger.info( "get_wf_graph_png(%s,%s,%s,%s,%s) request received"%(host,
+                                                                                    port,
+                                                                                    db_name,
+                                                                                    vt_id,
+                                                                                    version))
+        print "get_wf_graph_png(%s,%s,%s,%s,%s) request received"%(host,
+                                                      port,
+                                                      db_name,
+                                                      vt_id,
+                                                      version)
+        try:
+            vt_id = long(vt_id)
+            version = long(version)            
+            subdir = 'workflows'
+            filepath = os.path.join('/server/crowdlabs/site_media/media/graphs',
+                                  subdir)
+            base_fname = "graph_%s_%s.png" % (vt_id, version)
+            filename = os.path.join(filepath,base_fname)
+            if ((not os.path.exists(filepath) or
+                os.path.exists(filepath) and not os.path.exists(filename)) 
+                and self.proxies_queue is not None):
+                #this server can send requests to other instances
+                proxy = self.proxies_queue.get()
+                try:
+                    print "Sending request to ", proxy
+                    result = proxy.get_wf_graph_png(host, port, db_name, vt_id, version)
+                    self.proxies_queue.put(proxy)
+                    print "returning %s"% result
+                    self.server_logger.info("returning %s"% result)
+                    return result
+                except Exception, e:
+                    print "Exception: ", str(e)
+                    return ""
+            #if it gets here, this means that we will execute on this instance
+            if not os.path.exists(filepath):
+                os.mkdir(filepath)
+
+            if not os.path.exists(filename):
+                locator = DBLocator(host=host,
+                                    port=port,
+                                    database=db_name,
+                                    user=db_read_user,
+                                    passwd=db_read_pass,
+                                    obj_id=vt_id,
+                                    obj_type=None,
+                                    connection_id=None)
+                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                controller = VistrailController()
+                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                controller.change_selected_version(version)
+
+                p = controller.current_pipeline
+                from gui.pipeline_view import QPipelineView
+                pipeline_view = QPipelineView()
+                pipeline_view.scene().setupScene(p)
+                pipeline_view.scene().saveToPNG(filename)
+                del pipeline_view
+            else:
+                print "Found cached image: ", filename
+            return os.path.join(subdir,base_fname)
+        except Exception, e:
+            print "Error when saving png: ", str(e)
+            
+    def get_vt_graph_png(self, host, port, db_name, vt_id):
+        """get_vt_graph_png(host:str, port: str, db_name: str, vt_id:str) -> str
+        Returns the relative url of the generated image
+        
+        """
+        try:
+            vt_id = long(vt_id) 
+            subdir = 'vistrails'
+            filepath = os.path.join('/server/crowdlabs/site_media/media/graphs',
+                                  subdir)
+            base_fname = "graph_%s.png" % (vt_id)
+            filename = os.path.join(filepath,base_fname)
+            if ((not os.path.exists(filepath) or
+                os.path.exists(filepath) and not os.path.exists(filename)) 
+                and self.proxies_queue is not None):
+                #this server can send requests to other instances
+                proxy = self.proxies_queue.get()
+                try:
+                    print "Sending request to ", proxy
+                    result = proxy.get_vt_graph_png(host, port, db_name, vt_id)
+                    self.proxies_queue.put(proxy)
+                    print "returning %s"% result
+                    self.server_logger.info("returning %s"% result)
+                    return result
+                except Exception, e:
+                    print "Exception: ", str(e)
+                    return ""
+            #if it gets here, this means that we will execute on this instance
+            if not os.path.exists(filepath):
+                os.mkdir(filepath)
+
+            if not os.path.exists(filename):
+                locator = DBLocator(host=host,
+                                    port=port,
+                                    database=db_name,
+                                    user=db_read_user,
+                                    passwd=db_read_pass,
+                                    obj_id=vt_id,
+                                    obj_type=None,
+                                    connection_id=None)
+                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                controller = VistrailController()
+                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                from gui.version_view import QVersionTreeView
+                version_view = QVersionTreeView()
+                version_view.scene().setupScene(controller)
+                version_view.scene().saveToPNG(filename)
+                del version_view
+            else:
+                print "Found cached image: ", filename
+            return os.path.join(subdir,base_fname)
+        except Exception, e:
+            print "Error when saving png: ", str(e)
             
     def get_vt_zip(self, host, port, db_name, vt_id):
         """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
