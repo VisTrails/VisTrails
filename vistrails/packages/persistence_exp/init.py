@@ -493,6 +493,12 @@ class ManagedFile(ManagedPath):
                     ('localPath', '(edu.utah.sci.vistrails.basic:File)')]
     _output_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
 
+    def updateUpstream(self, is_input=None):
+        ManagedPath.updateUpstream(self, is_input, 'blob')
+
+    def compute(self, is_input=None):
+        ManagedPath.compute(self, is_input, 'blob')
+
     def set_result(self, path):
         persistent_path = File()
         persistent_path.name = path

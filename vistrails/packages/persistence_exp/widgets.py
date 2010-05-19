@@ -822,9 +822,9 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
         if self.keep_local.isChecked():
             functions.append(('localPath', [self.local_path.get_path()]))
             functions.append(('readLocal', 
-                              [self.r_priority_local.isChecked()]))
+                              [str(self.r_priority_local.isChecked())]))
             functions.append(('writeLocal',
-                              [self.write_managed_checkbox.isChecked()]))
+                              [str(self.write_managed_checkbox.isChecked())]))
 #             ref.local_path = self.local_path.get_path()
 #             ref.local_read = self.r_priority_local.isChecked()
 #             ref.local_writeback = self.write_managed_checkbox.isChecked()
