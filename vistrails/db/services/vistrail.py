@@ -606,9 +606,17 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                             if skip == 1:
                                 pass
                             elif skip == 2:
+                                thumb = '/'.join(sb.thumbnails[0].split(
+                                        '/')[:-1])+'/'+ old_annotation.db_value
+                                if thumb in sb.thumbnails:
+                                    sb.thumbnails.remove(thumb)
                                 old_annotation.db_value=new_annotation.db_value
                                 old_annotation.db_date = new_annotation.db_date
                                 old_annotation.db_user = new_annotation.db_user
+                                thumb = '/'.join(next_sb.thumbnails[0].split(
+                                        '/')[:-1])+'/'+ new_annotation.db_value
+                                if thumb not in sb.thumbnails:
+                                    sb.thumbnails.append(thumb)
                             else:
                                 v = merge_gui.resolveThumbs(old_annotation, 
                                          new_annotation, tmp_dir, next_tmp_dir)
@@ -616,25 +624,36 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                     skip = 1
                                 elif v == merge_gui.CHOICE_OTHER:
                                     pass
-                                elif v == merge_gui.CHOICE_OWN:
+                                elif v in (merge_gui.CHOICE_OWN,
+                                           merge_gui.CHOICE_OWN_ALL):
+                                    thumb = '/'.join(sb.thumbnails[0].split(
+                                        '/')[:-1])+'/'+ old_annotation.db_value
+                                    if thumb in sb.thumbnails:
+                                        sb.thumbnails.remove(thumb)
                                     old_annotation.db_value = \
                                         new_annotation.db_value
                                     old_annotation.db_date = \
                                         new_annotation.db_date
                                     old_annotation.db_user = \
                                         new_annotation.db_user
-                                elif v == merge_gui.CHOICE_OWN_ALL:
-                                    old_annotation.db_value = \
-                                        new_annotation.db_value
-                                    old_annotation.db_date = \
-                                        new_annotation.db_date
-                                    old_annotation.db_user = \
-                                        new_annotation.db_user
-                                    skip = 2
+                                    thumb = '/'.join(next_sb.thumbnails[0].split(
+                                            '/')[:-1])+'/'+ new_annotation.db_value
+                                    if thumb not in sb.thumbnails:
+                                        sb.thumbnails.append(thumb)
+                                    if v == merge_gui.CHOICE_OWN_ALL:
+                                        skip = 2
                         else:
+                            thumb = '/'.join(sb.thumbnails[0].split(
+                                    '/')[:-1])+'/'+ old_annotation.db_value
+                            if thumb in sb.thumbnails:
+                                sb.thumbnails.remove(thumb)
                             old_annotation.db_value = new_annotation.db_value
                             old_annotation.db_date = new_annotation.db_date
                             old_annotation.db_user = new_annotation.db_user
+                            thumb = '/'.join(next_sb.thumbnails[0].split(
+                                    '/')[:-1])+'/'+ new_annotation.db_value
+                            if thumb not in sb.thumbnails:
+                                sb.thumbnails.append(thumb)
                 #elif new_annotation.db_key == '__prune__': # keep both
                 # others should be appended if not already there
                 else:
@@ -648,6 +667,11 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
             else:
                 annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
                 vt.db_add_actionAnnotation(annotation)
+                if annotation.db_key == '__thumb__':
+                    thumb = '/'.join(next_sb.thumbnails[0].split('/')[:-1]) + \
+                            '/' + annotation.db_value
+                    if thumb not in sb.thumbnails:
+                        sb.thumbnails.append(thumb)
     # make this a valid checked out version
     vt.update_checkout_version()
 
