@@ -42,4 +42,8 @@ function do_call($host, $port, $request) {
         return $data;
     }
 }
+
+function in_arrayi($needle, $haystack) {
+    return in_array(strtolower($needle), array_map('strtolower', $haystack));
+}
 ?>

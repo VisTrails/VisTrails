@@ -4,7 +4,6 @@
 LOG_DIR=/server/wiki/vistrails/main/vistrails/logs
 Xvfb_CMD=/usr/X11R6/bin/Xvfb
 VIRTUAL_DISPLAY=":7"
-Xvfb_PARAM="$VIRTUAL_DISPLAY -screen 0 1280x960x24"
 VISTRAILS_DIR=/server/wiki/vistrails/main/vistrails/trunk/vistrails
 ADDRESS="vistrails.sci.utah.edu"
 PORT="8080"
@@ -30,6 +29,7 @@ if (("$#" == "5")); then
    fi
 fi
 
+Xvfb_PARAM="$VIRTUAL_DISPLAY -screen 0 1280x960x24"
 PID="$LOG_DIR/pid$VIRTUAL_DISPLAY.vistrails"
 LOG_XVFB="$LOG_DIR/xvfb$VIRTUAL_DISPLAY.log"
 

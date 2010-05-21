@@ -11,10 +11,20 @@ add the following lines to the beginning of the latex file:
 \usepackage{vistrails}
 
 By default, vistrails will be executed at www.vistrails.org and the images
-downloaded to your hard drive. If you want to run a local copy of vistrails,
-add the following to your tex file:
+downloaded to your hard drive. 
+
+If you want to use a different server, add the following to your tex file:
+
+\renewcommand{\vistrailspath}{http://yourwebserver.somethingelse/run_vistrails.php}
+
+Or if you want tu run a local copy of vistrails:
 
 \renewcommand{\vistrailspath}{/path/to/vistrails.py}
+
+This extension uses python. If you don't have python on your path, use this 
+to set the python interpreter:
+
+\renewcommand{\vistrailspythonpath}{python}
 
 Then include the following command where you would like to include 
 the vistrails images:
@@ -27,9 +37,10 @@ tag=<tag>
 port=3306,
 buildalways,
 execute,
-showspreadsheetonly]{width=0.45\linewidth}
+showspreadsheetonly,
+pdf]{width=0.45\linewidth}
 
-The tag, port, buildalways, execute and showspreadsheetonly options are optional. 
+The tag, port, buildalways, execute, showspreadsheetonly and pdf options are optional. 
 The default value for port is 3306. 
 If buildalways is provided it will always call 
 vistrails, even if it was already called once for the same combination
@@ -38,6 +49,7 @@ If tag is provided, version can be ommitted and buildalways is implicit.
 execute and showspreasheetonly will affect the link on the generated pdf. If
 execute is provided the workflow will be execute when open, and
 showspreadsheetonly will show initially only the spreadsheet.
+pdf will return the results from the spreadsheet as pdf files
 
 The options inside { }  are the options you would give to 
 \includegraphics{} command

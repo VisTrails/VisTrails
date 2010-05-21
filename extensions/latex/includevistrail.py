@@ -70,33 +70,6 @@ def bool_conv(x):
 
 ###############################################################################
 
-def get_version_number_by_tag(host, port, dbname, vt_id, user, tag):
-    """get_version_number_by_tag(host: str, port: int, dbname: str,
-                                 vt_id: int, user:str, tag: str)-> int
-       This will connect directly to the database to get the version number
-       and execute the right pipeline.
-    
-    """
-    try:
-        db_connection = MySQLdb.connect(host=host,
-                                        user=user,
-                                        db=dbname,
-                                        port=port)
-        c = db_connection.cursor()
-        db_command = """SELECT id FROM tag WHERE entity_type='vistrail' AND
-entity_id='%s' AND name='%s'""" % (vt_id, tag)
-        c.execute(db_command)
-        res = c.fetchone()
-        c.close()
-        db_connection.close()
-        return str(res[0])
-    
-    except MySQLdb.Error, e:
-        msg = "MySQL ERROR: %s, %s" % (e.args[0], e.args[1])
-        raise Exception(msg)
-    
-###############################################################################    
-
 def path_exists_and_not_empty(path):
     """path_exists_and_not_empty(path:str) -> boolean 
     Returns True if given path exists and it's not empty, otherwise returns 
@@ -215,28 +188,17 @@ def run_vistrails_locally(path_to_vistrails, host, db_name, vt_id,
 
 def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
                            version, port, path_to_figures, build_always=False,
-                           tag='', execute=False, showspreadsheetonly=False):
+                           tag='', execute=False, showspreadsheetonly=False,
+                           pdf=False):
     """run_vistrails_remotely(path_to_vistrails: str, host: str,
                               db_name: str, vt_id: str, version: str, port: str,
                               path_to_figures: str, build_always: bool,
-                              tag:str, execute: bool, showspreadsheetonly: bool)
+                              tag:str, execute: bool, showspreadsheetonly: bool,
+                              pdf: bool)
                                    -> tuple(bool, str)
         Run vistrails and returns a tuple containing a boolean saying if it was
         successful or not and the latex code.
-    """
-    def check_url(url):
-        try:
-            p = urlparse(url)
-            h = HTTP(p[1])
-            h.putrequest('HEAD', p[2])
-            h.endheaders()
-            if h.getreply()[0] == 200:
-                return True
-            else:
-                return False
-        except:
-            return False
-        
+    """ 
     def download(url,filename):
         try:
             furl = urllib2.urlopen(url)
@@ -261,34 +223,54 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
         
         if check_url(path_to_vistrails):
             website = "://".join(urlparse(path_to_vistrails)[:2])
-            request = "?host=%s&db=%s&vt=%s&version=%s&port=%s" % (host,
+            request = "?host=%s&db=%s&vt=%s&version=%s&port=%s&pdf=%s" % (host,
                                                                    db_name,
                                                                    vt_id,
                                                                    urllib2.quote(version),
-                                                                   port)
+                                                                   port,
+                                                                   pdf)
             url = path_to_vistrails + request
             #print url
             try:
                 page = download_as_text(url)
-                # we will look for images embedded in the html
+                # we will look for images and other files embedded in the html
                 re_imgs = re.compile('<img[^>]*/>')
                 re_src = re.compile('(.*src=")([^"]*)"')
+                re_a = re.compile('<a[^>]*>[^<]*</a>')
+                re_href = re.compile('(.*href=")([^"]*)"')
                 images = re_imgs.findall(page)
-                if len(images) > 0:
-                    failed = False
+                files = re_a.findall(page)
+                failed = False
+                msg = ''
+                if len(images) > 0 or len(files) > 0:
                     for i in images:
-                        msg = ''
                         pngfile = re_src.match(i).groups()[1]
                         if not check_url(pngfile):
                             img = website + pngfile
                         else:
                             img = pngfile
+                    
                         if not download(img, os.path.join(path_to_figures,
-                                        os.path.basename(img))):
-                            msg += "Error when download image: %s. <return>" %\
+                                         os.path.basename(img))):
+                            msg += "Error when downloading image: %s. <return>" %\
                                    img
                             failed = True
-                    if not failed:
+                        
+                    for f in files:
+                        otherfile = re_href.match(f).groups()[1]
+                    
+                        if not check_url(otherfile):
+                            filename = website + otherfile
+                        else:
+                            filename = otherfile
+                    
+                        if not download(filename, os.path.join(path_to_figures,
+                                        os.path.basename(filename))):
+                            msg += "Error when downloading file: %s. <return>" %\
+                                    filename
+                            failed = True
+                        
+                    if not failed :
                         return (True, generate_latex(host, db_name, vt_id,
                                                      version, port, tag,
                                                      execute,
@@ -317,7 +299,7 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
 
 def check_path(path):
     """check_path(path:str) -> bool
-    Checks if it's a valid path.
+    Checks if it's a valid system path.
     If path is valid, we will update it to be a realpath.
     
     """
@@ -329,6 +311,21 @@ def check_path(path):
     else:
         result = False
     return result
+
+###############################################################################
+
+def check_url(url):
+        try:
+            p = urlparse(url)
+            h = HTTP(p[1])
+            h.putrequest('HEAD', p[2])
+            h.endheaders()
+            if h.getreply()[0] == 200:
+                return True
+            else:
+                return False
+        except:
+            return False
 
 ###############################################################################
 
@@ -346,11 +343,11 @@ vt_id = None
 version = None
 graphics_options = None
 build_always = False
-run_locally = True
 port = '3306'
 version_tag = ''
 showspreadsheetonly = False
 execute = False
+pdf = False
 
 for line in lines:
     args = line.split("=")
@@ -378,41 +375,42 @@ for line in lines:
         showspreadsheetonly = bool_conv(args[1].strip(" \n"))
         if showspreadsheetonly:
             execute = True
+    elif args[0] == 'pdf':
+        pdf = bool_conv(args[1].strip(" \n"))
     elif args[0] == "other":
         graphics_options = args[1].strip(" \n")
-        
-# if a tag is passed, we need to make sure that the version
-# number we use is consistent.
-if version_tag != '':
-    version = get_version_number_by_tag(host, int(port), db_name, int(vt_id),
-                                        vt_user, version_tag)
 
 # then we use the combination host_db_name_port_vt_id_version to
 # create a unique folder. 
 # TODO: Maybe we should use a hash of this. For now let's keep it
 # legible.
-
+out_type = "png"
+if pdf:
+    out_type = 'pdf'
 path_to_figures = os.path.join("vistrails_images",
-                               "%s_%s_%s_%s_%s" % (host, db_name, port,
+                               "%s_%s_%s_%s_%s_%s" % (host, db_name, port,
                                                    vt_id,
-                                                   version))    
+                                                   version,
+                                                   out_type))    
 
 # if the path_to_vistrails point to a file that exists on disk, we will use
 # it, else let's assume it's a url (we still check if the url is valid inside
 # the run_vistrails_remotely function)
 
-run_locally = check_path(path_to_vistrails)
-
-if run_locally:
+if check_path(path_to_vistrails): #run locally
     result, latex = run_vistrails_locally(path_to_vistrails, host, db_name,
                                           vt_id, version, port, path_to_figures,
                                           build_always, version_tag, execute,
-                                          showspreadsheetonly)
-else:
+                                          showspreadsheetonly,pdf)
+elif check_url(path_to_vistrails): #run from the web
     result, latex = run_vistrails_remotely(path_to_vistrails, host, db_name,
                                           vt_id, version, port, path_to_figures,
                                           build_always, version_tag, execute,
-                                          showspreadsheetonly)
+                                          showspreadsheetonly,pdf)
+else:
+    result, latex = (False, 
+                     "%s is not a valid url nor a valid path to vistrails.py" %\
+                       (path_to_vistrails))
     
 # the printed answer will be included inline by the latex compiler.
 print latex

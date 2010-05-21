@@ -25,7 +25,7 @@
 %% latex or by adding/changing "shell_escape = t" in your texmf.cnf .
 
 \NeedsTeXFormat{LaTeX2e}[1994/12/01]
-\ProvidesPackage{vistrails}[2008/08/06 v0.1 VisTrails in LaTeX]
+\ProvidesPackage{vistrails}[2010/05/19 v0.2 VisTrails in LaTeX]
 
 %% keyval package allows us to define arguments in a command as key-value pairs,
 %%  which is more convenient
@@ -35,11 +35,14 @@
 %% This is to hide the border of the included image
 \RequirePackage[pdfborder={0 0 0}]{hyperref}
 
-%% we will generate a file for pasing to python
+%% we will generate a file for passing to python
 \newwrite\pythonincludein
 
 %% by default we will run vistrails on the web server
 \newcommand{\vistrailspath}{http://www.vistrails.org/extensions/run_vistrails.php}
+
+%% full path to python or just python if it is on PATH
+\newcommand{\vistrailspythonpath}{python}
 
 %% this is for allowing line breaks, empty values in vistrails command's options
 \def\vistrail{\kernel@ifnextchar [{\@vistrail}{\@vistrail[]}}
@@ -54,7 +57,7 @@
     \immediate\write\pythonincludein{other=\string#2}
 \fi
 \immediate\closeout\pythonincludein
-\immediate\write18{python includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
+\immediate\write18{\vistrailspythonpath \space includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
 \immediate\input\jobname.cmdline.out
 }
 
@@ -68,5 +71,5 @@
 \define@key{vt}{buildalways}[true]{\immediate\write\pythonincludein{buildalways=\string#1}}
 \define@key{vt}{execute}[true]{\immediate\write\pythonincludein{execute=\string#1}}
 \define@key{vt}{showspreadsheetonly}[true]{\immediate\write\pythonincludein{showspreadsheetonly=\string#1}}
-
+\define@key{vt}{pdf}[true]{\immediate\write\pythonincludein{pdf=\string#1}}
 

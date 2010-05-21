@@ -413,18 +413,18 @@ class RequestHandler(object):
     
     #vistrails
     def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
-                    version=None, vt_tag='', parameters=''):
+                    version=None,  pdf=False, vt_tag='',parameters=''):
 #        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s)"%\
-        print "Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s)"%\
+        print "Request: run_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s)"%\
                                                             (host,
                                                              port,
                                                              db_name,
                                                              vt_id,
                                                              path_to_figures,
                                                              version,
+                                                             pdf,
                                                              vt_tag,
                                                              parameters)
-        print "run_from_db"
         print self.path_exists_and_not_empty(path_to_figures)
         print self.proxies_queue
         if (not self.path_exists_and_not_empty(path_to_figures) and
@@ -435,7 +435,7 @@ class RequestHandler(object):
             try:
                 print "Sending request to ", proxy
                 result = proxy.run_from_db(host, port, db_name, vt_id, 
-                                           path_to_figures, version, vt_tag, 
+                                           path_to_figures, version, pdf, vt_tag,
                                            parameters)
                 self.proxies_queue.put(proxy)
                 print "returning %s"% result
@@ -446,7 +446,8 @@ class RequestHandler(object):
                 return ""
             
         extra_info = {}
-        extra_info ['pathDumpCells'] = path_to_figures
+        extra_info['pathDumpCells'] = path_to_figures
+        extra_info['pdf'] = pdf
         # execute workflow
         ok = True
         print "will execute here"

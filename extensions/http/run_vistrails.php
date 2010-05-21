@@ -47,6 +47,7 @@ $PATH_TO_IMAGES = '/images/vistrails/';
 // Change this to the web accessible path to the folder where the images were generated
 $WEB_PATH_TO_IMAGES = '/images/';
 
+$SUPPORTED_IMAGE_FILES = array("png", "jpg", "gif");
 // set variables with default values
 $host = 'vistrails.sci.utah.edu';
 $port = '3306';
@@ -55,7 +56,8 @@ $vtid = '';
 $version = '';
 $username = "vtserver";
 $version_tag = '';
-$force_build = False;
+$force_build = 'False';
+$pdf= 'False';
 
 //Get the variables from the url
 if(array_key_exists('host', $_GET))
@@ -79,18 +81,29 @@ if(array_key_exists('tag',$_GET)){
 	}
 }
 if(array_key_exists('buildalways',$_GET))
-	$force_build = (bool) $_GET['buildalways'];
+	$force_build = $_GET['buildalways'];
 	
+if(array_key_exists('pdf',$_GET))
+    $pdf = $_GET['pdf'];
 //echo $force_build;
 
 //Check if vtid and version were provided
 if($vtid != '' and $version != ''){
+    $pdf_option = '';
+    $pdf_bool = False;
+    $pdf_tag = '';
+    if (strcasecmp($pdf,'True') == 0){
+        $pdf_option = '-p ';
+        $pdf_bool = True;
+        $pdf_tag = '_pdf';
+    }
 	$destdir = $PATH_TO_IMAGES;
-	$destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' . $version;
+	$destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' .
+	               $version. $pdf_tag;
 	$destversion = md5($destversion);
 	$destdir = $destdir . $destversion;
 	$result = '';
-	if((!file_exists($destdir)) or $force_build) {
+	if((!file_exists($destdir)) or strcasecmp($force_build,'True') == 0) {
 		if (!file_exists($destdir)){
 			mkdir($destdir);//,0770);
 			chmod($destdir,0770);
@@ -100,7 +113,7 @@ if($vtid != '' and $version != ''){
 			//$curdir =  exec("pwd")."\n";
 			//echo exec("echo $DISPLAY");
 			$setVariables = 'export PATH=$PATH:/usr/bin/X11;export HOME=/var/lib/wwwrun; export TEMP=/tmp; export DISPLAY=localhost:1.0; export LD_LIBRARY_PATH=/usr/local/lib;';
-			$mainCommand = 'python vistrails.py -b -e '. $destdir.' -t ' .
+			$mainCommand = 'python vistrails.py -b -e '. $pdf_option . $destdir.' -t ' .
 							$host .' -r ' . $port . ' -f ' . $dbname . ' -u ' .
 							$username . ' "' . $vtid . ':' . $version .'"';
 			//echo $mainCommand."\n";
@@ -109,7 +122,7 @@ if($vtid != '' and $version != ''){
 		else {
 			$request = xmlrpc_encode_request('run_from_db',
 											 array($host, $port, $dbname, $vtid,
-													$destdir, $version));
+													$destdir, $version, $pdf_bool));
 			$response = do_call($VT_HOST,$VT_PORT,$request);
 			$result = get_result_from_response($response);
 			//echo $result;
@@ -121,11 +134,19 @@ if($vtid != '' and $version != ''){
 		$res = '';
 		foreach($files as $filename) {
 			if($filename != '.' and $filename != '..'){
-				list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
-				if ($width > 600)
-                   $width = 600;
-				$res = $res . '<img src="'. $WEB_PATH_TO_IMAGES . $destversion.'/'.$filename.
+				$info = pathinfo($filename);
+				if ( in_arrayi($info['extension'],$SUPPORTED_IMAGE_FILES)){ 
+				    list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
+				    if ($width > 600)
+                        $width = 600;
+				    $res = $res . '<img src="'. $WEB_PATH_TO_IMAGES . $destversion.'/'.$filename.
 					   "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
+			    }
+				else{
+					//create an href tag
+					$res = $res . '<a href="' . $WEB_PATH_TO_IMAGES . 
+					        $destversion.'/'.$filename.'">' . $filename . '</a>';
+				}
 			}
 		}	
 		echo $res;
