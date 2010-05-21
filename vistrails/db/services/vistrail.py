@@ -443,7 +443,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
         for annotation in vt.db_annotations:
             if annotation.db_key not in annotations:
                 annotations[annotation.db_key] = []
-            if annotation.db_value not in annotation[annotation.db_key]:
+            if annotation.db_value not in annotations[annotation.db_key]:
                 annotations[annotation.db_key].append(annotation.db_value)
         # add nonexisting key-value pairs
         for annotation in next_vt.db_annotations:
@@ -458,6 +458,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
         for annotation in [a for a in vt.db_actionAnnotations]:
             if not next_vt.db_has_actionAnnotation_with_id(annotation.db_id):
                 # delete it
+                print "deleting", annotation.db_key, annotation.db_value
                 vt.db_delete_actionAnnotation(annotation)
         # add new and update changed annotations
         for annotation in next_vt.db_actionAnnotations:
@@ -636,8 +637,8 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                         new_annotation.db_date
                                     old_annotation.db_user = \
                                         new_annotation.db_user
-                                    thumb = '/'.join(next_sb.thumbnails[0].split(
-                                            '/')[:-1])+'/'+ new_annotation.db_value
+                                    thumb='/'.join(next_sb.thumbnails[0].split(
+                                        '/')[:-1])+'/'+ new_annotation.db_value
                                     if thumb not in sb.thumbnails:
                                         sb.thumbnails.append(thumb)
                                     if v == merge_gui.CHOICE_OWN_ALL:

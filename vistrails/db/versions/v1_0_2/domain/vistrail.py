@@ -158,10 +158,10 @@ class DBVistrail(_DBVistrail):
             value = max(v.db_id for v in self.db_actions)
         if self.db_has_annotation_with_key(action_key):
             annotation = self.db_get_annotation_by_key(action_key)
-            annotation.db_value = value
+            annotation.db_value = str(value)
         else:
             annotation=DBAnnotation(self.idScope.getNewId(DBAnnotation.vtType), 
-                                    action_key, value)
+                                    action_key, str(value))
             self.db_add_annotation(annotation)
 
     def hashAnnotations(self):
@@ -175,7 +175,7 @@ class DBVistrail(_DBVistrail):
         keys.sort()
         m = hashlib.md5()
         for k in keys:
-            m.update(k)
+            m.update(str(k))
             annotations[k].sort()
             for v in annotations[k]:
                 m.update(v)
