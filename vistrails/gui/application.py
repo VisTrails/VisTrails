@@ -89,6 +89,9 @@ class VistrailsApplicationInterface(object):
             default = None,
             help="when running in non-interactive mode, directory to dump "
             "spreadsheet cells before exiting")
+        add("-p", "--pdf", action="store_true",
+            default = None,
+            help="dump files in pdf format (only valid in console mode)")
         add("-l", "--nologger", action="store_true",
             default = None,
             help="disable the logging")
@@ -177,6 +180,8 @@ The builder window can be accessed by a spreadsheet menu option.")
                 self.temp_configuration.workflowInfo = str(get('workflowinfo'))
             if get('dumpcells') != None:
                 self.temp_configuration.spreadsheetDumpCells = get('dumpcells')
+            if get('pdf') != None:
+                self.temp_configuration.spreadsheetDumpPDF = get('pdf')
         if get('executeworkflows') != None:
             self.temp_configuration.executeWorkflows = \
                                             bool(get('executeworkflows'))
@@ -526,7 +531,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             extra_info = None
             if self.temp_configuration.check('spreadsheetDumpCells'):
                 extra_info = \
-                {'pathDumpCells': self.temp_configuration.spreadsheetDumpCells}
+                {'pathDumpCells': self.temp_configuration.spreadsheetDumpCells,
+                 'pdf': self.temp_configuration.spreadsheetDumpPDF}
             errs = core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
                                       workflow_info, extra_info=extra_info)

@@ -28,7 +28,7 @@ from core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui, QtWebKit
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
 from packages.spreadsheet.spreadsheet_cell import QCellWidget
-
+import shutil
 ############################################################################
 
 class WebViewCell(SpreadsheetCell):
@@ -66,6 +66,7 @@ class WebViewCellWidget(QCellWidget):
         self.browser = QtWebKit.QWebView()
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
+        self.urlSrc = None
         # self.browser.controlBarType = None
 
     def updateContents(self, inputPorts):
@@ -73,12 +74,25 @@ class WebViewCellWidget(QCellWidget):
         Updates the contents with a new changed in filename
         
         """
+        self.urlSrc = None
         (urlValue, fileValue) = inputPorts
         if urlValue:
             url = QtCore.QUrl(urlValue)
             self.browser.load(url)
+            self.urlSrc = url
         elif fileValue:
             url = QtCore.QUrl.fromLocalFile(fileValue.name)
             self.browser.load(url)
+            self.urlSrc = url
         else:
             self.browser.setHtml("No HTML file is specified!")
+
+    def dumpToFile(self, filename):
+        if self.urlSrc is not None:
+            shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
+            
+    def saveToPDF(self, filename):
+        printer = QtGui.QPrinter()
+        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFileName(filename)
+        self.browser.print_(printer)

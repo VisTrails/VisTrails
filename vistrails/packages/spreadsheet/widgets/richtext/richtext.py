@@ -26,7 +26,7 @@ from core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
 from packages.spreadsheet.spreadsheet_cell import QCellWidget
-
+import shutil
 ################################################################################
 
 class RichTextCell(SpreadsheetCell):
@@ -60,12 +60,14 @@ class RichTextCellWidget(QCellWidget):
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.browser.controlBarType = None
-
+        self.fileSrc = None
+        
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
         Updates the contents with a new changed in filename
         
         """
+        self.fileSrc = None
         (fileValue,) = inputPorts
         if fileValue:
             try:
@@ -75,5 +77,17 @@ class RichTextCellWidget(QCellWidget):
                 return            
             self.browser.setHtml(fi.read())
             fi.close()
+            self.fileSrc = fileValue.name
         else:
             self.browser.setText("No HTML file is specified!")
+            
+    def dumpToFile(self, filename):
+        if self.fileSrc is not None:
+            shutil.copyfile(self.fileSrc, filename)
+
+    def saveToPDF(self, filename):
+        printer = QtGui.QPrinter()
+        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFileName(filename)
+        self.browser.print_(printer)
+        

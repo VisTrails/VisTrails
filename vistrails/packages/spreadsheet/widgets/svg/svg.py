@@ -30,8 +30,8 @@ from packages.spreadsheet.spreadsheet_base import StandardSingleCellSheetReferen
 from packages.spreadsheet.spreadsheet_controller import spreadsheetController
 from packages.spreadsheet.spreadsheet_event import (DisplayCellEvent,
                                                     BatchDisplayCellEvent)
-from packages.spreadsheet.spreadsheet_cell import QCellWidget
-
+from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+import shutil
 ################################################################################
 
 class SVGCell(SpreadsheetCell):
@@ -69,6 +69,7 @@ class SVGCellWidget(QCellWidget):
         self.layout().addWidget(self.svgWidget)
         
         self.controlBarType = None
+        self.fileSrc = None
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -77,7 +78,22 @@ class SVGCellWidget(QCellWidget):
         """
         (fileValue,) = inputPorts
         self.svgWidget.load(fileValue.name)
+        self.fileSrc = fileValue.name
+        
+    def dumpToFile(self, filename):
+        if self.fileSrc is not None:
+            shutil.copyfile(self.fileSrc, filename)
 
+    def saveToPDF(self):
+        printer = QtGui.QPrinter()
+        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFileName(filename)
+        b_rect = self.svgWidget.contentsRect()
+        printer.setPaperSize(QtCore.QSizeF(b_rect.width(), b_rect.height()),
+                             QtGui.QPrinter.Point)
+        painter = QtGui.QPainter(printer)
+        self.svgWidget.render(painter, QtCore.QRectF(), b_rect)
+        painter.end()
 
 # A custom widget to displays SVG slide show
 class SVGSplitter(Module):
@@ -119,3 +135,48 @@ class SVGSplitter(Module):
             f.close()
             spreadsheetController.postEventToSpreadsheet(batchDisplayEvent)
                     
+class SVGSaveAction(QtGui.QAction):
+    """
+    ImageViewerSaveAction is the action to save the image to file
+    
+    """
+    def __init__(self, parent=None):
+        """ ImageViewerSaveAction(parent: QWidget) -> ImageViewerSaveAction
+        Setup the image, status tip, etc. of the action
+        
+        """
+        QtGui.QAction.__init__(self,
+                               QtGui.QIcon(":/images/save.png"),
+                               "&Save svg as...",
+                               parent)
+        self.setStatusTip("Save svg to file")
+        
+    def triggeredSlot(self, checked=False):
+        """ toggledSlot(checked: boolean) -> None
+        Execute the action when the button is clicked
+        
+        """
+        cellWidget = self.toolBar.getSnappedWidget()
+        
+        fn = QtGui.QFileDialog.getSaveFileName(None, "Save svg as...",
+                                               "screenshot.png",
+                                               "SVG (*.svg);;PDF files (*.pdf)")
+        if not fn:
+            return
+        if fn.endsWith(QtCore.QString("svg"), QtCore.Qt.CaseInsensitive):
+            cellWidget.dumpToFile(str(fn))
+        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+            cellWidget.saveToPDF(str(fn))
+        
+class SVGToolBar(QCellToolBar):
+    """
+    ImageViewerToolBar derives from CellToolBar to give the ImageViewerCellWidget
+    a customizable toolbar
+    
+    """
+    def createToolBar(self):
+        """ createToolBar() -> None
+        This will get call initiallly to add customizable widgets
+        
+        """
+        self.appendAction(SVGSaveAction(self))

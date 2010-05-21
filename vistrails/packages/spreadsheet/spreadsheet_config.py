@@ -22,4 +22,6 @@
 
 from core.configuration import ConfigurationObject
 configuration = ConfigurationObject(rowCount=2,
-                                    columnCount=3)
+                                    columnCount=3,
+                                    dumpfileType='PNG')
+# other possible value for dumpfileType is PDF

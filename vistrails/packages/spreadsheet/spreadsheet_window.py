@@ -30,6 +30,7 @@ from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
 from spreadsheet_tabcontroller import StandardWidgetTabController
 from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import QCellContainer
+from spreadsheet_config import configuration
 from core.modules import module_utils
 from core.utils import trace_method
 import ctypes
@@ -440,7 +441,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 sheet.setCellEditingMode(row, col, True)
             #If a cell has to dump its contents to a file, it will be in the
             #extra_info dictionary
-            if e.vistrail.has_key('extra_info'):
+            if cell and e.vistrail.has_key('extra_info'):
+                dump_as_pdf = False
                 extra_info = e.vistrail['extra_info']
                 if extra_info.has_key('pathDumpCells'):
                     dumppath = extra_info['pathDumpCells']
@@ -460,15 +462,30 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         base_fname = os.path.join(dumppath,"%s_%s" % \
                                                   (name, e.vistrail['version']))
 
+                    if configuration.dumpfileType == 'PNG':
+                        dump_as_pdf = False
+                    elif configuration.dumpfileType == 'PDF':
+                        dump_as_pdf = True
+                        
+                    #extra_info configuration overwrites global configuration    
+                    if extra_info.has_key('pdf'):
+                        dump_as_pdf = extra_info['pdf']
+                    
+                    file_extension = '.png'
+                    if dump_as_pdf == True:
+                        file_extension = '.pdf'
+                            
                     # make a unique filename
-                    filename = base_fname + ".png"
+                    filename = base_fname + file_extension
                     counter = 2
                     while os.path.exists(filename):
-                        filename = base_fname + "_%d.png" % counter
+                        filename = base_fname + "_%d%s" % (counter,
+                                                           file_extension)
                         counter += 1
-
-                    cell.dumpToFile(filename)
-            print cell.size()
+                    if not dump_as_pdf:
+                        cell.dumpToFile(filename)
+                    else:
+                        cell.saveToPDF(filename)
             return cell 
 
     def batchDisplayCellEvent(self, batchEvent):

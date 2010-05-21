@@ -103,6 +103,26 @@ class ImageViewerCellWidget(QCellWidget):
         if pixmap and (not pixmap.isNull()):
             return pixmap.save(filename)
         return False
+    
+    def saveToPDF(self, filename):
+        """ saveToPDF(filename: str) -> bool
+        Save the current widget contents to a pdf file
+        
+        """
+        printer = QtGui.QPrinter()
+        
+        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFileName(filename)
+        painter = QtGui.QPainter()
+        painter.begin(printer)
+        rect = painter.viewport()
+        pixmap = self.label.pixmap()
+        size = pixmap.size()
+        size.scale(rect.size(), QtCore.Qt.KeepAspectRatio)
+        painter.setViewport(rect.x(), rect.y(), size.width(), size.height())
+        painter.setWindow(pixmap.rect())
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
 
     def resizeEvent(self, e):
         if self.originalPix!=None:
@@ -176,10 +196,14 @@ class ImageViewerSaveAction(QtGui.QAction):
             return
         fn = QtGui.QFileDialog.getSaveFileName(None, "Save image as...",
                                                "screenshot.png",
-                                               "Images (*.png)")
+                                               "Images (*.png);;PDF files (*.pdf)")
         if not fn:
             return
-        cellWidget.label.pixmap().toImage().save(fn, "png")
+        if fn.endsWith(QtCore.QString("png"), QtCore.Qt.CaseInsensitive):
+            cellWidget.label.pixmap().toImage().save(fn, "png")
+        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+            cellWidget.saveToPDF(str(fn))
+        
 
 class ImageViewerZoomSlider(QtGui.QSlider):
     """

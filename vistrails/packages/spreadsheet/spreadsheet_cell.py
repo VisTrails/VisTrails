@@ -201,7 +201,23 @@ class QCellWidget(QtGui.QWidget):
         Dumps itself as an image to a file, calling grabWindowPixmap """
         pixmap = self.grabWindowPixmap()
         pixmap.save(filename,"PNG")
-
+            
+    def saveToPDF(self, filename):
+        printer = QtGui.QPrinter()
+        
+        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFileName(filename)
+        painter = QtGui.QPainter()
+        painter.begin(printer)
+        rect = painter.viewport()
+        pixmap = self.grabWindowPixmap()
+        size = pixmap.size()
+        size.scale(rect.size(), QtCore.Qt.KeepAspectRatio)
+        painter.setViewport(rect.x(), rect.y(), size.width(), size.height())
+        painter.setWindow(pixmap.rect())
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
+        
 ################################################################################
 
 class QCellToolBar(QtGui.QToolBar):

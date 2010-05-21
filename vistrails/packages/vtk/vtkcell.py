@@ -916,10 +916,13 @@ class QVTKWidget(QCellWidget):
         fn = QtGui.QFileDialog.getSaveFileName(None,
                                                "Save file as...",
                                                "screenshot.png",
-                                               "Images (*.png)")
+                                               "Images (*.png);;PDF files (*.pdf)")
         if fn.isNull():
             return
-        self.saveToPNG(str(fn))
+        if fn.endsWith(QtCore.QString("png"), QtCore.Qt.CaseInsensitive):
+            self.saveToPNG(str(fn))
+        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+            self.saveToPDF(str(fn))
         
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap
