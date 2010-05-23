@@ -68,10 +68,10 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                 if controller.current_pipeline.has_alias(key):
                     aliases[key] = value
                     
-        if workflow_info is not None:
+        if workflow_info is not None and controller.current_pipeline is not None:
             from gui.pipeline_view import QPipelineView
             pipeline_view = QPipelineView()
-            pipeline_view.scene().setupScene(pip)
+            pipeline_view.scene().setupScene(controller.current_pipeline)
             base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
             filename = os.path.join(workflow_info, base_fname)
             pipeline_view.scene().saveToPDF(filename)
@@ -79,12 +79,12 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
 
             base_fname = "%s_%s_pipeline.xml" % (locator.short_name, version)
             filename = os.path.join(workflow_info, base_fname)
-            core.db.io.save_workflow(pip, filename)
+            core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
             conf = get_vistrails_configuration()
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False    
-        (results, changed) = controller.execute_current_workflow(aliases,
+        (results, _) = controller.execute_current_workflow(aliases,
                                                                  extra_info)
         run = results[0]
         run.workflow_info = (locator.name, version)

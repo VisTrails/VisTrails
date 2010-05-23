@@ -340,7 +340,31 @@ class FileSink(NotCacheable, Module):
             else:
                 msg = "Could not create file '%s': %s" % (v2, e)
                 raise ModuleError(self, msg)
-
+            
+        if (self.hasInputFromPort("publishFile") and
+            self.getInputFromPort("publishFile") or 
+            not self.hasInputFromPort("publishFile")):
+            if self.moduleInfo.has_key('extra_info'):
+                if self.moduleInfo['extra_info'].has_key('pathDumpCells'):
+                    folder = self.moduleInfo['extra_info']['pathDumpCells']
+                    base_fname = os.path.basename(v2)
+                    (base_fname, file_extension) = os.path.splitext(base_fname)
+                    base_fname = os.path.join(folder, base_fname)
+                    # make a unique filename
+                    filename = base_fname + file_extension
+                    counter = 2
+                    while os.path.exists(filename):
+                        filename = base_fname + "_%d%s" % (counter,
+                                                           file_extension)
+                        counter += 1
+                    try:
+                        core.system.link_or_copy(v1.name, filename)
+                    except OSError:
+                        msg = "Could not publish file '%s' \n   on  '%s': %s" % \
+                               (v2, filename, e)
+                        # I am not sure whether we should raise an error
+                        # I will just print a warning for now (Emanuele)
+                        print "Warning: ", msg
 ##############################################################################
 
 class Color(Constant):
@@ -851,7 +875,8 @@ def initialize(*args, **kwargs):
     reg.add_input_port(FileSink,  "file", File)
     reg.add_input_port(FileSink,  "outputName", String)
     reg.add_input_port(FileSink,  "overrideFile", Boolean)
-
+    reg.add_input_port(FileSink,  "publishFile", Boolean, True)
+    
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)
     reg.add_output_port(Color, "value", Color)    

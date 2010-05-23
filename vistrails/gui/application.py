@@ -531,8 +531,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             extra_info = None
             if self.temp_configuration.check('spreadsheetDumpCells'):
                 extra_info = \
-                {'pathDumpCells': self.temp_configuration.spreadsheetDumpCells,
-                 'pdf': self.temp_configuration.spreadsheetDumpPDF}
+                {'pathDumpCells': self.temp_configuration.spreadsheetDumpCells}
+            if self.temp_configuration.check('spreadsheetDumpPDF'):
+                if extra_info is None:
+                    extra_info = {}
+                extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
             errs = core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
                                       workflow_info, extra_info=extra_info)

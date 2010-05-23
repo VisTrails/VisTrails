@@ -221,7 +221,7 @@ def vistrails_version():
    # 0.3 was the plugin/vtk version
    # 0.4 is cleaned up version with new GUI
    # 1.0 is version with new schema
-   return '1.4.2'
+   return '1.5'
 
 def vistrails_revision():
     """vistrails_revision() -> str 
