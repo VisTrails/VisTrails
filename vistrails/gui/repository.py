@@ -1,4 +1,4 @@
-############################################################################ ##
+############################################################################
 ## Copyright (C) 2006-2010 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
@@ -28,6 +28,8 @@ from core.configuration import get_vistrails_configuration
 from core.repository.poster.encode import multipart_encode
 from core.repository.poster.streaminghttp import register_openers
 from core.vistrail.controller import VistrailController
+from core.db.locator import ZIPFileLocator, FileLocator
+from core.db.io import load_vistrail
 import urllib, urllib2, cookielib
 import os
 import tempfile
@@ -45,29 +47,52 @@ class QRepositoryPushWidget(QtGui.QWidget):
         self._status_bar = status_bar
         self.dialog = dialog
 
-        base_layout = QtGui.QHBoxLayout(self)
+        base_layout = QtGui.QVBoxLayout(self)
 
-        right = QtGui.QFrame(self)
+        top = QtGui.QFrame(self)
+        bottom = QtGui.QFrame(self)
 
-        base_layout.addWidget(right)
-
-        self._repository_status = {}
-
-        self.config = get_vistrails_configuration()
+        base_layout.addWidget(top)
+        base_layout.addWidget(bottom, 1)
 
         # TODO: this '/' check should probably be done in core/configuration.py
+        self.config = get_vistrails_configuration()
         if self.config.webRepositoryURL[-1] == '/':
             self.config.webRepositoryURL = self.config.webRepositoryURL[:-1]
 
         ######################################################################
+        # Detail Table
+        bottom_layout = QtGui.QVBoxLayout(bottom)
+        bottom_layout.setMargin(2)
+        bottom_layout.setSpacing(2)
+
+        self._unrunnable_table = QtGui.QTableWidget(0, 2, top)
+        self._unrunnable_table.horizontalHeader().setStretchLastSection(True)
+
+        bottom_layout.addWidget(self._unrunnable_table)
+
+        self._repository_status = {}
+
+        ######################################################################
         # Push info
-        right_layout = QtGui.QVBoxLayout(right)
+        top_layout = QtGui.QVBoxLayout(top)
 
         self._vistrail_status_label = QtGui.QLabel("")
-        right_layout.addWidget(self._vistrail_status_label)
+        self._vistrail_status_label.setWordWrap(True)
+        top_layout.addWidget(self._vistrail_status_label)
+
+        self._default_perm_label = QtGui.QLabel("Default Global Permissions:")
+        top_layout.addWidget(self._default_perm_label)
+        self.perm_view = QtGui.QCheckBox("view")
+        self.perm_edit = QtGui.QCheckBox("edit")
+        self.perm_download = QtGui.QCheckBox("download")
+        top_layout.addWidget(self.perm_view)
+        top_layout.addWidget(self.perm_edit)
+        top_layout.addWidget(self.perm_download)
 
         self._details_label = QtGui.QLabel("")
-        right_layout.addWidget(self._details_label)
+        self._details_label.setWordWrap(True)
+        top_layout.addWidget(self._details_label)
 
         for lbl in [self._details_label, self._vistrail_status_label]:
             lbl.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
@@ -81,7 +106,41 @@ class QRepositoryPushWidget(QtGui.QWidget):
         button_box = QtGui.QDialogButtonBox()
         button_box.addButton(self._push_button,
                              QtGui.QDialogButtonBox.ActionRole)
-        right_layout.addWidget(button_box)
+        bottom_layout.addWidget(button_box)
+
+
+    def populate_table(self):
+        self._unrunnable_table.clear()
+
+
+        # set horizontal headers
+        wf_title = QtGui.QTableWidgetItem('Workflow')
+        wf_title.setTextAlignment(QtCore.Qt.AlignCenter)
+        self._unrunnable_table.setHorizontalHeaderItem(0, wf_title)
+
+        detail_title = QtGui.QTableWidgetItem('Unsupported Modules/Packages')
+        detail_title.setTextAlignment(QtCore.Qt.AlignCenter)
+        self._unrunnable_table.setHorizontalHeaderItem(1, detail_title)
+
+        # populate table
+        count = 0
+        for wf in self._unrunnable_wfs.keys():
+            details = \
+                    QtGui.QTableWidgetItem(', '.join(self._unrunnable_wfs[wf]))
+            details.setTextAlignment(QtCore.Qt.AlignCenter)
+
+            wf_item = QtGui.QTableWidgetItem(str(wf))
+            wf_item.setTextAlignment(QtCore.Qt.AlignCenter)
+
+            if count >= self._unrunnable_table.rowCount():
+                self._unrunnable_table.insertRow(count)
+            self._unrunnable_table.setItem(count, 0, wf_item)
+            self._unrunnable_table.setItem(count, 1, details)
+            count += 1
+
+        # delete vertical headers
+        for i in range(self._unrunnable_table.rowCount()):
+            self._unrunnable_table.setVerticalHeaderItem(i, QtGui.QTableWidgetItem())
 
     def update_push_information(self):
         """ display push information text in this widget """
@@ -120,9 +179,16 @@ class QRepositoryPushWidget(QtGui.QWidget):
             # XXX 100% accuracy for server support is not insured
 
             self.local_data_modules = ['File', 'FileSink', 'Path']
-            self.unavailable_data = []
+            self.unavailable_data = set()
+            self.unsupported_packages = set()
+            has_python_source = False
+
+            self._unrunnable_wfs = {}
+
             for version_id in vistrail.get_tagMap():
                 pipeline = vistrail.getPipeline(version_id)
+                tag = vistrail.get_tagMap()[version_id]
+                workflow_packages = []
                 for module in pipeline.module_list:
                     # count modules that use data unavailable to web repository
                     on_repo = False
@@ -132,39 +198,89 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             if pipeline.modules[edge[0]].name in ['HTTPFile',
                                                                   'RepoSync']:
                                 on_repo = True
-                        if not on_repo and \
-                           module.name not in self.unavailable_data:
-                            self.unavailable_data.append(module.name)
-                    # get all packages used in tagged versions of this VisTrail
-                    if module.package not in local_packages:
-                        local_packages.append(module.package)
+
+                        if not on_repo:
+                            if tag not in self._unrunnable_wfs.keys():
+                                self._unrunnable_wfs[tag] = []
+                            self._unrunnable_wfs[tag].append(module.name)
+                            self.unavailable_data.add(module.name)
+
+                    if module.name == "PythonSource":
+                        if tag not in self._unrunnable_wfs.keys():
+                            self._unrunnable_wfs[tag] = []
+                        self._unrunnable_wfs[tag].append(module.name)
+                        has_python_source = True
+
+                    # get all packages used in tagged versions of this workflow
+                    if module.package not in workflow_packages:
+                        workflow_packages.append(module.package)
+
+                # find unsupported packages
+                wf_unsupported_packages = filter((lambda p: p not in \
+                                                  server_packages),
+                                                 workflow_packages)
+                if wf_unsupported_packages:
+                    if tag not in self._unrunnable_wfs.keys():
+                        self._unrunnable_wfs[tag] = []
+                    for package in wf_unsupported_packages:
+                        self._unrunnable_wfs[tag].append(package)
+                        self.unsupported_packages.add(package)
+
 
             # display unsupported packages
-            self.unsupported_packages = filter(lambda p: p not in server_packages, local_packages)
             self._repository_status['details'] = "Details:\n"
+            self.unsupported_packages = filter(lambda p: p not in \
+                                               server_packages, local_packages)
             if self.unsupported_packages:
                 self.repository_supports_vt = False
                 self._repository_status['details'] += \
-                        "Packages uncompatible with web repository: %s\n" % \
+                        "Packages uncompatible with web repository: %s\n\n" % \
                         (', '.join(self.unsupported_packages)[:-2])
 
             # display unsupported data modules
             if len(self.unavailable_data):
                 self.repository_supports_vt = False
                 self._repository_status['details'] += \
-                        "Data sources not available on web repository: %s"%\
+                        "Data sources not available on web repository: %s\n"%\
                         (', '.join(self.unavailable_data)[:-2])
 
-            if self.repository_supports_vt:
+            if has_python_source:
+                self.repository_supports_vt = False
+                self._repository_status['details'] += \
+                        ("This Vistrail contains PythonSource module(s) and "
+                         "will have to be verified by admins before it can be "
+                         "run on the web repository. You will be notified when"
+                         " your workflows have been verfied")
+
+            self._repository_status['support_status'] = ""
+            controller = api.get_current_controller()
+            if controller.vistrail.get_annotation('repository_vt_id'):
+                # TODO: allow user to create own version instead of updating
+                # updating vistrail, so disable permissions
+                self.perm_view.setEnabled(False)
+                self.perm_edit.setEnabled(False)
+                self.perm_download.setEnabled(False)
+                self._push_button.setText("Commit changes")
+                vistrail_link = "%s/vistrails/details/%s" % \
+                        (self.config.webRepositoryURL,
+                         controller.vistrail.get_annotation('repository_vt_id').value)
+
                 self._repository_status['support_status'] = \
+                        ("You are attempting to update this vistrail: "
+                         "<a href='%s'>%s</a>. This will possibly update your local version with changes from the web repository<br><br>") % \
+                        (vistrail_link, vistrail_link)
+
+            if self.repository_supports_vt:
+                self._repository_status['support_status'] += \
                         ("All of this VisTrail's tagged versions are supported"
                          " on the VisTrails Repository.")
             else:
-                self._repository_status['support_status'] = \
+                self._repository_status['support_status'] += \
                         ("This VisTrail contains packages or modules that are"
-                         " not supported by the VisTrails Repository.\n"
+                         " not supported by the VisTrails Repository.<br>"
                          "You may still upload the VisTrail but it will "
                          "not be run by the Repository.")
+
 
             self._push_button.setEnabled(True)
 
@@ -182,8 +298,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                                               dir=self.directory)
             os.close(fd)
 
-            # vistrails magic: writing tmp vt and switching back to orginal vt 
-            from core.db.locator import ZIPFileLocator
+            # writing tmp vt and switching back to orginal vt
             locator = ZIPFileLocator(filename)
             controller = api.get_current_controller()
             tmp_controller = VistrailController()
@@ -206,7 +321,11 @@ class QRepositoryPushWidget(QtGui.QWidget):
                       'repository_vt_id': repository_vt_id,
                       'is_runnable': not bool(len(self.unsupported_packages)+ \
                                               len(self.local_data_modules)),
-                      'vt_id': 0}
+                      'vt_id': 0,
+                      'everyone_can_view': self.perm_view.checkState(),
+                      'everyone_can_edit': self.perm_edit.checkState(),
+                      'everyone_can_download': self.perm_download.checkState()
+                     }
 
             upload_url = "%s/vistrails/remote_upload/" % \
                     self.config.webRepositoryURL
@@ -214,14 +333,58 @@ class QRepositoryPushWidget(QtGui.QWidget):
             datagen, headers = multipart_encode(params)
             request = urllib2.Request(upload_url, datagen, headers)
             result = urllib2.urlopen(request)
+            updated_response = result.read()
 
             os.unlink(filename)
-            if result.code != 200:
-                self._repository_status['details'] = "An error occurred"
+
+            if updated_response[:7] == "success":
+                # No update, just upload
+                if result.code != 200:
+                    self._repository_status['details'] = \
+                            "Push to repository failed"
+                else:
+                    self._repository_status['details'] = \
+                            "Push to repository was successful"
             else:
-                self._repository_status['details'] = \
-                        "Push to repository was successful"
-        except:
+                # update, load updated vistrail
+                if result.code != 200:
+                    self._repository_status['details'] = "Update Failed"
+                else:
+                    # request file to download
+                    download_url = "%s/vistrails/download/%s/" % \
+                            (self.config.webRepositoryURL, updated_response)
+
+                    request = urllib2.Request(download_url)
+                    result = urllib2.urlopen(request)
+                    updated_file = result.read()
+
+                    # create temp file of updated vistrail
+                    self.directory = tempfile.mkdtemp(prefix='vt_tmp')
+                    (fd, updated_filename) = tempfile.mkstemp(suffix='.vtl',
+                                                              prefix='vtl_tmp',
+                                                              dir=self.directory)
+                    os.close(fd)
+                    updated_vt = open(updated_filename, 'w')
+                    updated_vt.write(updated_file)
+                    updated_vt.close()
+
+                    # switch vistrails to updated one
+                    controller = api.get_current_controller()
+
+                    updated_locator = FileLocator(updated_filename)
+
+                    (up_vistrail, abstractions, thumbnails) = \
+                            load_vistrail(updated_locator)
+
+                    controller.set_vistrail(up_vistrail,
+                                            controller.vistrail.locator,
+                                            abstractions, thumbnails)
+
+                    self._repository_status['details'] = \
+                            "Update to repository was successful"
+
+        except Exception, e:
+            print e
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()
 
@@ -239,21 +402,21 @@ class QRepositoryLoginWidget(QtGui.QWidget):
 
         base_layout.addWidget(main)
 
-        ######################################################################
-        # main half, Login info 
-        base_layout = QtGui.QVBoxLayout(main)
-        base_layout.setMargin(2)
-        base_layout.setSpacing(2)
-        
         self.config = get_vistrails_configuration()
         # TODO: this '/' check should probably be done in core/configuration.py
         if self.config.webRepositoryURL[-1] == '/':
             self.config.webRepositoryURL = self.config.webRepositoryURL[:-1]
-            
+
+        ######################################################################
+        # main half, Login info
+        base_layout = QtGui.QVBoxLayout(main)
+
         base_layout.addWidget(
-            QtGui.QLabel("Repository location: %s"%self.config.webRepositoryURL))
+            QtGui.QLabel("Repository location: %s" % \
+                         self.config.webRepositoryURL))
+
         base_layout.addWidget(QtGui.QLabel("Username:"))
-            
+
         if self.config.check('webRepositoryLogin'):
             self.loginUser = QtGui.QLineEdit(self.config.webRepositoryLogin)
         else:
@@ -433,6 +596,7 @@ class QRepositoryDialog(QtGui.QDialog):
         """ tab_changed(index: int) -> None """
         if index == 1: # push tab
             self._push_tab.check_dependencies()
+            self._push_tab.populate_table()
 
     def sizeHint(self):
         return QtCore.QSize(800, 600)
