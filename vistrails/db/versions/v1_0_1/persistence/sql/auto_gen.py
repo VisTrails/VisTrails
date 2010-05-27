@@ -267,8 +267,6 @@ class DBModuleSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -393,8 +391,6 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_portSpecs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -725,8 +721,6 @@ class DBGroupSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_workflow is not None:
             child = obj.db_workflow
             child.db_group = obj.db_id
@@ -838,8 +832,6 @@ class DBLogSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_workflow_execs:
             child.db_log = obj.db_id
         for child in obj.db_machines:
@@ -1057,8 +1049,6 @@ class DBAddSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
@@ -1599,8 +1589,6 @@ class DBFunctionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_parameters:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1731,8 +1719,6 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -1853,8 +1839,6 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_connections:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1968,8 +1952,6 @@ class DBRegistrySQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_packages:
             child.db_registry = obj.db_id
         
@@ -2202,8 +2184,6 @@ class DBChangeSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
@@ -2345,8 +2325,6 @@ class DBGroupExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2467,8 +2445,6 @@ class DBPackageSQLDAOBase(SQLDAO):
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_module_descriptors:
             child.db_package = obj.db_id
         
@@ -2607,8 +2583,6 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2732,8 +2706,6 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2829,8 +2801,6 @@ class DBConnectionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_ports:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2940,8 +2910,6 @@ class DBActionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -3142,8 +3110,6 @@ class DBVistrailSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_actions:
             child.db_vistrail = obj.db_id
         for child in obj.db_tags:
@@ -3283,8 +3249,6 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id

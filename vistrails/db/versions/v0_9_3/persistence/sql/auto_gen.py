@@ -29,6 +29,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'port_spec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -136,6 +137,7 @@ class DBModuleSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -242,8 +244,6 @@ class DBModuleSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -272,6 +272,7 @@ class DBTagSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'tag'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -306,9 +307,8 @@ class DBTagSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'vistrail':
-            if ('vistrail', obj.db_parent) in all_objects:
-                p = all_objects[('vistrail', obj.db_parent)]
-                p.db_add_tag(obj)
+            p = all_objects[('vistrail', obj.db_parent)]
+            p.db_add_tag(obj)
         elif obj.db_parentType == 'abstraction':
             p = all_objects[('abstraction', obj.db_parent)]
             p.db_add_tag(obj)
@@ -367,6 +367,7 @@ class DBPortSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'port'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -484,6 +485,7 @@ class DBGroupSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'group_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -529,7 +531,7 @@ class DBGroupSQLDAOBase(SQLDAO):
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'workflow':
             p = all_objects[('workflow', obj.db_parent)]
-            p.db_add_parent(obj)
+            p.db_add_module(obj)
         elif obj.db_parentType == 'add':
             p = all_objects[('add', obj.db_parent)]
             p.db_add_data(obj)
@@ -590,8 +592,6 @@ class DBGroupSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_workflow is not None:
             child = obj.db_workflow
             child.db_parent = obj.db_id
@@ -620,6 +620,7 @@ class DBLogSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'log_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -635,11 +636,9 @@ class DBLogSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
@@ -704,8 +703,6 @@ class DBLogSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_workflow_execs:
             child.db_log = obj.db_id
         for child in obj.db_machines:
@@ -725,6 +722,7 @@ class DBMachineSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'machine'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -766,8 +764,9 @@ class DBMachineSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('log', obj.db_log)]
-        p.db_add_machine(obj)
+        if ('log', obj.db_log) in all_objects:
+            p = all_objects[('log', obj.db_log)]
+            p.db_add_machine(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -835,6 +834,7 @@ class DBAddSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'add_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -872,8 +872,9 @@ class DBAddSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('action', obj.db_action)]
-        p.db_add_operation(obj)
+        if ('action', obj.db_action) in all_objects:
+            p = all_objects[('action', obj.db_action)]
+            p.db_add_operation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -919,8 +920,6 @@ class DBAddSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
@@ -940,6 +939,7 @@ class DBOtherSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'other'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1042,6 +1042,7 @@ class DBLocationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'location'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1150,6 +1151,7 @@ class DBParameterSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'parameter'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1267,6 +1269,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'plugin_data'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1364,6 +1367,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'function'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1456,8 +1460,6 @@ class DBFunctionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_parameters:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1476,6 +1478,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'abstraction'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1491,11 +1494,9 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[3], 'datetime', 'datetime')
             
@@ -1550,8 +1551,6 @@ class DBAbstractionSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_actions:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1573,6 +1572,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'workflow'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1588,12 +1588,10 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_id = self.convertFromDB(row[1], 'long', 'int')
             entity_type = self.convertFromDB(row[2], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             version = self.convertFromDB(row[4], 'str', 'char(16)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
@@ -1616,8 +1614,9 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('group', obj.db_parent)]
-        p.db_add_workflow(obj)
+        if ('group', obj.db_parent) in all_objects:
+            p = all_objects[('group', obj.db_parent)]
+            p.db_add_workflow(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -1673,8 +1672,6 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_connections:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1705,6 +1702,7 @@ class DBAbstractionRefSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'abstraction_ref'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1801,8 +1799,6 @@ class DBAbstractionRefSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -1828,6 +1824,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'annotation'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1864,9 +1861,8 @@ class DBAnnotationSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'vistrail':
-            if ('vistrail', obj.db_parent) in all_objects:
-                p = all_objects[('vistrail', obj.db_parent)]
-                p.db_add_annotation(obj)
+            p = all_objects[('vistrail', obj.db_parent)]
+            p.db_add_annotation(obj)
         elif obj.db_parentType == 'workflow':
             p = all_objects[('workflow', obj.db_parent)]
             p.db_add_annotation(obj)
@@ -1949,6 +1945,7 @@ class DBChangeSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'change_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1988,8 +1985,9 @@ class DBChangeSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('action', obj.db_action)]
-        p.db_add_operation(obj)
+        if ('action', obj.db_action) in all_objects:
+            p = all_objects[('action', obj.db_action)]
+            p.db_add_operation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2038,8 +2036,6 @@ class DBChangeSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
@@ -2059,6 +2055,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'workflow_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2110,8 +2107,9 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('log', obj.db_log)]
-        p.db_add_workflow_exec(obj)
+        if ('log', obj.db_log) in all_objects:
+            p = all_objects[('log', obj.db_log)]
+            p.db_add_workflow_exec(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2178,8 +2176,6 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_module_execs:
             child.db_workflow_exec = obj.db_id
         
@@ -2197,6 +2193,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'connection_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2273,8 +2270,6 @@ class DBConnectionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_ports:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2293,6 +2288,7 @@ class DBActionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'action'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2335,9 +2331,8 @@ class DBActionSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'vistrail':
-            if ('vistrail', obj.db_parent) in all_objects:
-                p = all_objects[('vistrail', obj.db_parent)]
-                p.db_add_action(obj)
+            p = all_objects[('vistrail', obj.db_parent)]
+            p.db_add_action(obj)
         elif obj.db_parentType == 'abstraction':
             p = all_objects[('abstraction', obj.db_parent)]
             p.db_add_action(obj)
@@ -2392,8 +2387,6 @@ class DBActionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2414,6 +2407,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'delete_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2451,8 +2445,9 @@ class DBDeleteSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('action', obj.db_action)]
-        p.db_add_operation(obj)
+        if ('action', obj.db_action) in all_objects:
+            p = all_objects[('action', obj.db_action)]
+            p.db_add_operation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2514,6 +2509,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'vistrail'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2529,11 +2525,9 @@ class DBVistrailSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
@@ -2593,8 +2587,6 @@ class DBVistrailSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_actions:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2619,6 +2611,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2668,8 +2661,9 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('workflow_exec', obj.db_workflow_exec)]
-        p.db_add_module_exec(obj)
+        if ('workflow_exec', obj.db_workflow_exec) in all_objects:
+            p = all_objects[('workflow_exec', obj.db_workflow_exec)]
+            p.db_add_module_exec(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2733,8 +2727,6 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id

@@ -29,6 +29,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'port_spec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -149,6 +150,7 @@ class DBModuleSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -255,8 +257,6 @@ class DBModuleSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -285,6 +285,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module_descriptor'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -375,8 +376,6 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_portSpecs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -395,6 +394,7 @@ class DBTagSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'tag'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -481,6 +481,7 @@ class DBPortSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'port'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -598,6 +599,7 @@ class DBGroupSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'group_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -704,8 +706,6 @@ class DBGroupSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_workflow is not None:
             child = obj.db_workflow
             child.db_group = obj.db_id
@@ -734,6 +734,7 @@ class DBLogSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'log_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -816,8 +817,6 @@ class DBLogSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_workflow_execs:
             child.db_log = obj.db_id
         for child in obj.db_machines:
@@ -837,6 +836,7 @@ class DBMachineSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'machine'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -948,6 +948,7 @@ class DBAddSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'add_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1033,8 +1034,6 @@ class DBAddSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
@@ -1054,6 +1053,7 @@ class DBOtherSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'other'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1156,6 +1156,7 @@ class DBLocationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'location'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1264,6 +1265,7 @@ class DBParameterSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'parameter'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1381,6 +1383,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'plugin_data'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1478,6 +1481,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'function'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1570,8 +1574,6 @@ class DBFunctionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_parameters:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1590,6 +1592,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'abstraction'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1701,8 +1704,6 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -1728,6 +1729,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'workflow'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1822,8 +1824,6 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_connections:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1854,6 +1854,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'registry'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -1936,8 +1937,6 @@ class DBRegistrySQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_packages:
             child.db_registry = obj.db_id
         
@@ -1955,6 +1954,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'annotation'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2078,6 +2078,7 @@ class DBChangeSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'change_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2168,8 +2169,6 @@ class DBChangeSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
@@ -2189,6 +2188,7 @@ class DBGroupExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'group_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2310,8 +2310,6 @@ class DBGroupExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2339,6 +2337,7 @@ class DBPackageSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'package'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2440,8 +2439,6 @@ class DBPackageSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_module_descriptors:
             child.db_package = obj.db_id
         
@@ -2459,6 +2456,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'workflow_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2579,8 +2577,6 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_items:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2599,6 +2595,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'loop_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2692,8 +2689,6 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_module_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2715,6 +2710,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'connection_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2791,8 +2787,6 @@ class DBConnectionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_ports:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2811,6 +2805,7 @@ class DBActionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'action'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -2901,8 +2896,6 @@ class DBActionSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -2923,6 +2916,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'delete_tbl'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -3024,6 +3018,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'vistrail'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -3101,8 +3096,6 @@ class DBVistrailSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_actions:
             child.db_vistrail = obj.db_id
         for child in obj.db_tags:
@@ -3125,6 +3118,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
+        self.table = 'module_exec'
 
     def getDao(self, dao):
         return self.daoList[dao]
@@ -3251,8 +3245,6 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id

@@ -24,7 +24,7 @@ import copy
 import hashlib
 from auto_gen import DBVistrail as _DBVistrail
 from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
-    DBModule, DBAnnotation
+    DBModule, DBAnnotation, DBActionAnnotation
 from id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
@@ -34,7 +34,9 @@ class DBVistrail(_DBVistrail):
                                       DBChange.vtType: 'operation',
                                       DBDelete.vtType: 'operation',
                                       DBAbstraction.vtType: DBModule.vtType,
-                                      DBGroup.vtType: DBModule.vtType})
+                                      DBGroup.vtType: DBModule.vtType,
+                                      DBActionAnnotation.vtType: \
+                                          DBAnnotation.vtType})
 
         self.idScope.setBeginId('action', 1)
         self.db_objects = {}
@@ -103,7 +105,7 @@ class DBVistrail(_DBVistrail):
         for annotation in self.db_annotations:
             self.idScope.updateBeginId('annotation', annotation.db_id+1)
         for annotation in self.db_actionAnnotations:
-            self.idScope.updateBeginId('actionAnnotation', annotation.db_id+1)
+            self.idScope.updateBeginId('annotation', annotation.db_id+1)
 
     def db_add_object(self, obj):
         self.db_objects[(obj.vtType, obj.db_id)] = obj

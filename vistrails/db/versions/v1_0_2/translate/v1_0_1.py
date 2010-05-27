@@ -33,14 +33,14 @@ def translateVistrail(_vistrail):
 
     def update_tags(old_obj, translate_dict):
         for tag in old_obj.db_tags:
-            tag_annotations.append((tag.db_id, tag.db_name))
+            tag_annotations.append((tag.db_id, tag.db_name, None))
         return []
 
     def update_actions(old_obj, translate_dict):
         new_actions = []
         for action in old_obj.db_actions:
             if action.db_prune == 1:
-                prune_annotations.append((action.db_id, str(True)))
+                prune_annotations.append((action.db_id, str(True), None))
             new_actions.append(DBAction.update_version(action, translate_dict))
         return new_actions
 
@@ -48,12 +48,15 @@ def translateVistrail(_vistrail):
         same_annotations = []
         for annotation in old_obj.db_annotations:
             if annotation.db_key == '__notes__':
-                notes_annotations.append((old_obj.db_id, annotation.db_value))
+                notes_annotations.append((old_obj.db_id, annotation.db_value,
+                                          annotation.db_id))
             elif annotation.db_key == '__thumb__':
-                thumb_annotations.append((old_obj.db_id, annotation.db_value))
+                thumb_annotations.append((old_obj.db_id, annotation.db_value,
+                                          annotation.db_id))
             elif annotation.db_key == '__upgrade__':
                 upgrade_annotations.append((old_obj.db_id, 
-                                            annotation.db_value))
+                                            annotation.db_value,
+                                            annotation.db_id))
             else:
                 same_annotations.append(
                     DBAnnotation.update_version(annotation, translate_dict))
@@ -66,21 +69,25 @@ def translateVistrail(_vistrail):
                       'DBVistrail': {'tags': update_tags,
                                      'actions': update_actions},
                       'DBAction': {'annotations': update_annotations}}
+    _vistrail.update_id_scope()
     vistrail = DBVistrail.update_version(_vistrail, translate_dict)
 
-    id_scope = IdScope()
+    id_scope = _vistrail.idScope
     key_lists = {'__tag__': tag_annotations,
                  '__notes__': notes_annotations,
                  '__thumb__': thumb_annotations,
                  '__upgrade__': upgrade_annotations,
                  '__prune__': prune_annotations}
     for key, annotations in key_lists.iteritems():
-        for action_id, value in annotations:
-            new_id = id_scope.getNewId(DBActionAnnotation.vtType)
+        for action_id, value, new_id in annotations:
+            if new_id is None:
+                new_id = id_scope.getNewId(DBActionAnnotation.vtType)
             annotation = DBActionAnnotation(id=new_id,
                                             action_id=action_id,
                                             key=key,
                                             value=value)
+            annotation.is_new = False
+            annotation.is_dirty = False
             vistrail.db_add_actionAnnotation(annotation)
 
     vistrail.db_version = '1.0.2'

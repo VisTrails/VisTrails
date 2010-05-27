@@ -520,10 +520,6 @@ class SQLAutoGen(AutoGen):
         references = self.getSQLReferences(object)
         if len(references) < 1:
             self.printLine('pass\n')
-        else:
-            self.printLine('if not do_copy and not obj.is_dirty:\n')
-            self.indentLine('return\n')
-            self.unindent()
         for ref in references:
             ref_obj = self.getReferencedObject(ref.getReference())
             try:
