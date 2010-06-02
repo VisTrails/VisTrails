@@ -338,7 +338,6 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
 
     skip = 0
 
-
     id_remap = {}
 
     checkout_key = "__checkout_version_"
@@ -458,23 +457,49 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
         for annotation in [a for a in vt.db_actionAnnotations]:
             if not next_vt.db_has_actionAnnotation_with_id(annotation.db_id):
                 # delete it
-                print "deleting", annotation.db_key, annotation.db_value
                 vt.db_delete_actionAnnotation(annotation)
+                if annotation.db_key == '__thumb__' and len(sb.thumbnails) > 0:
+                    # remove thumb
+                    thumb = '/'.join(sb.thumbnails[0].split(
+                            '/')[:-1]) + '/' + annotation.db_value
+                    if thumb in sb.thumbnails:
+                        sb.thumbnails.remove(thumb)
+
         # add new and update changed annotations
         for annotation in next_vt.db_actionAnnotations:
             if not vt.db_has_actionAnnotation_with_id(annotation.db_id):
                 # new actionAnnotation
-                new_annotation = annotation.do_copy(True, vt.idScope, id_remap)
-                vt.db_add_actionAnnotation(new_annotation)
+                annotation = annotation.do_copy(True, vt.idScope, id_remap)
+                vt.db_add_actionAnnotation(annotation)
+                if annotation.db_key == '__thumb__' and \
+                        len(next_sb.thumbnails) > 0:
+                    # add thumb
+                    thumb = '/'.join(next_sb.thumbnails[0].split(
+                            '/')[:-1])+'/'+ annotation.db_value
+                    if thumb not in sb.thumbnails:
+                        sb.thumbnails.append(thumb)
             else:
                 old_annotation = \
                     vt.db_get_actionAnnotation_by_id(annotation.db_id)
-                if old_annotation.db_key != annotation.db_key:
-                    # key changed
-                    old_annotation.db_key = annotation.db_key
                 if old_annotation.db_value != annotation.db_value:
                     # value changed
+                    if annotation.db_key == '__thumb__' and \
+                            len(sb.thumbnails) > 0:
+                        # remove thumb
+                        thumb = '/'.join(sb.thumbnails[0].split(
+                                '/')[:-1]) + '/' + old_annotation.db_value
+                        if thumb in sb.thumbnails:
+                            sb.thumbnails.remove(thumb)
+                    if annotation.db_key == '__thumb__' and \
+                            len(next_sb.thumbnails) > 0:
+                        # add thumb
+                        thumb = '/'.join(next_sb.thumbnails[0].split(
+                                '/')[:-1])+'/'+ annotation.db_value
+                        if thumb not in sb.thumbnails:
+                            sb.thumbnails.append(thumb)
                     old_annotation.db_value = annotation.db_value
+                    old_annotation.db_date = annotation.db_date
+                    old_annotation.db_user = annotation.db_user
     else:
         # construct old action index (oas)
         oas = {}
@@ -655,7 +680,8 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                     '/')[:-1])+'/'+ new_annotation.db_value
                             if thumb not in sb.thumbnails:
                                 sb.thumbnails.append(thumb)
-                #elif new_annotation.db_key == '__prune__': # keep both
+                elif new_annotation.db_key == '__prune__': # keep old
+                    pass
                 # others should be appended if not already there
                 else:
                     values = []
@@ -674,7 +700,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                     if thumb not in sb.thumbnails:
                         sb.thumbnails.append(thumb)
     # make this a valid checked out version
-    vt.update_checkout_version()
+    vt.update_checkout_version(app)
 
 ################################################################################
 # Analogy methods
