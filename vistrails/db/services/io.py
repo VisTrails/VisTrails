@@ -366,34 +366,42 @@ def get_matching_abstraction_id(db_connection, abstraction):
         raise VistrailsDBException(msg)
     return id
 
-def setup_db_tables(db_connection, version=None):
-    schemaDir = getVersionSchemaDir(version)
+def setup_db_tables(db_connection, version=None, old_version=None):
+    if version is None:
+        version = currentVersion
+    if old_version is None:
+        old_version = version
     try:
         def execute_file(c, f):
             cmd = ""
-            auto_inc_str = 'auto_increment'
-            not_null_str = 'not null'
-            engine_str = 'engine=InnoDB;'
+#             auto_inc_str = 'auto_increment'
+#             not_null_str = 'not null'
+#             engine_str = 'engine=InnoDB;'
             for line in f:
-                if line.find(auto_inc_str) > 0:
-                    num = line.find(auto_inc_str)
-                    line = line[:num] + line[num+len(auto_inc_str):]
-                if line.find(not_null_str) > 0:
-                    num = line.find(not_null_str)
-                    line = line[:num] + line[num+len(not_null_str):]
-                cmd += line
-                ending = line.rstrip()
+#                 if line.find(auto_inc_str) > 0:
+#                     num = line.find(auto_inc_str)
+#                     line = line[:num] + line[num+len(auto_inc_str):]
+#                 if line.find(not_null_str) > 0:
+#                     num = line.find(not_null_str)
+#                     line = line[:num] + line[num+len(not_null_str):]
+                line = line.strip()
+                if cmd or not line.startswith('--'):
+                    cmd += line
+                    ending = line
+                else:
+                    ending = None
                 if ending and ending[-1] == ';':
                     # FIXME engine stuff switch for MySQLdb, sqlite3
                     cmd = cmd.rstrip()
-                    if cmd.endswith(engine_str):
-                        cmd = cmd[:-len(engine_str)] + ';'
+#                     if cmd.endswith(engine_str):
+#                         cmd = cmd[:-len(engine_str)] + ';'
                     print cmd
                     c.execute(cmd)
                     cmd = ""
 
         # delete tables
         c = db_connection.cursor()
+        schemaDir = getVersionSchemaDir(old_version)
         f = open(os.path.join(schemaDir, 'vistrails_drop.sql'))
         execute_file(c, f)
 #         db_script = f.read()
@@ -403,6 +411,7 @@ def setup_db_tables(db_connection, version=None):
 
         # create tables        
         c = db_connection.cursor()
+        schemaDir = getVersionSchemaDir(version)
         f = open(os.path.join(schemaDir, 'vistrails.sql'))
         execute_file(c, f)
 #         db_script = f.read()

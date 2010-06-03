@@ -143,7 +143,9 @@ class DAOList(dict):
         return res
 
     def save_to_db(self, db_connection, obj, do_copy=False, global_props=None):
-        if do_copy and obj.db_id is not None:
+        if do_copy == 'with_ids':
+            do_copy = True
+        elif do_copy and obj.db_id is not None:
             obj.db_id = None
 
         children = obj.db_children()

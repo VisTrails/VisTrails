@@ -299,7 +299,7 @@ class SQLAutoGen(AutoGen):
             if SQL_TYPE in obj.layouts:
                 self.write('%s %s' % (comma, obj.getName()))
                 comma = ','
-        self.write('\n')
+        self.write(';\n')
 	return self.getOutput()
 
     def generateDAOList(self):

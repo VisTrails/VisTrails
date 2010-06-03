@@ -68,6 +68,56 @@ COPYRIGHT_NOTICE = \
 
 """
 
+SQL_COPYRIGHT_NOTICE = \
+"""--#########################################################################
+--
+-- Copyright (C) 2006-2010 University of Utah. All rights reserved.
+--
+-- This file is part of VisTrails.
+--
+-- This file may be used under the terms of the GNU General Public
+-- License version 2.0 as published by the Free Software Foundation
+-- and appearing in the file LICENSE.GPL included in the packaging of
+-- this file.  Please review the following to ensure GNU General Public
+-- Licensing requirements will be met:
+-- http://www.opensource.org/licenses/gpl-license.php
+--
+-- If you are unsure which license is appropriate for your use (for
+-- instance, you are interested in developing a commercial derivative
+-- of VisTrails), please contact us at vistrails@sci.utah.edu.
+--
+-- This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+-- WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+--
+--##########################################################################
+
+"""
+
+XML_COPYRIGHT_NOTICE = \
+"""<!--########################################################################
+##
+## Copyright (C) 2006-2010 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+#########################################################################-->
+
+"""
+
 def usage(usageDict):
     usageStr = ''
     unrequired = ''
@@ -234,7 +284,7 @@ def main(argv=None):
 
 	schemaFile = os.path.join(versionDirs['xmlSchema'], 'vistrail.xsd')
 	f = open(schemaFile, 'w')
-        f.write(COPYRIGHT_NOTICE)
+        f.write(XML_COPYRIGHT_NOTICE)
 	f.write(xmlAutoGen.generateSchema('vistrail'))
 	f.close()
 
@@ -270,7 +320,7 @@ def main(argv=None):
 	
 	schemaFile = os.path.join(versionDirs['sqlSchema'], 'vistrails.sql')
 	f = open(schemaFile, 'w')
-        f.write(COPYRIGHT_NOTICE)
+        f.write(SQL_COPYRIGHT_NOTICE)
         # write table that keeps metadata
         f.write("CREATE TABLE `vistrails_version`(`version` char(16)) "
                 "engine=InnoDB;\n")
@@ -287,7 +337,7 @@ def main(argv=None):
 	
 	schemaFile = os.path.join(versionDirs['sqlSchema'],'vistrails_drop.sql')
 	f = open(schemaFile, 'w')
-        f.write(COPYRIGHT_NOTICE)
+        f.write(SQL_COPYRIGHT_NOTICE)
         f.write("DROP TABLE IF EXISTS `vistrails_version`;\n\n")
         f.write("DROP TABLE IF EXISTS thumbnail;\n\n")
 	f.write(sqlAutoGen.generateDeleteSchema())

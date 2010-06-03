@@ -72,7 +72,8 @@ def translateVistrail(_vistrail):
     _vistrail.update_id_scope()
     vistrail = DBVistrail.update_version(_vistrail, translate_dict)
 
-    id_scope = _vistrail.idScope
+    id_scope = vistrail.idScope
+    id_scope.setBeginId('annotation', _vistrail.idScope.getNewId('annotation'))
     key_lists = {'__tag__': tag_annotations,
                  '__notes__': notes_annotations,
                  '__thumb__': thumb_annotations,
