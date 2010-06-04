@@ -25,7 +25,6 @@ from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstraction, \
 from db.services.action_chain import getActionChain, getCurrentOperationDict, \
     getCurrentOperations, simplify_ops
 from db import VistrailsDBException
-from gui import merge_gui
 
 import copy
 import datetime
@@ -331,10 +330,11 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
         All changes from next_sb are appended onto sb. The changes in sb can
         then be uploaded to the database and use as the new working copy.
         first sb is the old one from db, last vt is the new one.
-        if interactive is True then the tmp_dir's must be set.
+        if interactive is gui.merge_gui.MergeGui then the tmp_dir's must be set.
         """
     vt = sb.vistrail
     next_vt = next_sb.vistrail
+    merge_gui = interactive
 
     skip = 0
 

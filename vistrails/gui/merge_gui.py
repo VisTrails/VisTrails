@@ -45,7 +45,6 @@ class resolve_tags(QtGui.QWidget):
         self.setWindowTitle("Tag conflict!")
         self.move(250, 200)
 
-
         # main layout
         vbox = QtGui.QVBoxLayout()
         self.setLayout(vbox)
@@ -130,13 +129,6 @@ class resolve_tags(QtGui.QWidget):
         self.value = CHOICE_OWN_ALL
         self.close()
 
-def resolveTags(a, b, text):
-    app = QtGui.QApplication([])
-    exm = resolve_tags(a, b, text)
-    exm.show()
-    app.exec_()
-    return exm.value, exm.text
-
 class resolve_notes(QtGui.QWidget):
     def __init__(self, a, b, text, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -152,7 +144,6 @@ class resolve_notes(QtGui.QWidget):
 
         self.setWindowTitle("Notes conflict!")
         self.move(250, 200)
-
 
         # main layout
         vbox = QtGui.QVBoxLayout()
@@ -198,13 +189,6 @@ class resolve_notes(QtGui.QWidget):
         self.value = CHOICE_OWN_ALL
         self.close()
 
-def resolveNotes(a, b, text):
-    app = QtGui.QApplication([])
-    exm = resolve_notes(a, b, text)
-    exm.show()
-    app.exec_()
-    return exm.value, exm.text
-
 class resolve_thumbs(QtGui.QWidget):
     def __init__(self, a, b, old_tmp_dir, new_tmp_dir, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -222,7 +206,6 @@ class resolve_thumbs(QtGui.QWidget):
         self.setWindowTitle("Thumbnail conflict!")
         self.move(250, 200)
 
-
         # main layout
         vbox = QtGui.QVBoxLayout()
         self.setLayout(vbox)
@@ -230,7 +213,6 @@ class resolve_thumbs(QtGui.QWidget):
         # thumbs layout
         hbox = QtGui.QHBoxLayout()
         vbox.addLayout(hbox)
-
 
         other = QtGui.QVBoxLayout()
         hbox.addLayout(other)
@@ -295,10 +277,27 @@ class resolve_thumbs(QtGui.QWidget):
         self.value = CHOICE_OWN_ALL
         self.close()
 
-def resolveThumbs(a, b, old_tmp_dir, new_tmp_dir):
-    app = QtGui.QApplication([])
-    exm = resolve_thumbs(a, b, old_tmp_dir, new_tmp_dir)
-    exm.show()
-    app.exec_()
-    return exm.value
+class MergeGUI:
+    @staticmethod
+    def resolveTags(a, b, text):
+        app = QtGui.QApplication([])
+        exm = resolve_tags(a, b, text)
+        exm.show()
+        app.exec_()
+        return exm.value, exm.text
 
+    @staticmethod
+    def resolveNotes(a, b, text):
+        app = QtGui.QApplication([])
+        exm = resolve_notes(a, b, text)
+        exm.show()
+        app.exec_()
+        return exm.value, exm.text
+
+    @staticmethod
+    def resolveThumbs(a, b, old_tmp_dir, new_tmp_dir):
+        app = QtGui.QApplication([])
+        exm = resolve_thumbs(a, b, old_tmp_dir, new_tmp_dir)
+        exm.show()
+        app.exec_()
+        return exm.value
