@@ -23,6 +23,7 @@ import datetime
 import getpass
 import os
 import os.path
+import subprocess
 import sys
 import platform
 import socket
@@ -39,7 +40,7 @@ if systemType in ['Windows', 'Microsoft']:
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
         link_or_copy,executable_is_in_path, executable_is_in_pythonpath, \
-        execute_cmdline, TestWindows
+        execute_cmdline, get_executable_path, TestWindows
 
 elif systemType in ['Linux']:
     from core.system.linux import guess_total_memory, temporary_directory, \
@@ -47,7 +48,8 @@ elif systemType in ['Linux']:
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
         link_or_copy, XDestroyWindow, executable_is_in_path, \
-        executable_is_in_pythonpath, execute_cmdline, TestLinux
+        executable_is_in_pythonpath, execute_cmdline, get_executable_path, \
+        TestLinux
 
 elif systemType in ['Darwin']:
     from core.system.osx import guess_total_memory, temporary_directory, \
@@ -55,7 +57,7 @@ elif systemType in ['Darwin']:
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
         link_or_copy, executable_is_in_path, executable_is_in_pythonpath, \
-        execute_cmdline, TestMacOSX
+        execute_cmdline, get_executable_path, TestMacOSX
 else:
     print "Critical error"
     print "VisTrails could not detect your operating system."
@@ -323,6 +325,22 @@ def get_elementtree_library():
         import xml.etree.cElementTree as ElementTree
     return ElementTree
     
+def execute_piped_cmdlines(cmd_list_list):
+    stdin = subprocess.PIPE
+    for cmd_list in cmd_list_list:
+        cmd_line = list2cmdline(cmd_list)
+        process = subprocess.Popen(cmd_line, shell=True,
+                                   stdin=stdin,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   close_fds=True)
+        stdin = process.stdout
+    (output, errs) = process.communicate()
+    result = process.returncode
+    return (result, output, errs)
+
+def execute_cmdline2(cmd_list):
+    return execute_piped_cmdlines([cmd_list])
 
 ################################################################################
 

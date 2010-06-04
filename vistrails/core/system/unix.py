@@ -88,3 +88,7 @@ def execute_cmdline(lst, output):
         result = process.poll()
     output.extend(process.stdout.readlines())
     return result
+
+def get_executable_path(executable_name):
+    #FIXME
+    return None

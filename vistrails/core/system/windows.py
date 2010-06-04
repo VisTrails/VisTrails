@@ -186,6 +186,10 @@ def execute_cmdline(lst, output):
     output.extend(out.readlines())
     return 0
     
+def get_executable_path(executable_name):
+    # FIXME
+    return None
+
 ################################################################################
 
 import unittest

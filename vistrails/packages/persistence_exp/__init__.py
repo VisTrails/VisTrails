@@ -24,10 +24,12 @@ from core.configuration import ConfigurationObject
 
 
 identifier = 'edu.utah.sci.vistrails.persistence.exp'
-version = '0.1.1'
+version = '0.1.2'
 name = 'Persistence'
 
 configuration = ConfigurationObject(global_db=(None, str), 
                                     local_db=(None, str),
+                                    git_bin=(None, str),
                                     search_dbs=(None, str),
-                                    compress_by_default=False)
+                                    compress_by_default=False,
+                                    debug=False)

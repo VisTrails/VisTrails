@@ -227,6 +227,16 @@ def link_or_copy(src, dst):
         else:
             raise e
 
+def get_executable_path(executable_name):
+    vt_path = os.getenv("EXECUTABLEPATH")
+    if vt_path is not None:
+        vt_path = vt_path.strip()
+        executable_path = \
+            os.path.join(os.path.dirname(vt_path), executable_name)
+        if os.path.exists(executable_path):
+            return executable_path
+    return None
+
 ################################################################################
 
 import unittest

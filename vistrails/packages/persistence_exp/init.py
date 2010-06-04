@@ -38,8 +38,9 @@ from core.modules.basic_modules import Path, File, Directory, Boolean, \
 from core.modules.module_registry import get_module_registry, MissingModule, \
     MissingPackageVersion, MissingModuleVersion
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from core.system import default_dot_vistrails, execute_cmdline, systemType, \
-    current_user, current_time
+from core.system import default_dot_vistrails, execute_cmdline2, \
+    execute_piped_cmdlines, systemType, \
+    current_user, current_time, get_executable_path
 from core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
 from compute_hash import compute_hash
 from widgets import ManagedRefInlineWidget, ManagedInputFileConfiguration, \
@@ -51,10 +52,19 @@ global_db = None
 local_db = None
 search_dbs = None
 db_access = None
+git_bin = "@executable_path/git"
 compress_by_default = False
+debug = False
 temp_persist_files = []
 
 # FIXME add paths for git and tar...
+
+def debug_print(*args):
+    global debug
+    if debug:
+        for arg in args:
+            print arg,
+        print ''
 
 class ManagedRef(Constant):
 
@@ -98,7 +108,7 @@ class ManagedRef(Constant):
                    x.local_read, x.local_writeback, x.versioned,
                    x.name, x.tags))
         # rep = str(tuple(y[1] for y in sorted(x.settings.iteritems())))
-        print 'to_string:', rep
+        # print 'to_string:', rep
         return rep
         
     @staticmethod
@@ -115,7 +125,8 @@ class ManagedPath(Module):
         Module.__init__(self)
 
     def git_command(self):
-        return ["cd", "%s" % local_db, "&&", "git"]
+        global git_bin
+        return ["cd", "%s" % local_db, "&&", git_bin]
 
     def git_get_path(self, name, version="HEAD", path_type=None, 
                      out_name=None):
@@ -136,16 +147,16 @@ class ManagedPath(Module):
             os.close(fd)
             temp_persist_files.append(out_fname)
             
-        output = []
         cmd_line =  self.git_command() + ["show", str(version + ':' + name), 
                                           '>', out_fname]
-        print 'executing command', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print output
+        debug_print('executing command', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
         if result != 0:
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'\n" % name +
-                              "\n".join(output))
+                              errs)
         return out_fname
 
     def git_get_dir(self, name, version="HEAD", out_dirname=None):
@@ -155,76 +166,75 @@ class ManagedPath(Module):
             out_dirname = tempfile.mkdtemp(prefix='vt_persist')
             temp_persist_files.append(out_dirname)
             
-        output = []
-        cmd_line = self.git_command() + ["archive", str(version + ':' + name), 
-                                         '|', 'tar', '-C', out_dirname, '-xf-']
-        print 'executing command', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print output
+        cmd_list = [self.git_command() + \
+                        ["archive", str(version + ':' + name)],
+                    ['tar', '-C', out_dirname, '-xf-']]
+        debug_print('executing commands', cmd_list)
+        result, output, errs = execute_piped_cmdlines(cmd_list)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
         if result != 0:
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'\n" % name +
-                              "\n".join(output))
+                              errs)
         return out_dirname
 
     def git_get_hash(self, name, version="HEAD"):
-        output = []
-        cmd_line = ["cd", "%s" % local_db, "&&", 
-                    "echo", str(version + ':' + name), "|",
-                    "git", "cat-file", "--batch-check"]
-        print 'executing command', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print output
+        cmd_list = [["echo", str(version + ':' + name)],
+                    self.git_command() + ["cat-file", "--batch-check"]]
+        debug_print('executing commands', cmd_list)
+        result, output, errs = execute_piped_cmdlines(cmd_list)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
         if result != 0:
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'\n" % name +
-                              "\n".join(output))
-        return output[0].split()[0]
+                              errs)
+        return output.split(None, 1)[0]
 
     def git_get_type(self, name, version="HEAD"):
-        output = []
-        cmd_line = ["cd", "%s" % local_db, "&&", 
-                    "echo", str(version + ':' + name), "|",
-                    "git", "cat-file", "--batch-check"]
-        print 'executing command', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print output
+        cmd_list = [["echo", str(version + ':' + name)],
+                    self.git_command() + ["cat-file", "--batch-check"]]
+        debug_print('executing commands', cmd_list)
+        result, output, errs = execute_piped_cmdlines(cmd_list)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
         if result != 0:
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'" % name +
-                              "\n".join(output))
-        return output[0].split()[1]        
+                              errs)
+        return output.split(None, 2)[1]
 
     def git_add_commit(self, filename):
-        output = []
         cmd_line = self.git_command() + ['add', filename]
-        print 'executing', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print output
-        print '***'
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print(output)
+        debug_print('***')
 
         cmd_line = self.git_command() + ['commit', '-q', '-m', 
                                          'Updated %s' % filename]
-        print 'executing', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print 'result:', result
-        print output
-        print '***'
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('result:', result)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
+        debug_print('***')
 
         if len(output) > 1:
             # failed b/c file is the same
             # return 
-            print 'got unexpected output'
+            debug_print('got unexpected output')
             return None
 
         cmd_line = self.git_command() + ['log', '-1']
-        print 'executing', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print output
-        print '***'
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print(output)
+        debug_print('***')
 
-        if output[0].startswith('commit'):
-            return output[0].split()[1]
+        if output.startswith('commit'):
+            return output.split(None, 2)[1]
         return None
 
     def git_compute_hash(self, path, path_type=None):
@@ -243,18 +253,18 @@ class ManagedPath(Module):
 
     def git_compute_file_hash(self, filename):
         # run git hash-object filename
-        output = []
         cmd_line = self.git_command() + ['hash-object', filename]
-        print 'executing', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print 'result:', result
-        print output
-        print '***'
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('result:', result)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
+        debug_print('***')
 
         if result != 0:
             raise ModuleError(self, "Error retrieving file '%s'\n" % filename +
-                              "\n".join(output))
-        return output[0].strip()
+                              errs)
+        return output.strip()
 
     def git_compute_tree_hash(self, dirname):
         lines = []
@@ -275,28 +285,26 @@ class ManagedPath(Module):
             print >>tree_f, line
         tree_f.close()
 
-        output = []
         cmd_line = self.git_command() + ['mktree', '--missing', 
                                          '<', tree_fname]
-        print 'executing', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print 'result:', result
-        print output
-        print '***'
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('result:', result)
+        debug_print(output)
+        debug_print('***')
         os.remove(tree_fname)
         if result != 0:
             raise ModuleError(self, "Error retrieving file '%s'\n" % dirname +
-                              "\n".join(output))
-        tree_hash = output[-1].strip()
-        print 'hash:', tree_hash
+                              errs)
+        tree_hash = output.rsplit(None, 1)[-1].strip()
+        debug_print('hash:', tree_hash)
 
-        output = []
         cmd_line = self.git_command() + ['prune']
-        print 'executing', cmd_line
-        result = execute_cmdline(cmd_line, output)
-        print 'result:', result
-        print output
-        print '***'
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('result:', result)
+        debug_print(output)
+        debug_print('***')
         
         return tree_hash
 
@@ -347,11 +355,11 @@ class ManagedPath(Module):
                 # create new reference with no name or tags
                 ref = ManagedRef()
                 ref.signature = self.signature
-                print 'searching for signature', self.signature
+                debug_print('searching for signature', self.signature)
                 sig_ref = db_access.search_by_signature(self.signature)
-                print 'sig_ref:', sig_ref
+                debug_print('sig_ref:', sig_ref)
                 if sig_ref:
-                    print 'setting persistent_ref'
+                    debug_print('setting persistent_ref')
                     ref.id, ref.version = sig_ref
                     self.persistent_ref = ref
                     #             else:
@@ -375,8 +383,8 @@ class ManagedPath(Module):
                 self.persistent_path = \
                     self.git_get_path(self.persistent_ref.id, 
                                       self.persistent_ref.version)
-                print self.persistent_path
-                print self.persistent_ref.local_path
+                debug_print(self.persistent_path)
+                debug_print(self.persistent_ref.local_path)
 
         if self.persistent_ref is None or self.persistent_path is None:
             Module.updateUpstream(self)
@@ -388,7 +396,7 @@ class ManagedPath(Module):
             raise ModuleError(self, "Need to specify path or reference")
 
         if self.persistent_path is not None:
-            print 'using persistent path'
+            debug_print('using persistent path')
             ref = self.persistent_ref
             path = self.persistent_path
         elif self.hasInputFromPort('ref'):
@@ -413,7 +421,7 @@ class ManagedPath(Module):
                 is_input = True
             else:
                 if ref.local_path and ref.local_read:
-                    print 'found local path with local read'
+                    debug_print('found local path with local read')
                     is_input = True
                 # FIXME: check if the signature is the signature of
                 # the value if so we know that it's an input...
@@ -431,7 +439,7 @@ class ManagedPath(Module):
         elif self.persistent_path is None:
             # copy path to persistent directory with uuid as name
             if is_input and ref.local_path and ref.local_read:
-                print 'using local_path'
+                debug_print('using local_path')
                 path = ref.local_path
             else:
                 path = self.getInputFromPort('value').name
@@ -440,13 +448,13 @@ class ManagedPath(Module):
             do_update = True
             if os.path.exists(rep_path):
                 old_hash = self.git_get_hash(ref.id)
-                print 'old_hash:', old_hash
-                print 'new_hash:', new_hash
+                debug_print('old_hash:', old_hash)
+                debug_print('new_hash:', new_hash)
                 if old_hash == new_hash:
                     do_update = False
                     
             if do_update:
-                print 'doing update'
+                debug_print('doing update')
                 self.copypath(path, os.path.join(local_db, ref.id))
 
                 # commit (and add to) repository
@@ -619,17 +627,31 @@ _modules = [ManagedRef, ManagedPath, ManagedFile, ManagedDir,
                                           ManagedOutputDirConfiguration}),]
 
 def git_init(dir):
-    output = []
-    cmd = ["cd", "%s" % dir, "&&", "git", "init"]
-    result = execute_cmdline(cmd, output)
-    print 'init result', result
-    print 'init output', output
+    global git_bin
+    cmd = ["cd", "%s" % dir, "&&", git_bin, "init"]
+    result, output, errs = execute_cmdline2(cmd)
+    debug_print('init result', result)
+    debug_print('init output', output)
 
 def initialize():
-    global global_db, local_db, search_dbs, compress_by_default, db_access
+    global global_db, local_db, search_dbs, compress_by_default, db_access, \
+        git_bin, debug
+    
+    if configuration.check('git_bin'):
+        git_bin = configuration.git_bin
+    if git_bin.startswith("@executable_path/"):
+        non_expand_path = git_bin
+        git_bin = get_executable_path(git_bin[len("@executable_path/"):])
+        if git_bin is not None:
+            configuration.git_bin = non_expand_path
+    if git_bin is None:
+        git_bin = 'git'
+        configuration.git_bin = git_bin
 
     if configuration.check('compress_by_default'):
         compress_by_default = configuration.compress_by_default
+    if configuration.check('debug'):
+        debug = configuration.debug
     if configuration.check('global_db'):
         global_db = configuration.global_db
     if configuration.check('local_db'):
@@ -645,10 +667,10 @@ def initialize():
                 raise Exception('local_db "%s" does not exist' % local_db)
 
     git_init(local_db)
-    print 'creating DatabaseAccess'
+    debug_print('creating DatabaseAccess')
     db_path = os.path.join(local_db, '.files.db')
     db_access = DatabaseAccessSingleton(db_path)
-    print 'done', db_access
+    debug_print('done', db_access)
     
     search_dbs = [local_db,]
     if configuration.check('search_dbs'):
@@ -711,9 +733,9 @@ def handle_missing_module(controller, module_id, pipeline):
     dst_port_remap = {'value': 'value'}
 
     old_module = pipeline.modules[module_id]
-    print 'running handle_missing_module', old_module.name
+    debug_print('running handle_missing_module', old_module.name)
     if old_module.name in module_remap:
-        print 'running through remamp'
+        debug_print('running through remamp')
         new_descriptor = reg.get_descriptor(module_remap[old_module.name])
         action_list = \
             UpgradeWorkflowHandler.replace_module(controller, pipeline,
@@ -721,24 +743,24 @@ def handle_missing_module(controller, module_id, pipeline):
                                                   function_remap,
                                                   src_port_remap,
                                                   dst_port_remap)
-        print 'action_list', action_list
+        debug_print('action_list', action_list)
         return action_list
 
     return False
 
 def handle_all_errors(controller, err_list, pipeline):
     new_actions = []
-    print 'starting handle_all_errors'
+    debug_print('starting handle_all_errors')
     for err in err_list:
-        print 'processing', err
+        debug_print('processing', err)
         if isinstance(err, MissingModule):
-            print 'got missing'
+            debug_print('got missing')
             actions = handle_missing_module(controller, err._module_id, 
                                             pipeline)
             if actions:
                 new_actions.extend(actions)
         elif isinstance(err, MissingPackageVersion):
-            print 'got package version change'
+            debug_print('got package version change')
             actions = handle_module_upgrade_request(controller, err._module_id,
                                                     pipeline)
             if actions:
