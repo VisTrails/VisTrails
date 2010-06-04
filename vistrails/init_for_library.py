@@ -112,4 +112,5 @@ import gui.theme
 import gui.utils
 import gui.version_view
 import gui.vistrail_controller
-import packages.spreadsheet
+spreadsheet = __import__('packages.spreadsheet', globals(), locals(), 
+                            ['spreadsheet_controller'], -1) 
