@@ -25,7 +25,7 @@ def convert_to_vt_type(t):
                     'float': 'core.modules.basic_modules.Float',
                     'int':'core.modules.basic_modules.Integer',
                     'bool':'core.modules.basic_modules.Boolean',
-                    'numpy.ndarray':'reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array")',
+                    #'numpy.ndarray':'reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array")',
                     }
     if vt_type_dict.has_key(t):
         return vt_type_dict[t]

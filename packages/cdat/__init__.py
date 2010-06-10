@@ -127,9 +127,6 @@ class boxfill(Module,NotCacheable):
         if self.hasInputFromPort('slab_0'):
             slab = self.getInputFromPort('slab_0')
             args.append(slab)
-        elif self.hasInputFromPort('slab_1'):
-            slab = self.getInputFromPort('slab_1')
-            args.append(slab)
 
         # slab is a required port
         if slab == None:
@@ -147,20 +144,12 @@ class boxfill(Module,NotCacheable):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -179,12 +168,8 @@ class boxfill(Module,NotCacheable):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -201,22 +186,16 @@ class boxfill(Module,NotCacheable):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -323,20 +302,12 @@ class createboxfill(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -355,12 +326,8 @@ class createboxfill(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -377,22 +344,16 @@ class createboxfill(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -499,20 +460,12 @@ class createisofill(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -531,12 +484,8 @@ class createisofill(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -553,22 +502,16 @@ class createisofill(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -676,20 +619,12 @@ class createisoline(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -708,12 +643,8 @@ class createisoline(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -730,22 +661,16 @@ class createisoline(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -853,20 +778,12 @@ class createoutfill(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -885,12 +802,8 @@ class createoutfill(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -907,22 +820,16 @@ class createoutfill(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -1030,20 +937,12 @@ class createoutline(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -1062,12 +961,8 @@ class createoutline(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -1084,22 +979,16 @@ class createoutline(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -1206,20 +1095,12 @@ class createscatter(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -1238,12 +1119,8 @@ class createscatter(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -1260,22 +1137,16 @@ class createscatter(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -1382,20 +1253,12 @@ class createxvsy(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -1414,12 +1277,8 @@ class createxvsy(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -1436,22 +1295,16 @@ class createxvsy(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -1559,20 +1412,12 @@ class createxyvsy(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -1591,12 +1436,8 @@ class createxyvsy(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -1613,22 +1454,16 @@ class createxyvsy(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -1736,20 +1571,12 @@ class createyxvsx(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -1768,12 +1595,8 @@ class createyxvsx(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -1790,22 +1613,16 @@ class createyxvsx(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -1906,20 +1723,12 @@ class getboxfill(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -1938,12 +1747,8 @@ class getboxfill(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -1960,22 +1765,16 @@ class getboxfill(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -2076,20 +1875,12 @@ class getisofill(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -2108,12 +1899,8 @@ class getisofill(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -2130,22 +1917,16 @@ class getisofill(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -2246,20 +2027,12 @@ class getisoline(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -2278,12 +2051,8 @@ class getisoline(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -2300,22 +2069,16 @@ class getisoline(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -2417,20 +2180,12 @@ class getoutfill(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -2449,12 +2204,8 @@ class getoutfill(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -2471,22 +2222,16 @@ class getoutfill(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -2588,20 +2333,12 @@ class getoutline(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -2620,12 +2357,8 @@ class getoutline(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -2642,22 +2375,16 @@ class getoutline(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -2759,20 +2486,12 @@ class getscatter(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -2791,12 +2510,8 @@ class getscatter(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -2813,22 +2528,16 @@ class getscatter(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -2930,20 +2639,12 @@ class getxvsy(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -2962,12 +2663,8 @@ class getxvsy(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -2984,22 +2681,16 @@ class getxvsy(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -3100,20 +2791,12 @@ class getxyvsy(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -3132,12 +2815,8 @@ class getxyvsy(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -3154,22 +2833,16 @@ class getxyvsy(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -3270,20 +2943,12 @@ class getyxvsx(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -3302,12 +2967,8 @@ class getyxvsx(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -3324,22 +2985,16 @@ class getyxvsx(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -3426,9 +3081,6 @@ class isofill(Module,NotCacheable):
         if self.hasInputFromPort('slab_0'):
             slab = self.getInputFromPort('slab_0')
             args.append(slab)
-        elif self.hasInputFromPort('slab_1'):
-            slab = self.getInputFromPort('slab_1')
-            args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -3442,20 +3094,12 @@ class isofill(Module,NotCacheable):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -3474,12 +3118,8 @@ class isofill(Module,NotCacheable):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -3496,22 +3136,16 @@ class isofill(Module,NotCacheable):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -3598,9 +3232,6 @@ class isoline(Module,NotCacheable):
         if self.hasInputFromPort('slab_0'):
             slab = self.getInputFromPort('slab_0')
             args.append(slab)
-        elif self.hasInputFromPort('slab_1'):
-            slab = self.getInputFromPort('slab_1')
-            args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -3614,20 +3245,12 @@ class isoline(Module,NotCacheable):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -3646,12 +3269,8 @@ class isoline(Module,NotCacheable):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -3668,22 +3287,16 @@ class isoline(Module,NotCacheable):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -3770,9 +3383,6 @@ class outfill(Module):
         if self.hasInputFromPort('slab_0'):
             slab = self.getInputFromPort('slab_0')
             args.append(slab)
-        elif self.hasInputFromPort('slab_1'):
-            slab = self.getInputFromPort('slab_1')
-            args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -3786,20 +3396,12 @@ class outfill(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -3818,12 +3420,8 @@ class outfill(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -3840,22 +3438,16 @@ class outfill(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -3942,9 +3534,6 @@ class outline(Module):
         if self.hasInputFromPort('slab_0'):
             slab = self.getInputFromPort('slab_0')
             args.append(slab)
-        elif self.hasInputFromPort('slab_1'):
-            slab = self.getInputFromPort('slab_1')
-            args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -3958,20 +3547,12 @@ class outline(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -3990,12 +3571,8 @@ class outline(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -4012,22 +3589,16 @@ class outline(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -4195,15 +3766,9 @@ class plot(Module,NotCacheable):
         if self.hasInputFromPort('slab2_0'):
             slab2 = self.getInputFromPort('slab2_0')
             args.append(slab2)
-        elif self.hasInputFromPort('slab2_1'):
-            slab2 = self.getInputFromPort('slab2_1')
-            args.append(slab2)
         slab1 = None
         if self.hasInputFromPort('slab1_0'):
             slab1 = self.getInputFromPort('slab1_0')
-            args.append(slab1)
-        elif self.hasInputFromPort('slab1_1'):
-            slab1 = self.getInputFromPort('slab1_1')
             args.append(slab1)
 
         # slab1 is a required port
@@ -4222,20 +3787,12 @@ class plot(Module,NotCacheable):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -4254,12 +3811,8 @@ class plot(Module,NotCacheable):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -4276,22 +3829,16 @@ class plot(Module,NotCacheable):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -4378,15 +3925,9 @@ class scatter(Module):
         if self.hasInputFromPort('slab2_0'):
             slab2 = self.getInputFromPort('slab2_0')
             args.append(slab2)
-        elif self.hasInputFromPort('slab2_1'):
-            slab2 = self.getInputFromPort('slab2_1')
-            args.append(slab2)
         slab1 = None
         if self.hasInputFromPort('slab1_0'):
             slab1 = self.getInputFromPort('slab1_0')
-            args.append(slab1)
-        elif self.hasInputFromPort('slab1_1'):
-            slab1 = self.getInputFromPort('slab1_1')
             args.append(slab1)
 
         # build up the keyword arguments from the optional inputs.
@@ -4401,20 +3942,12 @@ class scatter(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -4433,12 +3966,8 @@ class scatter(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -4455,22 +3984,16 @@ class scatter(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -4557,15 +4080,9 @@ class xvsy(Module):
         if self.hasInputFromPort('slab2_0'):
             slab2 = self.getInputFromPort('slab2_0')
             args.append(slab2)
-        elif self.hasInputFromPort('slab2_1'):
-            slab2 = self.getInputFromPort('slab2_1')
-            args.append(slab2)
         slab1 = None
         if self.hasInputFromPort('slab1_0'):
             slab1 = self.getInputFromPort('slab1_0')
-            args.append(slab1)
-        elif self.hasInputFromPort('slab1_1'):
-            slab1 = self.getInputFromPort('slab1_1')
             args.append(slab1)
 
         # build up the keyword arguments from the optional inputs.
@@ -4580,20 +4097,12 @@ class xvsy(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -4612,12 +4121,8 @@ class xvsy(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -4634,22 +4139,16 @@ class xvsy(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -4736,9 +4235,6 @@ class xyvsy(Module):
         if self.hasInputFromPort('slab_0'):
             slab = self.getInputFromPort('slab_0')
             args.append(slab)
-        elif self.hasInputFromPort('slab_1'):
-            slab = self.getInputFromPort('slab_1')
-            args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -4752,20 +4248,12 @@ class xyvsy(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -4784,12 +4272,8 @@ class xyvsy(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -4806,22 +4290,16 @@ class xyvsy(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -4906,9 +4384,6 @@ class yxvsx(Module):
         if self.hasInputFromPort('slab_0'):
             slab = self.getInputFromPort('slab_0')
             args.append(slab)
-        elif self.hasInputFromPort('slab_1'):
-            slab = self.getInputFromPort('slab_1')
-            args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -4922,20 +4397,12 @@ class yxvsx(Module):
             kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
             kwargs['xarray'] = self.getInputFromPort('xarray_0')
-        elif self.hasInputFromPort('xarray_1'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_1')
         if self.hasInputFromPort('yweights_0'):
             kwargs['yweights'] = self.getInputFromPort('yweights_0')
-        elif self.hasInputFromPort('yweights_1'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_1')
         if self.hasInputFromPort('xweights_0'):
             kwargs['xweights'] = self.getInputFromPort('xweights_0')
-        elif self.hasInputFromPort('xweights_1'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_1')
         if self.hasInputFromPort('warray_0'):
             kwargs['warray'] = self.getInputFromPort('warray_0')
-        elif self.hasInputFromPort('warray_1'):
-            kwargs['warray'] = self.getInputFromPort('warray_1')
         if self.hasInputFromPort('tunits'):
             kwargs['tunits'] = self.getInputFromPort('tunits')
         if self.hasInputFromPort('ymtics1_0'):
@@ -4954,12 +4421,8 @@ class yxvsx(Module):
             kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
             kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
-        elif self.hasInputFromPort('xbounds_1'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_1')
         if self.hasInputFromPort('ybounds_0'):
             kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
-        elif self.hasInputFromPort('ybounds_1'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_1')
         if self.hasInputFromPort('datawc_y2'):
             kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
         if self.hasInputFromPort('wname'):
@@ -4976,22 +4439,16 @@ class yxvsx(Module):
             kwargs['ymd'] = self.getInputFromPort('ymd')
         if self.hasInputFromPort('yarray_0'):
             kwargs['yarray'] = self.getInputFromPort('yarray_0')
-        elif self.hasInputFromPort('yarray_1'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_1')
         if self.hasInputFromPort('units'):
             kwargs['units'] = self.getInputFromPort('units')
         if self.hasInputFromPort('yunits'):
             kwargs['yunits'] = self.getInputFromPort('yunits')
         if self.hasInputFromPort('zarray_0'):
             kwargs['zarray'] = self.getInputFromPort('zarray_0')
-        elif self.hasInputFromPort('zarray_1'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_1')
         if self.hasInputFromPort('xname'):
             kwargs['xname'] = self.getInputFromPort('xname')
         if self.hasInputFromPort('tarray_0'):
             kwargs['tarray'] = self.getInputFromPort('tarray_0')
-        elif self.hasInputFromPort('tarray_1'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_1')
         if self.hasInputFromPort('bg_0'):
             kwargs['bg'] = self.getInputFromPort('bg_0')
         elif self.hasInputFromPort('bg_1'):
@@ -5194,16 +4651,6 @@ def initialize(*args, **keywords):
                        (TransientVariable,"variable to be plotted"))
     reg.add_input_port(quickplot, 'plot',
                        (core.modules.basic_modules.String,"Plot type"))
-    reg.add_input_port(quickplot, 'axes',
-                       (core.modules.basic_modules.String,"Axis Dimensions"))
-    reg.add_input_port(quickplot, "canvas", (Canvas, "Use this canvas instead of creating a new one"))
-    
-    reg.add_output_port(quickplot, "dataset", (TransientVariable, "variable after being plotted"))
-    reg.add_output_port(quickplot, "canvas", (Canvas, "The canvas of the plot"))
-    
-    reg.add_module(CDATCell)
-    reg.add_input_port(CDATCell, "Location", CellLocation)
-    reg.add_output_port(CDATCell, "canvas", Canvas)
 
     # end of cdatwindow_init_inc.py
     ##########################################################################
@@ -5212,9 +4659,6 @@ def initialize(*args, **keywords):
     reg.add_module(boxfill,namespace='vcs|Canvas')
     reg.add_input_port(boxfill, 'slab_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Data at least 2D, last 2 dimensions will be plotted"))
-    reg.add_input_port(boxfill, 'slab_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Data at least 2D, last 2 dimensions will be plotted"))
     reg.add_input_port(boxfill, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
@@ -5231,26 +4675,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(boxfill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(boxfill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(boxfill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(boxfill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(boxfill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(boxfill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(boxfill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(boxfill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(boxfill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -5279,14 +4711,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(boxfill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(boxfill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(boxfill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(boxfill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(boxfill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -5312,9 +4738,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(boxfill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(boxfill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(boxfill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -5324,17 +4747,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(boxfill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(boxfill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(boxfill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(boxfill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(boxfill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(boxfill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -5429,26 +4846,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createboxfill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createboxfill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createboxfill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createboxfill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createboxfill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createboxfill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createboxfill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createboxfill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createboxfill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -5477,14 +4882,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createboxfill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createboxfill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createboxfill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createboxfill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createboxfill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -5510,9 +4909,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createboxfill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createboxfill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createboxfill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -5522,17 +4918,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createboxfill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createboxfill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createboxfill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createboxfill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createboxfill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createboxfill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -5627,26 +5017,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisofill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createisofill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createisofill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createisofill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createisofill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createisofill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createisofill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createisofill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createisofill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -5675,14 +5053,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisofill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createisofill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createisofill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createisofill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createisofill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -5708,9 +5080,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisofill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createisofill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createisofill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -5720,17 +5089,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisofill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createisofill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createisofill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createisofill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createisofill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createisofill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -5825,26 +5188,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisoline, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createisoline, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createisoline, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createisoline, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createisoline, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createisoline, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createisoline, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createisoline, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createisoline, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -5873,14 +5224,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisoline, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createisoline, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createisoline, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createisoline, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createisoline, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -5906,9 +5251,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisoline, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createisoline, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createisoline, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -5918,17 +5260,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createisoline, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createisoline, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createisoline, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createisoline, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createisoline, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createisoline, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -6023,26 +5359,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutfill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createoutfill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createoutfill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createoutfill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createoutfill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createoutfill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createoutfill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createoutfill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createoutfill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -6071,14 +5395,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutfill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createoutfill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createoutfill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createoutfill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createoutfill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -6104,9 +5422,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutfill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createoutfill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createoutfill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -6116,17 +5431,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutfill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createoutfill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createoutfill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createoutfill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createoutfill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createoutfill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -6221,26 +5530,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutline, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createoutline, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createoutline, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createoutline, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createoutline, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createoutline, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createoutline, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createoutline, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createoutline, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -6269,14 +5566,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutline, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createoutline, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createoutline, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createoutline, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createoutline, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -6302,9 +5593,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutline, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createoutline, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createoutline, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -6314,17 +5602,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createoutline, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createoutline, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createoutline, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createoutline, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createoutline, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createoutline, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -6419,26 +5701,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createscatter, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createscatter, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createscatter, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createscatter, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createscatter, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createscatter, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createscatter, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createscatter, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createscatter, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -6467,14 +5737,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createscatter, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createscatter, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createscatter, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createscatter, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createscatter, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -6500,9 +5764,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createscatter, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createscatter, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createscatter, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -6512,17 +5773,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createscatter, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createscatter, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createscatter, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createscatter, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createscatter, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createscatter, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -6617,26 +5872,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxvsy, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createxvsy, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createxvsy, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createxvsy, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createxvsy, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createxvsy, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createxvsy, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createxvsy, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createxvsy, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -6665,14 +5908,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxvsy, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createxvsy, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createxvsy, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createxvsy, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createxvsy, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -6698,9 +5935,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxvsy, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createxvsy, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createxvsy, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -6710,17 +5944,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxvsy, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createxvsy, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createxvsy, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createxvsy, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createxvsy, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createxvsy, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -6815,26 +6043,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxyvsy, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createxyvsy, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createxyvsy, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createxyvsy, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createxyvsy, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createxyvsy, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createxyvsy, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createxyvsy, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createxyvsy, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -6863,14 +6079,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxyvsy, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createxyvsy, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createxyvsy, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createxyvsy, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createxyvsy, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -6896,9 +6106,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxyvsy, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createxyvsy, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createxyvsy, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -6908,17 +6115,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createxyvsy, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createxyvsy, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createxyvsy, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createxyvsy, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createxyvsy, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createxyvsy, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -7013,26 +6214,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(createyxvsx, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(createyxvsx, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(createyxvsx, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createyxvsx, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createyxvsx, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(createyxvsx, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(createyxvsx, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(createyxvsx, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(createyxvsx, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -7061,14 +6250,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(createyxvsx, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(createyxvsx, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(createyxvsx, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(createyxvsx, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(createyxvsx, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -7094,9 +6277,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(createyxvsx, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(createyxvsx, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(createyxvsx, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -7106,17 +6286,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(createyxvsx, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(createyxvsx, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(createyxvsx, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(createyxvsx, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(createyxvsx, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(createyxvsx, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -7208,26 +6382,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getboxfill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getboxfill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getboxfill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getboxfill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getboxfill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getboxfill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getboxfill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getboxfill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getboxfill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -7256,14 +6418,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getboxfill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getboxfill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getboxfill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getboxfill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getboxfill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -7289,9 +6445,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getboxfill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getboxfill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getboxfill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -7301,17 +6454,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getboxfill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getboxfill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getboxfill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getboxfill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getboxfill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getboxfill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -7403,26 +6550,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisofill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getisofill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getisofill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getisofill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getisofill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getisofill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getisofill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getisofill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getisofill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -7451,14 +6586,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisofill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getisofill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getisofill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getisofill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getisofill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -7484,9 +6613,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisofill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getisofill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getisofill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -7496,17 +6622,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisofill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getisofill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getisofill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getisofill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getisofill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getisofill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -7598,26 +6718,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisoline, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getisoline, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getisoline, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getisoline, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getisoline, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getisoline, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getisoline, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getisoline, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getisoline, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -7646,14 +6754,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisoline, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getisoline, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getisoline, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getisoline, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getisoline, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -7679,9 +6781,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisoline, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getisoline, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getisoline, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -7691,17 +6790,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getisoline, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getisoline, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getisoline, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getisoline, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getisoline, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getisoline, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -7793,26 +6886,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutfill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getoutfill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getoutfill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getoutfill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getoutfill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getoutfill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getoutfill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getoutfill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getoutfill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -7841,14 +6922,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutfill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getoutfill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getoutfill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getoutfill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getoutfill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -7874,9 +6949,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutfill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getoutfill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getoutfill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -7886,17 +6958,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutfill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getoutfill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getoutfill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getoutfill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getoutfill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getoutfill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -7988,26 +7054,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutline, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getoutline, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getoutline, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getoutline, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getoutline, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getoutline, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getoutline, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getoutline, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getoutline, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -8036,14 +7090,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutline, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getoutline, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getoutline, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getoutline, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getoutline, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -8069,9 +7117,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutline, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getoutline, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getoutline, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -8081,17 +7126,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getoutline, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getoutline, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getoutline, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getoutline, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getoutline, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getoutline, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -8183,26 +7222,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getscatter, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getscatter, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getscatter, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getscatter, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getscatter, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getscatter, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getscatter, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getscatter, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getscatter, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -8231,14 +7258,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getscatter, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getscatter, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getscatter, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getscatter, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getscatter, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -8264,9 +7285,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getscatter, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getscatter, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getscatter, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -8276,17 +7294,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getscatter, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getscatter, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getscatter, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getscatter, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getscatter, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getscatter, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -8378,26 +7390,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxvsy, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getxvsy, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getxvsy, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getxvsy, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getxvsy, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getxvsy, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getxvsy, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getxvsy, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getxvsy, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -8426,14 +7426,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxvsy, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getxvsy, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getxvsy, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getxvsy, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getxvsy, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -8459,9 +7453,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxvsy, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getxvsy, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getxvsy, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -8471,17 +7462,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxvsy, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getxvsy, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getxvsy, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getxvsy, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getxvsy, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getxvsy, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -8573,26 +7558,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxyvsy, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getxyvsy, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getxyvsy, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getxyvsy, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getxyvsy, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getxyvsy, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getxyvsy, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getxyvsy, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getxyvsy, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -8621,14 +7594,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxyvsy, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getxyvsy, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getxyvsy, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getxyvsy, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getxyvsy, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -8654,9 +7621,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxyvsy, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getxyvsy, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getxyvsy, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -8666,17 +7630,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getxyvsy, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getxyvsy, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getxyvsy, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getxyvsy, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getxyvsy, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getxyvsy, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -8768,26 +7726,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(getyxvsx, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(getyxvsx, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(getyxvsx, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getyxvsx, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getyxvsx, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(getyxvsx, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(getyxvsx, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(getyxvsx, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(getyxvsx, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -8816,14 +7762,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(getyxvsx, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(getyxvsx, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(getyxvsx, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(getyxvsx, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(getyxvsx, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -8849,9 +7789,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(getyxvsx, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(getyxvsx, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(getyxvsx, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -8861,17 +7798,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(getyxvsx, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(getyxvsx, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(getyxvsx, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(getyxvsx, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(getyxvsx, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(getyxvsx, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -8948,9 +7879,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(isofill, 'slab_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 2D, last 2 dimensions will be plotted"))
-    reg.add_input_port(isofill, 'slab_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 2D, last 2 dimensions will be plotted"))
     reg.add_input_port(isofill, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
                         "units to use when disaplaying time dimension auto tick"), True)
@@ -8966,26 +7894,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(isofill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(isofill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(isofill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(isofill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(isofill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(isofill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(isofill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(isofill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(isofill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -9014,14 +7930,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(isofill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(isofill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(isofill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(isofill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(isofill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -9047,9 +7957,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(isofill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(isofill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(isofill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -9059,17 +7966,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(isofill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(isofill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(isofill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(isofill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(isofill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(isofill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -9146,9 +8047,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(isoline, 'slab_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 2D, last 2 dimensions will be plotted"))
-    reg.add_input_port(isoline, 'slab_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 2D, last 2 dimensions will be plotted"))
     reg.add_input_port(isoline, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
                         "units to use when disaplaying time dimension auto tick"), True)
@@ -9164,26 +8062,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(isoline, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(isoline, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(isoline, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(isoline, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(isoline, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(isoline, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(isoline, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(isoline, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(isoline, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -9212,14 +8098,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(isoline, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(isoline, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(isoline, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(isoline, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(isoline, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -9245,9 +8125,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(isoline, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(isoline, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(isoline, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -9257,17 +8134,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(isoline, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(isoline, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(isoline, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(isoline, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(isoline, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(isoline, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -9344,9 +8215,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(outfill, 'slab_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 2D, last 2 dimensions will be plotted"))
-    reg.add_input_port(outfill, 'slab_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 2D, last 2 dimensions will be plotted"))
     reg.add_input_port(outfill, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
                         "units to use when disaplaying time dimension auto tick"), True)
@@ -9362,26 +8230,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(outfill, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(outfill, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(outfill, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(outfill, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(outfill, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(outfill, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(outfill, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(outfill, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(outfill, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -9410,14 +8266,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(outfill, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(outfill, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(outfill, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(outfill, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(outfill, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -9443,9 +8293,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(outfill, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(outfill, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(outfill, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -9455,17 +8302,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(outfill, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(outfill, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(outfill, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(outfill, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(outfill, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(outfill, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -9542,9 +8383,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(outline, 'slab_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 2D, last 2 dimensions will be plotted"))
-    reg.add_input_port(outline, 'slab_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 2D, last 2 dimensions will be plotted"))
     reg.add_input_port(outline, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
                         "units to use when disaplaying time dimension auto tick"), True)
@@ -9560,26 +8398,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(outline, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(outline, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(outline, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(outline, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(outline, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(outline, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(outline, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(outline, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(outline, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -9608,14 +8434,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(outline, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(outline, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(outline, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(outline, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(outline, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -9641,9 +8461,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(outline, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(outline, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(outline, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -9653,17 +8470,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(outline, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(outline, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(outline, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(outline, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(outline, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(outline, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -9740,14 +8551,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(plot, 'slab2_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(plot, 'slab2_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(plot, 'slab1_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(plot, 'slab1_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(plot, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
@@ -9764,26 +8569,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(plot, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(plot, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(plot, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(plot, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(plot, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(plot, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(plot, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(plot, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(plot, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -9812,14 +8605,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(plot, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(plot, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(plot, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(plot, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(plot, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -9845,9 +8632,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(plot, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(plot, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(plot, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -9857,17 +8641,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(plot, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(plot, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(plot, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(plot, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(plot, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(plot, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -9944,14 +8722,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(scatter, 'slab2_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(scatter, 'slab2_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(scatter, 'slab1_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(scatter, 'slab1_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(scatter, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
@@ -9968,26 +8740,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(scatter, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(scatter, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(scatter, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(scatter, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(scatter, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(scatter, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(scatter, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(scatter, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(scatter, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -10016,14 +8776,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(scatter, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(scatter, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(scatter, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(scatter, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(scatter, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -10049,9 +8803,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(scatter, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(scatter, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(scatter, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -10061,17 +8812,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(scatter, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(scatter, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(scatter, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(scatter, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(scatter, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(scatter, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -10148,14 +8893,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(xvsy, 'slab2_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(xvsy, 'slab2_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(xvsy, 'slab1_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(xvsy, 'slab1_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(xvsy, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
@@ -10172,26 +8911,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(xvsy, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(xvsy, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(xvsy, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(xvsy, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(xvsy, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(xvsy, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(xvsy, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(xvsy, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(xvsy, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -10220,14 +8947,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(xvsy, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(xvsy, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(xvsy, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(xvsy, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(xvsy, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -10253,9 +8974,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(xvsy, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(xvsy, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(xvsy, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -10265,17 +8983,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(xvsy, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(xvsy, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(xvsy, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(xvsy, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(xvsy, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(xvsy, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -10352,9 +9064,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(xyvsy, 'slab_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(xyvsy, 'slab_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(xyvsy, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
                         "units to use when disaplaying time dimension auto tick"), True)
@@ -10370,26 +9079,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(xyvsy, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(xyvsy, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(xyvsy, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(xyvsy, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(xyvsy, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(xyvsy, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(xyvsy, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(xyvsy, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(xyvsy, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -10418,14 +9115,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(xyvsy, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(xyvsy, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(xyvsy, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(xyvsy, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(xyvsy, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -10451,9 +9142,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(xyvsy, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(xyvsy, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(xyvsy, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -10463,17 +9151,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(xyvsy, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(xyvsy, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(xyvsy, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(xyvsy, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(xyvsy, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(xyvsy, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -10547,9 +9229,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(yxvsx, 'slab_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Data at least 1D, last dimension will be plotted"))
-    reg.add_input_port(yxvsx, 'slab_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Data at least 1D, last dimension will be plotted"))
     reg.add_input_port(yxvsx, 'datawc_timeunits', 
                        (core.modules.basic_modules.String,
                         "units to use when disaplaying time dimension auto tick"), True)
@@ -10565,26 +9244,14 @@ def initialize(*args, **keywords):
     reg.add_input_port(yxvsx, 'xarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis"), True)
-    reg.add_input_port(yxvsx, 'xarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis"), True)
     reg.add_input_port(yxvsx, 'yweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(yxvsx, 'yweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(yxvsx, 'xweights_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "replace xaxis weights used for computing mean"), True)
-    reg.add_input_port(yxvsx, 'xweights_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "replace xaxis weights used for computing mean"), True)
     reg.add_input_port(yxvsx, 'warray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of w axis, only if var has more than 4D"), True)
-    reg.add_input_port(yxvsx, 'warray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of w axis, only if var has more than 4D"), True)
     reg.add_input_port(yxvsx, 'tunits', 
                        (core.modules.basic_modules.String,
@@ -10613,14 +9280,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(yxvsx, 'xbounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of x axis bounds values"), True)
-    reg.add_input_port(yxvsx, 'xbounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of x axis bounds values"), True)
     reg.add_input_port(yxvsx, 'ybounds_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of y axis bounds values (if exist)"), True)
-    reg.add_input_port(yxvsx, 'ybounds_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of y axis bounds values (if exist)"), True)
     reg.add_input_port(yxvsx, 'datawc_y2', 
                        (core.modules.basic_modules.Float,
@@ -10646,9 +9307,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(yxvsx, 'yarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of y axis, only if var has more than 1D"), True)
-    reg.add_input_port(yxvsx, 'yarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of y axis, only if var has more than 1D"), True)
     reg.add_input_port(yxvsx, 'units', 
                        (core.modules.basic_modules.String,
                         "replaces units value on plot"), True)
@@ -10658,17 +9316,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(yxvsx, 'zarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
                         "Values to use instead of z axis, only if var has more than 2D"), True)
-    reg.add_input_port(yxvsx, 'zarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
-                        "Values to use instead of z axis, only if var has more than 2D"), True)
     reg.add_input_port(yxvsx, 'xname', 
                        (core.modules.basic_modules.String,
                         "replace xaxis name on plot"), True)
     reg.add_input_port(yxvsx, 'tarray_0', 
                        (get_late_type('cdms2.tvariable.TransientVariable'),
-                        "Values to use instead of t axis, only if var has more than 3D"), True)
-    reg.add_input_port(yxvsx, 'tarray_1', 
-                       (reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array"),
                         "Values to use instead of t axis, only if var has more than 3D"), True)
     reg.add_input_port(yxvsx, 'bg_0', 
                        (core.modules.basic_modules.Boolean,
@@ -10967,7 +9619,7 @@ def initialize(*args, **keywords):
 
 
 def package_dependencies():
-  return ['edu.utah.sci.vistrails.numpyscipy']
+  return []
 
 
 def package_requirements():

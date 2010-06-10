@@ -40,7 +40,8 @@ def write_init(output_file, classes_lines, init_lines):
     # cdat dependencies
     init_lines.append("\n\n")
     init_lines.append("def package_dependencies():\n")
-    init_lines.append("  return ['edu.utah.sci.vistrails.numpyscipy']\n")
+    #init_lines.append("  return ['edu.utah.sci.vistrails.numpyscipy']\n")
+    init_lines.append("  return []\n")
     init_lines.append("\n\n")
     init_lines.append("def package_requirements():\n")
     init_lines.append("    import core.requirements\n")
