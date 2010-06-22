@@ -86,6 +86,10 @@ import core.log.log
 import core.modules.module_utils
 import core.modules.module_registry
 import core.modules.constant_configuration
+import core.repository
+import core.repository.poster
+import core.repository.poster.encode
+import core.repository.poster.streaminghttp
 import core.startup
 import core.system
 import core.utils

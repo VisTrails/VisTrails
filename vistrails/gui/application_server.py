@@ -54,7 +54,7 @@ from core import command_line
 from core import system
 from core.modules.module_registry import get_module_registry as module_registry
 from core import interpreter
-from core.vistrail.controller import VistrailController
+from gui.vistrail_controller import VistrailController
 import core
 import db.services.io
 import gc
@@ -118,7 +118,7 @@ class RequestHandler(object):
         self.medley_objs = {}
         self.proxies_queue = None
         self.instantiate_proxies()
-        
+
     #proxies
     def instantiate_proxies(self):
         """instantiate_proxies() -> None 
@@ -170,7 +170,7 @@ class RequestHandler(object):
             if n > 0:
                 return True
         return False
-    
+
     #crowdlabs
     def get_wf_modules(self, host, port, db_name, vt_id, version):
         """get_wf_modules(host:str, port:int, db_name:str, vt_id:int, 
@@ -263,10 +263,10 @@ class RequestHandler(object):
                 vistrail.set_annotation('repository_vt_id', repository_vt_id)
                 vistrail.set_annotation('repository_creator', repository_creator)
             #print "name=%s"%filename
-            db_locator = DBLocator(host=host, port=int(port), database=db_name, 
+            db_locator = DBLocator(host=host, port=int(port), database=db_name,
                                    name=filename, user=db_write_user, passwd=db_write_pass)
-            #print "db_locator %s" % db_locator
             db_locator.save_as(locator)
+            #print "db_locator obj_id %s" % db_locator.obj_id
             return db_locator.obj_id
         except Exception, e:
             self.server_logger.info("Error: %s"%str(e))
@@ -276,14 +276,20 @@ class RequestHandler(object):
                  old_db_vt_id):
         # XXX: It should be complete now, but I haven't tested it (--Manu).
         try:
-            new_bundle = ZIPFileLocator(new_vt_filepath).load()
+            new_locator = ZIPFileLocator(new_vt_filepath)
+            new_bundle = new_locator.load()
+            new_locator.save(new_bundle)
             old_db_locator = DBLocator(host=host, port=int(port), database=db_name,
                                        obj_id=old_db_vt_id, user=db_write_user, passwd=db_write_pass)
             old_db_bundle = old_db_locator.load()
-            db.services.vistrail.merge(old_db_bundle.vistrail, new_bundle.vistrail, 'vistrails')
+            db.services.vistrail.merge(old_db_bundle, new_bundle, 'vistrails')
             old_db_locator.save(old_db_bundle)
+            new_locator.save(old_db_bundle)
+            return 1
         except Exception, e:
             self.server_logger.info("Error: %s"%str(e))
+            import traceback
+            traceback.print_exc()
             return "FAILURE: %s" %str(e)
         
     def remove_vt_from_db(self, host, port, db_name, user, vt_id):
@@ -307,7 +313,7 @@ class RequestHandler(object):
             if conn:
                 db.services.io.close_db_connection(conn)
             return "FAILURE: %s" %str(e)
-        
+
     def get_runnable_workflows(self, host, port, db_name, vt_id):
         print "get_runnable_workflows"
         try:
@@ -319,11 +325,11 @@ class RequestHandler(object):
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
-
             (vistrail, _, _)  = io.load_vistrail(locator)
 
             # get server packages
-            local_packages = [x.identifier for x in module_registry().package_list]
+            local_packages = [x.identifier for x in \
+                              module_registry().package_list]
 
             runnable_workflows = []
             py_source_workflows = []
@@ -336,23 +342,34 @@ class RequestHandler(object):
                 on_repo = True
                 has_python_source = False
                 for module in pipeline.module_list:
-                    # count modules that use data unavailable to web repository
-                    if module.name[-6:] == 'Reader' or module.name in local_data_modules:
+                    # count modules that use data unavailable to web repo
+                    if module.name[-6:] == 'Reader' or \
+                       module.name in local_data_modules:
+                        has_accessible_data = False
                         for edge in pipeline.graph.edges_to(module.id):
                             # TODO check for RepoSync checksum param
-                            if pipeline.modules[edge[0]].name not in ['HTTPFile', 'RepoSync']:
-                                on_repo = False
+                            if pipeline.modules[edge[0]].name in \
+                               ['HTTPFile', 'RepoSync']:
+                                has_accessible_data = True
+
+                        if not has_accessible_data:
+                            on_repo = False
+
                     elif module.name == "PythonSource":
                         has_python_source = True
 
-                    # get all packages used in tagged versions of this VisTrail
+                    # get packages used in tagged versions of this VisTrail
                     workflow_packages.add(module.package)
 
                 # ensure workflow doesn't use unsupported packages
-                if not filter(lambda p: p not in local_packages, workflow_packages):
-                    if has_python_source and on_repo and version_id not in py_source_workflows:
+                if not filter(lambda p: p not in local_packages,
+                              workflow_packages):
+                    if has_python_source and on_repo and \
+                       version_id not in py_source_workflows:
                         py_source_workflows.append(version_id)
-                    elif not has_python_source and on_repo and version_id not in runnable_workflows:
+
+                    elif not has_python_source and on_repo and \
+                            version_id not in runnable_workflows:
                         runnable_workflows.append(version_id)
 
             self.server_logger.info("SUCCESS!")
@@ -705,7 +722,6 @@ class RequestHandler(object):
                 controller = VistrailController()
                 controller.set_vistrail(v, locator, abstractions, thumbnails)
                 controller.change_selected_version(version)
-
                 p = controller.current_pipeline
                 from gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
@@ -791,6 +807,8 @@ class RequestHandler(object):
                                 obj_type=None,
                                 connection_id=None)
             save_bundle = locator.load()
+            #annotate the vistrail
+            save_bundle.vistrail.update_checkout_version('vistrails')
             #create temporary file
             (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
                                           suffix='.vt')
@@ -868,6 +886,7 @@ class RequestHandler(object):
             return rows
         except Exception, e:
             self.server_logger.info("Error: %s"%str(e))
+            print "Error: ", str(e)
             return "FAILURE: %s" %str(e)
         
     def get_db_vt_list_xml(self, host, port, db_name):
@@ -910,9 +929,12 @@ class RequestHandler(object):
             v = locator.load().vistrail
             for elem, tag in v.get_tagMap().iteritems():
                 action_map = v.actionMap[long(elem)]
-                thumbnail_fname = os.path.join(
-                    get_vistrails_configuration().thumbs.cacheDirectory,
-                    v.get_thumbnail(elem) or "")
+                if v.get_thumbnail(elem):
+                    thumbnail_fname = os.path.join(
+                        get_vistrails_configuration().thumbs.cacheDirectory,
+                        v.get_thumbnail(elem))
+                else:
+                    thumbnail_fname = ""
                 result.append({'id': elem, 'name': tag,
                                'notes': v.get_notes(elem) or '',
                                'user':action_map.user or '', 
@@ -981,7 +1003,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
         return True
-    
+
     def start_other_instances(self, number):
         self.others = []
         host = self.temp_xml_rpc_options.server
