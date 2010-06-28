@@ -127,111 +127,53 @@ def typeMap(name, package=None):
             return registry.get_descriptor_by_name(package,
                                                    name).module
 
-if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
-    def get_method_signature(method):
-        """ get_method_signature(method: vtkmethod) -> [ret, arg]
-        Re-wrap Prabu's method to increase performance
+def get_method_signature(method):
+    """ get_method_signature(method: vtkmethod) -> [ret, arg]
+    Re-wrap Prabu's method to increase performance
 
-        """
-        doc = method.__doc__
-        tmp = doc.split('\n')
-        sig = []        
-        pat = re.compile(r'\b')
+    """
+    doc = method.__doc__
+    tmp = doc.split('\n')
+    sig = []        
+    pat = re.compile(r'\b')
 
-        # Remove all the C++ function signatures and V.<method_name> field
-        offset = 2+len(method.__name__)
-        for i in xrange(len(tmp)):
-            s = tmp[i]
-            if s=='': break
-            if i%2==0:
-                x = s.split('->')
-                arg = x[0].strip()[offset:]
-                if len(x) == 1: # No return value
-                    ret = None
-                else:
-                    ret = x[1].strip()
-
-                # Remove leading and trailing parens for arguments.
-                arg = arg[1:-1]
-                if not arg:
-                    arg = None
-                if arg and arg[-1] == ')':
-                    arg = arg + ','
-
-                # Now quote the args and eval them.  Easy!
-                if ret and ret[:3]!='vtk':
-                    ret = eval(pat.sub('\"', ret))
-                if arg:
-                    if arg.find('(')!=-1:
-                        arg = eval(pat.sub('\"', arg))
-                    else:
-                        arg = arg.split(', ')
-                        if len(arg)>1:
-                            arg = tuple(arg)
-                        else:
-                            arg = arg[0]
-                    if type(arg) == str:
-                        arg = [arg]
-
-                sig.append(([ret], arg))
-        return sig    
-
-else:
-    funcRE = re.compile(r'^(virtual|static)*([\w\d\s*&]+[\s*&])([\w\d]+)\(([\w\d\s,=-\[\]*&]*)\)', re.MULTILINE)
-    paramRE = re.compile(r'(const\s+)*(([\w\d]+\s?)+?([*&\s]?|\b))[^=\[*]*(\[\d*\])*(\=.*)*')
-    C2PMap = {
-        'unsigned': 'int',
-        'int': 'int',
-        'float': 'float',
-        'char': 'char',
-        'short': 'int',
-        'id': 'int',
-        'signed': 'int',
-        'double': 'float',
-        'long': 'int',
-        'bool': 'bool',
-        'int': 'int',
-        'void': 'None',
-        'void *': 'string',
-        'char *': 'string',
-        }
-
-    def convertToPythonType(pType):
-        pType = pType.strip()
-        m = paramRE.match(pType)
-        if m==None:
-            return None
-        pType = m.group(2)
-        if pType[:3]!='vtk':
-            pType = pType.strip()
-            if pType in C2PMap:
-                pType = C2PMap[pType]
+    # Remove all the C++ function signatures and V.<method_name> field
+    offset = 2+len(method.__name__)
+    for i in xrange(len(tmp)):
+        s = tmp[i]
+        if s=='': break
+        if i%2==0:
+            x = s.split('->')
+            arg = x[0].strip()[offset:]
+            if len(x) == 1: # No return value
+                ret = None
             else:
-                return None
-        else:
-            pType = pType.replace('*', '')
-            pType = pType.replace('&', '')
-            pType = pType.strip()
-        arrayStr = m.group(5)
-        if arrayStr!=None:
-            count = int(arrayStr[1:-1])
-            pType = tuple([pType]*count)
-        return pType
+                ret = x[1].strip()
 
-    def get_method_signature(method):
-        """ get_method_signature(method: vtkmethod) -> [ret, arg]
-        Re-wrap Prabu's method to increase performance
+            # Remove leading and trailing parens for arguments.
+            arg = arg[1:-1]
+            if not arg:
+                arg = None
+            if arg and arg[-1] == ')':
+                arg = arg + ','
 
-        """
-        doc = method.__doc__
-        sig = []
-        for m in funcRE.finditer(doc):
-            fName = m.group(3)
-            retType = convertToPythonType(m.group(2))
-            argType = tuple([convertToPythonType(a) for a in m.group(4).split(',')])
-            if None not in argType:
-                sig.append(([retType], argType))
-        return sig
+            # Now quote the args and eval them.  Easy!
+            if ret and ret[:3]!='vtk':
+                ret = eval(pat.sub('\"', ret))
+            if arg:
+                if arg.find('(')!=-1:
+                    arg = eval(pat.sub('\"', arg))
+                else:
+                    arg = arg.split(', ')
+                    if len(arg)>1:
+                        arg = tuple(arg)
+                    else:
+                        arg = arg[0]
+                if type(arg) == str:
+                    arg = [arg]
+
+            sig.append(([ret], arg))
+    return sig    
 
 def prune_signatures(module, name, signatures, output=False):
     """prune_signatures tries to remove redundant signatures to reduce
