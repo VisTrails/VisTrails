@@ -147,8 +147,24 @@ def parse_meminfo():
     """ parse_meminfo() -> int
     Uses the system_profiler application to retrieve detailed information
     about a Mac OS X system.
+    
+    06/29/10 - HUY: It seems that we only need to get the amount of RAM
+    out of this function and system_profiler seems to be a bit too
+    heavy (especially the DVD probing sounds). I'm switching to use
+    hwprefs (if it is available).
 
     """
+    import subprocess
+    result = None
+    try:
+        memStr = subprocess.Popen(["hwprefs", "memory_size"],
+                                  stdout=subprocess.PIPE).communicate()[0]
+        result = int(float(memStr[:-4])*1024)*1024L*1024L
+    except:
+        pass
+    
+    if result!=None:
+        return result
 #     try:
 #         from xml import dom, xpath
      
