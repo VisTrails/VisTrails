@@ -156,13 +156,13 @@ def parse_meminfo():
     """
     import subprocess
     result = None
-    try:
-        memStr = subprocess.Popen(["hwprefs", "memory_size"],
-                                  stdout=subprocess.PIPE).communicate()[0]
-        result = int(float(memStr[:-4])*1024)*1024L*1024L
-    except:
-        pass
-    
+    info = subprocess.Popen(["system_profiler", "SPHardwareDataType"],
+                            stdout=subprocess.PIPE).communicate()[0]
+    for line in info.split('\n'):
+        memStr = line.strip()
+        if memStr.startswith('Memory:'):
+            result = int(float(memStr[7:-3])*1024)*1024L*1024L
+
     if result!=None:
         return result
 #     try:
@@ -183,6 +183,7 @@ def parse_meminfo():
         result = int(float(mem[:-3]) * 1024) * 1024 * 1024L
     elif mem.upper().endswidth(' MB'):
         result = int(mem[:-3]) * 1024 * 1024L
+    print '>>>>', result
     return result
 
 def guess_total_memory():
