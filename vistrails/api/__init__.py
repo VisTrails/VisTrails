@@ -284,6 +284,14 @@ def new_vistrail():
     result = _app.builderWindow.viewManager.newVistrail(False)
     return result
 
+def get_vistrail_from_file(filename):
+    from core.db.locator import FileLocator
+    from core.vistrail.vistrail import Vistrail
+    v = FileLocator(filename).load()
+    if type(v) != Vistrail:
+        v = v.vistrail
+    return v
+
 ##############################################################################
 # Testing
 
