@@ -1329,7 +1329,7 @@ def verify_wsdl(wsdlList):
             httpfile = reg.get_descriptor_by_name('edu.utah.sci.vistrails.http',
                                                   'HTTPFile').module()
             try:
-                isoutdated = httpfile.is_outdated(remoteHeader, localFile)
+                isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:
                 print "File doesn't exist"
                 isoutdated = True
