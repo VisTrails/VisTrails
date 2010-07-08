@@ -395,12 +395,12 @@ class QVTKWidget(QCellWidget):
         self.mRenWin.SetPosition(self.x(),self.y())
 
     def paintEngine(self):
-        """ paintEvent(e: QPaintEvent) -> QPaintEngine
+        """ paintEngine() -> QPaintEngine
         On Windows, this has to return None to fully disable
         double-buffer (we let vtkRenderWindow handle this instead).
         
         """
-        if system.systemType=='Win32':
+        if system.systemType in ['Windows', 'Microsoft']:
             return None
         else:
             return QCellWidget.paintEngine(self)
