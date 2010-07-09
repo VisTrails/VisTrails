@@ -20,23 +20,24 @@ echo "removing build and dist folders..."
 rm -rf dist/ build/
 echo "building bundle..."
 python setup.py py2app
-echo "copying missing xml.etree.cElementTree imports..."
-cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/pyexpat.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
-cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/_elementtree.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
-cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/xml dist/VisTrails.app/Contents/Resources/lib/python2.5/
+#echo "copying missing xml.etree.cElementTree imports..."
+#not necessary anymore
+#cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/pyexpat.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
+#cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/_elementtree.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
+#cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/xml dist/VisTrails.app/Contents/Resources/lib/python2.5/
 echo "copying Ft/Data directory"
-cp -r /usr/local/share/4Suite/Data dist/VisTrails.app/Contents/Resources/lib/python2.5/Ft/
-cp -r /usr/local/share/4Suite/default.cat dist/VisTrails.app/Contents/Resources/lib/python2.5/Ft/
+cp -r /usr/local/share/4Suite/Data dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
+cp -r /usr/local/share/4Suite/default.cat dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
 echo "copying python headers and libs..."
-cp -r /Library/Frameworks/Python.framework/Versions/2.5/include/python2.5/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.5/include/python2.5
-cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config
+cp -r /Library/Frameworks/Python.framework/Versions/2.6/include/python2.6/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.6/include/python2.6
+cp -r /Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/config/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.6/lib/python2.6/config
 echo "creating links to python frameworks"
 curdir=`pwd`                                               
 frameworkdir="dist/VisTrails.app/Contents/Frameworks/Python.framework/"
 cd $frameworkdir
-ln -s Versions/2.5/include/python2.5 Headers
-ln -s Versions/2.5/Python Python
-ln -s Versions/2.5/Resources Resources
+ln -s Versions/2.6/include/python2.6 Headers
+ln -s Versions/2.6/Python Python
+ln -s Versions/2.6/Resources Resources
 cd $curdir
 echo "copying hdf5 headers and libs..."
 mkdir dist/VisTrails.app/Contents/Resources/hdf5
@@ -46,6 +47,8 @@ install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.dylib dist/
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.6.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.6.dylib 
+echo "copying git executable..."
+cp Input/git dist/VisTrails.app/Contents/MacOS/
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."

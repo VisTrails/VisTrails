@@ -183,8 +183,8 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             self.updateSceneBoundingRect(False)
             b_rect = self.sceneBoundingRect
             print "PNG %sx%s" % (b_rect.width(), b_rect.height())
-            pixmap = QtGui.QPixmap(QtCore.QSize(int(math.ceil(b_rect.width())),
-                                                int(math.ceil(b_rect.height()))))
+            pixmap = QtGui.QPixmap(QtCore.QSize(int(math.floor(b_rect.width())),
+                                                int(math.floor(b_rect.height()))))
             print pixmap.size()
             painter = QtGui.QPainter(pixmap)
             painter.setRenderHint(QtGui.QPainter.Antialiasing)

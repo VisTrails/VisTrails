@@ -17,7 +17,143 @@ Please see the About Message for Licensing and Disclaimers.
 RELEASE NOTES
 -------------
 
-Release Name: v1.4.2 build 1716
+Release Name: v1.5 build 1830
+
+Enhancements: 
+ - Upgraded libraries: VTK 5.6, Qt 4.6.3, python 2.6
+ - Add support for calling binaries in Mac bundles (r1813)
+ - New methods for cmdline execution (r1813)
+ - Better configuration for persistence package (r1813)
+ - Added scripts for manipulating the database (r1809)
+ - User may now designate permissions when uploading vistrail to web repository (r1806)
+ - More informative upload dialog that lists incompatibilities between 
+   vistrail files and web repository, including PythonSource module checks (r1806)
+ - Merges with web repository now updates local vistrail version (r1806)
+ - Changed VisTrails version to 1.5 (r1805)
+ - Files produced by FileSync modules are publishable by default.
+   Use publishFile boolean to avoid publishing the files.  (r1805)
+ - Server mode: added support for executing workflows and returning 
+   results as pdf files (r1804)
+ - Latex Extension: added support for embedding pdf files. See README file
+   in extensions/latex for help (r1804)
+ - Ticket #317: Add support to the spreadsheet cells also generate PDF files (r1801)
+ - Spreasheet Package: Added global configuration for controlling 
+   the file type (PNG or PDF) when dumping cells (console mode). This can be set 
+in the Spreadsheet configuration panel or as a 
+command line option (use --pdf or -p 
+for dumping files in pdf). (r1801)
+ - Added support for merging vistrails on the server side (r1798)
+ - Added support to draw workflow graphs (as png and pdf) and 
+history trees (as png) (r1798)
+ - VTK Package: Added the ability to use the Transfer Funtion widget to
+create color mappings (vtkColorTransferFunction) not necessarily in 
+volume property.  (r1796)
+ - Changed version of VTK Package to 0.9.2 (r1796)
+ - Added two new output ports to vtkScaledTransferFunction: vtkPiecewiseFunction and vtkColorTransferFunction (r1796)
+ - Handle upgrade and prune annotations during merge (r1792)
+ - Added gui code for the interactive vistrails merge (r1791)
+ - Interactive interface for merging two vistrails (r1789)
+ - Make actions immutable by moving mutable attributes to a higher level (r1786)
+ - Try to fix as many errors as possible in an upgrade, even if all cannot be fixed (r1777)
+ - Merging action annotations (r1771)
+ - Methods for hashing tags and annotations (r1769)
+ - Merging of vistrails files for crowdlabs. (r1762)
+ - Preferences for upgrades (r1761)
+ - Allow delaying persistence of upgrades until changes (r1761)
+ - PRELIMINARY upgrade support (r1755)
+ - view pipelines without having the packages (r1755)
+ - view invalid pipelines (r1755)
+ - improved pipeline validation (r1755)
+ - Add method to allow updates of a single port rather than all ports as updateUpstream provides (r1753)
+ - Dump non-ModuleError exceptions to the console (r1753)
+ - Improved string formating of nested InvalidPipeline exceptions (r1752)
+ - Allow QSearchBox to do non-incremental searching (r1751)
+ - Improved version selection handling (r1744)
+ - Server Mode: added support for multithreading (r1741)
+ - Decoupled the directory where the spreadsheet will dump cells from the configuration. spreadsheetDumpCells configuration is now deprecated. Now this setting can be configured in a per workflow fashion  (r1741)
+ - Added support for extra information to be passed along workflow executions. The spreadsheet now uses this mechanism instead of a global configuration for dumping cells (r1741)
+ - inital version of a VisTrails R package using rpy2 (r1723)
+ - easier namespace designation using _modules (r1722)
+ - easier constant extensibility and customization (r1721)
+ - improved List module (r1721)
+ - new Dictionary module (r1721)
+ - new SourceConfigurationWidget to make creating source configuration widget easier (r1720)
+
+Bug fixes: 
+ - Sometimes matplotlib plots were not refreshed in the spreadsheet (r1828)
+ - Fixed the flickering issues of VTKCell on Windows (r1825)
+ - Updated Web services code to work with HTTP package chages (r1824)
+ - Fixed Python Wrapping issue with VTK 5.7.0 (r1818)
+ - Minor UI fixes to web repository dialog (r1817)
+ - web repository dialog now links to correct vistrail id on the web repository (r1817)
+ - Upon upload to web repository, an repository identification annotation is added automatically (r1817)
+ - Fixes for merging vistrails in server mode. (r1816)
+ - low-level merge code now allows passthrough gui references
+instead of importing them (r1812)
+ - Fix issue where annotation ids weren't properly assigned (r1809)
+ - Merging thumbnails (r1808)
+ - Fixed issue where database was saving parent id/type pairs as NULL (r1807)
+ - Fixed issue where deleted annotations were not translated to previous version (r1807)
+ - Fixed issue where deleted annotations could not be mapped back to previous schemas (r1807)
+ - Fixed issue where annotations were not set with the correct db flags (r1807)
+ -  Generating the pdf of the workflow in console mode was not 
+working.  (r1805)
+ - Fixed bug in script that starts VisTrails in server mode using Xvfb (r1804)
+ - Spreadsheet package: corrected paper size of generated pdfs (r1803)
+ - Fixed Vistrail merge casting bugs (r1802)
+ -  Spreadsheet Package: Standard non-image type cells now correctly dump
+contents to file.  (r1801)
+ - Vistrail merge did not copy thumbnails (r1800)
+ - Fix issue with reading and writing the boolean parameters during persistence configuration (r1799)
+ - Fix issue when writing metadata of managed files (r1799)
+ - Ticket #358: HTTPFile header-based caching is broken (r1797)
+ - HTTPFile.is_cacheable is now implemented, and is aware of server headers. (r1797)
+ - Ticket #353: Import workflow doesn't set id scope correctly (r1790)
+ - update id scope after importing a workflow (r1790)
+ - Fix for older log files that have incorrectly moduleExec elements (r1788)
+ - Checking whether XML element is not None before trying to evaluate it as text (r1787)
+ - Fixed port spec naming in new persistence package (r1783)
+ - Fixed issue where always creating a new reference didn't generate an id (r1783)
+ - When pruning a node, make sure that node is removed from the version tree display (r1782)
+ - Fixed issue with re-saving to the database with groups (r1781)
+ - Fixed issue with upgrading groups and database persistence (r1781)
+ - References to thumbnaisl were being shared across 
+different vistrails (r1780)
+ - Existing thumbnails were not being replaced by new ones (r1780)
+ - Don't automatically switch to pruned upgrade nodes (r1779)
+ - Ticket #357: Error after saving as [Errno 2] (r1778)
+ - Fixed issue with trying to upgrade groups introduced by upgrading port specs (r1777)
+ - Fix issues where pipelines are not validated after certain actions like copy-paste (r1776)
+ - Merging of vistrails did not work (r1775)
+ - Band-aid for analogies to make analogies with groups or abstractions a bit more robust (r1774)
+ - Fix error with handle_invalid_pipeline and subworkflows (r1773)
+ - Fix bugs in displaying missing dependencies in preferences (r1772)
+ - Pass module information through group to contained modules (r1770)
+ - Fix issue with upgrading module functions for user-defined ports (r1768)
+ - Fix issue with upgrading modules that have user-added ports (r1767)
+ - Change call to fix missing modules to the correct method (r1767)
+ - Merging of vistrails files for crowdlabs. (r1766)
+ - Fix issue with analogies where obselete method was being called (r1764)
+ - Fixed issue where automatic upgrades fail because a port is said to not be found even though the port does exist (r1763)
+ - Fixed issue with upgrading groups (r1761)
+ - Ticket #356: Action copy doesn't remap previous id (r1757)
+ - Pass simplify argument through in create_action_from_ops (r1756)
+ - Fixed issue with versions_increasing computation (r1752)
+ - Ticket #354: Package reloading raises duplicate package error (r1750)
+ - Fix issue with renabling packages where a signal was issued twice (r1750)
+ - VisTrails Server: the vistrail version was not being included in the .vt file generated by the server (r1746)
+ - fixed ModuleRegistry.auto_add_subworkflow so that it accepts the correct (filename, dict) format. (r1745)
+ - Server mode: Added a global variables to store information for accessing the database (r1743)
+ - Fixed a bug in the RequestHandler.get_wf_vt_zip() function. (r1742)
+ - The notes field in the History View now only supports plain text (r1741)
+ - Fixed issue where module label changes were not recognized correctly and raised an exception (r1740)
+ - Don't require a Module to a be of type __builtin__.type to
+allow boost:python, etc. classes (r1739)
+ - Differentiate between init.py not existing and init.py having ImportErrors (r1719)
+ - Ticket #346: Module Parameter Types Serialized Incorrectly (r1718)
+ - Update module parameter type serialization when containing namespaces to match port specs and ports (r1718)
+
+From Release: v1.4.2 build 1716
 
 Enhancements: 
  - Ticket #290: Reload packages without restating VisTrails (r1714)

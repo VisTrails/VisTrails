@@ -25,12 +25,12 @@ APP = ['../../vistrails/vistrails.py']
 #DATA_FILES = ['/usr/local/graphviz-2.12/bin/dot',]
 OPTIONS = {'argv_emulation': True,
            'iconfile': 'resources/vistrails_icon.icns',
-           'includes': 'sip,pylab,xml,netCDF3,netCDF4_utils,netcdftime,\
+           'includes': 'sip,pylab,xml,\
 			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
                         shelve, uuid, gridfield, gridfield.core, \
                         gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
-                        sine,st,Numeric,pexpect,_geoslib',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,ZSI,api,twisted,pyGridWare,Ft,Scientific,mpl_toolkits,dbflib,shapelib,distutils,h5py',
+                        sine,st,Numeric,pexpect,psycopg2,sqlite3',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,pyGridWare,Ft,Scientific,dbflib,shapelib,distutils,h5py,rpy2',
            'plist': plist,
            }
 

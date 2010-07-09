@@ -37,7 +37,7 @@ pythonlibname = re.compile(r'(.*Python\.framework*[^\)]*/Python) (\(.+\))')
 
 # my qt libraries are in /Users/emanuele/Qt-4.4.3/
 # modify this according to your needs
-qtlibnames = re.compile(r'(.*manu*[^\)]*/Qt.+) (\(.+\))')
+qtlibnames = re.compile(r'(Qt.+) (\(.+\))')
 
 updatenames = re.compile(r'(@executable_path.*[^ ]*) .*')
 
@@ -117,8 +117,8 @@ while len(files_to_visit):
             m = r.match(l[:-1].strip())
             if m and r == qtlibnames:
                 #print "qt  * matched: ", l[:-1].strip()
-                pos = str(m.groups()[0]).find("/Qt-4.4.3/lib/")
-                libname = str(m.groups()[0])[pos+14:]
+                #pos = str(m.groups()[0]).find("/Qt-4.4.3/lib/")
+                libname = str(m.groups()[0])
                 cmd_line = build_cmdline_qt(src, m.groups()[0], libname)
             elif m and r == pythonlibname :
                 #print "python  * matched: ", l[:-1].strip()
