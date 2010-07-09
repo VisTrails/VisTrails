@@ -25,7 +25,6 @@ import sys
 import stat
 import subprocess
 import core.system
-import popen2
 
 try:
     from ctypes import windll, Structure, c_ulong, byref, sizeof
@@ -181,10 +180,11 @@ def execute_cmdline(lst, output):
     """
     # FIXME this is deprecated. Someone with windows experience should
     # fix it with the correct subprocess.Popen incantation
-    cmdline = list2cmdline(lst)
-    out, inp = popen2.popen4(cmdline)
-    output.extend(out.readlines())
-    return 0
+    #cmdline = list2cmdline(lst)
+    proc = subprocess.Popen(lst, shell=True, stdin=subprocess.PIPE, 
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if proc.stdout:
+        output.extend(proc.stdout.readlines())
     
 def get_executable_path(executable_name):
     # FIXME

@@ -96,8 +96,6 @@ class Fold(Module, NotCacheable):
                 
                 ## Getting the result from the output port
                 if nameOutput not in connector.obj.outputPorts:
-                    print 'connection.obj', connector.obj
-                    print 'outputPorts:', connector.obj.outputPorts
                     raise ModuleError(connector.obj,\
                                       'Invalid output port: %s'%nameOutput)
                 self.elementResult = connector.obj.get_output(nameOutput)
