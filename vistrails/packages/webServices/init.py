@@ -1413,8 +1413,14 @@ The following could not be loaded:\n"""
             msg += "Url: '%s', error: '%s'\n"%(w,e)
         pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
 
-def handle_missing_module(m_name, m_namespace):
+def handle_missing_module(*args, **kwargs):
     global webServicesmodulesDict
+    
+    #this is the order the arguments are passed to the function
+    controller = args[0]
+    m_id = args[1]
+    pipeline = args[2]
+    
     def get_wsdl_from_namespace(m_namespace):
         try:
             wsdl = m_namespace.split("|")
@@ -1422,7 +1428,9 @@ def handle_missing_module(m_name, m_namespace):
         except:
             print "invalid namespace"
             return None
-
+    m = pipeline.modules[m_id]
+    m_namespace = m.namespace
+    
     wsdl = get_wsdl_from_namespace(m_namespace)
     if wsdl:
         outdated_list = []
