@@ -97,6 +97,7 @@ class MplFigureCellWidget(QCellWidget):
 
             # Save back the manager
             self.figManager = newFigManager
+            self.update()
 
     def deleteLater(self):
         """ deleteLater() -> None        
