@@ -86,6 +86,7 @@ Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: e
 Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: ..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
 Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
 Source: Input\runvistrails.py; DestDir: {app}
@@ -121,6 +122,7 @@ Name: {app}\vistrails
 Name: {app}\examples; Components: examples; Tasks: 
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
+Name: {app}\extensions; Components: extensions; Tasks: 
 Name: {app}\scripts
 Name: {app}\scripts\gen_vtk_examples
 Name: {app}\vistrails\libsrc
@@ -138,6 +140,7 @@ Name: {app}\vistrails\Python26\Tools
 [Components]
 Name: main; Description: Main Files; Types: full compact custom; Flags: fixed
 Name: examples; Description: Example Files; Types: full
+Name: extensions; Description: Extension Files; Types: full
 
 [Icons]
 Name: {group}\VisTrails; Filename: {app}\vistrails\Python26\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py

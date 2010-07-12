@@ -1,10 +1,11 @@
 RELEASE NOTES
 -------------
 
-Release Name: v1.5 build 1830
+Release Name: v1.5 build 1831
 
 Enhancements: 
  - Upgraded libraries: VTK 5.6, Qt 4.6.3, python 2.6
+ - Adding extension files to release
  - Add support for calling binaries in Mac bundles (r1813)
  - New methods for cmdline execution (r1813)
  - Better configuration for persistence package (r1813)

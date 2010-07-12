@@ -1,5 +1,5 @@
 ###########################################################
-# Nightly Svn Release to Sourceforge                      #
+# Source Release to Sourceforge                      #
 # Author: Daniel S. Rees                                  #
 #                                                         #
 # Description:                                            #
@@ -39,7 +39,7 @@ SVN_URL = "https://vistrails.sci.utah.edu/svn/trunk"
 SVN_ARGS = ""
 
 # Prefix of target svn export dir (also used as prefix for log files)
-EXPORT_DIR_PREFIX = "vistrails-src-nightly"
+EXPORT_DIR_PREFIX = "vistrails-src-1.5"
 
 # Suffix of target svn export dir (instances of '?' will be replaced with svn revision)
 EXPORT_DIR_SUFFIX = "-rev?"
@@ -48,7 +48,7 @@ EXPORT_DIR_SUFFIX = "-rev?"
 EXPORT_DELETE_PATHS = ["dist"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
-TARBALL_NAME = "vistrails-src-nightly"
+TARBALL_NAME = "vistrails-src-1.4.2-rev1716"
 
 # Sourceforge User Name
 SF_USERNAME = "CHANGEME"
@@ -63,7 +63,7 @@ SF_DIRNAME = "vistrails/nightly"
 SF_PRIVKEY_PATH = "/path/to/private/key/CHANGEME"
 
 # Flag determines if tarball is uploaded (Can be set manually here or conditionally in last_minute_changes())
-SF_DO_UPLOAD = True
+SF_DO_UPLOAD = False
 
 # Flag determines if tarball upload is forced - if True, overrides SF_DO_UPLOAD (don't set in last_minute_changes())
 SF_FORCE_UPLOAD = False
@@ -82,6 +82,9 @@ ARCHIVE_DIR = "archive"
 
 # Indentation level for tracebacks and svn export log in the logfile
 INDENT = " "*12
+
+# Is this a release version? Changelist will not be created
+RELEASE = True
 
 #################################
 ###### Last Minute Changes ######
@@ -148,48 +151,60 @@ def last_minute_changes():
         if f is not None:
             f.close()
 
-    # Write changelist with all revisions since last release
-    info("Writing CHANGELIST for revisions %s-%s (last release was revision %s) ..." % (int(last_revision)+1, REVISION, last_revision))
-    f = None
-    try:
-        clist_filename = os.path.join(EXPORT_DIRNAME, "CHANGELIST")
-        if int(REVISION) > int(last_revision):
-            pattern = re.compile(r"(^r[0-9]+ \| )(\S+ \| )", re.MULTILINE)
-            info("Getting number of revisions in CHANGELIST ...")
-            f = open(clist_filename, "wb")
-            proc.call("%s log -q -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
-            f.close()
-            f = open(clist_filename, "rb")
-            data = f.read()
-            f.close()
-            (data, expected_count) = pattern.subn(r"\g<1>", data)
-            revision_diff_count = int(REVISION) - int(last_revision)
-            if expected_count != revision_diff_count:
-                debug("Revision Count (%s) in CHANGELIST != Num Revisions (%s) since last release.  This could mean revisions were made on a different branch." % (expected_count, revision_diff_count))
-            info("Writing verbose CHANGELIST ...")
-            f = open(clist_filename, "wb")
-            proc.call("%s log -v -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
-            f.close()
-            info("Removing developer login names from CHANGELIST ...")
-            f = open(clist_filename, "rb")
-            data = f.read()
-            f.close()
-            (data, count) = pattern.subn(r"\g<1>", data)
-            if count != expected_count:
-                raise Exception("Removed %s developer names from CHANGELIST (should have been %s)." % (count, expected_count))
-            f = open(clist_filename, "wb")
-            f.write(data)
-        else:
-            f = open(clist_filename, "wb")
-            f.write("No changes since last release.")
-        if not os.path.isfile(clist_filename):
-            raise Exception("CHANGELIST file does not exist after write attempt.")
-    except:
-        error("Couldn't write CHANGELIST.")
-        raise
-    finally:
-        if f is not None:
-            f.close()
+
+    if RELEASE:
+        # Copy Release Notes
+        srcfile = "dist/windows/Input/releaseNotes.txt"
+        destfile = "RELEASE"
+        info("Copying '%s' to export base dir ..." % srcfile)
+        try:
+            shutil.copy(os.path.join(EXPORT_DIRNAME, srcfile), os.path.join(EXPORT_DIRNAME, destfile))
+        except:
+            error("Couldn't copy '%s' to export base dir.")
+            raise
+    else:
+        # Write changelist with all revisions since last release
+        info("Writing CHANGELIST for revisions %s-%s (last release was revision %s) ..." % (int(last_revision)+1, REVISION, last_revision))
+        f = None
+        try:
+            clist_filename = os.path.join(EXPORT_DIRNAME, "CHANGELIST")
+            if int(REVISION) > int(last_revision):
+                pattern = re.compile(r"(^r[0-9]+ \| )(\S+ \| )", re.MULTILINE)
+                info("Getting number of revisions in CHANGELIST ...")
+                f = open(clist_filename, "wb")
+                proc.call("%s log -q -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
+                f.close()
+                f = open(clist_filename, "rb")
+                data = f.read()
+                f.close()
+                (data, expected_count) = pattern.subn(r"\g<1>", data)
+                revision_diff_count = int(REVISION) - int(last_revision)
+                if expected_count != revision_diff_count:
+                    debug("Revision Count (%s) in CHANGELIST != Num Revisions (%s) since last release.  This could mean revisions were made on a different branch." % (expected_count, revision_diff_count))
+                info("Writing verbose CHANGELIST ...")
+                f = open(clist_filename, "wb")
+                proc.call("%s log -v -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
+                f.close()
+                info("Removing developer login names from CHANGELIST ...")
+                f = open(clist_filename, "rb")
+                data = f.read()
+                f.close()
+                (data, count) = pattern.subn(r"\g<1>", data)
+                if count != expected_count:
+                    raise Exception("Removed %s developer names from CHANGELIST (should have been %s)." % (count, expected_count))
+                f = open(clist_filename, "wb")
+                f.write(data)
+            else:
+                f = open(clist_filename, "wb")
+                f.write("No changes since last release.")
+            if not os.path.isfile(clist_filename):
+                raise Exception("CHANGELIST file does not exist after write attempt.")
+        except:
+            error("Couldn't write CHANGELIST.")
+            raise
+        finally:
+            if f is not None:
+                f.close()
 
     # Don't upload if there were no changes made today
     if SF_DO_UPLOAD:
