@@ -128,10 +128,18 @@ def typeMap(name, package=None):
 def get_method_signature(method):
     """ get_method_signature(method: vtkmethod) -> [ret, arg]
     Re-wrap Prabu's method to increase performance
-    
+
     """
     doc = method.__doc__
-    tmp = doc.split('\n')
+    tmptmp = doc.split('\n')
+    tmp = []
+    for l in tmptmp:
+        l = l.strip('\n \t')
+        if l.startswith('V.') or l.startswith('C++:'):
+            tmp.append(l)
+        else:
+            tmp[-1] = tmp[-1] + l
+    tmp.append('')
     sig = []        
     pat = re.compile(r'\b')
 
@@ -157,10 +165,16 @@ def get_method_signature(method):
 
             # Now quote the args and eval them.  Easy!
             if ret and ret[:3]!='vtk':
-                ret = eval(pat.sub('\"', ret))
+                try:
+                    ret = eval(pat.sub('\"', ret))
+                except:
+                    continue
             if arg:
                 if arg.find('(')!=-1:
-                    arg = eval(pat.sub('\"', arg))
+                    try:
+                        arg = eval(pat.sub('\"', arg))
+                    except:
+                        continue
                 else:
                     arg = arg.split(', ')
                     if len(arg)>1:
@@ -370,6 +384,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
         if len(setterSig) > 1:
             prune_signatures(module, 'Set%s'%name, setterSig)
         for ix, setter in enumerate(setterSig):
+            if setter[1]==None: continue
             n = resolve_overloaded_name('Set' + name, ix, setterSig)
             if len(setter[1]) == 1 and is_class_allowed(typeMap(setter[1][0])):
                 registry.add_input_port(module, n,
@@ -1013,6 +1028,7 @@ def initialize():
     setAllPorts(registry.get_descriptor_by_name(identifier,
                                                 'vtkObjectBase'),
                 delayed)
+
     # Register the VTKCell and VTKHandler type if the spreadsheet is up
     if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
                            'SpreadsheetCell'):
@@ -1025,7 +1041,7 @@ def initialize():
 
     # register offscreen rendering module
     offscreen.register_self()
-    
+
     # Now add all "delayed" ports - see comment on addSetGetPorts
     for args in delayed.add_input_port:
         
