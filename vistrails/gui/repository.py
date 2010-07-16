@@ -257,31 +257,39 @@ class QRepositoryPushWidget(QtGui.QWidget):
                 # updating vistrail, so disable permissions
 
                 # TODO: get permissions settings for vistrail to be updated
-                self.perm_view.setEnabled(False)
-                self.perm_edit.setEnabled(False)
-                self.perm_download.setEnabled(False)
-                self._push_button.setText("Commit changes")
 
                 # Since repository_vt_id doesn't mirror crowdlabs vt id
                 # get the crowdlabs vt id for linkage
-                vt_id_url = "%s/vistrails/get_id/%s" % \
+                vt_url = "%s/vistrails/details/%s" % \
                         (self.config.webRepositoryURL,
                          controller.vistrail.get_annotation('repository_vt_id').value)
                 try:
-                    get_vistrail_id = urllib2.urlopen(url=vt_id_url)
-                    vistrail_id = get_vistrail_id.read()
-                    vistrail_link = "%s/vistrails/details/%s" % \
-                            (self.config.webRepositoryURL,
-                             vistrail_id)
+                    request = urllib2.urlopen(url=vt_url)
+                    if request.code == 200:
+                        # the vistrail exists on the repository, setup merge settings
+                        self.perm_view.setEnabled(False)
+                        self.perm_edit.setEnabled(False)
+                        self.perm_download.setEnabled(False)
+                        self._push_button.setText("Commit changes")
+
+                        vistrail_link = "%s/vistrails/details/%s" % \
+                                (self.config.webRepositoryURL,
+                                 controller.vistrail.get_annotation('repository_vt_id').value)
+
+                        self._repository_status['support_status'] = \
+                                ("You are attempting to update this vistrail: "
+                                 "<a href='%s'>%s</a>. This will possibly update your local version with changes from the web repository<br><br>") % \
+                                (vistrail_link, vistrail_link)
+
                 except urllib2.HTTPError:
-                    print "repo vt id: %s" % controller.vistrail.get_annotation('repository_vt_id').value
-                    vistrail_link = ""
+                    # the vistrail has *probably* been deleted or doesn't exist
+                    # remove repository_vt_id annotation
+                    repo_annotation = controller.vistrail.get_annotation('repository_vt_id')
+                    if repo_annotation:
+                        controller.vistrail.db_delete_annotation(repo_annotation)
+                    print "the vistrail has been deleted or doesn't exist"
 
 
-                self._repository_status['support_status'] = \
-                        ("You are attempting to update this vistrail: "
-                         "<a href='%s'>%s</a>. This will possibly update your local version with changes from the web repository<br><br>") % \
-                        (vistrail_link, vistrail_link)
 
             if self.repository_supports_vt:
                 self._repository_status['support_status'] += \
@@ -352,13 +360,13 @@ class QRepositoryPushWidget(QtGui.QWidget):
             os.unlink(filename)
 
             print "before check"
-            if updated_response[:7] == "success":
+            if updated_response[:6] == "upload":
                 # No update, just upload
                 if result.code != 200:
                     self._repository_status['details'] = \
                             "Push to repository failed"
                 else:
-                    repository_vt_id = int(updated_response[9:])
+                    repository_vt_id = int(updated_response[8:])
                     controller.vistrail.set_annotation('repository_vt_id',
                                                        repository_vt_id)
                     controller.vistrail.set_annotation('repository_creator',
@@ -400,6 +408,11 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     controller.set_vistrail(up_vistrail,
                                             controller.vistrail.locator,
                                             abstractions, thumbnails)
+                    """
+                    os.remove(updated_filename)
+                    os.remove(updated_filename[:-1])
+                    os.rmdir(self.directory)
+                    """
 
                     self._repository_status['details'] = \
                             "Update to repository was successful"
