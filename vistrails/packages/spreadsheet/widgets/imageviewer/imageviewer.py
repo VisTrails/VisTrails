@@ -245,7 +245,8 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         """
         (sheet, row, col, cellWidget) = info
         if cellWidget:
-            if not cellWidget.label.hasScaledContents():
+            if (not cellWidget.label.hasScaledContents() and
+                not cellWidget._playing):
                 self.setEnabled(True)
                 originalWidth = cellWidget.originalPix.width()
                 self.setValue(cellWidget.label.pixmap().width()*100/originalWidth)
