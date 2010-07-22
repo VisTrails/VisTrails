@@ -488,8 +488,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         cell.saveToPDF(filename)
             #if the cell was already selected, then we need to update 
             #the toolbar with this new cell
-            if sheet.sheet.activeCell == (row,col):
-                sheet.sheet.setActiveCell(row,col)
+            if hasattr(sheet, 'sheet'):
+                if sheet.sheet.activeCell == (row,col):
+                    sheet.sheet.setActiveCell(row,col)
             return cell 
 
     def batchDisplayCellEvent(self, batchEvent):

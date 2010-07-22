@@ -1965,6 +1965,17 @@ class VistrailController(object):
                                                      report_all_errors)
                     # check that we handled the invalid pipeline
                     # correctly
+                    try:
+                        pipeline.validate()
+                    # this means that there was a new exception after handling 
+                    # the invalid pipeline and we should handle it again.    
+                    except InvalidPipeline, e:
+                        (new_version, pipeline) = \
+                                 self.handle_invalid_pipeline(e, new_version,
+                                                              self.vistrail,
+                                                              report_all_errors)
+                        # check that we handled the invalid pipeline
+                        # correctly
                     pipeline.validate()
                     self.current_pipeline = pipeline
                     self.current_version = new_version

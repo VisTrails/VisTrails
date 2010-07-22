@@ -147,6 +147,7 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         
         """
         QtGui.QWidget.__init__(self, None)
+        StandardWidgetSheetTabInterface.__init__(self)
         self.type = 'StandardSingleCellSheetTab'
         self.tabWidget = tabWidget
         self.vLayout = QtGui.QVBoxLayout()
