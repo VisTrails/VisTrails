@@ -1868,7 +1868,7 @@
     </property>
 
     <property ref="true" object="actionAnnotation" type="list" 
-	      mapping="one-to-many" index="action_id:key key:value">
+	      mapping="one-to-many" index="action_id:key !key:value">
       <xml nodeType="xs:element"/>
     </property>
 

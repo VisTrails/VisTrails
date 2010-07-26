@@ -19,3 +19,9 @@ python generate.py -v 0.6.0 -m -a -n
 
 with -n depending on whether you wish to change the current version or not.
 
+In the specs file, you can create indexes using the index attribute
+for a property.  You can specify multiple indexes by delimiting them
+with spaces.  You can specify a composite index by separating the
+fields by a colon.  Finally, you can specify that an index is not 1-1
+with '!' as the starting character; this allows us to ignore KeyErrors
+on the deletes from that dictionary.

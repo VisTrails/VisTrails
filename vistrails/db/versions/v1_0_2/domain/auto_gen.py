@@ -11207,7 +11207,10 @@ class DBVistrail(object):
                 break
         del self.db_actionAnnotations_id_index[actionAnnotation.db_id]
         del self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)]
-        del self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)]
+        try:
+            del self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)]
+        except KeyError:
+            pass
     def db_get_actionAnnotation(self, key):
         for i in xrange(len(self._db_actionAnnotations)):
             if self._db_actionAnnotations[i].db_id == key:

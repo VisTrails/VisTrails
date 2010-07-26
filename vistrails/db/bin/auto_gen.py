@@ -201,32 +201,59 @@ class AutoGen:
                 if type(index) == type([]):
                     index_field = []
                     for piece in index:
+                        ignore_del_err = False
+                        if piece[0] == '!':
+                            piece = piece[1:]
+                            ignore_del_err = True
                         ref_field = ref_obj.getField(piece)
                         if ref_field is not None:
-                            index_field.append(ref_field.getRegularName())
+                            if ignore_del_err:
+                                index_field.append('!' + ref_field.getRegularName())
+                            else:
+                                index_field.append(ref_field.getRegularName())
                     if len(index_field) > 1:
                         indices.append(index_field)
                     elif len(index_field) > 0:
                         indices.append(index_field[0])
                 else:
+                    ignore_del_err = False
+                    if index[0] == '!':
+                        index = index[1:]
+                        ignore_del_err = True
                     index_field = ref_obj.getField(index)
                     if index_field is not None:
-                        indices.append(index_field.getRegularName())
+                        if ignore_del_err:
+                            indices.append('!' + index_field.getRegularName())
+                        else:
+                            indices.append(index_field.getRegularName())
         return indices
 
     def getIndexName(self, index):
         if type(index) == type([]):
             # return '_'.join(index)
+            if index[0][0] == '!':
+                return index[0][1:]
             return index[0]
         else:
+            if index[0] == '!':
+                return index[1:]
             return index
 
     def getIndexKey(self, field_str, index):
         if type(index) == type([]):
+            if index[0][0] == '!':
+                index = [index[0][1:]] + index[1:]
             return '(' + field_str + '.db_' + \
                 (',' + field_str + '.db_').join(index) + ')'
         else:
+            if index[0] == '!':
+                index = index[1:]
             return field_str + '.db_' + index
+
+    def shouldIgnoreIndexDelete(self, index):
+        if type(index) == type([]):
+            return index[0][0] == '!'
+        return index[0] == '!'
 
     def generatePythonClass(self, object):
 	self.printLine('class %s(object):\n\n' % object.getClassName())
@@ -759,11 +786,18 @@ class AutoGen:
                         self.printLine('break\n')
                         self.unindent(2)
                 for index in self.getAllIndices(field):
+                    if self.shouldIgnoreIndexDelete(index):
+                        self.printLine('try:\n')
+                        self.indent()
                     self.printLine('del self.db_%s_%s_index[%s]\n' % \
                                        (field.getRegularName(),
                                         self.getIndexName(index), 
                                         self.getIndexKey(field.getName(),
                                                          index)))
+                    if self.shouldIgnoreIndexDelete(index):
+                        self.unindentLine('except KeyError:\n')
+                        self.indentLine('pass\n')
+                        self.unindent()
 		self.unindent()
 
 		self.printLine('def %s(self, key):\n' % field.getLookup())
