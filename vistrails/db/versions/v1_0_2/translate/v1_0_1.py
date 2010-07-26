@@ -31,6 +31,22 @@ def translateVistrail(_vistrail):
     upgrade_annotations = []
     prune_annotations = []
 
+    def update_type(old_obj, translate_dict):
+        if old_obj.db_type.find('|') >= 0:
+            [identifier, m_and_ns] = old_obj.db_type.split(':', 1)
+            # this second check is fragile but should be ok
+            if m_and_ns.find(':') == -1 or m_and_ns.startswith('http://'):
+                # need to move module name
+                try:
+                    [namespace, module] = m_and_ns.rsplit('|', 1)
+                    new_type = ':'.join([identifier, module, namespace])
+                    return new_type
+                except Exception, e:
+                    # just bail for now
+                    print e
+                    pass
+        return old_obj.db_type
+
     def update_tags(old_obj, translate_dict):
         for tag in old_obj.db_tags:
             tag_annotations.append((tag.db_id, tag.db_name, None))
@@ -68,7 +84,9 @@ def translateVistrail(_vistrail):
     translate_dict = {'DBGroup': {'workflow': update_workflow},
                       'DBVistrail': {'tags': update_tags,
                                      'actions': update_actions},
-                      'DBAction': {'annotations': update_annotations}}
+                      'DBAction': {'annotations': update_annotations},
+                      'DBParameter': {'type': update_type},
+                      }
     _vistrail.update_id_scope()
     vistrail = DBVistrail.update_version(_vistrail, translate_dict)
 
