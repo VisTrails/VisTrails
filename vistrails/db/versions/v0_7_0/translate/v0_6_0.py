@@ -32,7 +32,8 @@ def translateVistrail(_vistrail):
         ops = []
         for op in _action.db_operations:
             if op.vtType == 'add':
-                data = convert_data(op.db_data)
+                data = convert_data(op.db_data, op.db_parentObjType,
+                                    op.db_parentObjId)
                 ops.append(DBAdd(id=op.db_id,
                                  what=op.db_what, 
                                  objectId=op.db_objectId, 
@@ -40,7 +41,8 @@ def translateVistrail(_vistrail):
                                  parentObjType=op.db_parentObjType, 
                                  data=data))
             elif op.vtType == 'change':
-                data = convert_data(op.db_data)
+                data = convert_data(op.db_data, op.db_parentObjType,
+                                    op.db_parentObjId)
                 ops.append(DBChange(id=op.db_id,
                                     what=op.db_what, 
                                     oldObjId=op.db_oldObjId, 
@@ -77,6 +79,8 @@ translate_ports = {'SetInputConnection': {None: 'SetInputConnection0'},
                    'SetInteractorStyle': {None: 'InteractorStyle'},
                    'ResetCamera': {None: 'ResetCamera'},
                    'AddPoint': {None: 'AddPoint_1'},
+                   'AddRGBPoint': {None: 'AddRGBPoint_1'},
+                   'AddHSVPoint': {None: 'AddHSVPoint_1'},
                    'AddInput': {None: 'AddInput',
                                 'vtkXYPlotActor': 'AddInput_2'},
                    'SetInput': {None: 'SetInput',
@@ -118,7 +122,22 @@ translate_ports = {'SetInputConnection': {None: 'SetInputConnection0'},
                                  'vtkGlyph3D': 'SetSource_1'},
                    }
 
-def convert_data(child):
+def translate_vtk(module_id, port_name, specs=None):
+    global module_map
+    if port_name in translate_ports:
+        if module_id in module_map:
+            (module_name, module_pkg) = module_map[module_id]
+            if module_pkg != 'edu.utah.sci.vistrails.vtk':
+                return port_name
+        if module_name in translate_ports[port_name]:
+            port_name = translate_ports[port_name][module_name]
+        elif (module_name, specs) in translate_ports[port_name]:
+            port_name = translate_ports[port_name][(module_name, specs)]
+        else:
+            port_name = translate_ports[port_name][None]  
+    return port_name
+
+def convert_data(child, parent_type, parent_id):
     from core.vistrail.port_spec import PortSpec
     from core.modules.module_registry import get_module_registry
     global module_map, translate_ports
@@ -141,9 +160,13 @@ def convert_data(child):
                           type=child.db_type, 
                           spec=child.db_spec)
     elif child.vtType == 'function':
+        if parent_type == 'module':
+            name = translate_vtk(parent_id, child.db_name)
+        else:
+            name = child.db_name
         return DBFunction(id=child.db_id,
                           pos=child.db_pos, 
-                          name=child.db_name)
+                          name=name)
     elif child.vtType == 'parameter':
         return DBParameter(id=child.db_id,
                            pos=child.db_pos,
@@ -164,20 +187,7 @@ def convert_data(child):
         if '(' in sig and ')' in sig:
             name = sig[:sig.find('(')]
             specs = sig[sig.find('(')+1:sig.find(')')]
-            if name in translate_ports:
-                if child.db_moduleId in module_map:
-                    (module_name, module_pkg) = module_map[child.db_moduleId]
-                    if module_pkg != 'edu.utah.sci.vistrails.vtk':
-                        # skip
-                        pass
-                else:
-                    module_name = child.db_moduleName
-                if module_name in translate_ports[name]:
-                    name = translate_ports[name][module_name]
-                elif (module_name, specs) in translate_ports[name]:
-                    name = translate_ports[name][(module_name, specs)]
-                else:
-                    name = translate_ports[name][None]
+            name = translate_vtk(child.db_moduleId, name, specs)
 
             new_specs = []
             for spec_name in specs.split(','):
