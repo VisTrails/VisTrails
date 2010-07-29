@@ -35,24 +35,6 @@ XML_SCHEMA_FOOTER = \
 """</xs:schema>
 """
 
-class XMLObject(Object):
-    def __init__(self):
-        Object.__init__(self)
-        
-    def getName(self):
-        try:
-            return self.layouts[XML_TYPE]['name']
-        except KeyError:
-            pass
-        return Object.getName(self)
-
-    def getNodeType(self):
-        try:
-            return self.layouts[XML_TYPE]['nodeType']
-        except KeyError:
-            pass
-        return 'xs:element'
-
 class XMLProperty(Property):
     def __init__(self):
         Property.__init__(self)
@@ -109,6 +91,60 @@ class XMLChoice(Choice):
     def hasSpec(self):
         return self.properties[0].hasSpec()
 
+    def getXMLProperties(self):
+        return [p for p in self.properties if p.hasSpec()]
+
+    def getXMLAttributes(self):
+        return [p for p in self.properties if p.hasSpec() and \
+                    not p.isInferred() and p.getNodeType() == 'xs:attribute']
+
+    def getXMLElements(self):
+        return [p for p in self.properties if p.hasSpec() and \
+                    not p.isInferred() and p.getNodeType() == 'xs:element']
+
+    def getXMLInferredProperties(self):
+        return [p for p in self.properties if p.isInferred()]
+
+    def isXMLChoice(self):
+        return True
+
+class XMLObject(Object):
+    def __init__(self):
+        Object.__init__(self)
+        
+    def getName(self):
+        try:
+            return self.layouts[XML_TYPE]['name']
+        except KeyError:
+            pass
+        return Object.getName(self)
+
+    def getNodeType(self):
+        try:
+            return self.layouts[XML_TYPE]['nodeType']
+        except KeyError:
+            pass
+        return 'xs:element'
+
+    def getXMLAttributes(self):
+        return [p for p in self.properties if p.hasSpec() and \
+                    not p.isInferred() and p.getNodeType() == 'xs:attribute']
+
+    def getXMLElements(self):
+        return [p for p in self.properties if p.hasSpec() and \
+                    not p.isInferred() and p.getNodeType() == 'xs:element']
+
+    def getXMLChoices(self):
+        return [c for c in self.choices if not c.isInverse() and \
+                    any([p.hasSpec() for p in c.properties])]
+
+    def isXMLChoice(self):
+        return False
+
+    def getXMLInferredProperties(self):
+        return [p for p in self.properties if p.isInferred()]
+
+
 class XMLAutoGen(AutoGen):
     def __init__(self, objects):
         AutoGen.__init__(self, objects)
@@ -123,52 +159,7 @@ class XMLAutoGen(AutoGen):
 
     def reset(self, spaces = XML_SPACES):
         AutoGen.reset(self, spaces)
-
-    def getXMLAttributes(self, object):
-        attributes = []
-        for property in object.properties:
-            if property.hasSpec() and not property.isInferred() and \
-                   property.getNodeType() == 'xs:attribute':
-                attributes.append(property)
-        return attributes
-
-    def getXMLElements(self, object):
-        elements = []
-        for property in object.properties:
-            if property.hasSpec() and not property.isInferred() and \
-                   property.getNodeType() == 'xs:element':
-                elements.append(property)
-        return elements
-
-    def getXMLChoices(self, object):
-        choices = []
-        for choice in object.choices:
-            if not choice.isInverse():
-                for property in choice.properties:
-                    if property.hasSpec():
-                        choices.append(choice)
-                        break;
-        return choices
         
-    def isXMLChoice(self, object):
-        if isinstance(object, XMLChoice):
-            return True
-        return False
-
-    def getXMLPropertiesForChoice(self, choice):
-        choiceProps = []
-        for property in choice.properties:
-            if property.hasSpec():
-                choiceProps.append(property)
-        return choiceProps
-
-    def getXMLInferredProperties(self, object):
-        inferred = []
-        for property in object.properties:
-            if property.isInferred():
-                inferred.append(property)
-        return inferred
-
     def generateSchema(self, rootName):
         self.reset(XML_SPACES)
         self.printLine(XML_SCHEMA_HEADER)
@@ -190,11 +181,11 @@ class XMLAutoGen(AutoGen):
         return self.getOutput()
         
     def generateSchemaForObject(self, object):
-        elements = self.getXMLElements(object)
-        attrs = self.getXMLAttributes(object)
+        elements = object.getXMLElements()
+        attrs = object.getXMLAttributes()
 
-        if not self.isXMLChoice(object):
-            choices = self.getXMLChoices(object)
+        if not object.isXMLChoice():
+            choices = object.getXMLChoices()
         
             if len(elements) + len(attrs) + len(choices) > 0:
                 self.indentLine('<xs:complexType>\n')
@@ -211,7 +202,7 @@ class XMLAutoGen(AutoGen):
                     maxOccurs = 'unbounded'
 
                 # find reference
-                refObj = self.getReferencedObject(property.getReference())
+                refObj = property.getReferencedObject()
                 if refObj is not None and refObj not in self.refObjects:
                     self.refObjects.append(refObj)
                 
@@ -240,7 +231,7 @@ class XMLAutoGen(AutoGen):
                 self.printLine('</xs:choice>\n')
                 self.unindent()
 
-        if len(elements) > 0 and not self.isXMLChoice(object):
+        if len(elements) > 0 and not object.isXMLChoice():
             self.printLine('</xs:sequence>\n')
             self.unindent()
 
@@ -255,7 +246,7 @@ class XMLAutoGen(AutoGen):
             self.unindent()
 
         if len(elements) + len(attrs) + len(choices) > 0 and \
-                not self.isXMLChoice(object):
+                not object.isXMLChoice():
             self.printLine('</xs:complexType>\n')
             self.unindent()
 
@@ -296,11 +287,11 @@ class XMLAutoGen(AutoGen):
         self.unindentLine('def getDao(self, dao):\n')
         self.indentLine('return self.daoList[dao]\n\n')
 
-        attrs = self.getXMLAttributes(object)
-        elements = self.getXMLElements(object)
-        choices = self.getXMLChoices(object)
+        attrs = object.getXMLAttributes()
+        elements = object.getXMLElements()
+        choices = object.getXMLChoices()
         varPairs = []
-        for field in self.getPythonFields(object):
+        for field in object.getPythonFields():
             if field.hasSpec():
                 varPairs.append('%s=%s' % (field.getRegularName(), 
                                            field.getRegularName()))
@@ -328,7 +319,7 @@ class XMLAutoGen(AutoGen):
         def generatePropertyParseCode(property, cond):
             if property.isReference():
                 # print "property.getSingleName():", property.getSingleName()
-                refObj = self.getReferencedObject(property.getReference())
+                refObj = property.getReferencedObject()
                 propertyName = refObj.getName()
             else:
                 propertyName = property.getName()
@@ -346,8 +337,7 @@ class XMLAutoGen(AutoGen):
             if field.isPlural():
                 if field.getPythonType() == 'hash':
                     if field.isReference():
-                        childObj = \
-                            self.getReferencedObject(field.getReference())
+                        childObj = field.getReferencedObject()
                         key = childObj.getKey().getFieldName()
                     else:
                         key = ''
@@ -384,7 +374,7 @@ class XMLAutoGen(AutoGen):
             cond = 'if'
             for field in elements + choices:
                 if field.isChoice():
-                    for property in self.getXMLPropertiesForChoice(field):
+                    for property in field.getXMLProperties():
                         generatePropertyParseCode(property, cond)
                         generateFieldStoreCode(field)
                         cond = 'elif'
@@ -437,7 +427,7 @@ class XMLAutoGen(AutoGen):
 
         def generatePropertyOutputCode(property, field=None):
             if property.isReference():
-                refObj = self.getReferencedObject(property.getReference())
+                refObj = property.getReferencedObject()
                 if field is None:
                     field = property
                 self.printLine("childNode = ElementTree.SubElement(" +
@@ -476,7 +466,7 @@ class XMLAutoGen(AutoGen):
                     self.indent()
                     if field.isChoice():
                         cond = 'if'
-                        for property in self.getXMLPropertiesForChoice(field):
+                        for property in field.getXMLProperties():
                             self.printLine("%s %s.vtType == '%s':\n" % \
                                                (cond,
                                                 field.getSingleName(),

@@ -39,6 +39,24 @@ class AutoGenParser:
 		for node in domObjects:
 		    curObject = self.parseObject(node)
 		    objects[curObject.getName()] = curObject
+
+        # set the referenced objects here
+        for obj in objects.itervalues():
+            for prop in obj.properties:
+                if prop.getReference():
+                    try:
+                        prop.setReferencedObject(objects[prop.getReference()])
+                    except KeyError:
+                        print 'error:', prop.getReference()
+            for choice in obj.choices:
+                for prop in choice.properties:
+                    if prop.getReference():
+                        try:
+                            prop.setReferencedObject(
+                                objects[prop.getReference()])
+                        except KeyError:
+                            print 'error:', prop.getReference()
+                
 	return objects
 
     def parseObject(self, node):

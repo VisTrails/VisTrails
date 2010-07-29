@@ -127,6 +127,45 @@ class Field:
             pass
         return []
 
+    def getAllIndices(self):
+        indices = []
+        if self.isReference():
+            if self.isPlural():
+                ref_obj = self.getReferencedObject()
+                key = ref_obj.getKey()
+                if key is not None:
+                    indices.append(key.getRegularName())
+            for index in self.getIndices():
+                if type(index) == type([]):
+                    index_field = []
+                    for piece in index:
+                        ignore_del_err = False
+                        if piece[0] == '!':
+                            piece = piece[1:]
+                            ignore_del_err = True
+                        ref_field = ref_obj.getField(piece)
+                        if ref_field is not None:
+                            if ignore_del_err:
+                                index_field.append('!' + ref_field.getRegularName())
+                            else:
+                                index_field.append(ref_field.getRegularName())
+                    if len(index_field) > 1:
+                        indices.append(index_field)
+                    elif len(index_field) > 0:
+                        indices.append(index_field[0])
+                else:
+                    ignore_del_err = False
+                    if index[0] == '!':
+                        index = index[1:]
+                        ignore_del_err = True
+                    index_field = ref_obj.getField(index)
+                    if index_field is not None:
+                        if ignore_del_err:
+                            indices.append('!' + index_field.getRegularName())
+                        else:
+                            indices.append(index_field.getRegularName())
+        return indices
+
     def isInverse(self):
 	try:
 	    return self.params['inverse'] == 'true'
@@ -170,6 +209,10 @@ class Choice(Field):
 	    return self.properties[0].getReference()
 	return None
 
+    def getReferencedObject(self):
+        if len(self.properties) > 0:
+            return self.properties[0].getReferencedObject()
+
     def isChoice(self):
         return True
 
@@ -177,6 +220,7 @@ class Property(Field):
     def __init__(self, params, specs):
         Field.__init__(self, params)
 	self.specs = specs
+        self.referencedObject = None
 
     def __str__(self):
 	return 'property: %s\nparams:\n\t%s\nspecs:\n\t%s' % \
@@ -188,6 +232,12 @@ class Property(Field):
 	except KeyError:
 	    pass
 	return ''
+
+    def getReferencedObject(self):
+        return self.referencedObject
+    
+    def setReferencedObject(self, obj):
+        self.referencedObject = obj
 
     def isReference(self):
 	try:
@@ -265,3 +315,61 @@ class Object:
 	    if property.isPrimaryKey():
 		return property
 	return None
+
+    def getSingleProperties(self):
+        return [p for p in self.properties if not p.isPlural()]
+
+    def getPluralProperties(self):
+        return [p for p in self.properties if p.isPlural and not p.isInverse()]
+
+    def getForeignKeys(self):
+        return [p for p in self.properties if p.isForeignKey()]
+
+    def getReferences(self):
+        return self.getReferenceProperties() + self.getReferenceChoices()
+
+    def getNonInverseReferences(self):
+        return [ref for ref in self.getReferences() if not ref.isInverse()]
+
+    def getReferenceProperties(self):
+        return [p for p in self.properties if p.isReference()]
+
+    def getReferenceChoices(self):
+        return [c for c in self.choices if c.isReference()]
+
+    def getNonReferenceProperties(self):
+        return [p for p in self.properties if not p.isReference()]
+
+    def getInverseProperties(self):
+        return [p for p in self.properties if p.isInverse()]
+
+    def getNonInverseProperties(self):
+        return [p for p in self.properties if not p.isInverse()]
+    
+    def getPythonVarNames(self):
+        return [field.getRegularName() for field in self.getPythonFields()]
+
+    def getPythonFields(self):
+        return [c for c in self.choices if not c.isInverse()] + \
+            [p for p in self.properties if not p.isInverse()]
+
+    def getPythonPluralFields(self):
+        return [f for f in self.getPythonFields() if f.isPlural()]
+    
+    def getPythonLists(self):
+        return [f for f in self.getPythonPluralFields() 
+                if f.getPythonType() != 'hash']
+
+    def getPythonHashes(self):
+        return [f for f in self.getPythonPluralFields() 
+                if f.getPythonType() == 'hash']
+
+    def getDiscriminatorProperty(self, dName):
+        try:
+            for property in self.properties:
+                if property.getName() == dName:
+                    return property
+        except KeyError:
+            pass
+        return None
+

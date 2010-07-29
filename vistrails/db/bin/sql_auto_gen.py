@@ -35,6 +35,82 @@ class SQLObject (Object):
 	except KeyError:
 	    pass
 	return Object.getName(self)
+
+    def getSQLFields(self):
+        return self.getSQLProperties() + self.getSQLChoices()
+
+    def getSQLProperties(self):
+        return [p for p in self.properties if p.hasSpec()]
+
+    def getSQLChoices(self):
+        return [c for c in self.choices if c.hasSpec()]
+
+    def getSQLInverses(self):
+        return [f for f in self.getSQLFields() if f.isInverse()]
+
+    def getSQLInverseRefs(self):
+        return [f for f in self.getSQLFields() 
+                if f.isInverse() and f.isReference()]
+
+    def getSQLColumns(self):
+        return [f.getColumn() for f in self.getSQLFields()]
+
+    def getSQLReferences(self):
+        return ([p for p in self.properties 
+                 if p.isReference() and not p.isInverse()] + 
+                [c for c in self.choices 
+                 if c.isReference() and not c.isInverse()])
+
+    def getNormalSQLColumns(self):
+        return [p for p in self.properties if not p.isInverse() and \
+                    not p.isPrimaryKey() and not p.isReference() and \
+                    p.hasSpec()]
+
+    def getNormalSQLColumnsAndKey(self):
+        return self.getNormalSQLColumns() + [self.getKey()]
+
+    def getSQLColumnsAndKey(self):
+        return [p.getColumnn() for p in self.getNormalSQLColumnsAndKey()]
+
+    def getSQLReferenceProperties(self):
+        return [p for p in self.properties 
+                if not p.isInverse() and p.isReference()]
+
+    def getSQLForeignKeys(self):
+        return [p for p in self.properties 
+                if p.isInverse() and p.isForeignKey()]
+  
+    def getSQLReferencedField(self, refObj):
+	if refObj is not None:
+	    # find inverse
+	    for refProp in refObj.properties:
+		if refProp.isReference() and \
+			refProp.isInverse() and \
+			refProp.getReference() == self.getRegularName():
+		    return (refProp, False)
+	    for choice in refObj.choices:
+		for refProp in self.getSQLPropertiesForChoice(choice):
+		    if refProp.isReference() and \
+			    refProp.getReference() == self.getRegularName():
+			return (choice, True)
+	return (None, False)
+
+    def get_sql_referenced(self, ref_obj, inverse=False):
+        if ref_obj is not None:
+            for ref_prop in ref_obj.properties:
+                if not (inverse ^ ref_prop.isInverse()) and \
+                        ref_prop.isReference() and \
+                        ref_prop.getReference() == self.getRegularName():
+                    return (ref_prop, False)
+            for choice in ref_obj.choices:
+                if inverse ^ choice.isInverse():
+                    continue
+                for ref_prop in choice.properties:
+                    if ref_prop.isReference() and \
+                            ref_prop.getReference() == self.getRegularName():
+                        return (choice, True)
+        raise Exception("didn't work", ref_obj.getRegularName(), 
+                        self.getRegularName())
 	    
 class SQLProperty (Property):
     def hasSpec(self):
@@ -125,6 +201,15 @@ class SQLChoice(Choice):
             pass
         return ''
   
+    def getSQLProperties(self):
+        return [p for p in self.properties if p.hasSpec()]
+
+        # properties = []
+        # for property in self.properties:
+        #     if property.hasSpec():
+        #         properties.append(property)
+        # return properties
+
 class SQLAutoGen(AutoGen):
     def __init__(self, objects):
 	AutoGen.__init__(self, objects)
@@ -139,124 +224,6 @@ class SQLAutoGen(AutoGen):
 
     def reset(self, spaces = SQL_SPACES):
 	AutoGen.reset(self, spaces)
-
-    def getSQLPropertiesForChoice(self, choice):
-        properties = []
-        for property in choice.properties:
-            if property.hasSpec():
-                properties.append(property)
-        return properties
-
-    def getSQLFields(self, object):
-        return self.getSQLProperties(object) + self.getSQLChoices(object)
-
-    def getSQLProperties(self, object):
-        properties = []
-        for property in object.properties:
-            if property.hasSpec():
-                properties.append(property)
-        return properties
-
-    def getSQLChoices(self, object):
-        choices = []
-        for choice in object.choices:
-            if choice.hasSpec():
-                choices.append(choice)
-        return choices
-
-    def getSQLInverses(self, object):
-        fields = []
-        for field in self.getSQLFields(object):
-            if field.isInverse():
-                fields.append(field)
-        return fields
-
-    def getSQLInverseRefs(self, object):
-        fields = []
-        for field in self.getSQLFields(object):
-            if field.isInverse() and field.isReference():
-                fields.append(field)
-        return fields
-
-    def getSQLColumns(self, object):
-        columns = []
-        for field in self.getSQLFields(object):
-            columns.append(field.getColumn())
-        return columns
-
-    def getSQLReferences(self, object):
-        refs = []
-        for property in object.properties:
-            if property.isReference() and not property.isInverse():
-                refs.append(property)
-        for choice in object.choices:
-            if choice.isReference() and not choice.isInverse():
-                refs.append(choice)
-        return refs
-
-    def getNormalSQLColumns(self, object):
-        columns = []
-        for property in object.properties:
-            if not property.isInverse() and not property.isPrimaryKey() and \
-               not property.isReference() and property.hasSpec():
-                columns.append(property)
-        return columns
-
-    def getNormalSQLColumnsAndKey(self, object):
-        columns = self.getNormalSQLColumns(object)
-	columns.append(object.getKey())
-        return columns
-
-    def getSQLColumnsAndKey(self, object):
-	columns = []
-	for property in self.getNormalSQLColumnsAndKey(object):
-	    columns.append(property.getColumn())
-	return columns
-
-    def getSQLReferenceProperties(self, object):
-	refs = []
-	for property in object.properties:
-	    if not property.isInverse() and property.isReference():
-		refs.append(property)
-	return refs
-
-    def getSQLForeignKeys(self, object):
-        keys = []
-        for property in object.properties:
-            if property.isInverse() and property.isForeignKey():
-                keys.append(property)
-        return keys
-    
-    def getSQLReferencedField(self, refObj, object):
-	if refObj is not None:
-	    # find inverse
-	    for refProp in refObj.properties:
-		if refProp.isReference() and \
-			refProp.isInverse() and \
-			refProp.getReference() == object.getRegularName():
-		    return (refProp, False)
-	    for choice in refObj.choices:
-		for refProp in self.getSQLPropertiesForChoice(choice):
-		    if refProp.isReference() and \
-			    refProp.getReference() == object.getRegularName():
-			return (choice, True)
-	return (None, False)
-
-    def get_sql_referenced(self, ref_obj, obj, inverse=False):
-        if ref_obj is not None:
-            for ref_prop in ref_obj.properties:
-                if not (inverse ^ ref_prop.isInverse()) and \
-                        ref_prop.isReference() and \
-                        ref_prop.getReference() == obj.getRegularName():
-                    return (ref_prop, False)
-            for choice in ref_obj.choices:
-                if inverse ^ choice.isInverse():
-                    continue
-                for ref_prop in choice.properties:
-                    if ref_prop.isReference() and \
-                            ref_prop.getReference() == obj.getRegularName():
-                        return (choice, True)
-        raise Exception("didn't work", ref_obj.getRegularName(), obj.getRegularName())
 
     def generateSchema(self):
 	self.reset(SQL_SPACES)
@@ -339,9 +306,9 @@ class SQLAutoGen(AutoGen):
 	self.unindentLine('def getDao(self, dao):\n')
 	self.indentLine('return self.daoList[dao]\n\n')
 
-	refs = self.getSQLReferenceProperties(object)
+	refs = object.getSQLReferenceProperties()
 	varPairs = []
-	for field in self.getPythonFields(object):
+	for field in object.getPythonFields():
             if field.__class__ == SQLChoice or field.isReference() or \
                     field.hasSpec():
                 varPairs.append('%s=%s' % (field.getRegularName(),
@@ -358,7 +325,7 @@ class SQLAutoGen(AutoGen):
         self.unindentLine('def get_sql_columns(self, db, global_props,' + \
                               'lock=False):\n')
         self.indentLine("columns = ['%s']\n" % \
-                            "', '".join(self.getSQLColumns(object)))
+                            "', '".join(object.getSQLColumns()))
         self.printLine("table = '%s'\n" % object.getName())
         self.printLine("whereMap = global_props\n")
         self.printLine("orderBy = '%s'\n\n" % key.getName())
@@ -370,7 +337,7 @@ class SQLAutoGen(AutoGen):
         self.printLine('for row in data:\n')
         self.indent()
 	count = 0
-	for field in self.getSQLFields(object):
+	for field in object.getSQLFields():
 	    self.printLine("%s = self.convertFromDB(row[%d], '%s', '%s')\n" % \
 			   (field.getRegularName(), count,
                             field.getPythonType(), field.getType()))
@@ -387,7 +354,7 @@ class SQLAutoGen(AutoGen):
                 # self.unindent()
 
         attrPairs = []
-        for field in self.getNormalSQLColumnsAndKey(object):
+        for field in object.getNormalSQLColumnsAndKey():
             attrPairs.append('%s=%s' % (field.getRegularName(),
                                         field.getRegularName()))
 
@@ -398,7 +365,7 @@ class SQLAutoGen(AutoGen):
 	self.printLine('%s = %s(%s)\n' % (object.getRegularName(), 
                                           object.getClassName(),
                                           sep.join(attrPairs)))
-        for field in self.getSQLInverses(object):
+        for field in object.getSQLInverses():
             self.printLine('%s.%s = %s\n' % (object.getRegularName(),
                                              field.getFieldName(),
                                              field.getRegularName()))
@@ -413,7 +380,7 @@ class SQLAutoGen(AutoGen):
         
         # identify the fields needed to tie the child to the parent
         self.indent()
-        inverse_refs = self.getSQLInverseRefs(object)
+        inverse_refs = object.getSQLInverseRefs()
         if len(inverse_refs) < 1:
             self.printLine('pass\n')
         for backRef in inverse_refs:
@@ -422,12 +389,9 @@ class SQLAutoGen(AutoGen):
                 # need discriminator
                 disc = backRef.getDiscriminator()
                 for prop in backRef.properties:
-                    ref_obj = \
-                        self.getReferencedObject(prop.getReference())
-                    disc_prop = self.getDiscriminatorProperty(object,
-                                                              disc)
-                    (ref_prop, _) = self.get_sql_referenced(ref_obj,
-                                                            object, False)
+                    ref_obj = prop.getReferencedObject()
+                    disc_prop = object.getDiscriminatorProperty(disc)
+                    (ref_prop, _) = object.get_sql_referenced(ref_obj, False)
                     self.printLine("%s obj.%s == '%s':\n" % \
                                        (cond, disc_prop.getFieldName(),
                                         ref_obj.getRegularName()))
@@ -439,9 +403,8 @@ class SQLAutoGen(AutoGen):
                     self.unindent()
                     cond = "elif"
             else:
-                ref_obj = self.getReferencedObject(backRef.getReference())
-                (ref_field, _) = self.get_sql_referenced(ref_obj,
-                                                         object, False)
+                ref_obj = backRef.getReferencedObject()
+                (ref_field, _) = object.get_sql_referenced(ref_obj,False)
                 self.printLine("if ('%s', obj.%s) in all_objects:\n" % \
                                    (ref_obj.getRegularName(),
                                     backRef.getFieldName()))
@@ -457,7 +420,7 @@ class SQLAutoGen(AutoGen):
         self.indentLine('if not do_copy and not obj.is_dirty:\n')
         self.indentLine('return\n')
         self.unindentLine("columns = ['%s']\n" % \
-                              "', '".join(self.getSQLColumns(object)))
+                              "', '".join(object.getSQLColumns()))
         self.printLine("table = '%s'\n" % object.getName())
         self.printLine("whereMap = {}\n")
         self.printLine("whereMap.update(global_props)\n")
@@ -467,12 +430,12 @@ class SQLAutoGen(AutoGen):
                              key.getType()))
         self.printLine("whereMap['%s'] = keyStr\n" % key.getColumn())
         self.unindent()
-#         for field in self.getSQLInverses(object):
+#         for field in object.getSQLInverses():
 #             self.printLine('%s = %s.%s\n' % (field.getRegularName(),
 #                                              object.getRegularName(),
 #                                              field.getPythonName()))
         self.printLine('columnMap = {}\n')
-        for field in self.getSQLFields(object):
+        for field in object.getSQLFields():
 	    self.printLine("if hasattr(obj, '%s') and obj.%s is not None:\n" % \
                                (field.getPythonName(), field.getPythonName()))
             self.indentLine("columnMap['%s'] = \\\n" % field.getColumn())
@@ -496,7 +459,7 @@ class SQLAutoGen(AutoGen):
                                (key.getPythonName(), key.getPythonType(),
                                 key.getType()))
             self.unindent()
-        for property in self.getNormalSQLColumnsAndKey(object):
+        for property in object.getNormalSQLColumnsAndKey():
             if property.isGlobal():
 #                 self.printLine("if not global_props.has_key('%s'):\n" % \
 #                                property.getGlobalName())
@@ -517,14 +480,14 @@ class SQLAutoGen(AutoGen):
         # to_sql_fast
         self.unindentLine('def to_sql_fast(self, obj, do_copy=True):\n')
         self.indent()
-        references = self.getSQLReferences(object)
+        references = object.getSQLReferences()
         if len(references) < 1:
             self.printLine('pass\n')
         for ref in references:
-            ref_obj = self.getReferencedObject(ref.getReference())
+            ref_obj = ref.getReferencedObject()
             try:
-                (ref_field, is_choice) = \
-                    self.get_sql_referenced(ref_obj, object, True)
+                (ref_field, is_choice) = object.get_sql_referenced(ref_obj, 
+                                                                   True)
             except Exception:
                 print "can't find tie between %s and %s" % (ref_obj.getName(),
                                                             object.getName())
@@ -538,8 +501,7 @@ class SQLAutoGen(AutoGen):
             if is_choice:
                 # need to set discriminator and foreign key
                 disc = ref_field.getDiscriminator()
-                disc_prop = self.getDiscriminatorProperty(ref_obj,
-                                                          disc)
+                disc_prop = ref_obj.getDiscriminatorProperty(disc)
                 self.printLine("child.%s = obj.vtType\n" % \
                                    disc_prop.getFieldName())
                 self.printLine("child.%s = obj.db_id\n" % \
