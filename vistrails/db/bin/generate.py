@@ -21,14 +21,22 @@
 ############################################################################
 """auto-generates code given specs"""
 
+# requires mako python package (easy_install Mako) and 
+# uses emacs via subprocess call for python indentation
+# the emacs call is slow because it checks all of the indentation
+
+from mako.template import Template
+
 import os
-import sys
+import re
 import shutil
+import subprocess
+import sys
+import tempfile
 import getopt
 from parser import AutoGenParser
-from auto_gen import AutoGen
-from et_auto_gen import XMLAutoGen
-from sql_auto_gen import SQLAutoGen
+import xml_gen_objects
+import sql_gen_objects
 
 BASE_DIR = os.path.dirname(os.getcwd())
 
@@ -68,55 +76,65 @@ COPYRIGHT_NOTICE = \
 
 """
 
-SQL_COPYRIGHT_NOTICE = \
-"""--#########################################################################
---
--- Copyright (C) 2006-2010 University of Utah. All rights reserved.
---
--- This file is part of VisTrails.
---
--- This file may be used under the terms of the GNU General Public
--- License version 2.0 as published by the Free Software Foundation
--- and appearing in the file LICENSE.GPL included in the packaging of
--- this file.  Please review the following to ensure GNU General Public
--- Licensing requirements will be met:
--- http://www.opensource.org/licenses/gpl-license.php
---
--- If you are unsure which license is appropriate for your use (for
--- instance, you are interested in developing a commercial derivative
--- of VisTrails), please contact us at vistrails@sci.utah.edu.
---
--- This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
--- WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
---
---##########################################################################
+def preprocess_template(in_fname, out_fname=None):
+    in_file = open(in_fname)
+    if out_fname is not None:
+        out_file = open(out_fname, 'w')
+    else:
+        out_file = sys.stdout
 
-"""
+    single_slash = re.compile(r'\s*\\$')
+    double_slash = re.compile(r'\s*\\\\$')
+    triple_slash = re.compile(r'\s*\\\\\\$')
+    slash_bang = re.compile(r'\s*\\!$')
+    python_block = re.compile(r'^\s+<%')
+    strip_whitespace = False
+    for line in in_file:
+        if strip_whitespace:
+            line = line.lstrip()
+        if python_block.search(line):
+            line = python_block.sub(r'<%', line)
+        if triple_slash.search(line):
+            line = triple_slash.sub(r' ${"\\\\"}', line)
+            strip_whitespace = False
+        elif double_slash.search(line):
+            line = double_slash.sub(r'\\', line)
+            strip_whitespace = False
+        elif slash_bang.search(line):
+            line = line[:-3].rstrip()
+            strip_whitespace = True
+        elif single_slash.search(line):
+            line = line[:-2].rstrip() + ' '
+            strip_whitespace = True
+        else:
+            strip_whitespace = False
+        out_file.write(line)
 
-XML_COPYRIGHT_NOTICE = \
-"""<!--########################################################################
-##
-## Copyright (C) 2006-2010 University of Utah. All rights reserved.
-##
-## This file is part of VisTrails.
-##
-## This file may be used under the terms of the GNU General Public
-## License version 2.0 as published by the Free Software Foundation
-## and appearing in the file LICENSE.GPL included in the packaging of
-## this file.  Please review the following to ensure GNU General Public
-## Licensing requirements will be met:
-## http://www.opensource.org/licenses/gpl-license.php
-##
-## If you are unsure which license is appropriate for your use (for
-## instance, you are interested in developing a commercial derivative
-## of VisTrails), please contact us at vistrails@sci.utah.edu.
-##
-## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-##
-#########################################################################-->
+    if out_fname is not None:
+        out_file.close()
+    in_file.close()
 
-"""
+def indent_python(fname):
+    subprocess.Popen(["emacs", "-batch", fname, "-f", "mark-whole-buffer",
+                      "-f", "indent-region", "-f", "save-buffer", "-kill"],
+                     stdout=subprocess.PIPE).communicate()
+
+def run_template(template_fname, objects, version, version_string, output_file,
+                 indent=False):
+    [prefix, suffix] = os.path.basename(template_fname).split('.', 1)
+    (fd, p_fname) = tempfile.mkstemp(prefix=prefix, suffix=suffix)
+    os.close(fd)
+    preprocess_template(template_fname, p_fname)
+    template = Template(filename=p_fname, module_directory='/tmp/mako')
+
+    f = open(output_file, 'w')
+    f.write(template.render(objs=objects,
+                            version=version,
+                            version_string=version_string))
+    f.close()
+    if indent:
+        indent_python(output_file)
+    os.remove(p_fname)
 
 def usage(usageDict):
     usageStr = ''
@@ -253,12 +271,9 @@ def main(argv=None):
 	if objects is None:
 	    parser = AutoGenParser()
 	    objects = parser.parse(versionDirs['specs'])
-	autoGen = AutoGen(objects)
-	domainFile = os.path.join(versionDirs['domain'], 'auto_gen.py')
-	f = open(domainFile, 'w')
-        f.write(COPYRIGHT_NOTICE)
-	f.write(autoGen.generatePythonCode())
-	f.close()
+        run_template('templates/domain.py.mako', objects, version, versionName,
+                     os.path.join(versionDirs['domain'], 'auto_gen.py'),
+                     True)
 
         if not options['n']:
             domainFile = os.path.join(baseDirs['domain'], '__init__.py')
@@ -274,41 +289,32 @@ def main(argv=None):
 	if objects is None:
 	    parser = AutoGenParser()
 	    objects = parser.parse(versionDirs['specs'])
-	xmlAutoGen = XMLAutoGen(objects)
+        xml_objects = xml_gen_objects.convert(objects)
 	
-# 	schemaFile = os.path.join(versionDirs['xmlSchema'], 'workflow.xsd')
-# 	f = open(schemaFile, 'w')
-#       f.write(COPYRIGHT_NOTICE)
-# 	f.write(xmlAutoGen.generateSchema('workflow'))
-# 	f.close()
+        run_template('templates/xml_schema.xsd.mako', 
+                     xml_gen_objects.convert_schema_order(xml_objects, 
+                                                          'vistrail'),
+                     version, versionName,
+                     os.path.join(versionDirs['xmlSchema'], 'vistrail.xsd'),
+                     False)
 
-	schemaFile = os.path.join(versionDirs['xmlSchema'], 'vistrail.xsd')
-	f = open(schemaFile, 'w')
-        f.write(XML_COPYRIGHT_NOTICE)
-	f.write(xmlAutoGen.generateSchema('vistrail'))
-	f.close()
+        # run_template('templates/xml_schema.xsd.mako', 
+        #              xml_gen_objects.convert_schema_order(xml_objects, 
+        #                                                   'workflow'),
+        #              version, versionName,
+        #              os.path.join(versionDirs['xmlSchema'], 'workflow.xsd'),
+        #              False)
 
-# 	schemaFile = os.path.join(versionDirs['xmlSchema'], 'log.xsd')
-# 	f = open(schemaFile, 'w')
-#       f.write(COPYRIGHT_NOTICE)
-# 	f.write(xmlAutoGen.generateSchema('log'))
-# 	f.close()
+        # run_template('templates/xml_schema.xsd.mako', 
+        #              xml_gen_objects.convert_schema_order(xml_objects, 
+        #                                                   'log'),
+        #              version, versionName,
+        #              os.path.join(versionDirs['xmlSchema'], 'log.xsd'),
+        #              False)
 
-	daoFile = os.path.join(versionDirs['xmlPersistence'], 'auto_gen.py')
-	f = open(daoFile, 'w')
-        f.write(COPYRIGHT_NOTICE)
-	f.write(xmlAutoGen.generateDAO(versionName))
-	f.write(xmlAutoGen.generateDAOList())
-	f.close()
-
-#         if not options['n']:
-#             domainFile = os.path.join(baseDirs['xmlPersistence'], 'auto_gen.py')
-#             f = open(domainFile, 'w')
-#             f.write(COPYRIGHT_NOTICE)
-#             f.write('from db.versions.%s.persistence.xml.auto_gen import *\n' % \
-#                         versionName)
-#             f.close()
-
+        run_template('templates/xml.py.mako', xml_objects, version, versionName,
+                     os.path.join(versionDirs['xmlPersistence'], 'auto_gen.py'),
+                     True)
 
     if options['s'] or options['a']:
 	# generate sql schema and dao objects
@@ -316,47 +322,23 @@ def main(argv=None):
 	if objects is None:
 	    parser = AutoGenParser()
 	    objects = parser.parse(versionDirs['specs'])
-	sqlAutoGen = SQLAutoGen(objects)
-	
-	schemaFile = os.path.join(versionDirs['sqlSchema'], 'vistrails.sql')
-	f = open(schemaFile, 'w')
-        f.write(SQL_COPYRIGHT_NOTICE)
-        # write table that keeps metadata
-        f.write("CREATE TABLE `vistrails_version`(`version` char(16)) "
-                "engine=InnoDB;\n")
-        f.write("INSERT INTO `vistrails_version`(`version`) "
-                "VALUES ('%s');\n\n" % version)
-        f.write("CREATE TABLE thumbnail(\n"
-                "    id int not null auto_increment primary key,\n"
-                "    file_name varchar(255),\n"
-                "    image_bytes mediumblob,\n"
-                "    last_modified datetime\n"
-                ") engine=InnoDB;\n\n")
-	f.write(sqlAutoGen.generateSchema())
-	f.close()
-	
-	schemaFile = os.path.join(versionDirs['sqlSchema'],'vistrails_drop.sql')
-	f = open(schemaFile, 'w')
-        f.write(SQL_COPYRIGHT_NOTICE)
-        f.write("DROP TABLE IF EXISTS `vistrails_version`;\n\n")
-        f.write("DROP TABLE IF EXISTS thumbnail;\n\n")
-	f.write(sqlAutoGen.generateDeleteSchema())
-	f.close()
+        sql_objects = sql_gen_objects.convert(objects)
 
- 	daoFile = os.path.join(versionDirs['sqlPersistence'], 'auto_gen.py')
- 	f = open(daoFile, 'w')
-        f.write(COPYRIGHT_NOTICE)
- 	f.write(sqlAutoGen.generateDAO(versionName))
-	f.write(sqlAutoGen.generateDAOList())
-	f.close()
+        run_template('templates/sql_schema.sql.mako', sql_objects, 
+                     version, versionName,
+                     os.path.join(versionDirs['sqlSchema'], 'vistrails.sql'),
+                     False)
 
-#         if not options['n']:
-#             domainFile = os.path.join(baseDirs['sqlPersistence'], 'auto_gen.py')
-#             f = open(domainFile, 'w')
-#             f.write(COPYRIGHT_NOTICE)
-#             f.write('from db.versions.%s.persistence.sql.auto_gen import *\n' % \
-#                         versionName)
-#             f.close()
+        run_template('templates/sql_delete.sql.mako', sql_objects, 
+                     version, versionName,
+                     os.path.join(versionDirs['sqlSchema'], 
+                                  'vistrails_drop.sql'),
+                     False)
+        
+	run_template('templates/sql.py.mako', sql_objects,
+                     version, versionName,
+                     os.path.join(versionDirs['sqlPersistence'], 'auto_gen.py'),
+                     True)
 
     if not options['n']:
         domainFile = os.path.join(baseDirs['persistence'], '__init__.py')

@@ -33,7 +33,7 @@ class AutoGenParser:
 	for file in os.listdir(dir):
 	    if file.endswith('.xml'):
 		filename = os.path.join(dir, file)
-		print filename
+		# print filename
 		dom = minidom.parse(filename)
 		domObjects = dom.getElementsByTagName('object')
 		for node in domObjects:
@@ -57,7 +57,7 @@ class AutoGenParser:
                         except KeyError:
                             print 'error:', prop.getReference()
                 
-	return objects
+	return objects.values()
 
     def parseObject(self, node):
 	params = {}

@@ -53,6 +53,16 @@ class Field:
             return Field.getFieldName(self) + '.itervalues()'
         return Field.getFieldName(self)
 
+    def getPrivateIterator(self):
+        if Field.getType(self) == 'hash':
+            return Field.getPrivateName(self) + '.itervalues()'
+        return Field.getPrivateName(self)
+
+    def getRegularIterator(self):
+        if Field.getType(self) == 'hash':
+            return Field.getRegularName(self) + '.itervalues()'
+        return Field.getRegularName(self)
+
     def getSingleName(self):
         return Field.getName(self)
        
@@ -93,6 +103,11 @@ class Field:
 
     def getList(self):
 	return 'db_get_%s' % Field.getRegularName(self)
+
+    def getListValues(self):
+        if Field.getType(self) == 'hash':
+            return Field.getPrivateName(self) + '.values()'
+        return Field.getPrivateName(self)
 
     def getPrivateName(self):
 	return '_%s' % Field.getFieldName(self)
@@ -189,7 +204,7 @@ class Field:
 	except KeyError:
 	    pass
 	return None
-       
+
 class Choice(Field):
     def __init__(self, params, properties):
         Field.__init__(self, params)
@@ -373,3 +388,10 @@ class Object:
             pass
         return None
 
+    def getConstructorNames(self):
+        return [f.getRegularName() for f in self.getPythonFields()]
+
+    def getCopyNames(self):
+        return [(f.getRegularName(), f.getPrivateName()) 
+                for f in self.getPythonFields() 
+                if not f.isPlural() and not f.isReference()]

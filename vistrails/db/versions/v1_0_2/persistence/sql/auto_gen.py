@@ -145,7 +145,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'port_spec'
         whereMap = {}
@@ -476,7 +476,7 @@ class DBTagSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'tag'
         whereMap = {}
@@ -594,7 +594,7 @@ class DBPortSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'port'
         whereMap = {}
@@ -776,7 +776,7 @@ class DBLogSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         pass
-        
+    
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
@@ -938,7 +938,7 @@ class DBMachineSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'machine'
         whereMap = {}
@@ -1146,7 +1146,7 @@ class DBOtherSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'other'
         whereMap = {}
@@ -1255,7 +1255,7 @@ class DBLocationSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'location'
         whereMap = {}
@@ -1373,7 +1373,7 @@ class DBParameterSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'parameter'
         whereMap = {}
@@ -1471,7 +1471,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'plugin_data'
         whereMap = {}
@@ -1689,7 +1689,7 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'action_annotation'
         whereMap = {}
@@ -1998,7 +1998,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         pass
-        
+    
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
@@ -2170,7 +2170,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'annotation'
         whereMap = {}
@@ -3104,7 +3104,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
         
     def to_sql_fast(self, obj, do_copy=True):
         pass
-        
+    
     def delete_sql_column(self, db, obj, global_props):
         table = 'delete_tbl'
         whereMap = {}
@@ -3154,7 +3154,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         pass
-        
+    
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
