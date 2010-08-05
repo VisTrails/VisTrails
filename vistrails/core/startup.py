@@ -496,20 +496,35 @@ by startup.py. This should only be called after init()."""
                 self.configuration.thumbs.cacheDirectory = s
         
     def setupLogFile(self):
+        def get_version():
+            import core.system
+            version = core.system.vistrails_version()
+            return version.replace(".","_")
+        #To make sure we always save a log file name according to the
+        #current version, we will only consider the directory stored in
+        # logFile and append a name with the correct version encoded. 
         if not self.temp_configuration.check('logFile'):
             s = os.path.join(self.temp_configuration.dotVistrails,
-                             'vistrails_1_3.log')
+                             'vistrails_%s.log'%(get_version()))
             self.temp_configuration.logFile = s
+        else:
+            dirname = os.path.dirname(self.temp_configuration.logFile)
+            self.temp_configuration.logFile = os.path.join(dirname,
+                                        'vistrails_%s.log'%(get_version()))
         if not self.configuration.check('logFile'):
             # if this was not set before, it should point to the
             # value in temp_configuration
             s = os.path.join(self.temp_configuration.dotVistrails,
-                             'vistrails_1_3.log')
+                             'vistrails_%s.log'%(get_version()))
             self.configuration.logFile = s
+        else:
+            dirname = os.path.dirname(self.configuration.logFile)
+            self.configuration.logFile = os.path.join(dirname,
+                                        'vistrails_%s.log'%(get_version()))
         if not os.path.lexists(self.temp_configuration.dotVistrails):
             self.create_default_directory()
         debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
-    
+        
     def setupBaseModules(self):
         """ setupBaseModules() -> None        
         Import basic modules for self-registration. The import here is
