@@ -24,7 +24,7 @@
 # File for displaying a vtkRenderWindow in a Qt's QWidget ported from
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
-import vtksnl
+import vtk
 from PyQt4 import QtCore, QtGui
 import sip
 from core import system
@@ -235,7 +235,7 @@ class QVTKWidget(QCellWidget):
         self.removeObserversFromInteractorStyle()
         if renderView==None:
             if iStyle==None:
-                iStyleInstance = vtksnl.vtkInteractorStyleTrackballCamera()
+                iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
             else:
                 iStyleInstance = iStyle.vtkInstance
             iren.SetInteractorStyle(iStyleInstance)
@@ -256,7 +256,7 @@ class QVTKWidget(QCellWidget):
         
         """
         if not self.mRenWin:
-            win = vtksnl.vtkRenderWindow()
+            win = vtk.vtkRenderWindow()
             win.DoubleBufferOn()
             self.SetRenderWindow(win)
             del win
@@ -299,7 +299,7 @@ class QVTKWidget(QCellWidget):
                 self.mRenWin.Start()
 
             if not self.mRenWin.GetInteractor():
-                iren = vtksnl.vtkRenderWindowInteractor()
+                iren = vtk.vtkRenderWindowInteractor()
                 if system.systemType=='Darwin':
                     iren.InstallMessageProcOff()
                 iren.SetRenderWindow(self.mRenWin)
@@ -889,14 +889,14 @@ class QVTKWidget(QCellWidget):
         the PNG image. Otherwise, the filename is returned.
         
         """
-        w2i = vtksnl.vtkWindowToImageFilter()
+        w2i = vtk.vtkWindowToImageFilter()
         w2i.ReadFrontBufferOff()
         w2i.SetInput(self.mRenWin)
         # Render twice to get a clean image on the back buffer
         self.mRenWin.Render()
         self.mRenWin.Render()
         w2i.Update()
-        writer = vtksnl.vtkPNGWriter()
+        writer = vtk.vtkPNGWriter()
         writer.SetInputConnection(w2i.GetOutputPort())
         if filename!=None:
             writer.SetFileName(filename)
@@ -1009,7 +1009,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             
             if not camera:
                 # Create camera
-                vtk_package = 'edu.utah.sci.vistrails.vtksnl'
+                vtk_package = 'edu.utah.sci.vistrails.vtk'
                 camera = controller.create_module(vtk_package, 'vtkCamera', '',
                                                   0.0, 0.0)
                 ops.append(('add', camera))
@@ -1075,7 +1075,7 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
-    identifier = 'edu.utah.sci.vistrails.vtksnl'
+    identifier = 'edu.utah.sci.vistrails.vtk'
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)

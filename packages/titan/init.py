@@ -90,30 +90,29 @@ warnings.filterwarnings("ignore",
 
 ################################################################################
 
-# Wendel
-#if tuple(vtksnl.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
-#    def get_description_class(klass):
-#        """Because sometimes we need to patch VTK classes, the klass that
-#        has the methods is different than the klass we want to
-#        instantiate. get_description_class makes sure that for patched
-#        classes we get the correct one."""
-#        try:
-#            return fix_classes.description[klass]
-#        except KeyError:
-#            return klass
-#else:
-#    # On VTK 5.0.4, we use the id of the class to hash, because it
-#    # seems that VTK hasn't implemented hash() correctly for their
-#    # classes.
-def get_description_class(klass):
-    """Because sometimes we need to patch VTK classes, the klass that
-    has the methods is different than the klass we want to
-    instantiate. get_description_class makes sure that for patched
-    classes we get the correct one."""
-    try:
-        return fix_classes.description[id(klass)]
-    except KeyError:
-        return klass
+if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
+    def get_description_class(klass):
+        """Because sometimes we need to patch VTK classes, the klass that
+        has the methods is different than the klass we want to
+        instantiate. get_description_class makes sure that for patched
+        classes we get the correct one."""
+        try:
+            return fix_classes.description[klass]
+        except KeyError:
+            return klass
+else:
+    # On VTK 5.0.4, we use the id of the class to hash, because it
+    # seems that VTK hasn't implemented hash() correctly for their
+    # classes.
+    def get_description_class(klass):
+        """Because sometimes we need to patch VTK classes, the klass that
+        has the methods is different than the klass we want to
+        instantiate. get_description_class makes sure that for patched
+        classes we get the correct one."""
+        try:
+            return fix_classes.description[id(klass)]
+        except KeyError:
+            return klass
 
 parser = VTKMethodParser()
 
@@ -333,7 +332,7 @@ disallowed_classes = set(
     'vtkRenderWindowInteractor',
     'vtkTesting',
     'vtkWindow',
-    'vtksnlVersion',
+    'vtkVersion',
     'vtkDiffFilter',
     'vtkDocumentM3MetaData',
     'vtkPPointwiseMutualInformation'
@@ -744,11 +743,11 @@ def class_dict(base_module, node):
             # multiple files
             if any(issubclass(self.vtkClass, x)
                    for x in
-                   [vtksnl.vtkBYUReader,
-                    vtksnl.vtkImageReader,
-                    vtksnl.vtkPLOT3DReader,
-                    vtksnl.vtkDICOMImageReader,
-                    vtksnl.vtkTIFFReader]):
+                   [vtk.vtkBYUReader,
+                    vtk.vtkImageReader,
+                    vtk.vtkPLOT3DReader,
+                    vtk.vtkDICOMImageReader,
+                    vtk.vtkTIFFReader]):
                 old_compute(self)
                 return
             if self.hasInputFromPort('SetFileName'):
@@ -1043,7 +1042,7 @@ def wrap_vtk_instance(vtk_obj):
     wrapped instance of a VisTrails module"""
     global identifier
 
-    assert isinstance(vtk_obj, vtksnl.vtkObjectBase)
+    assert isinstance(vtk_obj, vtk.vtkObjectBase)
     m = registry.get_descriptor_by_name(identifier,
                                         vtk_obj.GetClassName())
     result = m.module()

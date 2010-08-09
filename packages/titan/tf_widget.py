@@ -27,7 +27,7 @@ from PyQt4 import QtCore, QtGui
 from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.basic_modules import new_constant, init_constant, Module
 from core.utils.color import ColorByName
-import vtksnl
+import vtk
 import math
 import pickle
 import copy
@@ -58,8 +58,8 @@ class TransferFunction(object):
 
     def set_on_vtk_volume_property(self, vtk_volume_property):
         # Builds the opacity and color functions
-        of = vtksnl.vtkPiecewiseFunction()
-        cf = vtksnl.vtkColorTransferFunction()
+        of = vtk.vtkPiecewiseFunction()
+        cf = vtk.vtkColorTransferFunction()
         vp = vtk_volume_property
         for pt in self._pts:
             (scalar, opacity, color) = pt

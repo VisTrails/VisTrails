@@ -22,7 +22,7 @@
 ################################################################################
 # This describes basic modules used by other VTK module
 ################################################################################
-import vtksnl
+import vtk
 from core.modules.module_registry import registry
 from core.modules.vistrails_module import Module, ModuleError
 from itertools import izip
@@ -48,8 +48,8 @@ class vtkBaseModule(Module):
     def is_cacheable(self):
         # VTK objects are by default cacheable only if they're subclasses
         # of vtkAlgorithm
-        return (issubclass(self.vtkClass, vtksnl.vtkAlgorithm)
-                and (not issubclass(self.vtkClass, vtksnl.vtkAbstractMapper)))
+        return (issubclass(self.vtkClass, vtk.vtkAlgorithm)
+                and (not issubclass(self.vtkClass, vtk.vtkAbstractMapper)))
 
     def call_input_function(self, function, params):
         """self.call_input_function(function, params) -> None
@@ -143,7 +143,7 @@ class vtkBaseModule(Module):
                 function = 'SetInputConnection'
             if function=='AddInputConnection':
                 desc = registry.get_descriptor_by_name(
-                    'edu.utah.sci.vistrails.vtksnl',
+                    'edu.utah.sci.vistrails.vtk',
                     'vtkAlgorithmOutput')
                 for i in xrange(len(paramList)):
                     if type(paramList[i])==desc.module:
@@ -158,7 +158,7 @@ class vtkBaseModule(Module):
         if hasattr(self.vtkInstance, 'Update'):
             def ProgressEvent(obj, event):
                 self.logging.update_progress(self, obj.GetProgress())
-            isAlgorithm = issubclass(self.vtkClass, vtksnl.vtkAlgorithm)
+            isAlgorithm = issubclass(self.vtkClass, vtk.vtkAlgorithm)
             if isAlgorithm:
                 cbId = self.vtkInstance.AddObserver('ProgressEvent', ProgressEvent)
             self.vtkInstance.Update()
@@ -175,14 +175,14 @@ class vtkBaseModule(Module):
                 self.setResult(function, output)
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
-                if issubclass(retValues.__class__, vtksnl.vtkObject):
+                if issubclass(retValues.__class__, vtk.vtkObject):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
                     self.setResult(function, output)                                   
                 elif (type(retValues) in [tuple, list]):
                     result = list(retValues)
                     for i in xrange(len(result)):
-                        if issubclass(result[i].__class__, vtksnl.vtkObject):
+                        if issubclass(result[i].__class__, vtk.vtkObject):
                             className = result[i].GetClassName()
                             result[i] = vtkBaseModule.wrapperModule(className,
                                                                     result[i])
@@ -197,7 +197,7 @@ class vtkBaseModule(Module):
         
         """
         result = registry.get_descriptor_by_name(
-            'edu.utah.sci.vistrails.vtksnl',
+            'edu.utah.sci.vistrails.vtk',
             classname).module()
         result.vtkInstance = instance
         return result

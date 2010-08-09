@@ -28,7 +28,7 @@ class VTKRenderOffscreen(Module):
 
     def compute(self):
         r = self.getInputFromPort("renderer").vtkInstance
-        window = vtksnl.vtkRenderWindow()
+        window = vtk.vtkRenderWindow()
         w = self.forceGetInputFromPort("width", 512)
         h = self.forceGetInputFromPort("height", 512)
         window.OffScreenRenderingOn()
@@ -37,10 +37,10 @@ class VTKRenderOffscreen(Module):
         window.AddRenderer(r)
         window.Start()
         window.Render()
-        win2image = vtksnl.vtkWindowToImageFilter()
+        win2image = vtk.vtkWindowToImageFilter()
         win2image.SetInput(window)
         win2image.Update()
-        writer = vtksnl.vtkPNGWriter()
+        writer = vtk.vtkPNGWriter()
         writer.SetInput(win2image.GetOutput())
         output = self.interpreter.filePool.create_file(suffix='.png')
         writer.SetFileName(output.name)

@@ -20,7 +20,7 @@
 ##
 ############################################################################
 
-import vtksnl
+import vtk
 
 ################################################################################
 # Some fixed classes that solve a few VTK API issues
@@ -37,15 +37,15 @@ description = {}
 
 # This fix seems to break on VTK versions larger than 5.0.3. It might also
 # be because of an interaction with python 2.6, but I haven't checked that.
-class vtkImagePlaneWidget_fixed(vtksnl.vtkImagePlaneWidget):
+class vtkImagePlaneWidget_fixed(vtk.vtkImagePlaneWidget):
     def SetLookupTable(self, lookup_table):
         self.UserControlledLookupTableOn()
-        vtksnl.vtkImagePlaneWidget.SetLookupTable(self, lookup_table)
+        vtk.vtkImagePlaneWidget.SetLookupTable(self, lookup_table)
 
-if tuple(vtksnl.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
-    description[vtkImagePlaneWidget_fixed] = vtksnl.vtkImagePlaneWidget
+if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
+    description[vtkImagePlaneWidget_fixed] = vtk.vtkImagePlaneWidget
 else:
-    description[id(vtkImagePlaneWidget_fixed)] = vtksnl.vtkImagePlaneWidget
+    description[id(vtkImagePlaneWidget_fixed)] = vtk.vtkImagePlaneWidget
 
 # Set docstring to wrap it correctly
-vtkImagePlaneWidget_fixed.SetLookupTable.__doc__ = vtksnl.vtkImagePlaneWidget.SetLookupTable.__doc__
+vtkImagePlaneWidget_fixed.SetLookupTable.__doc__ = vtk.vtkImagePlaneWidget.SetLookupTable.__doc__
