@@ -28,6 +28,7 @@ import xml.etree.cElementTree as ElementTree
 import datetime
 import os
 import shutil
+import subprocess
 import time
 from core.system.unix import executable_is_in_path, list2cmdline, \
      executable_is_in_pythonpath, execute_cmdline
@@ -64,13 +65,18 @@ def group(lst, n):
 class OSXSystemProfiler(object):
     "Provide information from the Mac OS X System Profiler"
 
-    def __init__(self, detail=-1):
+    def __init__(self, category=None, detail=None):
         """detail can range from -2 to +1, with larger numbers returning more
         information. Beware of +1, it can take several minutes for
         system_profiler to generate the data."""
 
-        command = 'system_profiler -xml -detailLevel %d' % detail
-        self.document = ElementTree.parse(os.popen(command))
+        command = ['system_profiler', '-xml']
+        if category is not None:
+            command.append(str(category))
+        if detail is not None:
+            command.extend(['-detailLevel', '%d' % detail])
+        p = subprocess.Popen(command, stdout=subprocess.PIPE)
+        self.document = ElementTree.parse(p.stdout)
 
     def _content(self, node):
         "Get the text node content of an element or an empty string"
@@ -97,7 +103,7 @@ class OSXSystemProfiler(object):
             raise ValueError(node.tag)
     
     def __getitem__(self, key):
-        nodes = self.document.findall('//dict')
+        nodes = self.document.getiterator('dict')
         results = []
         for node in nodes:
             for child in node:
@@ -123,7 +129,7 @@ def example():
     from optparse import OptionParser
     from pprint import pprint
 
-    info = OSXSystemProfiler()
+    info = OSXSystemProfiler("SPHardwareDataType")
     parser = OptionParser()
     parser.add_option("-f", "--field", action="store", dest="field",
                       help="display the value of the specified field")
@@ -148,33 +154,15 @@ def parse_meminfo():
     Uses the system_profiler application to retrieve detailed information
     about a Mac OS X system.
     
-    06/29/10 - HUY: It seems that we only need to get the amount of RAM
-    out of this function and system_profiler seems to be a bit too
-    heavy (especially the DVD probing sounds). I'm switching to use
-    hwprefs (if it is available).
+    Just use the "SPHardwareDataType" category to limit the amount of
+    information gathered.
 
     """
-    import subprocess
-    result = None
-    info = subprocess.Popen(["system_profiler", "SPHardwareDataType"],
-                            stdout=subprocess.PIPE).communicate()[0]
-    for line in info.split('\n'):
-        memStr = line.strip()
-        if memStr.startswith('Memory:'):
-            result = int(float(memStr[7:-3])*1024)*1024L*1024L
-
-    if result!=None:
-        return result
-#     try:
-#         from xml import dom, xpath
-     
-#     except ImportError:
-#         print '**** Install PyXML to get the max memory information\n ****'
-#         return -1
         
     result = -1
-    info = OSXSystemProfiler()
+    info = OSXSystemProfiler("SPHardwareDataType")
     mem = info['physical_memory'][0]
+    # print "*** MEMORY", mem
     if mem.upper().endswith(' GB'):
         #there are some systems that have non integer numbers
         #FIXME: the database complains for computers with lots of memory because
@@ -183,7 +171,7 @@ def parse_meminfo():
         result = int(float(mem[:-3]) * 1024) * 1024 * 1024L
     elif mem.upper().endswidth(' MB'):
         result = int(mem[:-3]) * 1024 * 1024L
-    print '>>>>', result
+    # print '>>>>', result
     return result
 
 def guess_total_memory():
