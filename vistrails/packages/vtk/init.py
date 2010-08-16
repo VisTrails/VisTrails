@@ -139,13 +139,13 @@ def get_method_signature(method):
         l = l.strip('\n \t')
         if l.startswith('V.') or l.startswith('C++:'):
             tmp.append(l)
-        else:
-            tmp[-1] = tmp[-1] + l
+        #else:
+        #    tmp[-1] = tmp[-1] + l
     tmp.append('')
     sig = []        
     pat = re.compile(r'\b')
 
-    # Remove all the C++ function signatures and V.<method_name> field
+    # Remove all the C++ function signatures and V.<method_name> field  
     offset = 2+len(method.__name__)
     for i in xrange(len(tmp)):
         s = tmp[i]
@@ -298,6 +298,7 @@ disallowed_classes = set(
     'vtkRenderWindowInteractor',
     'vtkTesting',
     'vtkWindow',
+    'vtkContext2D', #Not working for VTK 5.7.0
      ])
 
 def is_class_allowed(module):
@@ -540,7 +541,10 @@ def addOtherPorts(module, other_list):
             if name in disallowed_other_ports:
                 continue
             method = getattr(klass, name)
-            signatures = get_method_signature(method)
+            signatures = ""
+            if not isinstance(method, int):
+                signatures = get_method_signature(method)
+
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
             for (ix, sig) in enumerate(signatures):
@@ -568,7 +572,10 @@ def addOtherPorts(module, other_list):
             if name in disallowed_other_ports:
                 continue
             method = getattr(klass, name)
-            signatures = get_method_signature(method)
+            signatures = ""
+            if not isinstance(method, int):
+                signatures = get_method_signature(method)
+
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
             for (ix, sig) in enumerate(signatures):
@@ -948,17 +955,27 @@ def createAllModules(g):
     Traverse the VTK class tree and add all modules into the module registry
     
     """
-    assert len(g.tree[0]) == 1
-    base = g.tree[0][0]
-    assert base.name == 'vtkObjectBase'
+    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+        assert len(g.tree[0]) == 1
+        base = g.tree[0][0]
+        assert base.name == 'vtkObjectBase'
+
     vtkObjectBase = new_module(vtkBaseModule, 'vtkObjectBase')
     vtkObjectBase.vtkClass = vtk.vtkObjectBase
     registry = get_module_registry()
     registry.add_module(vtkObjectBase)
-    for child in base.children:
-        if child.name in disallowed_classes:
-            continue
-        createModule(vtkObjectBase, child)
+    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+        for child in base.children:
+            if child.name in disallowed_classes:
+                continue
+            createModule(vtkObjectBase, child)
+    else:
+        for base in g.tree[0]:
+            for child in base.children:
+                if child.name in disallowed_classes:
+                    continue
+                createModule(vtkObjectBase, child)
+
 
 ##############################################################################
 # Convenience methods
@@ -1041,7 +1058,6 @@ def initialize():
     # This can't be reordered -- TransferFunction needs to go before
     # vtkVolumeProperty, but vtkScaledTransferFunction needs
     # to go after vtkAlgorithmOutput
-    
     getter = registry.get_descriptor_by_name
     registry.add_module(tf_widget.vtkScaledTransferFunction)
     registry.add_input_port(tf_widget.vtkScaledTransferFunction,
