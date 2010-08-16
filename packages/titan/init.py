@@ -173,8 +173,8 @@ def get_method_signature(method):
         l = l.strip('\n \t')
         if l.startswith('V.') or l.startswith('C++:'):
             tmp.append(l)
-        else:
-            tmp[-1] = tmp[-1] + l
+        #else:
+        #    tmp[-1] = tmp[-1] + l
     tmp.append('')
     sig = []        
     pat = re.compile(r'\b')
@@ -368,7 +368,6 @@ def addAlgorithmPorts(module):
             except TypeError:
                 pass
             else:
-# Wendel
                 registry = get_module_registry()
                 des = registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
                                                       'vtkAlgorithmOutput')
@@ -585,7 +584,9 @@ def addOtherPorts(module, other_list):
             if name in disallowed_other_ports:
                 continue
             method = getattr(klass, name)
-            signatures = get_method_signature(method)
+            signatures = ""
+            if not isinstance(method, int):
+                signatures = get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
             for (ix, sig) in enumerate(signatures):
@@ -613,7 +614,9 @@ def addOtherPorts(module, other_list):
             if name in disallowed_other_ports:
                 continue
             method = getattr(klass, name)
-            signatures = get_method_signature(method)
+            signatures = ""
+            if not isinstance(method, int):
+                signatures = get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
             for (ix, sig) in enumerate(signatures):
@@ -907,7 +910,6 @@ def class_dict(base_module, node):
         update_dict('_special_input_function_SetColorWidget',
                     compute_SetColorWidget)
 
-    # Wendel
     if (issubclass(node.klass, vtk.vtkRenderer) and 
         hasattr(node.klass, 'SetBackground')):
         update_dict('_special_input_function_SetBackgroundWidget',
@@ -1006,19 +1008,26 @@ def createAllModules(g):
     Traverse the VTK class tree and add all modules into the module registry
     
     """
-    assert len(g.tree[0]) == 1
-    base = g.tree[0][0]
-    assert base.name == 'vtkObjectBase'
+    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+        assert len(g.tree[0]) == 1
+        base = g.tree[0][0]
+        assert base.name == 'vtkObjectBase'
+    
     vtkObjectBase = new_module(vtkBaseModule, 'vtkObjectBase')
-
-    # Wendel    
     vtkObjectBase.vtkClass = vtk.vtkObjectBase
     registry = get_module_registry()
     registry.add_module(vtkObjectBase)
-    for child in base.children:
-        if child.name in disallowed_classes:
-            continue
-        createModule(vtkObjectBase, child)
+    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+        for child in base.children:
+            if child.name in disallowed_classes:
+                continue
+            createModule(vtkObjectBase, child)
+    else:
+        for base in g.tree[0]:
+            for child in base.children:
+                if child.name in disallowed_classes:
+                    continue
+                createModule(vtkObjectBase, child)
 
 ##############################################################################
 # Convenience methods
@@ -1079,7 +1088,6 @@ def initialize():
                                                 'vtkObjectBase'),
                 delayed)
 
-# Wendel
 #    # Register the VTKCell and VTKHandler type if the spreadsheet is up
 #    if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
 #                           'SpreadsheetCell'):
@@ -1103,7 +1111,6 @@ def initialize():
     # vtkVolumeProperty, but vtkScaledTransferFunction needs
     # to go after vtkAlgorithmOutput
     
-# Wendel
     getter = registry.get_descriptor_by_name
     registry.add_module(tf_widget.vtkScaledTransferFunction)
     registry.add_input_port(tf_widget.vtkScaledTransferFunction,
