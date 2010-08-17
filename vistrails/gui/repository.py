@@ -60,6 +60,12 @@ class QRepositoryPushWidget(QtGui.QWidget):
         if self.config.webRepositoryURL[-1] == '/':
             self.config.webRepositoryURL = self.config.webRepositoryURL[:-1]
 
+        # check if the web repository url has changed while logged in
+        if self.dialog.cookie_url and \
+           self.dialog.cookie_url != self.config.webRepositoryURL:
+            self.dialog.cookiejar = None
+
+
         ######################################################################
         # Detail Table
         bottom_layout = QtGui.QVBoxLayout(bottom)
@@ -104,8 +110,15 @@ class QRepositoryPushWidget(QtGui.QWidget):
         self.connect(self._push_button,
                      QtCore.SIGNAL("clicked()"),
                      self.push_vistrail_to_repository)
+        self._branch_button = QtGui.QPushButton("&Branch")
+        self._branch_button.hide()
+        self.connect(self._branch_button,
+                     QtCore.SIGNAL("clicked()"),
+                     (lambda branching=True : self.push_vistrail_to_repository(branching)))
         button_box = QtGui.QDialogButtonBox()
         button_box.addButton(self._push_button,
+                             QtGui.QDialogButtonBox.ActionRole)
+        button_box.addButton(self._branch_button,
                              QtGui.QDialogButtonBox.ActionRole)
         bottom_layout.addWidget(button_box)
 
@@ -164,7 +177,9 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self._repository_status['details'] = ""
             self.update_push_information()
             self._push_button.setEnabled(False)
+            self._branch_button.hide()
         else:
+            self._branch_button.hide()
             self.repository_supports_vt = True
             # get packages supported by VisTrails repository
             packages_url = "%s/packages/supported_packages/" % \
@@ -267,10 +282,11 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     request = urllib2.urlopen(url=vt_url)
                     if request.code == 200:
                         # the vistrail exists on the repository, setup merge settings
-                        self.perm_view.setEnabled(False)
-                        self.perm_edit.setEnabled(False)
-                        self.perm_download.setEnabled(False)
+                        self._default_perm_label.setText("Default Global Permissions "
+                                                         "(only applicable to branching):")
                         self._push_button.setText("Commit changes")
+                        self._branch_button.setEnabled(True)
+                        self._branch_button.show()
 
                         vistrail_link = "%s/vistrails/details/%s" % \
                                 (self.config.webRepositoryURL,
@@ -307,11 +323,12 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             self.update_push_information()
 
-    def push_vistrail_to_repository(self):
+    def push_vistrail_to_repository(self, branching=False):
         """ uploads current VisTrail to web repository """
 
         self._repository_status['details'] = "Pushing to repository..."
         self._push_button.setEnabled(False)
+        self._branch_button.setEnabled(False)
         self.update_push_information()
         try:
             # create temp file
@@ -337,13 +354,15 @@ class QRepositoryPushWidget(QtGui.QWidget):
             # upload vistrail temp file to repository
             register_openers(cookiejar=self.dialog.cookiejar)
 
+
             params = {'vistrail_file': open(filename, 'rb'),
                       'action': 'upload',
                       'name': controller.locator.short_name,
-                      'repository_vt_id': repository_vt_id,
+                      'repository_vt_id': repository_vt_id if not branching else -1,
                       'is_runnable': not bool(len(self.unsupported_packages)+ \
                                               len(self.local_data_modules)),
                       'vt_id': 0,
+                      'branch_from': "" if not branching else repository_vt_id,
                       'everyone_can_view': self.perm_view.checkState(),
                       'everyone_can_edit': self.perm_edit.checkState(),
                       'everyone_can_download': self.perm_download.checkState()
@@ -371,6 +390,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
                                                        repository_vt_id)
                     controller.vistrail.set_annotation('repository_creator',
                                                        self.dialog.loginUser.text())
+                    # ensure that the annotations get saved
+                    controller.set_changed(True)
                     self._repository_status['details'] = \
                             "Push to repository was successful"
             else:
@@ -408,11 +429,14 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     controller.set_vistrail(up_vistrail,
                                             controller.vistrail.locator,
                                             abstractions, thumbnails)
-                    """
+
+                    # update version tree drawing
+                    controller.recompute_terse_graph()
+                    controller.invalidate_version_tree()
+
                     os.remove(updated_filename)
                     os.remove(updated_filename[:-1])
                     os.rmdir(self.directory)
-                    """
 
                     self._repository_status['details'] = \
                             "Update to repository was successful"
@@ -508,6 +532,8 @@ class QRepositoryLoginWidget(QtGui.QWidget):
             self._login_button.setEnabled(False)
             self.saveLogin.setEnabled(False)
             self._logout_button.setEnabled(True)
+        else:
+            self.clicked_on_logout()
 
     def show_login_information(self):
         """ display/update login info text """
@@ -525,7 +551,11 @@ class QRepositoryLoginWidget(QtGui.QWidget):
 
         params = urllib.urlencode({'username':self.dialog.loginUser.text(),
                                    'password':self.loginPassword.text()})
-        self.dialog.cookiejar =  cookielib.CookieJar()
+        self.dialog.cookiejar = cookielib.CookieJar()
+
+        # set base url used for cookie
+        self.dialog.cookie_url = self.config.webRepositoryURL
+
         self.loginOpener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.dialog.cookiejar))
 
         # FIXME doesn't use https
@@ -575,6 +605,7 @@ class QRepositoryDialog(QtGui.QDialog):
     """ Dialog that shows repository options """
 
     cookiejar = None
+    cookie_url = None
     loginUser = None
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
@@ -596,10 +627,10 @@ class QRepositoryDialog(QtGui.QDialog):
         self._tab_widget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
 
-        self._login_tab = self.create_login_tab()
-        self._tab_widget.addTab(self._login_tab, 'Login to Repository')
-
         self._push_tab = self.create_push_tab()
+        self._login_tab = self.create_login_tab()
+
+        self._tab_widget.addTab(self._login_tab, 'Login to Repository')
         self._tab_widget.addTab(self._push_tab, 'Push VisTrails to Repository')
 
         self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
