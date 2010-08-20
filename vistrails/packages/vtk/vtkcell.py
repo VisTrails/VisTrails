@@ -381,7 +381,10 @@ class QVTKWidget(QCellWidget):
             return
 
         self.resizeWindow(self.width(), self.height())
-        self.mRenWin.Render()
+        if self.mRenWin.GetInteractor():
+            self.mRenWin.GetInteractor().Render()
+        else:
+            self.mRenWin.Render()
 
     def moveEvent(self,e):
         """ moveEvent(e: QEvent) -> None
@@ -419,7 +422,10 @@ class QVTKWidget(QCellWidget):
 
         if hasattr(self.mRenWin, 'UpdateGLRegion'):
             self.mRenWin.UpdateGLRegion()
-        self.mRenWin.Render()
+        if self.mRenWin.GetInteractor():
+            self.mRenWin.GetInteractor().Render()
+        else:
+            self.mRenWin.Render()
 
     def SelectActiveRenderer(self,iren):
         """ SelectActiveRenderer(iren: vtkRenderWindowIteractor) -> None
@@ -906,8 +912,12 @@ class QVTKWidget(QCellWidget):
         w2i.ReadFrontBufferOff()
         w2i.SetInput(self.mRenWin)
         # Render twice to get a clean image on the back buffer
-        self.mRenWin.Render()
-        self.mRenWin.Render()
+        if self.mRenWin.GetInteractor():
+            self.mRenWin.GetInteractor().Render()
+            self.mRenWin.GetInteractor().Render()
+        else:
+            self.mRenWin.Render()
+            self.mRenWin.Render()
         w2i.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetInputConnection(w2i.GetOutputPort())
