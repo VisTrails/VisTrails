@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 import sys
 
-VERSION = '1.5.1831'
+VERSION = '1.5.1.1858'
 
 plist = dict(
     CFBundleName='VisTrails',
@@ -30,7 +30,7 @@ OPTIONS = {'argv_emulation': True,
                         shelve, uuid, gridfield, gridfield.core, \
                         gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
                         sine,st,Numeric,pexpect,psycopg2,sqlite3',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,pyGridWare,Ft,Scientific,dbflib,shapelib,distutils,h5py,rpy2',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,pyGridWare,Ft,Scientific,dbflib,shapelib,distutils,h5py',
            'plist': plist,
            }
 
