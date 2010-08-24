@@ -43,7 +43,7 @@ class RichTextCell(SpreadsheetCell):
             fileValue = self.getInputFromPort("File")
         else:
             fileValue = None
-        self.display(RichTextCellWidget, (fileValue,))
+        self.cellWidget = self.displayAndWait(RichTextCellWidget, (fileValue,))
 
 class RichTextCellWidget(QCellWidget):
     """
