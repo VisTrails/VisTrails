@@ -27,6 +27,7 @@ from PyQt4 import QtCore, QtGui
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
 from packages.spreadsheet.spreadsheet_cell import QCellWidget
 import shutil
+import os.path
 ################################################################################
 
 class RichTextCell(SpreadsheetCell):
@@ -82,9 +83,18 @@ class RichTextCellWidget(QCellWidget):
             self.browser.setText("No HTML file is specified!")
             
     def dumpToFile(self, filename):
+        """ dumpToFile(filename) -> None 
+        It will generate a screenshot of the cell contents and dump to filename.
+        It will also create a copy of the original text file used with 
+        filename's basename and the original extension.
+        """
         if self.fileSrc is not None:
-            shutil.copyfile(self.fileSrc, filename)
-
+            (_, s_ext) = os.path.splitext(self.fileSrc)
+            (f_root, f_ext) = os.path.splitext(filename)
+            ori_filename = f_root + s_ext
+            shutil.copyfile(self.fileSrc, ori_filename)
+        QCellWidget.dumpToFile(self,filename)
+            
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)

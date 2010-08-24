@@ -26,6 +26,7 @@ import os.path
 import shutil
 import time
 import uuid
+import mimetypes
 from core import debug
 from core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
@@ -42,6 +43,7 @@ class CacheEntry(object):
 class ThumbnailCache(object):
     _instance = None
     IMAGE_MAX_WIDTH = 200 
+    SUPPORTED_TYPES = ['image/png','image/jpeg','image/bmp','image/gif']
     class ThumbnailCacheSingleton(object):
         def __call__(self, *args, **kw):
             if ThumbnailCache._instance is None:
@@ -157,7 +159,7 @@ class ThumbnailCache(object):
         
         image = self._merge_thumbnails(folder)
         fname = None
-        if image != None:
+        if image != None and image.width() > 0 and image.height() > 0:
             fname = "%s.png" % str(uuid.uuid1())
             abs_fname = self._save_thumbnail(image, fname) 
             statinfo = os.stat(abs_fname)
@@ -213,13 +215,16 @@ class ThumbnailCache(object):
         pixmaps = []
         for root, dirs, files in os.walk(folder):
             for f in files:
-                pix = QtGui.QPixmap(os.path.join(root,f))
-                pixmaps.append(pix)
-                #width += pix.width()
-                #height = max(height, pix.height())
-                height += pix.height()
-                width = max(width,pix.width())
-        if len(pixmaps) > 0:        
+                ftype = mimetypes.guess_type(f)
+                if ftype[0] in ThumbnailCache.SUPPORTED_TYPES:
+                    pix = QtGui.QPixmap(os.path.join(root,f))
+                    if pix.height() > 0 and pix.width() > 0:
+                        pixmaps.append(pix)
+                        #width += pix.width()
+                        #height = max(height, pix.height())
+                        height += pix.height()
+                        width = max(width,pix.width())
+        if len(pixmaps) > 0 and height > 0 and width > 0:        
             finalImage = QtGui.QImage(width, height, QtGui.QImage.Format_ARGB32)
             painter = QtGui.QPainter(finalImage)
             x = 0
