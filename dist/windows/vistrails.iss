@@ -21,7 +21,7 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.5
+AppVerName=VisTrails 1.5.1
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$9d5942
@@ -173,6 +173,11 @@ Name: {app}\vistrails\zlib1.dll; Type: files
 Name: {app}\vistrails\python24.dll; Type: files
 Name: {app}\vistrails\Python24; Type: filesandordirs
 Name: {app}\vistrails\Python25; Type: filesandordirs
+Name: {app}\vistrails\vtk; Type: filesandordirs
+Name: {app}\vistrails\*.pyd; Type: files
+Name: {app}\vistrails\dgnlib.dll; Type: files
+Name: {app}\vistrails\_Xdmf.dll; Type: files
+Name: {app}\vistrails\geotiff.dll; Type: files
 Name: {app}\examples\gridfieldexample.vt; Type: files
 Name: {app}\vistrails\vistrails; Type: filesandordirs
 Name: {app}\vistrails\packages\gridfield; Type: filesandordirs
@@ -209,18 +214,6 @@ begin
 //	    DelTree(oldPythonDir, True, True, True);}
 //	end;
 //  end;
-end;
-
-procedure DeinitializeSetup();
-var
-  qvtk: String;
-begin
-  if FinishedInstall then begin
-      qvtk := ExpandConstant('{app}') + '\vistrails\packages\spreadsheet\widgets\QVTKWidget';
-	  if DirExists(qvtk) then
-		DelTree(qvtk, True, True, True);
-  end;
-  DeleteVCRedistRuntimeTemporaryFiles();
 end;
 
 procedure DeleteVCRedistRuntimeTemporaryFiles();
@@ -283,3 +276,16 @@ begin
       End;
    End;
 End;
+
+procedure DeinitializeSetup();
+var
+  qvtk: String;
+begin
+  if FinishedInstall then begin
+      qvtk := ExpandConstant('{app}') + '\vistrails\packages\spreadsheet\widgets\QVTKWidget';
+	  if DirExists(qvtk) then
+		DelTree(qvtk, True, True, True);
+  end;
+  DeleteVCRedistRuntimeTemporaryFiles();
+end;
+
