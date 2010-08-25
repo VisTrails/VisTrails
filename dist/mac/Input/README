@@ -17,13 +17,14 @@ Please see the About Message for Licensing and Disclaimers.
 RELEASE NOTES
 -------------
 
-Release Name: v1.5.1 build 1860
+Release Name: v1.5.1 build 1862
 
 Enhancements: 
  - branching is now supported when uploading to web repositories (r1853)
  - Added ParaView package (r1850)
  - Added Titan package (r1847)
 Bug fixes: 
+ - Ticket #368: Spreadsheet: export as single image does not work (r1861)
  - Fixed bug where RichTextCell was not displayed when running on 
    server mode (r1857)
  - Fixed bug with thumbnails and RichTextCell (r1856)
