@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 import sys
 
-VERSION = '1.5.1.1858'
+VERSION = '1.5.1.1860'
 
 plist = dict(
     CFBundleName='VisTrails',

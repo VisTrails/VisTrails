@@ -39,7 +39,7 @@ SVN_URL = "https://vistrails.sci.utah.edu/svn/trunk"
 SVN_ARGS = ""
 
 # Prefix of target svn export dir (also used as prefix for log files)
-EXPORT_DIR_PREFIX = "vistrails-src-1.5"
+EXPORT_DIR_PREFIX = "vistrails-src-1.5.1"
 
 # Suffix of target svn export dir (instances of '?' will be replaced with svn revision)
 EXPORT_DIR_SUFFIX = "-rev?"
@@ -48,7 +48,7 @@ EXPORT_DIR_SUFFIX = "-rev?"
 EXPORT_DELETE_PATHS = ["dist"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
-TARBALL_NAME = "vistrails-src-1.4.2-rev1716"
+TARBALL_NAME = "vistrails-src-1.5.1-rev1860"
 
 # Sourceforge User Name
 SF_USERNAME = "CHANGEME"

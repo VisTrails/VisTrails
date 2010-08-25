@@ -1,7 +1,45 @@
 RELEASE NOTES
 -------------
+Release Name: v1.5.1 build 1860
 
-Release Name: v1.5 build 1832
+Enhancements: 
+ - branching is now supported when uploading to web repositories (r1853)
+ - Added ParaView package (r1850)
+ - Added Titan package (r1847)
+Bug fixes: 
+ - Fixed bug where RichTextCell was not displayed when running on 
+   server mode (r1857)
+ - Fixed bug with thumbnails and RichTextCell (r1856)
+ - Making sure to use only image files when generating thumbnails (r1856)
+ - Fixed web repository commit bug where updated vistrail files where not 
+   successfully loaded into VisTrails after being downloaded (r1853)
+ - web repository vt id annotation is now being saved (r1853)
+ - web repository cookie is now nullified if the web repository url 
+   changes (r1853)
+ - VisTrails Batch mode: Changing parameter separator from '&' to '&&' so 
+   urls with query urls work (r1846)
+ - Added procedure to WIndows installer script to remove VC Redist files 
+   left behind (r1846)
+ - log file names are now updated according to VisTrails version (r1845)
+ - Ticket #366: VTK overloaded ports from old vistrail files are not being shown in the GUI (r1842)
+ - Fix translation of head example from old version (r1842)
+ - Ticket #367: Different port signatures when upgrading a workflow (r1841)
+ - Translate old parameter type serialization to match port/portSpecs (r1841)
+ - Ticket #364: actionAnnotation breaks view->show all (r1840)
+ - Fix issue with annotations that have the same key/value pairs (r1840)
+ - Ticket #363: Enabling the Web services package on-the-fly is broken (r1839)
+ - Spreadsheet package: SingleCellSheetReference could not be used (r1839)
+ - On Mac, the eventFilter was not being removed when finalizing 
+   Vistrails and sometimes delayed events could not be processed  (r1839)
+ - ImageViewerCell: Disabling the zoom slider when playing 
+   animation (r1838)
+ - Ticket #362: ImageViewerCell Animation Icons Are Not Displayed (r1837)
+ - repository_vt_id now represents the crowdlabs vistrail object id instead 
+   of the vistrails db id (r1834)
+ - when merging a vistrail with one on the web repository, a check is made 
+   to see if that vistrail still exists (r1834)
+
+From Release: v1.5 build 1832
 
 Enhancements: 
  - Upgraded libraries: VTK 5.6, Qt 4.6.3, python 2.6
