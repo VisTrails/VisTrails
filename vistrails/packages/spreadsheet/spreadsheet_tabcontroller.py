@@ -266,7 +266,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         else:
             file = QtGui.QFileDialog.getSaveFileName(
                 self, "Select a File to Export the Sheet",
-                ".", "Images (*.png, *.xpm, *.jpg)")
+                ".", "Images (*.png *.xpm *.jpg)")
             if not file.isNull():
                 self.currentWidget().exportSheetToImage(str(file))
         
