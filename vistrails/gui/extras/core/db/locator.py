@@ -118,7 +118,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
 ##############################################################################
 # File dialogs
 
-suffix_map = {'vistrail': ['.vt', '.xml'],
+suffix_map = {'vistrail': ['.vt', '.xml', '.vtl'],
               'workflow': ['.xml'],
               'log': ['.xml'],
               'registry': ['.xml'],

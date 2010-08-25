@@ -30,6 +30,7 @@
 #   StandardWidgetToolBar
 ################################################################################
 from PyQt4 import QtCore, QtGui
+import os.path
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
@@ -507,7 +508,14 @@ class StandardWidgetSheetTabInterface(object):
                 x += cellWidths[c]
             y += cellHeights[r]
         painter.end()
-        finalImage.save(fileName)
+         
+        #forcing png format if no extension was provided 
+        (_,ext) = os.path.splitext(fileName)
+        if ext == '':
+            finalImage.save(fileName, 'png')
+        else:
+            #try to guess based on the extension
+            finalImage.save(fileName)
 
     def exportSheetToImages(self, dirPath, format='png'):
         """ exportSheetToImage() -> None
