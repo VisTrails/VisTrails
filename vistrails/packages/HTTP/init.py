@@ -43,9 +43,10 @@ import httplib
 import urllib2
 import os.path
 import sys
-import urllib
+import urllib2
 import socket
 import datetime
+import urllib
 
 import hashlib
 # special file uploaders used to push files to repository
@@ -73,42 +74,26 @@ class HTTP(core.modules.vistrails_module.Module):
 class HTTPFile(HTTP):
     """ Downloads file from URL """
 
-    # FIXME: the logic behind is_cacheable and compute is similar,
-    # but not exactly the same. We should refactor
-   
     def is_cacheable(self):
         self.checkInputPort('url')
-        url = self.getInputFromPort('url')
+        url = self.getInputFromPort("url")
+        self._parse_url(url)
         local_filename = self._local_filename(url)
-        # If file is not in cache, then we must re-run
-        if not self._file_is_in_local_cache(local_filename):
-            return False
-        conn = httplib.HTTPConnection(self.host)
-        try:
-            conn.request("GET", self.filename)
-        except socket.gaierror, e:
-            # We could not get to the net, but file exists in local
-            # cache, so we'll simply reuse it
-            return True
-        response = conn.getresponse()
-        mod_header = response.msg.getheader('last-modified')
-        if not mod_header:
-            # server did not return a last-modified, assume cannot cache
-            return False
-        if self._is_outdated(mod_header, local_filename):
-            return False
-        return True
+        return self._file_is_in_local_cache(local_filename)
             
     def compute(self):
         self.checkInputPort('url')
         url = self.getInputFromPort("url")
         self._parse_url(url)
-        conn = httplib.HTTPConnection(self.host)
+
+        opener = urllib2.build_opener()
+
         local_filename = self._local_filename(url)
         self.setResult("local_filename", local_filename)
+
         try:
-            conn.request("GET", self.filename)
-        except socket.gaierror, e:
+            request = urllib2.Request(url)
+        except (socket.gaierror, socket.error), e:
             if self._file_is_in_local_cache(local_filename):
                 debug.warning(('A network error occurred. HTTPFile will use'
                                ' cached version of file'))
@@ -118,21 +103,29 @@ class HTTPFile(HTTP):
             else:
                 raise ModuleError(self, e[1])
         else:
-            response = conn.getresponse()
-            mod_header = response.msg.getheader('last-modified')
+            f1 = opener.open(url)
+            mod_header = f1.info().getheader('last-modified')
+
             result = core.modules.basic_modules.File()
             result.name = local_filename
+
             if (not self._file_is_in_local_cache(local_filename) or
                 not mod_header or
                 self._is_outdated(mod_header, local_filename)):
                 try:
-                    urllib.urlretrieve(url, local_filename)
+                    # For binary files on windows the mode have to be 'w+'
+                    mode = 'w'
+                    f2 = open(local_filename, mode)
+                    f2.write(f1.read())
+                    f2.close()
+                    f1.close()
+
                 except IOError, e:
                     raise ModuleError(self, ("Invalid URL: %s" % e))
                 except:
                     raise ModuleError(self, ("Could not create local file '%s'" %
                                              local_filename))
-            conn.close()
+            result.name = local_filename
             self.setResult("file", result)
     
     ##########################################################################
@@ -149,8 +142,12 @@ class HTTPFile(HTTP):
         """Checks whether local file is outdated."""
         local_time = \
                 datetime.datetime.utcfromtimestamp(os.path.getmtime(localFile))
-        remote_time = datetime.datetime.strptime(remoteHeader,
-                                                 "%a, %d %b %Y %H:%M:%S %Z")
+	try:
+            remote_time = datetime.datetime.strptime(remoteHeader,
+                                                     "%a, %d %b %Y %H:%M:%S %Z")
+        except:
+            remote_time = datetime.datetime.strptime(remoteHeader,
+                                                     "%a, %d %B %Y %H:%M:%S %Z")
         return remote_time > local_time
 
     def _file_is_in_local_cache(self, local_filename):
