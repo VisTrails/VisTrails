@@ -1,3 +1,4 @@
+import csv
 from datetime import datetime
 import glob
 import itertools
@@ -9,7 +10,7 @@ from core.modules.vistrails_module import Module, ModuleError, ModuleConnector
 from core.modules.basic_modules import File, Directory, new_constant, Constant
 from core.system import list2cmdline, execute_cmdline
 
-from widgets import ClimatePredictorListConfig
+from widgets import ClimatePredictorListWidget, ClimatePredictorListConfig
 
 identifier = 'gov.usgs.sahm'
 _temp_files = []
@@ -264,6 +265,11 @@ class ModelBuilder(Module):
         for model in models:
             print model
             shutil.copy(model.name, models_dir)
+            if model.name == 'MAXENT':
+                # FIXME, use parameters from MAXENT
+                # for port in model.input_ports:
+                #    port + model.getInputFromPort(port)
+                pass
         predictors_dir = mktempdir(prefix='sahm_layers')
         for predictor in predictor_list:
             shutil.copy(predictor.name, predictors_dir)
@@ -374,17 +380,58 @@ class PredictorList(Constant):
 
     @staticmethod
     def get_widget_class():
-        return ClimatePredictorListConfig
+        return ClimatePredictorListWidget
 
-class ClimatePredictors(Module):
-    _input_ports = [('selected_list', 
-                     '(gov.usgs.sahm:PredictorList:DataInput)')]
+class ClimatePredictors(PredictorList):
+    @staticmethod
+    def get_widget_class():
+        return ClimatePredictorListWidget
+
+def load_max_ent_params():    
+    maxent_fname = os.path.join(os.path.dirname(__file__), 'maxent.csv')
+    csv_reader = csv.reader(open(maxent_fname, 'rU'))
+    # pass on header
+    csv_reader.next()
+    input_ports = []
+    docs = {}
+    basic_pkg = 'edu.utah.sci.vistrails.basic'
+    p_type_map = {'file/directory': 'Path',
+                  'double': 'Float'}
+    for row in csv_reader:
+        [name, flag, p_type, default, doc] = row
+        p_type = p_type.strip()
+        if p_type in p_type_map:
+            p_type = p_type_map[str(p_type)]
+        else:
+            p_type = str(p_type).capitalize()
+        kwargs = {}
+        default = default.strip()
+        if default:
+            if p_type == 'Boolean':
+                default = default.capitalize()
+            kwargs['defaults'] = str([default])
+        if p_type == 'Boolean':
+            kwargs['optional'] = True
+        input_ports.append((name, '(' + basic_pkg + ':' + p_type + ')', kwargs))
+        # FIXME set documentation
+        print 'port:', (name, '(' + basic_pkg + ':' + p_type + ')', kwargs)
+        docs[name] = doc
+
+    print 'MAXENT:', input_ports
+    MAXENT._input_ports = input_ports
+    MAXENT._port_docs = docs
+
+    def provide_input_port_documentation(cls, port_name):
+        return cls._port_docs[port_name]
+    MAXENT.provide_input_port_documentation = \
+        classmethod(provide_input_port_documentation)
 
 def initialize():
     global sahm_path, models_path
     sahm_path = configuration.sahm_path
     models_path = configuration.models_path
-
+    load_max_ent_params()
+    
 def finalize():
     global _temp_files, _temp_dirs
     for file in _temp_files:
@@ -403,16 +450,19 @@ def generate_namespaces(modules):
             if type(module) == tuple:
                 m_dict.update(module[1])
                 module_list.append((module[0], m_dict))
+                print 'm_dict:', m_dict
             else:
                 module_list.append((module, m_dict))
     return module_list
 
 _modules = generate_namespaces({'DataInput': [Predictor, 
-                                              PredictorList,
+                                              PredictorList, 
                                               RemoteSensingPredictor,
                                               ClimatePredictor,
                                               StaticPredictor,
-                                              ClimatePredictors,
+                                              (ClimatePredictors,
+                                               {'configureWidgetType': 
+                                                ClimatePredictorListConfig}),
                                               SpatialDef],
                                 'Tools': [Resampler, 
                                           FieldDataQuery,

@@ -2,24 +2,40 @@ from PyQt4 import QtCore, QtGui
 import csv
 import os
 
+from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.constant_configuration import ConstantWidgetMixin
 
-class PredictorListConfigurationWidget(QtGui.QTreeWidget, ConstantWidgetMixin):
-    
-    def __init__(self, param, available_tree, parent=None):
-        """__init__(param: core.vistrail.module_param.ModuleParam,
-                    parent: QWidget)
+available_trees = None
 
-        Initialize the line edit with its contents. Content type is limited
-        to 'int', 'float', and 'string'
+def build_available_trees():
+    trees = {}
 
-        """
+    layers_fname = os.path.join(os.path.dirname(__file__), 'layers.csv')
+    csv_reader = csv.reader(open(layers_fname, 'rU'))
+    # pass on header
+    csv_reader.next()
+    for row in csv_reader:
+        if row[0] not in trees:
+            trees[row[0]] = {}
+        available_dict = trees[row[0]]
+        if row[1] not in available_dict:
+            available_dict[row[1]] = []
+        available_dict[row[1]].append((row[3], row[2]))    
+    return trees
+
+def get_available_tree(title):
+    global available_trees
+    if available_trees is None:
+        available_trees = build_available_trees()
+            
+    return available_trees[title]
+
+class PredictorListWidget(QtGui.QTreeWidget):
+    def __init__(self, p_value, available_tree, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param.strValue)
-        # assert param.namespace == None
-        # assert param.identifier == 'edu.utah.sci.vistrails.basic'
         self.available_tree = available_tree
         self.setColumnCount(2)
+        self.tree_items = {}
         for source, file_list in self.available_tree.iteritems():
             source_item = QtGui.QTreeWidgetItem([source])
             self.addTopLevelItem(source_item)
@@ -29,6 +45,52 @@ class PredictorListConfigurationWidget(QtGui.QTreeWidget, ConstantWidgetMixin):
                                     QtCore.Qt.ItemIsEnabled)
                 child_item.setCheckState(0, QtCore.Qt.Unchecked)
                 source_item.addChild(child_item)
+                self.tree_items[(source, file)] = child_item
+        self.set_values(p_value)
+
+    def set_values(self, str_value):
+        print 'set_values:', str_value
+        values = []
+        if str_value:
+            values = eval(str_value)
+        for value in values:
+            if value in self.tree_items:
+                self.tree_items[value].setCheckState(0, QtCore.Qt.Checked)
+    
+    def get_values(self):
+        values = []
+        for value, item in self.tree_items.iteritems():
+            if item.checkState(0) == QtCore.Qt.Checked:
+                values.append(value)
+        return str(values)
+
+class PredictorListConfigurationWidget(PredictorListWidget, 
+                                       ConstantWidgetMixin):
+    
+    def __init__(self, param, available_tree, parent=None):
+        """__init__(param: core.vistrail.module_param.ModuleParam,
+                    parent: QWidget)
+
+        Initialize the line edit with its contents. Content type is limited
+        to 'int', 'float', and 'string'
+
+        """
+        PredictorListWidget.__init__(self, param.strValue, available_tree, 
+                                     parent)
+        ConstantWidgetMixin.__init__(self, param.strValue)
+        # assert param.namespace == None
+        # assert param.identifier == 'edu.utah.sci.vistrails.basic'
+#         self.available_tree = available_tree
+#         self.setColumnCount(2)
+#         for source, file_list in self.available_tree.iteritems():
+#             source_item = QtGui.QTreeWidgetItem([source])
+#             self.addTopLevelItem(source_item)
+#             for (file, desc) in file_list:
+#                 child_item = QtGui.QTreeWidgetItem([file, desc])
+#                 child_item.setFlags(QtCore.Qt.ItemIsUserCheckable |
+#                                     QtCore.Qt.ItemIsEnabled)
+#                 child_item.setCheckState(0, QtCore.Qt.Unchecked)
+#                 source_item.addChild(child_item)
 
         contents = param.strValue
         contentType = param.type
@@ -47,7 +109,8 @@ class PredictorListConfigurationWidget(QtGui.QTreeWidget, ConstantWidgetMixin):
         As this is a QLineEdit, we just call text()
 
         """
-        return 'abc'
+        return self.get_values()
+#         return 'abc'
 #         self.update_text()
 #         return str(self.text())
 
@@ -62,22 +125,25 @@ class PredictorListConfigurationWidget(QtGui.QTreeWidget, ConstantWidgetMixin):
 #         self.update_text()
 #         if not silent:
 #             self.update_parent()
-        pass
+        self.set_values(strValue)
+#         self.update_text()
+        if not silent:
+            self.update_parent()
             
-    def update_text(self):
-        """ update_text() -> None
-        Update the text to the result of the evaluation
+#     def update_text(self):
+#         """ update_text() -> None
+#         Update the text to the result of the evaluation
 
-        """
-        # FIXME: eval should pretty much never be used
-        base = expression.evaluate_expressions(self.text())
-        if self._contentType == 'String':
-            self.setText(base)
-        else:
-            try:
-                self.setText(str(eval(str(base), None, None)))
-            except:
-                self.setText(base)
+#         """
+#         # FIXME: eval should pretty much never be used
+#         base = expression.evaluate_expressions(self.text())
+#         if self._contentType == 'String':
+#             self.setText(base)
+#         else:
+#             try:
+#                 self.setText(str(eval(str(base), None, None)))
+#             except:
+#                 self.setText(base)
 
     def sizeHint(self):
         return QtCore.QSize(512, 512)
@@ -94,37 +160,86 @@ class PredictorListConfigurationWidget(QtGui.QTreeWidget, ConstantWidgetMixin):
     ###########################################################################
     # event handlers
 
-#     def focusInEvent(self, event):
-#         """ focusInEvent(event: QEvent) -> None
-#         Pass the event to the parent
+    def focusInEvent(self, event):
+        """ focusInEvent(event: QEvent) -> None
+        Pass the event to the parent
 
-#         """
-#         self._contents = str(self.text())
-#         if self.parent():
-#             QtCore.QCoreApplication.sendEvent(self.parent(), event)
-#         QtGui.QLineEdit.focusInEvent(self, event)
+        """
+        self._contents = self.get_values()
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        QtGui.QTreeWidget.focusInEvent(self, event)
 
-#     def focusOutEvent(self, event):
-#         self.update_parent()
-#         QtGui.QLineEdit.focusOutEvent(self, event)
-#         if self.parent():
-#             QtCore.QCoreApplication.sendEvent(self.parent(), event)
+    def focusOutEvent(self, event):
+        self.update_parent()
+        QtGui.QTreeWidget.focusOutEvent(self, event)
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
-class ClimatePredictorListConfig(PredictorListConfigurationWidget):
+class PredictorListConfiguration(StandardModuleConfigurationWidget):
+    # FIXME add available_dict as parameter to allow config
+    def __init__(self, module, controller, available_tree, parent=None):
+        StandardModuleConfigurationWidget.__init__(self, module, controller, 
+                                                   parent)
+
+        # set title
+        if module.has_annotation_with_key('__desc__'):
+            label = module.get_annotation_by_key('__desc__').value.strip()
+            title = '%s (%s) Module Configuration' % (label, module.name)
+        else:
+            title = '%s Module Configuration' % module.name
+        self.setWindowTitle(title)
+        self.build_gui(available_tree)
+
+    def build_gui(self, available_tree):
+        layout = QtGui.QVBoxLayout()
+        # precompute tree so we only load once
+ 
+        # factor PredictorListConfigurationWidget so that it can be reused in
+        # both cases
+        self.p_value = ''
+        for function in self.module.functions:
+            if function.name == 'value':
+                self.p_value = function.parameters[0].strValue
+        # should just be able to pass this across to the PredictorList config
+        self.list_config = PredictorListWidget(self.p_value, available_tree)
+        layout.addWidget(self.list_config)
+
+        self.buttonLayout = QtGui.QHBoxLayout()
+        self.buttonLayout.setMargin(5)
+        self.okButton = QtGui.QPushButton('&OK', self)
+        self.okButton.setFixedWidth(100)
+        self.buttonLayout.addWidget(self.okButton)
+        self.cancelButton = QtGui.QPushButton('&Cancel', self)
+        self.cancelButton.setShortcut('Esc')
+        self.cancelButton.setFixedWidth(100)
+        self.buttonLayout.addWidget(self.cancelButton)
+        layout.addLayout(self.buttonLayout)
+        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), 
+                     self.okTriggered)
+        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), 
+                     self.close)
+        self.setLayout(layout)
+
+    def okTriggered(self):
+        str_value = self.list_config.get_values()
+        if str_value != self.p_value:
+            print 'okTriggered:', str_value
+            functions = [('value', [str_value])]
+            self.controller.update_functions(self.module, functions)
+        self.close()
+
+    def sizeHint(self):
+        return QtCore.QSize(512, 512)
+
+class ClimatePredictorListWidget(PredictorListConfigurationWidget):
     def __init__(self, param, parent=None):
-        layers_fname = os.path.join(os.path.dirname(__file__), 'layers.csv')
-        csv_reader = csv.reader(open(layers_fname, 'rU'))
-        # pass on header
-        csv_reader.next()
-        available_dict = {}
-        for row in csv_reader:
-            if row[0] == 'Climate':
-                if row[1] not in available_dict:
-                    available_dict[row[1]] = []
-                available_dict[row[1]].append((row[3], row[2]))
-
-        print available_dict
-#         available_dict = {'test1': [('abc', 'def'), ('ghi', 'jkl')], 
-#                           '2test': [('mno', 'pqr'), ('stu', 'vwx')]}
-        PredictorListConfigurationWidget.__init__(self, param, available_dict, 
+        available_tree = get_available_tree('Climate')
+        PredictorListConfigurationWidget.__init__(self, param, available_tree, 
                                                   parent)
+
+class ClimatePredictorListConfig(PredictorListConfiguration):
+    def __init__(self, module, controller, parent=None):
+        available_tree = get_available_tree('Climate')
+        PredictorListConfiguration.__init__(self, module, controller, 
+                                            available_tree, parent)
