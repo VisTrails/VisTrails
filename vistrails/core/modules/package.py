@@ -252,14 +252,23 @@ class Package(DBPackage):
             res_name = res.__name__
         qual_name = ''
         for m in res_name.split('.'):
-           qual_name += m
-           if qual_name not in self._existing_paths and not qual_name.endswith('_rc'):
-               # print '  adding', name, qual_name
-               self._imported_paths.add(qual_name)
-           # else:
-           #     if name != 'core.modules.module_registry':
-           #         print '  already exists', name, res.__name__
-	   qual_name += '.'
+            qual_name += m
+            if qual_name not in self._existing_paths and \
+                    not qual_name.endswith('_rc'):
+                # print '  adding', name, qual_name
+                self._imported_paths.add(qual_name)
+            # else:
+            #     if name != 'core.modules.module_registry':
+            #         print '  already exists', name, res.__name__
+	    qual_name += '.'
+        if fromlist is not None:
+            for from_module in fromlist:
+                qual_name = res_name + '.' + from_module
+                if qual_name not in self._existing_paths and \
+                        not qual_name.endswith('_rc'):
+                    # print '  adding222', name, qual_name
+                    self._imported_paths.add(qual_name)
+
         return res
 
     def get_py_deps(self):
