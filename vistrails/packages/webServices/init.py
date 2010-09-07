@@ -32,6 +32,17 @@ import time
 
 ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
                         'linux-fedora': 'python-ZSI'})
+
+### workaround for reloading package while the bug in the package
+### reloading mechanism is not fixed
+import ZSI.generate.commands
+import ZSI.resolvers
+import distutils.log
+import distutils.file_util
+import distutils.archive_util
+import distutils.dep_util
+### end of workaorund
+
 from ZSI.ServiceProxy import ServiceProxy
 from ZSI.generate.wsdl2python import WriteServiceModule
 from ZSI.wstools import WSDLTools
@@ -521,8 +532,10 @@ def generatename(name):
     return name
 
 def processType(complexschema,w):
+    
     contentschema = ''
     modulename = str(complexschema.attributes['name'])
+    print "processType: %s,%s"%(modulename,w)
     try:
         moduletype = str(complexschema.attributes['type'][1])
     except KeyError:
@@ -570,6 +583,7 @@ def processType(complexschema,w):
         pass
 
     #Get all the child elements of the complex type
+    print "contentschema", contentschema
     for child in contentschema:
         try:
             nametype = child.attributes['name']
