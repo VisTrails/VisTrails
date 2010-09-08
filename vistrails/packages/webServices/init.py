@@ -33,16 +33,6 @@ import time
 ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
                         'linux-fedora': 'python-ZSI'})
 
-### workaround for reloading package while the bug in the package
-### reloading mechanism is not fixed
-import ZSI.generate.commands
-import ZSI.resolvers
-import distutils.log
-import distutils.file_util
-import distutils.archive_util
-import distutils.dep_util
-### end of workaorund
-
 from ZSI.ServiceProxy import ServiceProxy
 from ZSI.generate.wsdl2python import WriteServiceModule
 from ZSI.wstools import WSDLTools
@@ -502,7 +492,16 @@ def processEnumeration(complexschema):
     return (listenum,Type)
 
 def processArray(complexschema,w):
-    contentschema =  complexschema.content.content.attr_content
+    # the problem here is that sometimes we are told that complexschema is an
+    # array but it is not. So if we get an AttributeError we will consider that
+    # complexschema is a regular complex type.
+    try:
+        contentschema =  complexschema.content.content.attr_content
+    except AttributeError:
+        print "warning: type is not an array..."
+        processType(complexschema,w)
+        return
+    
     for child in contentschema:
         nametype = str(child.attributes['http://schemas.xmlsoap.org/wsdl/']['arrayType'])
         index = nametype.find(':')
@@ -520,7 +519,9 @@ def processArray(complexschema,w):
             except KeyError:    
                 pass
 
-def isArray(Type):            
+def isArray(Type):   
+    #FIXME: this function not always work!!
+    #Just because there's the word Array doesn't mean it will be an array (Emanuele)         
     if len(Type) > 5:
         if Type[0:5] == 'Array':
             return True
@@ -535,7 +536,7 @@ def processType(complexschema,w):
     
     contentschema = ''
     modulename = str(complexschema.attributes['name'])
-    print "processType: %s,%s"%(modulename,w)
+    #print "processType: %s,%s"%(modulename,w)
     try:
         moduletype = str(complexschema.attributes['type'][1])
     except KeyError:
@@ -583,7 +584,6 @@ def processType(complexschema,w):
         pass
 
     #Get all the child elements of the complex type
-    print "contentschema", contentschema
     for child in contentschema:
         try:
             nametype = child.attributes['name']
