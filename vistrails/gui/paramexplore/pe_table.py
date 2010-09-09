@@ -182,6 +182,7 @@ class QParameterExplorationTable(QPromptWidget):
         newEditor.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
         self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
+        return newEditor
 
     def removeParameter(self, ps):
         """ removeParameterSet(ps: QParameterSetEditor) -> None
@@ -356,6 +357,17 @@ class QDimensionLabel(QtGui.QWidget):
         
         """
         return [l.countWidget.value() for l in self.labelIcons]
+
+    def setCounts(self, counts):
+        """ setCounts(counts:list) -> None
+        Set the 4 step counts for each dimension from a list of 4 ints
+
+        """
+        dim = len(self.getCounts())
+        if len(counts) != dim:
+            return
+        for i in xrange(0, dim):
+            self.labelIcons[i].countWidget.setValue(counts[i])
 
     def resetCounts(self):
         """ resetCounts() -> None

@@ -127,6 +127,7 @@ class Vistrail(DBVistrail):
 
     TAG_ANNOTATION = '__tag__'
     NOTES_ANNOTATION = '__notes__'
+    PARAMEXP_ANNOTATION = '__paramexp__'
     THUMBNAIL_ANNOTATION = '__thumb__'
     PRUNE_ANNOTATION = '__prune__'
     UPGRADE_ANNOTATION = '__upgrade__'
@@ -679,6 +680,20 @@ class Vistrail(DBVistrail):
         return None
     def set_notes(self, action_id, value):
         return self.set_action_annotation(action_id, Vistrail.NOTES_ANNOTATION,
+                                          value)
+
+    def has_paramexp(self, action_id):
+        return self.has_action_annotation(action_id,
+                                          Vistrail.PARAMEXP_ANNOTATION)
+    def get_paramexp(self, action_id):
+        a = self.get_action_annotation(action_id, 
+                                       Vistrail.PARAMEXP_ANNOTATION)
+        if a is not None:
+            return a.value
+        return None
+    def set_paramexp(self, action_id, value):
+        return self.set_action_annotation(action_id,
+                                          Vistrail.PARAMEXP_ANNOTATION,
                                           value)
 
     def has_thumbnail(self, action_id):
