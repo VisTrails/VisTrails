@@ -1,4 +1,4 @@
-from cdat_cell import QCDATWidget
+from cdat_cell import QCDATWidget, CDATCell
 from core.modules.vistrails_module import (Module, ModuleError, NotCacheable)
 from packages.spreadsheet.spreadsheet_controller import spreadsheetController
 from packages.spreadsheet.spreadsheet_event import DisplayCellEvent
@@ -21,6 +21,7 @@ class quickplot(Module, NotCacheable):
         plotType = self.getInputFromPort('plot')
         axes = self.forceGetInputFromPort('axes')
         inCanvas = self.forceGetInputFromPort('canvas')
+
         if axes!=None:
             try:
                 kwargs = eval(axes)
@@ -37,10 +38,13 @@ class quickplot(Module, NotCacheable):
             ev.vistrail = {'locator': None, 'version': -1, 'actions': []}
             ev.cellType = QCDATWidget
             ev.inputPorts = (dataset, 'ASD', plotType)
+            
             QtCore.QCoreApplication.processEvents()
             spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
+            
             cdatWidget = spreadsheetWindow.displayCellEvent(ev)
             if cdatWidget!=None:
                 outCanvas = cdatWidget.canvas
+                
         self.setResult('dataset', dataset)
         self.setResult('canvas', outCanvas)

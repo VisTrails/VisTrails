@@ -1,0 +1,17 @@
+Issues:
+
+When the user closes vistrails or uses command + q to quit, the close event
+doesn't seem to be passed to vcdat so we won't execute functionality that we 
+want to run before we close vcdat.  Right now the only thing we want to do 
+when we quit is to kill the process that is running the editor to view the 
+teaching commands if it exists.
+
+Any operation that relies on data from a defined variable such as 'altered 
+weighted average' doesn't work because the vistrails module must have access 
+to all of the defined variables to execute these commands and it doesn't have
+that yet.
+
+Clicking on the plot will show the tooltip but the tooltip will disappear very
+fast.  Right now there is a hardcoded wait(1) so the tooltip shows up for 
+1 second, otherwise the tooltip usually doesn't appear.
+
