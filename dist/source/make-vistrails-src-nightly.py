@@ -1,21 +1,21 @@
 ###########################################################
-# Nightly Svn Release to Sourceforge                      #
+# Nightly Git Release to Sourceforge                      #
 # Author: Daniel S. Rees                                  #
 #                                                         #
 # Description:                                            #
-#     Creates and archives a tarball of a subversion      #
+#     Creates and archives a tarball of a git             #
 #     repository and uploads it to Sourceforge.           #
 #     Intended for use as a cronjob / scheduled task.     #
 #                                                         #
 # Instructions:                                           #
 #     Place this python script in a directory of its own. #
 #     Edit the configuration as needed.  If changes to    #
-#     a default svn export are desired, modify the        #
+#     a default git export are desired, modify the        #
 #     last_minute_changes() function as needed.           #
 #     Create a cronjob or scheduled task to run this      #
 #     python script nightly (or on some other interval).  #
 #                                                         #
-# Requires 'svn' and 'scp' to be installed and accessible #
+# Requires 'git' and 'scp' to be installed and accessible #
 # from a default environment (use Cygwin if on Windows).  #
 ###########################################################
 
@@ -32,20 +32,20 @@ from StringIO import StringIO
 ###### Config ######
 ####################
 
-# URL of the svn repository to export
-SVN_URL = "https://vistrails.sci.utah.edu/svn/trunk"
+# URL of the git repository to export
+GIT_URL = "git@vistrails.sci.utah.edu:vistrails.git"
 
-# Global arguments for calls to the svn command - (e.g.: "--username=myuser --password=mypass")
-SVN_ARGS = ""
+# Global arguments for calls to the git command
+GIT_ARGS = ""
 
-# Prefix of target svn export dir (also used as prefix for log files)
+# Prefix of target git export dir (also used as prefix for log files)
 EXPORT_DIR_PREFIX = "vistrails-src-nightly"
 
-# Suffix of target svn export dir (instances of '?' will be replaced with svn revision)
-EXPORT_DIR_SUFFIX = "-rev?"
+# Suffix of target git export dir (instances of '?' will be replaced with git revision)
+EXPORT_DIR_SUFFIX = "-?"
 
 # Paths of files and/or directories to be removed from the exported repository (relative to export dir)
-EXPORT_DELETE_PATHS = ["dist"]
+EXPORT_DELETE_PATHS = [".git", ".gitignore", "dist"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
 TARBALL_NAME = "vistrails-src-nightly"
@@ -80,7 +80,7 @@ LOG_DIR = "log"
 # Directory in which tarball archives are stored
 ARCHIVE_DIR = "archive"
 
-# Indentation level for tracebacks and svn export log in the logfile
+# Indentation level for tracebacks and git export log in the logfile
 INDENT = " "*12
 
 #################################
@@ -95,7 +95,7 @@ INDENT = " "*12
 # - Copying/Moving a file to a different place from a directory scheduled for deletion
 #
 # Other available Globals:
-#     - REVISION: int - Svn revision number.
+#     - REVISION: int - Git revision number.
 #     - TIMESTAMP: str - Timestamp of archival operation, formatted by TS_FORMAT
 #     - DATETIME_START: datetime.datetime - Actual datetime object of timestamp
 #     - EXPORT_DIRNAME: str - Revision tagged dir name with the exported files.
@@ -107,8 +107,8 @@ def last_minute_changes():
     global EXPORT_DIRNAME
     ######
     global EXPORT_DIR_PREFIX
-    global SVN_URL
-    global SVN_BASE_CMD
+    global GIT_URL
+    global GIT_BASE_CMD
     global SF_DO_UPLOAD
 
     # Copy License
@@ -130,7 +130,7 @@ def last_minute_changes():
         relpath = os.path.join(EXPORT_DIRNAME, revision_filename)
         f = open(relpath, "rb")
         data = f.read()
-        pattern = re.compile(r"(^\s*?def vistrails_revision\(\):.*?release = ['\"])([0-9]+?)(['\"].*?return release)", re.DOTALL | re.MULTILINE)
+        pattern = re.compile(r"(^\s*?def vistrails_revision\(\):.*?release = ['\"])([a-fA-F0-9]+?)(['\"].*?return release)", re.DOTALL | re.MULTILINE)
         matchobj = pattern.search(data)
         if matchobj is None:
             raise Exception("Couldn't find revision number in '%s'." % revision_filename)
@@ -149,36 +149,17 @@ def last_minute_changes():
             f.close()
 
     # Write changelist with all revisions since last release
-    info("Writing CHANGELIST for revisions %s-%s (last release was revision %s) ..." % (int(last_revision)+1, REVISION, last_revision))
+    info("Writing CHANGELIST for revisions (%s - %s] ..." % (last_revision, REVISION))
     f = None
     try:
         clist_filename = os.path.join(EXPORT_DIRNAME, "CHANGELIST")
-        if int(REVISION) > int(last_revision):
-            pattern = re.compile(r"(^r[0-9]+ \| )(\S+ \| )", re.MULTILINE)
-            info("Getting number of revisions in CHANGELIST ...")
+        if REVISION != last_revision:
             f = open(clist_filename, "wb")
-            proc.call("%s log -q -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
-            f.close()
-            f = open(clist_filename, "rb")
-            data = f.read()
-            f.close()
-            (data, expected_count) = pattern.subn(r"\g<1>", data)
-            revision_diff_count = int(REVISION) - int(last_revision)
-            if expected_count != revision_diff_count:
-                debug("Revision Count (%s) in CHANGELIST != Num Revisions (%s) since last release.  This could mean revisions were made on a different branch." % (expected_count, revision_diff_count))
-            info("Writing verbose CHANGELIST ...")
-            f = open(clist_filename, "wb")
-            proc.call("%s log -v -r %s:%s %s" % (SVN_BASE_CMD, REVISION, int(last_revision)+1, SVN_URL), shell=True, stdout=f)
-            f.close()
-            info("Removing developer login names from CHANGELIST ...")
-            f = open(clist_filename, "rb")
-            data = f.read()
-            f.close()
-            (data, count) = pattern.subn(r"\g<1>", data)
-            if count != expected_count:
-                raise Exception("Removed %s developer names from CHANGELIST (should have been %s)." % (count, expected_count))
-            f = open(clist_filename, "wb")
-            f.write(data)
+            full_line = '-'*70
+            half_line = '-'*35
+            git_changelist_args = '--stat --pretty=format:"' + full_line + '%n' + full_line + '%n%nRevision: %H%nDate:     %ad%n%n%s%n%n%b%n' + half_line + '%n%nSummary of changes:%n"'
+            proc.call("%s log %s %s..%s" % (GIT_BASE_CMD, git_changelist_args, last_revision, REVISION), shell=True, stdout=f)
+            f.write(full_line + '\n' + full_line + '\n')
         else:
             f = open(clist_filename, "wb")
             f.write("No changes since last release.")
@@ -194,8 +175,8 @@ def last_minute_changes():
     # Don't upload if there were no changes made today
     if SF_DO_UPLOAD:
         try:
-            data = proc.Popen("%s log -q -r %s %s" % (SVN_BASE_CMD, REVISION, SVN_URL), shell=True, stdout=proc.PIPE).communicate()[0]
-            match = re.search(r"\| ([0-9]+-[0-9]+-[0-9]+) ", data)
+            data = proc.Popen('%s log --pretty=format:"%ai" %s^..' % (GIT_BASE_CMD, REVISION), shell=True, stdout=proc.PIPE).communicate()[0]
+            match = re.search(r"^([0-9]+-[0-9]+-[0-9]+) ", data)
             if match.group(1) != DATETIME_START.strftime("%Y-%m-%d"):
                 info("No revisions made today - Disabling upload to Sourceforge ...")
                 SF_DO_UPLOAD = False
@@ -235,14 +216,17 @@ TARBALL_FILENAME = TARBALL_NAME + ".tar.gz"
 # Archived tarball file name
 ARCHIVE_TARBALL_FILENAME = os.path.join(ARCHIVE_DIR, "%s_%s.tar.gz" % (TARBALL_NAME, TIMESTAMP))
 
-# Svn Revision Number (set in main)
+# Git Revision Number (set in main)
 REVISION = None
 
-# Svn Command with args (used as base for all svn commands)
-SVN_BASE_CMD = ("svn %s" % SVN_ARGS).strip()
+# Git Command with args (used as base for all git commands)
+GIT_BASE_CMD = ("git --git-dir=%s/.git %s" % (EXPORT_DIRNAME, GIT_ARGS)).strip()
 
-# Svn export command
-SVN_EXPORT_CMD = "%s export %s %s" % (SVN_BASE_CMD, SVN_URL, EXPORT_DIRNAME)
+# Git export command
+GIT_EXPORT_CMD = "%s clone -v --progress %s %s" % (GIT_BASE_CMD, GIT_URL, EXPORT_DIRNAME)
+
+# Git revision command
+GIT_REVISION_CMD = '%s log --pretty=format:"%%H" HEAD^..' % GIT_BASE_CMD
 
 # Sourceforge upload command
 SF_UPLOAD_CMD = "scp -v -i %s %s %s,%s@frs.sourceforge.net:/home/frs/project/%s/%s/%s/%s" % (
@@ -256,10 +240,10 @@ SF_UPLOAD_CMD = "scp -v -i %s %s %s,%s@frs.sourceforge.net:/home/frs/project/%s/
 ERROR_CREATE_DIRS            = ( 1, "Couldn't create log or archive directory.")
 ERROR_CREATE_LOG             = ( 2, "Couldn't create log file.")
 ERROR_CLEAN_DIRS             = ( 3, "Couldn't remove old export directories.")
-ERROR_EXPORT_SVN             = ( 4, "Couldn't export svn repository.")
-ERROR_GET_REVISION           = ( 5, "Couldn't get revision number from svn export log.")
+ERROR_EXPORT_GIT             = ( 4, "Couldn't export git repository.")
+ERROR_GET_REVISION           = ( 5, "Couldn't get revision number from git log.")
 ERROR_RENAME_EXPORT_DIR      = ( 6, "Couldn't rename exported directory to include revision number.")
-ERROR_DELETE_PATHS           = ( 7, "Couldn't remove '%s' from the svn export directory.")
+ERROR_DELETE_PATHS           = ( 7, "Couldn't remove '%s' from the git export directory.")
 ERROR_LAST_MINUTE_CHANGES    = ( 8, "Failed while making user-defined last minute changes.")
 ERROR_MAKE_TARBALL           = ( 9, "Couldn't make tarball.")
 ERROR_CLEAN_EXPORT_DIR       = (10, "Couldn't remove export directory.")
@@ -325,21 +309,29 @@ if __name__ == "__main__":
     except:
         errexit(ERROR_CLEAN_DIRS)
 
-    info("Exporting svn repository: '%s' ..." % SVN_EXPORT_CMD)
+    info("Exporting git repository ...")
+    debug("Export Command: %s" % GIT_EXPORT_CMD)
     try:
-        export_proc = proc.Popen(SVN_EXPORT_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
+        export_proc = proc.Popen(GIT_EXPORT_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
         export_log = export_proc.communicate()[0]
         # Indent export log and write to logfile
         export_log = "\n".join([INDENT + line for line in export_log.splitlines()])
-        debug("Svn Export Log:\n%s" % export_log)
+        debug("Git Export Log:\n%s" % export_log)
         if export_proc.returncode != 0:
-            raise Exception("Svn export failed with return code: %s" % export_proc.returncode)
+            raise Exception("Git export failed with return code: %s" % export_proc.returncode)
     except:
-        errexit(ERROR_EXPORT_SVN)
+        errexit(ERROR_EXPORT_GIT)
 
-    info("Getting revision number from export log ...")
+    info("Getting revision number ...")
+    debug("Revision Command: %s" % GIT_REVISION_CMD)
     try:
-        REVISION = export_log.splitlines()[-1].strip()[:-1].split()[2]
+        revision_proc = proc.Popen(GIT_REVISION_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
+        REVISION = revision_proc.communicate()[0]
+        if revision_proc.returncode != 0:
+            raise Exception("Git revision number retrieval failed with return code: %s" % revision_proc.returncode)
+        sha1chars = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','A','B','C','D','E','F']
+        if (not REVISION) or (len(REVISION) != 40) or (sum([REVISION.count(c) for c in sha1chars]) != 40):
+            raise Exception("Git revision number wasn't a valid sha-1 hash: %s" % REVISION)
     except:
         errexit(ERROR_GET_REVISION)
 
@@ -348,6 +340,8 @@ if __name__ == "__main__":
         new_export_dirname = EXPORT_DIRNAME + EXPORT_DIR_SUFFIX.replace("?", REVISION)
         os.rename(EXPORT_DIRNAME, new_export_dirname)
         EXPORT_DIRNAME = new_export_dirname
+        # Update git base cmd to point to renamed dir (in case it is needed in last_minute_changes())
+        GIT_BASE_CMD = ("git --git-dir=%s/.git %s" % (EXPORT_DIRNAME, GIT_ARGS)).strip()
     except:
         errexit(ERROR_RENAME_EXPORT_DIR)
 
@@ -362,11 +356,14 @@ if __name__ == "__main__":
     try:
         for path in EXPORT_DELETE_PATHS:
             relpath = os.path.join(EXPORT_DIRNAME, path)
-            info("Removing '%s' from export directory ..." % path)
-            if os.path.isdir(relpath):
-                shutil.rmtree(relpath)
+            if os.path.exists(relpath):
+                info("Removing '%s' from export directory ..." % path)
+                if os.path.isdir(relpath):
+                    shutil.rmtree(relpath)
+                else:
+                    os.remove(relpath)
             else:
-                os.remove(relpath)
+                info("Could not remove '%s' from export directory because it does not exist ..." % path)
     except:
         errexit(ERROR_DELETE_PATHS, True, path)
 
