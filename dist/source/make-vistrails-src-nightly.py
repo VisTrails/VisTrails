@@ -175,7 +175,7 @@ def last_minute_changes():
     # Don't upload if there were no changes made today
     if SF_DO_UPLOAD:
         try:
-            data = proc.Popen('%s log --pretty=format:"%ai" %s^..' % (GIT_BASE_CMD, REVISION), shell=True, stdout=proc.PIPE).communicate()[0]
+            data = proc.Popen('%s log --pretty=format:"%%ai" %s^..' % (GIT_BASE_CMD, REVISION), shell=True, stdout=proc.PIPE).communicate()[0]
             match = re.search(r"^([0-9]+-[0-9]+-[0-9]+) ", data)
             if match.group(1) != DATETIME_START.strftime("%Y-%m-%d"):
                 info("No revisions made today - Disabling upload to Sourceforge ...")
