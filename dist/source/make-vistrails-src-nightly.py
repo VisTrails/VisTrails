@@ -135,7 +135,7 @@ def last_minute_changes():
         if matchobj is None:
             raise Exception("Couldn't find revision number in '%s'." % revision_filename)
         last_revision = matchobj.group(2)
-        (data, count) = pattern.subn(r"\g<1>" + REVISION + r"\g<3>", data)
+        (data, count) = pattern.subn(r"\g<1>" + REVISION[0:12] + r"\g<3>", data)
         if count != 1:
             raise Exception("Replaced revision number %s times in '%s' - should only replace 1." % (count, revision_filename))
         f.close()
@@ -335,9 +335,9 @@ if __name__ == "__main__":
     except:
         errexit(ERROR_GET_REVISION)
 
-    info("Tagging export dir with revision suffix: '%s' ..." % EXPORT_DIR_SUFFIX.replace("?", REVISION))
+    info("Tagging export dir with revision suffix: '%s' ..." % EXPORT_DIR_SUFFIX.replace("?", REVISION[0:12]))
     try:
-        new_export_dirname = EXPORT_DIRNAME + EXPORT_DIR_SUFFIX.replace("?", REVISION)
+        new_export_dirname = EXPORT_DIRNAME + EXPORT_DIR_SUFFIX.replace("?", REVISION[0:12])
         os.rename(EXPORT_DIRNAME, new_export_dirname)
         EXPORT_DIRNAME = new_export_dirname
         # Update git base cmd to point to renamed dir (in case it is needed in last_minute_changes())
