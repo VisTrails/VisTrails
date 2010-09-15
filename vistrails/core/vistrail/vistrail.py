@@ -639,7 +639,7 @@ class Vistrail(DBVistrail):
                                           value=value,
                                           date=self.getDate(),
                                           user=self.getUser())
-            print 'doing addAnnotation', action_id, key, value
+            #print 'doing addAnnotation', action_id, key, value
             self.db_add_actionAnnotation(annotation)
             changed = True
         if changed:

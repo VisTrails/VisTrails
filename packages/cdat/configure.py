@@ -26,6 +26,7 @@ qt_sip_flags = config.pyqt_sip_flags
 
 os.system("rm -rf cdatwrap")
 os.mkdir("cdatwrap")
+os.system("touch cdatwrap/__init__.py")
 
 # Run SIP to generate the code.  Note that we tell SIP where to find the qt
 # module's specification files using the -I flag.
