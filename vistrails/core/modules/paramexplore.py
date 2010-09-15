@@ -83,12 +83,12 @@ class QParameterEditor(QtGui.QWidget):
 
         hLayout.addWidget(self.stackedEditors)
 
-        selector = QParameterEditorSelector(param_info, self._exploration_widgets)
-        self.connect(selector.actionGroup,
+        self.selector = QParameterEditorSelector(param_info, self._exploration_widgets)
+        self.connect(self.selector.actionGroup,
                      QtCore.SIGNAL('triggered(QAction*)'),
                      self.changeInterpolator)
-        hLayout.addWidget(selector)
-        selector.initAction()
+        hLayout.addWidget(self.selector)
+        self.selector.initAction()
 
     def changeInterpolator(self, action):
         """ changeInterpolator(action: QAction) -> None        
@@ -99,6 +99,18 @@ class QParameterEditor(QtGui.QWidget):
         widgetIdx = action.data().toInt()[0]
         if widgetIdx<self.stackedEditors.count():
             self.stackedEditors.setCurrentIndex(widgetIdx)
+
+    def selectInterpolator(self, type):
+        """ selectInterpolator(type: string) -> None
+        Programatically (without requiring a user action) selects
+        the interpolator specified by the name 'type'.  If no
+        matching 'type' is found, no action is taken.
+        
+        """
+        types = [widget.exploration_name for widget in self._exploration_widgets]
+        if type in types:
+            type_idx = types.index(type)
+            self.selector._actions[type_idx].trigger()
 
 class QParameterEditorSelector(QtGui.QToolButton):
     """

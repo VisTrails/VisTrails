@@ -171,6 +171,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
         supported by the repository's VisTrail server
         """
 
+        self._unrunnable_wfs = {}
+
         # are we logged in?
         if not self.dialog.cookiejar:
             self._repository_status['support_status'] = "Please login"
@@ -184,7 +186,20 @@ class QRepositoryPushWidget(QtGui.QWidget):
             # get packages supported by VisTrails repository
             packages_url = "%s/packages/supported_packages/" % \
                     self.config.webRepositoryURL
-            get_supported_packages = urllib2.urlopen(url=packages_url)
+            try:
+                get_supported_packages = urllib2.urlopen(url=packages_url)
+            except urllib2.HTTPError, e:
+                self._repository_status['support_status'] = ""
+                self._repository_status['details'] = ""
+                if e.code == 500:
+                    self._repository_status['support_status'] = \
+                            ("Error connecting to repository (server side issues)")
+                else:
+                    print str(e)
+
+                self._push_button.setEnabled(False)
+                self.update_push_information()
+                return
             server_packages = get_supported_packages.read().split('||')
 
             vistrail = api.get_current_vistrail()
@@ -196,8 +211,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self.unavailable_data = set()
             self.unsupported_packages = set()
             has_python_source = False
-
-            self._unrunnable_wfs = {}
 
             for version_id in vistrail.get_tagMap():
                 pipeline = vistrail.getPipeline(version_id)
@@ -362,7 +375,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                       'is_runnable': not bool(len(self.unsupported_packages)+ \
                                               len(self.local_data_modules)),
                       'vt_id': 0,
-                      'branch_from': "" if not branching else repository_vt_id,
+                      'branched_from': "" if not branching else repository_vt_id,
                       'everyone_can_view': self.perm_view.checkState(),
                       'everyone_can_edit': self.perm_edit.checkState(),
                       'everyone_can_download': self.perm_download.checkState()
