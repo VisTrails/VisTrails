@@ -10078,12 +10078,6 @@ def initialize(*args, **keywords):
     reg.add_input_port(__call__, 'cdmsfile', 
                        (CdmsFile, "cdmsfile"))
 
-    #cdat/pv example GUI
-    from cdat_pv_window import QCDATPVWindow
-    global cdatPVWindow
-    cdatPVWindow = QCDATPVWindow()
-    cdatPVWindow.show()
-
 def package_dependencies():
   return []
 

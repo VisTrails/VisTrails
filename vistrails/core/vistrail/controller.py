@@ -1555,7 +1555,7 @@ class VistrailController(object):
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
                                 report_all_errors=False):
         load_other_versions = False
-        #print 'running handle_invalid_pipeline'
+        print 'running handle_invalid_pipeline'
         if vistrail is None:
             vistrail = self.vistrail
         pm = get_package_manager()
@@ -1565,7 +1565,7 @@ class VistrailController(object):
         def process_missing_packages(exception_set):
             for err in exception_set:
                 err._was_handled = False
-#                print '--- trying to fix', str(err)
+                print '--- trying to fix', str(err)
                 # FIXME need to get module_id from these exceptions
                 # when possible!  need to integrate
                 # report_missing_module and handle_module_upgrade
@@ -1633,7 +1633,7 @@ class VistrailController(object):
             for err in exception_set:
                 if err._was_handled:
                     continue
-                #print '+++ trying to fix', str(err)
+                print '+++ trying to fix', str(err)
                 if isinstance(err, InvalidPipeline):
                     id_scope = IdScope(1, {Group.vtType: Module.vtType,
                                            Abstraction.vtType: Module.vtType})
@@ -1690,9 +1690,9 @@ class VistrailController(object):
                 except Exception, e:
                     # cannot get the package we need
                     continue
-                #print '** trying to fix errors in', identifier
+                print '** trying to fix errors in', identifier
                 if pkg.can_handle_all_errors():
-                    #print '  handle_all_errors'
+                    print '  handle_all_errors'
                     try:
                         actions = pkg.handle_all_errors(self, err_list, 
                                                         pipeline)
@@ -1724,7 +1724,7 @@ class VistrailController(object):
 #                             if not report_all_errors:
 #                                 return
                 else:
-                    #print '  default upgrades'
+                    print '  default upgrades'
                     # process default upgrades
                     # handler = UpgradeWorkflowHandler(self, pipeline)
                     for err in err_list:
@@ -1932,7 +1932,7 @@ class VistrailController(object):
             self.current_pipeline = switch_version(new_version)
             self.current_version = new_version
         except InvalidPipeline, e:
-            #print 'EXCEPTION'
+            print 'EXCEPTION'
             print e
             new_error = None
 
