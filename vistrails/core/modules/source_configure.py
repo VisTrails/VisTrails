@@ -48,7 +48,8 @@ class SourceEditor(QtGui.QTextEdit):
 class SourceConfigurationWidget(PortTableConfigurationWidget):
 
     def __init__(self, module, controller, editor_class=None,
-                 has_inputs=True, has_outputs=True, parent=None):
+                 has_inputs=True, has_outputs=True, parent=None,
+                 encode=True, portName='source'):
         PortTableConfigurationWidget.__init__(self, module, controller, parent)
         if editor_class is None:
             editor_class = SourceEditor
@@ -59,6 +60,8 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         self.layout().setSpacing(0)
         self.has_inputs = has_inputs
         self.has_outputs = has_outputs
+        self.sourcePortName = portName
+        self.sourceEncode = encode
         self.createPortTable(has_inputs, has_outputs)
         self.setupEditor()
         self.createButtons()
@@ -90,7 +93,7 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
     def findSourceFunction(self):
         fid = -1
         for i in xrange(self.module.getNumFunctions()):
-            if self.module.functions[i].name=='source':
+            if self.module.functions[i].name==self.sourcePortName:
                 fid = i
                 break
         return fid
@@ -99,7 +102,10 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         fid = self.findSourceFunction()
         if fid!=-1:
             f = self.module.functions[fid]
-            self.codeEditor.setPlainText(urllib.unquote(f.params[0].strValue))
+            code = f.params[0].strValue
+            if self.sourceEncode:
+                code = urllib.unquote(code)
+            self.codeEditor.setPlainText(code)
         self.codeEditor.document().setModified(False)
         self.layout().addWidget(self.codeEditor, 1)
         
@@ -154,8 +160,10 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         functions = []
         if (self.codeEditor is not None and
             self.codeEditor.document().isModified()):
-            code = urllib.quote(str(self.codeEditor.toPlainText()))
-            functions.append(('source', [code]))
+            code = str(self.codeEditor.toPlainText())
+            if self.sourceEncode:
+                code = urllib.quote(code)
+            functions.append((self.sourcePortName, [code]))
         if len(deleted_ports) + len(added_ports) + len(functions) == 0:
             # nothing changed
             return

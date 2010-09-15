@@ -537,6 +537,8 @@ def addOtherPorts(module, other_list):
     klass = get_description_class(module.vtkClass)
     registry = get_module_registry()
     for name in other_list:
+        if name=='CopyImportVoidPointer':
+            registry.add_input_port(module, 'CopyImportVoidString', (String, 'value'), False)
         if name[:3] in ['Add','Set'] or name[:6]=='Insert':
             if name in disallowed_other_ports:
                 continue
@@ -810,6 +812,13 @@ def class_dict(base_module, node):
                 self.vtkInstance.GetPointIds().SetId(i, point_ids.GetId(i))
         return call_SetPointIds
 
+    def compute_CopyImportString(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_CopyImportVoidPointer(self, pointer):
+            self.vtkInstance.CopyImportVoidPointer(pointer, len(pointer))
+        return call_CopyImportVoidPointer
+
     def guarded_Writer_wrap_compute(old_compute):
         # The behavior for vtkWriter subclasses is to call Write()
         # If the user sets a name, we will create a file with that name
@@ -892,6 +901,9 @@ def class_dict(base_module, node):
     if issubclass(node.klass, vtk.vtkCell):
         update_dict('_special_input_function_SetPointIds',
                     compute_SetPointIds)
+    if issubclass(node.klass, vtk.vtkImageImport):
+        update_dict('_special_input_function_CopyImportString',
+                    compute_CopyImportString)
     return class_dict_
 
 disallowed_modules = set([

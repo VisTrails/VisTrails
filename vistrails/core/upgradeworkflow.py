@@ -63,8 +63,8 @@ class UpgradeWorkflowHandler(object):
             f = pkg.module.handle_module_upgrade_request
             return f(controller, module_id, current_pipeline)
         else:
-            debug.critical('Package cannot handle upgrade request. ' +
-                           'VisTrails will attempt automatic upgrade.')
+#            debug.critical('Package cannot handle upgrade request. ' +
+#                           'VisTrails will attempt automatic upgrade.')
             auto_upgrade = UpgradeWorkflowHandler.attempt_automatic_upgrade
             return auto_upgrade(controller, current_pipeline, module_id)
 

@@ -646,7 +646,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if changed:
             self.invalidate_version_tree(False)
 
-    def execute_current_workflow(self):
+    def execute_current_workflow(self, custom_aliases=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -661,7 +661,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          self.current_version,
                                          self.current_pipeline,
                                          self.current_pipeline_view,
-                                         None,
+                                         custom_aliases,
                                          None)])
 
     def enable_missing_package(self, identifier, deps):
