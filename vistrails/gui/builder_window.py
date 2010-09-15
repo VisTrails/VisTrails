@@ -1272,7 +1272,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         text = "<font color=\"white\"><b>%s</b></font>" % \
                system.short_about_string()
         version = About(text, dlg)
-        version.setGeometry(11,20,400,30)
+        version.setGeometry(11,20,450,30)
         self.connect(bgimage,
                      QtCore.SIGNAL('clicked()'),
                      dlg,

@@ -4932,6 +4932,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(CDATCell, 'continents', 
                        (core.modules.basic_modules.Integer,
                         "continents type number"), True)    
+    reg.add_output_port(CDATCell, 'canvas', 
+                       (Canvas, ""), True)    
 
     reg.add_module(Variable, namespace='cdat')
     reg.add_module(Quickplot, namespace='cdat')    

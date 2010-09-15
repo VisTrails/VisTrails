@@ -190,7 +190,10 @@ class CDATCell(SpreadsheetCell, NotCacheable):
         if self.hasInputFromPort('canvas'):
             canvas = self.getInputFromPort('canvas')
         else:
+            self.cellWidget = self.displayAndWait(QCDATWidget, (None,))
+            self.setResult('canvas', self.cellWidget.canvas)
             return
+        self.setResult('canvas', canvas)
         if not self.hasInputFromPort('gmName'):
             return
         if not self.hasInputFromPort('plotType'):
@@ -238,7 +241,6 @@ class QCDATWidget(QCellWidget):
         self.window = None        
         self.canvas =  None
         self.windowIndex = self.getWindowIndex() #index to get QT Window from VCSQtManager
-        self.VCS_REPAINT_EVENT = QtCore.QEvent.User + 4
 
     def getWindowIndex(self):
         """ Return the index into the VCSQtManager's array of Qt Windows which
@@ -251,12 +253,6 @@ class QCDATWidget(QCellWidget):
         if windowIndex > maxWindows:
             windowIndex = 1
         return windowIndex
-
-    # def paintEvent(self, e):
-    #     """ Send the paint event to the underlying C++ Qt MainWindow event
-    #     handler.
-    #     """
-    #     VCSQtManager.sendEvent(self.windowIndex, self.VCS_REPAINT_EVENT)
 
     def updateContents(self, inputPorts):
         """ Get the vcs canvas, setup the cell's layout, and plot """        
@@ -283,17 +279,6 @@ class QCDATWidget(QCellWidget):
             self.canvas.plot(*args, **kwargs)
 
         spreadsheetWindow.setUpdatesEnabled(True)
-
-    def event(self, e):
-        if self.canvas != None:
-            if type(e) == QtGui.QMouseEvent:
-                self.window.event(e)
-                #If time.sleep() isn't called the pop-up text will pop up and disappear
-                # extermely fast.
-                time.sleep(1)
-            elif e.type() == QtCore.QEvent.WindowActivate:
-                self.update()
-        return QCellWidget.event(self, e)
 
     def deleteLater(self):
         """ deleteLater() -> None        

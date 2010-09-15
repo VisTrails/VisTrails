@@ -234,7 +234,7 @@ def vistrails_revision():
     old_dir = os.getcwd()
     os.chdir(vistrails_root_directory())
     try:
-        release = "1863"
+        release = "2ad813e42ebb"
         if core.requirements.executable_file_exists('svn'):
             lines = []
             result = execute_cmdline(['svn', 'info'], lines)
