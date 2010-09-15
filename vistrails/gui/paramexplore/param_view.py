@@ -43,7 +43,8 @@ class ParameterInfo(InstanceObject):
     #                   id=,
     #                   dbtype=,
     #                   parent_dbtype=,
-    #                   parent_id=)
+    #                   parent_id=,
+    #                   is_alias=)
     pass
 
 ################################################################################
@@ -110,7 +111,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                       id=pId,
                                       dbtype=ptype,
                                       parent_dbtype=parentType,
-                                      parent_id=parentId)
+                                      parent_id=parentId,
+                                      is_alias=True)
                 aliasItem = QParameterTreeWidgetItem((alias, [pInfo]),
                                                      aliasRoot, label)
             aliasRoot.setExpanded(True)
@@ -146,7 +148,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                            id=function.params[pId].real_id,
                                            dbtype=ModuleParam.vtType,
                                            parent_dbtype=function.vtType,
-                                           parent_id=function.real_id)
+                                           parent_id=function.real_id,
+                                           is_alias=False)
                              for pId in xrange(len(function.params))]
                     mName = module.name
                     if moduleItem.parameter!=None:

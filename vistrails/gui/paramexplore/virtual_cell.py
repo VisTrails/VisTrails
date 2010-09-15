@@ -326,10 +326,24 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         Return the current configuration of the virtual cell. The
         information is:
         info = (rowCount, columnCount,
-                [{(type,id): (row, column)})
+                {(type,id): (row, column)})
         """
         return self.config.getConfiguration()
                 
+    def setConfiguration(self, info):
+        """ setConfiguration(info) -> None (see below)
+        Set the configuration of the virtual cell. The
+        information is:
+        info = {(type, id): (row, column)}
+          or
+        info = (rowCount, columnCount,
+                {(type, id): (row, column)})
+        The second form is allowed so that the output of
+        getConfiguration could be passed directly to
+        setConfiguration (the dimensions aren't used).
+        """
+        self.config.setConfiguration(info)
+
     def positionPipelines(self, sheetPrefix, sheetCount, rowCount, colCount,
                           pipelines):
         """ positionPipelines(sheetPrefix: str, sheetCount: int, rowCount: int,
@@ -462,11 +476,11 @@ class QVirtualCellConfiguration(QtGui.QWidget):
                 self.cells[r][i+len(visibleCols)].setCellData(None, -1)
 
     def getConfiguration(self):
-        """ getVirtualCellwConfiguration() -> info (see below)
+        """ getConfiguration() -> info (see below)
         Return the current configuration of the virtual cell. The
         information is:
-        info = (rowCount, columnCount
-                [{(type, id): (row, column)}])
+        info = (rowCount, columnCount,
+                {(type, id): (row, column)})
         """
         result = {}
         rCount = 0
@@ -479,6 +493,37 @@ class QVirtualCellConfiguration(QtGui.QWidget):
                     if r+1>rCount: rCount = r+1
                     if c+1>cCount: cCount = c+1
         return (rCount, cCount, result)
+
+    def setConfiguration(self, info):
+        """ setConfiguration(info) -> None (see below)
+        Set the configuration of the virtual cell. The
+        information is:
+        info = {(type, id): (row, column)}
+          or
+        info = (rowCount, columnCount,
+                {(type, id): (row, column)})
+        The second form is allowed so that the output of
+        getConfiguration could be passed directly to
+        setConfiguration (the dimensions aren't used).
+        """
+        if type(info) == type({}):
+            result = info
+        else:
+            rCount, cCount, result = info
+        # Reset the layout of the virtual cell to default state
+        config_cells = []
+        for cell_type, cell_id in result.iterkeys():
+            config_cells.append((cell_type, cell_id))
+        self.configVirtualCells(config_cells)
+        # Unset the 0th row types/ids, since they're auto-set for the default state
+        for c in xrange(len(config_cells)):
+            self.cells[0][c].setCellData('', -1)
+        # Set the new types/ids
+        for cell_type, cell_id in config_cells:
+            row, col = result[(cell_type, cell_id)]
+            self.cells[row][col].setCellData(cell_type, cell_id)
+        # Compress to properly reset newly empty cells
+        self.compressCells()
 
 class QVirtualCellLabel(QtGui.QLabel):
     """
@@ -616,7 +661,7 @@ class QVirtualCellLabel(QtGui.QLabel):
         if hasattr(mimeData, 'cellData'):
             event.setDropAction(QtCore.Qt.MoveAction)
             event.accept()            
-            if (self.type,self.id)!=(mimeData.cellData[0],mimeData.cellData[0]):
+            if (self.type,self.id)!=(mimeData.cellData[0],mimeData.cellData[1]):
                 oldCellData = (self.type, self.id)
                 self.setCellData(*mimeData.cellData)
                 mimeData.cellData = oldCellData
