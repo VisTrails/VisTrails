@@ -183,9 +183,11 @@ def execute_cmdline(lst, output):
     #cmdline = list2cmdline(lst)
     proc = subprocess.Popen(lst, shell=True, stdin=subprocess.PIPE, 
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc.wait()
     if proc.stdout:
         output.extend(proc.stdout.readlines())
-    
+    return proc.returncode
+
 def get_executable_path(executable_name):
     # FIXME
     return None
