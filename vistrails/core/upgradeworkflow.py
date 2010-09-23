@@ -167,6 +167,46 @@ class UpgradeWorkflowHandler(object):
                                                      module_id, d)
 
     @staticmethod
+    def create_new_connection(controller, src_module, src_port, 
+                              dst_module, dst_port):
+        # spec -> name, type, signature
+        output_port_id = controller.id_scope.getNewId(Port.vtType)
+        if type(src_port) == type(""):
+            output_port_spec = src_module.get_port_spec(src_port, 'output')
+            output_port = Port(id=output_port_id,
+                               spec=output_port_spec,
+                               moduleId=src_module.id,
+                               moduleName=src_module.name)
+        else:
+            output_port = Port(id=output_port_id,
+                               name=src_port.name,
+                               type=src_port.type,
+                               signature=src_port.signature,
+                               moduleId=src_module.id,
+                               moduleName=src_module.name)
+
+        input_port_id = controller.id_scope.getNewId(Port.vtType)
+        if type(dst_port) == type(""):
+            input_port_spec = dst_module.get_port_spec(dst_port, 'input')
+            input_port = Port(id=input_port_id,
+                              spec=input_port_spec,
+                              moduleId=dst_module.id,
+                              moduleName=dst_module.name)
+        else:
+            input_port = Port(id=input_port_id,
+                              name=dst_port.name,
+                              type=dst_port.type,
+                              signature=dst_port.signature,
+                              moduleId=dst_module.id,
+                              moduleName=dst_module.name)
+        conn_id = controller.id_scope.getNewId(Connection.vtType)
+        connection = Connection(id=conn_id,
+                                ports=[input_port, output_port])
+        return connection
+
+
+
+    @staticmethod
     def replace_generic(controller, pipeline, old_module, new_module,
                         function_remap={}, src_port_remap={}, 
                         dst_port_remap={}, annotation_remap={}):
@@ -246,41 +286,7 @@ class UpgradeWorkflowHandler(object):
         # add the new module
         ops.append(('add', new_module))
 
-        def create_new_connection(src_module, src_port, dst_module, dst_port):
-            # spec -> name, type, signature
-            output_port_id = controller.id_scope.getNewId(Port.vtType)
-            if type(src_port) == type(""):
-                output_port_spec = src_module.get_port_spec(src_port, 'output')
-                output_port = Port(id=output_port_id,
-                                   spec=output_port_spec,
-                                   moduleId=src_module.id,
-                                   moduleName=src_module.name)
-            else:
-                output_port = Port(id=output_port_id,
-                                   name=src_port.name,
-                                   type=src_port.type,
-                                   signature=src_port.signature,
-                                   moduleId=src_module.id,
-                                   moduleName=src_module.name)
-
-            input_port_id = controller.id_scope.getNewId(Port.vtType)
-            if type(dst_port) == type(""):
-                input_port_spec = dst_module.get_port_spec(dst_port, 'input')
-                input_port = Port(id=input_port_id,
-                                  spec=input_port_spec,
-                                  moduleId=dst_module.id,
-                                  moduleName=dst_module.name)
-            else:
-                input_port = Port(id=input_port_id,
-                                  name=dst_port.name,
-                                  type=dst_port.type,
-                                  signature=dst_port.signature,
-                                  moduleId=dst_module.id,
-                                  moduleName=dst_module.name)
-            conn_id = controller.id_scope.getNewId(Connection.vtType)
-            connection = Connection(id=conn_id,
-                                    ports=[input_port, output_port])
-            return connection
+        create_new_connection = UpgradeWorkflowHandler.create_new_connection
 
         for _, conn_id in pipeline.graph.edges_from(old_module.id):
             old_conn = pipeline.connections[conn_id]
@@ -292,14 +298,15 @@ class UpgradeWorkflowHandler(object):
                     # don't add this connection back in
                     continue
                 elif type(remap) != type(""):
-                    ops.extend(remap(old_conn))
+                    ops.extend(remap(old_conn, new_module))
                     continue
                 else:
                     source_name = remap
                     
             old_dst_module = pipeline.modules[old_conn.destination.moduleId]
 
-            new_conn = create_new_connection(new_module,
+            new_conn = create_new_connection(controller,
+                                             new_module,
                                              source_name,
                                              old_dst_module,
                                              old_conn.destination)
@@ -315,13 +322,14 @@ class UpgradeWorkflowHandler(object):
                     # don't add this connection back in
                     continue
                 elif type(remap) != type(""):
-                    ops.extend(remap(old_conn))
+                    ops.extend(remap(old_conn, new_module))
                     continue
                 else:
                     destination_name = remap
                     
             old_src_module = pipeline.modules[old_conn.source.moduleId]
-            new_conn = create_new_connection(old_src_module,
+            new_conn = create_new_connection(controller,
+                                             old_src_module,
                                              old_conn.source,
                                              new_module,
                                              destination_name)
