@@ -226,7 +226,7 @@ GIT_BASE_CMD = ("git --git-dir=%s/.git %s" % (EXPORT_DIRNAME, GIT_ARGS)).strip()
 GIT_EXPORT_CMD = "%s clone -v --progress %s %s" % (GIT_BASE_CMD, GIT_URL, EXPORT_DIRNAME)
 
 # Git revision command
-GIT_REVISION_CMD = '%s log --pretty=format:"%%H" HEAD^..' % GIT_BASE_CMD
+GIT_REVISION_CMD = "%s rev-parse HEAD" % GIT_BASE_CMD
 
 # Sourceforge upload command
 SF_UPLOAD_CMD = "scp -v -i %s %s %s,%s@frs.sourceforge.net:/home/frs/project/%s/%s/%s/%s" % (
@@ -326,7 +326,7 @@ if __name__ == "__main__":
     debug("Revision Command: %s" % GIT_REVISION_CMD)
     try:
         revision_proc = proc.Popen(GIT_REVISION_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
-        REVISION = revision_proc.communicate()[0]
+        REVISION = (revision_proc.communicate()[0]).strip()
         if revision_proc.returncode != 0:
             raise Exception("Git revision number retrieval failed with return code: %s" % revision_proc.returncode)
         sha1chars = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','A','B','C','D','E','F']
