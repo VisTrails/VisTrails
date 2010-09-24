@@ -1063,47 +1063,15 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
        ops.append(('add', new_conn_2))
        return ops
 
-   # format is {<old module name>: (<new_module_klass>, <remap_dictionary>}}
-   # where remap_dictionary is {<remap_type>: <name_changes>}
-   # and <name_changes> is a map from <old_name> to <new_name> or 
-   # <remap_function>
-       
-   module_remap = {'FileSink': (FileSink,
-                                {'dst_port_remap':
-                                     {'overrideFile': 'overwrite',
-                                      'outputName': outputName_remap},
-                                 'function_remap':
-                                     {'overrideFile': 'overwrite',
-                                      'outputName': 'outputPath'}}),
+   module_remap = {'FileSink': 
+                   [(None, '1.6', None,
+                     {'dst_port_remap':
+                          {'overrideFile': 'overwrite',
+                           'outputName': outputName_remap},
+                      'function_remap':
+                          {'overrideFile': 'overwrite',
+                           'outputName': 'outputPath'}})]                    
                    }
 
-   old_module = pipeline.modules[module_id]
-   # print 'running module_upgrade_request', old_module.name
-   if old_module.name in module_remap:
-       # print 'in_remap:', old_module.name
-       remap = module_remap[old_module.name]
-       new_descriptor = reg.get_descriptor(remap[0])
-       try:
-           function_remap = remap[1].get('function_remap', {})
-           src_port_remap = remap[1].get('src_port_remap', {})
-           dst_port_remap = remap[1].get('dst_port_remap', {})
-           annotation_remap = remap[1].get('annotation_remap', {})
-           action_list = \
-               UpgradeWorkflowHandler.replace_module(controller, pipeline,
-                                                     module_id, new_descriptor,
-                                                     function_remap,
-                                                     src_port_remap,
-                                                     dst_port_remap,
-                                                     annotation_remap)
-       except Exception, e:
-           import traceback
-           traceback.print_exc()
-           raise
-
-       return action_list
-
-   # otherwise, just try to automatic upgrade
-   # attempt_automatic_upgrade
-   return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
-                                                           pipeline,
-                                                           module_id)
+   return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                              module_remap)

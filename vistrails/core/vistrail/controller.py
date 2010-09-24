@@ -547,21 +547,25 @@ class VistrailController(object):
     ##########################################################################
     # Methods to access/find pipeline information
     
-    def get_connections_to(self, pipeline, module_ids):
+    def get_connections_to(self, pipeline, module_ids, port_name=None):
         connection_ids = set()
         graph = pipeline.graph
         for m_id in module_ids:
             for _, id in graph.edges_to(m_id):
                 connection_ids.add(id)
-        return [pipeline.connections[c_id] for c_id in connection_ids]
+        return [pipeline.connections[c_id] for c_id in connection_ids
+                if port_name is None or \
+                    pipeline.connections[c_id].destination.name == port_name]
 
-    def get_connections_from(self, pipeline, module_ids):
+    def get_connections_from(self, pipeline, module_ids, port_name=None):
         connection_ids = set()
         graph = pipeline.graph
         for m_id in module_ids:
             for _, id in graph.edges_from(m_id):
                 connection_ids.add(id)
-        return [pipeline.connections[c_id] for c_id in connection_ids]
+        return [pipeline.connections[c_id] for c_id in connection_ids
+                if port_name is None or \
+                    pipeline.connections[c_id].source.name == port_name]
 
     def get_connections_to_and_from(self, pipeline, module_ids):
         connection_ids = set()
@@ -1490,7 +1494,7 @@ class VistrailController(object):
         for later enables.
         """
 
-        print 'TRYING TO ENABLE:', identifier
+        # print 'TRYING TO ENABLE:', identifier
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
         if not pm.has_package(identifier) and pkg:
@@ -1555,7 +1559,7 @@ class VistrailController(object):
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
                                 report_all_errors=False):
         load_other_versions = False
-        print 'running handle_invalid_pipeline'
+        # print 'running handle_invalid_pipeline'
         if vistrail is None:
             vistrail = self.vistrail
         pm = get_package_manager()
@@ -1565,7 +1569,7 @@ class VistrailController(object):
         def process_missing_packages(exception_set):
             for err in exception_set:
                 err._was_handled = False
-                print '--- trying to fix', str(err)
+                # print '--- trying to fix', str(err)
                 # FIXME need to get module_id from these exceptions
                 # when possible!  need to integrate
                 # report_missing_module and handle_module_upgrade
@@ -1584,10 +1588,10 @@ class VistrailController(object):
         dep_graph = pm.build_dependency_graph(missing_packages)
         # for identifier, err_list in missing_packages.iteritems():
         for identifier in pm.get_ordered_dependencies(dep_graph):
-            print 'testing identifier', identifier
+            # print 'testing identifier', identifier
             if not pm.has_package(identifier):
                 try:
-                    print 'trying to enable package'
+                    # print 'trying to enable package'
                     if not self.try_to_enable_package(identifier, dep_graph):
                         pass
                         # print 'failed to enable package'
@@ -1633,7 +1637,7 @@ class VistrailController(object):
             for err in exception_set:
                 if err._was_handled:
                     continue
-                print '+++ trying to fix', str(err)
+                # print '+++ trying to fix', str(err)
                 if isinstance(err, InvalidPipeline):
                     id_scope = IdScope(1, {Group.vtType: Module.vtType,
                                            Abstraction.vtType: Module.vtType})
@@ -1691,6 +1695,7 @@ class VistrailController(object):
                     # cannot get the package we need
                     continue
                 print '** trying to fix errors in', identifier
+                print '\n'.join(['  ' + str(e) for e in err_list])
                 if pkg.can_handle_all_errors():
                     print '  handle_all_errors'
                     try:
@@ -1724,7 +1729,7 @@ class VistrailController(object):
 #                             if not report_all_errors:
 #                                 return
                 else:
-                    print '  default upgrades'
+                    # print '  default upgrades'
                     # process default upgrades
                     # handler = UpgradeWorkflowHandler(self, pipeline)
                     for err in err_list:
@@ -1932,8 +1937,8 @@ class VistrailController(object):
             self.current_pipeline = switch_version(new_version)
             self.current_version = new_version
         except InvalidPipeline, e:
-            print 'EXCEPTION'
-            print e
+            # print 'EXCEPTION'
+            # print e
             new_error = None
 
             # DAK !!! don't need to rollback anymore!!!!

@@ -32,6 +32,7 @@ from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
+from core.utils import versions_increasing
 import copy
 
 ##############################################################################
@@ -370,3 +371,99 @@ class UpgradeWorkflowHandler(object):
                                                       src_port_remap, 
                                                       dst_port_remap,
                                                       annotation_remap)
+
+    @staticmethod
+    def remap_module(controller, module_id, pipeline, module_remap):
+
+        """remap_module offers a method to shortcut the
+        specification of upgrades.  It is useful when just changing
+        the names of ports or modules, but can also be used to add
+        intermediate modules or change the format of parameters.  It
+        is usually called from handle_module_upgrade_request, and the
+        first three arguments are passed from the arguments to that
+        method.
+
+        module_remap specifies all of the changes and is of the format
+        {<old_module_name>: [(<start_version>, <end_version>, 
+                             <new_module_klass> | <new_module_id> | None, 
+                             <remap_dictionary>)]}
+        where new_module_klass is the class and new_module_id
+        is a string of the format 
+            <package_name>:[<namespace> | ]<module_name>
+        passing None keeps the original name,
+        and remap_dictionary is {<remap_type>:
+        <name_changes>} and <name_changes> is a map from <old_name> to
+        <new_name> or <remap_function>
+        The remap functions are passed the old object and the new
+        module and should return a list of operations with elements of
+        the form ('add', <obj>).
+
+        For example:
+
+        def outputName_remap(old_conn, new_module):
+            ops = []
+            ...
+            return ops
+        module_remap = {'FileSink': [(None, '1.5.1', FileSink,
+                                     {'dst_port_remap':
+                                          {'overrideFile': 'overwrite',
+                                           'outputName': outputName_remap},
+                                      'function_remap':
+                                          {'overrideFile': 'overwrite',
+                                           'outputName': 'outputPath'}}),
+                        }
+        """
+
+        reg = get_module_registry()
+
+        old_module = pipeline.modules[module_id]
+        # print 'running module_upgrade_request', old_module.name
+        if old_module.name in module_remap:
+            for upgrade_tuple in module_remap[old_module.name]:
+                (start_version, end_version, new_module_type, remap) = \
+                    upgrade_tuple
+                old_version = old_module.version
+                if ((start_version is None or 
+                     versions_increasing(start_version, old_version)) and
+                    (end_version is None or
+                     versions_increasing(old_version, end_version))):
+                    # do upgrade
+                    
+                    if new_module_type is None:
+                        new_module_desc = \
+                            reg.get_descriptor_by_name(old_module.package, 
+                                                       old_module.name, 
+                                                       old_module.namespace)
+                    elif type(new_module_type) == type(""):
+                        d_tuple = \
+                            reg.expand_descriptor_string(new_module_type,
+                                                         old_module.package)
+                        new_module_desc = reg.get_descriptor_by_name(*d_tuple)
+                    else: # we have a klass for get_descriptor
+                        new_module_desc = reg.get_descriptor(new_module_type)
+                   
+                    src_port_remap = remap.get('src_port_remap', {})
+                    dst_port_remap = remap.get('dst_port_remap', {})
+                    # !!! we're going to let dst_port_remap serve as a
+                    # base for function_remap but the developer is
+                    # responsible for knowing that anything beyond name
+                    # remaps requires different functions
+                    function_remap = copy.copy(dst_port_remap)
+                    function_remap.update(remap.get('function_remap', {}))
+                    annotation_remap = remap.get('annotation_remap', {})
+                    action_list = \
+                        UpgradeWorkflowHandler.replace_module(controller, 
+                                                              pipeline,
+                                                              module_id, 
+                                                              new_module_desc,
+                                                              function_remap,
+                                                              src_port_remap,
+                                                              dst_port_remap,
+                                                              annotation_remap)
+                    return action_list
+
+        # otherwise, just try to automatic upgrade
+        # attempt_automatic_upgrade
+        return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
+                                                                pipeline,
+                                                                module_id)

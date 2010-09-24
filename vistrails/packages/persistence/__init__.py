@@ -22,10 +22,14 @@
 
 from core.configuration import ConfigurationObject
 
+
 identifier = 'edu.utah.sci.vistrails.persistence'
+version = '0.2.0'
 name = 'Persistence'
-version = '0.0.3'
+
 configuration = ConfigurationObject(global_db=(None, str), 
                                     local_db=(None, str),
+                                    git_bin=(None, str),
                                     search_dbs=(None, str),
-                                    compress_by_default=False)
+                                    compress_by_default=False,
+                                    debug=False)

@@ -1594,6 +1594,47 @@ class ModuleRegistry(DBRegistry):
     def update_module(self, old_descriptor, new_descriptor):
         self.signals.emit_module_updated(old_descriptor, new_descriptor)
 
+    def expand_descriptor_string(self, d_string, cur_package=None):
+        package = ''
+        qual_name = ''
+        name = ''
+        namespace = ''
+        parts = d_string.strip().split(':', 1)
+        if len(parts) > 1:
+            qual_name = parts[1]
+            if '.' in parts[0]:
+                package = parts[0]
+            else:
+                package = 'edu.utah.sci.vistrails.' + parts[0]
+        else:
+            qual_name = d_string
+            if cur_package is None:
+                package = basic_pkg
+            else:
+                package = cur_package
+        qual_parts = qual_name.rsplit('|', 1)
+        if len(qual_parts) > 1:
+            namespace, name = qual_parts
+        else:
+            name = qual_name
+        return (package, name, namespace)
+        
+    def expand_port_spec_string(self, p_string, cur_package=None):
+        port_spec = p_string.strip()
+        if port_spec.startswith('('):
+            port_spec = port_spec[1:]
+        if port_spec.endswith(')'):
+            port_spec = port_spec[:-1]
+        new_spec_list = []
+        for spec in port_spec.split(','):
+            (package, name, namespace) = \
+                expand_descriptor_string(spec, cur_package)
+            if namespace:
+                namespace = ':' + namespace
+            new_spec_list.append('%s:%s%s' % \
+                                     (package, name, namespace))
+        return '(' + ','.join(new_spec_list) + ')'
+
 ###############################################################################
 
 # registry                 = ModuleRegistry()
