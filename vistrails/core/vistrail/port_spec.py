@@ -93,6 +93,7 @@ class PortSpec(DBPortSpec):
 #                                          "sigstring to create PortSpec")
         if self._entries is not None and self._tooltip is None:
             self.create_tooltip()
+        self.is_valid = True
 
     def __copy__(self):
         return PortSpec.do_copy(self)
@@ -105,6 +106,7 @@ class PortSpec(DBPortSpec):
         cp._labels = self._labels
         cp._defaults = self._defaults
         cp._tooltip = self._tooltip
+        cp.is_valid = self.is_valid
         cp.__class__ = PortSpec
         if cp._entries is not None:
             cp.create_tooltip()
@@ -123,6 +125,7 @@ class PortSpec(DBPortSpec):
         _port_spec._labels = None
         _port_spec._defaults = None
         _port_spec._tooltip = None
+        _port_spec.is_valid = True
         # FIXME probably can just let validation take care of this...
         if module_registry_loaded():
             try:

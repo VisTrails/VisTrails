@@ -159,7 +159,8 @@ class QVistrailView(QDockContainer):
         if version is None:
             self.controller.select_latest_version()
             version = self.controller.current_version
-        self.versionSelected(version, True, True, False)
+        else:
+            self.versionSelected(version, True, True, False)
         self.controller.recompute_terse_graph()
         self.controller.invalidate_version_tree(True)
         self.setPIPMode(True)

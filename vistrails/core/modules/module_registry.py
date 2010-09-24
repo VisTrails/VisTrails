@@ -308,6 +308,21 @@ class MissingPort(ModuleRegistryException):
             (self._port_type, self._port_name, self._module_name, 
              self._package_name)
 
+class PortMismatch(MissingPort):
+    def __init__(self, identifier, name, namespace, port_name, port_type):
+        ModuleRegistryException.__init__(self, 
+                                         identifier,
+                                         name,
+                                         namespace)
+        
+        self._port_name = port_name
+        self._port_type = port_type
+                             
+    def __str__(self):
+        return "%s port '%s' has bad specification in module %s of package %s" % \
+            (self._port_type.capitalize(), self._port_name, self._module_name,
+             self._package_name)
+
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
                  new_namespace):
@@ -540,10 +555,10 @@ class ModuleRegistry(DBRegistry):
                 return self.package_versions[(identifier, package_version)]
         except KeyError:
             if identifier not in self.packages:
-                raise self.MissingPackage(identifier)
+                raise MissingPackage(identifier)
             elif package_version and \
                     package_version_key not in self.package_versions:
-                raise self.MissingPackageVersion(identifier, package_version)
+                raise MissingPackageVersion(identifier, package_version)
 
     def get_module_by_name(self, identifier, name, namespace=None):
         """get_module_by_name(name: string): class

@@ -1132,7 +1132,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         portShape = QGraphicsPortItem(x, y, self.ghosted, self, port.optional)
         portShape.controller = self.controller
         portShape.port = port
-        portShape.setToolTip(port.toolTip())
+        if not port.is_valid:
+            portShape.setInvalid(True)
+        try:
+            portShape.setToolTip(port.toolTip())
+        except:
+            portShape.setToolTip("ERROR with tool tip")
         return portShape
 
     def createConfigureItem(self, x, y):
