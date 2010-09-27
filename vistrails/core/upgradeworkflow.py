@@ -424,7 +424,7 @@ class UpgradeWorkflowHandler(object):
                     upgrade_tuple
                 old_version = old_module.version
                 if ((start_version is None or 
-                     versions_increasing(start_version, old_version)) and
+                     not versions_increasing(old_version, start_version)) and
                     (end_version is None or
                      versions_increasing(old_version, end_version))):
                     # do upgrade

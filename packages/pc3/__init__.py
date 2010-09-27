@@ -1,6 +1,7 @@
 from core.modules.basic_modules import String, Boolean, File, Integer
 from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import Module, ModuleError
+from core.upgradeworkflow import UpgradeWorkflowHandler
 
 from info.ipaw.pc3.LoadAppLogic import LoadAppLogic
 
@@ -8,7 +9,7 @@ import os
 
 name = "Provenance Challenge 3"
 identifier = "edu.utah.sci.dakoop.pc3"
-version = '1.0.0'
+version = '1.0.1'
 
 # class Module(object):
 #     pass
@@ -121,7 +122,7 @@ class ReadCSVReadyFile(Module):
     _input_ports = [('csvRootPath', String)]
     # _output_ports = [('csvFiles', [Collection, CSVFileEntry])]
     _output_ports = [('csvFiles', 
-                      '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
+                      '(edu.utah.sci.vistrails.basic:List)')]
 
 class IsMatchCSVFileTables(Module):
     def compute(self):
@@ -133,7 +134,7 @@ class IsMatchCSVFileTables(Module):
 
     # _input_ports = [('csvFiles', [Collection, CSVFileEntry])]
     _input_ports = [('csvFiles', 
-                     '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
+                     '(edu.utah.sci.vistrails.basic:List)')]
     _output_ports = [('tablesMatch', Boolean)]
 
 class IsExistsCSVFile(Module):
@@ -283,8 +284,8 @@ class GetCSVFiles(Module):
         if not LoadAppLogic.IsMatchCSVFileTables(csv_files):
             raise ModuleError(self, "IsMatchCSVFileTables failed")
 #         getter = get_module_registry().get_descriptor_by_name
-#         descriptor = getter('edu.utah.sci.vistrails.control_flow', 
-#                             'ListOfElements')
+#         descriptor = getter('edu.utah.sci.vistrails.basic', 
+#                             'List')
 #         list_of_elts = descriptor.module()
 #         list_of_elts.value = [CSVFileEntry(f) for f in csv_files]
 #         self.setResult('csvFiles', list_of_elts)
@@ -299,7 +300,7 @@ class GetCSVFiles(Module):
 
     _input_ports = [('csvRootPath', String)]
     _output_ports = [('csvFiles', 
-                      '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
+                      '(edu.utah.sci.vistrails.basic:List)')]
     # _output_ports = [('csvFiles', [Collection, CSVFileEntry])]
 
 class ReadCSVFile(Module):
@@ -381,7 +382,7 @@ class DetectionsHistogram(Module):
     
     _input_ports = [('dbEntry', DatabaseEntry), ('highQuality', Boolean, True)]
     _output_ports = [('histogram', 
-                      '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
+                      '(edu.utah.sci.vistrails.basic:List)')]
 
 _modules = [Collection,
             CSVFileEntry,
@@ -407,3 +408,13 @@ _modules = [Collection,
 
 def package_dependencies():
     return ['edu.utah.sci.vistrails.control_flow']
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    module_remap = {'ReadCSVReadyFile': [(None, '1.0.1', None, {})],
+                    'IsMatchCSVFileTables': [(None, '1.0.1', None, {})],
+                    'GetCSVFiles': [(None, '1.0.1', None, {})],
+                    'DetectionsHistogram': [(None, '1.0.1', None, {})],
+                    }
+
+    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                               module_remap)

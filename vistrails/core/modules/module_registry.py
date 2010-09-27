@@ -1595,6 +1595,23 @@ class ModuleRegistry(DBRegistry):
         self.signals.emit_module_updated(old_descriptor, new_descriptor)
 
     def expand_descriptor_string(self, d_string, cur_package=None):
+        """expand_descriptor_string will expand names of modules using
+        information about the current package and allowing shortcuts
+        for any bundled vistrails packages (e.g. "basic" for
+        "edu.utah.sci.vistrails.basic").  It also allows a nicer
+        format for namespace/module specification (namespace comes
+        fist unlike port specifications where it is after the module
+        name...
+
+        Examples:
+          "persistence:PersistentInputFile", None -> 
+              ("edu.utah.sci.vistrails.persistence", PersistentInputFile", "")
+          "basic:String", None ->
+              ("edu.utah.sci.vistrails.basic", "String", "")
+          "NamespaceA|NamespaceB|Module", "org.example.my" ->
+              ("org.example.my", "Module", "NamespaceA|NamespaceB")
+        """
+
         package = ''
         qual_name = ''
         name = ''
@@ -1620,6 +1637,16 @@ class ModuleRegistry(DBRegistry):
         return (package, name, namespace)
         
     def expand_port_spec_string(self, p_string, cur_package=None):
+        """Similar to expand_descriptor_string but for full port
+        specifications.  Allows you to omit the beginning and ending
+        parens and shorten the names of each port type
+
+        Example:
+          "basic:String, basic:Integer" -> 
+              "(edu.utah.sci.vistrails.basic:String, 
+                edu.utah.sci.vistrails.basic:Integer)"
+        """
+
         port_spec = p_string.strip()
         if port_spec.startswith('('):
             port_spec = port_spec[1:]

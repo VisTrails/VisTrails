@@ -30,7 +30,4 @@ package!
 
 identifier = 'edu.utah.sci.vistrails.sql'
 name = 'SQL'
-version = '0.0.2'
-
-def package_dependencies():
-    return ['edu.utah.sci.vistrails.control_flow']
+version = '0.0.3'
