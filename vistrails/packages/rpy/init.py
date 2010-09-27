@@ -9,7 +9,10 @@ sys.path.append(os.path.dirname(__file__))
 import rpy2.robjects as robjects
 sys.path = old_sys_path
 
-from core.modules.basic_modules import File
+from core.modules.basic_modules import File, Constant, \
+    new_constant, list_compute
+    # new_constant as _new_constant
+
 from core.modules.vistrails_module import Module, ModuleError, \
     ModuleConnector, NotCacheable
 from core.modules.basic_modules import new_constant
@@ -17,6 +20,21 @@ import core.modules.module_registry
 from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 r_temp_files = []
+
+# # bckward compatibility
+# from core.modules.constant_configuration import StandardConstantWidget
+
+# def new_constant(name, py_conversion, default_value, validation,
+#                  widget_type=StandardConstantWidget, str_conversion=None,
+#                  base_class=Constant, compute=None):
+#     m = _new_constant(name, py_conversion, default_value, validation,
+#                       widget_type)
+#     m.__bases__  = (base_class,)
+#     m.translate_to_string = str_conversion
+#     m.compute = compute
+#     m._input_ports = []
+#     m._output_ports = []
+#     return m
 
 class TypeException(Exception):
     pass
@@ -144,6 +162,27 @@ RMatrix._input_ports.extend([('rvector',
                              ('nrows', 
                               '(edu.utah.sci.vistrails.basic:Integer)')])
 
+def create_list(v_dict):
+    data_dict = {}
+    for k,v in v_dict.iteritems():
+        if type(v) == list:
+            data_dict[k] = create_vector(v)
+        elif type(v) == dict:
+            data_dict[k] = create_list(v)
+        else:
+            data_dict[k] = v
+    return robjects.r['list'](**data_dict)
+
+def list_conv(v):
+    v_dict = eval(v)
+    return create_list(v_dict)
+
+RList = new_constant('RList', staticmethod(list_conv),
+                     robjects.r.list(),
+                     staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                     base_class=RVector,
+                     compute=list_compute)
+
 def create_data_frame(v_dict):
     data_dict = {}
     for k,v in v_dict.iteritems():
@@ -224,9 +263,34 @@ class DictFromRDataFrame(Module):
         rdataframe = self.getInputFromPort('rdataframe')
         colnames = list(rdataframe.colnames())
         odict = {}
-        for i in xrange(len(r_data_frame)):
+        for i in xrange(len(rdataframe)):
             # FIXME !!! just assume that each row can be converted to a list!!!
-            odict[colnames[i]] = list(r_data_frame[i])
+            odict[colnames[i]] = list(rdataframe[i])
+        self.setResult('dict', odict)
+
+class RListFromDict(Module):
+    # _input_ports = [('dict', '(edu.utah.sci.vistrails.basic:Dictionary)')]
+    _input_ports = [('dict', '(edu.utah.sci.vistrails.basic:Module)')]
+    _output_ports = [('rlist', '(edu.utah.sci.vistrails.rpy:RList:Types)')]
+    
+    def compute(self):
+        idict = self.getInputFromPort('dict')
+        rlist = create_list(idict)
+        self.setResult('rlist', rlist)
+
+class DictFromRList(Module):
+    _input_ports = [('rlist', '(edu.utah.sci.vistrails.rpy:RList:Types)')]
+    # _output_ports = [('dict', '(edu.utah.sci.vistrails.basic:Dictionary)')]
+    _output_ports = [('dict', '(edu.utah.sci.vistrails.basic:Module)')]
+
+    def compute(self):
+        rlist = self.getInputFromPort('rlist')
+        colnames = list(rlist.names)
+        odict = {}
+        for i in xrange(len(rlist)):
+            # FIXME !!! just assume that each row can be converted to a list!!!
+            # FIXME this may need to be a list of lists
+            odict[colnames[i]] = list(rlist[i])
         self.setResult('dict', odict)
 
 class RRead(Module):
@@ -270,7 +334,8 @@ class RReadDelim2(RRead):
     def compute(self):
         self.do_read('read.delim2')
 
-class RSource(NotCacheable, Module):
+# class RSource(NotCacheable, Module):
+class RSource(Module):
     _input_ports = [('source', '(edu.utah.sci.vistrails.basic:String)', True)]
     def run_code(self, code_str,
                  use_input=False,
@@ -298,14 +363,24 @@ class RSource(NotCacheable, Module):
                 if k not in excluded_outputs and k in robjects.globalEnv:
                     self.setResult(k, robjects.globalEnv[k])
 
-    def run_file(fname, excluded_inputs=set(['source']), 
+    def run_file(self, fname, excluded_inputs=set(['source']), 
                  excluded_outputs=set()):
-        f = open(fname)
+        f = open(fname, 'rU')
         code_str = f.readlines()
         f.close()
         self.run_code(code_str, use_input=True, use_output=True,
                       excluded_inputs=excluded_inputs,
                       excluded_outputs=excluded_outputs)
+
+    def set_variable(self, name, value):
+        robjects.globalEnv[name] = value
+
+    def get_variable(self, name):
+        # return robjects.globalEnv[name]
+        return robjects.r(name)
+
+    def chdir(self, dir):
+        robjects.r('setwd("%s")' % dir)
 
     def compute(self):
         code_str = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
@@ -314,32 +389,47 @@ class RSource(NotCacheable, Module):
 
 class RFigure(RSource):
     _output_ports = [('imageFile', '(edu.utah.sci.vistrails.basic:File)')]
-    def run_figure(self, graphics_dev, width, height):
+    def run_figure(self, code_str, graphics_dev, width, height, 
+                   excluded_inputs=set(['source'])):
         f, fname = tempfile.mkstemp(prefix='vtr', suffix='.' + graphics_dev)
         r_temp_files.append(fname)
         os.close(f)
         robjects.r[graphics_dev](file=fname, width=width, height=height)
-        code_str = \
-            urllib.unquote(str(self.forceGetInputFromPort('source', '')))
         self.run_code(code_str, use_input=True, 
-                      excluded_inputs=set(['source']))
+                      excluded_inputs=excluded_inputs)
         robjects.r['dev.off']()
         image_file = File()
         image_file.name = fname
         image_file.upToDate = True
         self.setResult('imageFile', image_file)
 
+    def run_figure_file(self, fname, graphics_dev, width, height, 
+                        excluded_inputs=set(['source'])):
+        f = open(fname)
+        code_str = f.readlines()
+        f.close()
+        self.run_figure(code_str, graphics_dev, width, height, excluded_inputs)
+
 class RSVGFigure(RFigure):
     def compute(self):
-        RFigure.run_figure(self, 'svg', 4, 3)
+        code_str = \
+            urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        RFigure.run_figure(self, code_str, 'svg', 4, 3)
 
 class RPNGFigure(RFigure):
     def compute(self):
-        RFigure.run_figure(self, 'png', 640, 480)
+        code_str = \
+            urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        RFigure.run_figure(self, code_str, 'png', 640, 480)
 
 class RPDFFigure(RFigure):
     def compute(self):
-        RFigure.run_figure(self, 'pdf', 4, 3)
+        code_str = \
+            urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        RFigure.run_figure(self, code_str, 'pdf', 4, 3)
+
+class RFactor(Module):
+    pass
 
 _modules = {None: [(RSource, 
                     {'configureWidgetType': RSourceConfigurationWidget})],
@@ -350,7 +440,9 @@ _modules = {None: [(RSource,
                       RStrVector,
                       RArray,
                       RMatrix,
-                      RDataFrame],
+                      RDataFrame,
+                      RList,
+                      RFactor],
             'Readers': [(RRead, {'abstract': True}),
                          RReadTable,
                          RReadCSV,
@@ -362,7 +454,9 @@ _modules = {None: [(RSource,
                            RMatrixFromNestedList,
                            NestedListFromRMatrix,
                            RDataFrameFromDict,
-                           DictFromRDataFrame],
+                           DictFromRDataFrame,
+                           RListFromDict,
+                           DictFromRList],
             'Figures': [(RFigure, {'abstract': True}),
                         (RSVGFigure, {'configureWidgetType': \
                                           RFigureConfigurationWidget}),
@@ -372,10 +466,6 @@ _modules = {None: [(RSource,
                                           RFigureConfigurationWidget})]
             }
 
-# def initialize():
-#     rinterface.initr()
-
 def finalize():
-    # rinterface.endEmbeddedR()
     for file in r_temp_files:
         os.remove(file)

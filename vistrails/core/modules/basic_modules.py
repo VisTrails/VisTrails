@@ -1063,14 +1063,21 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
        ops.append(('add', new_conn_2))
        return ops
 
-   module_remap = {'FileSink': 
-                   [(None, '1.6', None,
-                     {'dst_port_remap':
-                          {'overrideFile': 'overwrite',
-                           'outputName': outputName_remap},
-                      'function_remap':
-                          {'overrideFile': 'overwrite',
-                           'outputName': 'outputPath'}})]                    
+   module_remap = {'FileSink':
+                       [(None, '1.6', None,
+                         {'dst_port_remap':
+                              {'overrideFile': 'overwrite',
+                               'outputName': outputName_remap},
+                          'function_remap':
+                              {'overrideFile': 'overwrite',
+                               'outputName': 'outputPath'}})],
+                   'GetItemsFromDirectory':
+                       [(None, '1.6', 'Directory',
+                         {'dst_port_remap':
+                              {'dir': 'value'},
+                          'src_port_remap':
+                              {'itemlist': 'itemList'},
+                          })],
                    }
 
    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
