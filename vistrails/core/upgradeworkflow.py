@@ -32,6 +32,7 @@ from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
+from core.utils import versions_increasing
 import copy
 
 ##############################################################################
@@ -167,6 +168,46 @@ class UpgradeWorkflowHandler(object):
                                                      module_id, d)
 
     @staticmethod
+    def create_new_connection(controller, src_module, src_port, 
+                              dst_module, dst_port):
+        # spec -> name, type, signature
+        output_port_id = controller.id_scope.getNewId(Port.vtType)
+        if type(src_port) == type(""):
+            output_port_spec = src_module.get_port_spec(src_port, 'output')
+            output_port = Port(id=output_port_id,
+                               spec=output_port_spec,
+                               moduleId=src_module.id,
+                               moduleName=src_module.name)
+        else:
+            output_port = Port(id=output_port_id,
+                               name=src_port.name,
+                               type=src_port.type,
+                               signature=src_port.signature,
+                               moduleId=src_module.id,
+                               moduleName=src_module.name)
+
+        input_port_id = controller.id_scope.getNewId(Port.vtType)
+        if type(dst_port) == type(""):
+            input_port_spec = dst_module.get_port_spec(dst_port, 'input')
+            input_port = Port(id=input_port_id,
+                              spec=input_port_spec,
+                              moduleId=dst_module.id,
+                              moduleName=dst_module.name)
+        else:
+            input_port = Port(id=input_port_id,
+                              name=dst_port.name,
+                              type=dst_port.type,
+                              signature=dst_port.signature,
+                              moduleId=dst_module.id,
+                              moduleName=dst_module.name)
+        conn_id = controller.id_scope.getNewId(Connection.vtType)
+        connection = Connection(id=conn_id,
+                                ports=[input_port, output_port])
+        return connection
+
+
+
+    @staticmethod
     def replace_generic(controller, pipeline, old_module, new_module,
                         function_remap={}, src_port_remap={}, 
                         dst_port_remap={}, annotation_remap={}):
@@ -246,41 +287,7 @@ class UpgradeWorkflowHandler(object):
         # add the new module
         ops.append(('add', new_module))
 
-        def create_new_connection(src_module, src_port, dst_module, dst_port):
-            # spec -> name, type, signature
-            output_port_id = controller.id_scope.getNewId(Port.vtType)
-            if type(src_port) == type(""):
-                output_port_spec = src_module.get_port_spec(src_port, 'output')
-                output_port = Port(id=output_port_id,
-                                   spec=output_port_spec,
-                                   moduleId=src_module.id,
-                                   moduleName=src_module.name)
-            else:
-                output_port = Port(id=output_port_id,
-                                   name=src_port.name,
-                                   type=src_port.type,
-                                   signature=src_port.signature,
-                                   moduleId=src_module.id,
-                                   moduleName=src_module.name)
-
-            input_port_id = controller.id_scope.getNewId(Port.vtType)
-            if type(dst_port) == type(""):
-                input_port_spec = dst_module.get_port_spec(dst_port, 'input')
-                input_port = Port(id=input_port_id,
-                                  spec=input_port_spec,
-                                  moduleId=dst_module.id,
-                                  moduleName=dst_module.name)
-            else:
-                input_port = Port(id=input_port_id,
-                                  name=dst_port.name,
-                                  type=dst_port.type,
-                                  signature=dst_port.signature,
-                                  moduleId=dst_module.id,
-                                  moduleName=dst_module.name)
-            conn_id = controller.id_scope.getNewId(Connection.vtType)
-            connection = Connection(id=conn_id,
-                                    ports=[input_port, output_port])
-            return connection
+        create_new_connection = UpgradeWorkflowHandler.create_new_connection
 
         for _, conn_id in pipeline.graph.edges_from(old_module.id):
             old_conn = pipeline.connections[conn_id]
@@ -292,14 +299,15 @@ class UpgradeWorkflowHandler(object):
                     # don't add this connection back in
                     continue
                 elif type(remap) != type(""):
-                    ops.extend(remap(old_conn))
+                    ops.extend(remap(old_conn, new_module))
                     continue
                 else:
                     source_name = remap
                     
             old_dst_module = pipeline.modules[old_conn.destination.moduleId]
 
-            new_conn = create_new_connection(new_module,
+            new_conn = create_new_connection(controller,
+                                             new_module,
                                              source_name,
                                              old_dst_module,
                                              old_conn.destination)
@@ -315,13 +323,14 @@ class UpgradeWorkflowHandler(object):
                     # don't add this connection back in
                     continue
                 elif type(remap) != type(""):
-                    ops.extend(remap(old_conn))
+                    ops.extend(remap(old_conn, new_module))
                     continue
                 else:
                     destination_name = remap
                     
             old_src_module = pipeline.modules[old_conn.source.moduleId]
-            new_conn = create_new_connection(old_src_module,
+            new_conn = create_new_connection(controller,
+                                             old_src_module,
                                              old_conn.source,
                                              new_module,
                                              destination_name)
@@ -362,3 +371,99 @@ class UpgradeWorkflowHandler(object):
                                                       src_port_remap, 
                                                       dst_port_remap,
                                                       annotation_remap)
+
+    @staticmethod
+    def remap_module(controller, module_id, pipeline, module_remap):
+
+        """remap_module offers a method to shortcut the
+        specification of upgrades.  It is useful when just changing
+        the names of ports or modules, but can also be used to add
+        intermediate modules or change the format of parameters.  It
+        is usually called from handle_module_upgrade_request, and the
+        first three arguments are passed from the arguments to that
+        method.
+
+        module_remap specifies all of the changes and is of the format
+        {<old_module_name>: [(<start_version>, <end_version>, 
+                             <new_module_klass> | <new_module_id> | None, 
+                             <remap_dictionary>)]}
+        where new_module_klass is the class and new_module_id
+        is a string of the format 
+            <package_name>:[<namespace> | ]<module_name>
+        passing None keeps the original name,
+        and remap_dictionary is {<remap_type>:
+        <name_changes>} and <name_changes> is a map from <old_name> to
+        <new_name> or <remap_function>
+        The remap functions are passed the old object and the new
+        module and should return a list of operations with elements of
+        the form ('add', <obj>).
+
+        For example:
+
+        def outputName_remap(old_conn, new_module):
+            ops = []
+            ...
+            return ops
+        module_remap = {'FileSink': [(None, '1.5.1', FileSink,
+                                     {'dst_port_remap':
+                                          {'overrideFile': 'overwrite',
+                                           'outputName': outputName_remap},
+                                      'function_remap':
+                                          {'overrideFile': 'overwrite',
+                                           'outputName': 'outputPath'}}),
+                        }
+        """
+
+        reg = get_module_registry()
+
+        old_module = pipeline.modules[module_id]
+        # print 'running module_upgrade_request', old_module.name
+        if old_module.name in module_remap:
+            for upgrade_tuple in module_remap[old_module.name]:
+                (start_version, end_version, new_module_type, remap) = \
+                    upgrade_tuple
+                old_version = old_module.version
+                if ((start_version is None or 
+                     not versions_increasing(old_version, start_version)) and
+                    (end_version is None or
+                     versions_increasing(old_version, end_version))):
+                    # do upgrade
+                    
+                    if new_module_type is None:
+                        new_module_desc = \
+                            reg.get_descriptor_by_name(old_module.package, 
+                                                       old_module.name, 
+                                                       old_module.namespace)
+                    elif type(new_module_type) == type(""):
+                        d_tuple = \
+                            reg.expand_descriptor_string(new_module_type,
+                                                         old_module.package)
+                        new_module_desc = reg.get_descriptor_by_name(*d_tuple)
+                    else: # we have a klass for get_descriptor
+                        new_module_desc = reg.get_descriptor(new_module_type)
+                   
+                    src_port_remap = remap.get('src_port_remap', {})
+                    dst_port_remap = remap.get('dst_port_remap', {})
+                    # !!! we're going to let dst_port_remap serve as a
+                    # base for function_remap but the developer is
+                    # responsible for knowing that anything beyond name
+                    # remaps requires different functions
+                    function_remap = copy.copy(dst_port_remap)
+                    function_remap.update(remap.get('function_remap', {}))
+                    annotation_remap = remap.get('annotation_remap', {})
+                    action_list = \
+                        UpgradeWorkflowHandler.replace_module(controller, 
+                                                              pipeline,
+                                                              module_id, 
+                                                              new_module_desc,
+                                                              function_remap,
+                                                              src_port_remap,
+                                                              dst_port_remap,
+                                                              annotation_remap)
+                    return action_list
+
+        # otherwise, just try to automatic upgrade
+        # attempt_automatic_upgrade
+        return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
+                                                                pipeline,
+                                                                module_id)

@@ -33,12 +33,13 @@ from core.modules.python_source_configure import PythonSourceConfigurationWidget
 from core.modules.tuple_configuration import TupleConfigurationWidget, \
     UntupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
-    PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget
+    PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget, OutputPathChooserWidget
 from core.system import vistrails_version
 from core.utils import InstanceObject
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
      IntegerLinearInterpolator
+from core.upgradeworkflow import UpgradeWorkflowHandler
 from PyQt4 import QtGui
 
 
@@ -46,6 +47,7 @@ import core.system
 from itertools import izip
 import os
 import os.path
+import shutil
 try:
     import hashlib
     sha_hash = hashlib.sha1
@@ -57,7 +59,7 @@ import urllib
 
 ###############################################################################
 
-version = vistrails_version()
+version = '1.6'
 name = 'Basic Modules'
 identifier = 'edu.utah.sci.vistrails.basic'
 
@@ -206,7 +208,6 @@ class Path(Constant):
     def __init__(self):
         Constant.__init__(self)
         self.name = ""
-        Path.default_value = self
     
     @staticmethod
     def translate_to_python(x):
@@ -218,6 +219,12 @@ class Path(Constant):
     @staticmethod
     def translate_to_string(x):
         return str(x.name)
+
+    @staticmethod
+    def validate(v):
+        print 'validating', v
+        print 'isinstance', isinstance(v, Path)
+        return isinstance(v, Path)
 
     def get_name(self):
         n = None
@@ -244,12 +251,13 @@ class Path(Constant):
     def get_widget_class():
         return PathChooserWidget
 
+Path.default_value = Path()
+
 class File(Path):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
     def __init__(self):
         Path.__init__(self)
-        File.default_value = self
         
     @staticmethod
     def translate_to_python(x):
@@ -272,6 +280,8 @@ class File(Path):
     @staticmethod
     def get_widget_class():
         return FileChooserWidget
+
+File.default_value = File()
     
 class Directory(Path):
     def __init__(self):
@@ -296,11 +306,28 @@ class Directory(Path):
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
-        # FIXME add "fileList" output port...
-
+        
+        dir_list = os.listdir(n)
+        output_list = []
+        for item in dir_list:
+            full_path = os.path.join(n, item)
+            if os.path.isfile(full_path):
+                file_item = File()
+                file_item.name = full_path
+                file_item.upToDate = True
+                output_list.append(file_item)
+            elif os.path.isdir(full_path):
+                dir_item = Directory()
+                dir_item.name = full_path
+                dir_item.upToDate = True
+                output_list.append(dir_item)
+        self.setResult('itemList', output_list)
+            
     @staticmethod
     def get_widget_class():
         return DirectoryChooserWidget
+
+Directory.default_value = Directory()
 
 def file_parameter_hasher(p):
     h = core.cache.hasher.Hasher.parameter_signature(p)
@@ -317,28 +344,56 @@ def file_parameter_hasher(p):
 
 ##############################################################################
 
-class FileSink(NotCacheable, Module):
-    """FileSink is a VisTrails Module that takes a file and writes it
-    in a user-specified location in the file system."""
+class OutputPath(Path):
+    def get_name(self):
+        n = None
+        if self.hasInputFromPort("value"):
+            n = self.getInputFromPort("value").name
+        if n is None:
+            self.checkInputPort("name")
+            n = self.getInputFromPort("name")
+        return n
+        
+    def set_results(self, n):
+        self.name = n
+        self.setResult("value", self)
+        self.setResult("value_as_string", self.translate_to_string(self))
 
     def compute(self):
-        self.checkInputPort("file")
-        self.checkInputPort("outputName")
-        v1 = self.getInputFromPort("file")
-        v2 = self.getInputFromPort("outputName")
+        n = self.get_name()
+        self.set_results(n)
+        
+    @staticmethod
+    def get_widget_class():
+        return OutputPathChooserWidget
+
+OutputPath.default_value = OutputPath()
+
+class FileSink(NotCacheable, Module):
+    """FileSink takes a file and writes it to a user-specified
+    location in the file system.  The file is stored at location
+    specified by the outputPath.  The overwrite flag allows users to
+    specify whether an existing path should be overwritten."""
+
+    def compute(self):
+        input_file = self.getInputFromPort("file")
+        output_path = self.getInputFromPort("outputPath")
+        full_path = output_path.name
+
         try:
-            core.system.link_or_copy(v1.name, v2)
+            core.system.link_or_copy(input_file.name, full_path)
         except OSError, e:
-            if (self.hasInputFromPort("overrideFile") and
-                self.getInputFromPort("overrideFile")):
+            if self.hasInputFromPort("overwrite") and \
+                    self.getInputFromPort("overwrite"):
                 try:
-                    os.unlink(v2)
-                    core.system.link_or_copy(v1.name, v2)
+                    os.unlink(full_path)
+                    core.system.link_or_copy(input_file.name, full_path)
                 except OSError:
-                    msg = "(override true) Could not create file '%s'" % v2
-                    raise ModuleError(self, v2)
+                    msg = "(override true) Could not create file '%s'" % \
+                        full_path
+                    raise ModuleError(self, msg)
             else:
-                msg = "Could not create file '%s': %s" % (v2, e)
+                msg = "Could not create file '%s': %s" % (full_path, e)
                 raise ModuleError(self, msg)
             
         if (self.hasInputFromPort("publishFile") and
@@ -347,7 +402,7 @@ class FileSink(NotCacheable, Module):
             if self.moduleInfo.has_key('extra_info'):
                 if self.moduleInfo['extra_info'].has_key('pathDumpCells'):
                     folder = self.moduleInfo['extra_info']['pathDumpCells']
-                    base_fname = os.path.basename(v2)
+                    base_fname = os.path.basename(full_path)
                     (base_fname, file_extension) = os.path.splitext(base_fname)
                     base_fname = os.path.join(folder, base_fname)
                     # make a unique filename
@@ -358,13 +413,52 @@ class FileSink(NotCacheable, Module):
                                                            file_extension)
                         counter += 1
                     try:
-                        core.system.link_or_copy(v1.name, filename)
+                        core.system.link_or_copy(input_file.name, filename)
                     except OSError:
                         msg = "Could not publish file '%s' \n   on  '%s': %s" % \
-                               (v2, filename, e)
+                               (full_path, filename, e)
                         # I am not sure whether we should raise an error
                         # I will just print a warning for now (Emanuele)
                         print "Warning: ", msg
+
+class DirectorySink(NotCacheable, Module):
+    """DirectorySink takes a directory and writes it to a
+    user-specified location in the file system.  The directory is
+    stored at location specified by the outputPath.  The overwrite
+    flag allows users to specify whether an existing path should be
+    overwritten."""
+
+    def compute(self):
+        input_dir = self.getInputFromPort("dir")
+        output_path = self.getInputFromPort("outputPath")
+        full_path = output_path.name
+
+        if os.path.exists(full_path):
+            if (self.hasInputFromPort("overwrite") and 
+                self.getInputFromPort("overwrite")):
+                try:
+                    if os.path.isfile(full_path):
+                        os.remove(full_path)
+                    else:
+                        shutil.rmtree(full_path)
+                except OSError, e:
+                    msg = ('Could not delete existing path "%s" '
+                           '(overwrite on)' % full_path)
+                    raise ModuleError(self, msg + '\n' + str(e))
+            else:
+                msg = ('Could not write to existing path "%s" '
+                       '(overwrite off)' % full_path)
+                raise ModuleError(self, msg)
+            
+        try:
+            shutil.copytree(input_dir.name, full_path)
+        except OSError, e:
+            msg = 'Could not copy path from "%s" to "%s"' % \
+                (input_dir.name, full_path)
+            raise ModuleError(self, msg + '\n' + str(e))
+
+
+        
 ##############################################################################
 
 class Color(Constant):
@@ -854,6 +948,10 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
 
+    reg.add_module(List)
+    reg.add_input_port(List, "head", Module)
+    reg.add_input_port(List, "tail", List)
+
     reg.add_module(Path)
     reg.add_input_port(Path, "value", Path)
     reg.add_output_port(Path, "value", Path)
@@ -869,17 +967,28 @@ def initialize(*args, **kwargs):
     reg.add_module(Directory)
     reg.add_input_port(Directory, "value", Directory)
     reg.add_output_port(Directory, "value", Directory)
+    reg.add_output_port(Directory, "itemList", List)
     reg.add_input_port(Directory, "create_directory", Boolean, True)
 
+    reg.add_module(OutputPath)
+    reg.add_output_port(OutputPath, "value", OutputPath)
+
     reg.add_module(FileSink)
-    reg.add_input_port(FileSink,  "file", File)
-    reg.add_input_port(FileSink,  "outputName", String)
-    reg.add_input_port(FileSink,  "overrideFile", Boolean)
+    reg.add_input_port(FileSink, "file", File)
+    reg.add_input_port(FileSink, "outputPath", OutputPath)
+    reg.add_input_port(FileSink, "overwrite", Boolean, True, 
+                       defaults="(True,)")
     reg.add_input_port(FileSink,  "publishFile", Boolean, True)
     
+    reg.add_module(DirectorySink)
+    reg.add_input_port(DirectorySink, "dir", Directory)
+    reg.add_input_port(DirectorySink, "outputPath", OutputPath)
+    reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
+                       defaults="(True,)")
+
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)
-    reg.add_output_port(Color, "value", Color)    
+    reg.add_output_port(Color, "value", Color)
 
     reg.add_module(StandardOutput)
     reg.add_input_port(StandardOutput, "value", Module)
@@ -900,13 +1009,10 @@ def initialize(*args, **kwargs):
         reg.add_input_port(ConcatenateString, port, String)
     reg.add_output_port(ConcatenateString, "value", String)
 
-    reg.add_module(List)
-    reg.add_input_port(List, "head", Module)
-    reg.add_input_port(List, "tail", List)
-
     reg.add_module(Dictionary)
     reg.add_input_port(Dictionary, "addPair", [Module, Module])
     reg.add_input_port(Dictionary, "addPairs", List)
+
     reg.add_module(Null)
 
     reg.add_module(PythonSource,
@@ -928,3 +1034,51 @@ def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
     import core.modules.sub_module
     core.modules.sub_module.initialize(*args, **kwargs)
+
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+   reg = get_module_registry()
+
+   def outputName_remap(old_conn, new_module):
+       ops = []
+       old_src_module = pipeline.modules[old_conn.source.moduleId]
+       op_desc = reg.get_descriptor(OutputPath)
+       new_x = (old_src_module.location.x + new_module.location.x) / 2.0
+       new_y = (old_src_module.location.y + new_module.location.y) / 2.0
+       op_module = \
+           controller.create_module_from_descriptor(op_desc, new_x, new_y)
+       ops.append(('add', op_module))
+       create_new_connection = UpgradeWorkflowHandler.create_new_connection
+       new_conn_1 = create_new_connection(controller,
+                                          old_src_module,
+                                          old_conn.source,
+                                          op_module,
+                                          "name")
+       ops.append(('add', new_conn_1))
+       new_conn_2 = create_new_connection(controller,
+                                          op_module,
+                                          "value",
+                                          new_module,
+                                          "outputPath")
+       ops.append(('add', new_conn_2))
+       return ops
+
+   module_remap = {'FileSink':
+                       [(None, '1.6', None,
+                         {'dst_port_remap':
+                              {'overrideFile': 'overwrite',
+                               'outputName': outputName_remap},
+                          'function_remap':
+                              {'overrideFile': 'overwrite',
+                               'outputName': 'outputPath'}})],
+                   'GetItemsFromDirectory':
+                       [(None, '1.6', 'Directory',
+                         {'dst_port_remap':
+                              {'dir': 'value'},
+                          'src_port_remap':
+                              {'itemlist': 'itemList'},
+                          })],
+                   }
+
+   return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                              module_remap)

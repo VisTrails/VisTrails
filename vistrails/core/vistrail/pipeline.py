@@ -29,7 +29,7 @@ from core.data_structures.graph import Graph
 from core import debug
 from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException, MissingModule
+    ModuleRegistryException, MissingModule, PortMismatch
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
@@ -863,7 +863,8 @@ class Pipeline(DBWorkflow):
                 print 'CONNECTION EXCEPTION', e
                 exceptions.add(e)
             else:
-                port.is_valid = True
+                if port.spec.is_valid:
+                    port.is_valid = True
             
         if connection_ids is None:
             connection_ids = self.connections.iterkeys()
@@ -968,14 +969,22 @@ class Pipeline(DBWorkflow):
     def ensure_port_specs(self):
         exceptions = set()
         for module in self.modules.itervalues():
-            if module.is_valid:
+            # if module.is_valid:
+            try:
                 for port_spec in module.port_specs.itervalues():
                     try:
                         port_spec.create_entries_and_descriptors()
                     except ModuleRegistryException, e:
+                        e = PortMismatch(module.name, module.package, 
+                                         module.namespace, port_spec.name,
+                                         port_spec.type)
+                        port_spec.is_valid = False
                         is_valid = False
                         e._module_id = module.id
                         exceptions.add(e)
+            except ModuleRegistryException, e:
+                if module.is_valid:
+                    module.is_valid = False
     
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)

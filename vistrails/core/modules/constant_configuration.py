@@ -289,6 +289,21 @@ class DirectoryChooserWidget(PathChooserWidget):
     def create_browse_button(self):
         return DirectoryChooserToolButton(self, self.line_edit)
 
+class OutputPathChooserToolButton(PathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None):
+        PathChooserToolButton.__init__(self, parent, lineEdit,
+                                       "Open a path chooser")
+    
+    def openChooser(self):
+        return QtGui.QFileDialog.getSaveFileName(self,
+                                                 'Save Path',
+                                                 self.lineEdit.text(),
+                                                 'All files (*.*)')
+
+class OutputPathChooserWidget(PathChooserWidget):
+    def create_browse_button(self):
+        return OutputPathChooserToolButton(self, self.line_edit)
+
 class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
 
     _values = ['True', 'False']

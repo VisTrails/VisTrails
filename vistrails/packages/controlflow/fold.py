@@ -1,11 +1,10 @@
 from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
     ModuleConnector, InvalidOutput
 from core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
-     File, NotCacheable, Constant
+     File, NotCacheable, Constant, List
 from core.modules.module_registry import get_module_registry
 from core.vistrail.port_spec import PortSpec
 from core.utils import VistrailsInternalError
-from list_module import ListOfElements
 
 import copy
 from itertools import izip
@@ -236,7 +235,7 @@ def create_module(value, signature):
         v_module = Float()
         return v_module
     elif type(value)==list:
-        v_module = ListOfElements()
+        v_module = List()
         return v_module
     elif type(value)==file:
         v_module = File()

@@ -32,6 +32,7 @@ import urllib
 
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.modules.source_configure import SourceConfigurationWidget
+from core.upgradeworkflow import UpgradeWorkflowHandler
 from core.utils import PortAlreadyExists
 from gui.theme import CurrentTheme
 
@@ -189,7 +190,7 @@ class SQLSource(Module):
                       '(edu.utah.sci.vistrails.basic:Boolean)'),    
                     ('source', '(edu.utah.sci.vistrails.basic:String)')]
     _output_ports = \
-        [('resultSet', '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
+        [('resultSet', '(edu.utah.sci.vistrails.basic:List)')]
 
 class SQLSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -198,3 +199,9 @@ class SQLSourceConfigurationWidget(SourceConfigurationWidget):
         
 _modules = [DBConnection,
             (SQLSource, {'configureWidgetType': SQLSourceConfigurationWidget})]
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    module_remap = {'SQLSource': [(None, '0.0.3', None, {})]}
+
+    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                               module_remap)

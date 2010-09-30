@@ -32,7 +32,7 @@ import core.modules.module_registry
 from core.system import vistrails_version
 
 name = 'My SubWorkflows'
-version = vistrails_version()
+version = '1.6'
 identifier = 'local.abstractions'
 
 vistrails = {}

@@ -996,12 +996,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # avoiding property calls
         inputPorts = []
         self.inputPorts = {}
-        visibleOptionalPorts = []
+        visibleOptionalInputPorts = []
         self.optionalInputPorts = []
 
         outputPorts = []
         self.outputPorts = {}
-        visibleOptionalPorts = []
+        visibleOptionalOutputPorts = []
         self.optionalOutputPorts = []
 
         error = None
@@ -1012,20 +1012,20 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     if not p.optional:
                         inputPorts.append(p)
                     elif (d, p.name) in module.portVisible:
-                        visibleOptionalPorts.append(p)
+                        visibleOptionalInputPorts.append(p)
                     else:
                         self.optionalInputPorts.append(p)
-                inputPorts += visibleOptionalPorts
+                inputPorts += visibleOptionalInputPorts
 
                 s = PortEndPoint.Source
                 for p in module.sourcePorts():
                     if not p.optional:
                         outputPorts.append(p)
                     elif (s, p.name) in module.portVisible:
-                        visibleOptionalPorts.append(p)
+                        visibleOptionalOutputPorts.append(p)
                     else:
                         self.optionalOutputPorts.append(p)
-                outputPorts += visibleOptionalPorts
+                outputPorts += visibleOptionalOutputPorts
             except ModuleRegistryException, e:
                 error = e
 
@@ -1132,7 +1132,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         portShape = QGraphicsPortItem(x, y, self.ghosted, self, port.optional)
         portShape.controller = self.controller
         portShape.port = port
-        portShape.setToolTip(port.toolTip())
+        if not port.is_valid:
+            portShape.setInvalid(True)
+        try:
+            portShape.setToolTip(port.toolTip())
+        except:
+            portShape.setToolTip("ERROR with tool tip")
         return portShape
 
     def createConfigureItem(self, x, y):
@@ -1622,7 +1627,7 @@ mutual connections."""
             for m_id in modules_to_be_added:
                 # print 'adding module', m_id
                 self.addModule(pipeline.modules[m_id])
-                if self.modules[m_id].isSelected:
+                if self.modules[m_id].isSelected():
                     selected_modules.append(m_id)
 
             moved = set()
@@ -1657,7 +1662,7 @@ mutual connections."""
                     print "MODULE REGISTRY EXCEPTION", e
                 if cip <> new_ip or cop <> new_op:
                     self.recreate_module(pipeline, m_id)
-                if tm_item.isSelected:
+                if tm_item.isSelected():
                     selected_modules.append(m_id)
                 if self.controller and self.controller.search:
                     moduleQuery = (self.controller.current_version, nm)
@@ -1689,6 +1694,8 @@ mutual connections."""
             self._old_connection_ids = new_connections
             self.unselect_all()
             self.reset_module_colors()
+            for m_id in selected_modules:
+                self.modules[m_id].setSelected(True)
         except ModuleRegistryException, e:
             import traceback
             traceback.print_exc()

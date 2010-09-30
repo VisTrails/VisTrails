@@ -308,6 +308,21 @@ class MissingPort(ModuleRegistryException):
             (self._port_type, self._port_name, self._module_name, 
              self._package_name)
 
+class PortMismatch(MissingPort):
+    def __init__(self, identifier, name, namespace, port_name, port_type):
+        ModuleRegistryException.__init__(self, 
+                                         identifier,
+                                         name,
+                                         namespace)
+        
+        self._port_name = port_name
+        self._port_type = port_type
+                             
+    def __str__(self):
+        return "%s port '%s' has bad specification in module %s of package %s" % \
+            (self._port_type.capitalize(), self._port_name, self._module_name,
+             self._package_name)
+
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
                  new_namespace):
@@ -540,10 +555,10 @@ class ModuleRegistry(DBRegistry):
                 return self.package_versions[(identifier, package_version)]
         except KeyError:
             if identifier not in self.packages:
-                raise self.MissingPackage(identifier)
+                raise MissingPackage(identifier)
             elif package_version and \
                     package_version_key not in self.package_versions:
-                raise self.MissingPackageVersion(identifier, package_version)
+                raise MissingPackageVersion(identifier, package_version)
 
     def get_module_by_name(self, identifier, name, namespace=None):
         """get_module_by_name(name: string): class
@@ -1578,6 +1593,74 @@ class ModuleRegistry(DBRegistry):
         self.signals.emit_hide_module(descriptor)
     def update_module(self, old_descriptor, new_descriptor):
         self.signals.emit_module_updated(old_descriptor, new_descriptor)
+
+    def expand_descriptor_string(self, d_string, cur_package=None):
+        """expand_descriptor_string will expand names of modules using
+        information about the current package and allowing shortcuts
+        for any bundled vistrails packages (e.g. "basic" for
+        "edu.utah.sci.vistrails.basic").  It also allows a nicer
+        format for namespace/module specification (namespace comes
+        fist unlike port specifications where it is after the module
+        name...
+
+        Examples:
+          "persistence:PersistentInputFile", None -> 
+              ("edu.utah.sci.vistrails.persistence", PersistentInputFile", "")
+          "basic:String", None ->
+              ("edu.utah.sci.vistrails.basic", "String", "")
+          "NamespaceA|NamespaceB|Module", "org.example.my" ->
+              ("org.example.my", "Module", "NamespaceA|NamespaceB")
+        """
+
+        package = ''
+        qual_name = ''
+        name = ''
+        namespace = ''
+        parts = d_string.strip().split(':', 1)
+        if len(parts) > 1:
+            qual_name = parts[1]
+            if '.' in parts[0]:
+                package = parts[0]
+            else:
+                package = 'edu.utah.sci.vistrails.' + parts[0]
+        else:
+            qual_name = d_string
+            if cur_package is None:
+                package = basic_pkg
+            else:
+                package = cur_package
+        qual_parts = qual_name.rsplit('|', 1)
+        if len(qual_parts) > 1:
+            namespace, name = qual_parts
+        else:
+            name = qual_name
+        return (package, name, namespace)
+        
+    def expand_port_spec_string(self, p_string, cur_package=None):
+        """Similar to expand_descriptor_string but for full port
+        specifications.  Allows you to omit the beginning and ending
+        parens and shorten the names of each port type
+
+        Example:
+          "basic:String, basic:Integer" -> 
+              "(edu.utah.sci.vistrails.basic:String, 
+                edu.utah.sci.vistrails.basic:Integer)"
+        """
+
+        port_spec = p_string.strip()
+        if port_spec.startswith('('):
+            port_spec = port_spec[1:]
+        if port_spec.endswith(')'):
+            port_spec = port_spec[:-1]
+        new_spec_list = []
+        for spec in port_spec.split(','):
+            (package, name, namespace) = \
+                expand_descriptor_string(spec, cur_package)
+            if namespace:
+                namespace = ':' + namespace
+            new_spec_list.append('%s:%s%s' % \
+                                     (package, name, namespace))
+        return '(' + ','.join(new_spec_list) + ')'
 
 ###############################################################################
 
