@@ -129,7 +129,7 @@ class XMLFileLocator(BaseLocator):
         return os.path.isfile(self._name)
 
     def _get_name(self):
-        return self._name
+        return str(self._name)
     name = property(_get_name)
 
     def _get_short_name(self):
@@ -371,7 +371,8 @@ class DBLocator(BaseLocator):
     cache = {}
     cache_timestamps = {}
     connections = {}
-
+    cache_connections = {}
+    
     def __init__(self, host, port, database, user, passwd, name=None,
                  obj_id=None, obj_type=None, connection_id=None,
                  version_node=None, version_tag=''):
@@ -414,11 +415,11 @@ class DBLocator(BaseLocator):
     
     def _get_name(self):
         return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
-            self._name
+            str(self._name)
     name = property(_get_name)
 
     def _get_short_name(self):
-        return self._name
+        return str(self._name)
     short_name = property(_get_short_name)
 
     def hash(self):
@@ -450,6 +451,12 @@ class DBLocator(BaseLocator):
                return connection
         else:
             if self._conn_id is None:
+                if DBLocator.cache_connections.has_key(self._hash):
+                    connection = DBLocator.cache_connections[self._hash]
+                    if io.ping_db_connection(connection):
+                        print "*** reusing cached connection"
+                        return connection
+
                 if len(DBLocator.connections.keys()) == 0:
                     self._conn_id = 1
                 else:
@@ -462,6 +469,7 @@ class DBLocator(BaseLocator):
         connection = io.open_db_connection(config)
             
         DBLocator.connections[self._conn_id] = connection
+        DBLocator.cache_connections[self._hash] = connection
         return connection
 
     def load(self, type, tmp_dir=None):
