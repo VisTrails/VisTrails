@@ -2354,6 +2354,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         handler = logging.StreamHandler(f)
         handler.setFormatter(logging.Formatter('VisTrails RPC - %(asctime)s %(levelname)-8s %(message)s'))
         handler.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
         logger.addHandler(handler)
         return logger
 

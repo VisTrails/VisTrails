@@ -41,7 +41,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     version can be a tag name or a version id.
     
     """
-    elements = parameters.split("&&")
+    elements = parameters.split("$&$")
     aliases = {}
     result = []
     for locator, workflow in w_list:
