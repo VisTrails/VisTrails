@@ -222,10 +222,10 @@ class RequestHandler(object):
                 return result
             else:
                 result = "Error: Pipeline was not materialized"
-                self.server_logger.info(result)
+                self.server_logger.error(result)
         except Exception, e:
             result = "Error: %s"%str(e)
-            self.server_logger.info(result)
+            self.server_logger.error(result)
 
         return result
 
@@ -251,7 +251,7 @@ class RequestHandler(object):
                 package_dic[package.identifier]['description'] = package.description if package.description else "No description available"
             return package_dic
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
+            self.server_logger.error("Error: %s"%str(e))
             return "FAILURE: %s" %str(e)
         
     def add_vt_to_db(self, host, port, db_name, user, vt_filepath, filename, 
@@ -265,7 +265,6 @@ class RequestHandler(object):
                         
         """                
         try:
-            print "add_vt_do_db"
             locator = ZIPFileLocator(vt_filepath).load()
             # set some crowdlabs id info
             if repository_vt_id != -1:
@@ -281,7 +280,7 @@ class RequestHandler(object):
         except Exception, e:
             import traceback
             traceback.print_exc()
-            self.server_logger.info("Error: %s"%str(e))
+            self.server_logger.error("Error: %s"%str(e))
             return "FAILURE: %s" %str(e)
 
     def merge_vt(self, host, port, db_name, user, new_vt_filepath,
@@ -299,7 +298,7 @@ class RequestHandler(object):
             new_locator.save(old_db_bundle)
             return 1
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
+            self.server_logger.error("Error: %s"%str(e))
             import traceback
             traceback.print_exc()
             return "FAILURE: %s" %str(e)
@@ -321,7 +320,7 @@ class RequestHandler(object):
             db.services.io.close_db_connection(conn)
             return 1
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
+            self.server_logger.error("Error: %s"%str(e))
             if conn:
                 db.services.io.close_db_connection(conn)
             return "FAILURE: %s" %str(e)
@@ -395,7 +394,7 @@ class RequestHandler(object):
             return runnable_workflows, py_source_workflows
 
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
+            self.server_logger.error("Error: %s"%str(e))
             return "FAILURE: %s" %str(e)
 
     #medleys
