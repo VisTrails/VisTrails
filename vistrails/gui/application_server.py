@@ -169,7 +169,7 @@ class RequestHandler(object):
     #crowdlabs
     def get_wf_modules(self, host, port, db_name, vt_id, version):
         """get_wf_modules(host:str, port:int, db_name:str, vt_id:int,
-                          version:int) -> list of dict
+                          version:int) -> (return_status, list of dict)
            Returns a list of information about the modules used in a workflow
            in a list of dictionaries. The dictionary has the following keys:
            name, package, documentation.
@@ -206,15 +206,14 @@ class RequestHandler(object):
                     result.append({'name':module.name,
                                               'package':module.package,
                                               'documentation':documentation})
-                return result
+                return (result, 1)
             else:
-                result = "Error: Pipeline was not materialized"
-                self.server_logger.error(result)
+                result = "Pipeline was not materialized"
+                self.server_logger.error(str(result))
         except Exception, e:
-            result = "Error: %s"%str(e)
-            self.server_logger.error(result)
-
-        return result
+            result = str(e)
+            self.server_logger.error(str(result))
+        return (result, 0)
 
     def get_packages(self):
         """get_packages()-> dict
@@ -234,18 +233,21 @@ class RequestHandler(object):
                         documentation = module.module.__doc__
                     else:
                         documentation = "Documentation not available."
-                    package_dic[package.identifier]['modules'].append({'name':module.name, 'package':module.package, 'documentation':documentation})
-                package_dic[package.identifier]['description'] = package.description if package.description else "No description available"
-            return package_dic
+                    package_dic[package.identifier]['modules'].append({'name':module.name,
+                                                                       'package':module.package,
+                                                                       'documentation':documentation})
+                package_dic[package.identifier]['description'] = \
+                        package.description if package.description else "No description available"
+            return (package_dic, 1)
         except Exception, e:
-            self.server_logger.error("Error: %s"%str(e))
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def add_vt_to_db(self, host, port, db_name, user, vt_filepath, filename,
                      repository_vt_id, repository_creator):
         """add_vt_to_db(host:str, port:int, db_name:str, user:str,
                         vt_filepath:str, filename:str, repository_vt_id:int,
-                        repository_creator:str) -> int
+                        repository_creator:str) -> (return_status, int)
         This will add a vistrail in vt_filepath to the the database. Before
         adding it it will annotate the vistrail with the repository_vt_id and
         repository_creator.
@@ -258,17 +260,16 @@ class RequestHandler(object):
                 vistrail = locator.vistrail
                 vistrail.set_annotation('repository_vt_id', repository_vt_id)
                 vistrail.set_annotation('repository_creator', repository_creator)
-            #print "name=%s"%filename
+
             db_locator = DBLocator(host=host, port=int(port), database=db_name,
                                    name=filename, user=db_write_user, passwd=db_write_pass)
             db_locator.save_as(locator)
-            #print "db_locator obj_id %s" % db_locator.obj_id
-            return db_locator.obj_id
+            return (db_locator.obj_id, 1)
+
         except Exception, e:
-            import traceback
             traceback.print_exc()
-            self.server_logger.error("Error: %s"%str(e))
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def merge_vt(self, host, port, db_name, user, new_vt_filepath,
                  old_db_vt_id):
@@ -283,16 +284,15 @@ class RequestHandler(object):
             db.services.vistrail.merge(old_db_bundle, new_bundle, 'vistrails')
             old_db_locator.save(old_db_bundle)
             new_locator.save(old_db_bundle)
-            return 1
+            return (1, 1)
         except Exception, e:
-            self.server_logger.error("Error: %s"%str(e))
-            import traceback
+            self.server_logger.error(str(e))
             traceback.print_exc()
-            return "FAILURE: %s" %str(e)
+            return (str(e), 0)
 
     def remove_vt_from_db(self, host, port, db_name, user, vt_id):
         """remove_vt_from_db(host:str, port:int, db_name:str, user:str,
-                             vt_id:int) -> 0 or 1
+                             vt_id:int) -> (return_status, 0 or 1)
         Remove a vistrail from the repository
         """
         config = {}
@@ -305,15 +305,14 @@ class RequestHandler(object):
             conn = db.services.io.open_db_connection(config)
             db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
             db.services.io.close_db_connection(conn)
-            return 1
+            return (1, 1)
         except Exception, e:
-            self.server_logger.error("Error: %s"%str(e))
+            self.server_logger.error(str(e))
             if conn:
                 db.services.io.close_db_connection(conn)
-            return "FAILURE: %s" %str(e)
+            return (str(e), 0)
 
     def get_runnable_workflows(self, host, port, db_name, vt_id):
-        print "get_runnable_workflows"
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -370,19 +369,11 @@ class RequestHandler(object):
                             version_id not in runnable_workflows:
                         runnable_workflows.append(version_id)
 
-            self.server_logger.info("SUCCESS!")
-            print "\n\nRunnable Workflows Return"
-            for wf_id in runnable_workflows:
-                print vistrail.get_tag(wf_id)
-            print "\n\nPython Source Workflows Return"
-            for wf_id in py_source_workflows:
-                print vistrail.get_tag(wf_id)
-            print "\n\n"
-            return runnable_workflows, py_source_workflows
+            return ((runnable_workflows, py_source_workflows), 1)
 
         except Exception, e:
-            self.server_logger.error("Error: %s"%str(e))
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     #medleys
     def build_vt_medleys_map(self):
@@ -982,7 +973,7 @@ class RequestHandler(object):
             medley['name'] = v._name
             res.append(medley)
 
-        self.server_logger.info("returning %s"%res)
+        self.server_logger.info("returning %s" % res)
         return res
 
     def getMedleysXML(self):
@@ -992,13 +983,13 @@ class RequestHandler(object):
         for k,v in self.medley_objs.iteritems():
             res += '<medley id="%s" name="%s" />'% (k,v._name)
         res += '</medleys>'
-        self.server_logger.info("returning %s"%res)
-        print "returning %s"%res
+        self.server_logger.info("returning %s" % res)
+        print "returning %s" % res
         return res
 
     def getMedleyById(self, m_id):
-        self.server_logger.info( "getMedleyById(%s) request received"%m_id)
-        print "getMedleyById(%s) request received"%m_id
+        self.server_logger.info("getMedleyById(%s) request received" % m_id)
+        print "getMedleyById(%s) request received" % m_id
         try:
             m_id = int(m_id)
         except Exception, e:
@@ -1010,11 +1001,11 @@ class RequestHandler(object):
             print str(e)
         msg = ElementTree.tostring(root)
         print "returning: ", msg
-        self.server_logger.info( "returning %s"%msg)
+        self.server_logger.info("returning %s" % msg)
         return msg
 
     def get_vt_from_medley(self, m_id):
-        self.server_logger.info( "get_vt_from_medley(%s) request received"%m_id)
+        self.server_logger.info("get_vt_from_medley(%s) request received"%m_id)
         print "get_vt_from_medley(%s) request received"%m_id
         result = []
         try:
@@ -1029,7 +1020,7 @@ class RequestHandler(object):
         except Exception, e:
             print str(e)
         print "returning: ", result
-        self.server_logger.info( "returning %s"%result)
+        self.server_logger.info("returning %s"%result)
         return result
 
     def executeMedley(self, xml_medley, extra_info=None):
@@ -1329,10 +1320,10 @@ class RequestHandler(object):
                 self.proxies_queue.put(proxy)
                 print "returning %s"% result
                 self.server_logger.info("returning %s"% result)
-                return result
+                return (result, 1)
             except Exception, e:
                 print "Exception: ", str(e)
-                return ""
+                return (str(e), 0)
 
         extra_info = {}
         extra_info['pathDumpCells'] = path_to_figures
@@ -1376,25 +1367,24 @@ class RequestHandler(object):
                             ok = False
                             result += str(errors[i])
             except Exception, e:
-                self.server_logger.info("Failure: %s"% str(e))
-                return "FAILURE: %s"% str(e)
+                self.server_logger.error(str(e))
+                return (str(e), 0)
 
         if ok:
-            self.server_logger.info("Success")
-            return "SUCCESS"
+            return (1, 1)
         else:
-            self.server_logger.info("Failure: %s"%result)
-            return "FAILURE: " + result
+            self.server_logger.error(result)
+            return (result, 0)
 
     def get_package_list(self):
         """ get_package_list() -> str
          Returns a list of supported packages identifiers delimited by || """
         try:
             packages = [x.identifier for x in module_registry().package_list]
-            return '||'.join(packages)
+            return ('||'.join(packages), 1)
         except Exception, e:
-            print "Exception :", str(e)
-            return ''
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def get_wf_datasets(self, host, port, db_name, vt_id, version):
         print 'get workflow datasets'
@@ -1423,14 +1413,14 @@ class RequestHandler(object):
                         for function in module.functions:
                             if function.name == 'checksum':
                                 result.append(function.parameters[0].value())
-                return result
+                return (result, 1)
             else:
-                result = "Error: Pipeline was not materialized"
-                self.server_logger.info(result)
+                result = "Pipeline was not materialized"
+                self.server_logger.error(result)
         except Exception, e:
-            result = "Error: %s"%str(e)
-            self.server_logger.info(result)
-        return result
+            result = str(e)
+            self.server_logger.error(result)
+        return (result, 0)
 
     def remove_workflow_index(self, wf_id):
         print 'remove a workflow from the index'
@@ -1439,10 +1429,10 @@ class RequestHandler(object):
             wi = indexworkflow.WorkflowIndexer()
             wi.remove(wf_id)
             wi.close()
+            return (1, 1)
         except Exception, e:
-            result = "Error: %s"%str(e)
-            self.server_logger.info(result)
-        return 0
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def index_workflow(self, host, port, db_name, vt_id, wf_info):
         print 'index the workflows in a vistrail'
@@ -1465,14 +1455,14 @@ class RequestHandler(object):
                 wi = indexworkflow.WorkflowIndexer()
                 wi.index_vt_wf(wf_info, p)
                 wi.close()
-                result = ''
+                return (1, 1)
             else:
-                result = "Error: Pipeline was not materialized"
-                self.server_logger.info(result)
+                result = "Pipeline was not materialized"
+                self.server_logger.error(result)
         except Exception, e:
-            result = "Error: %s"%str(e)
-            self.server_logger.info(result)
-        return result
+            result = str(e)
+            self.server_logger.error(result)
+        return (result, 0)
 
     def get_tag_version(self, host, port, db_name, vt_id, vt_tag):
         self.server_logger.info("Request: get_tag_version(%s,%s,%s,%s,%s)"%(host,
@@ -1495,11 +1485,11 @@ class RequestHandler(object):
             if v.has_tag_str(vt_tag):
                 version = v.get_tag_str(vt_tag).action_id
             self.server_logger.info("Answer: %s"%version)
+            return (version, 1)
 
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
-
-        return version
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
 
     def get_vt_xml(self, host, port, db_name, vt_id):
@@ -1519,11 +1509,10 @@ class RequestHandler(object):
 
             (v, _ , _)  = io.load_vistrail(locator)
             result = io.serialize(v)
-            self.server_logger.info("SUCCESS!")
-            return result
+            return (result, 1)
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def get_wf_xml(self, host, port, db_name, vt_id, version):
         self.server_logger.info("Request: get_wf_xml(%s,%s,%s,%s,%s)"%(host,
@@ -1541,22 +1530,18 @@ class RequestHandler(object):
                                 obj_type=None,
                                 connection_id=None)
 
-            print "start"
             (v, _ , _)  = io.load_vistrail(locator)
-            print "v is setup"
             p = v.getPipeline(long(version))
-            print "pipeline setup"
             if p:
                 result = io.serialize(p)
-                print "pipeline serialized"
+                return (result, 1)
             else:
-                result = "Error: Pipeline was not materialized"
+                result = "Pipeline was not materialized"
                 self.server_logger.info(result)
         except Exception, e:
-            result = "get_wf_xml Error: %s"%str(e)
-            self.server_logger.info(result)
-
-        return result
+            result = str(e)
+            self.server_logger.error(result)
+        return (result, 0)
 
     def get_wf_graph_pdf(self, host, port, db_name, vt_id, version):
         """get_wf_graph_pdf(host:str, port:int, db_name:str, vt_id:int,
@@ -1587,15 +1572,13 @@ class RequestHandler(object):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
-                    print "Sending request to ", proxy
                     result = proxy.get_wf_graph_pdf(host,port,db_name, vt_id, version)
                     self.proxies_queue.put(proxy)
-                    print "returning %s"% result
                     self.server_logger.info("returning %s"% result)
-                    return result
+                    return (result, 1)
                 except Exception, e:
-                    print "Exception: ", str(e)
-                    return ""
+                    self.server_logger.error(str(e))
+                    return (str(e), 0)
 
             if not os.path.exists(filepath):
                 os.mkdir(filepath)
@@ -1623,10 +1606,11 @@ class RequestHandler(object):
                 del pipeline_view
             else:
                 print "found cached pdf: ", filename
-            return os.path.join(subdir,base_fname)
+                self.server_logger.info("found cached pdf: ", filename)
+            return (os.path.join(subdir,base_fname), 1)
         except Exception, e:
-            print "Error when saving pdf: ", str(e)
-            return ""
+            self.server_logger.error("Error when saving pdf: ", str(e))
+            return (str(e), 0)
 
     def get_wf_graph_png(self, host, port, db_name, vt_id, version):
         """get_wf_graph_png(host:str, port:int, db_name:str, vt_id:int,
@@ -1662,10 +1646,10 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     print "returning %s"% result
                     self.server_logger.info("returning %s"% result)
-                    return result
+                    return (result, 1)
                 except Exception, e:
-                    print "Exception: ", str(e)
-                    return ""
+                    self.server_logger.error(str(e))
+                    return (str(e), 0)
             #if it gets here, this means that we will execute on this instance
             if not os.path.exists(filepath):
                 os.mkdir(filepath)
@@ -1691,9 +1675,11 @@ class RequestHandler(object):
                 del pipeline_view
             else:
                 print "Found cached image: ", filename
-            return os.path.join(subdir,base_fname)
+                self.server_logger.info("found cached image: ", filename)
+            return (os.path.join(subdir,base_fname), 1)
         except Exception, e:
-            print "Error when saving png: ", str(e)
+            self.server_logger.error("Error when saving png ", str(e))
+            return (str(e), 0)
 
     def get_vt_graph_png(self, host, port, db_name, vt_id):
         """get_vt_graph_png(host:str, port: str, db_name: str, vt_id:str) -> str
@@ -1718,10 +1704,11 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     print "returning %s"% result
                     self.server_logger.info("returning %s"% result)
-                    return result
+                    return (result, 1)
                 except Exception, e:
-                    print "Exception: ", str(e)
-                    return ""
+                    self.server_logger.error(str(e))
+                    return (str(e), 0)
+
             #if it gets here, this means that we will execute on this instance
             if not os.path.exists(filepath):
                 os.mkdir(filepath)
@@ -1745,10 +1732,11 @@ class RequestHandler(object):
                 del version_view
             else:
                 print "Found cached image: ", filename
-            return os.path.join(subdir,base_fname)
+                self.server_logger.info("Found cached image: ", filename)
+            return (os.path.join(subdir,base_fname), 1)
         except Exception, e:
-            print "Error when saving png: ", str(e)
-            return ""
+            self.server_logger.error("Error when saving png: ", str(e))
+            return (str(e), 0)
 
     def getPDFWorkflowMedley(self, m_id):
         """getPDFWorkflowMedley(m_id:int) -> str
@@ -1790,10 +1778,10 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     print "returning %s"% result
                     self.server_logger.info("returning %s"% result)
-                    return result
+                    return (result, 1)
                 except Exception, e:
-                    print "Exception: ", str(e)
-                    return ""
+                    self.server_logger.error(str(e))
+                    return (str(e), 0)
 
             if not os.path.exists(filepath):
                 os.mkdir(filepath)
@@ -1813,10 +1801,10 @@ class RequestHandler(object):
                 del pipeline_view
             else:
                 print "found cached pdf: ", filename
-            return os.path.join(subdir,base_fname)
+            return (os.path.join(subdir,base_fname), 1)
         except Exception, e:
-            print "Error when saving pdf: ", str(e)
-            return ""
+            self.server_logger.error("Error when saving pdf: ", str(e))
+            return (str(e), 0)
 
     def getPNGWorkflowMedley(self, m_id):
         self.server_logger.info( "getPNGWorkflowMedley(%s) request received"%m_id)
@@ -1856,10 +1844,10 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     print "returning %s"% result
                     self.server_logger.info("returning %s"% result)
-                    return result
+                    return (result, 1)
                 except Exception, e:
-                    print "Exception: ", str(e)
-                    return ""
+                    self.server_logger.error(str(e))
+                    return (str(e), 0)
             #if it gets here, this means that we will execute on this instance
             if not os.path.exists(filepath):
                 os.mkdir(filepath)
@@ -1878,11 +1866,11 @@ class RequestHandler(object):
                 pipeline_view.scene().saveToPNG(filename)
                 del pipeline_view
             else:
-                print "Found cached image: ", filename
-            return os.path.join(subdir,base_fname)
+                self.server_logger.info("Found cached image: ", filename)
+            return (os.path.join(subdir,base_fname), 1)
         except Exception, e:
-            print "Error when saving png: ", str(e)
-	    return ""
+            self.server_logger.error("Error when saving png: ", str(e))
+        return (str(e), 0)
 
     def get_vt_zip(self, host, port, db_name, vt_id):
         """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
@@ -1914,11 +1902,10 @@ class RequestHandler(object):
             contents = open(name).read()
             result = base64.b64encode(contents)
             os.unlink(name)
-            self.server_logger.info("SUCCESS!")
-            return result
+            return (result, 1)
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def get_wf_vt_zip(self, host, port, db_name, vt_id, version):
         """get_wf_vt_zip(host:str, port:str, db_name:str, vt_id:str,
@@ -1965,7 +1952,7 @@ class RequestHandler(object):
             result = "Error: %s"%str(e)
             self.server_logger.info(result)
 
-        return result
+        return (result, 1)
 
     def get_db_vt_list(self, host, port, db_name):
         self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)"%(host,
@@ -1981,11 +1968,11 @@ class RequestHandler(object):
         try:
             rows = io.get_db_vistrail_list(config)
             print "returning ", rows
-            return rows
+            self.server_logger.info("returning %s" % str(rows))
+            return (rows, 1)
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
-            print "Error: ", str(e)
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def get_db_vt_list_xml(self, host, port, db_name):
         self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)"%(host,
@@ -2003,10 +1990,10 @@ class RequestHandler(object):
             for (id, name, mod_time) in rows:
                 result += '<vistrail id="%s" name="%s" mod_time="%s" />'%(id,name,mod_time)
             result += '</vistrails>'
-            return result
+            return (result, 1)
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
 
     def get_vt_tagged_versions(self, host, port, db_name, vt_id):
         self.server_logger.info("Request: get_vt_tagged_versions(%s,%s,%s,%s)"%(host,
@@ -2038,11 +2025,11 @@ class RequestHandler(object):
                                'user':action_map.user or '',
                                'date':action_map.date,
                                'thumbnail': thumbnail_fname})
-            self.server_logger.info("SUCCESS!")
-            return result
+            return (result, 1)
         except Exception, e:
-            self.server_logger.info("Error: %s"%str(e))
-            return "FAILURE: %s" %str(e)
+            self.server_logger.error(str(e))
+            return (str(e), 0)
+
 ################################################################################
 # Some Medley code
 class XMLObject(object):
@@ -2453,7 +2440,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.vistrailsStartup.init()
         self.server_logger = self.make_logger(self.temp_xml_rpc_options.log_file)
         self.load_config(self.temp_xml_rpc_options.config_file)
-        print db_host
         self.start_other_instances(self.temp_xml_rpc_options.instances)
         self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
