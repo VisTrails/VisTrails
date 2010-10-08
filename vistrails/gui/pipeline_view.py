@@ -54,6 +54,7 @@ from gui.module_palette import QModuleTreeWidget
 from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
 
+import sys
 import copy
 from itertools import izip
 import math
@@ -331,6 +332,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.changeModuleLabelAct)
 	menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
+        menu.addAction(self.setErrorAct)
         menu.exec_(event.screenPos())
 
     def createActions(self):
@@ -368,6 +370,12 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.setWatchedAct,
 			       QtCore.SIGNAL("triggered()"),
 			       self.set_watched)
+        self.setErrorAct = QtGui.QAction("Print Stack Trace", self.scene())
+        self.setErrorAct.setStatusTip("Print Stack Trace")
+        QtCore.QObject.connect(self.setErrorAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.set_error)
+
     def set_breakpoint(self):
 	""" set_breakpoint() -> None
 	Sets this module as a breakpoint for execution
@@ -385,6 +393,10 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         debug = get_default_interpreter().debugger
         if debug:
             debug.update()
+
+    def set_error(self):
+        if self.moduleId >= 0:
+            self.scene().print_stack(self.moduleId)
 
     def configure(self):
         """ configure() -> None
@@ -773,6 +785,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self._module_shape = None
         self._original_module_shape = None
         self._old_connection_ids = None
+        self.errorTrace = None
         self.is_breakpoint = False
         self._needs_state_updated = True
         self.progress = 0.0
@@ -1983,6 +1996,7 @@ mutual connections."""
                 if not item:
                     return True
                 item.setToolTip(e.toolTip)
+                item.errorTrace = e.errorTrace
                 statusMap =  {
                     0: CurrentTheme.SUCCESS_MODULE_BRUSH,
                     1: CurrentTheme.ERROR_MODULE_BRUSH,
@@ -2065,6 +2079,11 @@ mutual connections."""
 	    module = self.controller.current_pipeline.modules[id]
 	    module.toggle_watched()
 
+    def print_stack(self, id):
+        errorTrace = self.modules[id].errorTrace
+        if errorTrace:
+            sys.stderr.write(errorTrace)
+
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None
         Opens the modal annotations window for module with given id
@@ -2110,13 +2129,14 @@ mutual connections."""
                                      QModuleStatusEvent(moduleId, 0, ''))
         QtCore.QCoreApplication.processEvents()
 
-    def set_module_error(self, moduleId, error):
+    def set_module_error(self, moduleId, error, errorTrace=None):
         """ set_module_error(moduleId: int, error: str) -> None
         Post an event to the scene (self) for updating the module color
         
         """
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error))
+                                     QModuleStatusEvent(moduleId, 1, error,
+                                                      errorTrace = errorTrace))
         QtCore.QCoreApplication.processEvents()
         
     def set_module_not_executed(self, moduleId):
@@ -2174,7 +2194,8 @@ class QModuleStatusEvent(QtCore.QEvent):
     
     """
     TYPE = QtCore.QEvent.Type(QtCore.QEvent.User)
-    def __init__(self, moduleId, status, toolTip, progress=0.0):
+    def __init__(self, moduleId, status, toolTip, progress=0.0,
+                 errorTrace=None):
         """ QModuleStatusEvent(type: int) -> None        
         Initialize the specific event with the module status. Status 0
         for success, 1 for error and 2 for not execute, 3 for active,
@@ -2186,6 +2207,7 @@ class QModuleStatusEvent(QtCore.QEvent):
         self.status = status
         self.toolTip = toolTip
         self.progress = progress
+        self.errorTrace = errorTrace
             
 class QPipelineView(QInteractiveGraphicsView):
     """
