@@ -654,15 +654,16 @@ class QShell(QtGui.QTextEdit):
             return 0
         return QtGui.QTextEdit.focusNextPrevChild(self, next)
 
-    def mousePressEvent(self, e):
-        """mousePressEvent(e) -> None
-        Keep the cursor after the last prompt.
-        """
-        if e.button() == QtCore.Qt.LeftButton:
-            cursor = self.textCursor()
-            cursor.movePosition(QtGui.QTextCursor.End)
-            self.setTextCursor(cursor)
-        return
+## Removed to enable copy-paste
+#    def mousePressEvent(self, e):
+#        """mousePressEvent(e) -> None
+#        Keep the cursor after the last prompt.
+#        """
+#        if e.button() == QtCore.Qt.LeftButton:
+#            cursor = self.textCursor()
+#            cursor.movePosition(QtGui.QTextCursor.End)
+#            self.setTextCursor(cursor)
+#        return
 
 #     def suspend(self):
 #         """suspend() -> None
