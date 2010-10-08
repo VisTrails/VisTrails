@@ -157,11 +157,15 @@ class HTTPFile(HTTP):
         return package_directory + '/' + urllib.quote_plus(url)
 
 class RepoSync(HTTP):
-    """ enables data to be synced with a online repository. The designated file
+    """ VisTrails Server version of RepoSync modules. Customized to play 
+    nicely with crowdlabs. Needs refactoring.
+
+    RepoSync enables data to be synced with a online repository. The designated file
     parameter will be uploaded to the repository on execution,
     creating a new pipeline version that links to online repository data.
     If the local file isn't available, then the online repository data is used.
     """
+
     def __init__(self):
         HTTP.__init__(self)
         self.base_url = \
@@ -171,134 +175,23 @@ class RepoSync(HTTP):
         if self.base_url[-1] == '/':
             self.base_url = self.base_url[:-1]
 
-    # used for invaliding cache when user isn't logged in to crowdLabs
-    # but wants to upload data
-    def invalidate_cache(self):
-        return False
-
-    def validate_cache(self):
-        return True
-
-    def _file_is_in_local_cache(self, local_filename):
-        return os.path.isfile(local_filename)
-
-    def checksum_lookup(self):
-        """ checks if the repository has the wanted data """
-
-        checksum_url = "%s/datasets/exists/%s/" % (self.base_url, self.checksum)
-        self.on_server = False
-        try:
-            check_dataset_on_repo = urllib2.urlopen(url=checksum_url)
-            self.up_to_date = True if \
-                    check_dataset_on_repo.read() == 'uptodate' else False
-            self.on_server = True
-            print 'checksum lookup'
-        except urllib2.HTTPError:
-            self.up_to_date = True
-            print 'checksum lookup2'
-
-    def data_sync(self):
-        """ downloads/uploads/uses the local file depending on availability """
-        self.checksum_lookup()
-
-        # local file not on repository, so upload
-        if not self.on_server and os.path.isfile(self.in_file.name):
-            cookiejar = gui.repository.QRepositoryDialog.cookiejar
-            if cookiejar:
-                register_openers(cookiejar=cookiejar)
-
-                params = {'dataset_file': open(self.in_file.name, 'rb'),
-                          'name': self.in_file.name.split('/')[-1],
-                          'origin': 'vistrails',
-                          'checksum': self.checksum}
-
-                upload_url = "%s/datasets/upload/" % self.base_url
-
-                datagen, headers = multipart_encode(params)
-                request = urllib2.Request(upload_url, datagen, headers)
-                try:
-                    result = urllib2.urlopen(request)
-                    if result.code != 200:
-                        show_warning("Upload Failure",
-                                     "Data failed to upload to repository")
-                        # make temporarily uncachable
-                        self.is_cacheable = self.invalidate_cache
-                    else:
-                        debug.warning("Push to repository was successful")
-                        # make sure module caches
-                        self.is_cacheable = self.validate_cache
-                except Exception, e:
-                    show_warning("Upload Failure",
-                                 "Data failed to upload to repository")
-                    # make temporarily uncachable
-                    self.is_cacheable = self.invalidate_cache
-                debug.warning('RepoSync uploaded %s to the repository' % \
-                              self.in_file.name)
-            else:
-                show_warning("Please login", ("You must be logged into the web"
-                                              " repository in order to upload "
-                                              "data. No data was synced"))
-                # make temporarily uncachable
-                self.is_cacheable = self.invalidate_cache
-
-            # use local data
-            self.setResult("file", self.in_file)
-        else:
-            # file on repository mirrors local file, so use local file
-            if self.up_to_date and os.path.isfile(self.in_file.name):
-                self.setResult("file", self.in_file)
-            else:
-                # local file not present or out of date, download or used cached
-                self.url = "%s/datasets/download/%s" % (self.base_url,
-                                                       self.checksum)
-                local_filename = package_directory + '/' + \
-                        urllib.quote_plus(self.url)
-                if not self._file_is_in_local_cache(local_filename):
-                    # file not in cache, download 
-                    try:
-                        urllib.urlretrieve(self.url, local_filename)
-                    except IOError, e:
-                        raise ModuleError(self, ("Invalid URL: %s" % e))
-                out_file = core.modules.basic_modules.File()
-                out_file.name = local_filename
-                debug.warning('RepoSync is using repository data')
-                self.setResult("file", out_file)
-
     def compute(self):
-        self.checkInputPort('file')
-        self.in_file = self.getInputFromPort("file")
-        if os.path.isfile(self.in_file.name):
-            # do size check
-            size = os.path.getsize(self.in_file.name)
-            if size > 10485760:
-                show_warning("File is too large", ("file is larger than 10MB, "
-                             "unable to sync with web repository"))
-                self.setResult("file", self.in_file)
-            else:
-                # compute checksum
-                f = open(self.in_file.name, 'r')
-                self.checksum = hashlib.sha1()
-                block = 1
-                while block:
-                    block = f.read(128)
-                    self.checksum.update(block)
-                f.close()
-                self.checksum = self.checksum.hexdigest()
+        self.checkInputPort('checksum')
+        self.checksum = self.getInputFromPort("checksum")
+        # get file path
+        path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
+        print path_url
+        try:
+            dataset_path_request = urllib2.urlopen(url=path_url)
+            dataset_path = dataset_path_request.read()
+        except urllib2.HTTPError:
+            pass
 
-                # upload/download file
-                self.data_sync()
-
-                # set checksum param in module
-                if not self.hasInputFromPort('checksum'):
-                    self.change_parameter('checksum', [self.checksum])
-
-        else:
-            # local file not present
-            if self.hasInputFromPort('checksum'):
-                self.checksum = self.getInputFromPort("checksum")
-
-                # download file
-                self.data_sync()
+        if os.path.isfile(dataset_path):
+            out_file = core.modules.basic_modules.File()
+            out_file.name = dataset_path
+            #print out_file.name
+            self.setResult("file", out_file)
 
 def initialize(*args, **keywords):
     reg = core.modules.module_registry.get_module_registry()
