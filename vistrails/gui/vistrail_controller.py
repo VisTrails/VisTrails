@@ -24,13 +24,12 @@ from core.common import *
 from core.configuration import get_vistrails_configuration
 import core.db.action
 import core.db.locator
-import core.modules.module_registry
 import core.modules.vistrails_module
 from core.data_structures.graph import Graph
 from core.utils import VistrailsInternalError, InvalidPipeline
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
-from core.modules.module_registry import MissingPort
+from core.modules.module_registry import get_module_registry, MissingPort
 from core.modules.package import Package
 from core.packagemanager import PackageManager
 from core.query.version import TrueSearch
@@ -1595,7 +1594,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 log = self.log
             opm_graph = OpmGraph(log=log, 
                                  version=self.current_version,
-                                 workflow=self.current_pipeline)
+                                 workflow=self.current_pipeline,
+                                 registry=get_module_registry())
             locator.save_as(opm_graph)
 
     def query_by_example(self, pipeline):
