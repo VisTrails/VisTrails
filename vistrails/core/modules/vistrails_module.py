@@ -78,6 +78,8 @@ error and the error message as a string."""
         Exception.__init__(self, errormsg)
         self.module = module
         self.msg = errormsg
+        import traceback
+        self.errorTrace = traceback.format_exc()
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.

@@ -437,7 +437,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         for i in objs:
             if i in errs:
-                view.set_module_error(i, errs[i].msg)
+                view.set_module_error(i, errs[i].msg, errs[i].errorTrace)
             elif i in execs and execs[i]:
                 view.set_module_success(i)
             elif i in cached and cached[i]:
