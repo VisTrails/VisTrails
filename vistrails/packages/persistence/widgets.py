@@ -716,7 +716,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         from core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence.exp', 
+            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
                                        'PersistentRef').module
 
         def func_to_bool(function):
@@ -800,7 +800,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         from core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence.exp', 
+            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
                                        'PersistentRef').module
 
         functions = []
