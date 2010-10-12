@@ -20,6 +20,8 @@
 ##
 ############################################################################
 
+import copy
+
 from core.log.machine import Machine
 from core.log.workflow_exec import WorkflowExec
 from db.domain import DBLog
@@ -72,6 +74,10 @@ class Log(DBLog):
     workflow_execs = property(_get_workflow_execs)
     def add_workflow_exec(self, wf_exec):
         self.db_add_workflow_exec(wf_exec)
+
+    def delete_all_workflow_execs(self):
+        for wf_exec in copy.copy(self.workflow_execs):
+            self.db_delete_workflow_exec(wf_exec)
 
     def _get_vistrail_id(self):
         return self.db_vistrail_id

@@ -2103,6 +2103,8 @@ class VistrailController(object):
                 self.set_vistrail(new_vistrail, locator)
                 self.change_selected_version(new_version)
                 result = True
+            if self.log:
+                self.log.delete_all_workflow_execs()
             self.set_changed(False)
             if abs_save_dir is not None:
                 try:
