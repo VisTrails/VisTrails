@@ -181,12 +181,12 @@ class LogController(object):
             if ret is not None:
                 parent_execs.append(ret)
         
-    def finish_execution(self, module, error, parent_execs):
+    def finish_execution(self, module, error, parent_execs, errorTrace=None):
         if isinstance(module, Group):
             if self.finish_group_execution(module, error):
                 parent_execs.pop()
         else:
-            if self.finish_module_execution(module, error):
+            if self.finish_module_execution(module, error, errorTrace):
                 parent_execs.pop()
         if module.is_fold_operator:
             self.finish_loop_execution(module, error, parent_execs.pop())
@@ -205,13 +205,19 @@ class LogController(object):
             return module_exec
         return None
 
-    def finish_module_execution(self, module, error):
+    def finish_module_execution(self, module, error, errorTrace=None):
         module.module_exec.ts_end = core.system.current_time()
         if not error:
             module.module_exec.completed = 1
         else:
             module.module_exec.completed = -1
             module.module_exec.error = error
+            if errorTrace:
+                a_id = self.log.id_scope.getNewId(Annotation.vtType)
+                annotation = Annotation(id=a_id,
+                                        key="errorTrace",
+                                        value=errorTrace)
+                module.module_exec.add_annotation(annotation)
         del module.module_exec
         if module.is_fold_module:
             return True
