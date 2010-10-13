@@ -370,8 +370,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.setWatchedAct,
 			       QtCore.SIGNAL("triggered()"),
 			       self.set_watched)
-        self.setErrorAct = QtGui.QAction("Print Stack Trace", self.scene())
-        self.setErrorAct.setStatusTip("Print Stack Trace")
+        self.setErrorAct = QtGui.QAction("Show Stack Trace", self.scene())
+        self.setErrorAct.setStatusTip("Show Stack Trace")
         QtCore.QObject.connect(self.setErrorAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_error)
@@ -2081,8 +2081,30 @@ mutual connections."""
 
     def print_stack(self, id):
         errorTrace = self.modules[id].errorTrace
-        if errorTrace:
-            sys.stderr.write(errorTrace)
+        if not errorTrace:
+            return
+        class StackPopup(QtGui.QDialog):
+            def __init__(self, errorTrace='', parent=None):
+                QtGui.QDialog.__init__(self, parent)
+                self.resize(700, 400)
+                self.setWindowTitle('Stack Trace')
+                layout = QtGui.QVBoxLayout()
+                self.setLayout(layout)
+                text = QtGui.QTextEdit('')
+                text.insertPlainText(errorTrace)
+                text.setReadOnly(True)
+                text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+                layout.addWidget(text)
+                close = QtGui.QPushButton('Close', self)
+                close.setFixedWidth(100)
+                layout.addWidget(close)
+                self.connect(close, QtCore.SIGNAL('clicked()'),
+                             self, QtCore.SLOT('close()'))
+        sp = StackPopup(errorTrace)
+        sp.exec_()
+        #import sys
+        #if errorTrace:
+        #    sys.stderr.write(errorTrace)
 
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None
