@@ -169,7 +169,7 @@ def executable_is_in_pythonpath(filename):
 def list2cmdline(lst):
     for el in lst:
         assert type(el) in [str,unicode]
-    return '"%s"' % subprocess.list2cmdline(lst)
+    return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):
     """execute_cmdline(lst: list of str)-> int Builds a command line
@@ -191,6 +191,19 @@ def execute_cmdline(lst, output):
 def get_executable_path(executable_name):
     # FIXME
     return None
+
+def execute_piped_cmdlines(cmd_list_list):
+    stdin = subprocess.PIPE
+    for cmd_list in cmd_list_list:
+        cmd_line = list2cmdline(cmd_list)
+        process = subprocess.Popen(cmd_line, shell=True,
+                                   stdin=stdin,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        stdin = process.stdout
+    (output, errs) = process.communicate()
+    result = process.returncode
+    return (result, output, errs)
 
 ################################################################################
 

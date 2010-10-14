@@ -24,7 +24,7 @@ import shutil
 from ctypes import CDLL, c_void_p
 from core.system.unix import executable_is_in_path,\
      executable_is_in_pythonpath, list2cmdline, execute_cmdline, \
-     get_executable_path
+     get_executable_path, execute_piped_cmdlines
 import core.bundles
 
 ################################################################################
