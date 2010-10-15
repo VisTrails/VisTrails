@@ -373,8 +373,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),
                        p.rowAt(pos.y()), p.columnAt(pos.x()),
                        e.modifiers()==QtCore.Qt.ControlModifier)
-
-        return QtGui.QMainWindow.eventFilter(self,q,e)
+        return False
+        #return QtGui.QMainWindow.eventFilter(self,q,e)
 
     def event(self, e):
         """ event(e: QEvent) -> depends on event type

@@ -31,6 +31,7 @@ from core import system
 from core.modules.module_registry import get_module_registry
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import vtkcell_rc
 import gc
 from gui.qt import qt_super
@@ -301,14 +302,15 @@ class QVTKWidget(QCellWidget):
                 self.mRenWin.Start()
 
             if not self.mRenWin.GetInteractor():
-                iren = vtk.vtkRenderWindowInteractor()
-                if system.systemType=='Darwin':
-                    iren.InstallMessageProcOff()
+                #iren = vtk.vtkRenderWindowInteractor()
+                iren = QVTKRenderWindowInteractor()
+#                if system.systemType=='Darwin':
+#                    iren.InstallMessageProcOff()
                 iren.SetRenderWindow(self.mRenWin)
                 iren.Initialize()
-                if system.systemType=='Linux':
-                    system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),
-                                          self.mRenWin.GetGenericWindowId())
+#                if system.systemType=='Linux':
+#                    system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),
+#                                          self.mRenWin.GetGenericWindowId())
                 self.mRenWin.SetWindowInfo(str(int(self.winId())))
                 self.resizeWindow(self.width(), self.height())
                 self.mRenWin.SetPosition(self.x(), self.y())

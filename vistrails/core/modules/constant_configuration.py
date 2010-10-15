@@ -184,6 +184,7 @@ class PathChooserToolButton(QtGui.QToolButton):
         if self.lineEdit and path and not path.isEmpty():
             self.lineEdit.setText(path)
             self.lineEdit.update_parent()
+            self.parent().update_parent()
     
     def openChooser(self):
         return QtGui.QFileDialog.getOpenFileName(self,
@@ -225,7 +226,7 @@ class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         return PathChooserToolButton(self, self.line_edit)
 
     def updateMethod(self):
-        if self.parent():
+        if self.parent() and hasattr(self.parent(), 'updateMethod'):
             self.parent().updateMethod()
 
     def contents(self):
@@ -240,6 +241,9 @@ class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         Updates the contents of the line_edit 
         """
         self.line_edit.setContents(strValue, silent)
+        if not silent:
+            self.update_parent()
+ 
         
     def focusInEvent(self, event):
         """ focusInEvent(event: QEvent) -> None
