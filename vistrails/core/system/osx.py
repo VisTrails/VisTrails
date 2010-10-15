@@ -31,7 +31,7 @@ import shutil
 import subprocess
 import time
 from core.system.unix import executable_is_in_path, list2cmdline, \
-     executable_is_in_pythonpath, execute_cmdline
+     executable_is_in_pythonpath, execute_cmdline, execute_piped_cmdlines
 import core.utils
     
 ###############################################################################

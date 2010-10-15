@@ -127,6 +127,8 @@ class PersistentPath(Module):
 
     def git_command(self):
         global git_bin
+        if systemType == "Windows":
+            return [ "%s:" % local_db[0], "&&","cd", "%s" % local_db, "&&", git_bin]
         return ["cd", "%s" % local_db, "&&", git_bin]
 
     def git_get_path(self, name, version="HEAD", path_type=None, 
@@ -629,7 +631,11 @@ _modules = [PersistentRef, PersistentPath, PersistentFile, PersistentDir,
 
 def git_init(dir):
     global git_bin
-    cmd = ["cd", "%s" % dir, "&&", git_bin, "init"]
+    if systemType == "Windows":
+        cmd = ["%s:" % dir[0], "&&", "cd", "%s" % dir, "&&", git_bin, "init"]
+    else:
+        cmd = ["cd", "%s" % dir, "&&", git_bin, "init"]
+    debug_print('cmd:', cmd)
     result, output, errs = execute_cmdline2(cmd)
     debug_print('init result', result)
     debug_print('init output', output)
