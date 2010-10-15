@@ -189,7 +189,9 @@ def execute_cmdline(lst, output):
     return proc.returncode
 
 def get_executable_path(executable_name):
-    # FIXME
+    filename = os.path.abspath(os.path.join(os.path.dirname(__file__),'../../',executable_name))
+    if os.path.exists(filename) or os.path.exists(filename+'.exe'):
+        return filename
     return None
 
 def execute_piped_cmdlines(cmd_list_list):
