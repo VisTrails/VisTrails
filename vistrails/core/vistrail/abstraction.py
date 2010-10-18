@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+from PyQt4.QtCore import QObject
 import copy
 
 from core.modules.module_registry import get_module_registry
@@ -98,6 +99,18 @@ class Abstraction(DBAbstraction, Module):
 
     def is_abstraction(self):
         return True
+
+    def is_latest_version(self):
+        if not hasattr(self, '_is_latest_version'):
+            def update_version_status():
+                reg = get_module_registry()
+                desc = reg.get_descriptor_by_name(self.package, self.name, self.namespace)
+                self._is_latest_version = (long(desc.version) == long(self.internal_version))
+            reg = get_module_registry()
+            QObject.connect(reg.signals, reg.signals.new_abstraction_signal, update_version_status)
+            QObject.connect(reg.signals, reg.signals.deleted_abstraction_signal, update_version_status)
+            update_version_status()
+        return self._is_latest_version
 
     def _get_pipeline(self):
         return self.module_descriptor.module.pipeline

@@ -45,7 +45,7 @@ from core.modules.sub_module import new_abstraction, read_vistrail
 from core.packagemanager import PackageManager, get_package_manager
 import core.packagerepository
 from core.thumbnails import ThumbnailCache
-from core.upgradeworkflow import UpgradeWorkflowHandler
+from core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
 from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
 from core.vistrail.abstraction import Abstraction
@@ -956,6 +956,7 @@ class VistrailController(object):
         reg.auto_add_ports(abstraction)
         if old_desc is not None:
             reg.update_module(old_desc, new_desc)
+        return new_desc
 
 #         package = reg.get_package_by_name(abstraction_pkg)
 #         for desc in package.descriptor_versions.itervalues():
@@ -1058,6 +1059,53 @@ class VistrailController(object):
                                              vt_fname)
         core.db.io.save_vistrail_to_xml(vistrail, vt_fname)
         return vt_fname
+
+    def upgrade_abstraction_module(self, module_id, test_only=False):
+        """upgrade_abstraction_module(module_id, test_only) -> None or (preserved: bool, missing_ports: list)
+
+        If test_only is False, attempts to automatically upgrade an
+        abstraction by adding a new abstraction with the current package
+        version, and recreates all connections and functions.  If any
+        of the ports/functions used are not available, they are not
+        reconnected/readded to the new abstraction.
+        
+        If test_only is True, (preserved: bool, missing_ports: list)
+        is returned, where 'preserved' is a boolean that is True
+        if the abstraction can be replaced with all functions and
+        connections preserved.  If 'preserved' is True, then
+        'missing_ports' is an empty list, otherwise it contains a
+        list of tuples (port_type: str, port_name: str) of all
+        ports that have been removed.
+        
+        """
+        failed = True
+        src_ports_gone = {}
+        dst_ports_gone = {}
+        fns_gone = {}
+        missing_ports = []
+        while failed:
+            try:
+                upgrade_action = UpgradeWorkflowHandler.attempt_automatic_upgrade(self, self.current_pipeline, module_id, function_remap=fns_gone, src_port_remap=src_ports_gone, dst_port_remap=dst_ports_gone)[0]
+                if test_only:
+                    return (len(missing_ports) == 0, missing_ports)
+                failed = False
+            except UpgradeWorkflowError, e:
+                if test_only:
+                    missing_ports.append((e._port_type, e._port_name))
+                if e._module is None or e._port_type is None or e._port_name is None:
+                    raise e
+                # Remove the offending connection/function by remapping to None
+                if e._port_type == 'output':
+                    src_ports_gone[e._port_name] = None
+                elif e._port_type == 'input':
+                    dst_ports_gone[e._port_name] = None
+                    fns_gone[e._port_name] = None
+                else:
+                    raise e
+        self.flush_delayed_actions()
+        self.add_new_action(upgrade_action)
+        self.perform_action(upgrade_action)
+        self.vistrail.change_description("Upgrade Subworkflow", self.current_version)
 
     def get_abstraction_descriptor(self, name, namespace=None):
         reg = core.modules.module_registry.get_module_registry()
@@ -2093,11 +2141,12 @@ class VistrailController(object):
                 save_bundle = self.locator.save(save_bundle)
                 new_vistrail = save_bundle.vistrail
             # FIXME abstractions only work with FileLocators right now
-            if (is_abstraction and 
-                (type(self.locator) == core.db.locator.XMLFileLocator or
-                 type(self.locator) == core.db.locator.ZIPFileLocator)):
-                filename = self.locator.name
-                self.load_abstraction(filename, True)
+            if is_abstraction:
+                new_vistrail.is_abstraction = True
+                if ( type(self.locator) == core.db.locator.XMLFileLocator or
+                     type(self.locator) == core.db.locator.ZIPFileLocator ):
+                    filename = self.locator.name
+                    self.load_abstraction(filename, True)
             if id(self.vistrail) != id(new_vistrail):
                 new_version = new_vistrail.db_currentVersion
                 self.set_vistrail(new_vistrail, locator)

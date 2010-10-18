@@ -39,9 +39,12 @@ import copy
 
 class UpgradeWorkflowError(Exception):
 
-    def __init__(self, msg):
+    def __init__(self, msg, module=None, port_name=None, port_type=None):
         Exception.__init__(self, msg)
         self._msg = msg
+        self._module = module
+        self._port_name = port_name
+        self._port_type = port_type.lower()
         
     def __str__(self):
         return "Upgrading workflow failed.\n" + self._msg
@@ -84,7 +87,7 @@ class UpgradeWorkflowHandler(object):
                            'signatures differ "%s" != "%s"') % \
                            (port_type.capitalize(), port_name, module.name,
                             s.sigstring, sigstring)
-                    raise UpgradeWorkflowError(msg)
+                    raise UpgradeWorkflowError(msg, module, port_name, port_type)
         except MissingPort:
             pass
 
@@ -92,10 +95,12 @@ class UpgradeWorkflowHandler(object):
                 not module.has_portSpec_with_name((port_name, port_type)):
             msg = '%s port "%s" of module "%s" does not exist.' % \
                 (port_type.capitalize(), port_name, module.name)
-            raise UpgradeWorkflowError(msg)
+            raise UpgradeWorkflowError(msg, module, port_name, port_type)
 
     @staticmethod
-    def attempt_automatic_upgrade(controller, pipeline, module_id):
+    def attempt_automatic_upgrade(controller, pipeline, module_id,
+                                  function_remap={}, src_port_remap={}, 
+                                  dst_port_remap={}, annotation_remap={}):
         """attempt_automatic_upgrade(module_id, pipeline): [Action]
 
         Attempts to automatically upgrade module by simply adding a
@@ -146,18 +151,21 @@ class UpgradeWorkflowHandler(object):
         # check if connections are still valid
         for _, conn_id in pipeline.graph.edges_from(module_id):
             port = pipeline.connections[conn_id].source
-            check_connection_port(port)
+            if port.name not in src_port_remap:
+                check_connection_port(port)
         for _, conn_id in pipeline.graph.edges_to(module_id):
             port = pipeline.connections[conn_id].destination
-            check_connection_port(port)
+            if port.name not in dst_port_remap:
+                check_connection_port(port)
 
         # check if function values are still valid
         for function in invalid_module.functions:
             # function_spec = function.get_spec('input')
-            UpgradeWorkflowHandler.check_port_spec(invalid_module,
-                                                   function.name, 
-                                                   'input', d,
-                                                   function.sigstring)
+            if function.name not in function_remap:
+                UpgradeWorkflowHandler.check_port_spec(invalid_module,
+                                                       function.name, 
+                                                       'input', d,
+                                                       function.sigstring)
 
         # If we passed all of these checks, then we consider module to
         # be automatically upgradeable. Now create actions that will delete
@@ -165,7 +173,9 @@ class UpgradeWorkflowHandler(object):
         # functions and connections.
 
         return UpgradeWorkflowHandler.replace_module(controller, pipeline, 
-                                                     module_id, d)
+                                                     module_id, d, function_remap,
+                                                     src_port_remap, dst_port_remap,
+                                                     annotation_remap)
 
     @staticmethod
     def create_new_connection(controller, src_module, src_port, 
@@ -360,10 +370,14 @@ class UpgradeWorkflowHandler(object):
                        function_remap={}, src_port_remap={}, dst_port_remap={},
                        annotation_remap={}):
         old_module = pipeline.modules[module_id]
+        internal_version = -1
+        if old_module.is_abstraction():
+            internal_version = new_descriptor.version
         new_module = \
             controller.create_module_from_descriptor(new_descriptor,
                                                      old_module.location.x,
-                                                     old_module.location.y)
+                                                     old_module.location.y,
+                                                     internal_version)
 
         return UpgradeWorkflowHandler.replace_generic(controller, pipeline, 
                                                       old_module, new_module,
@@ -467,3 +481,4 @@ class UpgradeWorkflowHandler(object):
         return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
                                                                 pipeline,
                                                                 module_id)
+    

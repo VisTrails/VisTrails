@@ -126,10 +126,14 @@ class ModuleRegistrySignals(QtCore.QObject):
 
     # new_module_signal is emitted with descriptor of new module
     new_module_signal = QtCore.SIGNAL("new_module")
+    # new_abstraction_signal is emitted with descriptor of new abstraction
+    new_abstraction_signal = QtCore.SIGNAL("new_abstraction")
     # new_package_signal is emitted with identifier of new package (only for abstractions)
     new_package_signal = QtCore.SIGNAL("new_package")
     # deleted_module_signal is emitted with descriptor of deleted module
     deleted_module_signal = QtCore.SIGNAL("deleted_module")
+    # deleted_abstraction_signal is emitted with descriptor of deleted abstraction
+    deleted_abstraction_signal = QtCore.SIGNAL("deleted_abstraction")
     # deleted_package_signal is emitted with package identifier
     deleted_package_signal = QtCore.SIGNAL("deleted_package")
     # new_input_port_signal is emitted with identifier and name of module, 
@@ -151,6 +155,12 @@ class ModuleRegistrySignals(QtCore.QObject):
 
     def emit_new_module(self, descriptor):
         self.emit(self.new_module_signal, descriptor)
+        
+    def emit_new_abstraction(self, descriptor):
+        self.emit(self.new_abstraction_signal, descriptor)
+        
+    def emit_deleted_abstraction(self, descriptor):
+        self.emit(self.deleted_abstraction_signal, descriptor)
     
     def emit_deleted_module(self, descriptor):
         self.emit(self.deleted_module_signal, descriptor)
@@ -1035,6 +1045,8 @@ class ModuleRegistry(DBRegistry):
             descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
                  
         self.signals.emit_new_module(descriptor)
+        if self.is_abstraction(descriptor):
+            self.signals.emit_new_abstraction(descriptor)
         return descriptor
 
     def auto_add_subworkflow(self, subworkflow):
@@ -1288,6 +1300,8 @@ class ModuleRegistry(DBRegistry):
                                                  namespace)
         assert len(descriptor.children) == 0
         self.signals.emit_deleted_module(descriptor)
+        if self.is_abstraction(descriptor):
+            self.signals.emit_deleted_abstraction(descriptor)
         package = self.packages[descriptor.identifier]
         self.delete_descriptor(descriptor, package)
         if descriptor.module is not None:
@@ -1582,8 +1596,13 @@ class ModuleRegistry(DBRegistry):
 
     def is_abstraction(self, descriptor):
         basic_pkg = core.modules.basic_modules.identifier
-        abstraction_desc = self.get_descriptor_by_name(basic_pkg, 
+        try:
+            abstraction_desc = self.get_descriptor_by_name(basic_pkg, 
                                                        'SubWorkflow')
+        except MissingModule:
+            # No abstractions can be loaded before the basic
+            # SubWorkflow descriptor is initialized
+            return False
         return abstraction_desc != descriptor and \
             self.is_descriptor_subclass(descriptor, abstraction_desc)
             
