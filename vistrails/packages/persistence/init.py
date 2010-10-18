@@ -55,7 +55,7 @@ search_dbs = None
 db_access = None
 git_bin = "@executable_path/git"
 compress_by_default = False
-debug = False
+debug = True
 temp_persist_files = []
 
 # FIXME add paths for git and tar...
@@ -196,8 +196,9 @@ class PersistentPath(Module):
         return output.split(None, 1)[0]
 
     def git_get_type(self, name, version="HEAD"):
-        cmd_list = [["echo", str(version + ':' + name)],
-                    self.git_command() + ["cat-file", "--batch-check"]]
+        #cmd_list = [["echo", str(version + ':' + name)],
+        #            self.git_command() + ["cat-file", "--batch-check"]]
+        cmd_list = [self.git_command() + ["cat-file", "-t", str(version + ':' + name)]]
         debug_print('executing commands', cmd_list)
         result, output, errs = execute_piped_cmdlines(cmd_list)
         debug_print('stdout:', type(output), output)
@@ -206,7 +207,8 @@ class PersistentPath(Module):
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'" % name +
                               errs)
-        return output.split(None, 2)[1]
+        return output.split(None,1)[0]
+        #return output.split(None, 2)[1]
 
     def git_add_commit(self, filename):
         cmd_line = self.git_command() + ['add', filename]
