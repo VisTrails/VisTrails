@@ -182,9 +182,11 @@ class PersistentPath(Module):
                               errs)
         return out_dirname
 
-    def git_get_hash(self, name, version="HEAD"):
-        cmd_list = [["echo", str(version + ':' + name)],
-                    self.git_command() + ["cat-file", "--batch-check"]]
+    # def git_get_hash(self, name, version="HEAD"):
+    #     cmd_list = [["echo", str(version + ':' + name)],
+    #                 self.git_command() + ["cat-file", "--batch-check"]]
+    def git_get_hash(self, name):
+        cmd_list = [self.git_command() + ["ls-files", "--stage", str(name)]]
         debug_print('executing commands', cmd_list)
         result, output, errs = execute_piped_cmdlines(cmd_list)
         debug_print('stdout:', type(output), output)
@@ -193,7 +195,7 @@ class PersistentPath(Module):
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'\n" % name +
                               errs)
-        return output.split(None, 1)[0]
+        return output.split(None, 2)[1]
 
     def git_get_type(self, name, version="HEAD"):
         #cmd_list = [["echo", str(version + ':' + name)],
