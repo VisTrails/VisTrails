@@ -68,6 +68,9 @@ SF_DO_UPLOAD = True
 # Flag determines if tarball upload is forced - if True, overrides SF_DO_UPLOAD (don't set in last_minute_changes())
 SF_FORCE_UPLOAD = False
 
+# Number of upload attempts before giving up (Setting this to 0 guarantees that no upload will occur)
+SF_UPLOAD_ATTEMPTS = 3
+
 # Flag determines whether all nightly tarballs are archived, or only tarballs successfully uploaded to Sourceforge
 ARCHIVE_UPLOADS_ONLY = True
 
@@ -392,26 +395,32 @@ if __name__ == "__main__":
 
     # Upload to sourceforge
     uploaded = False
-    if SF_DO_UPLOAD or SF_FORCE_UPLOAD:
-        info("Uploading tarball to Sourceforge: '%s' ..." % SF_UPLOAD_CMD)
-        try:
-            upload_proc = proc.Popen(SF_UPLOAD_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
-            upload_log = upload_proc.communicate()[0]
-            # Indent upload log and write to logfile
-            upload_log = "\n".join([INDENT + line for line in upload_log.splitlines()])
-            debug("Sourceforge Upload Log:\n%s" % upload_log)
-            if upload_proc.returncode != 0:
-                raise Exception("Tarball upload failed with return code: %s" % upload_proc.returncode)
-            else:
-                info("Tarball upload completed.")
-                uploaded = True
-        except:
-            errexit(ERROR_SF_UPLOAD)
-        finally:
-            if ARCHIVE_UPLOADS_ONLY and not uploaded:
-                info("Only archiving uploads and upload failed.  Removing archived tarball ...")
-                if os.path.isfile(ARCHIVE_TARBALL_FILENAME):
-                    os.remove(ARCHIVE_TARBALL_FILENAME)
+    if (SF_DO_UPLOAD or SF_FORCE_UPLOAD) and SF_UPLOAD_ATTEMPTS > 0:
+        upload_attempts = 0
+        while not uploaded and upload_attempts < SF_UPLOAD_ATTEMPTS:
+            upload_attempts += 1
+            info("Uploading tarball to Sourceforge (attempt %d of %d): '%s' ..." % (upload_attempts, SF_UPLOAD_ATTEMPTS, SF_UPLOAD_CMD))
+            try:
+                upload_proc = proc.Popen(SF_UPLOAD_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
+                upload_log = upload_proc.communicate()[0]
+                # Indent upload log and write to logfile
+                upload_log = "\n".join([INDENT + line for line in upload_log.splitlines()])
+                debug("Sourceforge Upload Log (attempt %d of %d):\n%s" % (upload_attempts, SF_UPLOAD_ATTEMPTS, upload_log))
+                if upload_proc.returncode != 0:
+                    raise Exception("Tarball upload (attempt %d of %d) failed with return code: %s" % (upload_attempts, SF_UPLOAD_ATTEMPTS, upload_proc.returncode))
+                else:
+                    info("Tarball upload completed on attempt %d of %d." % (upload_attempts, SF_UPLOAD_ATTEMPTS))
+                    uploaded = True
+            except Exception, e:
+                if upload_attempts == SF_UPLOAD_ATTEMPTS:
+                    errexit(ERROR_SF_UPLOAD)
+                else:
+                    info(e.args[0])
+            finally:
+                if upload_attempts == SF_UPLOAD_ATTEMPTS and ARCHIVE_UPLOADS_ONLY and not uploaded:
+                    info("Only archiving uploads and upload failed.  Removing archived tarball ...")
+                    if os.path.isfile(ARCHIVE_TARBALL_FILENAME):
+                        os.remove(ARCHIVE_TARBALL_FILENAME)
     else:
         info("Skipping tarball upload to Sourceforge ...")
         if ARCHIVE_UPLOADS_ONLY:
