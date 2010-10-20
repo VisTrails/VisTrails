@@ -324,6 +324,8 @@ class QShell(QtGui.QTextEdit):
         else:
             self.eofKey = None
 
+        # flag for knowing when selecting text
+        self.selectMode = False
         self.interpreter = None
         self.controller = None
         # storing current state
@@ -466,6 +468,10 @@ class QShell(QtGui.QTextEdit):
         
         """
                 
+        cursor = self.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.clearSelection()
+        self.setTextCursor(cursor)
         self.insertPlainText(text)
         cursor = self.textCursor()
         self.last = cursor.position()
@@ -570,16 +576,53 @@ class QShell(QtGui.QTextEdit):
         if text.length() and all(ord(x) >= 32 and
                                  ord(x) < 127
                                  for x in str(text)):
+        # exit select mode and jump to end of text
+            cursor = self.textCursor()
+            if self.selectMode or cursor.hasSelection():
+                self.selectMode = False
+                cursor.movePosition(QtGui.QTextCursor.End)
+                cursor.clearSelection()
+                self.setTextCursor(cursor)
             self.__insertText(text)
             return
-
+ 
         if e.modifiers() & QtCore.Qt.MetaModifier and key == self.eofKey:
             self.parent().closeSession()
         
-        if (e.modifiers() & QtCore.Qt.ControlModifier or 
-            e.modifiers() & QtCore.Qt.ShiftModifier):
-            e.ignore()
+        if e.modifiers() & QtCore.Qt.ControlModifier:
+            if key == QtCore.Qt.Key_C or key == QtCore.Qt.Key_Insert:
+                self.copy()
+            elif key == QtCore.Qt.Key_V:
+                cursor = self.textCursor()
+                cursor.movePosition(QtGui.QTextCursor.End)
+                cursor.clearSelection()
+                self.setTextCursor(cursor)
+                self.paste()
+            elif key == QtCore.Qt.Key_A:
+                self.selectAll()
+                self.selectMode = True
+            else:
+                e.ignore()
             return
+
+        if e.modifiers() & QtCore.Qt.ShiftModifier:
+            if key == QtCore.Qt.Key_Insert:
+                cursor = self.textCursor()
+                cursor.movePosition(QtGui.QTextCursor.End)
+                cursor.clearSelection()
+                self.setTextCursor(cursor)
+                self.paste()
+            else:
+                e.ignore()
+            return
+
+        # exit select mode and jump to end of text
+        cursor = self.textCursor()
+        if self.selectMode or cursor.hasSelection():
+            self.selectMode = False
+            cursor.movePosition(QtGui.QTextCursor.End)
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
 
         if key == QtCore.Qt.Key_Backspace:
             if self.point:
@@ -654,16 +697,17 @@ class QShell(QtGui.QTextEdit):
             return 0
         return QtGui.QTextEdit.focusNextPrevChild(self, next)
 
-## Removed to enable copy-paste
-#    def mousePressEvent(self, e):
-#        """mousePressEvent(e) -> None
-#        Keep the cursor after the last prompt.
-#        """
-#        if e.button() == QtCore.Qt.LeftButton:
+    def mousePressEvent(self, e):
+        """mousePressEvent(e) -> None
+        Keep the cursor after the last prompt.
+        """
+        if e.button() == QtCore.Qt.LeftButton:
+            self.selectMode = True
+            QtGui.QTextEdit.mousePressEvent(self, e)
 #            cursor = self.textCursor()
 #            cursor.movePosition(QtGui.QTextCursor.End)
 #            self.setTextCursor(cursor)
-#        return
+        return
 
 #     def suspend(self):
 #         """suspend() -> None
