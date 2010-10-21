@@ -80,6 +80,7 @@ class VistrailsStartup(object):
         #the problem is that maybe the logFile now points to a different place
         self.setupLogFile()
         
+        self.setupDefaultFolders()
         #package_manager needs the persistent configuration    
         self._package_manager = core.packagemanager.PackageManager(
             self.configuration)
@@ -96,7 +97,6 @@ class VistrailsStartup(object):
         """
         if self._do_load_packages:
             self.load_packages()
-        self.setupDefaultFolders()
         if self._do_load_packages:
             # don't call this anymore since we do an add_package for it now
             # self.setupBaseModules()
