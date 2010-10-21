@@ -151,18 +151,12 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                 self.disconnect(oldController,
                                 QtCore.SIGNAL('versionWasChanged'),
                                 self.versionChanged)
-                self.disconnect(oldController,
-                                QtCore.SIGNAL('flushMoveActions()'),
-                                self.flushMoveActions)
                 oldController.current_pipeline_view = None
             self.controller = controller
             self.pipelineView.scene().controller = controller
             self.connect(controller,
                          QtCore.SIGNAL('versionWasChanged'),
                          self.versionChanged)
-            self.connect(controller,
-                         QtCore.SIGNAL('flushMoveActions()'),
-                         self.flushMoveActions)
             self.methodPalette.controller = controller
             self.moduleMethods.controller = controller
             controller.current_pipeline_view = self.pipelineView.scene()
@@ -175,23 +169,6 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         """
         self.updatePipeline(self.controller.current_pipeline)
             
-    def flushMoveActions(self):
-        """ flushMoveActions() -> None
-        Update all move actions into vistrail
-        
-        """
-        controller = self.pipelineView.scene().controller
-        moves = []
-        for (mId, item) in self.pipelineView.scene().modules.iteritems():
-            module = controller.current_pipeline.modules[mId]
-            (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
-            if (dx != module.center.x or dy != module.center.y):
-                moves.append((mId, dx, dy))
-        if len(moves)>0:
-            controller.quiet = True
-            controller.move_module_list(moves)
-            controller.quiet = False
-
     def resetQuery(self):
         """ resetQuery() -> None
         pass along the signal

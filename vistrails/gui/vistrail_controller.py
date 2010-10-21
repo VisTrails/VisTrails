@@ -68,10 +68,6 @@ class VistrailController(QtCore.QObject, BaseController):
     recreated (for example, a node was added/deleted or the layout
     changed).
 
-    flushMoveActions(): emitted as a request to commit move actions to
-    the vistrail, typically prior to adding other actions to the
-    vistrail.
-
     versionWasChanged(): emitted when the current version (the one
     being displayed by the pipeline view) has changed.
 
@@ -148,7 +144,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.reset_version_view = True
 
     def flush_move_actions(self):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        return self.current_pipeline_view.flushMoveActions()
 
     ##########################################################################
     # Autosave

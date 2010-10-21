@@ -350,12 +350,12 @@ class QVistrailView(QDockContainer):
         if self.controller:
             if byClick:
                 if self.controller.current_version > 0:
-                    self.controller.flush_move_actions()
+                    if self.controller.flush_move_actions():
+                        self.controller.invalidate_version_tree(False)
                 self.controller.reset_pipeline_view = byClick
                 self.controller.change_selected_version(versionId, True,
                                                         doValidate, fromRoot)
                 versionId = self.controller.current_version
-                # self.controller.invalidate_version_tree(False)
                 self.controller.current_pipeline_view.fitToAllViews(True)
                 self.redo_stack = []
             self.versionTab.versionProp.updateVersion(versionId)
