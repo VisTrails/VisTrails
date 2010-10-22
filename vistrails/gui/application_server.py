@@ -19,9 +19,8 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-""" This is the application for vistrails when running as a server.
+""" This is the application for vistrails when running as a server. """
 
-"""
 import Queue
 import base64
 import hashlib
@@ -55,7 +54,7 @@ from core import command_line
 from core import system
 from core.modules.module_registry import get_module_registry as module_registry
 from core import interpreter
-from gui.vistrail_controller import VistrailController
+from core.vistrail.controller import VistrailController
 import core
 import db.services.io
 import gc
@@ -68,6 +67,8 @@ import core.console_mode
 from index import indexworkflow
 
 from db.versions import currentVersion
+
+is_local = True
 
 ################################################################################
 class StoppableXMLRPCServer(SimpleXMLRPCServer):
@@ -126,10 +127,10 @@ class RequestHandler(object):
                 try:
                     proxy = xmlrpclib.ServerProxy(uri)
                     self.proxies_queue.put(proxy)
-                    print "Instantiated client for ", uri
+                    self.server_logger.info("Instantiated client for %s" % uri)
                 except Exception, e:
-                    print "Error when instantiating proxy ",uri
-                    print "Exception: ", str(e)
+                    self.server_logger.error("Error when instantiating proxy %s" % uri)
+                    self.server_logger.error(str(e))
     #utils
     def memory_usage(self):
         """memory_usage() -> dict
@@ -174,11 +175,8 @@ class RequestHandler(object):
            in a list of dictionaries. The dictionary has the following keys:
            name, package, documentation.
         """
-        self.server_logger.info("Request: get_wf_modules(%s,%s,%s,%s,%s)"%(host,
-                                                                       port,
-                                                                       db_name,
-                                                                       vt_id,
-                                                                       version))
+        self.server_logger.info("Request: get_wf_modules(%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id, version))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -246,15 +244,30 @@ class RequestHandler(object):
     def add_vt_to_db(self, host, port, db_name, user, vt_filepath, filename,
                      repository_vt_id, repository_creator):
         """add_vt_to_db(host:str, port:int, db_name:str, user:str,
-                        vt_filepath:str, filename:str, repository_vt_id:int,
-                        repository_creator:str) -> (return_status, int)
-        This will add a vistrail in vt_filepath to the the database. Before
-        adding it it will annotate the vistrail with the repository_vt_id and
-        repository_creator.
+                        vt_filepath:str(or datastream), filename:str,
+                        repository_vt_id:int, repository_creator:str) -> 
+                        (return_status, int)
+        This will add a vistrail in vt_filepath to the the database. If running
+        on a remote machine, vt_filepath will contain vt file data stream.
+        Before adding it it will annotate the vistrail with the 
+        repository_vt_id and repository_creator.
 
         """
         try:
-            locator = ZIPFileLocator(vt_filepath).load()
+            if is_local:
+                locator = ZIPFileLocator(vt_filepath).load()
+            else:
+                # vt_filepath contains vt file datastream
+                # write to tmp file, read into FileLocator
+                # TODO: can we just read the file stream directly in?
+                (fd, fname) = tempfile.mkstemp(prefix='vt_tmp',
+                                              suffix='.vt')
+                os.close(fd)
+                vt_file = open(fname, "wb")
+                vt_file.write(vt_filepath.data)
+                vt_file.close()
+                locator = ZIPFileLocator(fname).load()
+
             # set some crowdlabs id info
             if repository_vt_id != -1:
                 vistrail = locator.vistrail
@@ -273,9 +286,27 @@ class RequestHandler(object):
 
     def merge_vt(self, host, port, db_name, user, new_vt_filepath,
                  old_db_vt_id):
-        # XXX: It should be complete now, but I haven't tested it (--Manu).
+        """
+        Merge new_vt (new_vt_filepath) with current vt (old_db_vt_id)
+
+        new_vt_filepath is either filepath to vt, or datastream of vt,
+        depending on if the server is on a remote machine
+        """
         try:
-            new_locator = ZIPFileLocator(new_vt_filepath)
+            if is_local:
+                new_locator = ZIPFileLocator(new_vt_filepath)
+            else:
+                # vt_filepath contains vt file datastream
+                # write to tmp file, read into FileLocator
+                # TODO: can we just read the file stream directly in?
+                (fd, fname) = tempfile.mkstemp(prefix='vt_tmp',
+                                              suffix='.vt')
+                os.close(fd)
+                vt_file = open(fname, "wb")
+                vt_file.write(new_vt_filepath.data)
+                vt_file.close()
+                new_locator = ZIPFileLocator(fname).load()
+
             new_bundle = new_locator.load()
             new_locator.save(new_bundle)
             old_db_locator = DBLocator(host=host, port=int(port), database=db_name,
@@ -1000,13 +1031,11 @@ class RequestHandler(object):
         except Exception, e:
             print str(e)
         msg = ElementTree.tostring(root)
-        print "returning: ", msg
         self.server_logger.info("returning %s" % msg)
         return msg
 
     def get_vt_from_medley(self, m_id):
-        self.server_logger.info("get_vt_from_medley(%s) request received"%m_id)
-        print "get_vt_from_medley(%s) request received"%m_id
+        self.server_logger.info("get_vt_from_medley(%s) request received" % m_id)
         result = []
         try:
             m_id = int(m_id)
@@ -1018,48 +1047,40 @@ class RequestHandler(object):
             result = '<medley vtid="%s" version="%s" />'% (medley._vtid,
                                                            medley._version)
         except Exception, e:
-            print str(e)
-        print "returning: ", result
-        self.server_logger.info("returning %s"%result)
+            self.server_logger.error(str(e))
+        self.server_logger.info("returning %s" % result)
         return result
 
     def executeMedley(self, xml_medley, extra_info=None):
-        #print xml_medley
         self.server_logger.info("executeMedley request received")
-        print "executeMedley request received ", xml_medley
-        print "extra_info: ", extra_info
         try:
             self.server_logger.info(xml_medley)
             xml_string = xml_medley.replace('\\"','"')
             root = ElementTree.fromstring(xml_string)
-            print 2
             try:
                 medley = MedleySimpleGUI.from_xml(root)
             except:
                 traceback.print_exc()
-            print "%s medley: %s"%(medley._type, medley._name)
+            self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             result = ""
             subdir = hashlib.sha224(xml_string).hexdigest()
-            self.server_logger.info(subdir)
             path_to_images = \
-               os.path.join('/server/crowdlabs/site_media/media/medleys/images',
-                            subdir)
+               os.path.join(media_dir, 'medleys/images', subdir)
             if (not self.path_exists_and_not_empty(path_to_images) and
                 self.proxies_queue is not None):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
-                    print "Sending request to ", proxy
+                    self.server_logger.info("Sending request to %s" % proxy)
                     if extra_info is not None:
                         result = proxy.executeMedley(xml_medley, extra_info)
                     else:
                         result = proxy.executeMedley(xml_medley)
                     self.proxies_queue.put(proxy)
-                    print "returning %s"% result
                     self.server_logger.info("returning %s"% result)
                     return result
                 except Exception, e:
-                    print "Exception: ", str(e)
+                    self.server_logger.error(str(e))
                     return ""
 
             if extra_info is None:
@@ -1071,16 +1092,11 @@ class RequestHandler(object):
             else:
                 extra_info['pathDumpCells'] = path_to_images
 
-            #self.server_logger.info(self.temp_configuration.spreadsheetDumpCells)
-            #print self.path_exists_and_not_empty(
-            #    self.temp_configuration.spreadsheetDumpCells)
             if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
                 if not os.path.exists(extra_info['pathDumpCells']):
                     os.mkdir(extra_info['pathDumpCells'])
-                #print self.temp_configuration.spreadsheetDumpCells
                 self.server_logger.info(xml_string)
                 if medley._type == 'vistrail':
-                    print "medley", medley._vtid
                     locator = DBLocator(host=db_host,
                                         port=3306,
                                         database='vistrails',
@@ -1091,7 +1107,6 @@ class RequestHandler(object):
                                         connection_id=None)
 
                     workflow = medley._version
-                    print workflow
                     sequence = False
                     for (k,v) in medley._alias_list.iteritems():
                         if v._component._seq == True:
@@ -1110,8 +1125,6 @@ class RequestHandler(object):
                                 for (k2,v2) in medley._alias_list.iteritems():
                                     if k2 != k and v2._component._val != '':
                                         s_alias += "%s=%s$&$" % (k2,v2._component._val)
-                                #print locator
-                                #print "\n\n\n >>>>> ", s_alias
                                 if s_alias != '':
                                     s_alias = s_alias[:-3]
                                     print "Aliases: ", s_alias
@@ -1125,7 +1138,7 @@ class RequestHandler(object):
                                     print self.memory_usage()
                                     interpreter.cached.CachedInterpreter.flush()
                                 except Exception, e:
-                                    print "Exception: ", str(e)
+                                    self.server_logger.error(str(e))
 
                                 ok = True
                                 for r in results:
@@ -1161,8 +1174,6 @@ class RequestHandler(object):
                         for (k,v) in medley._alias_list.iteritems():
                             if v._component._val != '':
                                 s_alias += "%s=%s$&$" % (k,v._component._val)
-                        #print locator
-                        #print s_alias
                         if s_alias != '':
                             s_alias = s_alias[:-3]
                             print "Aliases: ", s_alias
@@ -1173,13 +1184,13 @@ class RequestHandler(object):
                                                     s_alias,
                                                     extra_info=extra_info)
                         except Exception, e:
-                            print "Exception: ", str(e)
+                            self.server_logger.error(str(e))
 
                         ok = True
                         for r in results:
                             (objs, errors, _) = (r.objects, r.errors, r.executed)
                             for e in errors.itervalues():
-                                print "Error:", str(e)
+                                self.server_logger.error(str(e))
                             for i in objs.iterkeys():
                                 if errors.has_key(long(i)):
                                     ok = False
@@ -1197,9 +1208,10 @@ class RequestHandler(object):
                     else:
                         session_file = 'head.session'
                     session_file = '/server/code/visit/saved_sessions/' + session_file
-                    self.server_logger.info("session_file: %s"%session_file)
-                    ok = os.system('/server/code/visit/vistrails_plugin/visit/render-session.sh ' + session_file) == 0
-                    self.server_logger.info( "success?  %s"% ok)
+                    self.server_logger.info("session_file: %s" % session_file)
+                    ok = os.system('/server/code/visit/vistrails_plugin/visit/render-session.sh ' + \
+                                   session_file) == 0
+                    self.server_logger.info( "success?  %s" % ok)
                     os.chdir(cur_dir)
             else:
                 self.server_logger.info("Found cached images.")
@@ -1218,49 +1230,44 @@ class RequestHandler(object):
                                               f))
                     s.append(";".join(sub))
                 result = ":::".join(s)
-                #FIXME: copy images to extra_path
-            print result
-            self.server_logger.info("returning %s"% result)
+                # FIXME: copy images to extra_path
+            self.server_logger.info("returning %s" % result)
             return result
         except Exception, e:
-            self.server_logger.info("Exception: " + str(e))
-            print "Exception: " + str(e)
+            self.server_logger.error(str(e))
 
     def getMedleysUsingWorkflow(self, vt_id, workflow):
-        print "getMedleyMedleysUsingWorkflow(%s,%s) request received"%(vt_id,
-                                                                     workflow)
-        self.server_logger.info( \
-            "getMedleyMedleysUsingWorkflow(%s,%s) request received"%(vt_id,
-                                                                     workflow))
+        self.server_logger.info("Request: getMedleyMedleysUsingWorkflow(%s,%s)" % \
+                                (vt_id, workflow))
         try:
             vt_id = int(vt_id)
             workflow = int(workflow)
         except Exception, e:
-            print "Error ", str(e)
+            self.server_logger.error(str(e))
             return []
         try:
             res = self.medleys_map[(vt_id,workflow)]
         except KeyError, e:
             res = []
 
-        self.server_logger.info( "returning %s"%res)
+        self.server_logger.info("returning %s" % res)
 
         return res
 
     def getMedleysUsingVistrail(self, vt_id):
         self.server_logger.info( \
-            "getMedleyMedleysUsingVistrail(%s) request received"%vt_id)
+            "getMedleyMedleysUsingVistrail(%s) request received" % vt_id)
         try:
             vt_id = int(vt_id)
         except Exception, e:
-            print "Error ", str(e)
+            self.server_logger.error(str(e))
             return []
         res = []
         for (key,m_list) in self.medleys_map.iteritems():
             if key[0] == vt_id:
                 res.extend(m_list)
 
-        self.server_logger.info( "returning %s"%res)
+        self.server_logger.info("returning %s" % res)
 
         return res
 
@@ -1287,42 +1294,40 @@ class RequestHandler(object):
             close_db_connection(db)
 
         except Exception, e:
-            msg = "Couldn't add medley to the database: %s"% str(e)
+            self.server_logger.error("Couldn't add medley to the database: %s" % str(e))
 
         return result
 
     #vistrails
     def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
                     version=None,  pdf=False, vt_tag='',parameters=''):
-#        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s)"%\
-        print "Request: run_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s)"%\
-                                                                    (host,
-                                                             port,
-                                                             db_name,
-                                                             vt_id,
-                                                             path_to_figures,
-                                                             version,
-                                                             pdf,
-                                                             vt_tag,
-                                                             parameters)
+        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id,
+                                 path_to_figures, version, pdf,
+                                 vt_tag, parameters))
+
         print self.path_exists_and_not_empty(path_to_figures)
         print self.proxies_queue
+
+        if not is_local:
+            path_to_figures = os.path.join(media_dir, "wf_execution")
+            pass
+
         if (not self.path_exists_and_not_empty(path_to_figures) and
             self.proxies_queue is not None):
-            print "Will forward request "
+            self.server_logger.info("will forward request")
             #this server can send requests to other instances
             proxy = self.proxies_queue.get()
             try:
-                print "Sending request to ", proxy
+                self.server_logger.info("Sending request to %s" % proxy)
                 result = proxy.run_from_db(host, port, db_name, vt_id,
                                            path_to_figures, version, pdf, vt_tag,
                                            parameters)
                 self.proxies_queue.put(proxy)
-                print "returning %s"% result
-                self.server_logger.info("returning %s"% result)
-                return (result, 1)
+                self.server_logger.info("returning %s" % result)
+                return result
             except Exception, e:
-                print "Exception: ", str(e)
+                self.server_logger.error(str(e))
                 return (str(e), 0)
 
         extra_info = {}
@@ -1330,7 +1335,6 @@ class RequestHandler(object):
         extra_info['pdf'] = pdf
         # execute workflow
         ok = True
-        print "will execute here"
         if not self.path_exists_and_not_empty(extra_info ['pathDumpCells']):
             if not os.path.exists(extra_info ['pathDumpCells']):
                 os.mkdir(extra_info ['pathDumpCells'])
@@ -1346,7 +1350,6 @@ class RequestHandler(object):
                                     obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
-                print "created locator"
                 results = []
                 try:
                     results = \
@@ -1354,14 +1357,15 @@ class RequestHandler(object):
                                                           int(version))],
                                                           parameters,
                                                           extra_info=extra_info)
-                    print "results: %s" % results
-
                 except Exception, e:
-                    print str(e)
+                    self.server_logger.error(str(e))
+                    return (str(e), 0)
                 ok = True
+                
                 for r in results:
-                    print r
+                    self.server_logger.debug(r)
                     (objs, errors, _) = (r.objects, r.errors, r.executed)
+                    
                     for i in objs.iterkeys():
                         if errors.has_key(i):
                             ok = False
@@ -1371,7 +1375,17 @@ class RequestHandler(object):
                 return (str(e), 0)
 
         if ok:
-            return (1, 1)
+            if is_local:
+                return (1, 1)
+            else:
+                images = [im for im in os.listdir(path_to_figures) if im[-3:] == "png"]
+                results = {}
+                for image in images:
+                    handler = open(os.path.join(path_to_figures, image), "rb")
+                    image_data = handler.read()
+                    handler.close()
+                    results[image] = xmlrpclib.Binary(image_data)
+                return (results, 1)
         else:
             self.server_logger.error(result)
             return (result, 0)
@@ -1387,12 +1401,8 @@ class RequestHandler(object):
             return (str(e), 0)
 
     def get_wf_datasets(self, host, port, db_name, vt_id, version):
-        print 'get workflow datasets'
-        self.server_logger.info("Request: get_wf_datasets(%s,%s,%s,%s,%s)"%(host,
-                                                                           port,
-                                                                           db_name,
-                                                                           vt_id,
-                                                                           version))
+        self.server_logger.info("Request: get_wf_datasets(%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id, version))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -1423,7 +1433,6 @@ class RequestHandler(object):
         return (result, 0)
 
     def remove_workflow_index(self, wf_id):
-        print 'remove a workflow from the index'
         self.server_logger.info("Request: remove_workflow_index(%s)" % (wf_id))
         try:
             wi = indexworkflow.WorkflowIndexer()
@@ -1435,7 +1444,6 @@ class RequestHandler(object):
             return (str(e), 0)
 
     def index_workflow(self, host, port, db_name, vt_id, wf_info):
-        print 'index the workflows in a vistrail'
         self.server_logger.info("Request: index_workflow(%s,%s,%s,%s,%s)" % \
                                     (host, port, db_name, vt_id, wf_info))
         try:
@@ -1465,11 +1473,8 @@ class RequestHandler(object):
         return (result, 0)
 
     def get_tag_version(self, host, port, db_name, vt_id, vt_tag):
-        self.server_logger.info("Request: get_tag_version(%s,%s,%s,%s,%s)"%(host,
-                                                                 port,
-                                                                 db_name,
-                                                                 vt_id,
-                                                                 vt_tag))
+        self.server_logger.info("Request: get_tag_version(%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id, vt_tag))
         version = -1
         try:
             locator = DBLocator(host=host,
@@ -1484,7 +1489,7 @@ class RequestHandler(object):
             (v, _ , _)  = io.load_vistrail(locator)
             if v.has_tag_str(vt_tag):
                 version = v.get_tag_str(vt_tag).action_id
-            self.server_logger.info("Answer: %s"%version)
+            self.server_logger.info("Answer: %s" % version)
             return (version, 1)
 
         except Exception, e:
@@ -1493,10 +1498,8 @@ class RequestHandler(object):
 
 
     def get_vt_xml(self, host, port, db_name, vt_id):
-        self.server_logger.info("Request: get_vt_xml(%s,%s,%s,%s)"%(host,
-                                                                 port,
-                                                                 db_name,
-                                                                 vt_id))
+        self.server_logger.info("Request: get_vt_xml(%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -1515,11 +1518,8 @@ class RequestHandler(object):
             return (str(e), 0)
 
     def get_wf_xml(self, host, port, db_name, vt_id, version):
-        self.server_logger.info("Request: get_wf_xml(%s,%s,%s,%s,%s)"%(host,
-                                                                       port,
-                                                                       db_name,
-                                                                       vt_id,
-                                                                       version))
+        self.server_logger.info("Request: get_wf_xml(%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id, version))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -1548,22 +1548,13 @@ class RequestHandler(object):
                           version:int) -> str
          Returns the relative url to the generated PDF
          """
-        self.server_logger.info( "get_wf_graph_pdf(%s,%s,%s,%s,%s) request received"%(host,
-                                                                                    port,
-                                                                                    db_name,
-                                                                                    vt_id,
-                                                                                    version))
-        print "get_wf_graph_pdf(%s,%s,%s,%s,%s) request received"%(host,
-                                                      port,
-                                                      db_name,
-                                                      vt_id,
-                                                      version)
+        self.server_logger.info("get_wf_graph_pdf(%s,%s,%s,%s,%s) request received" % \
+                                (host, port, db_name, vt_id, version))
         try:
             vt_id = long(vt_id)
             version = long(version)
             subdir = 'workflows'
-            filepath = os.path.join('/server/crowdlabs/site_media/media/graphs',
-                                  subdir)
+            filepath = os.path.join(media_dir, 'graphs', subdir)
             base_fname = "graph_%s_%s.pdf" % (vt_id, version)
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
@@ -1574,8 +1565,8 @@ class RequestHandler(object):
                 try:
                     result = proxy.get_wf_graph_pdf(host,port,db_name, vt_id, version)
                     self.proxies_queue.put(proxy)
-                    self.server_logger.info("returning %s"% result)
-                    return (result, 1)
+                    self.server_logger.info("get_wf_graph_pdf returning %s"% result)
+                    return result
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -1605,11 +1596,18 @@ class RequestHandler(object):
                 pipeline_view.scene().saveToPDF(filename)
                 del pipeline_view
             else:
-                print "found cached pdf: ", filename
-                self.server_logger.info("found cached pdf: ", filename)
-            return (os.path.join(subdir,base_fname), 1)
+                self.server_logger.info("found cached pdf: %s" % filename)
+
+            if is_local:
+                return (os.path.join(subdir,base_fname), 1)
+            else:
+                f = open(filename, 'rb')
+                contents = f.read()
+                f.close()
+                return (xmlrpclib.Binary(contents), 1)
+
         except Exception, e:
-            self.server_logger.error("Error when saving pdf: ", str(e))
+            self.server_logger.error("Error when saving pdf: %s" % str(e))
             return (str(e), 0)
 
     def get_wf_graph_png(self, host, port, db_name, vt_id, version):
@@ -1617,22 +1615,13 @@ class RequestHandler(object):
                           version:int) -> str
          Returns the relative url to the generated image
          """
-        self.server_logger.info( "get_wf_graph_png(%s,%s,%s,%s,%s) request received"%(host,
-                                                                                    port,
-                                                                                    db_name,
-                                                                                    vt_id,
-                                                                                    version))
-        print "get_wf_graph_png(%s,%s,%s,%s,%s) request received"%(host,
-                                                      port,
-                                                      db_name,
-                                                      vt_id,
-                                                      version)
+        self.server_logger.info("get_wf_graph_png(%s,%s,%s,%s,%s) request received" % \
+                                (host, port, db_name, vt_id, version))
         try:
             vt_id = long(vt_id)
             version = long(version)
             subdir = 'workflows'
-            filepath = os.path.join('/server/crowdlabs/site_media/media/graphs',
-                                  subdir)
+            filepath = os.path.join(media_dir, 'graphs', subdir)
             base_fname = "graph_%s_%s.png" % (vt_id, version)
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
@@ -1641,12 +1630,11 @@ class RequestHandler(object):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
-                    print "Sending request to ", proxy
+                    self.server_logger.info("Sending request to %s" % proxy)
                     result = proxy.get_wf_graph_png(host, port, db_name, vt_id, version)
                     self.proxies_queue.put(proxy)
-                    print "returning %s"% result
-                    self.server_logger.info("returning %s"% result)
-                    return (result, 1)
+                    self.server_logger.info("returning %s" % result)
+                    return result
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -1674,23 +1662,28 @@ class RequestHandler(object):
                 pipeline_view.scene().saveToPNG(filename,1600)
                 del pipeline_view
             else:
-                print "Found cached image: ", filename
-                self.server_logger.info("found cached image: ", filename)
-            return (os.path.join(subdir,base_fname), 1)
+                self.server_logger.info("found cached image: %s" % filename)
+            if is_local:
+                return (os.path.join(subdir,base_fname), 1)
+            else:
+                f = open(filename, 'rb')
+                contents = f.read()
+                f.close()
+                return (xmlrpclib.Binary(contents), 1)
         except Exception, e:
-            self.server_logger.error("Error when saving png ", str(e))
+            self.server_logger.error("Error when saving png %s" % str(e))
             return (str(e), 0)
 
     def get_vt_graph_png(self, host, port, db_name, vt_id):
         """get_vt_graph_png(host:str, port: str, db_name: str, vt_id:str) -> str
         Returns the relative url of the generated image
-
         """
+
+        self.server_logger.info("get_vt_graph_png(%s, %d, %s, %d)" % (host, port, db_name, vt_id))
         try:
             vt_id = long(vt_id)
             subdir = 'vistrails'
-            filepath = os.path.join('/server/crowdlabs/site_media/media/graphs',
-                                  subdir)
+            filepath = os.path.join(media_dir, 'graphs', subdir)
             base_fname = "graph_%s.png" % (vt_id)
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
@@ -1699,12 +1692,11 @@ class RequestHandler(object):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
-                    print "Sending request to ", proxy
+                    self.server_logger.info("Sending request to %s" % proxy)
                     result = proxy.get_vt_graph_png(host, port, db_name, vt_id)
                     self.proxies_queue.put(proxy)
-                    print "returning %s"% result
-                    self.server_logger.info("returning %s"% result)
-                    return (result, 1)
+                    self.server_logger.info("returning %s" % result)
+                    return result
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -1726,29 +1718,34 @@ class RequestHandler(object):
                 controller = VistrailController()
                 controller.set_vistrail(v, locator, abstractions, thumbnails)
                 from gui.version_view import QVersionTreeView
+                self.server_logger.debug(4)
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPNG(filename,1600)
                 del version_view
             else:
-                print "Found cached image: ", filename
-                self.server_logger.info("Found cached image: ", filename)
-            return (os.path.join(subdir,base_fname), 1)
+                self.server_logger.info("Found cached image: %s" % filename)
+            if is_local:
+                return (os.path.join(subdir,base_fname), 1)
+            else:
+                f = open(filename, 'rb')
+                contents = f.read()
+                f.close()
+                return (xmlrpclib.Binary(contents), 1)
         except Exception, e:
-            self.server_logger.error("Error when saving png: ", str(e))
+            self.server_logger.error("Error when saving png: %s" % str(e))
             return (str(e), 0)
 
     def getPDFWorkflowMedley(self, m_id):
         """getPDFWorkflowMedley(m_id:int) -> str
         Returns the relative url to the generated image
         """
-        self.server_logger.info( "getPDFWorkflowMedley(%s) request received"%m_id)
-        print "getPDFWorkflowMedley(%s) request received"%m_id
+        self.server_logger.info("getPDFWorkflowMedley(%s) request received" % m_id)
         try:
             m_id = int(m_id)
             medley = self.medley_objs[m_id]
         except Exception, e:
-            print str(e)
+            self.server_logger.error(str(e))
 
         try:
             locator = DBLocator(host=db_host,
@@ -1763,8 +1760,7 @@ class RequestHandler(object):
             version = long(medley._version)
             subdir = os.path.join('workflows',
                      hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
-                                  subdir)
+            filepath = os.path.join(media_dir, 'medleys/images', subdir)
             base_fname = "%s_%s.pdf" % (str(locator.short_name), version)
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
@@ -1773,12 +1769,11 @@ class RequestHandler(object):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
-                    print "Sending request to ", proxy
+                    self.server_logger("Sending request to %s" % proxy)
                     result = proxy.getPDFWorkflowMedley(m_id)
                     self.proxies_queue.put(proxy)
-                    print "returning %s"% result
-                    self.server_logger.info("returning %s"% result)
-                    return (result, 1)
+                    self.server_logger.info("returning %s" % result)
+                    return result
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -1792,7 +1787,6 @@ class RequestHandler(object):
                 controller.set_vistrail(v, locator, abstractions, thumbnails)
                 controller.change_selected_version(version)
 
-                print medley._vtid, " ", medley._version
                 p = controller.current_pipeline
                 from gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
@@ -1800,20 +1794,25 @@ class RequestHandler(object):
                 pipeline_view.scene().saveToPDF(filename)
                 del pipeline_view
             else:
-                print "found cached pdf: ", filename
-            return (os.path.join(subdir,base_fname), 1)
+                self.server_logger.info("found cached pdf: %s" % filename)
+            if is_local:
+                return (os.path.join(subdir,base_fname), 1)
+            else:
+                f = open(filename, 'rb')
+                contents = f.read()
+                f.close()
+                return (xmlrpclib.Binary(contents), 1)
         except Exception, e:
-            self.server_logger.error("Error when saving pdf: ", str(e))
+            self.server_logger.error("Error when saving pdf: %s" % str(e))
             return (str(e), 0)
 
     def getPNGWorkflowMedley(self, m_id):
-        self.server_logger.info( "getPNGWorkflowMedley(%s) request received"%m_id)
-        print "getPNGWorkflowMedley(%s) request received"%m_id
+        self.server_logger.info("getPNGWorkflowMedley(%s) request received" % m_id)
         try:
             m_id = int(m_id)
             medley = self.medley_objs[m_id]
         except Exception, e:
-            print str(e)
+            self.server_logger.error(str(e))
 
         try:
             locator = DBLocator(host=db_host,
@@ -1828,8 +1827,7 @@ class RequestHandler(object):
             version = long(medley._version)
             subdir = os.path.join('workflows',
                      hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-            filepath = os.path.join('/server/crowdlabs/site_media/media/medleys/images',
-                                  subdir)
+            filepath = os.path.join(media_dir, 'medleys/images', subdir)
             base_fname = "%s_%s.png" % (str(locator.short_name), version)
             filename = os.path.join(filepath,base_fname)
 
@@ -1839,12 +1837,11 @@ class RequestHandler(object):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
-                    print "Sending request to ", proxy
+                    self.server_logger.info("Sending request to %s" % proxy)
                     result = proxy.getPNGWorkflowMedley(m_id)
                     self.proxies_queue.put(proxy)
-                    print "returning %s"% result
                     self.server_logger.info("returning %s"% result)
-                    return (result, 1)
+                    return result
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -1858,7 +1855,6 @@ class RequestHandler(object):
                 controller.set_vistrail(v, locator, abstractions, thumbnails)
                 controller.change_selected_version(version)
 
-                print medley._vtid, " ", medley._version
                 p = controller.current_pipeline
                 from gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
@@ -1866,21 +1862,25 @@ class RequestHandler(object):
                 pipeline_view.scene().saveToPNG(filename)
                 del pipeline_view
             else:
-                self.server_logger.info("Found cached image: ", filename)
-            return (os.path.join(subdir,base_fname), 1)
+                self.server_logger.info("Found cached image: %s" % filename)
+            if is_local:
+                return (os.path.join(subdir,base_fname), 1)
+            else:
+                f = open(filename, 'rb')
+                contents = f.read()
+                f.close()
+                return (xmlrpclib.Binary(contents), 1)
         except Exception, e:
-            self.server_logger.error("Error when saving png: ", str(e))
+            self.server_logger.error("Error when saving png: %s" % str(e))
         return (str(e), 0)
 
     def get_vt_zip(self, host, port, db_name, vt_id):
         """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
         Returns a .vt file encoded as base64 string
-
         """
-        self.server_logger.info("Request: get_vt_zip(%s,%s,%s,%s)"%(host,
-                                                                 port,
-                                                                 db_name,
-                                                                 vt_id))
+
+        self.server_logger.info("Request: get_vt_zip(%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -1914,11 +1914,8 @@ class RequestHandler(object):
         encoded as base64 string
 
         """
-        self.server_logger.info("Request: get_wf_vt_zip(%s,%s,%s,%s,%s)"%(host,
-                                                                       port,
-                                                                       db_name,
-                                                                       vt_id,
-                                                                       version))
+        self.server_logger.info("Request: get_wf_vt_zip(%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id, version))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -1945,20 +1942,18 @@ class RequestHandler(object):
                     vistrail.db_version = currentVersion
                 pipxmlstr = io.serialize(vistrail)
                 result = base64.b64encode(pipxmlstr)
+                return (result, 1)
             else:
                 result = "Error: Pipeline was not materialized"
                 self.server_logger.info(result)
+                return (result, 0)
         except Exception, e:
-            result = "Error: %s"%str(e)
-            self.server_logger.info(result)
-
-        return (result, 1)
+            self.server_logger.info(str(e))
+            return (str(e), 0)
 
     def get_db_vt_list(self, host, port, db_name):
-        self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)"%(host,
-                                                                 port,
-                                                                 db_name))
-        print "get_db_vt_list"
+        self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)" % \
+                                (host, port, db_name))
         config = {}
         config['host'] = host
         config['port'] = int(port)
@@ -1967,7 +1962,6 @@ class RequestHandler(object):
         config['passwd'] = db_read_pass
         try:
             rows = io.get_db_vistrail_list(config)
-            print "returning ", rows
             self.server_logger.info("returning %s" % str(rows))
             return (rows, 1)
         except Exception, e:
@@ -1975,9 +1969,8 @@ class RequestHandler(object):
             return (str(e), 0)
 
     def get_db_vt_list_xml(self, host, port, db_name):
-        self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)"%(host,
-                                                                 port,
-                                                                 db_name))
+        self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)" % \
+                                (host, port, db_name))
         config = {}
         config['host'] = host
         config['port'] = int(port)
@@ -1996,10 +1989,8 @@ class RequestHandler(object):
             return (str(e), 0)
 
     def get_vt_tagged_versions(self, host, port, db_name, vt_id):
-        self.server_logger.info("Request: get_vt_tagged_versions(%s,%s,%s,%s)"%(host,
-                                                                 port,
-                                                                 db_name,
-                                                                 vt_id))
+        self.server_logger.info("Request: get_vt_tagged_versions(%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -2020,11 +2011,21 @@ class RequestHandler(object):
                         v.get_thumbnail(elem))
                 else:
                     thumbnail_fname = ""
-                result.append({'id': elem, 'name': tag,
-                               'notes': v.get_notes(elem) or '',
-                               'user':action_map.user or '',
-                               'date':action_map.date,
-                               'thumbnail': thumbnail_fname})
+                if is_local or not thumbnail_fname:
+                    result.append({'id': elem, 'name': tag,
+                                   'notes': v.get_notes(elem) or '',
+                                   'user':action_map.user or '',
+                                   'date':action_map.date,
+                                   'thumbnail': thumbnail_fname})
+                else:
+                    handler = open(thumbnail_fname, "rb")
+                    thumbnail_data = handler.read()
+                    handler.close()
+                    result.append({'id': elem, 'name': tag,
+                                   'notes': v.get_notes(elem) or '',
+                                   'user':action_map.user or '',
+                                   'date':action_map.date,
+                                   'thumbnail': xmlrpclib.Binary(thumbnail_data)})
             return (result, 1)
         except Exception, e:
             self.server_logger.error(str(e))
@@ -2336,13 +2337,14 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         If parameters are missing, write them in and raise error.
         If file doesn't exist, create one and raise error. """
 
-        global accessList, db_host, db_read_user, db_read_pass, db_write_user, db_write_pass
+        global accessList, db_host, db_read_user, db_read_pass, db_write_user, db_write_pass, media_dir
         accessList = []
         db_host = ''
         db_read_user = ''
         db_read_pass = ''
         db_write_user = ''
         db_write_pass = ''
+        media_dir = ''
 
         config = ConfigParser.ConfigParser()
         file_opened = config.read(filename)
@@ -2398,10 +2400,20 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             config.set("database", "write_password", "")
             has_changed = True
 
+        if not config.has_section("media"):
+            config.add_section("media")
+            has_changed = True
+
+        if config.has_option("media", "media_dir"):
+            media_dir = config.get("media", "media_dir")
+            if not os.path.exists(media_dir):
+                raise Exception("media_dir %s doesn't exist." % media_dir)
+
         # check if all required parameters are present
         missing_req_fields = [y for (x,y) in ((db_host,"host"),
                                               (db_read_user,"read_user"),
                                               (db_write_user,"write_user"),
+                                              (media_dir,"media_dir"),
                                               (accessList,"permission_addresses")) if not x]
         if missing_req_fields:
             self.server_logger.error(("Following required parameters where missing "
@@ -2421,7 +2433,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                 "added to your config, please populate them")
             else:
                 # save changes to default config file
-                # XXX: what should the permissions look like on newly created files
                 config.write(open(new_filename, "wb"))
                 self.server_logger.error(("Config file %s doesn't exist. Creating new file at %s. "
                                    "Please populated it with the correct values and use it") % \
@@ -2450,7 +2461,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         host = self.temp_xml_rpc_options.server
         port = self.temp_xml_rpc_options.port
         virtual_display = 6
-        script = '/server/vistrails/git/scripts/start_vistrails_xvfb.sh'
+        script = os.path.join(os.path.dirname(system.vistrails_root_directory()), "scripts", "start_vistrails_xvfb.sh")
         for x in xrange(number):
             port += 1
             virtual_display += 1
@@ -2460,19 +2471,20 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                 time.sleep(20)
                 self.others.append("http://%s:%s"%(host,port))
             except Exception, e:
-                print "Couldn't start the instance on display :", virtual_display, " port: ",port
-                print "Exception: ", str(e)
+                self.server_logger.error(("Couldn't start the instance on display:"
+                                          "%s port: %s") % (virtual_display, port))
+                self.server_logger.error(str(e))
 
     def stop_other_instances(self):
-        script = '/server/vistrails/git/vistrails/stop_vistrails_server.py'
+        script = os.path.join(system.vistrails_root_directory(), "stop_vistrails_server.py")
         for o in self.others:
             args = ['python', script, o]
             try:
                 subprocess.Popen(args)
                 time.sleep(15)
             except Exception, e:
-                print "Couldn't stop instance: ", o
-                print "Exception: ", str(e)
+                self.server_logger.error("Couldn't stop instance: %s" % o)
+                self.server_logger.error(str(e))
 
     def run_server(self):
         """run_server() -> None
