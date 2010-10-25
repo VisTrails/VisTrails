@@ -168,8 +168,12 @@ class PersistentPath(Module):
             # create a temporary directory
             out_dirname = tempfile.mkdtemp(prefix='vt_persist')
             temp_persist_files.append(out_dirname)
-            
-        cmd_list = [self.git_command() + \
+        if systemType == "Windows":    
+            cmd_list = [self.git_command() + \
+                        ["archive", str(version + ':' + name)],
+                    ["%s:" % out_dirname[0], "&&", "cd", "%s"%out_dirname, "&&", 'tar', '-xf-']]
+        else:
+            cmd_list = [self.git_command() + \
                         ["archive", str(version + ':' + name)],
                     ['tar', '-C', out_dirname, '-xf-']]
         debug_print('executing commands', cmd_list)
