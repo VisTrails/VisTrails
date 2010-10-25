@@ -30,6 +30,7 @@ from core.repository.poster.streaminghttp import register_openers
 from core.vistrail.controller import VistrailController
 from core.db.locator import ZIPFileLocator, FileLocator
 from core.db.io import load_vistrail
+from core import debug
 import urllib, urllib2, cookielib
 import os
 import tempfile
@@ -197,6 +198,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self._repository_status['details'] = ""
             self.update_push_information()
             self._push_button.setEnabled(False)
+            self._branch_button.setEnabled(False)
             self._branch_button.hide()
         else:
             server_url = "%s/projects/get_user_projects/" % \
@@ -212,7 +214,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     self._repository_status['support_status'] = \
                             ("Error connecting to repository (server side issues)")
                 else:
-                    print str(e)
+                    debug.critical(str(e))
 
                 self._push_button.setEnabled(False)
                 self.update_push_information()
@@ -222,7 +224,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
             if not self.serverCombo.count():
                 self.serverCombo.addItem("Please Select a Project", 0)
                 for prj, srvr in servers:
-                    self.serverCombo.addItem("%s (%s)" % (prj, srvr), srvr)
+                    self.serverCombo.addItem("%s (%s)" % (prj, srvr), [prj, srvr])
 
 
 
@@ -247,7 +249,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self._branch_button.hide()
             self.repository_supports_vt = True
             # get packages supported by VisTrails repository
-            server = self.serverCombo.itemData(index).toString()
+            server = self.serverCombo.itemData(index).toList()[1].toString()
             packages_url = "%s/packages/supported_packages/%s" % \
                     (self.config.webRepositoryURL, server)
 
@@ -261,12 +263,12 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     self._repository_status['support_status'] = \
                             ("Error connecting to repository (server side issues)")
                 else:
-                    print str(e)
+                    debug.critical(str(e))
 
                 self._push_button.setEnabled(False)
                 self.update_push_information()
                 return
-            server_packages = get_supported_packages.read().split("||")
+            server_packages = json.loads(get_supported_packages.read())
 
             # get local packages and local data modules
             local_packages = []
@@ -347,11 +349,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self._repository_status['support_status'] = ""
             controller = api.get_current_controller()
             if controller.vistrail.get_annotation('repository_vt_id'):
-                # TODO: allow user to create own version instead of updating
-                # updating vistrail, so disable permissions
-
-                # TODO: get permissions settings for vistrail to be updated
-
                 # Since repository_vt_id doesn't mirror crowdlabs vt id
                 # get the crowdlabs vt id for linkage
                 vt_url = "%s/vistrails/details/%s" % \
@@ -359,14 +356,12 @@ class QRepositoryPushWidget(QtGui.QWidget):
                          controller.vistrail.get_annotation('repository_vt_id').value)
                 try:
                     request = urllib2.urlopen(url=vt_url)
+                    # TODO: check project that vistrail is part of and notify user
+                    # that branching will add it to a different project
                     if request.code == 200:
                         # the vistrail exists on the repository, setup merge settings
                         self.permission_gb.setTitle(("Default Global Permissions "
                                                      "(only applicable to branching):"))
-                        """
-                        self._default_perm_label.setText(("Default Global Permissions "
-                                                          "(only applicable to branching):"))
-                        """
                         self._push_button.setText("Commit changes")
                         self._branch_button.setEnabled(True)
                         self._branch_button.show()
@@ -386,9 +381,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     repo_annotation = controller.vistrail.get_annotation('repository_vt_id')
                     if repo_annotation:
                         controller.vistrail.db_delete_annotation(repo_annotation)
-                    print "the vistrail has been deleted or doesn't exist"
-
-
 
             if self.repository_supports_vt:
                 self._repository_status['support_status'] += \
@@ -437,7 +429,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             # upload vistrail temp file to repository
             register_openers(cookiejar=self.dialog.cookiejar)
-
+            project = self.serverCombo.itemData(self.serverCombo.currentIndex()).toList()[0].toString()
+            if project == "Default": project = ""
 
             params = {'vistrail_file': open(filename, 'rb'),
                       'action': 'upload',
@@ -447,6 +440,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                                               len(self.local_data_modules)),
                       'vt_id': 0,
                       'branched_from': "" if not branching else repository_vt_id,
+                      'project': project,
                       'everyone_can_view': self.perm_view.checkState(),
                       'everyone_can_edit': self.perm_edit.checkState(),
                       'everyone_can_download': self.perm_download.checkState()
@@ -462,7 +456,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             os.unlink(filename)
 
-            print "before check"
             if updated_response[:6] == "upload":
                 # No update, just upload
                 if result.code != 200:
@@ -483,7 +476,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                 if result.code != 200:
                     self._repository_status['details'] = "Update Failed"
                 else:
-                    print "getting version from web"
+                    debug.log("getting version from web")
                     # request file to download
                     download_url = "%s/vistrails/download/%s/" % \
                             (self.config.webRepositoryURL, updated_response)
@@ -526,7 +519,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             "Update to repository was successful"
 
         except Exception, e:
-            print e
+            debug.critical(str(e))
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()
 
@@ -572,7 +565,6 @@ class QRepositoryLoginWidget(QtGui.QWidget):
         grid_layout.addWidget(l2, 1, 0)
 
         if self.config.check('webRepositoryLogin'):
-            print "repo login is %s" % self.config.webRepositoryLogin
             self.dialog.loginUser = QtGui.QLineEdit(self.config.webRepositoryLogin, grid_frame)
         else:
             self.dialog.loginUser = QtGui.QLineEdit("", grid_frame)
@@ -687,11 +679,11 @@ class QRepositoryLoginWidget(QtGui.QWidget):
             self._logout_button.setEnabled(True)
 
             # add association between VisTrails user and web repository user
-            print self.saveLogin.checkState()
+            print "save login state: ", self.saveLogin.checkState()
             if self.saveLogin.checkState():
                 print "save repo login checked"
                 if not (self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin == self.dialog.loginUser.text()):
-                    print "settings repo login"
+                    print "setting repo login"
                     print self.dialog.loginUser.text()
                     self.config.webRepositoryLogin = str(self.dialog.loginUser.text())
                     VistrailsApplication.save_configuration()
