@@ -124,7 +124,7 @@ if($vtid != '' and $version != ''){
 		foreach($files as $filename) {
 			if($filename != '.' and $filename != '..'){
 				$info = pathinfo($filename);
-				if ( in_array($info['extension'],$SUPPORTED_IMAGE_FILES)){ 
+				if ( in_arrayi($info['extension'],$SUPPORTED_IMAGE_FILES)){ 
 				    list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
 				    if ($width > 600)
                         $width = 600;
