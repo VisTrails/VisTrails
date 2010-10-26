@@ -31,9 +31,7 @@
 
 //functions.php is located inside the ./mediawiki folder
 require_once 'functions.php';
-
-$VT_HOST = "vistrails.sci.utah.edu";
-$VT_PORT = 8080;
+require_once 'config.php';
 
 // set variables with default values
 $host = 'vistrails.sci.utah.edu';
@@ -74,13 +72,25 @@ if(array_key_exists('buildalways',$_GET))
 //echo $vtid . $version;
 if($vtid != '' and $version != ''){
 	//echo $host . $port . $dbname . $vtid . $version;
-	$request = xmlrpc_encode_request('get_wf_pdf',
+	$request = xmlrpc_encode_request('get_wf_graph_pdf',
                                      array($host, $port, $dbname, $vtid, $version));
 	//echo $request;
-	$response = do_call($VT_HOST,$VT_PORT,$request);		
+	$response = do_call($VT_HOST,$VT_PORT,$request);	
+	$path = clean_up($response);
+	echo "$URL_TO_GRAPHS$path";
 }
 else{
 	echo "ERROR: Vistrails id or version not provided.\n";
+}
+
+function clean_up($xmlstring){
+    try{
+        $node = @new SimpleXMLElement($xmlstring);
+   
+        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+    } catch(Exception $e) {
+        echo "bad xml";
+    }
 }
 
 ?>

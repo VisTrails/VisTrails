@@ -1395,7 +1395,7 @@ class RequestHandler(object):
          Returns a list of supported packages identifiers delimited by || """
         try:
             packages = [x.identifier for x in module_registry().package_list]
-            return ('||'.join(packages), 1)
+            return (packages, 1)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -1534,6 +1534,7 @@ class RequestHandler(object):
             p = v.getPipeline(long(version))
             if p:
                 result = io.serialize(p)
+                self.server_logger.info("success")
                 return (result, 1)
             else:
                 result = "Pipeline was not materialized"
@@ -1576,7 +1577,7 @@ class RequestHandler(object):
 
             if not os.path.exists(filename):
                 locator = DBLocator(host=host,
-                                    port=port,
+                                    port=int(port),
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,

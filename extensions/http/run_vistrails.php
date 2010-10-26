@@ -30,24 +30,13 @@
 // the url
 //functions.php is located inside the ./mediawiki folder
 require_once 'functions.php';
+require_once 'config.php';
 
 // This is where vistrails XML-RPC is running
 $USE_VISTRAILS_XML_RPC_SERVER = True;
 
-$VT_HOST = "localhost";
-$VT_PORT = 8080;
-
-// Change this to point to the folder where vistrails.py is 
-// You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
-$PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
-
-// Change this to point to the folder where the images should be generated
-$PATH_TO_IMAGES = '/images/vistrails/';
-
-// Change this to the web accessible path to the folder where the images were generated
-$WEB_PATH_TO_IMAGES = '/images/';
-
 $SUPPORTED_IMAGE_FILES = array("png", "jpg", "gif");
+
 // set variables with default values
 $host = 'vistrails.sci.utah.edu';
 $port = '3306';

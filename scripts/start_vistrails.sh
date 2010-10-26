@@ -6,6 +6,7 @@ LOG_DIR=/server/vistrails/logs
 VISTRAILS_DIR=/server/vistrails/trunk/vistrails
 ADDRESS="crowdlabs.sci.utah.edu"
 PORT="8081"
+CONF_FILE="server.cfg"
 NUMBER_OF_OTHER_VISTRAILS_INSTANCES="2"
 MULTI_OPTION="-M"
 if (("$#" > "0")); then
@@ -40,6 +41,6 @@ python stop_vistrails_server.py http://$ADDRESS:$PORT
 
 export PYTHONPATH=/home/emanuele/src/titan/build/lib:$PYTHONPATH
 export LD_LIBRARY_PATH=/home/emanuele/src/titan/build/lib:$LD_LIBRARY_PATH
-python vistrails_server.py -T $ADDRESS -R $PORT -O$NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
+python vistrails_server.py -T $ADDRESS -R $PORT -C $CONF_FILE -O$NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
 echo $! > $PID
 
