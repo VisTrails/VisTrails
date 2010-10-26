@@ -14,6 +14,16 @@ To run it, open the folder in finder and double-click on the VisTrails icon.
 
 Please see the About Message for Licensing and Disclaimers.
 
+Using VisTrails.command
+---------------------------
+
+If you would like to see the messages sent to standard output while executing
+VisTrails, you may use the VisTrails.command file. If you dragged the VisTrails
+folder to a place other than /Applications folder, you might need to execute 
+path/to/VisTrails/scripts/update_vistrails_command.py script from where your 
+folder is located.
+
+
 RELEASE NOTES
 -------------
 

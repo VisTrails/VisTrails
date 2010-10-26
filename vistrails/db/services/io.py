@@ -1024,8 +1024,11 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
         log_file = open(filename, 'ab')
         for workflow_exec in log.workflow_execs:
             # cannot do correct numbering here...
+            # but need to save so that we can use it for deletes
+            wf_exec_id = workflow_exec.db_id
             workflow_exec.db_id = -1L
             daoList.save_to_xml(workflow_exec, log_file, {}, version)
+            workflow_exec.db_id = wf_exec_id
         log_file.close()
     else:
         tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',

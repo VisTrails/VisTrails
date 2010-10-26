@@ -34,6 +34,7 @@ QPipelineView
 """
 
 from PyQt4 import QtCore, QtGui
+from core.configuration import get_vistrails_configuration
 from core.utils import VistrailsInternalError, profile
 from core.utils.uxml import named_elements
 from core.modules.module_configure import DefaultModuleConfigurationWidget
@@ -53,7 +54,9 @@ from gui.module_annotation import QModuleAnnotation
 from gui.module_palette import QModuleTreeWidget
 from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
+from gui.utils import getBuilderWindow
 
+import sys
 import copy
 from itertools import izip
 import math
@@ -324,6 +327,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Captures context menu event.
 
         """
+        module = self.controller.current_pipeline.modules[self.moduleId]
         menu = QtGui.QMenu()
         menu.addAction(self.configureAct)
         menu.addAction(self.annotateAct)
@@ -331,6 +335,9 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.changeModuleLabelAct)
 	menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
+        menu.addAction(self.setErrorAct)
+        if module.is_abstraction() and not module.is_latest_version():
+            menu.addAction(self.upgradeAbstractionAct)
         menu.exec_(event.screenPos())
 
     def createActions(self):
@@ -368,6 +375,17 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.setWatchedAct,
 			       QtCore.SIGNAL("triggered()"),
 			       self.set_watched)
+        self.setErrorAct = QtGui.QAction("Show Stack Trace", self.scene())
+        self.setErrorAct.setStatusTip("Show Stack Trace")
+        QtCore.QObject.connect(self.setErrorAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.set_error)
+        self.upgradeAbstractionAct = QtGui.QAction("Upgrade Module", self.scene())
+        self.upgradeAbstractionAct.setStatusTip("Upgrade the subworkflow module")
+        QtCore.QObject.connect(self.upgradeAbstractionAct,
+                   QtCore.SIGNAL("triggered()"),
+                   self.upgradeAbstraction)
+
     def set_breakpoint(self):
 	""" set_breakpoint() -> None
 	Sets this module as a breakpoint for execution
@@ -385,6 +403,10 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         debug = get_default_interpreter().debugger
         if debug:
             debug.update()
+
+    def set_error(self):
+        if self.moduleId >= 0:
+            self.scene().print_stack(self.moduleId)
 
     def configure(self):
         """ configure() -> None
@@ -413,6 +435,29 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         if self.moduleId>=0:
             self.scene().open_module_label_window(self.moduleId)
+
+    def upgradeAbstraction(self):
+        """ upgradeAbstraction() -> None
+        Upgrade the abstraction to the latest version
+        """
+        if self.moduleId>=0:
+            (connections_preserved, missing_ports) = self.controller.upgrade_abstraction_module(self.moduleId, test_only=True)
+            upgrade_fail_prompt = getattr(get_vistrails_configuration(), 'upgradeModuleFailPrompt', True)
+            do_upgrade = True
+            if not connections_preserved and upgrade_fail_prompt:
+                ports_msg = '\n'.join(["  - %s port '%s'" % (p[0].capitalize(), p[1]) for p in missing_ports])
+                r = QtGui.QMessageBox.question(getBuilderWindow(), 'Modify Pipeline',
+                                       'Upgrading this module will change the pipeline because the following ports no longer exist in the upgraded module:\n\n'
+                                       + ports_msg +
+                                       '\n\nIf you proceed, function calls or connections to these ports will no longer exist and the pipeline may not execute properly.\n\n'
+                                       'Are you sure you want to proceed?',
+                                       QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                       QtGui.QMessageBox.No)
+                do_upgrade = (r==QtGui.QMessageBox.Yes)
+            if do_upgrade:
+                self.controller.upgrade_abstraction_module(self.moduleId)
+                self.scene().setupScene(self.controller.current_pipeline)
+                self.controller.invalidate_version_tree()
         
         
                                                
@@ -761,6 +806,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.statusBrush = None
         self.labelRect = QtCore.QRectF()
         self.descRect = QtCore.QRectF()
+        self.abstRect = QtCore.QRectF()
         self.id = -1
         self.label = ''
         self.description = ''
@@ -773,6 +819,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self._module_shape = None
         self._original_module_shape = None
         self._old_connection_ids = None
+        self.errorTrace = None
         self.is_breakpoint = False
         self._needs_state_updated = True
         self.progress = 0.0
@@ -815,6 +862,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.labelRect.bottom(),
             self.paddedRect.width(),
             descRect.height())
+        self.abstRect = QtCore.QRectF(
+            self.paddedRect.left(),
+            -self.labelRect.top()-CurrentTheme.MODULE_PORT_MARGIN[3],
+            labelRect.left()-self.paddedRect.left(),
+            self.paddedRect.bottom()+self.labelRect.top())
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
@@ -955,6 +1007,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         painter.setPen(self.labelPen)
         painter.setFont(self.labelFont)
         painter.drawText(self.labelRect, QtCore.Qt.AlignCenter, self.label)
+        if self.module.is_abstraction() and not self.module.is_latest_version():
+                painter.drawText(self.abstRect, QtCore.Qt.AlignCenter, '!')
         if self.descRect:
             painter.setFont(self.descFont)
             painter.drawText(self.descRect, QtCore.Qt.AlignCenter,
@@ -1983,6 +2037,7 @@ mutual connections."""
                 if not item:
                     return True
                 item.setToolTip(e.toolTip)
+                item.errorTrace = e.errorTrace
                 statusMap =  {
                     0: CurrentTheme.SUCCESS_MODULE_BRUSH,
                     1: CurrentTheme.ERROR_MODULE_BRUSH,
@@ -2032,8 +2087,7 @@ mutual connections."""
             
             widget.exec_()
             self.reset_module_colors()
-            if self.pipeline_tab:
-                self.pipeline_tab.flushMoveActions()
+            self.flushMoveActions()
             self.recreate_module(self.controller.current_pipeline, id)
 
     def open_documentation_window(self, id):
@@ -2064,6 +2118,33 @@ mutual connections."""
         if self.controller:
 	    module = self.controller.current_pipeline.modules[id]
 	    module.toggle_watched()
+
+    def print_stack(self, id):
+        errorTrace = self.modules[id].errorTrace
+        if not errorTrace:
+            return
+        class StackPopup(QtGui.QDialog):
+            def __init__(self, errorTrace='', parent=None):
+                QtGui.QDialog.__init__(self, parent)
+                self.resize(700, 400)
+                self.setWindowTitle('Stack Trace')
+                layout = QtGui.QVBoxLayout()
+                self.setLayout(layout)
+                text = QtGui.QTextEdit('')
+                text.insertPlainText(errorTrace)
+                text.setReadOnly(True)
+                text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+                layout.addWidget(text)
+                close = QtGui.QPushButton('Close', self)
+                close.setFixedWidth(100)
+                layout.addWidget(close)
+                self.connect(close, QtCore.SIGNAL('clicked()'),
+                             self, QtCore.SLOT('close()'))
+        sp = StackPopup(errorTrace)
+        sp.exec_()
+        #import sys
+        #if errorTrace:
+        #    sys.stderr.write(errorTrace)
 
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None
@@ -2110,13 +2191,14 @@ mutual connections."""
                                      QModuleStatusEvent(moduleId, 0, ''))
         QtCore.QCoreApplication.processEvents()
 
-    def set_module_error(self, moduleId, error):
+    def set_module_error(self, moduleId, error, errorTrace=None):
         """ set_module_error(moduleId: int, error: str) -> None
         Post an event to the scene (self) for updating the module color
         
         """
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error))
+                                     QModuleStatusEvent(moduleId, 1, error,
+                                                      errorTrace = errorTrace))
         QtCore.QCoreApplication.processEvents()
         
     def set_module_not_executed(self, moduleId):
@@ -2167,6 +2249,26 @@ mutual connections."""
             module.statusBrush = None
             module._needs_state_updated = True
 
+    def flushMoveActions(self):
+        """ flushMoveActions() -> None
+        Update all move actions into vistrail
+        
+        """
+        controller = self.controller
+        moves = []
+        for (mId, item) in self.modules.iteritems():
+            module = controller.current_pipeline.modules[mId]
+            (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
+            if (dx != module.center.x or dy != module.center.y):
+                moves.append((mId, dx, dy))
+        if len(moves)>0:
+            controller.quiet = True
+            controller.move_module_list(moves)
+            controller.quiet = False
+            return True
+        return False
+
+
 class QModuleStatusEvent(QtCore.QEvent):
     """
     QModuleStatusEvent is trying to handle thread-safe real-time
@@ -2174,7 +2276,8 @@ class QModuleStatusEvent(QtCore.QEvent):
     
     """
     TYPE = QtCore.QEvent.Type(QtCore.QEvent.User)
-    def __init__(self, moduleId, status, toolTip, progress=0.0):
+    def __init__(self, moduleId, status, toolTip, progress=0.0,
+                 errorTrace=None):
         """ QModuleStatusEvent(type: int) -> None        
         Initialize the specific event with the module status. Status 0
         for success, 1 for error and 2 for not execute, 3 for active,
@@ -2186,6 +2289,7 @@ class QModuleStatusEvent(QtCore.QEvent):
         self.status = status
         self.toolTip = toolTip
         self.progress = progress
+        self.errorTrace = errorTrace
             
 class QPipelineView(QInteractiveGraphicsView):
     """

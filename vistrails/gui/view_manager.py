@@ -95,6 +95,7 @@ class QViewManager(QtGui.QTabWidget):
         
         self._views = {}
         self.single_document_mode = False
+        self.pip_mode = True
 
         self.createDetachedViews()
 
@@ -388,6 +389,7 @@ class QViewManager(QtGui.QTabWidget):
         self.add_vistrail_view(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.setup_view(version)
+        vistrailView.setPIPMode(self.pip_mode)
         self.versionSelectionChange(vistrailView.controller.current_version)
         return vistrailView
 
@@ -723,6 +725,7 @@ class QViewManager(QtGui.QTabWidget):
         Set the picture-in-picture mode for all views
         
         """
+        self.pip_mode = on
         for viewIndex in xrange(self.count()):
             vistrailView = self.widget(viewIndex)
             vistrailView.setPIPMode(on)

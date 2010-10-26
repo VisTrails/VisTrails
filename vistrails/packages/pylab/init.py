@@ -94,6 +94,65 @@ class MplFigure(NotCacheable, Module):
         if noOutput:
             pylab.show()
 
+class MplHistogram(NotCacheable, Module):
+    _input_ports = [('columnData', '(edu.utah.sci.vistrails.basic:List)'),
+                    ('title', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('xlabel', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('ylabel', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('bins', '(edu.utah.sci.vistrails.basic:Integer)'),
+                    ('facecolor', '(edu.utah.sci.vistrails.basic:Color)')]
+    _output_ports = [('source', '(edu.utah.sci.vistrails.basic:String)')]
+
+    def compute(self):
+        data = [float(x) for x in self.getInputFromPort('columnData')]
+        fig = pylab.figure()
+        pylab.setp(fig, facecolor='w')
+        if self.hasInputFromPort('title'):
+            pylab.title(self.getInputFromPort('title'))
+        if self.hasInputFromPort('xlabel'):
+            pylab.xlabel(self.getInputFromPort('xlabel'))
+        if self.hasInputFromPort('ylabel'):
+            pylab.ylabel(self.getInputFromPort('ylabel'))
+        if self.hasInputFromPort('bins'):
+            bins = self.getInputFromPort('bins')
+        else:
+            bins = 10
+        if self.hasInputFromPort('facecolor'):
+            color = self.getInputFromPort('facecolor').tuple
+        else:
+            color = 'b'
+        pylab.hist(data, bins, facecolor=color)
+        pylab.get_current_fig_manager().toolbar.hide()
+        self.setResult('source', "")
+
+class MplScatterplot(NotCacheable, Module):
+    _input_ports = [('xData', '(edu.utah.sci.vistrails.basic:List)'),
+                    ('yData', '(edu.utah.sci.vistrails.basic:List)'),
+                    ('title', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('xlabel', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('ylabel', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('facecolor', '(edu.utah.sci.vistrails.basic:Color)')]
+    _output_ports = [('source', '(edu.utah.sci.vistrails.basic:String)')]
+
+    def compute(self):
+        x_data = [float(x) for x in self.getInputFromPort('xData')]
+        y_data = [float(x) for x in self.getInputFromPort('yData')]
+        fig = pylab.figure()
+        # pylab.setp(fig, facecolor='w')
+        if self.hasInputFromPort('title'):
+            pylab.title(self.getInputFromPort('title'))
+        if self.hasInputFromPort('xlabel'):
+            pylab.xlabel(self.getInputFromPort('xlabel'))
+        if self.hasInputFromPort('ylabel'):
+            pylab.ylabel(self.getInputFromPort('ylabel'))
+        if self.hasInputFromPort('facecolor'):
+            color = self.getInputFromPort('facecolor').tuple
+        else:
+            color = 'r'
+        pylab.scatter(x_data, y_data, marker='s', facecolor=color)
+        pylab.get_current_fig_manager().toolbar.hide()
+        self.setResult('source', "")
+
 ################################################################################
 
 def initialize(*args, **keywords):    
@@ -118,3 +177,5 @@ def initialize(*args, **keywords):
         from figure_cell import MplFigureCell
         reg.add_module(MplFigureCell)
         reg.add_input_port(MplFigureCell, 'FigureManager', MplFigureManager)
+
+_modules = [MplScatterplot, MplHistogram]

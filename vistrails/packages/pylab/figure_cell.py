@@ -59,6 +59,8 @@ class MplFigureCellWidget(QCellWidget):
         QCellWidget.__init__(self, parent)
         centralLayout = QtGui.QVBoxLayout()
         self.setLayout(centralLayout)
+        centralLayout.setMargin(0)
+        centralLayout.setSpacing(0)
         self.figManager = None
 
     def updateContents(self, inputPorts):

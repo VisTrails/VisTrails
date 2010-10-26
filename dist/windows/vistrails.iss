@@ -21,7 +21,7 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.5.1
+AppVerName=VisTrails 1.6 alpha
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$9d5942
@@ -50,7 +50,7 @@ Source: C:\Python26\tcl\*; DestDir: {app}\vistrails\Python26\tcl; Flags: recurse
 Source: C:\Python26\Tools\*; DestDir: {app}\vistrails\Python26\Tools; Flags: recursesubdirs
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\DDBJ_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\EMBOSS_webservices.vt; DestDir: {app}\examples; Components: examples
@@ -89,13 +89,14 @@ Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: ..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
 Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
+Source: Input\git.exe; DestDir: {app}\vistrails
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}\vistrails
 Source: Input\license.txt; DestDir: {app}
 Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
 ;Source: C:\Qt\4.4.0\bin\*.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
-Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
+Source: D:\Qt\4.6.2\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
+Source: D:\Qt\4.6.2\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
 ;Source: C:\WINDOWS\system32\Python26.dll; DestDir: {app}\vistrails
 ;Source: C:\WINDOWS\system32\Python26.dll; DestDir: {app}\vistrails\Python26
@@ -288,4 +289,3 @@ begin
   end;
   DeleteVCRedistRuntimeTemporaryFiles();
 end;
-

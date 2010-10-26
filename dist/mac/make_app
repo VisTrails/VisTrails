@@ -59,13 +59,19 @@ echo "copying README file..."
 cp Input/README dist/
 echo "copying LICENSE file..."
 cp Input/LICENSE dist/
+echo "copying VisTrails.command file..."
+cp Input/VisTrails.command dist/
 echo "adding extension files..."
-svn export https://vistrails.sci.utah.edu/svn/trunk/extensions dist/extensions
+cp -r ../../extensions dist/extensions
+echo "adding script files..."
+cp -r ../../scripts dist/scripts
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/VisTrails.app dist/VisTrails/
 mv dist/examples dist/VisTrails/
 mv dist/extensions dist/VisTrails/
+mv dist/scripts dist/VisTrails/
+mv dist/VisTrails.command dist/VisTrails/
 #uncomment the following lines for itk support
 #echo "including itk..."
 #python fix_itk_libraries.py ~/src/itk dist/VisTrails/VisTrails.app/Contents

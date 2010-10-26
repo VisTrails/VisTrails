@@ -113,6 +113,18 @@ def create_opm(workflow, version, log, reg):
         module = workflow.db_modules_id_index[item_exec.db_module_id]
         module_processes[module.db_id] = (module, process)
 
+    def get_package(reg, pkg_identifier, pkg_version=''):
+        if not pkg_version:
+            # spin and get current package
+            for pkg in reg.db_packages:
+                if pkg.db_identifier == pkg_identifier:
+                    break
+                pkg = None
+        else:
+            pkg = reg.db_packages_identifier_index[(pkg_identifier,
+                                                    pkg_version)]
+        return pkg
+
     def process_exec(item_exec, workflow, account, upstream_lookup,
                      downstream_lookup, depth, conn_artifacts=None,
                      function_artifacts=None, module_processes=None,
@@ -155,11 +167,16 @@ def create_opm(workflow, version, log, reg):
                 else:
                     module = workflow.db_modules_id_index[source.db_moduleId]
                 print module.db_name, module.db_id
-                pkg = reg.db_packages_identifier_index[(module.db_package,
-                                                        module.db_version)]
+
+                pkg = get_package(reg, module.db_package, module.db_version)
+
+                if not module.db_namespace:
+                    module_namespace = ''
+                else:
+                    module_namespace = module.db_namespace
                 module_desc = \
                     pkg.db_module_descriptors_name_index[(module.db_name,
-                                                          module.db_namespace,
+                                                          module_namespace,
                                                           '')]
                 # FIXME make work for module port_specs, too
                 # for example, a PythonSource with a given port in 
@@ -172,7 +189,10 @@ def create_opm(workflow, version, log, reg):
                         module_desc.db_id != reg.db_root_descriptor_id:
                     if spec_t in module_desc.db_portSpecs_name_index:
                         port_spec = module_desc.db_portSpecs_name_index[spec_t]
-                    module_desc = reg.db_module_descriptors_id_index[module_desc.db_base_descriptor_id]
+                    base_id = module_desc.db_base_descriptor_id
+                    pkg = get_package(reg, module_desc.db_package, 
+                                      module_desc.db_package_version)
+                    module_desc = pkg.db_module_descriptors_id_index[base_id]
                 if port_spec is None:
                     port_spec = module_desc.db_portSpecs_name_index[spec_t]
                 print module_desc.db_name

@@ -54,11 +54,10 @@ local_db = None
 search_dbs = None
 db_access = None
 git_bin = "@executable_path/git"
+tar_bin = "@executable_path/tar"
 compress_by_default = False
-debug = False
+debug = True
 temp_persist_files = []
-
-# FIXME add paths for git and tar...
 
 def debug_print(*args):
     global debug
@@ -127,6 +126,8 @@ class PersistentPath(Module):
 
     def git_command(self):
         global git_bin
+        if systemType == "Windows":
+            return [ "%s:" % local_db[0], "&&","cd", "%s" % local_db, "&&", git_bin]
         return ["cd", "%s" % local_db, "&&", git_bin]
 
     def git_get_path(self, name, version="HEAD", path_type=None, 
@@ -161,15 +162,19 @@ class PersistentPath(Module):
         return out_fname
 
     def git_get_dir(self, name, version="HEAD", out_dirname=None):
-        global temp_persist_files
+        global temp_persist_files, tar_bin
         if out_dirname is None:
             # create a temporary directory
             out_dirname = tempfile.mkdtemp(prefix='vt_persist')
             temp_persist_files.append(out_dirname)
-            
-        cmd_list = [self.git_command() + \
+        if systemType == "Windows":    
+            cmd_list = [self.git_command() + \
                         ["archive", str(version + ':' + name)],
-                    ['tar', '-C', out_dirname, '-xf-']]
+                    ["%s:" % out_dirname[0], "&&", "cd", "%s"%out_dirname, "&&", tar_bin, '-xf-']]
+        else:
+            cmd_list = [self.git_command() + \
+                        ["archive", str(version + ':' + name)],
+                    [tar_bin, '-C', out_dirname, '-xf-']]
         debug_print('executing commands', cmd_list)
         result, output, errs = execute_piped_cmdlines(cmd_list)
         debug_print('stdout:', type(output), output)
@@ -180,9 +185,11 @@ class PersistentPath(Module):
                               errs)
         return out_dirname
 
-    def git_get_hash(self, name, version="HEAD"):
-        cmd_list = [["echo", str(version + ':' + name)],
-                    self.git_command() + ["cat-file", "--batch-check"]]
+    # def git_get_hash(self, name, version="HEAD"):
+    #     cmd_list = [["echo", str(version + ':' + name)],
+    #                 self.git_command() + ["cat-file", "--batch-check"]]
+    def git_get_hash(self, name):
+        cmd_list = [self.git_command() + ["ls-files", "--stage", str(name)]]
         debug_print('executing commands', cmd_list)
         result, output, errs = execute_piped_cmdlines(cmd_list)
         debug_print('stdout:', type(output), output)
@@ -191,11 +198,12 @@ class PersistentPath(Module):
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'\n" % name +
                               errs)
-        return output.split(None, 1)[0]
+        return output.split(None, 2)[1]
 
     def git_get_type(self, name, version="HEAD"):
-        cmd_list = [["echo", str(version + ':' + name)],
-                    self.git_command() + ["cat-file", "--batch-check"]]
+        #cmd_list = [["echo", str(version + ':' + name)],
+        #            self.git_command() + ["cat-file", "--batch-check"]]
+        cmd_list = [self.git_command() + ["cat-file", "-t", str(version + ':' + name)]]
         debug_print('executing commands', cmd_list)
         result, output, errs = execute_piped_cmdlines(cmd_list)
         debug_print('stdout:', type(output), output)
@@ -204,7 +212,8 @@ class PersistentPath(Module):
             # check output for error messages
             raise ModuleError(self, "Error retrieving file '%s'" % name +
                               errs)
-        return output.split(None, 2)[1]
+        return output.split(None,1)[0]
+        #return output.split(None, 2)[1]
 
     def git_add_commit(self, filename):
         cmd_line = self.git_command() + ['add', filename]
@@ -629,14 +638,18 @@ _modules = [PersistentRef, PersistentPath, PersistentFile, PersistentDir,
 
 def git_init(dir):
     global git_bin
-    cmd = ["cd", "%s" % dir, "&&", git_bin, "init"]
+    if systemType == "Windows":
+        cmd = ["%s:" % dir[0], "&&", "cd", "%s" % dir, "&&", git_bin, "init"]
+    else:
+        cmd = ["cd", "%s" % dir, "&&", git_bin, "init"]
+    debug_print('cmd:', cmd)
     result, output, errs = execute_cmdline2(cmd)
     debug_print('init result', result)
     debug_print('init output', output)
 
 def initialize():
     global global_db, local_db, search_dbs, compress_by_default, db_access, \
-        git_bin, debug
+        git_bin, tar_bin, debug
     
     if configuration.check('git_bin'):
         git_bin = configuration.git_bin
@@ -649,6 +662,17 @@ def initialize():
         git_bin = 'git'
         configuration.git_bin = git_bin
 
+    if configuration.check('tar_bin'):
+        tar_bin = configuration.git_bin
+    if tar_bin.startswith("@executable_path/"):
+        non_expand_path = tar_bin
+        tar_bin = get_executable_path(tar_bin[len("@executable_path/"):])
+        if tar_bin is not None:
+            configuration.tar_bin = non_expand_path
+    if tar_bin is None:
+        tar_bin = 'tar'
+        configuration.tar_bin = tar_bin
+        
     if configuration.check('compress_by_default'):
         compress_by_default = configuration.compress_by_default
     if configuration.check('debug'):

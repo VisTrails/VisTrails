@@ -199,6 +199,7 @@ def default():
         'thumbs': default_thumbs(),
         'upgradeOn': True,
         'upgradeDelay': True,
+        'upgradeModuleFailPrompt': True,
         'useCache': True,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),

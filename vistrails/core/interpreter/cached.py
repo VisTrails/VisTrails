@@ -307,7 +307,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             num_pops = logger.finish_execution(obj,'', self.parent_execs)
 
         # views and loggers work on local ids
-        def end_update(obj, error=''):
+        def end_update(obj, error='', errorTrace=None):
             i = get_remapped_id(obj.id)
             if not error:
                 view.set_module_success(i)
@@ -315,7 +315,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 view.set_module_error(i, error)
 
             # !!!self.parent_execs is mutated!!!
-            logger.finish_execution(obj, error, self.parent_execs)
+            logger.finish_execution(obj, error, self.parent_execs, errorTrace)
 
         # views and loggers work on local ids
         def annotate(obj, d):
@@ -381,7 +381,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                     errors[me.module.id] = me
                 break
             except ModuleError, me:
-                me.module.logging.end_update(me.module, me.msg)
+                me.module.logging.end_update(me.module, me.msg, me.errorTrace)
                 errors[me.module.id] = me
                 break
             except ModuleBreakpoint, mb:
@@ -437,7 +437,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         for i in objs:
             if i in errs:
-                view.set_module_error(i, errs[i].msg)
+                view.set_module_error(i, errs[i].msg, errs[i].errorTrace)
             elif i in execs and execs[i]:
                 view.set_module_success(i)
             elif i in cached and cached[i]:
