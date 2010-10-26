@@ -64,7 +64,7 @@ ElementTree = core.system.get_elementtree_library()
 import core.requirements
 import core.console_mode
 
-from index import indexworkflow
+# from index import indexworkflow
 
 from db.versions import currentVersion
 
@@ -1358,6 +1358,7 @@ class RequestHandler(object):
                                                           parameters,
                                                           extra_info=extra_info)
                 except Exception, e:
+                    traceback.print_exc()
                     self.server_logger.error(str(e))
                     return (str(e), 0)
                 ok = True
@@ -1432,6 +1433,7 @@ class RequestHandler(object):
             self.server_logger.error(result)
         return (result, 0)
 
+    """
     def remove_workflow_index(self, wf_id):
         self.server_logger.info("Request: remove_workflow_index(%s)" % (wf_id))
         try:
@@ -1471,6 +1473,7 @@ class RequestHandler(object):
             result = str(e)
             self.server_logger.error(result)
         return (result, 0)
+    """
 
     def get_tag_version(self, host, port, db_name, vt_id, vt_tag):
         self.server_logger.info("Request: get_tag_version(%s,%s,%s,%s,%s)" % \
@@ -1719,7 +1722,6 @@ class RequestHandler(object):
                 controller = VistrailController()
                 controller.set_vistrail(v, locator, abstractions, thumbnails)
                 from gui.version_view import QVersionTreeView
-                self.server_logger.debug(4)
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPNG(filename,1600)
