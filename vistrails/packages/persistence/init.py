@@ -663,7 +663,7 @@ def initialize():
         configuration.git_bin = git_bin
 
     if configuration.check('tar_bin'):
-        tar_bin = configuration.git_bin
+        tar_bin = configuration.tar_bin
     if tar_bin.startswith("@executable_path/"):
         non_expand_path = tar_bin
         tar_bin = get_executable_path(tar_bin[len("@executable_path/"):])
