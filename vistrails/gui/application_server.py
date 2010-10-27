@@ -68,8 +68,6 @@ from index import indexworkflow
 
 from db.versions import currentVersion
 
-is_local = True
-
 ################################################################################
 class StoppableXMLRPCServer(SimpleXMLRPCServer):
     """This class allows a server to be stopped by a external request"""
@@ -242,7 +240,7 @@ class RequestHandler(object):
             return (str(e), 0)
 
     def add_vt_to_db(self, host, port, db_name, user, vt_filepath, filename,
-                     repository_vt_id, repository_creator):
+                     repository_vt_id, repository_creator, is_local=True):
         """add_vt_to_db(host:str, port:int, db_name:str, user:str,
                         vt_filepath:str(or datastream), filename:str,
                         repository_vt_id:int, repository_creator:str) -> 
@@ -280,12 +278,11 @@ class RequestHandler(object):
             return (db_locator.obj_id, 1)
 
         except Exception, e:
-            traceback.print_exc()
             self.server_logger.error(str(e))
             return (str(e), 0)
 
     def merge_vt(self, host, port, db_name, user, new_vt_filepath,
-                 old_db_vt_id):
+                 old_db_vt_id, is_local=True):
         """
         Merge new_vt (new_vt_filepath) with current vt (old_db_vt_id)
 
@@ -1300,7 +1297,7 @@ class RequestHandler(object):
 
     #vistrails
     def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
-                    version=None,  pdf=False, vt_tag='',parameters=''):
+                    version=None,  pdf=False, vt_tag='',parameters='', is_local=True):
         self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
                                 (host, port, db_name, vt_id,
                                  path_to_figures, version, pdf,
@@ -1393,6 +1390,7 @@ class RequestHandler(object):
     def get_package_list(self):
         """ get_package_list() -> str
          Returns a list of supported packages identifiers delimited by || """
+        self.server_logger.info("Request: get_package_list()")
         try:
             packages = [x.identifier for x in module_registry().package_list]
             return (packages, 1)
@@ -1544,7 +1542,7 @@ class RequestHandler(object):
             self.server_logger.error(result)
         return (result, 0)
 
-    def get_wf_graph_pdf(self, host, port, db_name, vt_id, version):
+    def get_wf_graph_pdf(self, host, port, db_name, vt_id, version, is_local=True):
         """get_wf_graph_pdf(host:str, port:int, db_name:str, vt_id:int,
                           version:int) -> str
          Returns the relative url to the generated PDF
@@ -1611,7 +1609,7 @@ class RequestHandler(object):
             self.server_logger.error("Error when saving pdf: %s" % str(e))
             return (str(e), 0)
 
-    def get_wf_graph_png(self, host, port, db_name, vt_id, version):
+    def get_wf_graph_png(self, host, port, db_name, vt_id, version, is_local=True):
         """get_wf_graph_png(host:str, port:int, db_name:str, vt_id:int,
                           version:int) -> str
          Returns the relative url to the generated image
@@ -1675,7 +1673,7 @@ class RequestHandler(object):
             self.server_logger.error("Error when saving png %s" % str(e))
             return (str(e), 0)
 
-    def get_vt_graph_png(self, host, port, db_name, vt_id):
+    def get_vt_graph_png(self, host, port, db_name, vt_id, is_local=True):
         """get_vt_graph_png(host:str, port: str, db_name: str, vt_id:str) -> str
         Returns the relative url of the generated image
         """
@@ -1694,7 +1692,7 @@ class RequestHandler(object):
                 proxy = self.proxies_queue.get()
                 try:
                     self.server_logger.info("Sending request to %s" % proxy)
-                    result = proxy.get_vt_graph_png(host, port, db_name, vt_id)
+                    result = proxy.get_vt_graph_png(host, port, db_name, vt_id, is_local)
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
@@ -1737,7 +1735,7 @@ class RequestHandler(object):
             self.server_logger.error("Error when saving png: %s" % str(e))
             return (str(e), 0)
 
-    def getPDFWorkflowMedley(self, m_id):
+    def getPDFWorkflowMedley(self, m_id, is_local=True):
         """getPDFWorkflowMedley(m_id:int) -> str
         Returns the relative url to the generated image
         """
@@ -1807,7 +1805,7 @@ class RequestHandler(object):
             self.server_logger.error("Error when saving pdf: %s" % str(e))
             return (str(e), 0)
 
-    def getPNGWorkflowMedley(self, m_id):
+    def getPNGWorkflowMedley(self, m_id, is_local=True):
         self.server_logger.info("getPNGWorkflowMedley(%s) request received" % m_id)
         try:
             m_id = int(m_id)
@@ -1989,7 +1987,7 @@ class RequestHandler(object):
             self.server_logger.error(str(e))
             return (str(e), 0)
 
-    def get_vt_tagged_versions(self, host, port, db_name, vt_id):
+    def get_vt_tagged_versions(self, host, port, db_name, vt_id, is_local=True):
         self.server_logger.info("Request: get_vt_tagged_versions(%s,%s,%s,%s)" % \
                                 (host, port, db_name, vt_id))
         try:
