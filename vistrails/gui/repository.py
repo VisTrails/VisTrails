@@ -24,7 +24,7 @@ Includes login and upload tabs
 """
 
 from PyQt4 import QtGui, QtCore
-from core.configuration import get_vistrails_configuration
+from core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
 from core.repository.poster.encode import multipart_encode
 from core.repository.poster.streaminghttp import register_openers
 from core.vistrail.controller import VistrailController
@@ -152,7 +152,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
     def populate_table(self):
         self._unrunnable_table.clear()
 
-
         # set horizontal headers
         wf_title = QtGui.QTableWidgetItem('Workflow')
         wf_title.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -201,6 +200,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self._branch_button.setEnabled(False)
             self._branch_button.hide()
         else:
+            self._branch_button.setEnabled(False)
+            self._branch_button.hide()
             server_url = "%s/projects/get_user_projects/" % \
                     self.config.webRepositoryURL
             register_openers(cookiejar=self.dialog.cookiejar)
@@ -246,7 +247,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self._push_button.setEnabled(False)
             self._branch_button.hide()
         else:
-            self._branch_button.hide()
             self.repository_supports_vt = True
             # get packages supported by VisTrails repository
             server = self.serverCombo.itemData(index).toList()[1].toString()
@@ -267,6 +267,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
                 self._push_button.setEnabled(False)
                 self.update_push_information()
+                self.populate_table()
                 return
             server_packages = json.loads(get_supported_packages.read())
 
@@ -323,8 +324,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             # display unsupported packages
             self._repository_status['details'] = "Details:\n"
-            self.unsupported_packages = filter(lambda p: p not in \
-                                               server_packages, local_packages)
             if self.unsupported_packages:
                 self.repository_supports_vt = False
                 self._repository_status['details'] += \
@@ -679,21 +678,19 @@ class QRepositoryLoginWidget(QtGui.QWidget):
             self._logout_button.setEnabled(True)
 
             # add association between VisTrails user and web repository user
-            print "save login state: ", self.saveLogin.checkState()
             if self.saveLogin.checkState():
-                print "save repo login checked"
                 if not (self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin == self.dialog.loginUser.text()):
-                    print "setting repo login"
-                    print self.dialog.loginUser.text()
                     self.config.webRepositoryLogin = str(self.dialog.loginUser.text())
+                    pers_config = get_vistrails_persistent_configuration()
+                    pers_config.webRepositoryLogin = self.config.webRepositoryLogin
                     VistrailsApplication.save_configuration()
 
             # remove assiciation between VisTrails user and web repository user
             else:
-                print "save repo login unchecked"
                 if self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin:
-                    print "removing repo login"
                     self.config.webRepositoryLogin = ""
+                    pers_config = get_vistrails_persistent_configuration()
+                    pers_config.webRepositoryLogin = ""
                     VistrailsApplication.save_configuration()
 
         self.show_login_information()
