@@ -84,26 +84,49 @@ class HTTPFile(HTTP):
     def compute(self):
         self.checkInputPort('url')
         url = self.getInputFromPort("url")
+        (result, downloaded_file, local_filename) = self.download(url)
+        self.setResult("local_filename", local_filename)
+        if result == 2:
+            raise ModuleError(self, downloaded_file)
+        else:
+            self.setResult("file", downloaded_file)
+        
+    def download(self, url):
+        """download(url:string) -> (result: int, downloaded_file: File,
+                                    local_filename:string)
+        Tries to download a file from url. It returns a tuple with:
+        result: 0 -> success
+                1 -> couldn't download the file, but found a cached version
+                2 -> failed (in this case downloaded_file will contain the 
+                             error message)
+        downloaded_file: The downloaded file or the error message in case it
+                         failed
+                         
+        local_filename: the path to the local_filename
+        
+        """
+        
         self._parse_url(url)
 
         opener = urllib2.build_opener()
 
         local_filename = self._local_filename(url)
-        self.setResult("local_filename", local_filename)
-
+        
+        request = urllib2.Request(url)
         try:
-            request = urllib2.Request(url)
-        except (socket.gaierror, socket.error), e:
+            f1 = opener.open(url)
+        except urllib2.URLError, e:
             if self._file_is_in_local_cache(local_filename):
                 debug.warning(('A network error occurred. HTTPFile will use'
-                               ' cached version of file'))
+                                ' cached version of file'))
                 result = core.modules.basic_modules.File()
                 result.name = local_filename
-                self.setResult("file", result)
+                return (1, result, local_filename)
             else:
-                raise ModuleError(self, e[1])
+                return (2, (str(e)), local_filename)
+        except urllib2.HTTPError, e:
+            return (2,(str(e)), local_filename)
         else:
-            f1 = opener.open(url)
             mod_header = f1.info().getheader('last-modified')
             content_type = f1.info().getmaintype()
              
@@ -128,13 +151,13 @@ class HTTPFile(HTTP):
                     f1.close()
 
                 except IOError, e:
-                    raise ModuleError(self, ("Invalid URL: %s" % e))
+                    return (2, ("Invalid URL: %s" % e), local_filename)
                 except:
-                    raise ModuleError(self, ("Could not create local file '%s'" %
-                                             local_filename))
+                    return (2, ("Could not create local file '%s'" %
+                                             local_filename), local_filename)
             result.name = local_filename
-            self.setResult("file", result)
-    
+            return (0, result, local_filename)
+        
     ##########################################################################
 
     def _parse_url(self, url):
