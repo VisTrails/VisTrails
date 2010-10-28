@@ -105,7 +105,8 @@ class HTTPFile(HTTP):
         else:
             f1 = opener.open(url)
             mod_header = f1.info().getheader('last-modified')
-
+            content_type = f1.info().getmaintype()
+             
             result = core.modules.basic_modules.File()
             result.name = local_filename
 
@@ -113,8 +114,14 @@ class HTTPFile(HTTP):
                 not mod_header or
                 self._is_outdated(mod_header, local_filename)):
                 try:
-                    # For binary files on windows the mode have to be 'w+'
-                    mode = 'w'
+                    # For binary files on windows the mode has to be 'wb'
+                    if content_type in ['application', 
+                                        'audio', 
+                                        'image', 
+                                        'video']:
+                        mode = 'wb'
+                    else:
+                        mode = 'w'
                     f2 = open(local_filename, mode)
                     f2.write(f1.read())
                     f2.close()
