@@ -1298,17 +1298,19 @@ class RequestHandler(object):
     #vistrails
     def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
                     version=None,  pdf=False, vt_tag='',parameters='', is_local=True):
-        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
+        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
                                 (host, port, db_name, vt_id,
                                  path_to_figures, version, pdf,
-                                 vt_tag, parameters))
+                                 vt_tag, parameters, is_local))
 
         print self.path_exists_and_not_empty(path_to_figures)
         print self.proxies_queue
 
         if not is_local:
-            path_to_figures = os.path.join(media_dir, "wf_execution")
-            pass
+            # use same hashing as on crowdlabs webserver
+            dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
+            dest_version = hashlib.sha1(dest_version).hexdigest()
+            path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
 
         if (not self.path_exists_and_not_empty(path_to_figures) and
             self.proxies_queue is not None):
@@ -1319,7 +1321,7 @@ class RequestHandler(object):
                 self.server_logger.info("Sending request to %s" % proxy)
                 result = proxy.run_from_db(host, port, db_name, vt_id,
                                            path_to_figures, version, pdf, vt_tag,
-                                           parameters)
+                                           parameters, is_local)
                 self.proxies_queue.put(proxy)
                 self.server_logger.info("returning %s" % result)
                 return result
@@ -1329,12 +1331,13 @@ class RequestHandler(object):
 
         extra_info = {}
         extra_info['pathDumpCells'] = path_to_figures
+        self.server_logger.debug(path_to_figures)
         extra_info['pdf'] = pdf
         # execute workflow
         ok = True
-        if not self.path_exists_and_not_empty(extra_info ['pathDumpCells']):
-            if not os.path.exists(extra_info ['pathDumpCells']):
-                os.mkdir(extra_info ['pathDumpCells'])
+        if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
+            if not os.path.exists(extra_info['pathDumpCells']):
+                os.mkdir(extra_info['pathDumpCells'])
             result = ''
             if vt_tag !='':
                 version = vt_tag;
@@ -1360,7 +1363,6 @@ class RequestHandler(object):
                 ok = True
                 
                 for r in results:
-                    self.server_logger.debug(r)
                     (objs, errors, _) = (r.objects, r.errors, r.executed)
                     
                     for i in objs.iterkeys():
@@ -1630,7 +1632,7 @@ class RequestHandler(object):
                 proxy = self.proxies_queue.get()
                 try:
                     self.server_logger.info("Sending request to %s" % proxy)
-                    result = proxy.get_wf_graph_png(host, port, db_name, vt_id, version)
+                    result = proxy.get_wf_graph_png(host, port, db_name, vt_id, version, is_local)
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
@@ -1717,7 +1719,6 @@ class RequestHandler(object):
                 controller = VistrailController()
                 controller.set_vistrail(v, locator, abstractions, thumbnails)
                 from gui.version_view import QVersionTreeView
-                self.server_logger.debug(4)
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPNG(filename,1600)
@@ -1988,8 +1989,8 @@ class RequestHandler(object):
             return (str(e), 0)
 
     def get_vt_tagged_versions(self, host, port, db_name, vt_id, is_local=True):
-        self.server_logger.info("Request: get_vt_tagged_versions(%s,%s,%s,%s)" % \
-                                (host, port, db_name, vt_id))
+        self.server_logger.info("Request: get_vt_tagged_versions(%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id, is_local))
         try:
             locator = DBLocator(host=host,
                                 port=int(port),
@@ -2010,7 +2011,7 @@ class RequestHandler(object):
                         v.get_thumbnail(elem))
                 else:
                     thumbnail_fname = ""
-                if is_local or not thumbnail_fname:
+                if not thumbnail_fname or is_local:
                     result.append({'id': elem, 'name': tag,
                                    'notes': v.get_notes(elem) or '',
                                    'user':action_map.user or '',
