@@ -76,6 +76,9 @@ class StoppableXMLRPCServer(SimpleXMLRPCServer):
     global accessList
 
     allow_reuse_address = True
+    def __init__(self, addr, logger):
+        self.logger = logger
+        SimpleXMLRPCServer.__init__(self, addr)
 
     def serve_forever(self):
         self.stop = False
@@ -83,12 +86,12 @@ class StoppableXMLRPCServer(SimpleXMLRPCServer):
             self.handle_request()
 
     def verify_request(self, request, client_address):
-        print "Receiving request from ", client_address,
+        
         if client_address[0] in accessList:
-            print " allowed!"
+            self.logger.info("Request from %s allowed!"%str(client_address))
             return 1
         else:
-            print " denied!"
+            self.logger.info("Request from %s denied!"%str(client_address))
             return 0
 
 ################################################################################
@@ -107,9 +110,6 @@ class RequestHandler(object):
     def __init__(self, logger, instances):
         self.server_logger = logger
         self.instances = instances
-        self.medley_objs = {}
-        self.load_medleys()
-        self.build_vt_medleys_map()
         self.proxies_queue = None
         self.instantiate_proxies()
 
@@ -404,650 +404,7 @@ class RequestHandler(object):
             return (str(e), 0)
 
     #medleys
-    def build_vt_medleys_map(self):
-        self.medleys_map = {}
-        self.medleys = {}
-        for (m_id,m) in self.medley_objs.iteritems():
-            medley = {}
-            medley['id'] = m_id
-            medley['name'] = m._name
-            self.medleys[str(m_id)] = m._name
-            if self.medleys_map.has_key((m._vtid,m._version)):
-                self.medleys_map[(m._vtid,m._version)].append(medley)
-            else:
-                self.medleys_map[(m._vtid,m._version)] = [medley]
-        print self.medleys
-        print self.medleys_map.keys()
-
-
-    def load_medleys(self):
-        #we will hard code for now
-        #medley "Climatology"
-        alias_list = {}
-        component = ComponentSimpleGUI(39,1,"Parameter","bool", val="True",
-                                       widget="checkbox")
-        alias = AliasSimpleGUI(39, "yearly", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(40,2,"Parameter","bool", val="False",
-                                       widget="checkbox")
-        alias = AliasSimpleGUI(40, "show_surface", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(41,3,"Parameter","bool", val="False",
-                                       widget="checkbox")
-        alias = AliasSimpleGUI(41, "show_anomaly", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(42,4,"Parameter","int", val="14",
-                                       strvalueList="14,16",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(42, "db",component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(43,5,"Parameter","int", val="8", minVal="1",
-                                       maxVal="12", stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(43, "month",component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(44,6,"Parameter","int", val="1999",
-                                       minVal="1999", maxVal="2007",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(44, "from_year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(45,7,"Parameter","int", val="2007",
-                                       minVal="1999", maxVal="2009",
-                                       stepSize="1", widget="numericstepper")
-        alias = AliasSimpleGUI(45, "to_year", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(6, "Climatology", 16, 91, alias_list, 'vistrail')
-        self.medley_objs[6] = medley
-
-        #medley "Stars"
-        alias_list = {}
-
-        component = ComponentSimpleGUI(51,1,"Parameter","float", val="-0.041",
-                                       strvalueList="-0.06,-0.041,-0.02,0.00,0.02",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(51, "omega_frame", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(52,2,"Parameter","float", val="0.001")
-        alias = AliasSimpleGUI(52, "rho_min", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(53,3,"Parameter","float", val="3.2",
-                                       minVal="1", maxVal="10", stepSize="0.1")
-        alias = AliasSimpleGUI(53, "propagation_time", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(8, "Stars", 15, 1,
-                                 alias_list, 'vistrail')
-        self.medley_objs[8] = medley
-
-        #medley "Estuary"
-        alias_list = {}
-
-        component = ComponentSimpleGUI(59,1,"Parameter","int", val="11",
-                                       minVal="11", maxVal="11",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(59, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(60,2,"Parameter","int", val="7",
-                                       minVal="6", maxVal="7",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(60, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(61,3,"Parameter","int", val="2009",
-                                       minVal="2009", maxVal="2009",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(61, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(62,4,"Parameter","float", val="1",
-                                       strvalueList="1,5,10,20",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(62, "Plane Depth", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(63,5,"Parameter","float", val="1",
-                                       minVal="1", maxVal="3", stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(63, "Run Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(64,6,"Parameter","int", val="20",
-                                       minVal="1", maxVal="71", stepSize="10",
-                                       widget="slider", seq=True)
-        alias = AliasSimpleGUI(64, "Run Timestep", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(65,7,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Run Scalars", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(9, "Estuary", 19, 47,
-                                 alias_list, 'vistrail')
-        self.medley_objs[9] = medley
-
-        #medley "Plume"
-        alias_list = {}
-
-        component = ComponentSimpleGUI(59,1,"Parameter","int", val="11",
-                                       minVal="11", maxVal="11",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(59, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(60,2,"Parameter","int", val="7",
-                                       minVal="6", maxVal="7",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(60, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(61,3,"Parameter","int", val="2009",
-                                       minVal="2009", maxVal="2009",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(61, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(62,4,"Parameter","float", val="1",
-                                       strvalueList="1,5,10,20",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(62, "Plane Depth", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(63,5,"Parameter","float", val="1",
-                                       minVal="1", maxVal="3", stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(63, "Run Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(64,6,"Parameter","int", val="20",
-                                       minVal="1", maxVal="71", stepSize="10",
-                                       widget="slider", seq=True)
-        alias = AliasSimpleGUI(64, "Run Timestep", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(65,7,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Run Scalars", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(10, "Plume", 19, 78,
-                                 alias_list, 'vistrail')
-        self.medley_objs[10] = medley
-
-        #medley "Mouth"
-        # alias_list = {}
-
-        # component = ComponentSimpleGUI(64,1,"Parameter","float", val="3",
-        #                                strvalueList="1,3,7,12",
-        #                                widget="combobox")
-        # alias = AliasSimpleGUI(64, "Plane Depth", component=component)
-        # alias_list[alias._name] = alias
-
-        # component = ComponentSimpleGUI(65,2,"Parameter","string",
-        #                    val="/home/workspace/ccalmr/hindcasts/2004-12-16/run/",
-        #                    widget="text")
-        # alias = AliasSimpleGUI(65, "Run Directory", component=component)
-        # alias_list[alias._name] = alias
-
-        # component = ComponentSimpleGUI(66,3,"Parameter","float", val="7",
-        #                                minVal="1", maxVal="7", stepSize="1",
-        #                                widget="numericstepper")
-        # alias = AliasSimpleGUI(66, "Run Day", component=component)
-        # alias_list[alias._name] = alias
-
-        # component = ComponentSimpleGUI(67,4,"Parameter","int", val="20",
-        #                                minVal="1", maxVal="90", stepSize="5",
-        #                                widget="slider", seq=True)
-        # alias = AliasSimpleGUI(67, "Run Timestep", component=component)
-        # alias_list[alias._name] = alias
-
-        # component = ComponentSimpleGUI(68,5,"Parameter","string", val="salt",
-        #                                strvalueList="salt,temp",
-        #                                widget="combobox")
-        # alias = AliasSimpleGUI(68, "Run Scalars", component=component)
-        # alias_list[alias._name] = alias
-
-        # medley = MedleySimpleGUI(11, "Mouth", 13, 486,
-        #                          alias_list, 'vistrail')
-        # self.medley_objs[11] = medley
-
-        #medley effn7 timeseries
-        alias_list = {}
-
-        component = ComponentSimpleGUI(69,1,"Parameter","int", val="11",
-                                       minVal="11", maxVal="11",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(69, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(70,2,"Parameter","int", val="6",
-                                       minVal="6", maxVal="7",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(70, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(71,3,"Parameter","int", val="2009",
-                                       minVal="2009", maxVal="2009",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(71, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(72,4,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(72, "variable", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(12, "effn7 timeseries", 13, 622,
-                                 alias_list, 'vistrail')
-        self.medley_objs[12] = medley
-
-        #medley elevation
-        alias_list = {}
-
-        component = ComponentSimpleGUI(69,1,"Parameter","int", val="11",
-                                       minVal="11", maxVal="11",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(69, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(70,2,"Parameter","int", val="6",
-                                       minVal="6", maxVal="7",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(70, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(71,3,"Parameter","int", val="2009",
-                                       minVal="2009", maxVal="2009",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(71, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(72,4,"Parameter","string", val="effn7",
-                                       strvalueList="am169,effn1,effn2,effn3,effn4,effn5,effn6,effn7",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(72, "station", component=component)
-        alias_list[alias._name] = alias
-
-
-        medley = MedleySimpleGUI(13, "elevation", 18, 5,
-                                 alias_list, 'vistrail')
-        self.medley_objs[13] = medley
-
-        #medley effn1 timeseries
-        alias_list = {}
-
-        component = ComponentSimpleGUI(69,1,"Parameter","int", val="11",
-                                       minVal="11", maxVal="11",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(69, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(70,2,"Parameter","int", val="6",
-                                       minVal="6", maxVal="7",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(70, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(71,3,"Parameter","int", val="2009",
-                                       minVal="2009", maxVal="2009",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(71, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(72,4,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(72, "variable", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(14, "effn1 timeseries", 18, 15,
-                                 alias_list, 'vistrail')
-        self.medley_objs[14] = medley
-
-        #medley effn2 timeseries
-        alias_list = {}
-
-        component = ComponentSimpleGUI(69,1,"Parameter","int", val="11",
-                                       minVal="11", maxVal="11",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(69, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(70,2,"Parameter","int", val="6",
-                                       minVal="6", maxVal="7",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(70, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(71,3,"Parameter","int", val="2009",
-                                       minVal="2009", maxVal="2009",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(71, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(72,4,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(72, "variable", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(15, "effn2 timeseries", 18, 16,
-                                 alias_list, 'vistrail')
-        self.medley_objs[15] = medley
-
-        #medley am169 timeseries
-        alias_list = {}
-
-        component = ComponentSimpleGUI(69,1,"Parameter","int", val="11",
-                                       minVal="11", maxVal="11",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(69, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(70,2,"Parameter","int", val="6",
-                                       minVal="6", maxVal="7",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(70, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(71,3,"Parameter","int", val="2009",
-                                       minVal="2009", maxVal="2009",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(71, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(72,4,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(72, "variable", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(16, "am169 timeseries", 18, 17,
-                                 alias_list, 'vistrail')
-        self.medley_objs[16] = medley
-
-        #medley "Estuary"
-        alias_list = {}
-
-        component = ComponentSimpleGUI(59,1,"Parameter","int", val="3",
-                                       minVal="3", maxVal="3",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(59, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(60,2,"Parameter","int", val="4",
-                                       minVal="4", maxVal="10",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(60, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(61,3,"Parameter","int", val="2008",
-                                       minVal="2008", maxVal="2008",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(61, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(62,4,"Parameter","int", val="1",
-                                       minVal="0", maxVal="23", stepSize="1",
-                                       widget="slider", seq=True)
-        alias = AliasSimpleGUI(62, "Time (in hours)", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(65,7,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Run Scalars", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(17, "Surface Estuary by Date (DB16)", 23, 331,
-                                 alias_list, 'vistrail')
-        self.medley_objs[17] = medley
-
-        #medley "Estuary 2"
-        alias_list = {}
-
-        component = ComponentSimpleGUI(59,1,"Parameter","int", val="3",
-                                       minVal="3", maxVal="3",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(59, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(60,2,"Parameter","int", val="4",
-                                       minVal="4", maxVal="10",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(60, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(61,3,"Parameter","int", val="2008",
-                                       minVal="2008", maxVal="2008",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(61, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(62,4,"Parameter","int", val="1",
-                                       minVal="0", maxVal="23", stepSize="1",
-                                       widget="slider", seq=True)
-        alias = AliasSimpleGUI(62, "Time (in hours)", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(65,7,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Run Scalars", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(18, "New Surface Estuary by Date (DB16)", 24, 14,
-                                 alias_list, 'vistrail')
-        self.medley_objs[18] = medley
-
-        #medley Estuary DB16
-        alias_list = {}
-
-        component = ComponentSimpleGUI(59,1,"Parameter","int", val="3",
-                                       minVal="3", maxVal="3",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(59, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(60,2,"Parameter","int", val="4",
-                                       minVal="4", maxVal="10",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(60, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(61,3,"Parameter","int", val="2008",
-                                       minVal="2008", maxVal="2008",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(61, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(62,6,"Parameter","int", val="1",
-                                       minVal="0", maxVal="23", stepSize="1",
-                                       widget="slider", seq=True)
-        alias = AliasSimpleGUI(62, "Time (in hours)", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(65,4,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Run Scalars", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(66,5,"Parameter","string", val="Surface",
-                                       strvalueList="Bottom,Surface",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Depth", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(19, "Estuary by Date (DB16)", 26, 19,
-                                 alias_list, 'vistrail')
-        self.medley_objs[19] = medley
-
-        #medley Estuary DB14
-        alias_list = {}
-
-        component = ComponentSimpleGUI(59,1,"Parameter","int", val="3",
-                                       minVal="3", maxVal="3",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(59, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(60,2,"Parameter","int", val="4",
-                                       minVal="4", maxVal="10",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(60, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(61,3,"Parameter","int", val="2008",
-                                       minVal="2008", maxVal="2008",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(61, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(62,6,"Parameter","int", val="1",
-                                       minVal="0", maxVal="23", stepSize="1",
-                                       widget="slider", seq=True)
-        alias = AliasSimpleGUI(62, "Time (in hours)", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(65,4,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Run Scalars", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(66,5,"Parameter","string", val="Surface",
-                                       strvalueList="Bottom,Surface",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Depth", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(20, "Estuary by Date (DB14)", 26, 27,
-                                 alias_list, 'vistrail')
-        self.medley_objs[20] = medley
-
-        #medley Estuary f22
-        alias_list = {}
-
-        component = ComponentSimpleGUI(59,1,"Parameter","int", val="3",
-                                       minVal="3", maxVal="3",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(59, "Month", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(60,2,"Parameter","int", val="3",
-                                       minVal="3", maxVal="3",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(60, "Day", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(61,3,"Parameter","int", val="2010",
-                                       minVal="2010", maxVal="2010",stepSize="1",
-                                       widget="numericstepper")
-        alias = AliasSimpleGUI(61, "Year", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(62,7,"Parameter","int", val="1",
-                                       minVal="0", maxVal="23", stepSize="1",
-                                       widget="slider", seq=True)
-        alias = AliasSimpleGUI(62, "Time (in hours)", component=component)
-
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(65,4,"Parameter","string", val="salt",
-                                       strvalueList="salt,temp",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Run Scalars", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(66,5,"Parameter","string", val="Surface",
-                                       strvalueList="Bottom,Surface",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(65, "Depth", component=component)
-        alias_list[alias._name] = alias
-
-        component = ComponentSimpleGUI(67,6,"Parameter","string", val="1",
-                                       minVal="", maxVal="", stepSize="",
-                                       strvalueList="1,2,3",
-                                       widget="combobox")
-        alias = AliasSimpleGUI(67, "Run Day", component=component)
-        alias_list[alias._name] = alias
-
-        medley = MedleySimpleGUI(21, "Estuary by Date (f22)", 26, 106,
-                                 alias_list, 'vistrail')
-        self.medley_objs[21] = medley
-
-        print "medleys loaded..."
-
-    def getMedleys(self):
-        self.server_logger.info("getMedleys request received")
-        res = []
-        for k,v in self.medley_objs.iteritems():
-            medley = {}
-            medley['id'] = k
-            medley['name'] = v._name
-            res.append(medley)
-
-        self.server_logger.info("returning %s" % res)
-        return res
-
-    def getMedleysXML(self):
-        self.server_logger.info("getMedleysXML request received")
-        print "getMedleysXML request received"
-        res = '<medleys>'
-        for k,v in self.medley_objs.iteritems():
-            res += '<medley id="%s" name="%s" />'% (k,v._name)
-        res += '</medleys>'
-        self.server_logger.info("returning %s" % res)
-        print "returning %s" % res
-        return res
-
-    def getMedleyById(self, m_id):
-        self.server_logger.info("getMedleyById(%s) request received" % m_id)
-        print "getMedleyById(%s) request received" % m_id
-        try:
-            m_id = int(m_id)
-        except Exception, e:
-            print "getmedley ", str(e)
-            return None
-        try:
-            root = self.medley_objs[m_id].to_xml()
-        except Exception, e:
-            print str(e)
-        msg = ElementTree.tostring(root)
-        self.server_logger.info("returning %s" % msg)
-        return msg
-
-    def get_vt_from_medley(self, m_id):
-        self.server_logger.info("get_vt_from_medley(%s) request received" % m_id)
-        result = []
-        try:
-            m_id = int(m_id)
-        except Exception, e:
-            print "getmedley ", str(e)
-            return None
-        try:
-            medley = self.medley_objs[m_id]
-            result = '<medley vtid="%s" version="%s" />'% (medley._vtid,
-                                                           medley._version)
-        except Exception, e:
-            self.server_logger.error(str(e))
-        self.server_logger.info("returning %s" % result)
-        return result
-
+    
     def executeMedley(self, xml_medley, extra_info=None):
         self.server_logger.info("executeMedley request received")
         try:
@@ -1057,7 +414,10 @@ class RequestHandler(object):
             try:
                 medley = MedleySimpleGUI.from_xml(root)
             except:
-                traceback.print_exc()
+                #even if this error occurred there's still a chance of
+                # recovering from it... (the server can find cached images)
+                self.server_logger.error("couldn't instantiate medley")
+
             self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             result = ""
             subdir = hashlib.sha224(xml_string).hexdigest()
@@ -1078,7 +438,7 @@ class RequestHandler(object):
                     return result
                 except Exception, e:
                     self.server_logger.error(str(e))
-                    return ""
+                    return (str(e), 0)
 
             if extra_info is None:
                 extra_info = {}
@@ -1092,7 +452,7 @@ class RequestHandler(object):
             if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
                 if not os.path.exists(extra_info['pathDumpCells']):
                     os.mkdir(extra_info['pathDumpCells'])
-                self.server_logger.info(xml_string)
+                
                 if medley._type == 'vistrail':
                     locator = DBLocator(host=db_host,
                                         port=3306,
@@ -1124,7 +484,7 @@ class RequestHandler(object):
                                         s_alias += "%s=%s$&$" % (k2,v2._component._val)
                                 if s_alias != '':
                                     s_alias = s_alias[:-3]
-                                    print "Aliases: ", s_alias
+                                    self.server_logger.info("Aliases: %s" % s_alias)
                                 try:
                                     gc.collect()
                                     results = \
@@ -1132,22 +492,22 @@ class RequestHandler(object):
                                                     [(locator,int(workflow))],
                                                     s_alias,
                                                     extra_info=extra_info)
-                                    print self.memory_usage()
+                                    self.server_logger.info("Memory usage: %s"% self.memory_usage())
                                     interpreter.cached.CachedInterpreter.flush()
                                 except Exception, e:
                                     self.server_logger.error(str(e))
-
+                                    return (str(e), 0)
                                 ok = True
                                 for r in results:
                                     (objs, errors, _) = (r.objects, r.errors, r.executed)
                                     for e in errors.itervalues():
-                                        print "Error: ", str(e)
+                                        self.server_logger.error("Module failed: %s"% str(e))
                                     for i in objs.iterkeys():
                                         if errors.has_key(long(i)):
                                             ok = False
                                             result += str(errors[i])
                                 if ok:
-                                    print "renaming files ... "
+                                    self.server_logger.info("renaming files")
                                     for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
                                         break
                                     n = len(file_names)
@@ -1173,7 +533,7 @@ class RequestHandler(object):
                                 s_alias += "%s=%s$&$" % (k,v._component._val)
                         if s_alias != '':
                             s_alias = s_alias[:-3]
-                            print "Aliases: ", s_alias
+                            self.server_logger.info("Not sequence aliases: %s"% s_alias)
                         try:
                             results = \
                                core.console_mode.run_and_get_results( \
@@ -1182,7 +542,7 @@ class RequestHandler(object):
                                                     extra_info=extra_info)
                         except Exception, e:
                             self.server_logger.error(str(e))
-
+                            return (str(e), 0)
                         ok = True
                         for r in results:
                             (objs, errors, _) = (r.objects, r.errors, r.executed)
@@ -1216,7 +576,7 @@ class RequestHandler(object):
 
             if ok:
                 s = []
-                print "images path: ", extra_info['pathDumpCells']
+                self.server_logger.info("images path: %s"%extra_info['pathDumpCells'])
                 for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
                     sub = []
                     #n = len(file_names)
@@ -1229,71 +589,10 @@ class RequestHandler(object):
                 result = ":::".join(s)
                 # FIXME: copy images to extra_path
             self.server_logger.info("returning %s" % result)
-            return result
+            return (result, 1)
         except Exception, e:
             self.server_logger.error(str(e))
-
-    def getMedleysUsingWorkflow(self, vt_id, workflow):
-        self.server_logger.info("Request: getMedleyMedleysUsingWorkflow(%s,%s)" % \
-                                (vt_id, workflow))
-        try:
-            vt_id = int(vt_id)
-            workflow = int(workflow)
-        except Exception, e:
-            self.server_logger.error(str(e))
-            return []
-        try:
-            res = self.medleys_map[(vt_id,workflow)]
-        except KeyError, e:
-            res = []
-
-        self.server_logger.info("returning %s" % res)
-
-        return res
-
-    def getMedleysUsingVistrail(self, vt_id):
-        self.server_logger.info( \
-            "getMedleyMedleysUsingVistrail(%s) request received" % vt_id)
-        try:
-            vt_id = int(vt_id)
-        except Exception, e:
-            self.server_logger.error(str(e))
-            return []
-        res = []
-        for (key,m_list) in self.medleys_map.iteritems():
-            if key[0] == vt_id:
-                res.extend(m_list)
-
-        self.server_logger.info("returning %s" % res)
-
-        return res
-
-    def add_medley_to_db(self, host, port, db_name, medley_name, medley_xmlstr, vt_id,
-                         wf_id):
-        config = {
-                  'host': str(host),
-                  'port': int(port),
-                  'user': db_write_user,
-                  'passwd': db_write_pass,
-                  'db': str(db_name)
-                  }
-        conn = db.services.io.open_db_connection(config)
-        command = """INSERT INTO medley (name, xml, vt_id, wf_id)
-        VALUES (%s, %s, %s, %s)
-        """
-        result = -1
-        try:
-            c = conn.cursor()
-            c.execute(command % (medley_name, medley_xmlstr,vt_id, wf_id))
-            rows = c.fetchall()
-            result = rows
-            c.close()
-            close_db_connection(db)
-
-        except Exception, e:
-            self.server_logger.error("Couldn't add medley to the database: %s" % str(e))
-
-        return result
+            return (str(e), 0)
 
     #vistrails
     def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
@@ -1303,8 +602,8 @@ class RequestHandler(object):
                                  path_to_figures, version, pdf,
                                  vt_tag, parameters, is_local))
 
-        print self.path_exists_and_not_empty(path_to_figures)
-        print self.proxies_queue
+        self.server_logger.info("path_exists_and_not_empty? %s" % self.path_exists_and_not_empty(path_to_figures))
+        self.server_logger.info(str(self.proxies_queue))
 
         if not is_local:
             # use same hashing as on crowdlabs webserver
@@ -1333,6 +632,7 @@ class RequestHandler(object):
         extra_info['pathDumpCells'] = path_to_figures
         self.server_logger.debug(path_to_figures)
         extra_info['pdf'] = pdf
+        self.server_logger.debug("pdf: %s" % pdf)
         # execute workflow
         ok = True
         if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
@@ -1377,6 +677,7 @@ class RequestHandler(object):
             if is_local:
                 return (1, 1)
             else:
+                # TODO pdf version
                 images = [im for im in os.listdir(path_to_figures) if im[-3:] == "png"]
                 results = {}
                 for image in images:
@@ -1564,7 +865,7 @@ class RequestHandler(object):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
-                    result = proxy.get_wf_graph_pdf(host,port,db_name, vt_id, version)
+                    result = proxy.get_wf_graph_pdf(host,port,db_name, vt_id, version, is_local)
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("get_wf_graph_pdf returning %s"% result)
                     return result
@@ -1735,144 +1036,6 @@ class RequestHandler(object):
         except Exception, e:
             self.server_logger.error("Error when saving png: %s" % str(e))
             return (str(e), 0)
-
-    def getPDFWorkflowMedley(self, m_id, is_local=True):
-        """getPDFWorkflowMedley(m_id:int) -> str
-        Returns the relative url to the generated image
-        """
-        self.server_logger.info("getPDFWorkflowMedley(%s) request received" % m_id)
-        try:
-            m_id = int(m_id)
-            medley = self.medley_objs[m_id]
-        except Exception, e:
-            self.server_logger.error(str(e))
-
-        try:
-            locator = DBLocator(host=db_host,
-                                port=3306,
-                                database='vistrails',
-                                user='vtserver',
-                                passwd='',
-                                obj_id=medley._vtid,
-                                obj_type=None,
-                                connection_id=None)
-
-            version = long(medley._version)
-            subdir = os.path.join('workflows',
-                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-            filepath = os.path.join(media_dir, 'medleys/images', subdir)
-            base_fname = "%s_%s.pdf" % (str(locator.short_name), version)
-            filename = os.path.join(filepath,base_fname)
-            if ((not os.path.exists(filepath) or
-                os.path.exists(filepath) and not os.path.exists(filename))
-                and self.proxies_queue is not None):
-                #this server can send requests to other instances
-                proxy = self.proxies_queue.get()
-                try:
-                    self.server_logger("Sending request to %s" % proxy)
-                    result = proxy.getPDFWorkflowMedley(m_id)
-                    self.proxies_queue.put(proxy)
-                    self.server_logger.info("returning %s" % result)
-                    return result
-                except Exception, e:
-                    self.server_logger.error(str(e))
-                    return (str(e), 0)
-
-            if not os.path.exists(filepath):
-                os.mkdir(filepath)
-
-            if not os.path.exists(filename):
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
-                controller.change_selected_version(version)
-
-                p = controller.current_pipeline
-                from gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPDF(filename)
-                del pipeline_view
-            else:
-                self.server_logger.info("found cached pdf: %s" % filename)
-            if is_local:
-                return (os.path.join(subdir,base_fname), 1)
-            else:
-                f = open(filename, 'rb')
-                contents = f.read()
-                f.close()
-                return (xmlrpclib.Binary(contents), 1)
-        except Exception, e:
-            self.server_logger.error("Error when saving pdf: %s" % str(e))
-            return (str(e), 0)
-
-    def getPNGWorkflowMedley(self, m_id, is_local=True):
-        self.server_logger.info("getPNGWorkflowMedley(%s) request received" % m_id)
-        try:
-            m_id = int(m_id)
-            medley = self.medley_objs[m_id]
-        except Exception, e:
-            self.server_logger.error(str(e))
-
-        try:
-            locator = DBLocator(host=db_host,
-                                port=3306,
-                                database='vistrails',
-                                user=db_read_user,
-                                passwd=db_read_pass,
-                                obj_id=medley._vtid,
-                                obj_type=None,
-                                connection_id=None)
-
-            version = long(medley._version)
-            subdir = os.path.join('workflows',
-                     hashlib.sha224("%s_%s"%(str(locator),version)).hexdigest())
-            filepath = os.path.join(media_dir, 'medleys/images', subdir)
-            base_fname = "%s_%s.png" % (str(locator.short_name), version)
-            filename = os.path.join(filepath,base_fname)
-
-            if ((not os.path.exists(filepath) or
-                os.path.exists(filepath) and not os.path.exists(filename))
-                and self.proxies_queue is not None):
-                #this server can send requests to other instances
-                proxy = self.proxies_queue.get()
-                try:
-                    self.server_logger.info("Sending request to %s" % proxy)
-                    result = proxy.getPNGWorkflowMedley(m_id)
-                    self.proxies_queue.put(proxy)
-                    self.server_logger.info("returning %s"% result)
-                    return result
-                except Exception, e:
-                    self.server_logger.error(str(e))
-                    return (str(e), 0)
-            #if it gets here, this means that we will execute on this instance
-            if not os.path.exists(filepath):
-                os.mkdir(filepath)
-
-            if not os.path.exists(filename):
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
-                controller.change_selected_version(version)
-
-                p = controller.current_pipeline
-                from gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPNG(filename)
-                del pipeline_view
-            else:
-                self.server_logger.info("Found cached image: %s" % filename)
-            if is_local:
-                return (os.path.join(subdir,base_fname), 1)
-            else:
-                f = open(filename, 'rb')
-                contents = f.read()
-                f.close()
-                return (xmlrpclib.Binary(contents), 1)
-        except Exception, e:
-            self.server_logger.error("Error when saving png: %s" % str(e))
-        return (str(e), 0)
 
     def get_vt_zip(self, host, port, db_name, vt_id):
         """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
@@ -2323,9 +1486,9 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
     def make_logger(self, filename):
         """self.make_logger(filename:str) -> logger. Creates a logging object to
         be used for the server so we can log requests in file f."""
-        f = open(filename, 'a')
         logger = logging.getLogger("VistrailsRPC")
-        handler = logging.StreamHandler(f)
+        handler = logging.handlers.RotatingFileHandler(filename, maxBytes = 1024*1024,
+                                                       backupCount=5)
         handler.setFormatter(logging.Formatter('VisTrails RPC - %(asctime)s %(levelname)-8s %(message)s'))
         handler.setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
@@ -2492,16 +1655,18 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         via xml-rpc.
 
         """
-        print "Server is running on http://%s:%s"%(self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port),
+        self.server_logger.info("Server is running on http://%s:%s"%(self.temp_xml_rpc_options.server,
+                                                   self.temp_xml_rpc_options.port))
         if self.temp_xml_rpc_options.multithread:
             self.rpcserver = ThreadedXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port))
-            print " multithreaded"
+                                                   self.temp_xml_rpc_options.port),
+                                                  self.server_logger)
+            self.server_logger.info("    multithreaded instance")
         else:
             self.rpcserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port))
-            print " singlethreaded"
+                                                   self.temp_xml_rpc_options.port),
+                                                   self.server_logger)
+            self.server_logger.info("    singlethreaded instance")
         #self.rpcserver.register_introspection_functions()
         self.rpcserver.register_instance(RequestHandler(self.server_logger,
                                                         self.others))
