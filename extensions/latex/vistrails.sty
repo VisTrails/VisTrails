@@ -30,7 +30,7 @@
 %% keyval package allows us to define arguments in a command as key-value pairs,
 %%  which is more convenient
 
-\RequirePackage{graphicx,keyval}
+\RequirePackage{graphicx,keyval,ifthen}
 
 %% This is to hide the border of the included image
 \RequirePackage[pdfborder={0 0 0}]{hyperref}
@@ -41,35 +41,99 @@
 %% by default we will run vistrails on the web server
 \newcommand{\vistrailspath}{http://www.vistrails.org/extensions/run_vistrails.php}
 
+%% url for downloading the vistrails linked from the images
+%% leave it empty if you don't want to embed a link in the pdf
+\newcommand{\vistrailsdownload}{http://www.vistrails.org/extensions/download.php}
+
 %% full path to python or just python if it is on PATH
 \newcommand{\vistrailspythonpath}{python}
 
 %% this is for allowing line breaks, empty values in vistrails command's options
 \def\vistrail{\kernel@ifnextchar [{\@vistrail}{\@vistrail[]}}
-
 \def\@vistrail[#1]#2{%
-\immediate\openout\pythonincludein=\jobname.cmdline
-\immediate\write\pythonincludein{path=\vistrailspath}
-\setkeys{vt}{#1}
-\ifx\@empty#2\@empty
-    \immediate\write\pythonincludein{other=}
-\else
-    \immediate\write\pythonincludein{other=\string#2}
-\fi
-\immediate\closeout\pythonincludein
-\immediate\write18{\vistrailspythonpath \space includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
-\immediate\input\jobname.cmdline.out
-}
 
+%% macros that will be used
+\def\vthost{vistrails.sci.utah.edu}
+\def\vtdb{vistrails}
+\def\vtvtid{}
+\def\vttag{}
+\def\vtport{3306}
+\def\vtbuildalways{false}
+\def\vtexecute{false}
+\def\vtshowspreadsheetonly{false}
+\def\vtpdf{false}
+\def\vtworkflow{false}
+\def\vttree{false}
+\newread\myinput
+%% We use '\jobname_python.temp' to store if python is present
+\immediate\write18{type -P \vistrailspythonpath > \jobname.python.temp}
+\immediate\openin\myinput=\jobname.python.temp
+% The group localizes the change to \endlinechar
+\bgroup
+  \endlinechar=-1
+  \immediate\read\myinput to \localline
+  % Since everything in the group is local, we have to explicitly make the
+  % assignment global
+  \global\let\pythonexists\localline
+\egroup
+\immediate\closein\myinput
+% Clean up after ourselves
+\immediate\write18{rm -f -- \jobname.python.temp}
+
+\setkeys{vt}{#1}
+\ifthenelse{\equal{\vtpdf}{true}}{\def\vttype{pdf}}{\def\vttype{png}}
+\ifthenelse{\equal{\pythonexists}{}}{%
+  % python does not exist. Include images directly
+  \ifthenelse{\equal{\vttree}{true}}{%
+  % include version tree image
+    \immediate\input cached/\vthost\string_\vtdb\string_\vtport\string_\vtvtid\string_\vttype.tex
+   }
+   {% else test if don't include the workflow graph
+    \ifthenelse{\equal{\vtworkflow}{false}}{% 
+        \immediate\input cached/\vthost\string_\vtdb\string_\vtport\string_\vtvtid\string_\vtversion\string_\vttype.tex
+     }
+     {% else include workflow graph
+        \immediate\input cached/\vthost\string_\vtdb\string_\vtport\string_\vtvtid\string_\vtversion\string_\vttype\string_graph.tex
+    }
+   }
+  }
+ { %else prepare input file for includevistrail.py
+    \immediate\openout\pythonincludein=\jobname.cmdline
+    \immediate\write\pythonincludein{path=\vistrailspath}
+    \immediate\write\pythonincludein{download=\vistrailsdownload}
+    \immediate\write\pythonincludein{host=\vthost}
+    \immediate\write\pythonincludein{db=\vtdb}
+    \immediate\write\pythonincludein{vtid=\vtvtid}
+    \immediate\write\pythonincludein{version=\vtversion}
+    \immediate\write\pythonincludein{tag=\vttag}
+    \immediate\write\pythonincludein{port=\vtport}
+    \immediate\write\pythonincludein{buildalways=\vtbuildalways}
+    \immediate\write\pythonincludein{execute=\vtexecute}
+    \immediate\write\pythonincludein{showspreadsheetonly=\vtshowspreadsheetonly}
+    \immediate\write\pythonincludein{pdf=\vtpdf}
+    \immediate\write\pythonincludein{workflow=\vtworkflow}
+    \immediate\write\pythonincludein{tree=\vttree}
+    \ifx\@empty#2\@empty
+        \immediate\write\pythonincludein{other=}
+    \else
+        \immediate\write\pythonincludein{other=\string#2}
+    \fi
+    \immediate\closeout\pythonincludein
+    \immediate\write18{\vistrailspythonpath \space includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
+    \immediate\input\jobname.cmdline.out
+}
+}
 %% key-value pairs for the command's options
-\define@key{vt}{host}[vistrails.sci.utah.edu]{\immediate\write\pythonincludein{host=\string#1}}
-\define@key{vt}{db}[vistrails]{\immediate\write\pythonincludein{db=\string#1}}
-\define@key{vt}{vtid}{\immediate\write\pythonincludein{vtid=\string#1}}
-\define@key{vt}{version}{\immediate\write\pythonincludein{version=\string#1}}
-\define@key{vt}{tag}[]{\immediate\write\pythonincludein{tag=\string#1}}
-\define@key{vt}{port}[3306]{\immediate\write\pythonincludein{port=\string#1}}
-\define@key{vt}{buildalways}[true]{\immediate\write\pythonincludein{buildalways=\string#1}}
-\define@key{vt}{execute}[true]{\immediate\write\pythonincludein{execute=\string#1}}
-\define@key{vt}{showspreadsheetonly}[true]{\immediate\write\pythonincludein{showspreadsheetonly=\string#1}}
-\define@key{vt}{pdf}[true]{\immediate\write\pythonincludein{pdf=\string#1}}
+\define@key{vt}{host}[vistrails.sci.utah.edu]{\def\vthost{#1}}
+\define@key{vt}{db}[vistrails]{\def\vtdb{#1}}
+\define@key{vt}{vtid}{\def\vtvtid{#1}}
+\define@key{vt}{version}{\def\vtversion{#1}}
+\define@key{vt}{tag}[]{\def\vttag{#1}}
+\define@key{vt}{port}[3306]{\def\vtport{#1}}
+\define@key{vt}{buildalways}[true]{\def\vtbuildalways{#1}}
+\define@key{vt}{execute}[true]{\def\vtexecute{#1}}
+\define@key{vt}{showspreadsheetonly}[true]{\def\vtshowspreadsheetonly{#1}}
+\define@key{vt}{pdf}[true]{\def\vtpdf{#1}}
+\define@key{vt}{showworkflow}[true]{\def\vtworkflow{#1}}
+\define@key{vt}{showtree}[true]{\def\vttree{#1}}
 
