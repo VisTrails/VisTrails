@@ -1,6 +1,10 @@
 RELEASE NOTES
 -------------
-Release Name: v1.5.1 build 1863
+Release Name: v1.6 beta
+
+TODO!
+
+From Release: v1.5.1 build 1863
 
 Enhancements: 
  - branching is now supported when uploading to web repositories (r1853)
