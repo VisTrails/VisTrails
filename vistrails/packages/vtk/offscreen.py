@@ -24,6 +24,7 @@ import vtk
 from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import Module
 from core.modules.basic_modules import File, Integer
+from core import system
 
 class VTKRenderOffscreen(Module):
 
@@ -35,8 +36,17 @@ class VTKRenderOffscreen(Module):
         window.OffScreenRenderingOn()
         window.SetSize(w, h)
         # r.ResetCamera()
+
+        widget = None
+        if system.systemType=='Darwin':
+            from PyQt4 import QtCore, QtGui
+            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            widget.resize(w, h)
+            widget.show()
+            window.SetWindowInfo(str(int(widget.winId())))    
+       
         window.AddRenderer(r)
-        window.Start()
+#        window.Start()
         window.Render()
         win2image = vtk.vtkWindowToImageFilter()
         win2image.SetInput(window)
@@ -47,6 +57,8 @@ class VTKRenderOffscreen(Module):
         writer.SetFileName(output.name)
         writer.Write()
         window.Finalize()
+        if widget!=None:
+            widget.close()
         self.setResult("image", output)
 
 def register_self():
