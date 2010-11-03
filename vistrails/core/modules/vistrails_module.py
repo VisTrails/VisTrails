@@ -44,6 +44,7 @@ class ModuleBreakpoint(Exception):
     def __init__(self, module):
         self.module = module
         self.msg = "Hit breakpoint"
+        self.errorTrace = ''
 
     def __str__(self):
         retstr = "Encoutered breakpoint at Module %s:\n" % (self.module)
