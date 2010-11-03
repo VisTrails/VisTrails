@@ -352,7 +352,7 @@ class ColorChooserButton(QtGui.QFrame):
         self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
-        self.setColor(QtCore.Qt.white)
+        self.setColor(QtGui.QColor(255,255,255))
         self.setFixedSize(30,22)
         if system.systemType == 'Darwin':
             #the mac's nice look messes up with the colors

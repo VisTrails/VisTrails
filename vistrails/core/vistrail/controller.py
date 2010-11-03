@@ -34,7 +34,8 @@ from core import debug
 from core.interpreter.default import get_default_interpreter
 from core.log.controller import LogControllerFactory, DummyLogController
 from core.log.log import Log
-from core.modules.abstraction import identifier as abstraction_pkg
+from core.modules.abstraction import identifier as abstraction_pkg, \
+    version as abstraction_ver
 from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
@@ -164,7 +165,7 @@ class VistrailController(object):
     # Actions, etc
     
     def flush_move_actions(self):
-        pass
+        return False
 
     def flush_delayed_actions(self):
         start_version = self.current_version
@@ -787,8 +788,6 @@ class VistrailController(object):
         return connections
 
     def create_group(self, full_pipeline, module_ids, connection_ids):
-        # self.emit(QtCore.SIGNAL("flushMoveActions()"))
-
         id_remap = {}
         (pipeline, outside_connections) = \
             self.create_subpipeline(full_pipeline, module_ids, connection_ids,
@@ -948,6 +947,7 @@ class VistrailController(object):
         hide_descriptor = not is_global or old_desc is not None
         new_desc = reg.auto_add_module((abstraction, 
                                         {'package': abstraction_pkg,
+                                         'package_version': abstraction_ver,
                                          'namespace': namespace,
                                          'version': module_version,
                                          'hide_namespace': True,

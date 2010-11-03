@@ -17,14 +17,20 @@ If you want to use a different server, add the following to your tex file:
 
 \renewcommand{\vistrailspath}{http://yourwebserver.somethingelse/run_vistrails.php}
 
-Or if you want tu run a local copy of vistrails:
+Or if you want to run a local copy of vistrails:
 
 \renewcommand{\vistrailspath}{/path/to/vistrails.py}
+
+To embed the links in the generated images, use 
+\renewcommand{\vistrailsdownload}{http://yourwebserver.somethingelse/download.php}
+or just set to empty to make the images not clickable:
+\renewcommand{\vistrailsdownload}{}
 
 This extension uses python. If you don't have python on your path, use this 
 to set the python interpreter:
 
 \renewcommand{\vistrailspythonpath}{python}
+
 
 Then include the following command where you would like to include 
 the vistrails images:
@@ -35,10 +41,13 @@ version=<version_number>,
 vtid=<vistrails_id>,
 tag=<tag>
 port=3306,
-buildalways,
-execute,
-showspreadsheetonly,
-pdf]{width=0.45\linewidth}
+buildalways, %will force execution or download
+execute, % vistrails will execute the workflow after the user opens it after clicking on the image
+showspreadsheetonly, % only the spreadsheet will be shown when the user opens the workflow 
+pdf, % download images as pdf files
+showworkflow, % show the workflow instead of the results
+showtree, % show version tree instead of the results 
+]{width=0.45\linewidth}
 
 The tag, port, buildalways, execute, showspreadsheetonly and pdf options are optional. 
 The default value for port is 3306. 
@@ -53,6 +62,14 @@ pdf will return the results from the spreadsheet as pdf files
 
 The options inside { }  are the options you would give to 
 \includegraphics{} command
+
+After running at least once, VisTrails will cache the images and latex 
+instructions. 
+The latex code will be in the "cached" folder and the images in 
+vistrails_images.
+
+If you set the \vistrailspythonpath to a invalid path VisTrails will use 
+the cached files.
 
 The option -shell-escape needs to be activated on the latex command line:
 

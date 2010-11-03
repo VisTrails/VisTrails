@@ -2087,8 +2087,7 @@ mutual connections."""
             
             widget.exec_()
             self.reset_module_colors()
-            if self.pipeline_tab:
-                self.pipeline_tab.flushMoveActions()
+            self.flushMoveActions()
             self.recreate_module(self.controller.current_pipeline, id)
 
     def open_documentation_window(self, id):
@@ -2249,6 +2248,26 @@ mutual connections."""
         for module in self.modules.itervalues():
             module.statusBrush = None
             module._needs_state_updated = True
+
+    def flushMoveActions(self):
+        """ flushMoveActions() -> None
+        Update all move actions into vistrail
+        
+        """
+        controller = self.controller
+        moves = []
+        for (mId, item) in self.modules.iteritems():
+            module = controller.current_pipeline.modules[mId]
+            (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
+            if (dx != module.center.x or dy != module.center.y):
+                moves.append((mId, dx, dy))
+        if len(moves)>0:
+            controller.quiet = True
+            controller.move_module_list(moves)
+            controller.quiet = False
+            return True
+        return False
+
 
 class QModuleStatusEvent(QtCore.QEvent):
     """

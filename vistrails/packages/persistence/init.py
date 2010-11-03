@@ -54,11 +54,10 @@ local_db = None
 search_dbs = None
 db_access = None
 git_bin = "@executable_path/git"
+tar_bin = "@executable_path/tar"
 compress_by_default = False
 debug = True
 temp_persist_files = []
-
-# FIXME add paths for git and tar...
 
 def debug_print(*args):
     global debug
@@ -163,15 +162,19 @@ class PersistentPath(Module):
         return out_fname
 
     def git_get_dir(self, name, version="HEAD", out_dirname=None):
-        global temp_persist_files
+        global temp_persist_files, tar_bin
         if out_dirname is None:
             # create a temporary directory
             out_dirname = tempfile.mkdtemp(prefix='vt_persist')
             temp_persist_files.append(out_dirname)
-            
-        cmd_list = [self.git_command() + \
+        if systemType == "Windows":    
+            cmd_list = [self.git_command() + \
                         ["archive", str(version + ':' + name)],
-                    ['tar', '-C', out_dirname, '-xf-']]
+                    ["%s:" % out_dirname[0], "&&", "cd", "%s"%out_dirname, "&&", tar_bin, '-xf-']]
+        else:
+            cmd_list = [self.git_command() + \
+                        ["archive", str(version + ':' + name)],
+                    [tar_bin, '-C', out_dirname, '-xf-']]
         debug_print('executing commands', cmd_list)
         result, output, errs = execute_piped_cmdlines(cmd_list)
         debug_print('stdout:', type(output), output)
@@ -646,7 +649,7 @@ def git_init(dir):
 
 def initialize():
     global global_db, local_db, search_dbs, compress_by_default, db_access, \
-        git_bin, debug
+        git_bin, tar_bin, debug
     
     if configuration.check('git_bin'):
         git_bin = configuration.git_bin
@@ -659,6 +662,17 @@ def initialize():
         git_bin = 'git'
         configuration.git_bin = git_bin
 
+    if configuration.check('tar_bin'):
+        tar_bin = configuration.tar_bin
+    if tar_bin.startswith("@executable_path/"):
+        non_expand_path = tar_bin
+        tar_bin = get_executable_path(tar_bin[len("@executable_path/"):])
+        if tar_bin is not None:
+            configuration.tar_bin = non_expand_path
+    if tar_bin is None:
+        tar_bin = 'tar'
+        configuration.tar_bin = tar_bin
+        
     if configuration.check('compress_by_default'):
         compress_by_default = configuration.compress_by_default
     if configuration.check('debug'):

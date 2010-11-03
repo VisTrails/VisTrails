@@ -21,7 +21,7 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.6 alpha
+AppVerName=VisTrails 1.6 beta
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$9d5942
@@ -90,11 +90,33 @@ Source: ..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
 Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
 Source: Input\git.exe; DestDir: {app}\vistrails
+Source: Input\tar.exe; DestDir: {app}\vistrails
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}\vistrails
 Source: Input\license.txt; DestDir: {app}
 Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
-;Source: C:\Qt\4.4.0\bin\*.dll; DestDir: {app}\vistrails
+;;;; ------- QT LIBS ------- ;;;;
+;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\phonon4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\Qt3Support4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtAssistantClient4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtCLucene4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtCore4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtDesigner4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtDesignerComponents4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtGui4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtHelp4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtMultimedia4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtNetwork4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtOpenGL4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtScript4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtScriptTools4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtSql4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtSvg4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtTest4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtWebKit4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtXml4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.2\bin\QtXmlPatterns4.dll; DestDir: {app}\vistrails
 Source: D:\Qt\4.6.2\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
 Source: D:\Qt\4.6.2\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
@@ -104,6 +126,8 @@ Source: D:\src\vtk-5.6\bin32\bin\Release\*.dll; DestDir: {app}\vistrails
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: D:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
+;;;; --------    ALPS FILES    ----------;;;;
+Source: Input\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
