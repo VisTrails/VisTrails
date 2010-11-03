@@ -67,7 +67,43 @@ class vtkBaseModule(Module):
                 if f != -1:
                     function = function[:f]
                 attr = getattr(self.vtkInstance, function)
-        attr(*params)
+
+        from init import get_method_signature, prune_signatures
+
+        doc = ''
+        try:
+            doc = self.provide_output_port_documentation(function)
+        except:
+            doc = ''
+
+        setterSig = []
+        if doc != '': setterSig = get_method_signature(None, doc, function)
+
+        if len(setterSig) > 1:
+            prune_signatures(self, function, setterSig)
+
+        pp = []
+        for j in xrange(len(setterSig)):
+          setter = list(setterSig[j][1]) if setterSig[j][1] != None else None
+          aux = []
+          if setter != None and len(setter) == len(params) and pp == []:
+              for i in xrange(len(setter)):
+                  if setter[i].find('[') != -1:
+                      del aux[:]
+                      aux.append(params[i])
+                  elif setter[i].find(']') != -1:
+                      aux.append(params[i])
+                      pp.append(aux)
+                  else:
+                      if len(aux) > 0: 
+                          aux.append(params[i])
+                      else:
+                          pp.append(params[i])                
+        if pp != []:
+            params = pp 
+            attr(*params)
+        else: 
+            attr(*params)
         # print "Called ",attr,function,params
 
     @classmethod
