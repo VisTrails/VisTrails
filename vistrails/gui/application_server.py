@@ -206,6 +206,15 @@ class RequestHandler(object):
             else:
                 result = "Pipeline was not materialized"
                 self.server_logger.error(str(result))
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             result = str(e)
             self.server_logger.error(str(result))
@@ -235,6 +244,15 @@ class RequestHandler(object):
                 package_dic[package.identifier]['description'] = \
                         package.description if package.description else "No description available"
             return (package_dic, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -277,6 +295,15 @@ class RequestHandler(object):
             db_locator.save_as(locator)
             return (db_locator.obj_id, 1)
 
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -310,12 +337,21 @@ class RequestHandler(object):
             new_bundle = new_locator.load()
             new_locator.save(new_bundle)
             old_db_locator = DBLocator(host=host, port=int(port), database=db_name,
-                                       obj_id=old_db_vt_id, user=db_write_user, passwd=db_write_pass)
+                                       obj_id=int(old_db_vt_id), user=db_write_user, passwd=db_write_pass)
             old_db_bundle = old_db_locator.load()
             db.services.vistrail.merge(old_db_bundle, new_bundle, 'vistrails')
             old_db_locator.save(old_db_bundle)
             new_locator.save(old_db_bundle)
             return (1, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             traceback.print_exc()
@@ -402,6 +438,15 @@ class RequestHandler(object):
 
             return ((runnable_workflows, py_source_workflows), 1)
 
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -593,40 +638,58 @@ class RequestHandler(object):
                 # FIXME: copy images to extra_path
             self.server_logger.info("returning %s" % result)
             return (result, 1)
-        except Exception, e:
-            self.server_logger.error(str(e))
-            return (str(e), 0)
+    except xmlrpclib.ProtocolError, err:
+        err_msg = ("A protocol error occurred\n"
+                   "URL: %s\n"
+                   "HTTP/HTTPS headers: %s\n"
+                   "Error code: %d\n"
+                   "Error message: %s\n") % (err.url, err.headers,
+                                             err.errcode, err.errmsg)
+        self.server_logger.error(err_msg)
+        return (str(err), 0)
+    except Exception, e:
+        self.server_logger.error(str(e))
+        return (str(e), 0)
 
-    #vistrails
-    def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
-                    version=None,  pdf=False, vt_tag='',parameters='', is_local=True):
-        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
-                                (host, port, db_name, vt_id,
-                                 path_to_figures, version, pdf,
-                                 vt_tag, parameters, is_local))
+#vistrails
+def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
+                version=None,  pdf=False, vt_tag='',parameters='', is_local=True):
+    self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
+                            (host, port, db_name, vt_id,
+                             path_to_figures, version, pdf,
+                             vt_tag, parameters, is_local))
 
-        self.server_logger.info("path_exists_and_not_empty? %s" % self.path_exists_and_not_empty(path_to_figures))
-        self.server_logger.info(str(self.proxies_queue))
+    self.server_logger.info("path_exists_and_not_empty? %s" % self.path_exists_and_not_empty(path_to_figures))
+    self.server_logger.info(str(self.proxies_queue))
 
-        if not is_local:
-            # use same hashing as on crowdlabs webserver
-            dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
-            dest_version = hashlib.sha1(dest_version).hexdigest()
-            path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
+    if not is_local:
+        # use same hashing as on crowdlabs webserver
+        dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
+        dest_version = hashlib.sha1(dest_version).hexdigest()
+        path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
 
-        if (not self.path_exists_and_not_empty(path_to_figures) and
-            self.proxies_queue is not None):
-            self.server_logger.info("will forward request")
-            #this server can send requests to other instances
-            proxy = self.proxies_queue.get()
-            try:
-                self.server_logger.info("Sending request to %s" % proxy)
-                result = proxy.run_from_db(host, port, db_name, vt_id,
-                                           path_to_figures, version, pdf, vt_tag,
-                                           parameters, is_local)
-                self.proxies_queue.put(proxy)
-                self.server_logger.info("returning %s" % result)
-                return result
+    if (not self.path_exists_and_not_empty(path_to_figures) and
+        self.proxies_queue is not None):
+        self.server_logger.info("will forward request")
+        #this server can send requests to other instances
+        proxy = self.proxies_queue.get()
+        try:
+            self.server_logger.info("Sending request to %s" % proxy)
+            result = proxy.run_from_db(host, port, db_name, vt_id,
+                                       path_to_figures, version, pdf, vt_tag,
+                                       parameters, is_local)
+            self.proxies_queue.put(proxy)
+            self.server_logger.info("returning %s" % result)
+            return result
+        except xmlrpclib.ProtocolError, err:
+                err_msg = ("A protocol error occurred\n"
+                           "URL: %s\n"
+                           "HTTP/HTTPS headers: %s\n"
+                           "Error code: %d\n"
+                           "Error message: %s\n") % (err.url, err.headers,
+                                                     err.errcode, err.errmsg)
+                self.server_logger.error(err_msg)
+                return (str(err), 0)
             except Exception, e:
                 self.server_logger.error(str(e))
                 return (str(e), 0)
@@ -664,10 +727,10 @@ class RequestHandler(object):
                     self.server_logger.error(str(e))
                     return (str(e), 0)
                 ok = True
-                
+
                 for r in results:
                     (objs, errors, _) = (r.objects, r.errors, r.executed)
-                    
+
                     for i in objs.iterkeys():
                         if errors.has_key(i):
                             ok = False
@@ -700,6 +763,15 @@ class RequestHandler(object):
         try:
             packages = [x.identifier for x in module_registry().package_list]
             return (packages, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -731,6 +803,15 @@ class RequestHandler(object):
             else:
                 result = "Pipeline was not materialized"
                 self.server_logger.error(result)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             result = str(e)
             self.server_logger.error(result)
@@ -743,6 +824,15 @@ class RequestHandler(object):
             wi.remove(wf_id)
             wi.close()
             return (1, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -796,6 +886,15 @@ class RequestHandler(object):
             self.server_logger.info("Answer: %s" % version)
             return (version, 1)
 
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -817,6 +916,15 @@ class RequestHandler(object):
             (v, _ , _)  = io.load_vistrail(locator)
             result = io.serialize(v)
             return (result, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -843,6 +951,15 @@ class RequestHandler(object):
             else:
                 result = "Pipeline was not materialized"
                 self.server_logger.info(result)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             result = str(e)
             self.server_logger.error(result)
@@ -872,6 +989,15 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("get_wf_graph_pdf returning %s"% result)
                     return result
+                except xmlrpclib.ProtocolError, err:
+                    err_msg = ("A protocol error occurred\n"
+                               "URL: %s\n"
+                               "HTTP/HTTPS headers: %s\n"
+                               "Error code: %d\n"
+                               "Error message: %s\n") % (err.url, err.headers,
+                                                         err.errcode, err.errmsg)
+                    self.server_logger.error(err_msg)
+                    return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -885,7 +1011,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=vt_id,
+                                    obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
 
@@ -911,6 +1037,15 @@ class RequestHandler(object):
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
 
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving pdf: %s" % str(e))
             return (str(e), 0)
@@ -940,6 +1075,15 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
+                except xmlrpclib.ProtocolError, err:
+                    err_msg = ("A protocol error occurred\n"
+                               "URL: %s\n"
+                               "HTTP/HTTPS headers: %s\n"
+                               "Error code: %d\n"
+                               "Error message: %s\n") % (err.url, err.headers,
+                                                         err.errcode, err.errmsg)
+                    self.server_logger.error(err_msg)
+                    return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -953,7 +1097,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=vt_id,
+                                    obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails)  = io.load_vistrail(locator)
@@ -975,6 +1119,15 @@ class RequestHandler(object):
                 contents = f.read()
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving png %s" % str(e))
             return (str(e), 0)
@@ -1002,6 +1155,15 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
+                except xmlrpclib.ProtocolError, err:
+                    err_msg = ("A protocol error occurred\n"
+                               "URL: %s\n"
+                               "HTTP/HTTPS headers: %s\n"
+                               "Error code: %d\n"
+                               "Error message: %s\n") % (err.url, err.headers,
+                                                         err.errcode, err.errmsg)
+                    self.server_logger.error(err_msg)
+                    return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
@@ -1016,7 +1178,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=vt_id,
+                                    obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails)  = io.load_vistrail(locator)
@@ -1036,10 +1198,19 @@ class RequestHandler(object):
                 contents = f.read()
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving png: %s" % str(e))
             return (str(e), 0)
-        
+
     def get_vt_graph_pdf(self, host, port, db_name, vt_id, is_local=True):
         """get_vt_graph_pdf(host:str, port: str, db_name: str, vt_id:str) -> str
         Returns the relative url of the generated image
@@ -1063,9 +1234,19 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
+                except xmlrpclib.ProtocolError, err:
+                    err_msg = ("A protocol error occurred\n"
+                               "URL: %s\n"
+                               "HTTP/HTTPS headers: %s\n"
+                               "Error code: %d\n"
+                               "Error message: %s\n") % (err.url, err.headers,
+                                                         err.errcode, err.errmsg)
+                    self.server_logger.error(err_msg)
+                    return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
                     return (str(e), 0)
+
 
             #if it gets here, this means that we will execute on this instance
             if not os.path.exists(filepath):
@@ -1077,7 +1258,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=vt_id,
+                                    obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails)  = io.load_vistrail(locator)
@@ -1097,6 +1278,15 @@ class RequestHandler(object):
                 contents = f.read()
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving pdf: %s" % str(e))
             return (str(e), 0)
@@ -1130,6 +1320,15 @@ class RequestHandler(object):
             result = base64.b64encode(contents)
             os.unlink(name)
             return (result, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -1174,6 +1373,15 @@ class RequestHandler(object):
                 result = "Error: Pipeline was not materialized"
                 self.server_logger.info(result)
                 return (result, 0)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.info(str(e))
             return (str(e), 0)
@@ -1191,6 +1399,15 @@ class RequestHandler(object):
             rows = io.get_db_vistrail_list(config)
             self.server_logger.info("returning %s" % str(rows))
             return (rows, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -1211,6 +1428,15 @@ class RequestHandler(object):
                 result += '<vistrail id="%s" name="%s" mod_time="%s" />'%(id,name,mod_time)
             result += '</vistrails>'
             return (result, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
@@ -1254,6 +1480,15 @@ class RequestHandler(object):
                                    'date':action_map.date,
                                    'thumbnail': xmlrpclib.Binary(thumbnail_data)})
             return (result, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
             return (str(e), 0)
