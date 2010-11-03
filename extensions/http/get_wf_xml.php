@@ -60,7 +60,7 @@ if(array_key_exists('tag',$_GET)){
 																 $dbname, $vtid,
 																 $version_tag));
 		$response = do_call($VT_HOST,$VT_PORT,$request);
-		$version = get_result_from_response($response);
+		$version = get_version_from_response($response);
 	}
 }
 if(array_key_exists('buildalways',$_GET))
@@ -83,9 +83,14 @@ if($vtid != '' and $version != ''){
 else{
 	echo "ERROR: Vistrails id or version not provided.\n";
 }
-function get_result_from_response($response){
-	$node = @new SimpleXMLElement($response);
-	return "".$node->params[0]->param[0]->value[0]->int[0];
+
+function get_version_from_response($xmlstring){
+    try{
+        $node = @new SimpleXMLElement($xmlstring);
+        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->int[0];
+    } catch(Exception $e) {
+        echo "bad xml";
+    }
 }
 
 function clean_up($xmlstring){

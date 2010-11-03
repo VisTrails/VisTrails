@@ -289,6 +289,9 @@ class RequestHandler(object):
         new_vt_filepath is either filepath to vt, or datastream of vt,
         depending on if the server is on a remote machine
         """
+        self.server_logger.info("Request: merge_vt(%s,%s,%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, user, new_vt_filepath,
+                                 old_db_vt_id, is_local))
         try:
             if is_local:
                 new_locator = ZIPFileLocator(new_vt_filepath)
@@ -302,7 +305,7 @@ class RequestHandler(object):
                 vt_file = open(fname, "wb")
                 vt_file.write(new_vt_filepath.data)
                 vt_file.close()
-                new_locator = ZIPFileLocator(fname).load()
+                new_locator = ZIPFileLocator(fname)
 
             new_bundle = new_locator.load()
             new_locator.save(new_bundle)
@@ -981,7 +984,7 @@ class RequestHandler(object):
         Returns the relative url of the generated image
         """
 
-        self.server_logger.info("get_vt_graph_png(%s, %d, %s, %d)" % (host, port, db_name, vt_id))
+        self.server_logger.info("get_vt_graph_png(%s, %s, %s, %s)" % (host, port, db_name, vt_id))
         try:
             vt_id = long(vt_id)
             subdir = 'vistrails'
@@ -1009,7 +1012,7 @@ class RequestHandler(object):
 
             if not os.path.exists(filename):
                 locator = DBLocator(host=host,
-                                    port=port,
+                                    port=int(port),
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
@@ -1036,7 +1039,68 @@ class RequestHandler(object):
         except Exception, e:
             self.server_logger.error("Error when saving png: %s" % str(e))
             return (str(e), 0)
+        
+    def get_vt_graph_pdf(self, host, port, db_name, vt_id, is_local=True):
+        """get_vt_graph_pdf(host:str, port: str, db_name: str, vt_id:str) -> str
+        Returns the relative url of the generated image
+        """
 
+        self.server_logger.info("get_vt_graph_pdf(%s, %s, %s, %s)" % (host, port, db_name, vt_id))
+        try:
+            vt_id = long(vt_id)
+            subdir = 'vistrails'
+            filepath = os.path.join(media_dir, 'graphs', subdir)
+            base_fname = "graph_%s.pdf" % (vt_id)
+            filename = os.path.join(filepath,base_fname)
+            if ((not os.path.exists(filepath) or
+                os.path.exists(filepath) and not os.path.exists(filename))
+                and self.proxies_queue is not None):
+                #this server can send requests to other instances
+                proxy = self.proxies_queue.get()
+                try:
+                    self.server_logger.info("Sending request to %s" % proxy)
+                    result = proxy.get_vt_graph_pdf(host, port, db_name, vt_id, is_local)
+                    self.proxies_queue.put(proxy)
+                    self.server_logger.info("returning %s" % result)
+                    return result
+                except Exception, e:
+                    self.server_logger.error(str(e))
+                    return (str(e), 0)
+
+            #if it gets here, this means that we will execute on this instance
+            if not os.path.exists(filepath):
+                os.mkdir(filepath)
+
+            if not os.path.exists(filename):
+                locator = DBLocator(host=host,
+                                    port=int(port),
+                                    database=db_name,
+                                    user=db_read_user,
+                                    passwd=db_read_pass,
+                                    obj_id=vt_id,
+                                    obj_type=None,
+                                    connection_id=None)
+                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                controller = VistrailController()
+                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                from gui.version_view import QVersionTreeView
+                version_view = QVersionTreeView()
+                version_view.scene().setupScene(controller)
+                version_view.scene().saveToPDF(filename)
+                del version_view
+            else:
+                self.server_logger.info("Found cached pdf: %s" % filename)
+            if is_local:
+                return (os.path.join(subdir,base_fname), 1)
+            else:
+                f = open(filename, 'rb')
+                contents = f.read()
+                f.close()
+                return (xmlrpclib.Binary(contents), 1)
+        except Exception, e:
+            self.server_logger.error("Error when saving pdf: %s" % str(e))
+            return (str(e), 0)
+        
     def get_vt_zip(self, host, port, db_name, vt_id):
         """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
         Returns a .vt file encoded as base64 string
