@@ -239,6 +239,29 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.canSelectBackground = True
         self.canSelectRectangle = True
 
+        self.viewport().grabGesture(QtCore.Qt.PinchGesture)
+        self.gestureStartScale = None
+
+    def viewportEvent(self, event):
+        if event.type() == QtCore.QEvent.Gesture:
+            pinch = event.gesture(QtCore.Qt.PinchGesture)
+            if pinch:
+                changeFlags = pinch.changeFlags()
+                if changeFlags & QtGui.QPinchGesture.ScaleFactorChanged:
+                    if self.gestureStartScale is None:
+                        self.gestureStartScale = self.currentScale
+                    newScale = self.gestureStartScale * \
+                        pinch.property("scaleFactor").toReal()[0]
+                    # Clamp the scale
+                    if newScale<0: newScale = 0
+                    if newScale>self.scaleMax: newScale = self.scaleMax
+                    self.currentScale = newScale
+                    self.updateMatrix()
+                if pinch.state() == QtCore.Qt.GestureFinished:
+                    self.gestureStartScale = None
+                return True
+        return QtGui.QGraphicsView.viewportEvent(self, event)
+
     def modifiersPressed(self, modifiers):
         """ modifiersPressed(modifiers: QtCore.Qt.KeyboardModifiers) -> None
         Notification when one of the modifier keys has been pressed
