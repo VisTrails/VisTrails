@@ -44,7 +44,7 @@ class UpgradeWorkflowError(Exception):
         self._msg = msg
         self._module = module
         self._port_name = port_name
-        self._port_type = port_type.lower()
+        self._port_type = port_type.lower() if port_type else None
         
     def __str__(self):
         return "Upgrading workflow failed.\n" + self._msg
