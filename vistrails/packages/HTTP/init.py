@@ -172,12 +172,18 @@ class HTTPFile(HTTP):
         """Checks whether local file is outdated."""
         local_time = \
                 datetime.datetime.utcfromtimestamp(os.path.getmtime(localFile))
-	try:
+        try:
             remote_time = datetime.datetime.strptime(remoteHeader,
                                                      "%a, %d %b %Y %H:%M:%S %Z")
-        except:
-            remote_time = datetime.datetime.strptime(remoteHeader,
-                                                     "%a, %d %B %Y %H:%M:%S %Z")
+        except ValueError:
+            try:
+                remote_time = datetime.datetime.strptime(remoteHeader,
+                                                         "%a, %d %B %Y %H:%M:%S %Z")
+            except ValueError:
+                # unable to parse last-modified header, download file again
+                debug.warning("Unable to parse Last-Modified header"
+                              ", downloading file")
+                return True
         return remote_time > local_time
 
     def _file_is_in_local_cache(self, local_filename):
