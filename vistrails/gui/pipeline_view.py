@@ -1679,7 +1679,6 @@ mutual connections."""
             selected_modules = []
             # create new module shapes
             for m_id in modules_to_be_added:
-                # print 'adding module', m_id
                 self.addModule(pipeline.modules[m_id])
                 if self.modules[m_id].isSelected():
                     selected_modules.append(m_id)
@@ -1690,7 +1689,8 @@ mutual connections."""
                 tm_item = self.modules[m_id]
                 tm = tm_item.module
                 nm = pipeline.modules[m_id]
-                if tm_item.center != nm.center:
+                if tm_item.scenePos().x() != nm.center.x or \
+                        -tm_item.scenePos().y() != nm.center.y:
                     self.recreate_module(pipeline, m_id)
                     moved.add(m_id)
                 elif self.module_text_has_changed(tm, nm):
