@@ -1671,10 +1671,12 @@ class ModuleRegistry(DBRegistry):
             port_spec = port_spec[1:]
         if port_spec.endswith(')'):
             port_spec = port_spec[:-1]
+        if port_spec.strip() == '':
+            return '()'
         new_spec_list = []
         for spec in port_spec.split(','):
             (package, name, namespace) = \
-                expand_descriptor_string(spec, cur_package)
+                self.expand_descriptor_string(spec, cur_package)
             if namespace:
                 namespace = ':' + namespace
             new_spec_list.append('%s:%s%s' % \

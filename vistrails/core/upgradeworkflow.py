@@ -75,6 +75,8 @@ class UpgradeWorkflowHandler(object):
     @staticmethod
     def check_port_spec(module, port_name, port_type, descriptor=None, 
                         sigstring=None):
+        from core.modules.basic_modules import identifier as basic_pkg
+
         reg = get_module_registry()
         found = False
         try:
@@ -82,6 +84,7 @@ class UpgradeWorkflowHandler(object):
                 s = reg.get_port_spec_from_descriptor(descriptor, port_name,
                                                       port_type)
                 found = True
+                sigstring = reg.expand_port_spec_string(sigstring, basic_pkg)
                 if s.sigstring != sigstring:
                     msg = ('%s port "%s" of module "%s" exists, but '
                            'signatures differ "%s" != "%s"') % \
