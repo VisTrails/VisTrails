@@ -47,6 +47,12 @@ from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolB
 from gui.vis_diff import QVisualDiff
 from gui.utils import build_custom_window
 import sys
+import db.services.vistrail
+from gui import merge_gui
+from db.services.io import SaveBundle
+from core.thumbnails import ThumbnailCache
+
+
 
 ################################################################################
 
@@ -417,6 +423,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             ]
         
         self.vistrailActionGroup = QtGui.QActionGroup(self)
+        self.mergeActionGroup = QtGui.QActionGroup(self)
 
 
 
@@ -470,7 +477,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.editAbstractionAction)
         self.editMenu.addAction(self.importAbstractionAction)
         self.editMenu.addAction(self.exportAbstractionAction)
-        self.editMenu.addSeparator()        
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.repositoryOptions)
+        self.mergeMenu = self.editMenu.addMenu('Merge with')
+        self.mergeMenu.menuAction().setEnabled(False)
+        self.mergeMenu.menuAction().setStatusTip('Merge another VisTrail into the current VisTrail')
         self.editMenu.addAction(self.repositoryOptions)
         self.editMenu.addSeparator()        
         self.editMenu.addAction(self.editPreferencesAction)
@@ -641,6 +652,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.vistrailActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),
                      self.vistrailSelectFromMenu)
+
+        self.connect(self.mergeActionGroup,
+                     QtCore.SIGNAL('triggered(QAction *)'),
+                     self.vistrailMergeFromMenu)
 
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
@@ -892,6 +907,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveFileAsAction.setEnabled(True)
             self.exportFileAction.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
+            self.mergeMenu.menuAction().setEnabled(True)
         else:
             self.setWindowTitle(self.title)
             self.saveFileAction.setEnabled(False)
@@ -899,11 +915,20 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveFileAsAction.setEnabled(False)
             self.exportFileAction.setEnabled(False)
             self.vistrailMenu.menuAction().setEnabled(False)
+            self.mergeMenu.menuAction().setEnabled(False)
 
         if vistrailView and vistrailView.viewAction:
             vistrailView.viewAction.setText(vistrailView.windowTitle())
             if not vistrailView.viewAction.isChecked():
                 vistrailView.viewAction.setChecked(True)
+
+        if vistrailView and vistrailView.mergeAction:
+            vistrailView.mergeAction.setText(vistrailView.windowTitle())
+        for mergeAction in self.mergeActionGroup.actions():
+            if mergeAction == vistrailView.mergeAction:
+                mergeAction.setVisible(False)
+            else:
+                mergeAction.setVisible(True)
 
         self.update_shell()
         self.update_debugger()
@@ -963,6 +988,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveFileAsAction.setEnabled(True)
             self.exportFileAction.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
+            self.mergeMenu.menuAction().setEnabled(True)
             if version:
                 self.viewModeChanged(0)
             else:
@@ -1064,6 +1090,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                 self.saveFileAsAction.setEnabled(True)
                 self.exportFileAction.setEnabled(True)
                 self.vistrailMenu.menuAction().setEnabled(True)
+                self.mergeMenu.menuAction().setEnabled(True)
                 self.viewModeChanged(1)
 
     def import_workflow_default(self):
@@ -1145,6 +1172,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.vistrailMenu.addAction(view.viewAction)
         view.versionTab.versionView.scene().fitToView(
             view.versionTab.versionView, True)
+        # create merge action
+        view.mergeAction = QtGui.QAction(view.windowTitle(), self)
+        view.mergeAction.view = view
+        self.mergeActionGroup.addAction(view.mergeAction)
+        self.mergeMenu.addAction(view.mergeAction)
 
     def vistrailViewRemoved(self, view):
         """ vistrailViewRemoved(view: QVistrailView) -> None
@@ -1154,6 +1186,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.vistrailActionGroup.removeAction(view.viewAction)
         self.vistrailMenu.removeAction(view.viewAction)
         view.viewAction.view = None
+        # delete merge action
+        self.mergeActionGroup.removeAction(view.mergeAction)
+        self.mergeMenu.removeAction(view.mergeAction)
+        view.mergeAction.view = None
 
     def vistrailSelectFromMenu(self, menuAction):
         """ vistrailSelectFromMenu(menuAction: QAction) -> None
@@ -1161,6 +1197,34 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         self.viewManager.setCurrentWidget(menuAction.view)
+
+    def vistrailMergeFromMenu(self, mergeAction):
+        """ vistrailSelectFromMenu(menuAction: QAction) -> None
+        Handle clicked from the Vistrail menu
+
+        """
+        thumb_cache = ThumbnailCache.getInstance()
+        c1 = self.viewManager.currentView().controller
+        t1 = c1.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
+            if thumb_cache.conf.autoSave else []
+        s1 = SaveBundle(c1.vistrail.vtType, c1.vistrail, c1.log, thumbnails=t1)
+        l1 = c1.locator._name if c1.locator is not None else ''
+        c2 = mergeAction.view.controller
+        t2 = c2.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
+            if thumb_cache.conf.autoSave else []
+        s2 = SaveBundle(c2.vistrail.vtType, c2.vistrail, c2.log, thumbnails=t2)
+        l2 = c2.locator._name if c2.locator is not None else ''
+        if c1.changed or c2.changed:
+            text = ('Both Vistrails need to be saved before they can be merged.')
+            QtGui.QMessageBox.information(None, 'Cannot perform merge',
+                                      text, '&OK')
+            return
+        db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
+        vistrail = c1.vistrail.do_copy()
+        vistrail.locator = c1.locator
+        self.viewManager.currentView().set_vistrail(vistrail, c1.locator,
+                                                   thumbnails=s1.thumbnails)
+        self.viewManager.currentView().setup_view()
 
     def showShell(self, checked=True):
         """ showShell() -> None

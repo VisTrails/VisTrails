@@ -335,7 +335,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
     vt = sb.vistrail
     next_vt = next_sb.vistrail
     merge_gui = interactive
-
+    MergeGUI = merge_gui.MergeGUI
     skip = 0
 
     id_remap = {}
@@ -347,7 +347,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
 
     # find the highest common checkin id
     checkinId = 0
-    if next_vt.db_has_annotation_with_key(action_key):
+    if len(app) and next_vt.db_has_annotation_with_key(action_key):
         co = next_vt.db_get_annotation_by_key(action_key)
         print "found checkin id annotation"
         checkinId = int(co._db_value)
@@ -377,8 +377,8 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
 
         # find last checkin action (only works for centralized syncs)
         while checkinId < len(actions) and checkinId < len(actionNexts) and \
-              actions[checkinId] == actionNexts[checkinId]:
-                  checkinId += 1
+            actions[checkinId] == actionNexts[checkinId]:
+                checkinId += 1
         if checkinId > 0:
             checkinId = actionDict[actions[checkinId-1]].db_id
     print "checkinId:", checkinId
@@ -392,7 +392,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
 
     # check if someone else have changed the annotations
     mergeAnnotations = True
-    if next_vt.db_has_annotation_with_key(annotation_key):
+    if len(app) and next_vt.db_has_annotation_with_key(annotation_key):
         print "found annotationhash"
         co = next_vt.db_get_annotation_by_key(annotation_key)
         old_hash = co._db_value
@@ -401,7 +401,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
 
     # check if someone else have changed the action annotations
     mergeActionAnnotations = True
-    if next_vt.db_has_annotation_with_key(action_annotation_key):
+    if len(app) and next_vt.db_has_annotation_with_key(action_annotation_key):
         print "found actionannotationhash"
         co = next_vt.db_get_annotation_by_key(action_annotation_key)
         old_hash = co._db_value
@@ -537,7 +537,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                 old_annotation.db_date = new_annotation.db_date
                                 old_annotation.db_user = new_annotation.db_user
                             else:
-                                v, value = merge_gui.resolveTags(
+                                v, value = MergeGUI.resolveTags(
                                     old_annotation, new_annotation, value)
                                 if v == merge_gui.CHOICE_OTHER_ALL:
                                     skip = 1
@@ -589,7 +589,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                 old_annotation.db_date = new_annotation.db_date
                                 old_annotation.db_user = new_annotation.db_user
                             else:
-                                v, value = merge_gui.resolveNotes(
+                                v, value = MergeGUI.resolveNotes(
                                     old_annotation, new_annotation, value)
                                 if v == merge_gui.CHOICE_OTHER_ALL:
                                     skip = 1
@@ -644,7 +644,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                 if thumb not in sb.thumbnails:
                                     sb.thumbnails.append(thumb)
                             else:
-                                v = merge_gui.resolveThumbs(old_annotation, 
+                                v = MergeGUI.resolveThumbs(old_annotation,
                                          new_annotation, tmp_dir, next_tmp_dir)
                                 if v == merge_gui.CHOICE_OTHER_ALL:
                                     skip = 1
@@ -700,7 +700,8 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                     if thumb not in sb.thumbnails:
                         sb.thumbnails.append(thumb)
     # make this a valid checked out version
-    vt.update_checkout_version(app)
+    if len(app):
+        vt.update_checkout_version(app)
 
 ################################################################################
 # Analogy methods
