@@ -329,17 +329,27 @@ class Directory(Path):
 
 Directory.default_value = Directory()
 
-def file_parameter_hasher(p):
+def path_parameter_hasher(p):
+    def get_mtime(path):
+        v_list = [int(os.path.getmtime(path))]
+        if os.path.isdir(path):
+            for subpath in os.listdir(path):
+                subpath = os.path.join(path, subpath)
+                if os.path.isdir(subpath):
+                    v_list.extend(get_mtime(subpath))
+        return v_list
+
     h = core.cache.hasher.Hasher.parameter_signature(p)
+    hasher = sha_hash()
     try:
         # FIXME: This will break with aliases - I don't really care that much
-        v = int(os.path.getmtime(p.strValue))
+        v_list = get_mtime(p.strValue)
     except OSError:
         return h
     hasher = sha_hash()
-    u = hasher.update
-    u(h)
-    u(str(v))
+    hasher.update(h)
+    for v in v_list:
+        hasher.update(str(v))
     return hasher.digest()
 
 ##############################################################################
@@ -957,14 +967,14 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Path, "value", Path)
     reg.add_input_port(Path, "name", String, True)
 
-    reg.add_module(File, constantSignatureCallable=file_parameter_hasher)
+    reg.add_module(File, constantSignatureCallable=path_parameter_hasher)
     reg.add_input_port(File, "value", File)
     reg.add_output_port(File, "value", File)
     reg.add_output_port(File, "self", File, True)
     reg.add_input_port(File, "create_file", Boolean, True)
     reg.add_output_port(File, "local_filename", String, True)
 
-    reg.add_module(Directory)
+    reg.add_module(Directory, constantSignatureCallable=path_parameter_hasher)
     reg.add_input_port(Directory, "value", Directory)
     reg.add_output_port(Directory, "value", Directory)
     reg.add_output_port(Directory, "itemList", List)
