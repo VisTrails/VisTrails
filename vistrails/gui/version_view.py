@@ -997,6 +997,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                      and not item.text.hasFocus()] 
          if (self.controller and len(versions)>0 and
              event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
+             event.accept()
              versions = [item.id for item in selectedItems]
              res = gui.utils.show_question("VisTrails",
                                            "Are you sure that you want to "
@@ -1006,7 +1007,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                                            gui.utils.NO_BUTTON)
              if res == gui.utils.YES_BUTTON:
                  self.controller.prune_versions(versions)
-         qt_super(QVersionTreeScene, self).keyPressEvent(event)
+         else:
+             qt_super(QVersionTreeScene, self).keyPressEvent(event)
 
     def selectionChanged(self):
         if not self.emit_selection:
