@@ -1675,6 +1675,11 @@ class ModuleRegistry(DBRegistry):
             return '()'
         new_spec_list = []
         for spec in port_spec.split(','):
+            spec_arr = spec.split(':', 2)
+            if len(spec_arr) > 2:
+                # switch format of spec to more natural
+                # <package>:<namespace>|<name> for descriptor parsing
+                spec = '%s:%s|%s' % (spec_arr[0], spec_arr[2], spec_arr[1])
             (package, name, namespace) = \
                 self.expand_descriptor_string(spec, cur_package)
             if namespace:
