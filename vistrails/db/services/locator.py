@@ -414,11 +414,11 @@ class DBLocator(BaseLocator):
     
     def _get_name(self):
         return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
-            self._name
+            str(self._name)
     name = property(_get_name)
 
     def _get_short_name(self):
-        return self._name
+        return str(self._name)
     short_name = property(_get_short_name)
 
     def hash(self):
