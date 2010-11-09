@@ -47,7 +47,8 @@ from core.configuration import ConfigurationObject
 identifier = 'edu.utah.sci.vistrails.webservices'
 name = 'Web Services'
 version = '0.9.3'
-configuration = ConfigurationObject(wsdlList=(None, str))
+configuration = ConfigurationObject(wsdlList=(None, str),
+                                    showWarning=True)
 
 def package_dependencies():
     return ['edu.utah.sci.vistrails.http']

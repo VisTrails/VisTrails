@@ -18,6 +18,8 @@ DMG="$VOL.dmg"
 
 echo "removing build and dist folders..."
 rm -rf dist/ build/
+echo "removing old bundle..."
+rm -f ${DMG}
 echo "building bundle..."
 python setup.py py2app
 #echo "copying missing xml.etree.cElementTree imports..."

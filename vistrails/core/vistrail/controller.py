@@ -2012,10 +2012,13 @@ class VistrailController(object):
                     pass
             if not was_upgraded:
                 try:
-                    (new_version, pipeline) = \
-                        self.handle_invalid_pipeline(e, new_version,
-                                                     self.vistrail,
-                                                     report_all_errors)
+                    try:
+                        (new_version, pipeline) = \
+                            self.handle_invalid_pipeline(e, new_version,
+                                                         self.vistrail,
+                                                         report_all_errors)
+                    except InvalidPipeline, e:
+                        pipeline = e._pipeline
                     # check that we handled the invalid pipeline
                     # correctly
                     try:
