@@ -490,9 +490,9 @@ def build_available_trees():
         if row[2] not in trees:
             trees[row[2]] = {}
         available_dict = trees[row[2]]
-        if 'Daymet' not in available_dict:
-            available_dict['Daymet'] = []
-        available_dict['Daymet'].append((row[0], row[1], row[3]))            
+        if row[4] not in available_dict:
+            available_dict[row[4]] = []
+        available_dict[row[4]].append((row[0], row[1], row[3]))            
         # if row[1] not in available_dict:
         #     available_dict[row[1]] = []
         # available_dict[row[1]].append((row[3], row[2]))    
