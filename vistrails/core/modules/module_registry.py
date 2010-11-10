@@ -285,9 +285,9 @@ class MissingPackageVersion(ModuleRegistryException):
 
 class MissingModuleVersion(ModuleRegistryException):
     def __init__(self, identifier, name, namespace, module_version, 
-                 package_version=None):
+                 package_version=None, module_id=None):
         ModuleRegistryException.__init__(self, identifier, name, namespace,
-                                         package_version, module_version)
+                                         package_version, module_version, module_id)
 
     def __str__(self):
         return "Missing version %s of module %s from package %s" % \

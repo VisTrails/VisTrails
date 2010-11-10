@@ -219,7 +219,13 @@ class Vistrail(DBVistrail):
 
         """
         try:
-            return max(v.id for v in self.actions if not self.is_pruned(v.id))
+            desc_key = Action.ANNOTATION_DESCRIPTION
+            # Get the max id of all actions (excluding upgrade actions)
+            max_ver = max(v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade'))
+            # If that action has an upgrade, use it
+            if self.has_upgrade(max_ver):
+                max_ver = self.get_upgrade(max_ver)
+            return max_ver
         except:
             return 0
                    
@@ -728,11 +734,14 @@ class Vistrail(DBVistrail):
     def has_upgrade(self, action_id):
         return self.has_action_annotation(action_id, 
                                           Vistrail.UPGRADE_ANNOTATION)
-    def get_upgrade(self, action_id):
+    def get_upgrade(self, action_id, root_level=True):
         a = self.get_action_annotation(action_id, Vistrail.UPGRADE_ANNOTATION)
         if a is not None:
-            return a.value
-        return None
+            # Recurse to get the newest upgrade in case there are multiple chained upgrades
+            return self.get_upgrade(a.value, False)
+        if root_level:
+            return None
+        return action_id
     def set_upgrade(self, action_id, value):
         return self.set_action_annotation(action_id, 
                                           Vistrail.UPGRADE_ANNOTATION,
