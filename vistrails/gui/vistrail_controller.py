@@ -143,6 +143,9 @@ class VistrailController(QtCore.QObject, BaseController):
         finally:
             self.reset_version_view = True
 
+    def has_move_actions(self):
+        return self.current_pipeline_view.hasMoveActions()
+
     def flush_move_actions(self):
         return self.current_pipeline_view.flushMoveActions()
 

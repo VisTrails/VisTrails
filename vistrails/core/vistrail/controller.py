@@ -165,6 +165,9 @@ class VistrailController(object):
 
     ##########################################################################
     # Actions, etc
+
+    def has_move_actions(self):
+        return False
     
     def flush_move_actions(self):
         return False

@@ -2249,6 +2249,16 @@ mutual connections."""
             module.statusBrush = None
             module._needs_state_updated = True
 
+    def hasMoveActions(self):
+        controller = self.controller
+        moves = []
+        for (mId, item) in self.modules.iteritems():
+            module = controller.current_pipeline.modules[mId]
+            (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
+            if (dx != module.center.x or dy != module.center.y):
+                return True
+        return False
+
     def flushMoveActions(self):
         """ flushMoveActions() -> None
         Update all move actions into vistrail
