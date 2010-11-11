@@ -170,7 +170,7 @@ def timecall(method):
         start = time.time()
         method(self, *args, **kwargs)
         end = time.time()
-        critical(debug(caller, "time: %.5s" % (end-start)))
+        critical("time: %.5s" % (end-start))
     call.__doc__ = method.__doc__
     return call
 

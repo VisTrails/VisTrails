@@ -509,7 +509,6 @@ Outputs:
 def handle_missing_module(*args, **kwargs):
     global webServicesDict
     global package_cache
-    print "handle missing module"
     #this is the order the arguments are passed to the function
     controller = args[0]
     m_id = args[1]
@@ -525,10 +524,7 @@ def handle_missing_module(*args, **kwargs):
     m = pipeline.modules[m_id]
     m_namespace = m.namespace
     
-    "namespaCER:", m_namespace
-
     wsdl = get_wsdl_from_namespace(m_namespace)
-    "WSDL:", m_namespace
     if not wsdl:
         debug.critical("'%s' is not a valid namespace" % m_namespace)
         return False
