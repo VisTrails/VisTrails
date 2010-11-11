@@ -564,7 +564,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
             self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
+            debug.DebugPrint.getInstance().register_splash(self)
             self.splashScreen.show()
+            
+    def splashMessage(self, msg):
+        if hasattr(self, "splashScreen"):
+            self.splashScreen.showMessage(msg,
+                        QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeft,
+                        QtCore.Qt.white)
 
     def createWindows(self):
         """ createWindows() -> None

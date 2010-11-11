@@ -51,7 +51,7 @@ import db.services.vistrail
 from gui import merge_gui
 from db.services.io import SaveBundle
 from core.thumbnails import ThumbnailCache
-
+import gui.debug
 
 
 ################################################################################
@@ -90,6 +90,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.createToolBar()
 
         self.connectSignals()
+
+        gui.debug.DebugView.getInstance(self)
 
         self.shell = None
         self.debugger = None

@@ -1241,7 +1241,8 @@ class ModuleRegistry(DBRegistry):
     def initialize_package(self, package):
         if package.initialized():
             return
-        print "Initializing", package.codepath
+        core.debug.splashMessage("Initializing " + package.codepath)
+        core.debug.log("Initializing " + package.codepath)
         if (package.identifier, package.version) not in self.package_versions:
             self.add_package(package)
         self.set_current_package(package)
@@ -1292,6 +1293,7 @@ class ModuleRegistry(DBRegistry):
 
         # The package might have decided to rename itself, let's store that
         self.set_current_package(None)
+        core.debug.splashMessage('done')
         package._initialized = True 
 
     def delete_module(self, identifier, module_name, namespace=None):
