@@ -124,15 +124,51 @@ class UpgradeWorkflowHandler(object):
                                         invalid_module.namespace,
                                         invalid_module.id)
         pkg = pm.get_package_by_identifier(mpkg)
+        desired_version = ''
+        if invalid_module.is_abstraction():
+            desc = None
+            try:
+                # If we can't get a module descriptor (in the case of a missing package version)
+                # we'll just use the most recent version in the registry as a best-effort attempt.
+                # Package developers should implement their own upgrades, rather than relying on
+                # automatic upgrades, if this behavior isn't desirable.
+                desc = invalid_module.module_descriptor
+            except:
+                pass
+            if desc is not None:
+                if invalid_module.internal_version != desc.version:
+                    # If descriptor version doesn't match internal version, the version of the abstraction
+                    # associated with this module was upgraded (and the upgraded version was added to the
+                    # module registry), but this module hasn't been replaced with the upgraded version yet.
+                    # So we use the upgraded descriptor when replacing, rather than the newest available.
+                    # (The module_descriptor references the upgraded version, while the internal_version
+                    #  number is still assigned to the original version number).
+                    pass
+                else:
+                    # Otherwise, this is an automatic upgrade initiated by a user-initiated
+                    # "Upgrade Subworkflow", in which case we want to use the newest available
+                    # descriptor (which may or may not have already been added to the module registry).
+                    abs_fname = invalid_module.module_descriptor.module.vt_fname
+                    abs_name = controller.parse_abstraction_name(abs_fname)
+                    lookup = {abs_name: abs_fname}
+                    descriptor_info = invalid_module.descriptor_info
+                    newest_version = str(invalid_module.vistrail.get_latest_version())
+                    desc = controller.check_abstraction((descriptor_info[0],
+                                                         descriptor_info[1],
+                                                         descriptor_info[2],
+                                                         descriptor_info[3],
+                                                         newest_version),
+                                                        lookup)
+                desired_version = desc.version
         try:
             try:
-                d = get_descriptor(mpkg, mname, mnamespace)
+                d = get_descriptor(mpkg, mname, mnamespace, '', desired_version)
             except MissingModule, e:
                 r = None
                 if pkg.can_handle_missing_modules():
                     r = pkg.handle_missing_module(controller, module_id, 
                                                   pipeline)
-                    d = get_descriptor(mpkg, mname, mnamespace)
+                    d = get_descriptor(mpkg, mname, mnamespace, '', desired_version)
                 if not r:
                     raise e
         except MissingModule, e:
@@ -361,12 +397,6 @@ class UpgradeWorkflowHandler(object):
         new_group.pipeline = new_subpipeline
         return UpgradeWorkflowHandler.replace_generic(controller, pipeline, 
                                                       old_group, new_group)
-    
-    @staticmethod
-    def replace_abstraction(controller, pipeline, module_id, new_actions):
-        old_abstraction = pipeline.modules[module_id]
-        # new_abstraction = controller.
-        # FIXME complete this!
 
     @staticmethod
     def replace_module(controller, pipeline, module_id, new_descriptor,

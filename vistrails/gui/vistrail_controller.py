@@ -143,6 +143,9 @@ class VistrailController(QtCore.QObject, BaseController):
         finally:
             self.reset_version_view = True
 
+    def has_move_actions(self):
+        return self.current_pipeline_view.hasMoveActions()
+
     def flush_move_actions(self):
         return self.current_pipeline_view.flushMoveActions()
 
@@ -1527,8 +1530,7 @@ class VistrailController(QtCore.QObject, BaseController):
             if abstraction.is_abstraction() and \
                     abstraction.package == abstraction_pkg:
                 abstractions.append(abstraction)
-                abstractions.extend(self.find_abstractions(
-                        abstraction.vistrail))
+                [abstractions.extend(v) for v in self.find_abstractions(abstraction.vistrail).itervalues()]
         pkg_subworkflows = []
         pkg_dependencies = set()
         for abstraction in abstractions:

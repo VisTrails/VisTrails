@@ -1359,6 +1359,18 @@ def initialize(*args, **keywords):
     global webServicesmodulesDict
     global complexsdict
     wsdlList = []
+    if configuration.showWarning == True:
+        msg = "The Web Services package is deprecated and will be removed from \
+next VisTrails release. Please consider using the new SUDS Web Services package. \
+This message will not be shown again."
+        pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
+        try:
+            from gui.application import VistrailsApplication
+            if VistrailsApplication is not None:
+                configuration.showWarning = False
+                VisTrailsApplication.save_configuration()
+        except:
+            pass
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
 

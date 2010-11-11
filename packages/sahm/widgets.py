@@ -1,34 +1,8 @@
 from PyQt4 import QtCore, QtGui
-import csv
 import os
 
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.constant_configuration import ConstantWidgetMixin
-
-available_trees = None
-
-def build_available_trees():
-    trees = {}
-
-    layers_fname = os.path.join(os.path.dirname(__file__), 'layers.csv')
-    csv_reader = csv.reader(open(layers_fname, 'rU'))
-    # pass on header
-    csv_reader.next()
-    for row in csv_reader:
-        if row[0] not in trees:
-            trees[row[0]] = {}
-        available_dict = trees[row[0]]
-        if row[1] not in available_dict:
-            available_dict[row[1]] = []
-        available_dict[row[1]].append((row[3], row[2]))    
-    return trees
-
-def get_available_tree(title):
-    global available_trees
-    if available_trees is None:
-        available_trees = build_available_trees()
-            
-    return available_trees[title]
 
 class PredictorListWidget(QtGui.QTreeWidget):
     def __init__(self, p_value, available_tree, parent=None):
@@ -39,7 +13,7 @@ class PredictorListWidget(QtGui.QTreeWidget):
         for source, file_list in self.available_tree.iteritems():
             source_item = QtGui.QTreeWidgetItem([source])
             self.addTopLevelItem(source_item)
-            for (file, desc) in file_list:
+            for (file, desc, categorical) in file_list:
                 child_item = QtGui.QTreeWidgetItem([file, desc])
                 child_item.setFlags(QtCore.Qt.ItemIsUserCheckable |
                                     QtCore.Qt.ItemIsEnabled)
@@ -232,14 +206,19 @@ class PredictorListConfiguration(StandardModuleConfigurationWidget):
     def sizeHint(self):
         return QtCore.QSize(512, 512)
 
-class ClimatePredictorListWidget(PredictorListConfigurationWidget):
+def get_predictor_widget(class_name, tree):
     def __init__(self, param, parent=None):
-        available_tree = get_available_tree('Climate')
-        PredictorListConfigurationWidget.__init__(self, param, available_tree, 
-                                                  parent)
+        PredictorListConfigurationWidget.__init__(self, param, tree, parent)
+    class_name += "PredictorListWidget"
+    widget_class = type(class_name, (PredictorListConfigurationWidget,),
+                        {'__init__': __init__})
+    return widget_class
 
-class ClimatePredictorListConfig(PredictorListConfiguration):
+def get_predictor_config(class_name, tree):
     def __init__(self, module, controller, parent=None):
-        available_tree = get_available_tree('Climate')
-        PredictorListConfiguration.__init__(self, module, controller, 
-                                            available_tree, parent)
+        PredictorListConfiguration.__init__(self, module, controller, tree, 
+                                            parent)
+    class_name += "PredictorListConfig"
+    widget_class = type(class_name, (PredictorListConfiguration,),
+                        {'__init__': __init__})
+    return widget_class
