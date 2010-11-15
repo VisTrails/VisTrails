@@ -23,6 +23,7 @@
 from core.data_structures.graph import Graph
 from core.utils import expression
 from core.utils import trace_method
+from core import debug
 import copy
 import parser
 
@@ -118,7 +119,7 @@ class BaseInterpreter(object):
                         if not ok: break
                 if ok: added.append(i)
             if not added:
-                print 'Looping dependencies detected!'
+                debug.warning('Looping dependencies detected!')
                 break
             for i in reversed(added):
                 ordered.append(unordered[i])

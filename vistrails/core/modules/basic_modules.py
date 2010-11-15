@@ -36,6 +36,7 @@ from core.modules.constant_configuration import StandardConstantWidget, \
     PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget, OutputPathChooserWidget
 from core.system import vistrails_version
 from core.utils import InstanceObject
+from core import debug
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
      IntegerLinearInterpolator
@@ -429,7 +430,7 @@ class FileSink(NotCacheable, Module):
                                (full_path, filename, e)
                         # I am not sure whether we should raise an error
                         # I will just print a warning for now (Emanuele)
-                        print "Warning: ", msg
+                        debug.warning("%s" % msg)
 
 class DirectorySink(NotCacheable, Module):
     """DirectorySink takes a directory and writes it to a

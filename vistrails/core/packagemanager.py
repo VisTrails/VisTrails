@@ -94,7 +94,7 @@ class PackageManager(QtCore.QObject):
         try:
             import packages
         except ImportError:
-            print 'ImportError: sys.path:', sys.path
+            debug.critical('ImportError: "packages" sys.path: %s' % sys.path)
             raise
         finally:
             sys.path = old_sys_path
@@ -117,7 +117,7 @@ class PackageManager(QtCore.QObject):
         try:
             import userpackages
         except ImportError:
-            print 'ImportError: sys.path:', sys.path
+            debug.critical('ImportError: "userpackages" sys.path: %s' % sys.path)
             raise
         finally:
             sys.path = old_sys_path
@@ -530,9 +530,10 @@ Returns true if given package identifier is present."""
         """show_error_message(pkg: Package, msg: str) -> None
         Print a message to standard error output and emit a signal to the
         builder so if it is possible, a message box is also shown """
-        print "Package %s (%s) says: %s"%(pkg.name,
-                                         pkg.identifier,
-                                         msg)
+
+        debug.critical("Package %s (%s) says: %s"%(pkg.name,
+                                                   pkg.identifier,
+                                                   msg))
         self.emit(self.package_error_message_signal,
                   pkg.identifier,
                   pkg.name,

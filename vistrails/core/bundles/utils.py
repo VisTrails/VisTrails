@@ -22,6 +22,7 @@
 
 """Utility functions for core.bundles"""
 
+from core import debug
 import core.system
 import os
 
@@ -42,8 +43,8 @@ privileges."""
                 '(zenity --entry --title "sudo password prompt" --text "Please enter your password '
                 'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -S -p ""')
     else:
-        print "Could not find a graphical su-like command."
-        print "Will use regular su"
+        debug.warning("Could not find a graphical su-like command.")
+        debug.warning("Will use regular su")
         return 'su -c'
 
 ##############################################################################

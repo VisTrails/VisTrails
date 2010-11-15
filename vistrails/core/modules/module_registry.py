@@ -28,7 +28,7 @@ import os
 import traceback
 
 from core.data_structures.graph import Graph
-import core.debug
+from core import debug
 import core.modules
 import core.modules.vistrails_module
 from core.modules.module_descriptor import ModuleDescriptor
@@ -1087,8 +1087,8 @@ class ModuleRegistry(DBRegistry):
         if not os.path.isabs(vt_fname):
             vt_fname = os.path.join(package.package_dir, vt_fname)
         else:
-            print "WARNING: using absolute path for subworkflow: '%s'" % \
-                vt_fname
+            debug.warning("Using absolute path for subworkflow: '%s'" % \
+                vt_fname)
         
         # create module from workflow
         module = new_abstraction(name, vt_fname, None, version)
@@ -1146,7 +1146,7 @@ class ModuleRegistry(DBRegistry):
             return self.get_port_spec_from_descriptor(desc, port_name, 
                                                       port_type)
         except ModuleRegistryException, e:
-            print e
+            debug.critical(e)
             raise
         return None
 
@@ -1163,7 +1163,7 @@ class ModuleRegistry(DBRegistry):
             return self.has_port_spec_from_descriptor(desc, port_name, 
                                                       port_type)
         except ModuleRegistryException, e:
-            print e
+            debug.critical(e)
             raise
         return None        
 
@@ -1241,8 +1241,8 @@ class ModuleRegistry(DBRegistry):
     def initialize_package(self, package):
         if package.initialized():
             return
-        core.debug.splashMessage("Initializing " + package.codepath)
-        core.debug.log("Initializing " + package.codepath)
+        debug.splashMessage("Initializing " + package.codepath)
+        debug.log("Initializing " + package.codepath)
         if (package.identifier, package.version) not in self.package_versions:
             self.add_package(package)
         self.set_current_package(package)
@@ -1293,7 +1293,7 @@ class ModuleRegistry(DBRegistry):
 
         # The package might have decided to rename itself, let's store that
         self.set_current_package(None)
-        core.debug.splashMessage('done')
+        debug.splashMessage('done')
         package._initialized = True 
 
     def delete_module(self, identifier, module_name, namespace=None):

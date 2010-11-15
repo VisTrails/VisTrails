@@ -409,7 +409,7 @@ by startup.py. This should only be called after init()."""
                         not exist.""")
                         sys.exit(1)
                     debug.critical('%s not found' % startup)
-                    debug.critical('Will try to install default ' +
+                    debug.critical('Will try to install default '
                                               'startup file')
                     install_default_startup()
                     install_default_startupxml_if_needed()
@@ -443,21 +443,21 @@ by startup.py. This should only be called after init()."""
                 self.temp_configuration.fileDirectory)
         if (self.temp_configuration.has('verbosenessLevel') and
             self.temp_configuration.verbosenessLevel != -1):
-            dbg = debug.DebugPrint.getInstance()
             verbose = self.temp_configuration.verbosenessLevel
             if verbose < 0:
                 msg = ("""Don't know how to set verboseness level to %s - "
                        "setting to the lowest one I know of: 0""" % verbose)
-                dbg.critical(msg)
+                debug.critical(msg)
                 verbose = 0
             if verbose > 2:
                 msg = ("""Don't know how to set verboseness level to %s - "
                        "setting to the highest one I know of: 2""" % verbose)
-                dbg.critical(msg)
+                debug.critical(msg)
                 verbose = 2
+            dbg = debug.DebugPrint.getInstance()
             levels = [dbg.Critical, dbg.Warning, dbg.Log]
             dbg.set_message_level(levels[verbose])
-            dbg.log("Set verboseness level to %s" % verbose)
+            debug.log("Set verboseness level to %s" % verbose)
         
         #these checks may need to update the persistent configuration, so
         # we have to change both objects

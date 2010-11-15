@@ -24,6 +24,7 @@
 for necessary installs."""
 
 import core.bundles.installbundle
+from core import debug
 
 ##############################################################################
 
@@ -42,22 +43,22 @@ about which system it runs on."""
         return result
     except ImportError, e:
         pass
-    print "Import failed. Will try to install bundle"
+    debug.warning("Import failed. Will try to install bundle.")
 
     success = core.bundles.installbundle.install(dependency_dictionary)
 
     if not success:
-        print "Package installation failed."
-        print "Package might not be available in the provided repositories."
+        debug.critical("Package installation failed.")
+        debug.critical("Package might not be available in the provided repositories.")
         raise e
 
     try:
         result = _vanilla_import(module_name)
         return result
     except ImportError, e:
-        print "Package installation successful, but import still failed."
-        print "This means py_import was called with bad arguments."
-        print "Please report this bug to the package developer."
+        debug.critical("Package installation successful, but import still failed.")
+        debug.critical("This means py_import was called with bad arguments.")
+        debug.critical("Please report this bug to the package developer.")
         raise e
 
 ##############################################################################

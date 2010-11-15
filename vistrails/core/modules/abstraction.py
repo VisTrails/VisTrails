@@ -24,6 +24,7 @@ import os
 import re
 from itertools import chain
 
+from core import debug
 from core.configuration import get_vistrails_configuration
 from core.modules.vistrails_module import Module, ModuleError
 from core.modules.sub_module import read_vistrail, new_abstraction, \
@@ -95,11 +96,11 @@ def initialize(*args, **kwargs):
         abs_vistrails = new_vistrails
 
     for abs_name, (_, e) in cannot_load.iteritems():
-        print "Cannot load abstraction '%s'" % abs_name
+        debug.critical("Cannot load abstraction '%s'" % abs_name)
         if e:
-            print " ", e
+            debug.critical("- %s" % e)
     for abs_name in abs_vistrails:
-        print "Cannot load abstraction '%s'" % abs_name
+        debug.critical("Cannot load abstraction '%s'" % abs_name)
 
 def package_dependencies():
     import core.packagemanager
@@ -135,7 +136,7 @@ def package_dependencies():
                 vistrails[abstraction[:-4]] = \
                     (vistrail, abs_fname, inter_depends)
             else:
-                print "Abstraction '%s' missing packages it depends on" % \
-                    abstraction
+                debug.critical(("Abstraction '%s' is missing packages it " +
+                                "depends on") % abstraction)
     # print 'all_packages:', all_packages
     return list(all_packages)

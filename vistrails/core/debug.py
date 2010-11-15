@@ -22,8 +22,8 @@
 import logging
 import logging.handlers
 import inspect
-from core.utils import VersionTooLow
-from core import system
+# from core.utils import VersionTooLow
+# from core import system
 import time
 
 ################################################################################
@@ -92,8 +92,8 @@ class DebugPrint:
         self.logger.addHandler(self.console)
         self.handlers.append(self.console)
         
-    if system.python_version() <= (2,4,0,'',0):
-        raise VersionTooLow('Python', '2.4.0')
+#    if system.python_version() <= (2,4,0,'',0):
+#        raise VersionTooLow('Python', '2.4.0')
                 
     def __init__(self):
         self.handlers = []

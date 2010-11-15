@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+from core import debug
 import os
 import core.configuration
 import shutil
@@ -44,20 +45,20 @@ class PackageRepository(object):
             self._upd = conf.get('dotVistrails') + '/.userpackages/'
 
     def create_main_directory(self, codepath):
-        print "Makedir '%s'" % (os.path.join(self._upd, codepath))
+        debug.log("Makedir '%s'" % (os.path.join(self._upd, codepath)))
         os.mkdir(os.path.join(self._upd, codepath))
 
     ##########################################################################
 
     def create_directory(self, codepath, filename):
         r = os.path.join(self._upd, codepath, filename)
-        print "Makedir '%s'" % r
+        debug.log("Makedir '%s'" % r)
         os.mkdir(r)
 
     def copy_file(self, codepath, filename, local_name):
         r = os.path.join(self._upd,
                          codepath, filename)
-        print "Copyfile '%s' to '%s'" % (local_name, r)
+        debug.log("Copyfile '%s' to '%s'" % (local_name, r))
         shutil.copyfile(local_name, r)
 
     ##########################################################################
@@ -89,7 +90,7 @@ class LocalPackageRepository(PackageRepository):
             return codepath
 
     def install_package(self, codepath):
-        print "package found!"
+        debug.log("package found!")
         # read manifest
         try:
             f = file(os.path.join(self._path, codepath, 'MANIFEST'))
@@ -126,7 +127,7 @@ class HTTPPackageRepository(PackageRepository):
             return None
 
     def install_package(self, codepath):
-        print "package found!"
+        debug.log("package found!")
         # read manifest
         try:
             f = urllib2.urlopen(self._path + '/' + codepath + '/MANIFEST')
@@ -163,10 +164,10 @@ def get_repository():
     conf = core.configuration.get_vistrails_configuration()
     if conf.check('repositoryHTTPURL'):
         _repository = HTTPPackageRepository(conf.repositoryHTTPURL)
-        print "Using HTTP Package Repository @",conf.repositoryHTTPURL
+        debug.log("Using HTTP Package Repository @ %s" % conf.repositoryHTTPURL)
     elif conf.check('repositoryLocalPath'):
         _repository = LocalPackageRepository(conf.repositoryLocalPath)
-        print "Using Local Repository @",conf.repositoryLocalPath
+        debug.log("Using Local Repository @ %s" % conf.repositoryLocalPath)
     else:
         _repository = None
     return _repository

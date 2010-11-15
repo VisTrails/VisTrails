@@ -22,6 +22,7 @@
 """
 This module handles Parameter Exploration in VisTrails
 """
+from core import debug
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 import copy
@@ -131,7 +132,7 @@ class InterpolateDiscreteParam(object):
             elif argumentType==str:
                 interpolatedValues = list(r)
             else:
-                print 'Cannot interpolate non-cardinal types'
+                debug.critical('Cannot interpolate non-cardinal types')
                 assert False
             params.append(interpolatedValues)
         return zip(*params)
