@@ -555,7 +555,8 @@ def check_url(url):
                 return True
             else:
                 return False
-        except:
+        except Exception, e:
+            log(str(e))
             return False
 
 ###############################################################################
@@ -678,8 +679,8 @@ if check_path(path_to_vistrails): #run locally
                                               vt_id, version, port, path_to_figures,
                                               build_always, version_tag, execute,
                                               showspreadsheetonly,pdf)
-    
-elif check_url(path_to_vistrails): #run from the web
+elif (not build_always or
+      (build_always and check_url(path_to_vistrails))): #run from the web
     if tree:
         result, latex = get_vt_graph_remotely(path_to_vistrails, download_url,
                                               host, db_name,
@@ -698,8 +699,11 @@ elif check_url(path_to_vistrails): #run from the web
                                                showspreadsheetonly,pdf)
 else:
     result, latex = (False, 
-                     generate_latex_error("%s is not a valid url nor a valid path to vistrails.py" %\
-                       (path_to_vistrails)))
+                     generate_latex_error("It is possible that %s is not a valid \
+url nor a valid path to vistrails.py or that you don't have an internet connection \
+and some workflows have the buildalways option. If you already have cached files, \
+try removing the buildalways option from vistrails latex command" %\
+                     (path_to_vistrails)))
     
 # the printed answer will be included inline by the latex compiler.
 print latex
