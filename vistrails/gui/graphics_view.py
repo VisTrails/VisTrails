@@ -27,6 +27,7 @@ QInteractiveGraphicsView
 QPIPGraphicsView
 """
 
+from core import debug
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 import core.system
@@ -168,7 +169,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         b_rect = self.sceneBoundingRect
-        print "%sx%s" % (b_rect.width(), b_rect.height())
+        debug.log("%sx%s" % (b_rect.width(), b_rect.height()))
         printer.setPaperSize(QtCore.QSizeF(b_rect.width(), b_rect.height()),
                              QtGui.QPrinter.Point)
         painter = QtGui.QPainter(printer)

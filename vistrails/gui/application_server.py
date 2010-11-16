@@ -46,6 +46,7 @@ from gui.application import VistrailsApplicationInterface
 from gui import qt
 from core.db.locator import DBLocator, ZIPFileLocator, FileLocator
 from core.db import io
+from core import debug
 import core.db.action
 
 from core.utils import InstanceObject
@@ -91,12 +92,11 @@ class StoppableXMLRPCServer(SimpleXMLRPCServer):
             self.handle_request()
 
     def verify_request(self, request, client_address):
-        print "Receiving request from ", client_address, 
         if client_address[0] in StoppableXMLRPCServer.accessList:
-            print " allowed!"
+            debug.log("Request from %s allowed!" % client_address)
             return 1
         else:
-            print " denied!"
+            debug.log("Request from %s denied!" % client_address)
             return 0
 
 ################################################################################
@@ -131,10 +131,10 @@ class RequestHandler(object):
                 try:
                     proxy = xmlrpclib.ServerProxy(uri)
                     self.proxies_queue.put(proxy)
-                    print "Instantiated client for ", uri
+                    debug.log("Instantiated client for %s" % uri)
                 except Exception, e:
-                    print "Error when instantiating proxy ",uri
-                    print "Exception: ", str(e)
+                    debug.log("Error when instantiating proxy %s" % uri)
+                    debug.log("Exception: %s" % str(e))
     #utils
     def memory_usage(self):
         """memory_usage() -> dict
@@ -1019,8 +1019,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                 time.sleep(20)
                 self.others.append("http://%s:%s"%(host,port))
             except Exception, e:
-                print "Couldn't start the instance on display :", virtual_display, " port: ",port
-                print "Exception: ", str(e)
+                debug.critical("Couldn't start the instance on display: %s port: %s" % (virtual_display, port)
+                debug.critical("Exception: %s" % str(e))
                  
     def stop_other_instances(self): 
         script = '/server/vistrails/trunk/vistrails/stop_vistrails_server.py'
@@ -1030,8 +1030,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                 subprocess.Popen(args)
                 time.sleep(15)
             except Exception, e:
-                print "Couldn't stop instance: ", o
-                print "Exception: ", str(e)
+                debug.critical("Couldn't stop instance: %s" % o)
+                debug.critical("Exception: %s" % str(e))
                        
     def run_server(self):
         """run_server() -> None
@@ -1039,16 +1039,18 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         via xml-rpc.
 
         """
-        print "Server is running on http://%s:%s"%(self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port),
         if self.temp_xml_rpc_options.multithread:
             self.rpcserver = ThreadedXMLRPCServer((self.temp_xml_rpc_options.server,
                                                    self.temp_xml_rpc_options.port))
-            print " multithreaded"
+            debug.log("Server is running on http://%s:%s multithreaded"%
+                      (self.temp_xml_rpc_options.server,
+                       self.temp_xml_rpc_options.port))
         else:
             self.rpcserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
                                                    self.temp_xml_rpc_options.port))
-            print " singlethreaded" 
+            debug.log("Server is running on http://%s:%s singlethreaded"%
+                      (self.temp_xml_rpc_options.server,
+                       self.temp_xml_rpc_options.port))
         #self.rpcserver.register_introspection_functions()
         self.rpcserver.register_instance(RequestHandler(self.server_logger,
                                                         self.others))
@@ -1110,7 +1112,7 @@ def start_server(optionsDict=None):
     """Initializes the application singleton."""
     global VistrailsServer
     if VistrailsServer:
-        print "Server already started."""
+        print "Server already started."
         return
     VistrailsServer = VistrailsServerSingleton()
     try:

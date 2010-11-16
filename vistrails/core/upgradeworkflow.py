@@ -59,7 +59,7 @@ class UpgradeWorkflowHandler(object):
             # It is possible that some other upgrade request has
             # already removed the invalid module of this request. In
             # that case, disregard the request.
-            debug.warning("module %s already handled. skipping" % module_id)
+            debug.log("module %s already handled. skipping" % module_id)
             return []
         invalid_module = current_pipeline.modules[module_id]
         pkg = pm.get_package_by_identifier(invalid_module.package)
@@ -67,8 +67,8 @@ class UpgradeWorkflowHandler(object):
             f = pkg.module.handle_module_upgrade_request
             return f(controller, module_id, current_pipeline)
         else:
-            debug.critical('Package cannot handle upgrade request. ' +
-                           'VisTrails will attempt automatic upgrade.')
+            debug.warning('Package cannot handle upgrade request. '
+                          'VisTrails will attempt automatic upgrade.')
             auto_upgrade = UpgradeWorkflowHandler.attempt_automatic_upgrade
             return auto_upgrade(controller, current_pipeline, module_id)
 

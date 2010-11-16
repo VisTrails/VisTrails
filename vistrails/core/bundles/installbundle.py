@@ -22,6 +22,7 @@
 
 """Module with utilities to try and install a bundle if possible."""
 
+from core import debug
 from core.bundles.utils import guess_system, guess_graphical_sudo
 import core.bundles.installbundle # this is on purpose
 import os
@@ -69,7 +70,8 @@ def linux_ubuntu_install(package_name):
     if qt:
         sucmd = guess_graphical_sudo() + " '" + cmd + "'"
     else:
-        print "VisTrails wants to install package(s) '%s'" % package_name
+        debug.warning("VisTrails wants to install package(s) '%s'" %
+                      package_name)
         sucmd = "sudo " + cmd
 
     result = os.system(sucmd)
@@ -96,13 +98,13 @@ def linux_fedora_install(package_name):
     if qt:
         sucmd = guess_graphical_sudo() + " " + cmd
     else:
-        print ("VisTrails wants to install package(s) '%s' through _sudo_. Make sure" +
-               " you are a sudoer.") % package_name
+        debug.warning(("VisTrails wants to install package(s) '%s' through "
+                       "_sudo_. Make sure you are a sudoer.") % package_name)
         sucmd = "sudo " + cmd
 
-    print sucmd
+    debug.warning("EXECUTING: sucmd")
     result = os.system(sucmd)
-    print "RETURN VALUE", result
+    debug.warning("RETURN VALUE: %s" % result)
     return (result == 0)
 
 def show_question(which_files):
@@ -126,7 +128,7 @@ def show_question(which_files):
     else:
         print "Required package missing"
         print ("A required package is missing, but VisTrails can " +
-               "automaticallly install it. " +
+               "automatically install it. " +
                "If you say Yes, VisTrails will need "+
                "administrator privileges, and you" +
                "might be asked for the administrator password.")

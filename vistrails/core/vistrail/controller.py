@@ -1803,10 +1803,11 @@ class VistrailController(object):
                 except Exception, e:
                     # cannot get the package we need
                     continue
-                print '** trying to fix errors in', identifier
-                print '\n'.join(['  ' + str(e) for e in err_list])
+                debug.warning('** Trying to fix errors in %s' % identifier)
+                for t in ['  ' + str(e) for e in err_list]:
+                    debug.warning(t)
                 if pkg.can_handle_all_errors():
-                    print '  handle_all_errors'
+                    debug.warning('  handle_all_errors')
                     try:
                         actions = pkg.handle_all_errors(self, err_list, 
                                                         pipeline)
@@ -1921,7 +1922,7 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         for left in left_exceptions:
-            print '-->', left
+            debug.critical('--> %s' % left)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)

@@ -1304,7 +1304,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
                 msg = "Couldn't write thumbnail file to disk: %s" % absfname
                 raise VistrailsDBException(msg)
         else:
-            print "db: Referenced thumbnail not found locally or in the database: '%s'" % file_name
+            debug.warning("db: Referenced thumbnail not found locally or in the database: '%s'" % file_name)
     # Return only thumbnails that now exist locally
     return [os.path.join(tmp_dir, file_name) for file_name in file_names if file_name in os.listdir(tmp_dir)]
 
@@ -1404,7 +1404,7 @@ def get_current_time(db_connection=None):
                 # timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
             c.close()
         except get_db_lib().Error, e:
-            print "Logger Error %d: %s" % (e.args[0], e.args[1])
+            debug.critical("Logger Error %d: %s" % (e.args[0], e.args[1]))
 
     return timestamp
 

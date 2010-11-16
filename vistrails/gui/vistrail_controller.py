@@ -22,6 +22,7 @@
 from PyQt4 import QtCore, QtGui
 from core.common import *
 from core.configuration import get_vistrails_configuration
+from core import debug
 import core.db.action
 import core.db.locator
 import core.modules.vistrails_module
@@ -1476,7 +1477,7 @@ class VistrailController(QtCore.QObject, BaseController):
                     if hasattr(module, attr):
                         found_lists[attr] = getattr(module, attr)
             except Exception, e:
-                print e
+                debug.critical("Exception: %s" % e)
                 pass
             return (found_attrs, found_lists)
 

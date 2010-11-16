@@ -87,8 +87,8 @@ class EigenBase(object):
                 (in_s8y, out_s8y) = self.compare_modules(v1_id, v2_id)
                 m_i[i,j] = in_s8y
                 m_o[i,j] = out_s8y
-        print m_i
-        print m_o
+        # print m_i
+        # print m_o
         self._input_vertex_s8y = m_i
         self._output_vertex_s8y = m_o
         self._vertex_s8y = (m_i + m_o) / 2.0
@@ -239,7 +239,7 @@ class EigenBase(object):
         if type(v) == scipy.matrix:
             v = scipy.array(v)[0]
         (c,) = v.shape
-        print "[ ",
+        # print "[ ",
         for j in xrange(c):
             if left_digits != None:
                 d = left_digits[0,j]
@@ -248,8 +248,8 @@ class EigenBase(object):
             fmt = ("%" +
                    str(d + digits + 1) + 
                    "." + str(digits) + "f ")
-            print (fmt % v[j]),
-        print "]"
+            # print (fmt % v[j]),
+        # print "]"
 
     def print_s8ys(self):
         print "Input s8y"

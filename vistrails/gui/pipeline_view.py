@@ -35,6 +35,7 @@ QPipelineView
 
 from PyQt4 import QtCore, QtGui
 from core.configuration import get_vistrails_configuration
+from core import debug
 from core.utils import VistrailsInternalError, profile
 from core.utils.uxml import named_elements
 from core.modules.module_configure import DefaultModuleConfigurationWidget
@@ -1254,7 +1255,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 port.sigstring == p.sigstring):
                 return item.sceneBoundingRect().center()
         
-        print "PORT SIG:", port.signature
+        debug.log("PORT SIG:", port.signature)
         if not port.signature or port.signature == '()':
             # or len(port_descs) == 0:
             sigstring = default_sig
@@ -1713,7 +1714,7 @@ mutual connections."""
                                      if (not x.optional or
                                          (s, x._db_name) in pv)])
                 except ModuleRegistryException, e:
-                    print "MODULE REGISTRY EXCEPTION", e
+                    debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
                 if cip <> new_ip or cop <> new_op:
                     self.recreate_module(pipeline, m_id)
                 if tm_item.isSelected():

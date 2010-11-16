@@ -29,6 +29,7 @@ QHoverAliasLabel
 """
 
 from PyQt4 import QtCore, QtGui
+from core import debug
 from core.utils import expression
 from core.vistrail.module_function import ModuleFunction
 from core.modules import module_registry
@@ -165,7 +166,7 @@ class QVerticalWidget(QPromptWidget):
         
         """
         if not function.is_valid:
-            print "!! FUNCTION NOT VALID"
+            debug.critical("FUNCTION NOT VALID!")
             return
         inputForm = QMethodInputWidget(self.formType, self)
         inputForm.moduleId = module.id
@@ -328,7 +329,7 @@ class QMethodInputForm(QtGui.QGroupBox):
                                                   p.type,
                                                   p.namespace)
             except module_registry.ModuleRegistryException:
-                print "HIT MRE in DROPBOX"
+                debug.critical("HIT ModuleRegistryException in DROPBOX")
                 pass
             if p_module is not None:
                 widget_type = p_module.get_widget_class()
