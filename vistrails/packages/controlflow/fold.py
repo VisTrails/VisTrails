@@ -1,3 +1,4 @@
+from core import debug
 from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
     ModuleConnector, InvalidOutput
 from core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
@@ -246,7 +247,7 @@ def create_module(value, signature):
             v_modules += (create_module(value[element], signature[element]),)
         return v_modules
     else:
-        print "Could not identify the type of the list element."
-        print "Type checking is not going to be done inside Fold module."
+        debug.warning("Could not identify the type of the list element.")
+        debug.warning("Type checking is not going to be done inside Fold module.")
         return None
 

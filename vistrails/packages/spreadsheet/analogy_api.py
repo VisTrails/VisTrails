@@ -99,7 +99,7 @@ class SpreadsheetAnalogyObject(object):
         (p2_locator, p2_number, p2_actions, p2_pipeline) = self._p2Info
         (p3_locator, p3_number, p3_actions, p3_pipeline) = pInfo
 
-        print type(p1_locator), p1_locator
+        # print type(p1_locator), p1_locator
         if (p1_locator != p2_locator or
             p1_locator != p3_locator or
             p1_actions or

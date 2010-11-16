@@ -79,8 +79,8 @@ class DebugPrint:
         """
         self.logger = logging.getLogger("VisLog")
         self.logger.setLevel(logging.INFO)
-        self.format = logging.Formatter("%(asctime)s %(pathname)s"+\
-                                ":%(lineno)s - %(levelname)s: %(message)s")
+        self.format = logging.Formatter("%(levelname)s: %(asctime)s %(pathname)s"+\
+                                ":%(lineno)s\n  %(message)s")
         # first we define a handler for logging to a file
         if f:
             self.set_logfile(f)

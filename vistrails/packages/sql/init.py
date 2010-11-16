@@ -30,6 +30,7 @@ psycopg2 = py_import('psycopg2', {'linux-ubuntu':'python-psycopg2',
 from PyQt4 import QtCore, QtGui
 import urllib
 
+from core import debug
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.modules.source_configure import SourceConfigurationWidget
 from core.upgradeworkflow import UpgradeWorkflowHandler
@@ -118,7 +119,7 @@ class DBConnection(Module):
                 self.conn = self.get_db_lib().connect(**config)
                 break
             except self.get_db_lib().Error, e:
-                print str(e)
+                debug.warning(str(e))
                 if (e[0] == 1045 or self.get_db_lib().OperationalError 
                     and self.password is None):
                     passwd_dlg = QPasswordEntry()
@@ -164,7 +165,7 @@ class SQLSource(Module):
         connection = self.getInputFromPort('connection')
         inputs = [self.getInputFromPort(k) for k in self.inputPorts
                   if k != 'source' and k != 'connection' and k!= 'cacheResults']
-        print 'inputs:', inputs
+        #print 'inputs:', inputs
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
         if not connection.ping():
             connection.open()

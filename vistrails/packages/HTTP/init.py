@@ -43,7 +43,6 @@ import httplib
 import urllib2
 import os.path
 import sys
-import urllib2
 import socket
 import datetime
 import urllib
@@ -361,13 +360,13 @@ def initialize(*args, **keywords):
 
     if not os.path.isdir(package_directory):
         try:
-            print "Creating package directory..."
+            debug.log("Creating HTTP package directory: %s" % package_directory)
             os.mkdir(package_directory)
         except:
-            print "Could not create package directory. Make sure"
-            print "'%s' does not exist and parent directory is writable"
+            debug.critical(("Create directory failed. Make sure '%s' does not"
+                           " exist and parent directory is writable") %
+                            package_directory)
             sys.exit(1)
-        print "Ok."
 
 ##############################################################################
 

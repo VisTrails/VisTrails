@@ -189,7 +189,7 @@ class Service:
             key = 'proxy_%s'%t
             if configuration.check(key):
                 proxy = getattr(configuration, key)
-                print "has proxy:", proxy
+                debug.log("Using proxy: %s" % proxy)
                 if len(proxy):
                     options['proxy'] = {t:proxy}
         try:

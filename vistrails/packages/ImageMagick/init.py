@@ -112,7 +112,7 @@ arguments to the program."""
         cmd = [cmd] + list(args)
         cmdline = list2cmdline(cmd)
         if not configuration.quiet:
-            print cmdline
+            debug.log(cmdline)
         r = os.system(cmdline)
         if r != 0:
             raise ModuleError(self, "system call failed: '%s'" % cmdline)
@@ -152,7 +152,7 @@ outputFormat port."""
         cmd = [cmd, '-channel', 'RGBA', '-combine',
                r.name, g.name, b.name, a.name, o.name]
         if not configuration.quiet:
-            print cmd
+            debug.log(cmd)
         cmdline = list2cmdline(cmd)
         result = os.system(cmdline)
         if result != 0:

@@ -41,6 +41,7 @@ def package_requirements():
     if not core.requirements.python_module_exists('vtk'):
         raise core.requirements.MissingRequirement('vtk')
     if not core.requirements.python_module_exists('PyQt4'):
-        print 'PyQt4 is not available. There will be no interaction',
-        print 'between VTK and the spreadsheet.'
+        from core import debug
+        debug.warning('PyQt4 is not available. There will be no interaction '
+                      'between VTK and the spreadsheet.')
     import vtk
