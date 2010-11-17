@@ -37,11 +37,11 @@ import time
 import os.path
 
 import api
+from core.configuration import get_vistrails_configuration
 from core.interpreter.default import get_default_interpreter
 import core.modules.module_registry
 import core.system
 from core.vistrail.port_spec import PortSpec
-import gui.application
 from gui.common_widgets import QToolWindowInterface, QToolWindow
 from core.utils import all
 
@@ -54,7 +54,6 @@ class QShellDialog(QToolWindow, QToolWindowInterface):
         QToolWindow.__init__(self, parent=parent)
         #locals() returns the original dictionary, not a copy as
         #the docs say
-        app = gui.application.VistrailsApplication
         self.firstLocals = copy.copy(locals())
         self.shell = QShell(self.firstLocals,None)
         self.setWidget(self.shell)
@@ -343,12 +342,12 @@ class QShell(QtGui.QTextEdit):
         self.setAcceptRichText(False)
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         
-        app = gui.application.VistrailsApplication
-        shell_conf = app.configuration.shell
+        conf = get_vistrails_configuration()
+        shell_conf = conf.shell
         # font
         font = QtGui.QFont(shell_conf.font_face, shell_conf.font_size)
         font.setFixedPitch(1)
-        self.setCurrentFont(font)
+        self.setFont(font)
         self.reset(locals)
 
     def load_package(self, pkg_name):
