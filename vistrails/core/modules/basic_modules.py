@@ -1089,6 +1089,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                           'src_port_remap':
                               {'itemlist': 'itemList'},
                           })],
+                   'InputPort':
+                       [(None, '1.6', None,
+                         {'dst_port_remap': {'old_name': None}})],
+                   'OutputPort':
+                       [(None, '1.6', None,
+                         {'dst_port_remap': {'old_name': None}})],
                    }
 
    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

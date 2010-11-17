@@ -2251,13 +2251,6 @@ class VistrailController(object):
             save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
             locator.save_as(save_bundle)
 
-    def write_expanded_workflow(self, locator):
-        if self.current_pipeline:
-            (workflow, _) = core.db.io.expand_workflow(self.vistrail, 
-                                                       self.current_pipeline)
-            locator.save_as(workflow)
-        
-    
     def write_log(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
