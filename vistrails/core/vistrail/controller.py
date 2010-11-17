@@ -1763,9 +1763,12 @@ class VistrailController(object):
                             
                     # set id to None so db saves correctly
                     new_pipeline.id = None
+                    old_id_scope = self.id_scope
+                    self.id_scope = id_scope
                     inner_actions = \
                         process_package_exceptions(new_exception_set,
                                                    new_pipeline)
+                    self.id_scope = old_id_scope
                     if len(inner_actions) > 0:
                         # create action that recreates group/subworkflow
                         old_module = pipeline.modules[err._module_id]
