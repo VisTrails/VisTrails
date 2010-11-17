@@ -1255,7 +1255,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 port.sigstring == p.sigstring):
                 return item.sceneBoundingRect().center()
         
-        debug.log("PORT SIG:", port.signature)
+        debug.log("PORT SIG:" + port.signature)
         if not port.signature or port.signature == '()':
             # or len(port_descs) == 0:
             sigstring = default_sig
