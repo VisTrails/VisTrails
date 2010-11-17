@@ -346,7 +346,9 @@ class DefaultTheme(object):
         # Font for PythonSource
         self.PYTHON_SOURCE_EDITOR_FONT = QtGui.QFont('Courier', 10, 
                                                      QtGui.QFont.Normal)
-        
+        # Font for Splash Screen messages
+        self.SPLASH_SCREEN_FONT = QtGui.QFont('Arial', 10,
+                                              QtGui.QFont.Normal)
         #### ICONS & IMAGES ####
         #The application disclaimer image
         self.DISCLAIMER_IMAGE = QtGui.QPixmap(
@@ -608,6 +610,10 @@ class MacTheme(DefaultTheme):
         # Font for PythonSource
         self.PYTHON_SOURCE_EDITOR_FONT = QtGui.QFont('Monaco', 11, 
                                                      QtGui.QFont.Normal)
+        
+        # Font for Splash Screen messages
+        self.SPLASH_SCREEN_FONT = QtGui.QFont('Helvetica', 10,
+                                              QtGui.QFont.Light)
 
 class LinuxTheme(DefaultTheme):
     def __init__(self):
