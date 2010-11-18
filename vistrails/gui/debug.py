@@ -27,11 +27,13 @@ import StringIO
 
 
 class DebugView(QtGui.QDialog):
-    """ Class used for debugging QT signals.
+    """ Class used for showing error messages and
+        debugging QT signals.
+
         Example of usage:
            import gui.debug
            gui.debug.watch_signal(my_signal)
-        """
+     """
     #Singleton technique
     _instance = None
     class DebugViewSingleton():
@@ -53,6 +55,7 @@ class DebugView(QtGui.QDialog):
 #        text.insertPlainText(errorTrace)
         self.text.setReadOnly(True)
         self.text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        self.resize(700, 400)
         layout.addWidget(self.text)
         close = QtGui.QPushButton('Close', self)
         close.setFixedWidth(100)
@@ -78,9 +81,19 @@ class DebugView(QtGui.QDialog):
         slider = self.text.verticalScrollBar()
         slider.setValue(slider.maximum())
         # show on screen
-        if not self.isVisible():
-            self.resize(700, 400)
-            self.show()
+        #if not self.isVisible():
+        #    self.resize(700, 400)
+        #    self.show()
+
+    def closeEvent(self, e):
+        """closeEvent(e) -> None
+        Event handler called when the dialog is about to close."""
+        self.emit(QtCore.SIGNAL("messagesView(bool)"), False)
+
+    def showEvent(self, e):
+        """closeEvent(e) -> None
+        Event handler called when the dialog is about to close."""
+        self.emit(QtCore.SIGNAL("messagesView(bool)"), True)
 
 class debugStream(StringIO.StringIO):
     def __init__(self, write):

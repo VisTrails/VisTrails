@@ -358,6 +358,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.debugAction.setCheckable(True)
         self.debugAction.setChecked(False)
 
+        self.messagesAction = QtGui.QAction('VisTrails Messages', self)
+        self.messagesAction.setCheckable(True)
+        self.messagesAction.setChecked(False)
+
         self.pipViewAction = QtGui.QAction('Picture-in-Picture', self)
         self.pipViewAction.setCheckable(True)
         self.pipViewAction.setChecked(True)
@@ -491,6 +495,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu = self.menuBar().addMenu('&View')
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addAction(self.debugAction)
+        self.viewMenu.addAction(self.messagesAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.expandBranchAction)
         self.viewMenu.addAction(self.collapseBranchAction)
@@ -666,6 +671,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.debugAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showDebugger)
+
+        self.connect(self.messagesAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.showMessages)
+
+        self.connect(gui.debug.DebugView.getInstance(),
+                     QtCore.SIGNAL("messagesView(bool)"),
+                     self.messagesAction.setChecked)
 
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
@@ -1281,7 +1294,9 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
                                self.debugger)
             self.debugger.show()
-            
+        elif self.debugger and self.debugger.isVisible():
+            self.debugger.hide()
+
     def update_debugger(self):
         if self.viewManager.currentWidget() is None:
             return
@@ -1299,6 +1314,13 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.debugger.show()
         else:
             self.debugger.hide()
+
+    def showMessages(self, checked=True):
+        debugView = gui.debug.DebugView.getInstance()
+        if checked:
+            debugView.show()
+        else:
+            debugView.hide()
 
     def savePythonPrompt(self):
         """savePythonPrompt() -> None
