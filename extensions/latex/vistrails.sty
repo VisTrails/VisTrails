@@ -25,7 +25,7 @@
 %% latex or by adding/changing "shell_escape = t" in your texmf.cnf .
 
 \NeedsTeXFormat{LaTeX2e}[1994/12/01]
-\ProvidesPackage{vistrails}[2010/05/19 v0.2 VisTrails in LaTeX]
+\ProvidesPackage{vistrails}[2010/11/19 v0.3 VisTrails in LaTeX]
 
 %% keyval package allows us to define arguments in a command as key-value pairs,
 %%  which is more convenient
@@ -64,8 +64,9 @@
 \def\vtpdf{false}
 \def\vtworkflow{false}
 \def\vttree{false}
+\def\vtgetvtl{false}
 \newread\myinput
-%% We use '\jobname_python.temp' to store if python is present
+%% We use '\jobname.python.temp' to store a unique file saying if python is present
 \immediate\write18{type -P \vistrailspythonpath > \jobname.python.temp}
 \immediate\openin\myinput=\jobname.python.temp
 % The group localizes the change to \endlinechar
@@ -113,6 +114,7 @@
     \immediate\write\pythonincludein{pdf=\vtpdf}
     \immediate\write\pythonincludein{workflow=\vtworkflow}
     \immediate\write\pythonincludein{tree=\vttree}
+    \immediate\write\pythonincludein{getvtl=\vtgetvtl}
     \ifx\@empty#2\@empty
         \immediate\write\pythonincludein{other=}
     \else
@@ -136,4 +138,5 @@
 \define@key{vt}{pdf}[true]{\def\vtpdf{#1}}
 \define@key{vt}{showworkflow}[true]{\def\vtworkflow{#1}}
 \define@key{vt}{showtree}[true]{\def\vttree{#1}}
+\define@key{vt}{getvtl}[true]{\def\vtgetvtl{#1}}
 

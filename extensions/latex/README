@@ -47,6 +47,7 @@ showspreadsheetonly, % only the spreadsheet will be shown when the user opens th
 pdf, % download images as pdf files
 showworkflow, % show the workflow instead of the results
 showtree, % show version tree instead of the results 
+getvtl, % will also download the vistrail/workflow
 ]{width=0.45\linewidth}
 
 The tag, port, buildalways, execute, showspreadsheetonly and pdf options are optional. 

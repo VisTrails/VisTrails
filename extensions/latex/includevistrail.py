@@ -31,8 +31,9 @@
 #   buildalways=true
 #   tag=Some text
 #   pdf=false
-#   workflow=False
-#   tree=False
+#   workflow=false
+#   tree=false
+#   getvtl=false
 #   other=width=0.45\linewidth 
 #
 # the buildalways and port lines are optional
@@ -96,7 +97,21 @@ def path_exists_and_not_empty(path):
 
 ###############################################################################
 
-def download(url,filename):
+def vtl_exists_in_folder(path):
+    """vtl_exists_in_folder(path:str) -> boolean 
+    Returns True if given path contains a *.vtl file, otherwise returns False.
+    
+    """
+    for dirpath, dirname,filenames in os.walk(path):
+        for f in filenames:
+            ext = os.path.splitext(f)[1]
+            if ext == ".vtl":
+                return True
+    return False
+
+###############################################################################
+
+def download(url,filename, folder=None):
     """download(url:string, filename: string) -> Boolean
     Downloads a binary file from url to filename and returns True (success)
     or False (failure)
@@ -104,11 +119,20 @@ def download(url,filename):
     """
     try:
         furl = urllib2.urlopen(url)
+        if filename is None and folder is not None:
+            info = furl.info()
+            re_filename = re.compile('attachment;filename=(.*vtl)')
+            attach = info.dict['content-disposition']
+            filename = os.path.join(folder,
+                                    re_filename.match(attach).groups()[0])
+            
+        log("downloading file: " + filename)
         f = file(filename,'wb')
         f.write(furl.read())
         f.close()
         return True
-    except:
+    except Exception, e:
+        log(str(e))
         return False
     
 ###############################################################################        
@@ -126,6 +150,34 @@ def download_as_text(url):
         return None
 
 ###############################################################################
+
+def build_download_vtl_request(download_url, host, db_name, vt_id, version, port, tag, 
+                   execute, showspreadsheetonly, embedWorkflow=False):
+    """generate_latex(host: str, db_name:str, vt_id: str, version: str,
+                      port:str, tag: str, execute: bool,
+                      showspreadsheetonly: bool)  -> str
+        This generates a piece of latex code containing the \href command and
+        a \includegraphics command for each image generated.
+    """
+    
+    url_params = "getvt=%s&db=%s&host=%s&port=%s&tag=%s&\
+execute=%s&showspreadsheetonly=%s&embedWorkflow=%s" % (vt_id,
+                                                    db_name,
+                                                    host,
+                                                    port,
+                                                    urllib2.quote(tag),
+                                                    execute,
+                                                    showspreadsheetonly,
+                                                    embedWorkflow)
+    if version is not None:
+        url_params += "&version=%s"%urllib2.quote(version)
+    url_params = url_params.replace("%","\%")
+    url = "%s?%s"%(download_url, url_params)
+    
+    return url    
+
+###############################################################################
+
 def _download_content(url, request, path_to_figures):
     """_download_images(url:string, request:string, path_to_figures:string) -> (Boolean, 
                                                                 message)
@@ -230,26 +282,22 @@ def generate_latex(download_url, host, db_name, vt_id, version, port, tag,
         a \includegraphics command for each image generated.
     """
     if download_url is not None and download_url != "":
-        url_params = "getvt=%s&db=%s&host=%s&port=%s&tag=%s&\
-execute=%s&showspreadsheetonly=%s" % (vt_id,
-                                      db_name,
-                                      host,
-                                      port,
-                                      urllib2.quote(tag),
-                                      execute,
-                                      showspreadsheetonly)
-        if version is not None:
-            url_params += "&version=%s"%urllib2.quote(version)
-        url_params = url_params.replace("%","\%")
-        url = "%s?%s"%(download_url, url_params)
+        url = build_download_vtl_request(download_url, host, db_name, vt_id, 
+                                         version, port, tag, execute, 
+                                         showspreadsheetonly, embedWorkflow=False)
         href = "\href{%s}{" % url
-        
+    ALLOWED_GRAPHICS = [".png", ".jpg", ".pdf"]
+    images = []
     for root, dirs, file_names in os.walk(path_to_figures):
+        for f in file_names:
+            ext = os.path.splitext(f)[1]
+            if ext in ALLOWED_GRAPHICS:
+                images.append(f)
         break
-    n = len(file_names)
+    n = len(images)
     s = ''
     
-    for f in file_names:
+    for f in images:
         filename = os.path.join(path_to_figures,f).replace("%","\%")
         if graphics_options:
             s += "\includegraphics[%s]{%s}\n" % (graphics_options, filename)
@@ -593,6 +641,7 @@ execute = False
 pdf = False
 wgraph = False
 tree = False
+getvtl = False
 
 for line in lines:
     args = line.split("=")
@@ -628,6 +677,8 @@ for line in lines:
         wgraph = bool_conv(args[1].strip(" \n"))
     elif args[0] == 'tree':
         tree = bool_conv(args[1].strip(" \n"))
+    elif args[0] == 'getvtl':
+        getvtl = bool_conv(args[1].strip(" \n"))
     elif args[0] == "other":
         graphics_options = args[1].strip(" \n")
 
@@ -660,7 +711,6 @@ elif wgraph:
 # it, else let's assume it's a url (we still check if the url is valid inside
 # the run_vistrails_remotely function)
 
-log("tree: " + str(tree))
 if check_path(path_to_vistrails): #run locally
     if tree:
         # we don't need to actually run the workflow, we just get the
@@ -697,6 +747,18 @@ elif (not build_always or
                                                vt_id, version, port, path_to_figures,
                                                build_always, version_tag, execute,
                                                showspreadsheetonly,pdf)
+    #download vtl file
+    if getvtl:
+        if (not build_always and not vtl_exists_in_folder(path_to_figures) or
+            build_always):
+                url = build_download_vtl_request(download_url, host, db_name, 
+                                                 vt_id, version, port, version_tag, 
+                                                 execute, showspreadsheetonly, 
+                                                 embedWorkflow=True)
+                if download(url, filename=None, folder=path_to_figures) == False:
+                    log("Error when downloading vtl to %s"%path_to_figures)
+        
+                
 else:
     result, latex = (False, 
                      generate_latex_error("It is possible that %s is not a valid \
