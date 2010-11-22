@@ -759,15 +759,18 @@ class VistrailController(QtCore.QObject, BaseController):
 
             exception_set = e.get_exception_set()
             if len(exception_set) > 0:
-                msg_box = QtGui.QMessageBox(VistrailsApplication.builderWindow)
-                msg_box.setIcon(QtGui.QMessageBox.Warning)
-                msg_box.setText("The current workflow could not be validated.")
-                msg_box.setInformativeText("Errors occurred when trying to "
-                                           "construct this workflow.")
-                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
-                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
-                msg_box.setDetailedText(str(e))
-                msg_box.exec_()
+#                msg_box = QtGui.QMessageBox(VistrailsApplication.builderWindow)
+#                msg_box.setIcon(QtGui.QMessageBox.Warning)
+#                msg_box.setText("The current workflow could not be validated.")
+#                msg_box.setInformativeText("Errors occurred when trying to "
+#                                           "construct this workflow.")
+#                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
+#                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
+#                msg_box.setDetailedText(str(e))
+#                msg_box.exec_()
+                text = "The current workflow could not be validated."
+                debug.critical('%s\n%s' % (text, str(e)))
+
 #                 print 'got to exception set'
 #                 # Process all errors as usual
 #                 if report_all_errors:
@@ -778,10 +781,7 @@ class VistrailController(QtCore.QObject, BaseController):
 #                     process_err(exception_set.__iter__().next())
 
         except Exception, e:
-            from gui.application import VistrailsApplication
-            QtGui.QMessageBox.critical(
-                VistrailsApplication.builderWindow,
-                'Unexpected Exception', str(e))
+            debug.critical('Unexpected Exception\n%s' % str(e))
             raise
         
         if not self._current_terse_graph or \

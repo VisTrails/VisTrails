@@ -126,7 +126,7 @@ class DebugPrint:
         output to a stream object."""
         try:
         #then we define a handler to log to the console
-            format = logging.Formatter('%(levelname)s: %(message)s')
+            format = logging.Formatter('%(levelname)s\n%(asctime)s\n%(pathname)s:%(lineno)s\n%(message)s')
             handler = logging.StreamHandler(stream)
             handler.setFormatter(format)
             handler.setLevel(self.level)
