@@ -26,6 +26,7 @@ import base64
 import hashlib
 import sys
 import logging
+import logging.handlers
 import os
 import os.path
 import subprocess
@@ -86,7 +87,6 @@ class StoppableXMLRPCServer(SimpleXMLRPCServer):
             self.handle_request()
 
     def verify_request(self, request, client_address):
-        
         if client_address[0] in accessList:
             self.logger.info("Request from %s allowed!"%str(client_address))
             return 1
@@ -164,6 +164,9 @@ class RequestHandler(object):
             if n > 0:
                 return True
         return False
+
+    def try_ping(self):
+        return 1
 
     #crowdlabs
     def get_wf_modules(self, host, port, db_name, vt_id, version):
@@ -638,58 +641,58 @@ class RequestHandler(object):
                 # FIXME: copy images to extra_path
             self.server_logger.info("returning %s" % result)
             return (result, 1)
-    except xmlrpclib.ProtocolError, err:
-        err_msg = ("A protocol error occurred\n"
-                   "URL: %s\n"
-                   "HTTP/HTTPS headers: %s\n"
-                   "Error code: %d\n"
-                   "Error message: %s\n") % (err.url, err.headers,
-                                             err.errcode, err.errmsg)
-        self.server_logger.error(err_msg)
-        return (str(err), 0)
-    except Exception, e:
-        self.server_logger.error(str(e))
-        return (str(e), 0)
-
-#vistrails
-def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
-                version=None,  pdf=False, vt_tag='',parameters='', is_local=True):
-    self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
-                            (host, port, db_name, vt_id,
-                             path_to_figures, version, pdf,
-                             vt_tag, parameters, is_local))
-
-    self.server_logger.info("path_exists_and_not_empty? %s" % self.path_exists_and_not_empty(path_to_figures))
-    self.server_logger.info(str(self.proxies_queue))
-
-    if not is_local:
-        # use same hashing as on crowdlabs webserver
-        dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
-        dest_version = hashlib.sha1(dest_version).hexdigest()
-        path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
-
-    if (not self.path_exists_and_not_empty(path_to_figures) and
-        self.proxies_queue is not None):
-        self.server_logger.info("will forward request")
-        #this server can send requests to other instances
-        proxy = self.proxies_queue.get()
-        try:
-            self.server_logger.info("Sending request to %s" % proxy)
-            result = proxy.run_from_db(host, port, db_name, vt_id,
-                                       path_to_figures, version, pdf, vt_tag,
-                                       parameters, is_local)
-            self.proxies_queue.put(proxy)
-            self.server_logger.info("returning %s" % result)
-            return result
         except xmlrpclib.ProtocolError, err:
-                err_msg = ("A protocol error occurred\n"
-                           "URL: %s\n"
-                           "HTTP/HTTPS headers: %s\n"
-                           "Error code: %d\n"
-                           "Error message: %s\n") % (err.url, err.headers,
-                                                     err.errcode, err.errmsg)
-                self.server_logger.error(err_msg)
-                return (str(err), 0)
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
+        except Exception, e:
+            self.server_logger.error(str(e))
+            return (str(e), 0)
+
+    #vistrails
+    def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
+                    version=None,  pdf=False, vt_tag='',parameters='', is_local=True):
+        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id,
+                                 path_to_figures, version, pdf,
+                                 vt_tag, parameters, is_local))
+
+        self.server_logger.info("path_exists_and_not_empty? %s" % self.path_exists_and_not_empty(path_to_figures))
+        self.server_logger.info(str(self.proxies_queue))
+
+        if not is_local:
+            # use same hashing as on crowdlabs webserver
+            dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
+            dest_version = hashlib.sha1(dest_version).hexdigest()
+            path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
+
+        if (not self.path_exists_and_not_empty(path_to_figures) and
+            self.proxies_queue is not None):
+            self.server_logger.info("will forward request")
+            #this server can send requests to other instances
+            proxy = self.proxies_queue.get()
+            try:
+                self.server_logger.info("Sending request to %s" % proxy)
+                result = proxy.run_from_db(host, port, db_name, vt_id,
+                                           path_to_figures, version, pdf, vt_tag,
+                                           parameters, is_local)
+                self.proxies_queue.put(proxy)
+                self.server_logger.info("returning %s" % result)
+                return result
+            except xmlrpclib.ProtocolError, err:
+                    err_msg = ("A protocol error occurred\n"
+                               "URL: %s\n"
+                               "HTTP/HTTPS headers: %s\n"
+                               "Error code: %d\n"
+                               "Error message: %s\n") % (err.url, err.headers,
+                                                         err.errcode, err.errmsg)
+                    self.server_logger.error(err_msg)
+                    return (str(err), 0)
             except Exception, e:
                 self.server_logger.error(str(e))
                 return (str(e), 0)
@@ -1775,6 +1778,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
 
         self.rpcserver = None
+        self.pingserver = None
         self.images_url = "http://vistrails.sci.utah.edu/medleys/images/"
         self.temp_xml_rpc_options = InstanceObject(server=None,
                                                    port=None,
@@ -1925,7 +1929,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         virtual_display = 6
         script = os.path.join(os.path.dirname(system.vistrails_root_directory()), "scripts", "start_vistrails_xvfb.sh")
         for x in xrange(number):
-            port += 1
+            port += 2 # each instance needs two port spaces (normal requests and status requests)
             virtual_display += 1
             args = [script,":%s"%virtual_display,host,str(port),'0', '0']
             try:
@@ -1952,8 +1956,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         """run_server() -> None
         This will run forever until the server receives a quit request, done
         via xml-rpc.
-
         """
+
         self.server_logger.info("Server is running on http://%s:%s"%(self.temp_xml_rpc_options.server,
                                                    self.temp_xml_rpc_options.port))
         if self.temp_xml_rpc_options.multithread:
@@ -1965,10 +1969,22 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             self.rpcserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
                                                    self.temp_xml_rpc_options.port),
                                                    self.server_logger)
+            self.pingserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
+                                                    self.temp_xml_rpc_options.port-1),
+                                                    self.server_logger)
             self.server_logger.info("    singlethreaded instance")
         #self.rpcserver.register_introspection_functions()
         self.rpcserver.register_instance(RequestHandler(self.server_logger,
                                                         self.others))
+        if self.pingserver:
+            self.pingserver.register_instance(RequestHandler(self.server_logger, []))
+            self.server_logger.info("Status XML RPC Server is listening on http://%s:%s"% \
+                            (self.temp_xml_rpc_options.server,
+                             self.temp_xml_rpc_options.port-1))
+            self.pingserver.register_function(self.quit_server, "quit")
+            self.pingserver.serve_forever()
+            self.pingserver.serve_close()
+
         self.rpcserver.register_function(self.quit_server, "quit")
         self.server_logger.info("Vistrails XML RPC Server is listening on http://%s:%s"% \
                         (self.temp_xml_rpc_options.server,
