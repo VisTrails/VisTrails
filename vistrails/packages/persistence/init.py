@@ -191,17 +191,34 @@ class PersistentPath(Module):
     # def git_get_hash(self, name, version="HEAD"):
     #     cmd_list = [["echo", str(version + ':' + name)],
     #                 self.git_command() + ["cat-file", "--batch-check"]]
-    def git_get_hash(self, name):
-        cmd_list = [self.git_command() + ["ls-files", "--stage", str(name)]]
-        debug_print('executing commands', cmd_list)
-        result, output, errs = execute_piped_cmdlines(cmd_list)
-        debug_print('stdout:', type(output), output)
-        debug_print('stderr:', type(errs), errs)
-        if result != 0:
-            # check output for error messages
-            raise ModuleError(self, "Error retrieving file '%s'\n" % name +
-                              errs)
-        return output.split(None, 2)[1]
+    def git_get_hash(self, name, version="HEAD", path_type=None):
+        if path_type is None:
+            path_type = self.git_get_type(name, version)
+        if path_type == 'blob':
+            cmd_list = [self.git_command() + ["ls-files", "--stage", 
+                                              str(version), str(name)]]
+            debug_print('executing commands', cmd_list)
+            result, output, errs = execute_piped_cmdlines(cmd_list)
+            debug_print('stdout:', type(output), output)
+            debug_print('stderr:', type(errs), errs)
+            if result != 0:
+                # check output for error messages
+                raise ModuleError(self, "Error retrieving path '%s'\n" % name +
+                                  errs)
+            return output.split(None, 2)[1]
+        elif path_type == 'tree':
+            cmd_list = [self.git_command() + ["ls-tree", "-d", str(version),
+                                              str(name)]]
+            debug_print('executing commands', cmd_list)
+            result, output, errs = execute_piped_cmdlines(cmd_list)
+            debug_print('stdout:', type(output), output)
+            debug_print('stderr:', type(errs), errs)
+            if result != 0:
+                # check output for error messages
+                raise ModuleError(self, "Error retrieving path '%s'\n" % name +
+                                  errs)
+            return output.split(None, 3)[2]
+        return None
 
     def git_get_type(self, name, version="HEAD"):
         #cmd_list = [["echo", str(version + ':' + name)],
@@ -246,6 +263,15 @@ class PersistentPath(Module):
         debug_print(output)
         debug_print('***')
 
+        if output.startswith('commit'):
+            return output.split(None, 2)[1]
+        return None
+
+    def git_get_latest_version(self, filename):
+        cmd_line = self.git_command() + ['log', '-1', filename]
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print(output)
         if output.startswith('commit'):
             return output.split(None, 2)[1]
         return None
@@ -382,14 +408,13 @@ class PersistentPath(Module):
                 self.updateUpstreamPort('ref')
                 ref = PersistentRef.translate_to_python(
                     self.getInputFromPort('ref'))
-                ref_info = db_access.ref_exists(ref.id, ref.version)
-                if ref_info:
-                    # signature = db_access.get_signature(ref.id, ref.version)
-                    signature = ref_info[3]
+                if db_access.ref_exists(ref.id, ref.version):
+                    if ref.version is None:
+                        ref.version = self.git_get_latest_version(ref.id)
+                    signature = db_access.get_signature(ref.id, ref.version)
                     if signature == self.signature:
-                        # need to create a new version
+                        # don't need to create a new version
                         self.persistent_ref = ref
-                        # self.persistent_ref.name = ref_info[2]
 
                 # copy as normal
                 # don't copy if equal
@@ -469,7 +494,7 @@ class PersistentPath(Module):
             rep_path = os.path.join(local_db, ref.id)
             do_update = True
             if os.path.exists(rep_path):
-                old_hash = self.git_get_hash(ref.id)
+                old_hash = self.git_get_hash(ref.id, path_type=path_type)
                 debug_print('old_hash:', old_hash)
                 debug_print('new_hash:', new_hash)
                 if old_hash == new_hash:

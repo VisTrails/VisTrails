@@ -25,9 +25,7 @@ import sqlite3
 
 class DatabaseAccessSingleton(object):
     def __new__(cls, *args, **kw):
-        print "got here"
         if DatabaseAccess._instance is None:
-            print "instance is None"
             obj = DatabaseAccess(*args, **kw)
             DatabaseAccess._instance = obj
         return DatabaseAccess._instance
@@ -43,7 +41,6 @@ class DatabaseAccess(object):
         self.conn = sqlite3.connect(db_file)
         if run_schema:
             print 'running schema'
-            print '__file__:', __file__
             print 'schema file:', os.path.join(os.path.dirname(
                         os.path.abspath(__file__)), 'schema.sql')
             cur = self.conn.cursor()
@@ -72,9 +69,9 @@ class DatabaseAccess(object):
         cur = self.conn.cursor()
         cols, vals = zip(*value_dict.iteritems())
         col_str = ', '.join(cols)
-        print "executing sql:", "INSERT INTO file(%s) VALUES (%s);" % \
-                        (col_str, ','.join(['?'] * len(vals)))
-        print "  ", vals
+        # print "executing sql:", "INSERT INTO file(%s) VALUES (%s);" % \
+        #                 (col_str, ','.join(['?'] * len(vals)))
+        # print "  ", vals
         cur.execute("INSERT INTO file(%s) VALUES (%s);" % \
                         (col_str, ','.join(['?'] * len(vals))),
                     vals)
@@ -114,7 +111,7 @@ class DatabaseAccess(object):
 
     def get_signature(self, id, version=None):
         cur = self.conn.cursor()
-        cur.execute("SELECT signature FROM file where id=? and verison=?;", 
+        cur.execute("SELECT signature FROM file where id=? and version=?;", 
                     (id, version))
         res = cur.fetchone()
         if res:
@@ -123,7 +120,11 @@ class DatabaseAccess(object):
 
     def ref_exists(self, id, version=None):
         cur = self.conn.cursor()
-        cur.execute("SELECT id, version, name, signature FROM file "
-                    "WHERE id=? AND version=?;", (id, version))
+        if version is None:
+            cur.execute("SELECT id, version, name, signature FROM file "
+                        "WHERE id=?;", (id,))
+        else:
+            cur.execute("SELECT id, version, name, signature FROM file "
+                        "WHERE id=? AND version=?;", (id, version))
         res = cur.fetchone()
         return res is not None
