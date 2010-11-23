@@ -56,7 +56,7 @@ db_access = None
 git_bin = "@executable_path/git"
 tar_bin = "@executable_path/tar"
 compress_by_default = False
-debug = True
+debug = False
 temp_persist_files = []
 
 def debug_print(*args):
@@ -131,21 +131,22 @@ class PersistentPath(Module):
         return ["cd", "%s" % local_db, "&&", git_bin]
 
     def git_get_path(self, name, version="HEAD", path_type=None, 
-                     out_name=None):
+                     out_name=None, out_suffix=''):
         if path_type is None:
             path_type = self.git_get_type(name, version)
         if path_type == 'tree':
-            return self.git_get_dir(name, version, out_name)
+            return self.git_get_dir(name, version, out_name, out_suffix)
         elif path_type == 'blob':
-            return self.git_get_file(name, version, out_name)
+            return self.git_get_file(name, version, out_name, out_suffix)
         
         raise ModuleError(self, "Unknown path type '%s'" % path_type)
 
-    def git_get_file(self, name, version="HEAD", out_fname=None):
+    def git_get_file(self, name, version="HEAD", out_fname=None, out_suffix=''):
         global temp_persist_files
         if out_fname is None:
             # create a temporary file
-            (fd, out_fname) = tempfile.mkstemp(prefix='vt_persist')
+            (fd, out_fname) = tempfile.mkstemp(suffix=out_suffix,
+                                               prefix='vt_persist')
             os.close(fd)
             temp_persist_files.append(out_fname)
             
@@ -161,11 +162,13 @@ class PersistentPath(Module):
                               errs)
         return out_fname
 
-    def git_get_dir(self, name, version="HEAD", out_dirname=None):
+    def git_get_dir(self, name, version="HEAD", out_dirname=None, 
+                    out_suffix=''):
         global temp_persist_files, tar_bin
         if out_dirname is None:
             # create a temporary directory
-            out_dirname = tempfile.mkdtemp(prefix='vt_persist')
+            out_dirname = tempfile.mkdtemp(suffix=out_suffix,
+                                           prefix='vt_persist')
             temp_persist_files.append(out_dirname)
         if systemType == "Windows":    
             cmd_list = [self.git_command() + \
@@ -370,7 +373,7 @@ class PersistentPath(Module):
                 debug_print('sig_ref:', sig_ref)
                 if sig_ref:
                     debug_print('setting persistent_ref')
-                    ref.id, ref.version = sig_ref
+                    ref.id, ref.version, ref.name = sig_ref
                     self.persistent_ref = ref
                     #             else:
                     #                 ref.id = uuid.uuid1()
@@ -379,24 +382,31 @@ class PersistentPath(Module):
                 self.updateUpstreamPort('ref')
                 ref = PersistentRef.translate_to_python(
                     self.getInputFromPort('ref'))
-                if db_access.ref_exists(ref.id, ref.version):
-                    signature = db_access.get_signature(ref.id, ref.version)
+                ref_info = db_access.ref_exists(ref.id, ref.version)
+                if ref_info:
+                    # signature = db_access.get_signature(ref.id, ref.version)
+                    signature = ref_info[3]
                     if signature == self.signature:
                         # need to create a new version
                         self.persistent_ref = ref
+                        # self.persistent_ref.name = ref_info[2]
 
                 # copy as normal
                 # don't copy if equal
 
             # FIXME also need to check that the file actually exists here!
             if self.persistent_ref is not None:
+                _, suffix = os.path.splitext(self.persistent_ref.name)
                 self.persistent_path = \
                     self.git_get_path(self.persistent_ref.id, 
-                                      self.persistent_ref.version)
+                                      self.persistent_ref.version,
+                                      out_suffix=suffix)
+                debug_print("FOUND persistent path")
                 debug_print(self.persistent_path)
                 debug_print(self.persistent_ref.local_path)
 
         if self.persistent_ref is None or self.persistent_path is None:
+            debug_print("NOT FOUND persistent path")
             Module.updateUpstream(self)
 
     def compute(self, is_input=None, path_type=None):
@@ -440,12 +450,14 @@ class PersistentPath(Module):
         # version unless specified as specific version)
         if self.persistent_path is None and not self.hasInputFromPort('value') \
                 and is_input and not (ref.local_path and ref.local_read):
+            _, suffix = os.path.splitext(ref.name)
             if ref.version:
                 # get specific ref.uuid, ref.version combo
-                path = self.git_get_path(ref.id, ref.version)
+                path = self.git_get_path(ref.id, ref.version, 
+                                         out_suffix=suffix)
             else:
                 # get specific ref.uuid path
-                path = self.git_get_path(ref.id)
+                path = self.git_get_path(ref.id, out_suffix=suffix)
         elif self.persistent_path is None:
             # copy path to persistent directory with uuid as name
             if is_input and ref.local_path and ref.local_read:

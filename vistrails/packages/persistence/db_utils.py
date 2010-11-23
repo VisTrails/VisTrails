@@ -105,7 +105,7 @@ class DatabaseAccess(object):
 
     def search_by_signature(self, signature):
         cur = self.conn.cursor()
-        cur.execute("SELECT id, version FROM file WHERE signature=? "
+        cur.execute("SELECT id, version, name FROM file WHERE signature=? "
                     "ORDER BY date_created DESC LIMIT 1;", (signature,))
         res = cur.fetchone()
         if res:
@@ -123,7 +123,7 @@ class DatabaseAccess(object):
 
     def ref_exists(self, id, version=None):
         cur = self.conn.cursor()
-        cur.execute("SELECT id, version FROM file WHERE id=? AND version=?;",
-                    (id, version))
+        cur.execute("SELECT id, version, name, signature FROM file "
+                    "WHERE id=? AND version=?;", (id, version))
         res = cur.fetchone()
         return res is not None

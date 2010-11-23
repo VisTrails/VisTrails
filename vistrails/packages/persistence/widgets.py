@@ -808,12 +808,13 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             functions.append(('value', [self.new_file.get_path()]))
         ref = PersistentRef()
         if self.managed_new.isChecked():
-            if self.existing_ref and self.existing_ref._exists:
+            if self.existing_ref and not self.existing_ref._exists:
                 ref.id = self.existing_ref.id
                 ref.version = self.existing_ref.version
             else:
                 ref.id = str(uuid.uuid1())
                 ref.version = None
+            # endif
             ref.name = str(self.name_edit.text())
             ref.tags = str(self.tags_edit.text())
         elif self.managed_existing.isChecked():
