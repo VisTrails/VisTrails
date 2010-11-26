@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import xmlrpclib
 import os
 from subprocess import Popen, PIPE
@@ -9,13 +10,13 @@ import logging.handlers
 
 class VistrailWatcher(object):
     """
-    A class for watching the status of VisTrail Servers.
+    A class for watching the status of VisTrail Servers running on a machine
     Servers are pinged and if one down, it is restarted
     """
 
-    def __init__(self, server, email_addresses, virtual_display=None):
+    def __init__(self, server, email_addresses, root_virtual_display=None):
         self.server = server
-        self.virtual_display = virtual_display
+        self.root_virtual_display = root_virtual_display
 
         self.email_addresses = email_addresses
         self.sender = "vistrails_server_watcher@%s" % server
@@ -31,7 +32,7 @@ class VistrailWatcher(object):
         proc3 = Popen(["awk", "{print $13}"], stdin=proc2.stdout, stdout=PIPE)
         out, err = proc3.communicate()
 
-        # get the status servers ports (1 less than vt server port)
+        # get the status servers ports (1 less than normal vt server port)
         out = out.strip().split('\n')
         self.ports = [int(x)-1 for x in out[1:]] # exclude multithreaded inst.
 
@@ -80,11 +81,12 @@ class VistrailWatcher(object):
         self.logger.info("restarting server on port %s" % port)
         script = os.path.join("/server/vistrails/git/scripts",
                               "start_vistrails_xvfb.sh")
-        instance_virtual_display = self.virtual_display + \
+
+        instance_virtual_display = self.root_virtual_display + \
                 self.ports.index(port) + 1
 
         args = [script,":%s" % instance_virtual_display,
-                self.server, str(port), '0', '0']
+                self.server, str(port+1), '0', '0']
         try:
             Popen(args)
             sleep(20)
@@ -113,6 +115,8 @@ class VistrailWatcher(object):
                             self.restart_instance(port)
                         self.is_down[port] = True
                     else:
+                        if self.is_down[port]:
+                            self.logger.info("%s:%d is back up" % (self.server, port))
                         self.is_down[port] = False
                 except Exception, e:
                     if not self.is_down[port]:
@@ -125,5 +129,5 @@ class VistrailWatcher(object):
 
 
 if __name__ == '__main__':
-    vt_watcher = VistrailWatcher("vis-7.sci.utah.edu", ["phillipmates@gmail.com"], virtual_display = 6)
+    vt_watcher = VistrailWatcher("vis-7.sci.utah.edu", ["phillipmates@gmail.com"], root_virtual_display = 6)
     vt_watcher.watch()
