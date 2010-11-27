@@ -22,6 +22,8 @@
 import logging
 import logging.handlers
 import inspect
+import os
+import os.path
 # from core.utils import VersionTooLow
 # from core import system
 import time
@@ -108,9 +110,40 @@ class DebugPrint:
     def set_logfile(self, f):
         """set_logfile(file) -> None. Redirects debugging
         output to file."""
+        def rotate_file_if_necessary(filename):
+            statinfo = os.stat(filename)
+            if statinfo.st_size > 1024*1024:
+                #rotate file
+                mincount = 1
+                maxcount = 5
+                count = maxcount
+                newfile = "%s.%s"%(filename, count)
+                while not os.path.exists(newfile) and count >= mincount:
+                    count = count - 1
+                    newfile = "%s.%s"%(filename, count)
+                if count == 5:
+                    os.unlink("%s.%s"%(filename, count))
+                    count = 4
+                while count >= mincount:
+                    os.rename("%s.%s"%(filename, count), "%s.%s"%(filename, count+1))
+                    count = count -1
+                os.rename(filename, "%s.%s"%(filename, mincount))
+        
         try:
-            handler = logging.handlers.RotatingFileHandler(f, maxBytes=1024*1024, 
-                                                           backupCount=5)
+            # there's a problem on Windows with RotatingFileHandler and that 
+            # happens when VisTrails starts child processes (it seems related
+            # to the way Windows manages file handlers)
+            # see http://bugs.python.org/issue4749
+            # in this case we will deal with log files differently on Windows:
+            # we will check if we need to rotate the file at the beginning of 
+            # the session.
+            import core.system
+            if core.system.systemType in ["Windows", "Microsoft"]:
+                rotate_file_if_necessary(f)
+                handler = logging.FileHandler(f)
+            else:
+                handler = logging.handlers.RotatingFileHandler(f, maxBytes=1024*1024, 
+                                                               backupCount=5)
             handler.setFormatter(self.format)
             handler.setLevel(logging.DEBUG)
             if self.fhandler:
