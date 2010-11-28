@@ -23,6 +23,7 @@
 use its graph for version tree layout"""
 
 from core.data_structures.point import Point
+from core import debug
 import core.system
 import os
 import tokenize
@@ -138,10 +139,8 @@ class DotLayout(object):
         dtty_file = temp_dir + 'dot_output_vistrails.txt'
 
         if not os.path.exists(dtty_file) :
-            print ""
-            print "Could not find %s" % dtty_file
-            print "Is GraphViz installed and is dotty in your PATH?"
-            print ""
+            debug.critical("Could not find %s" % dtty_file)
+            debug.critical("Is GraphViz installed and is dotty in your PATH?")
             
         file_in = open(dtty_file)
 

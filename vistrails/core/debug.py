@@ -21,18 +21,16 @@
 ############################################################################
 import logging
 import logging.handlers
-import sys
 import inspect
-from core.utils import VersionTooLow
-import code
-import threading
-from core import system
+import os
+import os.path
+# from core.utils import VersionTooLow
+# from core import system
 import time
-from PyQt4 import QtCore
 
 ################################################################################
 
-class DebugPrint(QtCore.QObject):
+class DebugPrint:
     """ Class to be used for debugging information.
 
     Verboseness can be set in the following way:
@@ -43,17 +41,20 @@ class DebugPrint(QtCore.QObject):
         - DebugPrint.Log
             Information, warning and Critical messages will be shown
             
-    As it uses information such as file name and line number, it should not be
-    used interactively. Also, it goes up only one level in the traceback stack,
-    so it will only get information of who called the DebugPrint functions. 
+    It uses information such as file name and line number only when printing
+    to files and consoles, a stream can be registered to be used in gui.debug.
+    Also, it goes up only one level in the traceback stack,
+    so it will only get information of who called the DebugPrint functions.
 
     Example of usage:
-        >>> DebugPrint.getInstance().set_message_level(DebugPrint.Warning)
-        # the following message will be shown
-        >>> DebugPrint.getInstance().warning('This is a warning message') 
+        >>> from core import debug
+        >>> debug.DebugPrint.getInstance().set_message_level(
+                                                     debug.DebugPrint.Warning)
+        # the following messages will be shown
+        >>> debug.critical('This is an error message')
+        >>> debug.warning('This is a warning message')
         #only warnings and above are shown
-        >>> DebugPrint.getInstance().log('This is a log message and it will \
-        not be shown') 
+        >>> debug.log('This is a log message and it will not be shown')
         
     """
     (Critical, Warning, Log) = (logging.CRITICAL,
@@ -61,7 +62,7 @@ class DebugPrint(QtCore.QObject):
                                 logging.INFO) #python logging levels
     #Singleton technique
     _instance = None
-    class DebugPrintSingleton(QtCore.QObject):
+    class DebugPrintSingleton():
         def __call__(self, *args, **kw):
             if DebugPrint._instance is None:
                 obj = DebugPrint(*args, **kw)
@@ -80,103 +81,117 @@ class DebugPrint(QtCore.QObject):
         """
         self.logger = logging.getLogger("VisLog")
         self.logger.setLevel(logging.INFO)
-        self.format = logging.Formatter('VisTrails %(asctime)s %(levelname)s: %(message)s')
+        self.format = logging.Formatter("%(levelname)s: %(asctime)s %(pathname)s"+\
+                                ":%(lineno)s\n  %(message)s")
         # first we define a handler for logging to a file
         if f:
-            self.fhandler = logging.handlers.RotatingFileHandler(f, 
-                                                                 maxBytes=1024*1024, 
-                                                                 backupCount=5)
-        
-            self.fhandler.setFormatter(self.format)
-            self.fhandler.setLevel(logging.INFO)
-            self.logger.addHandler(handler)
+            self.set_logfile(f)
         
         #then we define a handler to log to the console
         self.console = logging.StreamHandler()
         self.console.setFormatter(self.format)
         self.console.setLevel(logging.CRITICAL)
         self.logger.addHandler(self.console)
+        self.handlers.append(self.console)
         
-    if system.python_version() <= (2,4,0,'',0):
-        raise VersionTooLow('Python', '2.4.0')
+#    if system.python_version() <= (2,4,0,'',0):
+#        raise VersionTooLow('Python', '2.4.0')
                 
     def __init__(self):
-        QtCore.QObject.__init__(self)
+        self.handlers = []
         self.make_logger()
         self.level = logging.CRITICAL
-        
+        self.debug = self.logger.debug # low importance debugging messages
+        self.log = self.logger.info # low importance info messages
+        self.warning = self.logger.warning # medium importance warning messages
+        self.critical = self.logger.critical # high importance error messages
+        self.app = None
+
     def set_logfile(self, f):
         """set_logfile(file) -> None. Redirects debugging
         output to file."""
+        def rotate_file_if_necessary(filename):
+            statinfo = os.stat(filename)
+            if statinfo.st_size > 1024*1024:
+                #rotate file
+                mincount = 1
+                maxcount = 5
+                count = maxcount
+                newfile = "%s.%s"%(filename, count)
+                while not os.path.exists(newfile) and count >= mincount:
+                    count = count - 1
+                    newfile = "%s.%s"%(filename, count)
+                if count == 5:
+                    os.unlink("%s.%s"%(filename, count))
+                    count = 4
+                while count >= mincount:
+                    os.rename("%s.%s"%(filename, count), "%s.%s"%(filename, count+1))
+                    count = count -1
+                os.rename(filename, "%s.%s"%(filename, mincount))
+        
         try:
-            handler = logging.handlers.RotatingFileHandler(f, maxBytes=1024*1024, 
-                                                           backupCount=5)
+            # there's a problem on Windows with RotatingFileHandler and that 
+            # happens when VisTrails starts child processes (it seems related
+            # to the way Windows manages file handlers)
+            # see http://bugs.python.org/issue4749
+            # in this case we will deal with log files differently on Windows:
+            # we will check if we need to rotate the file at the beginning of 
+            # the session.
+            import core.system
+            if core.system.systemType in ["Windows", "Microsoft"]:
+                rotate_file_if_necessary(f)
+                handler = logging.FileHandler(f)
+            else:
+                handler = logging.handlers.RotatingFileHandler(f, maxBytes=1024*1024, 
+                                                               backupCount=5)
             handler.setFormatter(self.format)
-            handler.setLevel(logging.INFO)
+            handler.setLevel(logging.DEBUG)
             if self.fhandler:
                 self.logger.removeHandler(self.fhandler)
             self.fhandler = handler
-            self.logger.addHandler(self.fhandler)
+            self.logger.addHandler(handler)
 
         except Exception, e:
             self.critical("Could not set log file %s: %s"%(f,str(e)))
+
+    def set_stream(self, stream):
+        """set_stream(stream) -> None. Redirects debugging
+        output to a stream object."""
+        try:
+        #then we define a handler to log to the console
+            format = logging.Formatter('%(levelname)s\n%(asctime)s\n%(pathname)s:%(lineno)s\n%(message)s')
+            handler = logging.StreamHandler(stream)
+            handler.setFormatter(format)
+            handler.setLevel(self.level)
+            self.handlers.append(handler)
+            self.logger.addHandler(handler)
+        except Exception, e:
+            self.critical("Could not set stream %s: %s"%(stream,str(e)))
             
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.Critical,
         DebugPrint.Warning, DebugPrint.Log)."""
         self.level = level
-        self.console.setLevel(level)
-        
-    def message(self, caller, msg):
-        """self.message(caller, msg) -> str. Returns a string with a
-        formatted message to be send to the debugging output. This
-        should not be called explicitly from userland. Consider using
-        self.log(), self.warning() or self.critical() instead."""
-        source = inspect.getsourcefile(caller)
-        line = caller.f_lineno
-        if source and line:
-            return "File '" + source + "' at line " + str(line) + ": " + msg
-        else:
-            return "(File info not available): " + msg
-        
-    def debug(self,msg):
-        """self.log(str) -> None. Send information message (low
-        importance) to log with appropriate call site information."""
-        caller = inspect.currentframe().f_back # who called us?
-        self.logger.debug(self.message(caller, msg))
-        
-    def log(self,msg):
-        """self.log(str) -> None. Send information message (low
-        importance) to log with appropriate call site information."""
-        caller = inspect.currentframe().f_back # who called us?
-        self.logger.info(self.message(caller, msg))
-        
-    def warning(self,msg):
-        """self.warning(str) -> None. Send warning message (medium
-        importance) to log with appropriate call site information."""
-        caller = inspect.currentframe().f_back # who called us?
-        self.logger.warning(self.message(caller, msg))
-        
-    def critical(self,msg):
-        """self.critical(str) -> None. Send critical message (high
-        importance) to log with appropriate call site information."""
-        caller = inspect.currentframe().f_back # who called us?
-        self.logger.critical(self.message(caller, msg))
+        [h.setLevel(level) for h in self.handlers]
 
-    def watch_signal(self, obj, sig):
-        """self.watch_signal(QObject, QSignal) -> None. Connects a debugging
-        call to a signal so that every time signal is emitted, it gets
-        registered on the log."""
-        self.connect(obj, sig, self.__debugSignal)
+    def register_splash(self, app):
+        """ Registers a method splashMessage(message)
+        """
+        self.app = app
 
-    def __debugSignal(self, *args):
-        self.critical(str(args))
+    def splashMessage(self, msg):
+        """ Writes a splashmessage if app is registered
+        """
+        if self.app:
+            self.app.splashMessage(msg)
 
-debug    = DebugPrint.getInstance().debug
+    
+splashMessage = DebugPrint.getInstance().splashMessage
 critical = DebugPrint.getInstance().critical
 warning  = DebugPrint.getInstance().warning
 log      = DebugPrint.getInstance().log
+debug    = DebugPrint.getInstance().debug
 
 ################################################################################
 
@@ -188,7 +203,7 @@ def timecall(method):
         start = time.time()
         method(self, *args, **kwargs)
         end = time.time()
-        critical(DebugPrint.message(caller, "time: %.5s" % (end-start)))
+        critical("time: %.5s" % (end-start))
     call.__doc__ = method.__doc__
     return call
 

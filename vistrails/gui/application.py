@@ -313,8 +313,18 @@ after self.init()"""
         else:
             data = info.split(":")
             if len(data) >= 2:
-                if use_filename and os.path.isfile(str(data[0])):
+                if use_filename:
+                    if os.path.isfile(str(data[0])):
                         name = str(data[0])
+                    else:
+                        # maybe we are running on Windows and a full path
+                        # was passed as the filename so it has a : separating
+                        # the driver letter
+                        if system.systemType in ["Windows", "Microsoft"]:
+                            if os.path.isfile(":".join(data[:2])):
+                                name = ":".join(data[:2])
+                                data.pop(0)
+                                data[0] = name
                 elif not use_filename:
                     name = str(data[0])
                 # will try to convert version to int
@@ -564,7 +574,16 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
             self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
+            self.splashScreen.setFont(gui.theme.CurrentTheme.SPLASH_SCREEN_FONT)
+            debug.DebugPrint.getInstance().register_splash(self)
             self.splashScreen.show()
+            
+    def splashMessage(self, msg):
+        if hasattr(self, "splashScreen"):
+            self.splashScreen.showMessage(msg,
+                        QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeft,
+                        QtCore.Qt.white)
+            self.processEvents()
 
     def createWindows(self):
         """ createWindows() -> None

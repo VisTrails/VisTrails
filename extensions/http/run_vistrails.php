@@ -35,6 +35,21 @@ require_once 'config.php';
 // This is where vistrails XML-RPC is running
 $USE_VISTRAILS_XML_RPC_SERVER = True;
 
+$VT_HOST = "localhost";
+$VT_PORT = 8080;
+
+// Change this to point to the folder where vistrails.py is 
+// You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
+$PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
+
+// Change this to point to the folder where the images should be generated
+$PATH_TO_IMAGES = '/images/vistrails/';
+
+// Change this to the web accessible path to the folder where the images were generated
+$WEB_PATH_TO_IMAGES = '/images/';
+
+$URL_TO_GRAPHS = '/images/vistrails/graphs/'
+
 $SUPPORTED_IMAGE_FILES = array("png", "jpg", "gif");
 
 // set variables with default values
@@ -68,7 +83,7 @@ if(array_key_exists('tag',$_GET)){
 																 $dbname, $vtid,
 																 $version_tag));
 		$response = do_call($VT_HOST,$VT_PORT,$request);
-		$version = get_result_from_response($response);
+		$version = get_version_from_response($response);
 	}
 }
 if(array_key_exists('buildalways',$_GET))
@@ -76,16 +91,14 @@ if(array_key_exists('buildalways',$_GET))
 	
 if(array_key_exists('pdf',$_GET))
     $pdf = $_GET['pdf'];
-
 if(array_key_exists('showworkflow',$_GET))
     $showworkflow = $_GET['showworkflow'];
     
 if(array_key_exists('showtree',$_GET))
     $showtree = $_GET['showtree'];
- 
+    
 //echo $force_build;
 
-//Check if vtid and version were provided
 //Check if vtid and version were provided
 if(($vtid != '' and $version != '') or 
   ($vtid != '' and strcasecmp($showtree,'True') == 0)){
@@ -100,7 +113,6 @@ if(($vtid != '' and $version != '') or
 		    $func = "get_vt_graph_pdf";
 		else 
 		    $func = "get_vt_graph_png";
-		
 		$request = xmlrpc_encode_request($func, array($host, 
 				                                      $port, 
 				                                      $dbname, 
@@ -120,8 +132,7 @@ if(($vtid != '' and $version != '') or
              $func = "get_wf_graph_pdf";
         else 
              $func = "get_wf_graph_png";
-		
-        $request = xmlrpc_encode_request($func, array($host, 
+		$request = xmlrpc_encode_request($func, array($host, 
 				                                      $port, 
 				                                      $dbname, 
 				                                      $vtid,
@@ -137,63 +148,62 @@ if(($vtid != '' and $version != '') or
         echo $res;
 	}
 	else{
-		$destdir = $PATH_TO_IMAGES;
-		$destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' .
-	               $version. $pdf_tag;
-		$destversion = md5($destversion);
-		$destdir = $destdir . $destversion;
-		$result = '';
-		if((!file_exists($destdir)) or strcasecmp($force_build,'True') == 0) {
-			if (!file_exists($destdir)){
-				mkdir($destdir);//,0770);
-				chmod($destdir,0770);
-			}
-		
-			$request = xmlrpc_encode_request('run_from_db',
-									     array($host, $port, $dbname, $vtid,
+	   $destdir = $PATH_TO_IMAGES;
+       $destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' .
+                     $version. $pdf_tag;
+       $destversion = md5($destversion);
+       $destdir = $destdir . $destversion;
+       $result = '';
+       if((!file_exists($destdir)) or strcasecmp($force_build,'True') == 0) {
+            if (!file_exists($destdir)){
+                mkdir($destdir);//,0770);
+                chmod($destdir,0770);
+            }
+			    $request = xmlrpc_encode_request('run_from_db',
+											 array($host, $port, $dbname, $vtid,
 													$destdir, $version, $pdf_bool));
-			$response = do_call($VT_HOST,$VT_PORT,$request);
-			$result = clean_up($response);
-			//echo $result;
+			    $response = do_call($VT_HOST,$VT_PORT,$request);
+			    $result = clean_up($response);
 		}
-		
-		$files = scandir($destdir);
-		$n = sizeof($files);
-		if ($n > 2){
-			$res = '';
-			foreach($files as $filename) {
-				if($filename != '.' and $filename != '..'){
-					$info = pathinfo($filename);
-					if ( in_array($info['extension'],$SUPPORTED_IMAGE_FILES)){ 
-				    	list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
-				    	if ($width > 600)
-                        	$width = 600;
-				    	$res = $res . '<img src="'. $WEB_PATH_TO_IMAGES . $destversion.'/'.$filename.
-					   	"\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
-			    	}
-					else{
-						//create an href tag
-						$res = $res . '<a href="' . $WEB_PATH_TO_IMAGES . 
+		//echo $result;
+	   $files = scandir($destdir);
+	   $n = sizeof($files);
+	   if ($n > 2){
+		  $res = '';
+		  foreach($files as $filename) {
+			 if($filename != '.' and $filename != '..'){
+			 	$info = pathinfo($filename);
+				if ( in_arrayi($info['extension'],$SUPPORTED_IMAGE_FILES)){ 
+				    list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
+				    if ($width > 600)
+                        $width = 600;
+				    $res = $res . '<img src="'. $WEB_PATH_TO_IMAGES . $destversion.'/'.$filename.
+					   "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
+			    }
+				else{
+					//create an href tag
+					$res = $res . '<a href="' . $WEB_PATH_TO_IMAGES . 
 					        $destversion.'/'.$filename.'">' . $filename . '</a>';
 					}
 				}
-			}	
-			echo $res;
-		}
-		else{
-			echo "ERROR: Vistrails didn't produce any image.\n";
-			echo "This is the output: \n".$result;
-		}
-	}
+			}
+		}	
+		echo $res;
+	   }
+	   else{
+		  echo "ERROR: Vistrails didn't produce any image.\n";
+		  echo "This is the output: \n".$result;
+	   }
+    }
 }
 else{
 	echo "ERROR: Vistrails id or version not provided.\n";
 }
- 
+
 function get_version_from_response($xmlstring){
     try{
         $node = @new SimpleXMLElement($xmlstring);
-        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->int[0];
+        return $node->params[0]->param[0]->value[0]->int[0];
     } catch(Exception $e) {
         echo "bad xml";
     }

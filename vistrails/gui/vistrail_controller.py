@@ -22,6 +22,7 @@
 from PyQt4 import QtCore, QtGui
 from core.common import *
 from core.configuration import get_vistrails_configuration
+from core import debug
 import core.db.action
 import core.db.locator
 import core.modules.vistrails_module
@@ -135,6 +136,9 @@ class VistrailController(QtCore.QObject, BaseController):
             self.emit(QtCore.SIGNAL('vistrailChanged()'))
         finally:
             self.reset_version_view = True
+
+    def has_move_actions(self):
+        return self.current_pipeline_view.hasMoveActions()
 
     def flush_move_actions(self):
         return self.current_pipeline_view.flushMoveActions()
@@ -748,15 +752,18 @@ class VistrailController(QtCore.QObject, BaseController):
 
             exception_set = e.get_exception_set()
             if len(exception_set) > 0:
-                msg_box = QtGui.QMessageBox(VistrailsApplication.builderWindow)
-                msg_box.setIcon(QtGui.QMessageBox.Warning)
-                msg_box.setText("The current workflow could not be validated.")
-                msg_box.setInformativeText("Errors occurred when trying to "
-                                           "construct this workflow.")
-                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
-                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
-                msg_box.setDetailedText(str(e))
-                msg_box.exec_()
+#                msg_box = QtGui.QMessageBox(VistrailsApplication.builderWindow)
+#                msg_box.setIcon(QtGui.QMessageBox.Warning)
+#                msg_box.setText("The current workflow could not be validated.")
+#                msg_box.setInformativeText("Errors occurred when trying to "
+#                                           "construct this workflow.")
+#                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
+#                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
+#                msg_box.setDetailedText(str(e))
+#                msg_box.exec_()
+                text = "The current workflow could not be validated."
+                debug.critical('%s\n%s' % (text, str(e)))
+
 #                 print 'got to exception set'
 #                 # Process all errors as usual
 #                 if report_all_errors:
@@ -767,10 +774,7 @@ class VistrailController(QtCore.QObject, BaseController):
 #                     process_err(exception_set.__iter__().next())
 
         except Exception, e:
-            from gui.application import VistrailsApplication
-            QtGui.QMessageBox.critical(
-                VistrailsApplication.builderWindow,
-                'Unexpected Exception', str(e))
+            debug.critical('Unexpected Exception\n%s' % str(e))
             raise
         
         if not self._current_terse_graph or \
@@ -1395,7 +1399,7 @@ class VistrailController(QtCore.QObject, BaseController):
                     if hasattr(module, attr):
                         found_lists[attr] = getattr(module, attr)
             except Exception, e:
-                print e
+                debug.critical("Exception: %s" % e)
                 pass
             return (found_attrs, found_lists)
 
@@ -1449,8 +1453,7 @@ class VistrailController(QtCore.QObject, BaseController):
             if abstraction.is_abstraction() and \
                     abstraction.package == abstraction_pkg:
                 abstractions.append(abstraction)
-                abstractions.extend(self.find_abstractions(
-                        abstraction.vistrail))
+                [abstractions.extend(v) for v in self.find_abstractions(abstraction.vistrail).itervalues()]
         pkg_subworkflows = []
         pkg_dependencies = set()
         for abstraction in abstractions:

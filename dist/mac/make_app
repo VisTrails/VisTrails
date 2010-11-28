@@ -18,6 +18,8 @@ DMG="$VOL.dmg"
 
 echo "removing build and dist folders..."
 rm -rf dist/ build/
+echo "removing old bundle..."
+rm -f ${DMG}
 echo "building bundle..."
 python setup.py py2app
 #echo "copying missing xml.etree.cElementTree imports..."
@@ -52,7 +54,9 @@ cp Input/git dist/VisTrails.app/Contents/MacOS/
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."
-cp -r Input/plugins/* dist/Vistrails.app/Contents/MacOS
+cp -r Input/plugins/* dist/VisTrails.app/Contents/MacOS
+echo "copying alps libs..."
+tar -xzf Input/alps_libs/alps-vistrails-2.0.0b4-r4997-macos.tar.gz -C dist/
 echo "copying examples folder..."
 cp -r Input/examples dist/
 echo "copying README file..."

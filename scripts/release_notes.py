@@ -1,13 +1,31 @@
 #!/usr/bin/env python
 import xmlrpclib
-import pysvn
+import git
 import getpass
 import sys
 import re
+import tempfile
+import subprocess
+import shutil
 
+#### configuration ####
+commit_start = "48e477f4c1d9" # hash of version used on last release notes
+commit_end = "HEAD" # current hash
+branch = "master" # git branch to be used
+release_name = "1.6" 
+clonepath = None # set this to the complete path of a vistrails clone to be used
+                 # if None, the remote repository will be cloned to a temporary
+                 # folder and removed at the end of the script
+cloneremote = 'git://vistrails.sci.utah.edu/vistrails.git'
+#### end configuration #####
+
+## The script will ask for your Trac user and password
+## so no need to change this now
 username = None
 password = None
+need_cleanup = False
 
+################################################################################
 def userpass(realm, u, may_save):
     global username
     global password
@@ -20,51 +38,67 @@ def userpass(realm, u, may_save):
 
 ################################################################################
 
-def rev(n):
-    return pysvn.Revision(pysvn.opt_revision_kind.number, n)
+def clone_vistrails_git_repository(path_to):
+    global cloneremote
+    cmdlist = ['git', 'clone', cloneremote,
+               path_to]
+    cmdline = subprocess.list2cmdline(cmdlist)
+    print "Cloning vistrails from:"
+    print "  %s to"%cloneremote
+    print "  %s"%path_to
+    print "Be patient. This may take a while."
+    process = subprocess.Popen(cmdline, shell=True,
+                               stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               close_fds=True)
+    result = None
+    while result == None:
+        result = process.poll()
+    print "repository is cloned."
+    return result
 
-client = pysvn.Client()
-client.callback_get_login = userpass
+################################################################################
 
-version_start = 1832
-version_end = 1861
-release_name = "1.5.1"
-logs = client.log('https://vistrails.sci.utah.edu/svn',
-                  revision_end=rev(version_start))
+def init_repo():
+    global clonepath, need_cleanup, branch
+    ok = True
+    if clonepath is None:
+        clonepath = tempfile.mkdtemp(prefix="vtrel")
+        try:
+            if clone_vistrails_git_repository(clonepath) == 0:
+                ok = True
+            need_cleanup = True
+        except Exception, e:
+            print "ERROR: Could not clone vistrails repository!"
+            print str(e)
+            shutil.rmtree(clonepath)
+            sys.exit(1)
+    if ok:
+        repo = git.Repo(clonepath)
+        return repo
+    else:
+        print "ERROR: git clone failed."
+        sys.exit(1)
+################################################################################
+
+def cleanup_repo():
+    global clonepath, need_cleanup
+    if need_cleanup:
+        shutil.rmtree(clonepath)
+        
+################################################################################
+
+def checkout_branch(repo, branch):
+    repobranch = getattr(repo.heads, branch)
+    repobranch.checkout()
 
 ##############################################################################
-
-def release_changed(path):
-    if path.startswith('trunk/vistrails'):
-        return 'trunk'
-    elif path.startswith('branches/v1.2'):
-        return '1.2'
-    elif path.startswith('branches/v1.3'):
-        return '1.3'
-    else:
-        return 'other'
-
-def print_changes(release):
-    if release not in release_changes:
-        return
-    print "Changes in '%s': " % release
-    for (v, log, diff_summaries) in release_changes[release]:
-        print "version %s:" % v
-        print "  Affected files:"
-        for summary in diff_summaries:
-            if release_changed(summary.path) == release:
-                print "    %s - %s" % (str(summary.summarize_kind)[0].upper(),
-                                       summary.path)
-
-re_ticket = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
-re_bugfix = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
-re_feature = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
-re_skip = re.compile(r'<skip>(.*?)</skip>', re.M | re.S)
-
-def build_release_notes(release):
+def build_release_notes(repo, branch):
     global username
     global password
-
+    global commit_start, commit_end
+    
     def check_inside_skip(skip_list, message):
         found = False
         for s in skip_list:
@@ -72,43 +106,55 @@ def build_release_notes(release):
                 found = True
                 break
         return found
-            
+    
+    re_ticket = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
+    re_bugfix = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
+    re_feature = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
+    re_skip = re.compile(r'<skip>(.*?)</skip>', re.M | re.S)
+
+    #build list and dictionary with commits
+    logs = []
+    log_map_time = {}
+    checkout_branch(repo,branch)
+    for c in repo.iter_commits("%s..%s"%(commit_start,commit_end)):
+        logs.append(c)
+        log_map_time[c.hexsha] = c.committed_date
+        
     #populate dictionaries
     bugfixes = {}
     tickets = {}
     features = {}
     changes = {}
     ticket_info = {}
-    if release not in release_changes:
-        return
-    for (v, log, diff_summaries) in release_changes[release]:
+    
+    for log in logs:
         ls = re_skip.findall(log.message)
         lf = re_feature.findall(log.message)
         lt = re_ticket.findall(log.message)
         lb = re_bugfix.findall(log.message)
         if len(ls) > 0:
-            changes[v] = []
+            changes[log.hexsha] = []
             for s in ls:
-                changes[v].append(s)
+                changes[log.hexsha].append(s)
         if len(lf) > 0:
-            features[v] = []
+            features[log.hexsha] = []
             for f in lf:
                 if not check_inside_skip(ls,f):
-                    features[v].append(f)
+                    features[log.hexsha].append(f)
         if len(lt) > 0:
-            tickets[v] = []
+            tickets[log.hexsha] = []
             for t in lt:
                 if not check_inside_skip(ls,t):
-                    tickets[v].append(t)
+                    tickets[log.hexsha].append(t)
         if len(lb) > 0:
-            bugfixes[v] = []
+            bugfixes[log.hexsha] = []
             for b in lb:
                 if not check_inside_skip(ls,b):
-                    bugfixes[v].append(b)
+                    bugfixes[log.hexsha].append(b)
         if len(ls) == 0 and len(lf) == 0 and len(lt) == 0 and len(lb) == 0:
-            if not changes.has_key(v):
-                changes[v] = []
-            changes[v].append(log.message)
+            if not changes.has_key(log.hexsha):
+                changes[log.hexsha] = []
+            changes[log.hexsha].append(log.message)
                 
 
     #get ticket summaries from xmlrpc plugin installed on vistrails trac
@@ -122,7 +168,10 @@ def build_release_notes(release):
     url = "https://%s:%s@vistrails.sci.utah.edu/login/xmlrpc"%(username,
                                                                password)
     server = xmlrpclib.ServerProxy(url)
+    print "downloading tickets.",
     for (r,tl) in tickets.iteritems():
+        print ".",
+        sys.stdout.flush()
         for t in tl:
             if not ticket_info.has_key(t):
                 try:
@@ -130,7 +179,8 @@ def build_release_notes(release):
                     ticket_info[t] = server.ticket.get(tid)
                 except Exception, e:
                     tickets[r].remove(t)
-                    print "revision %s: Could not get info for ticket %s"%(r,t)
+                    print "commit %s: Could not get info for ticket %s"%(r,t)
+    print "done."
 
     #place tickets on bugfixes or enhancements
     for (r,tlist) in tickets.iteritems():
@@ -152,92 +202,51 @@ def build_release_notes(release):
                     changes[r].insert(0,txt)
                 else:
                     changes[r] = [txt]
+    if commit_end == "HEAD" and len(logs) > 0:
+        commit_end = logs[0].hexsha
+
     print
     print
-    print "Release Name: v%s build %s"%(release_name,version_end)
+    print "Release Name: v%s build %s from %s branch" % (release_name,
+                                                         commit_end[0:12],
+                                                         branch)
     print 
     print "Enhancements: "
-    revisions = sorted(features.keys())
+    times = []
+    for k in features.keys():
+        times.append((log_map_time[k], k))
+    revisions = sorted(times)
     revisions.reverse()
-    for r in revisions:
+    for (t,r) in revisions:
         rfeats = features[r]
         for f in rfeats:
-            print " - %s (r%s)" %(f,r)
+            print " - %s (%s)" %(f,r[0:12])
     
     print
     print "Bug fixes: "
-    revisions = sorted(bugfixes.keys())
+    times = []
+    for k in bugfixes.keys():
+        times.append((log_map_time[k], k))
+    revisions = sorted(times)
     revisions.reverse()
-    for r in revisions:
+    for (t,r) in revisions:
         rbugs = bugfixes[r]
         for b in rbugs:
-            print " - %s (r%s)" %(b,r)
+            print " - %s (%s)" %(b,r[0:12])
     print
     print "Other changes: "
-    revisions = sorted(changes.keys())
+    times = []
+    for k in changes.keys():
+        times.append((log_map_time[k], k))
+    revisions = sorted(times)
     revisions.reverse()
-    for r in revisions:
-        print "(r%s): "%r
+    for (t,r) in revisions:
+        print "(%s): "%r[0:12]
         for c in changes[r]:
             print "  - %s... "%c[0:100]
 
-def get_features(release):
-    if release not in release_changes:
-        return
-    print "New features in '%s': " % release
-    for (v, log, diff_summaries) in release_changes[release]:
-        s = re_feature.search(log.message)
-        if s:
-            print " - %s (r%s)" % (s.groups()[0],v)
-            
-def get_ticket_closes(release):
-    if release not in release_changes:
-        return
-    print "Ticket closes in '%s': " % release
-    for (v, log, diff_summaries) in release_changes[release]:
-        s = re_ticket.search(log.message)
-        if s:
-            print "revision %s closed ticket %s" % (v, s.groups()[0])
-            
-def get_bugfixes(release):
-    if release not in release_changes:
-        return
-    print "Bugfixes in '%s': " % release
-    for (v, log, diff_summaries) in release_changes[release]:
-        s = re_bugfix.search(log.message)
-        if s:
-            print " - %s (r%s)" % (s.groups()[0], v)
-    
-################################################################################
-# collect all changes
-
-change_sets = []
-
-for version in xrange(version_start, version_end):
-    ds = client.diff_summarize('https://vistrails.sci.utah.edu/svn',
-                               rev(version),
-                               'https://vistrails.sci.utah.edu/svn',
-                               rev(version+1))
-    log = client.log('https://vistrails.sci.utah.edu/svn',
-                     rev(version),
-                     rev(version))[0]
-    change_sets.append((version, log, ds))
-    print version, "/", version_end
-
-release_changes = {}
-
-for (v, log, diff_summaries) in change_sets:
-    which_releases = set()
-    for diff in diff_summaries:
-        which = release_changed(diff.path)
-        which_releases.add(which)
-    for which in which_releases:
-        release_changes.setdefault(which, []).append((v, log, diff_summaries))
-
-build_release_notes('trunk')
-#print_change_summaries('trunk')
-#get_features('trunk')
-#get_ticket_closes('trunk')
-#get_bugfixes('trunk')
+repo = init_repo()
+build_release_notes(repo, branch)
+cleanup_repo()
 
 

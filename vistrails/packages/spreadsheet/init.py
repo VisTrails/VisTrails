@@ -23,6 +23,7 @@
 # Spreadsheet Package for VisTrails
 ################################################################################
 from PyQt4 import QtCore, QtGui
+from core import debug
 from core.modules import basic_modules
 from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import Module
@@ -68,9 +69,9 @@ def addWidget(packagePath):
             widgetName = packagePath
         widget.registerWidget(registry, basic_modules, basicWidgets)
         spreadsheetRegistry.registerPackage(widget, packagePath)
-        print '  ==> Successfully import <%s>' % widgetName
+        debug.log('  ==> Successfully import <%s>' % widgetName)
     except:
-        print '  ==> Ignored package <%s>' % packagePath
+        debug.log('  ==> Ignored package <%s>' % packagePath)
         widget = None
     return widget
 
@@ -92,7 +93,7 @@ def initialize(*args, **keywords):
     Package-entry to initialize the package
     
     """
-    print 'Loading Spreadsheet widgets...'
+    debug.log('Loading Spreadsheet widgets...')
     global basicWidgets
     if basicWidgets==None:
         basicWidgets = addWidget('packages.spreadsheet.basic_widgets')

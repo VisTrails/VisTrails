@@ -456,7 +456,7 @@ class Package(DBPackage):
     def finalize(self):
         if not self._initialized:
             return
-        print "Finalizing",self.name
+        debug.log("Finalizing %s" % self.name)
         try:
             callable_ = self._module.finalize
         except AttributeError:

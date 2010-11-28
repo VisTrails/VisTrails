@@ -36,6 +36,7 @@ from core.modules.constant_configuration import StandardConstantWidget, \
     PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget, OutputPathChooserWidget
 from core.system import vistrails_version
 from core.utils import InstanceObject
+from core import debug
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
      IntegerLinearInterpolator
@@ -329,17 +330,27 @@ class Directory(Path):
 
 Directory.default_value = Directory()
 
-def file_parameter_hasher(p):
+def path_parameter_hasher(p):
+    def get_mtime(path):
+        v_list = [int(os.path.getmtime(path))]
+        if os.path.isdir(path):
+            for subpath in os.listdir(path):
+                subpath = os.path.join(path, subpath)
+                if os.path.isdir(subpath):
+                    v_list.extend(get_mtime(subpath))
+        return v_list
+
     h = core.cache.hasher.Hasher.parameter_signature(p)
+    hasher = sha_hash()
     try:
         # FIXME: This will break with aliases - I don't really care that much
-        v = int(os.path.getmtime(p.strValue))
+        v_list = get_mtime(p.strValue)
     except OSError:
         return h
     hasher = sha_hash()
-    u = hasher.update
-    u(h)
-    u(str(v))
+    hasher.update(h)
+    for v in v_list:
+        hasher.update(str(v))
     return hasher.digest()
 
 ##############################################################################
@@ -419,7 +430,7 @@ class FileSink(NotCacheable, Module):
                                (full_path, filename, e)
                         # I am not sure whether we should raise an error
                         # I will just print a warning for now (Emanuele)
-                        print "Warning: ", msg
+                        debug.warning("%s" % msg)
 
 class DirectorySink(NotCacheable, Module):
     """DirectorySink takes a directory and writes it to a
@@ -957,14 +968,14 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Path, "value", Path)
     reg.add_input_port(Path, "name", String, True)
 
-    reg.add_module(File, constantSignatureCallable=file_parameter_hasher)
+    reg.add_module(File, constantSignatureCallable=path_parameter_hasher)
     reg.add_input_port(File, "value", File)
     reg.add_output_port(File, "value", File)
     reg.add_output_port(File, "self", File, True)
     reg.add_input_port(File, "create_file", Boolean, True)
     reg.add_output_port(File, "local_filename", String, True)
 
-    reg.add_module(Directory)
+    reg.add_module(Directory, constantSignatureCallable=path_parameter_hasher)
     reg.add_input_port(Directory, "value", Directory)
     reg.add_output_port(Directory, "value", Directory)
     reg.add_output_port(Directory, "itemList", List)
@@ -1078,6 +1089,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                           'src_port_remap':
                               {'itemlist': 'itemList'},
                           })],
+                   'InputPort':
+                       [(None, '1.6', None,
+                         {'dst_port_remap': {'old_name': None}})],
+                   'OutputPort':
+                       [(None, '1.6', None,
+                         {'dst_port_remap': {'old_name': None}})],
                    }
 
    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

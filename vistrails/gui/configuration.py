@@ -25,6 +25,7 @@ import os
 import os.path
 from PyQt4 import QtGui, QtCore
 
+from core import debug
 from core.configuration import ConfigurationObject
 from core.thumbnails import ThumbnailCache
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
@@ -440,7 +441,7 @@ changes to take effect")
         """ autosave_changed(on: bool) -> None
         
         """
-        print "auto_save_changed"
+        debug.log("auto_save_changed")
         if self._autosave_always.isChecked() == True:
             value = True
             self._autosave_cb.setText("No (for this session only)")
@@ -459,7 +460,7 @@ changes to take effect")
         """ temp_autosave_changed(on: int) -> None
         
         """
-        print "temp_auto_save_changed"
+        debug.log("temp_auto_save_changed")
         value = bool(on)
         if self._autosave_cb.text() == "No (for this session only)":
             value = not bool(on)
@@ -488,7 +489,7 @@ changes to take effect")
         """ temp_db_connect_changed(on: int) -> None
 
         """
-        print "temp_db_connect_changed"
+        debug.log("temp_db_connect_changed")
         value = bool(on)
         if self._db_connect_cb.text() == "No (for this session only)":
             value = not bool(on)
@@ -517,7 +518,7 @@ changes to take effect")
         """ temp_use_cache_changed(on: int) -> None
 
         """
-        print "temp_use_cache_changed"
+        debug.log("temp_use_cache_changed")
         value = bool(on)
         if self._use_cache_cb.text() == "No (for this session only)":
             value = not bool(on)
@@ -763,7 +764,7 @@ hovering tree nodes')
         """ autosave_changed(on: bool) -> None
         
         """
-        print "thumbs_auto_save_changed"
+        debug.log("thumbs_auto_save_changed")
         if self._autosave_always.isChecked() == True:
             value = True
             self._autosave_cb.setText("No (for this session only)")
@@ -782,7 +783,7 @@ hovering tree nodes')
         """ temp_autosave_changed(on: int) -> None
         
         """
-        print "thumbs_temp_auto_save_changed"
+        debug.log("thumbs_temp_auto_save_changed")
         value = bool(on)
         if self._autosave_cb.text() == "No (for this session only)":
             value = not bool(on)
@@ -793,7 +794,7 @@ hovering tree nodes')
         """ tagsonly_changed(on: bool) -> None
         
         """
-        print "thumbs_tagsonly_changed"
+        debug.log("thumbs_tagsonly_changed")
         if self._tagsonly_always.isChecked() == True:
             value = True
             self._tagsonly_cb.setText("No (for this session only)")
@@ -813,7 +814,7 @@ hovering tree nodes')
         """ temp_tagsonly_changed(on: int) -> None
         
         """
-        print "thumbs_temp_tagsonly_changed"
+        debug.log("thumbs_temp_tagsonly_changed")
         value = bool(on)
         if self._tagsonly_cb.text() == "No (for this session only)":
             value = not bool(on)
@@ -824,7 +825,7 @@ hovering tree nodes')
         """ mouse_hover_changed(on: bool) -> None
         
         """
-        print "thumbs_mouse_hover_changed"
+        debug.log("thumbs_mouse_hover_changed")
         if self._mouse_hover_always.isChecked() == True:
             value = True
             self._mouse_hover_cb.setText("No (for this session only)")
@@ -844,7 +845,7 @@ hovering tree nodes')
         """ temp_mouse_hover_changed(on: int) -> None
         
         """
-        print "thumbs_temp_mouse_hover_changed"
+        debug.log("thumbs_temp_mouse_hover_changed")
         value = bool(on)
         if self._mouse_hover_cb.text() == "No (for this session only)":
             value = not bool(on)

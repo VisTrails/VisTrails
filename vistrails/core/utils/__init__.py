@@ -23,6 +23,7 @@
 This module defines common functions and exception class definitions
 used all over VisTrails.
 """
+import core.debug
 from core.utils.enum import enum
 from core.utils.timemethod import time_method, time_call
 from core.utils.tracemethod import trace_method, bump_trace, report_stack, \
@@ -414,8 +415,8 @@ def versions_increasing(v1, v2):
         elif len(v1_list) > len(v2_list):
             return False
     except ValueError:
-        print "ERROR: cannot compare versions whose components " \
-            "are not integers"
+        core.debug.critical("Cannot compare versions whose components " +
+                       "are not integers")
     return False
                 
 

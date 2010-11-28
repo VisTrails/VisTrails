@@ -116,7 +116,7 @@ class QFunctionQueryForm(QMethodInputForm):
         here.
         
         """
-        methodBox = self.parent().parent().parent()
+        methodBox = self.parent().parent().parent().parent()
         if methodBox.controller:
             paramList = []
             pipeline = methodBox.controller.current_pipeline

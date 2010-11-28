@@ -28,7 +28,7 @@ import os
 import traceback
 
 from core.data_structures.graph import Graph
-import core.debug
+from core import debug
 import core.modules
 import core.modules.vistrails_module
 from core.modules.module_descriptor import ModuleDescriptor
@@ -285,9 +285,9 @@ class MissingPackageVersion(ModuleRegistryException):
 
 class MissingModuleVersion(ModuleRegistryException):
     def __init__(self, identifier, name, namespace, module_version, 
-                 package_version=None):
+                 package_version=None, module_id=None):
         ModuleRegistryException.__init__(self, identifier, name, namespace,
-                                         package_version, module_version)
+                                         package_version, module_version, module_id)
 
     def __str__(self):
         return "Missing version %s of module %s from package %s" % \
@@ -1087,8 +1087,8 @@ class ModuleRegistry(DBRegistry):
         if not os.path.isabs(vt_fname):
             vt_fname = os.path.join(package.package_dir, vt_fname)
         else:
-            print "WARNING: using absolute path for subworkflow: '%s'" % \
-                vt_fname
+            debug.warning("Using absolute path for subworkflow: '%s'" % \
+                vt_fname)
         
         # create module from workflow
         module = new_abstraction(name, vt_fname, None, version)
@@ -1146,7 +1146,7 @@ class ModuleRegistry(DBRegistry):
             return self.get_port_spec_from_descriptor(desc, port_name, 
                                                       port_type)
         except ModuleRegistryException, e:
-            print e
+            debug.critical(e)
             raise
         return None
 
@@ -1163,7 +1163,7 @@ class ModuleRegistry(DBRegistry):
             return self.has_port_spec_from_descriptor(desc, port_name, 
                                                       port_type)
         except ModuleRegistryException, e:
-            print e
+            debug.critical(e)
             raise
         return None        
 
@@ -1241,7 +1241,8 @@ class ModuleRegistry(DBRegistry):
     def initialize_package(self, package):
         if package.initialized():
             return
-        print "Initializing", package.codepath
+        debug.splashMessage("Initializing " + package.codepath + "...")
+        debug.log("Initializing " + package.codepath)
         if (package.identifier, package.version) not in self.package_versions:
             self.add_package(package)
         self.set_current_package(package)
@@ -1292,6 +1293,7 @@ class ModuleRegistry(DBRegistry):
 
         # The package might have decided to rename itself, let's store that
         self.set_current_package(None)
+        debug.splashMessage("Initializing " + package.codepath + '... done.')
         package._initialized = True 
 
     def delete_module(self, identifier, module_name, namespace=None):
@@ -1671,10 +1673,17 @@ class ModuleRegistry(DBRegistry):
             port_spec = port_spec[1:]
         if port_spec.endswith(')'):
             port_spec = port_spec[:-1]
+        if port_spec.strip() == '':
+            return '()'
         new_spec_list = []
         for spec in port_spec.split(','):
+            spec_arr = spec.split(':', 2)
+            if len(spec_arr) > 2:
+                # switch format of spec to more natural
+                # <package>:<namespace>|<name> for descriptor parsing
+                spec = '%s:%s|%s' % (spec_arr[0], spec_arr[2], spec_arr[1])
             (package, name, namespace) = \
-                expand_descriptor_string(spec, cur_package)
+                self.expand_descriptor_string(spec, cur_package)
             if namespace:
                 namespace = ':' + namespace
             new_spec_list.append('%s:%s%s' % \

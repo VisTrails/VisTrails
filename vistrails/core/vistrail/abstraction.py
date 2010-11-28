@@ -105,7 +105,8 @@ class Abstraction(DBAbstraction, Module):
             def update_version_status():
                 reg = get_module_registry()
                 desc = reg.get_descriptor_by_name(self.package, self.name, self.namespace)
-                self._is_latest_version = (long(desc.version) == long(self.internal_version))
+                latest_version = desc.module.vistrail.get_latest_version()
+                self._is_latest_version = (long(latest_version) == long(self.internal_version))
             reg = get_module_registry()
             QObject.connect(reg.signals, reg.signals.new_abstraction_signal, update_version_status)
             QObject.connect(reg.signals, reg.signals.deleted_abstraction_signal, update_version_status)

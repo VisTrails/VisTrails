@@ -27,6 +27,7 @@ import subprocess
 import sys
 import platform
 import socket
+from core import debug
 from core.utils import unimplemented, VistrailsInternalError
 import core.requirements
 
@@ -59,8 +60,7 @@ elif systemType in ['Darwin']:
         link_or_copy, executable_is_in_path, executable_is_in_pythonpath, \
         execute_cmdline, get_executable_path, execute_piped_cmdlines, TestMacOSX
 else:
-    print "Critical error"
-    print "VisTrails could not detect your operating system."
+    debug.critical("VisTrails could not detect your operating system.")
     sys.exit(1)
 
 def touch(file_name):

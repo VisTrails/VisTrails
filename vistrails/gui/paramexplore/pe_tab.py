@@ -27,6 +27,7 @@ QParameterExplorationTab
 from PyQt4 import QtCore, QtGui
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape
+from core import debug
 from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import get_module_registry
 from core.param_explore import ActionBasedParameterExploration
@@ -154,7 +155,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         try:
             xmlDoc = parseString(xmlString).documentElement
         except:
-            print "Error: Parameter Exploration load failed because of invalid XML:\n\n%s" % xmlString
+            debug.critical("Parameter Exploration load failed because of "
+                           "invalid XML:\n\n%s" % xmlString)
             return
         # Set the exploration dimensions
         dims = eval(str(xmlDoc.attributes['dims'].value))

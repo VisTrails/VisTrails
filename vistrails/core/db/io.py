@@ -38,13 +38,6 @@ def get_workflow(vt, version):
     Pipeline.convert(workflow)
     return workflow
 
-def expand_workflow(vt, workflow=None, version=None):
-    from core.vistrail.pipeline import Pipeline
-    (workflow, module_remap) = \
-        db.services.vistrail.expandWorkflow(vt, workflow, version)
-    Pipeline.convert(workflow)
-    return (workflow, module_remap)
-
 def open_workflow(filename):
     from core.vistrail.pipeline import Pipeline
     workflow = db.services.io.open_workflow_from_xml(filename)

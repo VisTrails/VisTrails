@@ -27,6 +27,7 @@ QInteractiveGraphicsView
 QPIPGraphicsView
 """
 
+from core import debug
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 import core.system
@@ -168,7 +169,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         b_rect = self.sceneBoundingRect
-        print "%sx%s" % (b_rect.width(), b_rect.height())
+        debug.log("%sx%s" % (b_rect.width(), b_rect.height()))
         printer.setPaperSize(QtCore.QSizeF(b_rect.width(), b_rect.height()),
                              QtGui.QPrinter.Point)
         painter = QtGui.QPainter(printer)
@@ -238,6 +239,29 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.setCursorState(self.defaultCursorState)
         self.canSelectBackground = True
         self.canSelectRectangle = True
+
+        self.viewport().grabGesture(QtCore.Qt.PinchGesture)
+        self.gestureStartScale = None
+
+    def viewportEvent(self, event):
+        if event.type() == QtCore.QEvent.Gesture:
+            pinch = event.gesture(QtCore.Qt.PinchGesture)
+            if pinch:
+                changeFlags = pinch.changeFlags()
+                if changeFlags & QtGui.QPinchGesture.ScaleFactorChanged:
+                    if self.gestureStartScale is None:
+                        self.gestureStartScale = self.currentScale
+                    newScale = self.gestureStartScale * \
+                        pinch.property("scaleFactor").toReal()[0]
+                    # Clamp the scale
+                    if newScale<0: newScale = 0
+                    if newScale>self.scaleMax: newScale = self.scaleMax
+                    self.currentScale = newScale
+                    self.updateMatrix()
+                if pinch.state() == QtCore.Qt.GestureFinished:
+                    self.gestureStartScale = None
+                return True
+        return QtGui.QGraphicsView.viewportEvent(self, event)
 
     def modifiersPressed(self, modifiers):
         """ modifiersPressed(modifiers: QtCore.Qt.KeyboardModifiers) -> None

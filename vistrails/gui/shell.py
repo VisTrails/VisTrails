@@ -37,11 +37,11 @@ import time
 import os.path
 
 import api
+from core.configuration import get_vistrails_configuration
 from core.interpreter.default import get_default_interpreter
 import core.modules.module_registry
 import core.system
 from core.vistrail.port_spec import PortSpec
-import gui.application
 from gui.common_widgets import QToolWindowInterface, QToolWindow
 from core.utils import all
 
@@ -54,7 +54,6 @@ class QShellDialog(QToolWindow, QToolWindowInterface):
         QToolWindow.__init__(self, parent=parent)
         #locals() returns the original dictionary, not a copy as
         #the docs say
-        app = gui.application.VistrailsApplication
         self.firstLocals = copy.copy(locals())
         self.shell = QShell(self.firstLocals,None)
         self.setWidget(self.shell)
@@ -343,18 +342,44 @@ class QShell(QtGui.QTextEdit):
         self.setAcceptRichText(False)
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         
-        app = gui.application.VistrailsApplication
-        shell_conf = app.configuration.shell
+        conf = get_vistrails_configuration()
+        shell_conf = conf.shell
         # font
         font = QtGui.QFont(shell_conf.font_face, shell_conf.font_size)
         font.setFixedPitch(1)
-        self.setCurrentFont(font)
+        self.setFont(font)
         self.reset(locals)
 
     def load_package(self, pkg_name):
         reg = core.modules.module_registry.get_module_registry()
         package = reg.get_package_by_name(pkg_name)
-
+        
+        def create_dict(modules, ns, m, mdesc):
+            md = {}
+            if len(ns) == 0:
+                d = {'_module_desc': mdesc,
+                     '_package': pkg,}
+                modules[m] = type('module', (vistrails_module,), d)
+            else:
+                if ns[0] in modules:
+                    md = create_dict(modules[ns[0]], ns[1:], m, mdesc)
+                else:
+                    md = create_dict(md, ns[1:], m, mdesc)
+                    modules[ns[0]] = md
+            return modules
+        
+        def create_namespace_path(root, modules):
+            for k,v in modules.iteritems():
+                if type(v) == type({}):
+                    d = create_namespace_path(k,v)
+                    modules[k] = d
+            
+            if root is not None:
+                modules['_package'] = pkg
+                return type(root, (object,), modules)()
+            else:
+                return modules
+        
         def get_module_init(module_desc):
             def init(self, *args, **kwargs):
                 self.__dict__['module'] = \
@@ -374,9 +399,20 @@ class QShell(QtGui.QTextEdit):
                                          "'%s'" % (self.__class__.__name__, 
                                                    attr_name))
             return getter
-                        
-        d = {'__getattr__': get_module(package)}
-        return type(package.name, (object,), d)()
+        
+        d = {'__getattr__': get_module(package),}
+        pkg = type(package.name, (object,), d)()
+        
+        modules = {}
+        for (m,ns) in package.descriptors:
+            module_desc = package.descriptors[(m,ns)]
+            modules = create_dict(modules, ns.split('|'), m, module_desc)   
+        
+        modules = create_namespace_path(None, modules)
+        
+        for (k,v) in modules.iteritems():
+            setattr(pkg, k, v)
+        return pkg
 
     def selected_modules(self):
         shell_modules = []
@@ -476,6 +512,14 @@ class QShell(QtGui.QTextEdit):
         cursor = self.textCursor()
         self.last = cursor.position()
 
+    def insertFromMimeData(self, source):
+        if source.hasText():
+            cursor = self.textCursor()
+            cursor.movePosition(QtGui.QTextCursor.End)
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
+            self.__insertText(source.text())
+        
     def scroll_bar_at_bottom(self):
         """Returns true if vertical bar exists and is at bottom, or if
         vertical bar does not exist."""
@@ -735,6 +779,7 @@ class QShell(QtGui.QTextEdit):
         sys.stdout   = self
         sys.stderr   = self
         sys.stdin    = self
+        self.setFocus()
 
     def saveSession(self, fileName):
         """saveSession(fileName: str) -> None 

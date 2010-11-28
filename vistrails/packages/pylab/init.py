@@ -22,6 +22,7 @@
 
 import core.modules
 import core.modules.module_registry
+from core import debug
 from core.modules.basic_modules import File, String, Boolean
 from core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from plot import MplPlot, MplPlotConfigurationWidget
@@ -36,8 +37,7 @@ try:
     matplotlib.use('Qt4Agg')
     pylab = py_import('pylab', mpl_dict)
 except Exception, e:
-    print "EXCEPTION!"
-    print e
+    debug.critical("Exception: %s" % e)
 
 ################################################################################
 

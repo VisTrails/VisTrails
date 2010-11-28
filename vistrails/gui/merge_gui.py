@@ -22,6 +22,7 @@
 
 from PyQt4 import QtGui, QtCore
 import os
+import api
 
 CHOICE_OTHER_ALL = 0
 CHOICE_OTHER = 1
@@ -280,24 +281,30 @@ class resolve_thumbs(QtGui.QWidget):
 class MergeGUI:
     @staticmethod
     def resolveTags(a, b, text):
-        app = QtGui.QApplication([])
         exm = resolve_tags(a, b, text)
         exm.show()
-        app.exec_()
+        app = api.get_builder_window()
+        if not app:
+            app = QtGui.QApplication([])
+            app.exec_()
         return exm.value, exm.text
 
     @staticmethod
     def resolveNotes(a, b, text):
-        app = QtGui.QApplication([])
         exm = resolve_notes(a, b, text)
         exm.show()
-        app.exec_()
+        app = api.get_builder_window()
+        if not app:
+            app = QtGui.QApplication([])
+            app.exec_()
         return exm.value, exm.text
 
     @staticmethod
     def resolveThumbs(a, b, old_tmp_dir, new_tmp_dir):
-        app = QtGui.QApplication([])
         exm = resolve_thumbs(a, b, old_tmp_dir, new_tmp_dir)
         exm.show()
-        app.exec_()
+        app = api.get_builder_window()
+        if not app:
+            app = QtGui.QApplication([])
+            app.exec_()
         return exm.value

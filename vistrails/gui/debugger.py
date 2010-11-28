@@ -85,6 +85,11 @@ class QDebugger(QToolWindow, QToolWindowInterface):
                     edges = pipeline.graph.edges_to(m_id)
                     self.inspector.update_inputs(m_id, module_objects, edges,
                                                   pipeline.connections)
+
+    def closeEvent(self, e):
+        """closeEvent(e) -> None
+        Event handler called when the dialog is about to close."""
+        self.emit(QtCore.SIGNAL("debuggerHidden()"))
                         
 ###############################################################################
 #  QObjectInspector

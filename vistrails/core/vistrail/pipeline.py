@@ -29,7 +29,7 @@ from core.data_structures.graph import Graph
 from core import debug
 from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException, MissingModule, PortMismatch
+    ModuleRegistryException, MissingModuleVersion, PortMismatch
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
@@ -303,28 +303,23 @@ class Pipeline(DBWorkflow):
         else:
             what = op.db_what
         funname = '%s_%s' % (op.vtType, what)
-
         try:
             f = getattr(self, funname)
-            if op.vtType == 'add':
-                f(op.data, op.parentObjId, op.parentObjType)
-            elif op.vtType == 'delete':
-                f(op.objectId, op.parentObjId, op.parentObjType)
-            elif op.vtType == 'change':
-                f(op.oldObjId, op.data, op.parentObjId, op.parentObjType)
         except AttributeError:
             db_funname = 'db_%s_object' % op.vtType
             try:
                 f = getattr(self, db_funname)
-                if op.vtType == 'add':
-                    f(op.data, op.parentObjType, op.parentObjId)
-                elif op.vtType == 'delete':
-                    f(op.objectId, op.what, op.parentObjType, op.parentObjId)
-                elif op.vtType == 'change':
-                    f(op.oldObjId, op.data, op.parentObjType, op.parentObjId)
             except AttributeError:
-                msg = "Pipeline cannot execute '%s' operation" % op.vtType
+                msg = "Pipeline cannot execute '%s %s' operation" % \
+                    (op.vtType, op.what)
                 raise VistrailsInternalError(msg)
+
+        if op.vtType == 'add':
+            f(op.data, op.parentObjType, op.parentObjId)
+        elif op.vtType == 'delete':
+            f(op.objectId, op.what, op.parentObjType, op.parentObjId)
+        elif op.vtType == 'change':
+            f(op.oldObjId, op.data, op.parentObjType, op.parentObjId)
 
     def add_module(self, m, *args):
         """add_module(m: Module) -> None 
@@ -332,7 +327,7 @@ class Pipeline(DBWorkflow):
           
         """
         if self.has_module_with_id(m.id):
-            raise VistrailsInternalError("duplicate module id")
+            raise VistrailsInternalError("duplicate module id: %d" % m.id )
 #         self.modules[m.id] = copy.copy(m)
 #         if m.vtType == Abstraction.vtType:
 #             m.abstraction = self.abstraction_map[m.abstraction_id]
@@ -420,8 +415,7 @@ class Pipeline(DBWorkflow):
         if id in self._connection_signatures:
             del self._connection_signatures[id]
         
-    def add_parameter(self, param, parent_id, 
-                      parent_type=ModuleFunction.vtType):
+    def add_parameter(self, param, parent_type, parent_id):
         self.db_add_object(param, parent_type, parent_id)
         if not self.has_alias(param.alias):
             self.change_alias(param.alias, 
@@ -431,14 +425,13 @@ class Pipeline(DBWorkflow):
                               parent_id,
                               None)
 
-    def delete_parameter(self, param_id, parent_id, 
-                         parent_type=ModuleFunction.vtType):
+    def delete_parameter(self, param_id, param_type, parent_type, parent_id):
         self.db_delete_object(param_id, ModuleParam.vtType,
                               parent_type, parent_id)
-        self.remove_alias(ModuleParam.vtType, param_id, parent_type, parent_id, None)
+        self.remove_alias(ModuleParam.vtType, param_id, parent_type, 
+                          parent_id, None)
 
-    def change_parameter(self, old_param_id, param, parent_id, 
-                         parent_type=ModuleFunction.vtType):
+    def change_parameter(self, old_param_id, param, parent_type, parent_id):
         self.remove_alias(ModuleParam.vtType, old_param_id, 
                           parent_type, parent_id, None)
         self.db_change_object(old_param_id, param,
@@ -451,7 +444,7 @@ class Pipeline(DBWorkflow):
                               parent_id,
                               None)
 
-    def add_port(self, port, parent_id, parent_type=Connection.vtType):
+    def add_port(self, port, parent_type, parent_id):
         self.db_add_object(port, parent_type, parent_id)
         connection = self.connections[parent_id]
         if connection.source is not None and \
@@ -460,7 +453,7 @@ class Pipeline(DBWorkflow):
                                 connection.destinationId, 
                                 connection.id)
 
-    def delete_port(self, port_id, parent_id, parent_type=Connection.vtType):
+    def delete_port(self, port_id, port_type, parent_type, parent_id):
         connection = self.connections[parent_id]
         if len(connection.ports) >= 2:
             self.graph.delete_edge(connection.sourceId, 
@@ -468,8 +461,7 @@ class Pipeline(DBWorkflow):
                                    connection.id)
         self.db_delete_object(port_id, Port.vtType, parent_type, parent_id)
 
-    def change_port(self, old_port_id, port, parent_id,
-                    parent_type=Connection.vtType):
+    def change_port(self, old_port_id, port, parent_type, parent_id):
         connection = self.connections[parent_id]
         if len(connection.ports) >= 2:
             source_list = self.graph.adjacency_list[connection.sourceId]
@@ -489,7 +481,7 @@ class Pipeline(DBWorkflow):
         m = self.get_module_by_id(moduleId)
         m.add_port_spec(portSpec)
 
-    def add_portSpec(self, port_spec, parent_id, parent_type=Module.vtType):
+    def add_portSpec(self, port_spec, parent_type, parent_id):
         # self.db_add_object(port_spec, parent_type, parent_id)
         self.add_port_to_registry(port_spec, parent_id)
         
@@ -498,12 +490,11 @@ class Pipeline(DBWorkflow):
         portSpec = m.port_specs[id]
         m.delete_port_spec(portSpec)
 
-    def delete_portSpec(self, spec_id, parent_id, parent_type=Module.vtType):
+    def delete_portSpec(self, spec_id, portSpec_type, parent_type, parent_id):
         self.delete_port_from_registry(spec_id, parent_id)
         # self.db_delete_object(spec_id, PortSpec.vtType, parent_type, parent_id)
 
-    def change_portSpec(self, old_spec_id, port_spec, parent_id,
-                        parent_type=Module.vtType):
+    def change_portSpec(self, old_spec_id, port_spec, parent_type, parent_id):
         self.delete_port_from_registry(old_spec_id, parent_id)
         # self.db_change_object(old_spec_id, port_spec, parent_type, parent_id)
         self.add_port_to_registry(port_spec, parent_id)
@@ -809,6 +800,13 @@ class Pipeline(DBWorkflow):
                     module.is_valid = False
                     e._module_id = module.id
                     exceptions.add(e)
+                if module.is_abstraction():
+                    try:
+                        desc = module.module_descriptor
+                        if module.internal_version != desc.version:
+                            exceptions.add(MissingModuleVersion(desc.package, desc.name, desc.namespace, desc.version, desc.package_version, module.id))
+                    except:
+                        pass
         try:
             self.ensure_port_specs()
         except InvalidPipeline, e:
@@ -860,7 +858,7 @@ class Pipeline(DBWorkflow):
                                             port_type_map.inverse[port.type])
                 # print 'got spec', spec, spec.sigstring
             except ModuleRegistryException, e:
-                print 'CONNECTION EXCEPTION', e
+                debug.critical('CONNECTION EXCEPTION: %s' % e)
                 exceptions.add(e)
             else:
                 if port.spec.is_valid:
@@ -912,6 +910,8 @@ class Pipeline(DBWorkflow):
             exceptions = set()
             for mid in module_ids:
                 module = pipeline.modules[mid]
+                if module.version == '':
+                    module.version = '0'
                 try:
                     # FIXME check for upgrades, otherwise use similar
                     # descriptor, the old behavior

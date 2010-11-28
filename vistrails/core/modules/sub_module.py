@@ -325,7 +325,6 @@ def initialize(*args, **kwargs):
     reg.add_input_port(InputPort, "name", String, True)
     reg.add_input_port(InputPort, "optional", Boolean, True)
     reg.add_input_port(InputPort, "spec", String)
-    reg.add_input_port(InputPort, "old_name", String)
     reg.add_input_port(InputPort, "ExternalPipe", Variant, True)
     reg.add_output_port(InputPort, "InternalPipe", Variant)
 

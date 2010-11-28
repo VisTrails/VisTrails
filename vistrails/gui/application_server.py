@@ -47,6 +47,7 @@ from gui.application import VistrailsApplicationInterface
 from gui import qt
 from core.db.locator import DBLocator, ZIPFileLocator, FileLocator
 from core.db import io
+from core import debug
 import core.db.action
 
 from core.utils import InstanceObject
@@ -2050,7 +2051,7 @@ def start_server(optionsDict=None):
     """Initializes the application singleton."""
     global VistrailsServer
     if VistrailsServer:
-        print "Server already started."""
+        print "Server already started."
         return
     VistrailsServer = VistrailsServerSingleton()
     try:

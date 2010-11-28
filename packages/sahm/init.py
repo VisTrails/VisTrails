@@ -10,7 +10,7 @@ from core.modules.vistrails_module import Module, ModuleError, ModuleConnector
 from core.modules.basic_modules import File, Directory, new_constant, Constant
 from core.system import list2cmdline, execute_cmdline
 
-from widgets import ClimatePredictorListWidget, ClimatePredictorListConfig
+from widgets import get_predictor_widget, get_predictor_config
 
 identifier = 'gov.usgs.sahm'
 _temp_files = []
@@ -194,7 +194,7 @@ class MDSBuilder(Module):
         args = map_ports(self, port_map)
 
         predictor_list = self.forceGetInputFromPort('predictorList', [])
-        predictor_list.extend(self.getInputListFromPort('addPredictor'))
+        predictor_list.extend(self.forceGetInputListFromPort('addPredictor'))
 
         predictors_dir = mktempdir(prefix='sahm_layers')
         for predictor in predictor_list:
@@ -257,7 +257,7 @@ class ModelBuilder(Module):
         
         models = self.getInputListFromPort('addModel')
         predictor_list = self.forceGetInputFromPort('predictorList', [])
-        predictor_list.extend(self.getInputListFromPort('addPredictor'))
+        predictor_list.extend(self.forceGetInputListFromPort('addPredictor'))
 
         ancillary_dname = mktempdir(prefix='sahm_ancillary')
 
@@ -265,7 +265,25 @@ class ModelBuilder(Module):
         for model in models:
             print model
             shutil.copy(model.name, models_dir)
-            if model.name == 'MAXENT':
+            print "%%% NAME %%%", model.__class__.__name__
+            if model.__class__.__name__ == 'MAXENT':
+                # create file named RunMaxEnt.args and copy parameters there
+                args_fname = os.path.join(models_dir, "RunMaxEnt.args")
+                args_f = None
+                for port in model._input_ports:
+                    print 'checking port:', port[0], port
+                    if model.hasInputFromPort(port[0]):
+                        port_val = model.getInputFromPort(port[0])
+                        if port[1] == "(edu.utah.sci.vistrails.basic:Boolean)":
+                            port_val = str(port_val)
+                            port_val = port_val[0].lower() + port_val[1:]
+                        if args_f is None:
+                            args_f = open(args_fname, 'w')
+                        print "%s=%s" % (port[0], port_val)
+                        print >>args_f, "%s=%s" % (port[0], port_val),
+                if args_f is not None:
+                    args_f.close()
+                    
                 # FIXME, use parameters from MAXENT
                 # for port in model.input_ports:
                 #    port + model.getInputFromPort(port)
@@ -362,7 +380,8 @@ from core.modules.basic_modules import List
 #                              base_class=List)
 
 class PredictorList(Constant):
-    _input_ports = expand_ports([('value', 'DataInput|PredictorList')])
+    _input_ports = expand_ports([('value', 'DataInput|PredictorList'),
+                                 ('addPredictor', 'DataInput|Predictor')])
     _output_ports = expand_ports([('value', 'DataInput|PredictorList')])
     
     @staticmethod
@@ -378,14 +397,18 @@ class PredictorList(Constant):
     def validate(x):
         return type(x) == list
 
-    @staticmethod
-    def get_widget_class():
-        return ClimatePredictorListWidget
-
-class ClimatePredictors(PredictorList):
-    @staticmethod
-    def get_widget_class():
-        return ClimatePredictorListWidget
+    def compute(self):
+        p_list = self.forceGetInputListFromPort("addPredictor")
+        v = self.forceGetInputFromPort("value", [])
+        b = self.validate(v)
+        if not b:
+            raise ModuleError(self, "Internal Error: Constant failed validation")
+        if len(v) > 0 and type(v[0]) == tuple:
+            f_list = [create_file_module(v_elt[1]) for v_elt in v]
+        else:
+            f_list = v
+        p_list += f_list
+        self.setResult("value", p_list)
 
 def load_max_ent_params():    
     maxent_fname = os.path.join(os.path.dirname(__file__), 'maxent.csv')
@@ -399,6 +422,7 @@ def load_max_ent_params():
                   'double': 'Float'}
     for row in csv_reader:
         [name, flag, p_type, default, doc] = row
+        name = name.strip()
         p_type = p_type.strip()
         if p_type in p_type_map:
             p_type = p_type_map[str(p_type)]
@@ -455,15 +479,54 @@ def generate_namespaces(modules):
                 module_list.append((module, m_dict))
     return module_list
 
+def build_available_trees():
+    trees = {}
+
+    layers_fname = os.path.join(os.path.dirname(__file__), 'layers.csv')
+    csv_reader = csv.reader(open(layers_fname, 'rU'))
+    # pass on header
+    csv_reader.next()
+    for row in csv_reader:
+        if row[2] not in trees:
+            trees[row[2]] = {}
+        available_dict = trees[row[2]]
+        if row[4] not in available_dict:
+            available_dict[row[4]] = []
+        available_dict[row[4]].append((row[0], row[1], row[3]))            
+        # if row[1] not in available_dict:
+        #     available_dict[row[1]] = []
+        # available_dict[row[1]].append((row[3], row[2]))    
+    return trees
+
+def build_predictor_modules():
+    available_trees = build_available_trees()
+    modules = []
+    for name, tree in available_trees.iteritems():
+        name_arr = name.strip().split()
+        class_base = ''.join(n.capitalize() for n in name_arr)
+        widget_class = get_predictor_widget(class_base, tree)
+        config_class = get_predictor_config(class_base, tree)
+        class_name = class_base + "Predictors"
+        def get_widget_method(w_class):
+            @staticmethod
+            def get_widget_class():
+                return w_class
+            return get_widget_class
+        module = type(class_name, (PredictorList,),
+                      {'get_widget_class': get_widget_method(widget_class),
+                       '_input_ports': \
+                           [('value',
+                             '(gov.usgs.sahm:%s:DataInput)' % class_name)]})
+        modules.append((module, {'configureWidgetType': config_class}))
+    return modules
+
 _modules = generate_namespaces({'DataInput': [Predictor, 
                                               PredictorList, 
                                               RemoteSensingPredictor,
                                               ClimatePredictor,
                                               StaticPredictor,
-                                              (ClimatePredictors,
-                                               {'configureWidgetType': 
-                                                ClimatePredictorListConfig}),
-                                              SpatialDef],
+                                              SpatialDef] + \
+                                    build_predictor_modules(),
                                 'Tools': [Resampler, 
                                           FieldDataQuery,
                                           MDSBuilder,

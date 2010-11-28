@@ -118,6 +118,7 @@ class VistrailController(object):
 
         self._asked_packages = set()
         self._delayed_actions = []
+        self._loaded_abstractions = {}
 
     def logging_on(self):
         return not get_vistrails_configuration().check('nologger')
@@ -150,9 +151,10 @@ class VistrailController(object):
         self.recompute_terse_graph()
         
     def close_vistrail(self, locator):
+        self.unload_abstractions()
         if locator is not None:
             locator.close()
-               
+            
     def set_id_scope(self, id_scope):
         self.id_scope = id_scope
 
@@ -178,6 +180,9 @@ class VistrailController(object):
 
     ##########################################################################
     # Actions, etc
+
+    def has_move_actions(self):
+        return False
     
     def flush_move_actions(self):
         return False
@@ -943,11 +948,17 @@ class VistrailController(object):
         except InvalidPipeline, e:
             # handle_invalid_pipeline will raise it's own InvalidPipeline
             # exception if it fails
+            vistrail_id_scope = self.id_scope
+            self.id_scope = abs_vistrail.idScope
             (new_version, new_pipeline) = \
                 self.handle_invalid_pipeline(e, long(module_version), 
                                              abs_vistrail, False)
+            core.db.io.save_vistrail_to_xml(abs_vistrail, abs_fname)
+            self.set_changed(True)
+            self.id_scope = vistrail_id_scope
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                           new_version, new_pipeline)
+            module_version = str(new_version)
 
         old_desc = None
         if is_global:
@@ -989,7 +1000,11 @@ class VistrailController(object):
                          module_version=None, avail_fnames=[]):
         if abs_name is None:
             abs_name = self.parse_abstraction_name(abs_fname)
-        abs_vistrail = read_vistrail(abs_fname)
+        if abs_fname in self._loaded_abstractions:
+            abs_vistrail = self._loaded_abstractions[abs_fname]
+        else:
+            abs_vistrail = read_vistrail(abs_fname)
+            self._loaded_abstractions[abs_fname] = abs_vistrail
         abstraction_uuid = \
             abs_vistrail.get_annotation('__abstraction_uuid__').value
         if abstraction_uuid is None:
@@ -1000,17 +1015,46 @@ class VistrailController(object):
             module_version = str(abs_vistrail.get_latest_version())
         elif type(module_version) == type(1):
             module_version = str(module_version)
+        # If an upgraded version has already been created, we want to use that rather than loading the old version.
+        # This step also avoid duplication of abstraction upgrades.  Otherwise, when we try to add the old version
+        # to the registry, it raises an InvalidPipeline exception and automatically tries to handle it by creating
+        # another upgrade for the old version.
+        upgrade_version = abs_vistrail.get_upgrade(long(module_version))
+        if upgrade_version is not None:
+            old_version = module_version
+            module_version = str(upgrade_version)
+        
         desc = self.get_abstraction_desc(abs_name, abstraction_uuid,
                                          module_version)
         if desc is None:
-            print "adding", abs_name, "to registry"
+            print "adding version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to registry"
             desc = self.add_abstraction_to_registry(abs_vistrail, abs_fname, 
                                                     abs_name, None, 
                                                     module_version, 
                                                     is_global, avail_fnames)
+            if desc.version != module_version:
+                print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version
         else:
-            print abs_name, "already in registry"
+            if upgrade_version is not None:
+                print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
+            else:
+                print "version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry"
         return desc
+    
+    def unload_abstractions(self):
+        for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
+            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
+            try:
+                descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
+                print "removing all versions of ", abs_name, "from registry (namespace: %s)"%abs_namespace
+                while descriptor is not None:
+                    reg = core.modules.module_registry.get_module_registry()
+                    reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
+                    descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
+            except:
+                # No versions of the abstraction exist in the registry now
+                pass
 
     def update_abstraction(self, abstraction, new_actions):
         module_version = abstraction.internal_version
@@ -1193,7 +1237,7 @@ class VistrailController(object):
         return (os.path.basename(abs_fname), dependencies)
     
     def find_abstractions(self, vistrail, recurse=False):
-        abstractions = []
+        abstractions = {}
         for action in vistrail.actions:
             for operation in action.operations:
                 if operation.vtType == 'add' or \
@@ -1201,17 +1245,25 @@ class VistrailController(object):
                     if operation.data is not None and operation.data.vtType == Abstraction.vtType:
                         abstraction = operation.data
                         if abstraction.package == abstraction_pkg:
-                            abstractions.append(abstraction)
+                            key = abstraction.descriptor_info
+                            if key not in abstractions:
+                                abstractions[key] = []
+                            abstractions[key].append(abstraction)
         if recurse:
-            for abstraction in abstractions:
-                try:
-                    vistrail = abstraction.vistrail
-                except MissingPackageVersion, e:
-                    reg = core.modules.module_registry.get_module_registry()
-                    abstraction._module_descriptor = \
-                        reg.get_similar_descriptor(*abstraction.descriptor_info)
-                    vistrail = abstraction.vistrail
-                abstractions.extend(self.find_abstractions(vistrail, recurse))
+            for abstraction_list in abstractions.itervalues():
+                for abstraction in abstraction_list:
+                    try:
+                        vistrail = abstraction.vistrail
+                    except MissingPackageVersion, e:
+                        reg = core.modules.module_registry.get_module_registry()
+                        abstraction._module_descriptor = \
+                            reg.get_similar_descriptor(*abstraction.descriptor_info)
+                        vistrail = abstraction.vistrail
+                    r_abstractions = self.find_abstractions(vistrail, recurse)
+                    for k,v in r_abstractions.iteritems():
+                        if k not in abstractions:
+                            abstractions[k] = []
+                        abstractions[k].extend(v)
         return abstractions
 
     def check_abstraction(self, descriptor_tuple, lookup):
@@ -1243,9 +1295,13 @@ class VistrailController(object):
                                                         descriptor_tuple[2],
                                                         descriptor_tuple[3],
                                                         '')
-                self.load_abstraction(other_desc.module.vt_fname, 
-                                      False, descriptor_tuple[1],
-                                      descriptor_tuple[4])
+                new_desc = \
+                    self.load_abstraction(other_desc.module.vt_fname, 
+                                          False, descriptor_tuple[1],
+                                          descriptor_tuple[4])
+                descriptor_tuple = (new_desc.package, new_desc.name, 
+                                    new_desc.namespace, new_desc.package_version,
+                                    str(new_desc.version))
                 return self.check_abstraction(descriptor_tuple, lookup)
             else:
                 raise
@@ -1258,6 +1314,9 @@ class VistrailController(object):
                                       descriptor_tuple[1],
                                       descriptor_tuple[4],
                                       lookup.values())
+            descriptor_tuple = (new_desc.package, new_desc.name, 
+                                new_desc.namespace, new_desc.package_version,
+                                str(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
         return None
         
@@ -1272,11 +1331,12 @@ class VistrailController(object):
         # add_abstraction_to_regsitry) because we can't call
         # abstraction.vistrail until the module is loaded.
         abstractions = self.find_abstractions(vistrail)
-        for abstraction in abstractions:
+        for descriptor_info, abstraction_list in abstractions.iteritems():
             # print 'checking for abstraction "' + str(abstraction.name) + '"'
-            descriptor = self.check_abstraction(abstraction.descriptor_info,
+            descriptor = self.check_abstraction(descriptor_info,
                                                 lookup)
-            abstraction.module_descriptor = descriptor
+            for abstraction in abstraction_list:
+                abstraction.module_descriptor = descriptor
             
     def create_ungroup(self, full_pipeline, module_id):
 
@@ -1758,7 +1818,7 @@ class VistrailController(object):
                 if err._was_handled:
                     continue
                 if isinstance(err, InvalidPipeline):
-                    process_package_version(err.get_exception_set())
+                    process_package_versions(err.get_exception_set())
                 if isinstance(err, MissingPackageVersion):
                     # try and load other version of package?
                     err._was_handled = True
@@ -1793,9 +1853,12 @@ class VistrailController(object):
                             
                     # set id to None so db saves correctly
                     new_pipeline.id = None
+                    old_id_scope = self.id_scope
+                    self.id_scope = id_scope
                     inner_actions = \
                         process_package_exceptions(new_exception_set,
                                                    new_pipeline)
+                    self.id_scope = old_id_scope
                     if len(inner_actions) > 0:
                         # create action that recreates group/subworkflow
                         old_module = pipeline.modules[err._module_id]
@@ -1806,18 +1869,19 @@ class VistrailController(object):
                             for action in my_actions:
                                 pipeline.perform_action(action)
                             new_actions.extend(my_actions)
-                        elif old_module.is_abstraction():
-                            # add new version to the abstraction
-                            # then update the current pipeline by replacing
-                            # abstraction module
-
-                            # FIXME finish this code
-                            my_actions = \
-                                UpgradeWorkflowHandler.replace_abstraction(
-                                self, pipeline, old_module.id, inner_actions)
-                            for action in my_actions:
-                                pipeline.perform_action(action)
-                            new_actions.extend(my_actions)
+# This code shouldn't ever be reachable because invalid abstraction pipelines are handled when they're initially loaded.
+#                        elif old_module.is_abstraction():
+#                            # add new version to the abstraction
+#                            # then update the current pipeline by replacing
+#                            # abstraction module
+#
+#                            # FIXME finish this code
+#                            my_actions = \
+#                                UpgradeWorkflowHandler.replace_abstraction(
+#                                self, pipeline, old_module.id, inner_actions)
+#                            for action in my_actions:
+#                                pipeline.perform_action(action)
+#                            new_actions.extend(my_actions)
                         
                 elif (isinstance(err, MissingModule) or 
                       isinstance(err, MissingPackageVersion) or 
@@ -1832,10 +1896,11 @@ class VistrailController(object):
                 except Exception, e:
                     # cannot get the package we need
                     continue
-                print '** trying to fix errors in', identifier
-                print '\n'.join(['  ' + str(e) for e in err_list])
+                debug.warning('** Trying to fix errors in %s' % identifier)
+                for t in ['  ' + str(e) for e in err_list]:
+                    debug.warning(t)
                 if pkg.can_handle_all_errors():
-                    print '  handle_all_errors'
+                    debug.warning('  handle_all_errors')
                     try:
                         actions = pkg.handle_all_errors(self, err_list, 
                                                         pipeline)
@@ -1950,7 +2015,7 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         for left in left_exceptions:
-            print '-->', left
+            debug.critical('--> %s' % left)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
@@ -2102,10 +2167,13 @@ class VistrailController(object):
                     pass
             if not was_upgraded:
                 try:
-                    (new_version, pipeline) = \
-                        self.handle_invalid_pipeline(e, new_version,
-                                                     self.vistrail,
-                                                     report_all_errors)
+                    try:
+                        (new_version, pipeline) = \
+                            self.handle_invalid_pipeline(e, new_version,
+                                                         self.vistrail,
+                                                         report_all_errors)
+                    except InvalidPipeline, e:
+                        pipeline = e._pipeline
                     # check that we handled the invalid pipeline
                     # correctly
                     try:
@@ -2195,18 +2263,19 @@ class VistrailController(object):
             if self.log and len(self.log.workflow_execs) > 0:
                 save_bundle.log = self.log
             abstractions = self.find_abstractions(self.vistrail, True)
-            for abstraction in abstractions:
-                abs_module = abstraction.module_descriptor.module
-                if abs_module is not None:
-                    abs_fname = abs_module.vt_fname
-                    if not os.path.exists(abs_fname):
-                        if abs_save_dir is None:
-                            abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
-                        abs_fname = os.path.join(abs_save_dir, 
-                                                 abstraction.name + '.xml')
-                        core.db.io.save_vistrail_to_xml(abstraction.vistrail,
-                                                        abs_fname)
-                    save_bundle.abstractions.append(abs_fname)
+            for abstraction_list in abstractions.itervalues():
+                for abstraction in abstraction_list:
+                    abs_module = abstraction.module_descriptor.module
+                    if abs_module is not None:
+                        abs_fname = abs_module.vt_fname
+                        if not os.path.exists(abs_fname):
+                            if abs_save_dir is None:
+                                abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
+                            abs_fname = os.path.join(abs_save_dir, 
+                                                     abstraction.name + '.xml')
+                            core.db.io.save_vistrail_to_xml(abstraction.vistrail,
+                                                            abs_fname)
+                        save_bundle.abstractions.append(abs_fname)
 
             thumb_cache = ThumbnailCache.getInstance()
             if thumb_cache.conf.autoSave:
@@ -2272,13 +2341,6 @@ class VistrailController(object):
             save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
             locator.save_as(save_bundle)
 
-    def write_expanded_workflow(self, locator):
-        if self.current_pipeline:
-            (workflow, _) = core.db.io.expand_workflow(self.vistrail, 
-                                                       self.current_pipeline)
-            locator.save_as(workflow)
-        
-    
     def write_log(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:

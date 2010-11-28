@@ -48,6 +48,8 @@ import inspectors
 from hasher import vtk_hasher
 import sys
 
+#TODO: Change the Core > Module > Registry > Add Input : To support vector as type.
+
 ################################################################################
 
 # filter some deprecation warnings coming from the fact that vtk calls
@@ -93,7 +95,11 @@ typeMapDict = {'int': Integer,
                'string': String,
                'char': String,
                'const char*': String,
-               'const char *': String}
+               'const char *': String,
+               '[float': Float,         
+               'float]': Float,
+               '[int': Integer,
+               'int]': Integer}
 typeMapDictValues = [Integer, Float, String]
 
 file_name_pattern = re.compile('.*FileName$')
@@ -127,26 +133,28 @@ def typeMap(name, package=None):
             return registry.get_descriptor_by_name(package,
                                                    name).module
 
-def get_method_signature(method):
+def get_method_signature(method, docum='', name=''):
     """ get_method_signature(method: vtkmethod) -> [ret, arg]
     Re-wrap Prabu's method to increase performance
 
     """
-    doc = method.__doc__
+    doc = method.__doc__ if docum=='' else docum
     tmptmp = doc.split('\n')
     tmp = []
     for l in tmptmp:
         l = l.strip('\n \t')
         if l.startswith('V.') or l.startswith('C++:'):
             tmp.append(l)
-        #else:
-        #    tmp[-1] = tmp[-1] + l
+        else:
+            if (len(tmp) != 0):       
+                tmp[-1] = tmp[-1] + ' ' + l
     tmp.append('')
     sig = []        
     pat = re.compile(r'\b')
 
     # Remove all the C++ function signatures and V.<method_name> field  
-    offset = 2+len(method.__name__)
+    name = method.__name__ if name == '' else name
+    offset = 2+len(name)
     for i in xrange(len(tmp)):
         s = tmp[i]
         if s=='': break
@@ -213,14 +221,31 @@ def prune_signatures(module, name, signatures, output=False):
         def convert(entry):
             if type(entry) == tuple:
                 return list(entry)
-            else:
-                assert(type(entry) == str)
+            elif type(entry) == str:  
                 return [entry]
+            else:
+                result = []
+                first = True
+                lastList = True
+                for e in entry:
+                    if (type(e) == list):
+                        if lastList == False: result[len(result)] = result[len(result)] + ']'  
+                        aux = e
+                        aux.reverse()
+                        aux[0] = '[' + aux[0]
+                        aux[-1] = aux[-1] + ']'
+                        result.extend(aux)
+                        lastList = True
+                    else:
+                        if first: e = '[' + e
+                        result.append(e)
+                        lastList = False
+                        first = False                                                             
+                return result
         result = []
         for entry in type_:
             result.extend(convert(entry))
         return result
-
     flattened_entries = [flatten(sig[1]) for
                          sig in signatures]
     def hit_count(entry):
@@ -271,7 +296,38 @@ def prune_signatures(module, name, signatures, output=False):
     
     #then we remove the duplicates, if necessary
     unique_signatures = []
-    [unique_signatures.append(s) for s in signatures if not unique_signatures.count(s)]
+    
+    #Remove the arrays and tuples inside the signature
+    #  in order to transform it in a single array
+    #Also remove the '[]' from the Strings
+    def removeBracts(signatures):
+        result = []
+        stack = list(signatures)
+        while (len(stack) != 0):            
+            curr = stack.pop(0)
+            if (type(curr) == String or type(curr) == str):
+                c = curr.replace('[', '')
+                c = c.replace(']', '')
+                result.append(c)
+            elif (curr == None):
+                result.append(curr)
+            elif (type(curr) == list):
+                curr.reverse()
+                for c in curr: stack.insert(0, c)
+            elif (type(curr) == tuple):
+                cc = list(curr)
+                cc.reverse()
+                for c in cc: stack.insert(0, c)
+            else:
+                result.append(curr)
+        return result
+
+    unique2 = []
+    for s in signatures:
+        aux = removeBracts(s)
+        if not unique2.count(aux): 
+            unique_signatures.append(s)
+            unique2.append(aux)
     signatures[:] = unique_signatures
     
 disallowed_classes = set(
@@ -298,7 +354,11 @@ disallowed_classes = set(
     'vtkRenderWindowInteractor',
     'vtkTesting',
     'vtkWindow',
-    'vtkContext2D', #Not working for VTK 5.7.0
+    'vtkContext2D',       #Not working for VTK 5.7.0
+    'vtkPLYWriter',       #Not working for VTK 5.7.0. 
+    'vtkBooleanTexture',  #Not working for VTK 5.7.0
+    'vtkImageMaskBits',   #Not working for VTK 5.7.0
+    'vtkHardwareSelector',#Not working for VTK 5.7.0
      ])
 
 def is_class_allowed(module):
@@ -387,8 +447,11 @@ def addSetGetPorts(module, get_set_dict, delayed):
                                         setter[1][0] in typeMapDict)
             else:
                 classes = [typeMap(i) for i in setter[1]]
+
                 if all(is_class_allowed(x) for x in classes):
                     registry.add_input_port(module, n, classes, True)
+
+
             # Wrap SetFileNames for VisTrails file access
             if file_name_pattern.match(name):
                 registry.add_input_port(module, 'Set' + name[:-4], 
@@ -584,7 +647,13 @@ def addOtherPorts(module, other_list):
                 ([result], params) = sig
                 types = []
                 if params:
-                    types = [typeMap(p) for p in params]
+                    paramsList = list(params)
+                    while (len(paramsList) != 0):
+                        p = paramsList.pop(0)
+                        if type(p) == list: 
+                            for aux in p: paramsList.insert(0, aux)
+                        else:
+                          types.append(typeMap(p))
                 else:
                     types = []
                 if not all(is_class_allowed(x) for x in types):
@@ -641,10 +710,10 @@ def addPorts(module, delayed):
     parser.parse(klass)
     addAlgorithmPorts(module)
     addGetPorts(module, parser.get_get_methods())
-    addSetGetPorts(module, parser.get_get_set_methods(), delayed)
+    addSetGetPorts(module, parser.get_get_set_methods(), delayed) 
     addTogglePorts(module, parser.get_toggle_methods())
     addStatePorts(module, parser.get_state_methods())
-    addOtherPorts(module, parser.get_other_methods())
+    addOtherPorts(module, parser.get_other_methods())             
     # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
     if klass==vtk.vtkAlgorithm:
         registry.add_input_port(module, 'AddInputConnection',

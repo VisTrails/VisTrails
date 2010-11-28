@@ -35,6 +35,7 @@ QPipelineView
 
 from PyQt4 import QtCore, QtGui
 from core.configuration import get_vistrails_configuration
+from core import debug
 from core.utils import VistrailsInternalError, profile
 from core.utils.uxml import named_elements
 from core.modules.module_configure import DefaultModuleConfigurationWidget
@@ -1254,7 +1255,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 port.sigstring == p.sigstring):
                 return item.sceneBoundingRect().center()
         
-        print "PORT SIG:", port.signature
+        debug.log("PORT SIG:" + port.signature)
         if not port.signature or port.signature == '()':
             # or len(port_descs) == 0:
             sigstring = default_sig
@@ -1679,7 +1680,6 @@ mutual connections."""
             selected_modules = []
             # create new module shapes
             for m_id in modules_to_be_added:
-                # print 'adding module', m_id
                 self.addModule(pipeline.modules[m_id])
                 if self.modules[m_id].isSelected():
                     selected_modules.append(m_id)
@@ -1690,7 +1690,8 @@ mutual connections."""
                 tm_item = self.modules[m_id]
                 tm = tm_item.module
                 nm = pipeline.modules[m_id]
-                if tm_item.center != nm.center:
+                if tm_item.scenePos().x() != nm.center.x or \
+                        -tm_item.scenePos().y() != nm.center.y:
                     self.recreate_module(pipeline, m_id)
                     moved.add(m_id)
                 elif self.module_text_has_changed(tm, nm):
@@ -1713,7 +1714,7 @@ mutual connections."""
                                      if (not x.optional or
                                          (s, x._db_name) in pv)])
                 except ModuleRegistryException, e:
-                    print "MODULE REGISTRY EXCEPTION", e
+                    debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
                 if cip <> new_ip or cop <> new_op:
                     self.recreate_module(pipeline, m_id)
                 if tm_item.isSelected():
@@ -2248,6 +2249,16 @@ mutual connections."""
         for module in self.modules.itervalues():
             module.statusBrush = None
             module._needs_state_updated = True
+
+    def hasMoveActions(self):
+        controller = self.controller
+        moves = []
+        for (mId, item) in self.modules.iteritems():
+            module = controller.current_pipeline.modules[mId]
+            (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
+            if (dx != module.center.x or dy != module.center.y):
+                return True
+        return False
 
     def flushMoveActions(self):
         """ flushMoveActions() -> None

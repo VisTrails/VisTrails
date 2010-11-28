@@ -1,6 +1,92 @@
 RELEASE NOTES
 -------------
-Release Name: v1.5.1 build 1863
+
+Release Name: v1.6 build 48e477f4c1d9 from master branch
+
+Enhancements: 
+ - Ticket #382: Improvements to Latex extension (3123297d6a1b)
+ - LaTex extension: VisTrails can now embed a workflow graph or
+a history tree in LaTex pdf (3123297d6a1b)
+ - LaTex extension: Caching latex instructions and images for embedding
+images in case python is not available (3123297d6a1b)
+ - Ticket #381: Split HTTPFile.compute() method to download the file in a separate function (62d25dca3f3a)
+ - Add MplScatterplot and MplHistogram modules to pylab (4af6514c20d4)
+ - Ticket #295: Add Debug .command to Mac distribution (e835d69d8426)
+ - Added git executable to windows repository. It will be included
+in future windows binaries for persistence package  (8d9931bbbe04)
+ - Updated version of the rpy package (c895125216cb)
+ - Migrating new persistence package from persistence_exp to persistence (5b6418233dea)
+ - Added methods to expand shortcut string representations for module descriptors and port specs (5b6418233dea)
+ - Added support for shortcuts to remap modules/ports for upgrades (5b6418233dea)
+ - Use List for controlflow now instead of ListOfSElements (74f30460d3fe)
+ - Highlight invalidate port specs (74f30460d3fe)
+ - Improved support for work with the filesystem. Added DirectorySink module,
+    changed FileSink module to use 'overwrite'
+    instead of 'overrideFile', added support for getting the contents of a
+    directory, created a new OutputPath constant with a save-style widget
+    to select the output path, replaces OutputName on the FileSink module.
+    Added updgrade code to translate old FileSink module to new version.
+    Changed version of basic_modules and abstraction to static string
+    '1.6'. (fb30dca8a15d)
+ - HTTPFile now supports proxies. (3799edddbb62)
+
+Bug fixes: 
+ - Ticket #359: When using VTKRenderOffscreen module VisTrails crashes (48e477f4c1d9)
+ - VTK Package doesnt work with VTK version 5.7.0 (ba5e0bdbbb16)
+ - Fixed issue with query-by-example where parameters couldn't be updated (741b1c0d7737)
+ - Error using breakpoint due to new stack trace (d4f31af05a05)
+ - LaTex extension: removed hardcoded url for downloading vt files
+upon clicking on the images in the generated pdf. It can now be set using
+the \vistrailsdownload in the latex file (3123297d6a1b)
+ - HTTP package was not handling exceptions correctly (62d25dca3f3a)
+ - Ticket #380: HTTPFile corrupts binary files on Windows (0a5ec2007878)
+ - Color Constant: Initializing Color widget with default white
+color using RGB constructor instead of QtCore.Qt.White. We assume the
+color is always a QColor object and sometimes a GlobalColor object
+was being found (8565a276a353)
+ - Persistence Package: Added code to find tar executable similar
+to the way the path to git is set up (4a2494c09ef4)
+ - Persistence Package: adapted use of tar command to work
+on Windows (430e29bcaf2e)
+ - Windows binary: Including the gnu version of tar instead
+of the one that comes with git (430e29bcaf2e)
+ - Set MplFigureCell to fill spreadsheet cell (4af6514c20d4)
+ - Ticket #302: Moved modules action generated when nothing changed (8f60ea9a4737)
+ - Dangling move actions are displayed immediately after switching versions (8f60ea9a4737)
+ - Ticket #331: ImportError when trying to import userpackages (bc27cdc4b171)
+ - "import userpackages" fixed by reordering init steps (bc27cdc4b171)
+ - Ticket #293: Shell copy & paste on Mac doesn't work (694c0a43fbda)
+ - Use git ls-files instead of cat-file to retrive hash so that we don't have issues with Windows reading from stdin (1b190225cce9)
+ - Persistence package: fixed problem where persistent files
+couldn't be found on Windows (df8a7c2ef7d1)
+ - Ticket #369: picture-in-picture setting is confused when a new vistrail is opened (7ea68b3e863f)
+ - Check PIP preference when opening vistrails (7ea68b3e863f)
+ - Allow semi-translation from abstractionRef to abstraction so
+old workflows (version <= 0.9.3) with subworkflows can be opened (50b9ce2b28fc)
+ -  Spreadsheet: fixed 'RuntimeError: underlying C/C++ object has
+been deleted' problem during EventFilter on Windows  (93884b6a47c0)
+ -  VTK Package: Fixed rendering context problem when embedding VTKCell in VisMashup on Linux (93884b6a47c0)
+ -  PathChooserToolButton was not emitting proper signals necessary for
+VisMashup (93884b6a47c0)
+ -  Persistence package: Fixed load package error on Windows (4ee8f244fc79)
+ - Change persistence package to use correct identifier for gui widgets (9dd3ad8e0b08)
+ - Ticket #378: Workflow execution log contains duplicate entries (6d65daec6089)
+ - Fixed logging so that executions are not duplicated when saving more than once per session (6d65daec6089)
+ - Ticket #377: Exporting to OPM XML fails (3ee1cc842182)
+ - Fixed OPM output capability to work with latest object layout (3ee1cc842182)
+ - Update sql package to use List instead of ListOfElements (4b08dd9018db)
+ - Fix typo with get_package_by_name (74f30460d3fe)
+ - keep selected modules after scene redraw (bb5e4e6e1f45)
+ - Optional input ports now don't show up as output ports (bb5e4e6e1f45)
+ - Ticket #376: execute_cmdline broken (bbbcf19704b8)
+ - Fixed copyright year in background image from About box (bcd3346d8865)
+ - Web Services package: fixed bug in certain Complex Types (60128ff3a89a)
+ - Ticket #374: Web service package can't be reloaded (38976729a2a9)
+ - Fixed an issue with package reloading where modules imported using the "from" syntax were not added to the imported list (38976729a2a9)
+ - HTTPFile: Fixed error when parsing the date from the file's
+ header. (3799edddbb62)
+
+From Release: v1.5.1 build 1863
 
 Enhancements: 
  - branching is now supported when uploading to web repositories (r1853)

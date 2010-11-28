@@ -104,9 +104,8 @@ class KeyChain(object):
                               " object that set the key can get it")
                 return  ""
         except KeyError:
-            dbg = debug.DebugPrint.getInstance()
-            dbg.critical("KeyChain: You need to call this method inside "
-            "another a object's method")    
+            debug.critical("KeyChain: You need to call this method inside "
+                           "another object's method")
         
 ##############################################################################
 """ 

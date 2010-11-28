@@ -28,7 +28,7 @@
 from PyQt4 import QtCore, QtGui
 import datetime
 import os
-from core import system
+from core import system, debug
 import cell_rc
 import celltoolbar_rc
 import spreadsheet_controller
@@ -77,7 +77,7 @@ class QCellWidget(QtGui.QWidget):
         image file
         
         """
-        print 'saveToPNG() is unimplemented by the inherited cell'
+        debug.critical('saveToPNG() is unimplemented by the inherited cell')
 
     def saveToHistory(self):
         """ saveToHistory() -> None

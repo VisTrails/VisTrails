@@ -1,6 +1,7 @@
 from PyQt4 import QtCore, QtGui
 import sys
 import paraview.simple as pv
+from configuration import configuration
 
 class QPVConfigWindow(QtGui.QWidget):
 
@@ -43,7 +44,16 @@ class QPVConfigWindow(QtGui.QWidget):
         self.connect(self.runButton, QtCore.SIGNAL('clicked()'), self.togglePVServer)
 
     def buildArguments(self):
-        return ('/usr/bin/mpiexec', ['-n', str(self.procSpin.value()), '/Users/hvo/src/ParaView/build/bin/pvserver', '--server-port=%s' % self.portSpin.value()])
+        #defaults
+        mpiexec_bin = '/usr/bin/mpiexec'
+        pvserver_bin = '/usr/local/bin/pvserver'
+        
+        if configuration.check('mpiexec_bin'):
+            mpiexec_bin = configuration.mpiexec_bin
+        if configuration.check("pvserver_bin"):
+            pvserver_bin = configuration.pvserver_bin
+            
+        return (mpiexec_bin, ['-n', str(self.procSpin.value()), pvserver_bin, '--server-port=%s' % self.portSpin.value()])
 
     def sizeHint(self):
         return QtCore.QSize(384, 512)
