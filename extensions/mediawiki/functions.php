@@ -48,12 +48,12 @@ function in_arrayi($needle, $haystack) {
 }
 
 function path_exists_and_not_empty($path){
-
+    $directory_not_empty = FALSE;
 	if (file_exists($path)){
 		$directory = dir($path);
 	
 		while ((FALSE !== ($item = $directory->read())) && 
-		   ( ! isset($directory_not_empty))){
+		   ( ! $directory_not_empty)){
 			// If an item is not "." and "..", then something
 	    	// exists in the directory and it is not empty
 	    	if ($item != '.' && $item != '..'){
@@ -61,9 +61,6 @@ function path_exists_and_not_empty($path){
 			}
 		}
 		$directory->close();
-	}
-	else{
-		$directory_not_empty = FALSE;
 	}
 	return $directory_not_empty;
 }
