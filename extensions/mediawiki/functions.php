@@ -46,4 +46,23 @@ function do_call($host, $port, $request) {
 function in_arrayi($needle, $haystack) {
     return in_array(strtolower($needle), array_map('strtolower', $haystack));
 }
+
+function path_exists_and_not_empty($path){
+    $directory_not_empty = FALSE;
+	if (file_exists($path)){
+		$directory = dir($path);
+	
+		while ((FALSE !== ($item = $directory->read())) && 
+		   ( ! $directory_not_empty)){
+			// If an item is not "." and "..", then something
+	    	// exists in the directory and it is not empty
+	    	if ($item != '.' && $item != '..'){
+		  		$directory_not_empty = TRUE;
+			}
+		}
+		$directory->close();
+	}
+	return $directory_not_empty;
+}
+
 ?>

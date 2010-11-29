@@ -657,13 +657,15 @@ class RequestHandler(object):
 
     #vistrails
     def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
-                    version=None,  pdf=False, vt_tag='',parameters='', is_local=True):
-        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
+                    version=None,  pdf=False, vt_tag='', build_always=False,
+                    parameters='', is_local=True):
+        self.server_logger.info("Request: run_vistrail_from_db(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" % \
                                 (host, port, db_name, vt_id,
                                  path_to_figures, version, pdf,
-                                 vt_tag, parameters, is_local))
+                                 vt_tag, build_always, parameters, is_local))
 
         self.server_logger.info("path_exists_and_not_empty? %s" % self.path_exists_and_not_empty(path_to_figures))
+        self.server_logger.info("build_always? %s" % build_always)
         self.server_logger.info(str(self.proxies_queue))
 
         if not is_local:
@@ -672,8 +674,8 @@ class RequestHandler(object):
             dest_version = hashlib.sha1(dest_version).hexdigest()
             path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
 
-        if (not self.path_exists_and_not_empty(path_to_figures) and
-            self.proxies_queue is not None):
+        if ((not self.path_exists_and_not_empty(path_to_figures) or 
+             build_always) and self.proxies_queue is not None):
             self.server_logger.info("will forward request")
             #this server can send requests to other instances
             proxy = self.proxies_queue.get()
@@ -681,7 +683,7 @@ class RequestHandler(object):
                 self.server_logger.info("Sending request to %s" % proxy)
                 result = proxy.run_from_db(host, port, db_name, vt_id,
                                            path_to_figures, version, pdf, vt_tag,
-                                           parameters, is_local)
+                                           build_always, parameters, is_local)
                 self.proxies_queue.put(proxy)
                 self.server_logger.info("returning %s" % result)
                 return result
