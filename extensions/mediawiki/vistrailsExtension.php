@@ -86,7 +86,7 @@ function printVistrailTag($input,$params, &$parser) {
 													   $dbname, $vtid,
 													   $version_tag));
                 $response = do_call($VT_HOST,$VT_PORT,$request);
-                $version = get_result_from_response($response);
+                $version = get_version_from_response($response);
                 //echo $version;
             }
         }
@@ -110,7 +110,7 @@ function printVistrailTag($input,$params, &$parser) {
 	$destdir = $destdir . $destversion;
 	//echo $destdir;
     $result = '';
-	if((!file_exists($destdir)) or strcasecmp($force_build,'True') == 0) {
+	if((!path_exists_and_not_empty($destdir)) or strcasecmp($force_build,'True') == 0) {
         if(!file_exists($destdir)){
             mkdir($destdir,0770);
             chmod($destdir, 0770);
@@ -133,7 +133,7 @@ function printVistrailTag($input,$params, &$parser) {
 											 array($host, $port, $dbname, $vtid,
 												   $destdir, $version));
 			$response = do_call($VT_HOST,$VT_PORT,$request);
-			$result = get_result_from_response($response);
+			$result = clean_up($response);
 			//echo $result;
         }
 	}
@@ -165,28 +165,23 @@ function printVistrailTag($input,$params, &$parser) {
 	}
 	return($res);
 }
-function contents($parser, $data){
-        global $resp_result;
-        $resp_result = $resp_result . $data;
-    }
 
-    function  start_tag($parser, $data){
-         //do nothing
-    } 
+function get_version_from_response($xmlstring){
+    try{
+        $node = @new SimpleXMLElement($xmlstring);
+        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->int[0];
+    } catch(Exception $e) {
+        echo "bad xml";
+    }
+}
 
-    function end_tag($parser, $data){
-        //do nothing
+function clean_up($xmlstring){
+    try{
+        $node = @new SimpleXMLElement($xmlstring);
+   
+        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+    } catch(Exception $e) {
+        echo "bad xml";
     }
-function get_result_from_response($response) {
-    global $resp_result;
-    $resp_result = '';
-    $xml_parser = xml_parser_create();
-    xml_set_element_handler($xml_parser, "start_tag", "end_tag");
-    xml_set_character_data_handler($xml_parser, "contents");
-    if(!(xml_parse($xml_parser, $response, True))){
-        die("Error on line " . xml_get_current_line_number($xml_parser));   
-    }
-    xml_parser_free($xml_parser);
-    return trim($resp_result);
 }
 ?>

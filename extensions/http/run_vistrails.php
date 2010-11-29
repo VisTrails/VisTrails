@@ -143,7 +143,7 @@ if(($vtid != '' and $version != '') or
 		$destversion = md5($destversion);
 		$destdir = $destdir . $destversion;
 		$result = '';
-		if((!file_exists($destdir)) or strcasecmp($force_build,'True') == 0) {
+		if((!path_exists_and_not_empty($destdir)) or strcasecmp($force_build,'True') == 0) {
 			if (!file_exists($destdir)){
 				mkdir($destdir);//,0770);
 				chmod($destdir,0770);
