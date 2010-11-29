@@ -49,7 +49,7 @@ function in_arrayi($needle, $haystack) {
 
 function path_exists_and_not_empty($path){
 
-	if (file_exists($path){
+	if (file_exists($path)){
 		$directory = dir($path);
 	
 		while ((FALSE !== ($item = $directory->read())) && 

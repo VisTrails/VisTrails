@@ -95,6 +95,9 @@ if(($vtid != '' and $version != '') or
         $pdf_bool = True;
         $pdf_tag = '_pdf';
     }
+    $build_always_bool = False;
+    if (strcasecmp($force_build,'True') == 0)
+    	$build_always_bool = True;
     if (strcasecmp($showtree,'True') == 0){
         if ($pdf_bool == True)
 		    $func = "get_vt_graph_pdf";
@@ -151,7 +154,8 @@ if(($vtid != '' and $version != '') or
 		
 			$request = xmlrpc_encode_request('run_from_db',
 									     array($host, $port, $dbname, $vtid,
-													$destdir, $version, $pdf_bool));
+													$destdir, $version, $pdf_bool,
+													'', $build_always_bool));
 			$response = do_call($VT_HOST,$VT_PORT,$request);
 			$result = clean_up($response);
 			//echo $result;

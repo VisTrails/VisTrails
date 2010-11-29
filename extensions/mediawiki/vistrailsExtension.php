@@ -110,6 +110,9 @@ function printVistrailTag($input,$params, &$parser) {
 	$destdir = $destdir . $destversion;
 	//echo $destdir;
     $result = '';
+    $build_always_bool = False;
+    if (strcasecmp($force_build,'True') == 0)
+    	$build_always_bool = True;
 	if((!path_exists_and_not_empty($destdir)) or strcasecmp($force_build,'True') == 0) {
         if(!file_exists($destdir)){
             mkdir($destdir,0770);
@@ -131,7 +134,8 @@ function printVistrailTag($input,$params, &$parser) {
         else{
             $request = xmlrpc_encode_request('run_from_db',
 											 array($host, $port, $dbname, $vtid,
-												   $destdir, $version));
+												   $destdir, $version, False, '',
+												   $build_always_bool));
 			$response = do_call($VT_HOST,$VT_PORT,$request);
 			$result = clean_up($response);
 			//echo $result;
