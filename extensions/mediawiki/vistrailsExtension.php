@@ -40,9 +40,11 @@ $PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
 
 // Change this to point to the folder where the images should be generated
 $PATH_TO_IMAGES = '/images/vistrails/';
+$PATH_TO_GRAPHS= '/images/vistrails/graphs/';
 
 // Change this to the web accessible path to the folder where the images were generated
 $WEB_PATH_TO_IMAGES = '/images/';
+$WEB_PATH_TO_GRAPHS = "/images/graphs/";
 
 $resp_result = '';
 function registerVistrailTag() {
@@ -51,8 +53,9 @@ function registerVistrailTag() {
 }
 
 function printVistrailTag($input,$params, &$parser) {
-    global $PATH_TO_IMAGES, $WEB_PATH_TO_IMAGES, $VT_HOST, $VT_PORT,
-           $USE_VISTRAILS_XML_RPC_SERVER, $PATH_TO_VISTRAILS;
+    global $PATH_TO_IMAGES, $WEB_PATH_TO_IMAGES, $WEB_PATH_TO_GRAPHS,
+            $PATH_TO_GRAPHS, $VT_HOST, $VT_PORT,
+            $USE_VISTRAILS_XML_RPC_SERVER, $PATH_TO_VISTRAILS;
     $parser->disableCache();
     $host = "";
     $dbname = "";
@@ -67,9 +70,11 @@ function printVistrailTag($input,$params, &$parser) {
     $embedWorkflow = 'False';
     $includeFullTree = 'False';
     $forceDB = 'False';
+    $showTree = 'False';
+    $showWorkflow = 'False';
     foreach ($params as $key=>$value) {
         if($key == "vtid")
-            $vtid = "".$value;
+            $vtid = $value;
         if($key == "version")
             $version = $value;
         if($key == "host")
@@ -102,51 +107,82 @@ function printVistrailTag($input,$params, &$parser) {
             $includeFullTree = $value;
         if ($key == 'forcedb')
             $forceDB = $value;
+        if ($key == 'showworkflow')
+            $showWorkflow = $value;
+        if ($key == 'showtree')
+            $showTree = $value;
     }
 
-    $destdir = $PATH_TO_IMAGES;
-    $destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' . $version;
-    $destversion = md5($destversion);
-    $destdir = $destdir . $destversion;
-    //echo $destdir;
-    $result = '';
-    $build_always_bool = False;
-    if (strcasecmp($force_build,'True') == 0)
-        $build_always_bool = True;
-    if((!path_exists_and_not_empty($destdir)) or strcasecmp($force_build,'True') == 0) {
-        if(!file_exists($destdir)){
-            mkdir($destdir,0770);
-            chmod($destdir, 0770);
-        }
-        if(!$USE_VISTRAILS_XML_RPC_SERVER){
-            chdir($PATH_TO_VISTRAILS);
-            //$curdir =  exec("pwd")."\n";
-            //echo exec("echo $DISPLAY");
-            $setVariables = 'export PATH=$PATH:/usr/bin/X11;export HOME=/var/lib/wwwrun; export TEMP=/tmp; export DISPLAY=localhost:1.0; export LD_LIBRARY_PATH=/usr/local/lib;';
-
-            $mainCommand = 'python vistrails.py -b -e '. $destdir.' -t ' .
-                       $host . ' -r ' . $port . ' -f ' . $dbname . ' -u ' .
-                       $username . ' "' . $vtid .':' . $version .'"';
-            //echo $mainCommand."\n";
-            $result = exec($setVariables.$mainCommand . ' 2>&1', $output, $result);
-            //echo $result."\n";
-        }
-        else{
-            $request = xmlrpc_encode_request('run_from_db',
-                                             array($host, $port, $dbname, $vtid,
-                                                   $destdir, $version, False, '',
-                                                   $build_always_bool));
-            $response = do_call($VT_HOST,$VT_PORT,$request);
-            $result = clean_up($response);
-            //echo $result;
-        }
-    }
     $linkParams = "getvt=" . $vtid . "&version=" . $version . "&db=" .$dbname .
                   "&host=" . $host . "&port=" . $port . "&tag=" .
-                  $version_tag . "&execute=" . $execute . 
+                  $version_tag . "&execute=" . $execute .
                   "&showspreadsheetonly=" . $showspreadsheetonly .
                   "&embedWorkflow=" . $embedWorkflow . "&includeFullTree=" .
                   $includeFullTree . "&forceDB=" . $forceDB;
+
+    if (strcasecmp($showTree,'True') == 0){
+        $request = xmlrpc_encode_request("get_vt_graph_png", array($host, $port, $dbname, $vtid));
+        $response = do_call($VT_HOST,$VT_PORT,$request);
+        $result = clean_up($response);
+
+        list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
+        if ($width > 400)
+           $width = 400;
+        $res = '<a href="http://alps.comp-phys.org/vistrails/download.php?' . $linkParams . '">';
+        $res = $res . '<img src="'. $WEB_PATH_TO_GRAPHS . $result.
+                        "\" alt=\"vt_id:$vtid\" width=\"$width\"/>";
+        $res = $res . '</a>';
+        return($res);
+    }
+
+    elseif (strcasecmp($showWorkflow,'True') == 0){
+        $request = xmlrpc_encode_request("get_wf_graph_png", array($host, $port, $dbname, $vtid, $version));
+        $response = do_call($VT_HOST,$VT_PORT,$request);
+        $result = clean_up($response);
+
+        list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
+        if ($width > 400)
+           $width = 400;
+        $res = '<a href="http://alps.comp-phys.org/vistrails/download.php?' . $linkParams . '">';
+        $res = $res . '<img src="'. $WEB_PATH_TO_GRAPHS . $result.
+                        "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
+        $res = $res . '</a>';
+        return($res);
+    }
+
+    else {
+        $result = '';
+        $destdir = $PATH_TO_IMAGES;
+        $destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' . $version;
+        $destversion = md5($destversion);
+        $destdir = $destdir . $destversion;
+        $build_always_bool = False;
+        if (strcasecmp($force_build,'True') == 0)
+            $build_always_bool = True;
+        if((!path_exists_and_not_empty($destdir)) or strcasecmp($force_build,'True') == 0) {
+            if(!file_exists($destdir)){
+                mkdir($destdir,0770);
+                chmod($destdir, 0770);
+            }
+            if(!$USE_VISTRAILS_XML_RPC_SERVER){
+                chdir($PATH_TO_VISTRAILS);
+                $setVariables = 'export PATH=$PATH:/usr/bin/X11;export HOME=/var/lib/wwwrun; export TEMP=/tmp; export DISPLAY=localhost:1.0; export LD_LIBRARY_PATH=/usr/local/lib;';
+
+                $mainCommand = 'python vistrails.py -b -e '. $destdir.' -t ' .
+                           $host . ' -r ' . $port . ' -f ' . $dbname . ' -u ' .
+                           $username . ' "' . $vtid .':' . $version .'"';
+                $result = exec($setVariables.$mainCommand . ' 2>&1', $output, $result);
+            }
+            else {
+                $request = xmlrpc_encode_request('run_from_db',
+                                                 array($host, $port, $dbname, $vtid,
+                                                       $destdir, $version, False, '',
+                                                       $build_always_bool));
+                $response = do_call($VT_HOST,$VT_PORT,$request);
+                $result = clean_up($response);
+            }
+        }
+    }
     $files = scandir($destdir);
     $n = sizeof($files);
     if($n > 2){
