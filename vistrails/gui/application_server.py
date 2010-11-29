@@ -1972,9 +1972,11 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             self.rpcserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
                                                    self.temp_xml_rpc_options.port),
                                                    self.server_logger)
+            """
             self.pingserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
                                                     self.temp_xml_rpc_options.port-1),
                                                     self.server_logger)
+            """
             self.server_logger.info("    singlethreaded instance")
         #self.rpcserver.register_introspection_functions()
         self.rpcserver.register_instance(RequestHandler(self.server_logger,
