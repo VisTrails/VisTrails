@@ -21,7 +21,7 @@ rm -rf dist/ build/
 echo "removing old bundle..."
 rm -f ${DMG}
 echo "building bundle..."
-python setup.py py2app
+python setup.py py2app --no-chdir
 #echo "copying missing xml.etree.cElementTree imports..."
 #not necessary anymore
 #cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/pyexpat.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
@@ -56,9 +56,30 @@ cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."
 cp -r Input/plugins/* dist/VisTrails.app/Contents/MacOS
 echo "copying alps libs..."
-tar -xzf Input/alps_libs/alps-vistrails-2.0.0b4-r4997-macos.tar.gz -C dist/
-echo "copying examples folder..."
-cp -r Input/examples dist/
+tar -xzf Input/alps_libs/alps-vistrails-2.0.0rc3-r5227-Darwin.tar.gz -C dist/
+echo "copying example files..."
+mkdir dist/examples
+cp ../../examples/brain_vistrail.vt dist/examples
+cp ../../examples/chebi_webservice.vt dist/examples
+cp ../../examples/EMBOSS_webservices.vt dist/examples
+cp ../../examples/head.vt dist/examples
+cp ../../examples/KEGG_SearchEntities_webservice.vt dist/examples
+cp ../../examples/KEGG_webservices.vt dist/examples
+cp ../../examples/lung.vt dist/examples
+cp ../../examples/noaa_webservices.vt dist/examples
+cp ../../examples/offscreen.vt dist/examples
+cp ../../examples/plot.vt dist/examples
+cp ../../examples/protein_visualization.vt dist/examples
+cp ../../examples/r_stats.vt dist/examples
+cp ../../examples/spx.vt dist/examples
+cp ../../examples/structure_or_id_webservice.vt dist/examples
+cp ../../examples/terminator.vt dist/examples
+cp ../../examples/triangle_area.vt dist/examples
+cp ../../examples/vtk.vt dist/examples
+cp ../../examples/vtk_book_3rd_p189.vt dist/examples
+cp ../../examples/vtk_book_3rd_p193.vt dist/examples
+cp -r ../../examples/vtk_examples dist/examples
+cp ../../examples/vtk_http.vt dist/examples
 echo "copying README file..."
 cp Input/README dist/
 echo "copying LICENSE file..."

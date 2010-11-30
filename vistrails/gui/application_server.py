@@ -1019,7 +1019,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                 time.sleep(20)
                 self.others.append("http://%s:%s"%(host,port))
             except Exception, e:
-                debug.critical("Couldn't start the instance on display: %s port: %s" % (virtual_display, port)
+                debug.critical("Couldn't start the instance on display: %s port: %s" % (virtual_display, port))
                 debug.critical("Exception: %s" % str(e))
                  
     def stop_other_instances(self): 
