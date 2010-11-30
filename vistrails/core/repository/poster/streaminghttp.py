@@ -1,5 +1,4 @@
 ############################################################################
-##
 ## Copyright (C) 2006-2010 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
@@ -20,8 +19,27 @@
 ##
 ############################################################################
 
+# Copyright (c) 2010 Chris AtLee
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 """Streaming HTTP uploads module.
-From Chris AtLee's Poster: http://atlee.ca/software/poster
 
 This module extends the standard httplib and urllib2 objects so that
 iterable objects can be used in the body of HTTP requests.
@@ -45,7 +63,8 @@ Example usage:
 >>> s = "Test file data"
 >>> f = StringIO(s)
 
->>> req = urllib2.Request("http://localhost:5000", f, {'Content-Length': len(s)})
+>>> req = urllib2.Request("http://localhost:5000", f,
+...                       {'Content-Length': str(len(s))})
 """
 
 import httplib, urllib2, socket
@@ -58,6 +77,8 @@ if hasattr(httplib, 'HTTPS'):
     __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection'])
 
 class _StreamingHTTPMixin:
+    """Mixin class for HTTP and HTTPS connections that implements a streaming
+    send method."""
     def send(self, value):
         """Send ``value`` to the server.
 
@@ -80,15 +101,21 @@ class _StreamingHTTPMixin:
         if self.debuglevel > 0:
             print "send:", repr(value)
         try:
-            blocksize=8192
-            if hasattr(value,'read') :
-                if self.debuglevel > 0: print "sendIng a read()able"
-                data=value.read(blocksize)
+            blocksize = 8192
+            if hasattr(value, 'read') :
+                if hasattr(value, 'seek'):
+                    value.seek(0)
+                if self.debuglevel > 0:
+                    print "sendIng a read()able"
+                data = value.read(blocksize)
                 while data:
                     self.sock.sendall(data)
-                    data=value.read(blocksize)
-            elif hasattr(value,'next'):
-                if self.debuglevel > 0: print "sendIng an iterable"
+                    data = value.read(blocksize)
+            elif hasattr(value, 'next'):
+                if hasattr(value, 'reset'):
+                    value.reset()
+                if self.debuglevel > 0:
+                    print "sendIng an iterable"
                 for data in value:
                     self.sock.sendall(data)
             else:
@@ -134,8 +161,9 @@ class StreamingHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
             # do the same.
             # be conciliant with URIs containing a space
             newurl = newurl.replace(' ', '%20')
-            newheaders = dict((k,v) for k,v in req.headers.items()
-                              if k.lower() not in ("content-length", "content-type")
+            newheaders = dict((k, v) for k, v in req.headers.items()
+                              if k.lower() not in (
+                                  "content-length", "content-type")
                              )
             return urllib2.Request(newurl,
                            headers=newheaders,
@@ -151,23 +179,27 @@ class StreamingHTTPHandler(urllib2.HTTPHandler):
     handler_order = urllib2.HTTPHandler.handler_order - 1
 
     def http_open(self, req):
+        """Open a StreamingHTTPConnection for the given request"""
         return self.do_open(StreamingHTTPConnection, req)
 
     def http_request(self, req):
+        """Handle a HTTP request.  Make sure that Content-Length is specified
+        if we're using an interable value"""
         # Make sure that if we're using an iterable object as the request
         # body, that we've also specified Content-Length
         if req.has_data():
             data = req.get_data()
-            if not hasattr(data, 'read') and hasattr(data, 'next'):
+            if hasattr(data, 'read') or hasattr(data, 'next'):
                 if not req.has_header('Content-length'):
                     raise ValueError(
                             "No Content-Length specified for iterable body")
         return urllib2.HTTPHandler.do_request_(self, req)
 
 if hasattr(httplib, 'HTTPS'):
-    class StreamingHTTPSConnection(_StreamingHTTPMixin, httplib.HTTPSConnection):
-        """Subclass of `httplib.HTTSConnection` that overrides the `send()` method
-        to support iterable body objects"""
+    class StreamingHTTPSConnection(_StreamingHTTPMixin,
+            httplib.HTTPSConnection):
+        """Subclass of `httplib.HTTSConnection` that overrides the `send()`
+        method to support iterable body objects"""
 
     class StreamingHTTPSHandler(urllib2.HTTPSHandler):
         """Subclass of `urllib2.HTTPSHandler` that uses
@@ -183,7 +215,7 @@ if hasattr(httplib, 'HTTPS'):
             # body, that we've also specified Content-Length
             if req.has_data():
                 data = req.get_data()
-                if not hasattr(data, 'read') and hasattr(data, 'next'):
+                if hasattr(data, 'read') or hasattr(data, 'next'):
                     if not req.has_header('Content-length'):
                         raise ValueError(
                                 "No Content-Length specified for iterable body")
@@ -193,7 +225,7 @@ if hasattr(httplib, 'HTTPS'):
 def register_openers(cookiejar=None):
     """Register the streaming http handlers in the global urllib2 default
     opener object.
-    
+
     Returns the created OpenerDirector object."""
     handlers = [StreamingHTTPHandler, StreamingHTTPRedirectHandler]
     if hasattr(httplib, "HTTPS"):
@@ -203,7 +235,6 @@ def register_openers(cookiejar=None):
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookiejar), *handlers)
     else:
         opener = urllib2.build_opener(*handlers)
-
 
     urllib2.install_opener(opener)
 
