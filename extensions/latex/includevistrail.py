@@ -229,7 +229,7 @@ def _download_content(url, request, path_to_figures):
             else:
                 return (False, msg)
         else:
-            msg = "Web server returned: %s" % page
+            msg = "url: '%s' \n returned: %s" % (url,page.strip())
             return (False, msg)
             
     except Exception, e:
@@ -315,9 +315,10 @@ def generate_latex_error(error_msg):
     """ generate_latex_error(error_msg: str) -> str
         this generates a piece of latex code with an error message.
     """
+    error_msg = error_msg.replace("\n", "\\MessageBreak ")
     s = """\\PackageError{vistrails}{ An error occurred when executing vistrails. \\MessageBreak
 %s
-}{vistrails}""" % error_msg
+}{}""" % error_msg
     return s
 ###############################################################################
 
