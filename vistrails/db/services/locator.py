@@ -27,6 +27,7 @@ from db.services import io
 from db.services.io import SaveBundle
 import urllib
 from db import VistrailsDBException
+from core import debug
 from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 import hashlib
@@ -454,7 +455,7 @@ class DBLocator(BaseLocator):
                 if DBLocator.cache_connections.has_key(self._hash):
                     connection = DBLocator.cache_connections[self._hash]
                     if io.ping_db_connection(connection):
-                        print "*** reusing cached connection"
+                        debug.log("Reusing cached connection")
                         return connection
 
                 if len(DBLocator.connections.keys()) == 0:
@@ -483,8 +484,9 @@ class DBLocator(BaseLocator):
                                                     obj.vtType)
             ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
             
-            #print DBLocator.cache_timestamps[self._hash],ts
+            #debug.log("cached time: %s, db time: %s"%(DBLocator.cache_timestamps[self._hash],ts))
             if DBLocator.cache_timestamps[self._hash] == ts:
+                #debug.log("using cached vistrail")
                 # If thumbnail cache was cleared, get thumbs from db
                 if tmp_dir is not None:
                     for absfname in save_bundle.thumbnails:
@@ -492,7 +494,7 @@ class DBLocator(BaseLocator):
                             save_bundle.thumbnails = io.open_thumbnails_from_db(self.get_connection(), type, self.obj_id, tmp_dir)
                             break
                 return save_bundle
-        
+        #debug.log("loading vistrail from db")
         connection = self.get_connection()
         save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
         primary_obj = save_bundle.get_primary_obj()

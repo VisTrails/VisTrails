@@ -31,7 +31,7 @@ if (("$#" == "5")); then
 fi
 
 Xvfb_PARAM="$VIRTUAL_DISPLAY -screen 0 1280x960x24"
-PID="$LOG_DIR/pid$VIRTUAL_DISPLAY.vistrails"
+PID="$LOG_DIR/pid.$PORT.vistrails"
 LOG_XVFB="$LOG_DIR/xvfb$VIRTUAL_DISPLAY.log"
 
 #try to find Process ID of running X-Server

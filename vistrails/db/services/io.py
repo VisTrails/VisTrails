@@ -254,8 +254,10 @@ def get_db_object_modification_time(db_connection, obj_id, obj_type):
     """
 
     try:
+        db_connection.begin()
         c = db_connection.cursor()
         c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
+        db_connection.commit()
         time = c.fetchall()[0][0]
         c.close()
     except get_db_lib().Error, e:

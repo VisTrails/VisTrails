@@ -29,6 +29,7 @@ import logging
 import logging.handlers
 import os
 import os.path
+import shutil
 import subprocess
 import tempfile
 import time
@@ -707,9 +708,12 @@ class RequestHandler(object):
         self.server_logger.debug("pdf: %s" % pdf)
         # execute workflow
         ok = True
-        if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
-            if not os.path.exists(extra_info['pathDumpCells']):
-                os.mkdir(extra_info['pathDumpCells'])
+        if (not self.path_exists_and_not_empty(extra_info['pathDumpCells'])
+            or build_always):
+            if os.path.exists(extra_info['pathDumpCells']):
+                shutil.rmtree(extra_info['pathDumpCells'])
+            os.mkdir(extra_info['pathDumpCells'])
+            
             result = ''
             if vt_tag !='':
                 version = vt_tag;
@@ -1789,13 +1793,13 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
 
         qt.allowQObjects()
 
-    def make_logger(self, filename):
+    def make_logger(self, filename, label):
         """self.make_logger(filename:str) -> logger. Creates a logging object to
         be used for the server so we can log requests in file f."""
-        logger = logging.getLogger("VistrailsRPC")
+        logger = logging.getLogger("VistrailsRPC[%s]"%label)
         handler = logging.handlers.RotatingFileHandler(filename, maxBytes = 1024*1024,
                                                        backupCount=5)
-        handler.setFormatter(logging.Formatter('VisTrails RPC - %(asctime)s %(levelname)-8s %(message)s'))
+        handler.setFormatter(logging.Formatter('%(name)s - %(asctime)s %(levelname)-8s %(message)s'))
         handler.setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
         logger.addHandler(handler)
@@ -1918,7 +1922,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         VistrailsApplicationInterface.init(self,optionsDict)
 
         self.vistrailsStartup.init()
-        self.server_logger = self.make_logger(self.temp_xml_rpc_options.log_file)
+        self.server_logger = self.make_logger(self.temp_xml_rpc_options.log_file,
+                                              self.temp_xml_rpc_options.port)
         self.load_config(self.temp_xml_rpc_options.config_file)
         self.start_other_instances(self.temp_xml_rpc_options.instances)
         self._python_environment = self.vistrailsStartup.get_python_environment()
