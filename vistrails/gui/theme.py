@@ -585,6 +585,13 @@ class DefaultTheme(object):
             *ColorByName.get_int('black'))
         self.HOVER_SELECT_COLOR = QtGui.QColor(
             *ColorByName.get_int('blue'))
+        
+        # colors for debug messages
+        #self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.darkGray)
+        #self.DEBUG_WARNING_COLOR = QtGui.QColor(QtCore.Qt.black)
+        self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.black)
+        self.DEBUG_WARNING_COLOR = QtGui.QColor("#707000")
+        self.DEBUG_CRITICAL_COLOR = QtGui.QColor(QtCore.Qt.red)
 
 class MacTheme(DefaultTheme):
 

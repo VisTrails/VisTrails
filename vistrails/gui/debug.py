@@ -20,6 +20,7 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
+from gui.theme import CurrentTheme
 import core.debug
 import StringIO
 import api
@@ -54,17 +55,60 @@ class DebugView(QtGui.QDialog):
         layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
 
+        # top message filter buttons
+        filterHolder = QtGui.QGridLayout()
+        layout.addLayout(filterHolder)
+        filter = QtGui.QGridLayout()
+        filterHolder.addLayout(filter, 0, 0, QtCore.Qt.AlignLeft)
+
+        filterLabel = QtGui.QLabel('Filter:')
+        filterLabel.setFixedWidth(40)
+        filter.addWidget(filterLabel, 0, 0)
+
+        self.infoFilter = QtGui.QPushButton('Info', self)
+        self.infoFilter.setCheckable(True)
+        self.infoFilter.setChecked(True)
+        self.infoFilter.setFixedWidth(70)
+        self.infoFilter.setStyleSheet('color:' +
+                                 CurrentTheme.DEBUG_INFO_COLOR.name())
+        self.connect(self.infoFilter, QtCore.SIGNAL('toggled(bool)'),
+                     self.toggleInfo)
+        filter.addWidget(self.infoFilter, 0, 1)
+
+        self.warningFilter = QtGui.QPushButton('Warning', self)
+        self.warningFilter.setCheckable(True)
+        self.warningFilter.setChecked(True)
+        self.warningFilter.setFixedWidth(70)
+        self.warningFilter.setStyleSheet('color:' +
+                                    CurrentTheme.DEBUG_WARNING_COLOR.name())
+        self.connect(self.warningFilter, QtCore.SIGNAL('toggled(bool)'),
+                     self.toggleWarning)
+        filter.addWidget(self.warningFilter, 0, 2)
+
+        self.criticalFilter = QtGui.QPushButton('Critical', self)
+        self.criticalFilter.setCheckable(True)
+        self.criticalFilter.setChecked(True)
+        self.criticalFilter.setFixedWidth(70)
+        self.criticalFilter.setStyleSheet('color:' +
+                                    CurrentTheme.DEBUG_CRITICAL_COLOR.name())
+        self.connect(self.criticalFilter, QtCore.SIGNAL('toggled(bool)'),
+                     self.toggleCritical)
+        filter.addWidget(self.criticalFilter, 0, 3)
+
+        # message list
         self.list = QtGui.QListWidget()
         self.connect(self.list,
                      QtCore.SIGNAL('currentItemChanged(QListWidgetItem *, QListWidgetItem *)'),
                      self.showMessage)
         layout.addWidget(self.list)
 
+        # message details field
         self.text = QtGui.QTextEdit()
         self.text.setReadOnly(True)
         self.text.hide()
         layout.addWidget(self.text)
 
+        # bottom buttons
         buttons = QtGui.QGridLayout()
         layout.addLayout(buttons)
         leftbuttons = QtGui.QGridLayout()
@@ -74,6 +118,7 @@ class DebugView(QtGui.QDialog):
 
         close = QtGui.QPushButton('&Close', self)
         close.setFixedWidth(120)
+        close.setDefault(True)
         leftbuttons.addWidget(close, 0, 0)
         self.connect(close, QtCore.SIGNAL('clicked()'),
                      self, QtCore.SLOT('close()'))
@@ -95,6 +140,20 @@ class DebugView(QtGui.QDialog):
         self.itemQueue = []
         self.resize(700, 400)
 
+    def toggleType(self, s, visible):
+        for item in [self.list.item(i) for i in xrange(self.list.count())]:
+            if str(item.data(32).toString()).split('\n')[0] == s:
+                self.list.setItemHidden(item, not visible)
+
+    def toggleInfo(self, visible):
+        self.toggleType('INFO', visible)
+
+    def toggleWarning(self, visible):
+        self.toggleType('WARNING', visible)
+
+    def toggleCritical(self, visible):
+        self.toggleType('CRITICAL', visible)
+        
     def copyMessage(self):
         """ copy selected message to clipboard """
         items = self.list.selectedItems()
@@ -225,19 +284,26 @@ class DebugView(QtGui.QDialog):
             self.itemQueue = []
         
     def write(self, s):
+        """write(s) -> None
+        adds the string s to the message list and displays it
+        if it is critical."""
+        # adds the string s to the list and 
         s = str(s).strip()
         msgs = s.split('\n')
         text = msgs[3] if len(msgs)>2 else ''
         item = QtGui.QListWidgetItem(text)
         item.setData(32, s)
         item.setFlags(item.flags()&~QtCore.Qt.ItemIsEditable)
-        if msgs[0] == "INFO":
-            item.setForeground(QtGui.QBrush(QtCore.Qt.black))
-        elif msgs[0] == "WARNING":
-            item.setForeground(QtGui.QBrush(QtGui.QColor("#707000")))
-        elif msgs[0] == "CRITICAL":
-            item.setForeground(QtGui.QBrush(QtCore.Qt.red))
         self.list.addItem(item)
+        if msgs[0] == "INFO":
+            item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_INFO_COLOR))
+            self.list.setItemHidden(item, not self.infoFilter.isChecked())
+        elif msgs[0] == "WARNING":
+            item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_WARNING_COLOR))
+            self.list.setItemHidden(item, not self.warningFilter.isChecked())
+        elif msgs[0] == "CRITICAL":
+            item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_CRITICAL_COLOR))
+            self.list.setItemHidden(item, not self.criticalFilter.isChecked())
         self.list.scrollToItem(item)
         if msgs[0] == "CRITICAL":
             self.showMessageBox(item)
