@@ -342,6 +342,12 @@ class DBLocator(_DBLocator, CoreLocator):
         return db_gui.get_save_db_locator_from_gui(parent_widget, obj_type,
                                                    locator)
 
+    @staticmethod
+    def from_xml(node, include_name=False):
+        locator = _DBLocator.from_xml(node, include_name)
+        locator.__class__ = DBLocator
+        return locator
+    
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename, version_node=None, version_tag=''):

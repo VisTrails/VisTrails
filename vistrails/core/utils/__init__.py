@@ -33,7 +33,9 @@ from core.utils.lockmethod import lock_method
 import copy
 import errno
 import itertools
+import os
 import sys
+import weakref
 
 ################################################################################
 
@@ -451,6 +453,54 @@ using output from the subprocess module."""
                 raise
 
 ################################################################################
+# class for creating weak references to bound methods
+# based on recipe http://code.activestate.com/recipes/81253/
+# converted to work also in python 2.6.x without using deprecated methods
+# not tested in python 2.5.x but it should work
+class Ref(object):
+    """ Wraps any callable, most importantly a bound method, in a way that
+    allows a bound method's object to be GC'ed, while providing the same
+    interface as a normal weak reference. """
+    def __init__(self, fn):
+        try:
+            #try getting object, function, and class
+            o, f, c = fn.im_self, fn.im_func, fn.im_class
+        except AttributeError: #it's not a bound method
+            self._obj = None
+            self._func = fn
+            self._clas = None
+        else: #it's a bound method
+            if o is None: self._obj = None #... actually UN-bound
+            else: self._obj = weakref.ref(o)
+            self._func = f
+            self._clas = None
+            
+    def __call__(self):
+        if self._obj is None: return self._func
+        elif self._obj() is None: return None
+        try:
+            import types
+            instance_method = types.MethodType
+        except ImportError:
+            #new is deprecated in python 2.6
+            import new
+            instance_method = new.instancemethod
+        return instance_method(self._func, self._obj(), self._clas)
+    
+################################################################################
+
+class Chdir(object):
+    def __init__(self, dirname):
+        self._old_dir = os.getcwd()
+        self._new_dir = dirname
+        
+    def __enter__(self):
+        os.chdir(self._new_dir)
+        
+    def __exit__(self, *args):
+        os.chdir(self._old_dir)
+################################################################################
+
 
 import unittest
 
@@ -528,6 +578,35 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(version_string_to_list("0.1"), [0, 1])
         self.assertEquals(version_string_to_list("1.0.2"), [1, 0, 2])
         self.assertEquals(version_string_to_list("1.0.2beta"), [1, 0, '2beta'])
+    
+    def test_ref(self):
+        class C(object):
+            def f(self):
+                return 'hello'
+        c = C()
+        cf = weakref.ref(c.f)
+        #bound methods behave not as expected. You want cf() not to be None
+        self.assertIsNone(cf())
+        #so we use the new class
+        cf = Ref(c.f)
+        #it behaves as expected
+        self.assertEquals(cf()(),'hello')
+        del c
+        #and after deletion the reference is dead
+        self.assertIsNone(cf())
+        
+    def test_chdir(self):
+        def raise_exception():
+            with Chdir('/tmp'):
+                raise Exception
+            
+        currentpath = os.getcwd()
+        with Chdir("/tmp"):
+            pass
+        self.assertEquals(os.getcwd(), currentpath)
+        
+        self.assertRaises(Exception, raise_exception)
+        self.assertEquals(os.getcwd(), currentpath)
         
 if __name__ == '__main__':
     unittest.main()

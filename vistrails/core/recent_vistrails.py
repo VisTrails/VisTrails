@@ -1,0 +1,99 @@
+############################################################################
+##
+## Copyright (C) 2006-2010 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
+""" RecentVistrailList is a Helper class to manage serialization and
+unserialization of a list of locators to XML """
+
+from core.system import get_elementtree_library
+from core.db.locator import FileLocator, DBLocator
+
+ElementTree = get_elementtree_library()
+
+class RecentVistrailList(object):
+    def __init__(self):
+        self.maxlocators = 0
+        self.locators = []
+        self.locators_map = {}
+        
+    @staticmethod
+    def unserialize(text):
+        """ unserialize(text) -> RecentVistrailList """
+        root = ElementTree.fromstring(text)
+        if root.tag != 'recentVistrails':
+            return None
+        vtlist = RecentVistrailList()
+        for node in root.getchildren():
+            loc = FileLocator.from_xml(node)
+            if loc is None:
+                loc = DBLocator.from_xml(node, include_name=True)
+            if loc is not None:
+                vtlist.locators.append(loc)
+                vtlist.locators_map[loc.name] = loc
+        return vtlist
+    
+    def serialize(self, node=None):
+        """serialize(node: ElementTree.Element) -> text
+        Convert this object to an XML representation.
+        """
+        if node is None:
+            node = ElementTree.Element('recentVistrails')
+        for loc in self.locators:
+            childNode = ElementTree.SubElement(node, 'locator')
+            if isinstance(loc, DBLocator):
+                loc.to_xml(childNode, include_name=True)
+            else:
+                loc.to_xml(childNode)
+        return ElementTree.tostring(node)
+    
+    def ensure_no_more_than_max(self, max):
+        while len(self.locators) > max:
+            locator = self.locators.pop()
+            del self.locators_map[locator.name]
+            
+        self.maxlocators = max
+        
+    def add_locator(self, locator):
+        if locator in self.locators:
+            self.locators.remove(locator)
+        self.locators.insert(0, locator)
+        self.locators_map[locator.name] = locator
+        
+        self.ensure_no_more_than_max(self.maxlocators)
+        
+    def remove_locator(self, locator):
+        if locator in self.locators:
+            self.locators.remove(locator)
+            del self.locators_map[locator.name]
+            
+    def length(self):
+        return len(self.locators)
+    
+    def get_locator(self, index):
+        try:
+            return self.locators[index]
+        except IndexError:
+            return None
+        
+    def get_locator_by_name(self, name):
+        try:
+            return self.locators_map[name]
+        except KeyError:
+            return None
