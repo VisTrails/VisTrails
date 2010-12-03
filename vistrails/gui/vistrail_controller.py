@@ -528,7 +528,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return action
 
     def create_group(self, module_ids, connection_ids):
-        self.flush_move_actions()
+        self.flush_delayed_actions()
         (group, connections) = \
             BaseController.create_group(self, self.current_pipeline, 
                                         module_ids, connection_ids)
@@ -547,7 +547,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return group
     
     def create_abstraction(self, module_ids, connection_ids, name):
-        self.flush_move_actions()
+        self.flush_delayed_actions()
         (abstraction, connections) = \
             BaseController.create_abstraction(self, self.current_pipeline, 
                                               module_ids, connection_ids, name)
@@ -568,7 +568,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.create_abstraction_from_group(group_id)
 
     def create_abstraction_from_group(self, group_id, name=""):
-        self.flush_move_actions()
+        self.flush_delayed_actions()
         name = self.get_abstraction_name(name)
         
         (abstraction, connections) = \
@@ -590,7 +590,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
 
     def ungroup_set(self, module_ids):
-        self.flush_move_actions()
+        self.flush_delayed_actions()
         for m_id in module_ids:
             self.create_ungroup(m_id)
 
@@ -628,7 +628,7 @@ class VistrailController(QtCore.QObject, BaseController):
         - notes : 'QtCore.QString'
         
         """
-        self.flush_move_actions()
+        self.flush_delayed_actions()
         
         if self.vistrail.set_notes(self.current_version, str(notes)):
             self.emit(QtCore.SIGNAL('notesChanged()'))
@@ -650,7 +650,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Execute the current workflow (if exists)
         
         """
-        self.flush_move_actions()
+        self.flush_delayed_actions()
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
@@ -1263,7 +1263,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Update the current vistrail tag and return success predicate
         
         """
-        self.flush_move_actions()
+        self.flush_delayed_actions()
         try:
             if self.vistrail.hasTag(self.current_version):
                 self.vistrail.changeTag(tag, self.current_version)
@@ -1313,7 +1313,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                      connection_ids: [long]) -> str
         Serializes a list of modules and connections
         """
-        self.flush_move_actions()
+        self.flush_delayed_actions()
 
         def process_group(group):
             # reset pipeline id for db
@@ -1354,7 +1354,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Returns the list of module ids of added modules
 
         """
-        self.flush_move_actions()
+        self.flush_delayed_actions()
 
         pipeline = core.db.io.unserialize(str, Pipeline)
         modules = []
