@@ -305,8 +305,7 @@ class DebugView(QtGui.QDialog):
             item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_CRITICAL_COLOR))
             self.list.setItemHidden(item, not self.criticalFilter.isChecked())
         self.list.scrollToItem(item)
-        if msgs[0] == "CRITICAL":
-            self.showMessageBox(item)
+        self.showMessageBox(item)
 
     def closeEvent(self, e):
         """closeEvent(e) -> None
