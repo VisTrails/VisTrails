@@ -239,12 +239,13 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.setCursorState(self.defaultCursorState)
         self.canSelectBackground = True
         self.canSelectRectangle = True
-
-        self.viewport().grabGesture(QtCore.Qt.PinchGesture)
+        
+        if QtCore.QT_VERSION >= 0x40600:
+            self.viewport().grabGesture(QtCore.Qt.PinchGesture)
         self.gestureStartScale = None
 
     def viewportEvent(self, event):
-        if event.type() == QtCore.QEvent.Gesture:
+        if QtCore.QT_VERSION >= 0x40600 and event.type() == QtCore.QEvent.Gesture:
             pinch = event.gesture(QtCore.Qt.PinchGesture)
             if pinch:
                 changeFlags = pinch.changeFlags()

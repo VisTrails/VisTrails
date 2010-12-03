@@ -25,6 +25,7 @@ import core.configuration
 import core.system
 from db.services import io
 from db.services.io import SaveBundle
+from db.domain import DBVistrail
 import urllib
 from db import VistrailsDBException
 from core import debug
@@ -479,11 +480,8 @@ class DBLocator(BaseLocator):
         if DBLocator.cache.has_key(self._hash):
             save_bundle = DBLocator.cache[self._hash]
             obj = save_bundle.get_primary_obj()
-            ts = io.get_db_object_modification_time(self.get_connection(),
-                                                    obj.db_id,
-                                                    obj.vtType)
-            ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
-            
+
+            ts = self.get_db_modification_time(obj.vtType)
             #debug.log("cached time: %s, db time: %s"%(DBLocator.cache_timestamps[self._hash],ts))
             if DBLocator.cache_timestamps[self._hash] == ts:
                 #debug.log("using cached vistrail")
@@ -523,6 +521,19 @@ class DBLocator(BaseLocator):
         DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
 
+    def get_db_modification_time(self, obj_type=None):
+        if obj_type is None:
+            if self.obj_type is None:
+                obj_type = DBVistrail.vtType 
+            else:
+                obj_type = self.obj_type
+
+        ts = io.get_db_object_modification_time(self.get_connection(),
+                                                self.obj_id,
+                                                obj_type)
+        ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
+        return ts
+        
     def serialize(self, dom, element):
         """serialize(dom, element) -> None
         Convert this object to an XML representation.
