@@ -781,8 +781,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                     process_err(exception_set.__iter__().next())
 
         except Exception, e:
-            debug.critical('Unexpected Exception\n%s' % str(e))
-            raise
+            import traceback
+            debug.critical('Unexpected Exception\n%s' % str(e), 
+                           traceback.format_exc())
         
         if not self._current_terse_graph or \
                 new_version not in self._current_terse_graph.vertices:

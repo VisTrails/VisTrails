@@ -2202,7 +2202,8 @@ class VistrailController(object):
             elif len(e._exception_set) > 0:
                 process_err(e._exception_set.__iter__().next())
         except Exception, e:
-            debug.critical(str(e))
+            import traceback
+            debug.critical(str(e), traceback.format_exc())
 
     def write_temporary(self):
         if self.vistrail and self.changed:

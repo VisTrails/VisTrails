@@ -84,7 +84,8 @@ class Group(Module):
             iport_obj = tmp_id_to_module_map[iport_module.id]
             iport_obj.set_input_port('ExternalPipe', conn[0])
         
-        kwargs = {'logger': self.logging.log, 'clean_pipeline': True}
+        kwargs = {'logger': self.logging.log, 'clean_pipeline': True,
+                  'current_version': self.moduleInfo['version']}
         module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
         for arg in module_info_args:
             if arg in self.moduleInfo:
