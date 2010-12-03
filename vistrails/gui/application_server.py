@@ -232,6 +232,7 @@ class RequestHandler(object):
         The keys are the package identifier and for each identifier there's a
         dictionary with modules and description.
         """
+        self.server_logger.info("Request: get_packages()")
         try:
             package_dic = {}
 
@@ -1142,30 +1143,30 @@ class RequestHandler(object):
             self.server_logger.error("Error when saving png %s" % str(e))
             return (str(e), 0)
 
+    def _is_image_stale(self, filename, host, port, db_name, vt_id):
+        statinfo = os.stat(filename)
+        image_time = datetime.fromtimestamp(statinfo.st_mtime)
+        locator = DBLocator(host=host,
+                            port=int(port),
+                            database=db_name,
+                            user=db_read_user,
+                            passwd=db_read_pass,
+                            obj_id=int(vt_id),
+                            obj_type=None,
+                            connection_id=None)
+        vt_mod_time = locator.get_db_modification_time()
+        self.server_logger.info("image time: %s, vt time: %s"%(image_time,
+                                                               vt_mod_time))
+        if image_time < vt_mod_time:
+            return True
+        else:
+            return False
+
     def get_vt_graph_png(self, host, port, db_name, vt_id, is_local=True):
         """get_vt_graph_png(host:str, port: str, db_name: str, vt_id:str) -> str
         Returns the relative url of the generated image
         """
-
-        def is_image_stale(filename, host, port, db_name, vt_id):
-            statinfo = os.stat(filename)
-            image_time = datetime.fromtimestamp(statinfo.st_mtime)
-            locator = DBLocator(host=host,
-                                port=int(port),
-                                database=db_name,
-                                user=db_read_user,
-                                passwd=db_read_pass,
-                                obj_id=int(vt_id),
-                                obj_type=None,
-                                connection_id=None)
-            vt_mod_time = locator.get_db_modification_time()
-            self.server_logger.info("image time: %s, vt time: %s"%(image_time,
-                                                                  vt_mod_time))
-            if image_time < vt_mod_time:
-                return True
-            else:
-                return False
-
+        
         self.server_logger.info("get_vt_graph_png(%s, %s, %s, %s)" % (host, port, db_name, vt_id))
         try:
             vt_id = long(vt_id)
@@ -1175,7 +1176,7 @@ class RequestHandler(object):
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
-                 is_image_stale(filename, host, port, db_name, vt_id)) and 
+                 self._is_image_stale(filename, host, port, db_name, vt_id)) and 
                 self.proxies_queue is not None):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
@@ -1201,7 +1202,7 @@ class RequestHandler(object):
             #if it gets here, this means that we will execute on this instance
             if (not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
-                 is_image_stale(filename, host, port, db_name, vt_id)):
+                 self._is_image_stale(filename, host, port, db_name, vt_id)):
 
                 if os.path.exists(filepath):
                     shutil.rmtree(filepath)
@@ -1259,8 +1260,9 @@ class RequestHandler(object):
             base_fname = "graph_%s.pdf" % (vt_id)
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
-                os.path.exists(filepath) and not os.path.exists(filename))
-                and self.proxies_queue is not None):
+                (os.path.exists(filepath) and not os.path.exists(filename)) or
+                 self._is_image_stale(filename, host, port, db_name, vt_id)) and 
+                self.proxies_queue is not None):
                 #this server can send requests to other instances
                 proxy = self.proxies_queue.get()
                 try:
@@ -1284,10 +1286,15 @@ class RequestHandler(object):
 
 
             #if it gets here, this means that we will execute on this instance
-            if not os.path.exists(filepath):
+            if (not os.path.exists(filepath) or
+                (os.path.exists(filepath) and not os.path.exists(filename)) or
+                 self._is_image_stale(filename, host, port, db_name, vt_id)):
+
+                if os.path.exists(filepath):
+                    shutil.rmtree(filepath)
+
                 os.mkdir(filepath)
 
-            if not os.path.exists(filename):
                 locator = DBLocator(host=host,
                                     port=int(port),
                                     database=db_name,
