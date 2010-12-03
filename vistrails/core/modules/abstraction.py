@@ -93,7 +93,7 @@ def initialize(*args, **kwargs):
                         controller = core.vistrail.controller.VistrailController(abs_vistrail)
                         (new_version, new_pipeline) = \
                             controller.handle_invalid_pipeline(e, long(module_version), 
-                                                               abs_vistrail, False)
+                                                               abs_vistrail, False, True)
                         del controller
                         save_vistrail_to_xml(abs_vistrail, abs_fname)
                         abstraction = new_abstraction(abs_name, abs_vistrail, abs_fname,
