@@ -28,7 +28,7 @@ import sys
 import platform
 import socket
 from core import debug
-from core.utils import unimplemented, VistrailsInternalError
+from core.utils import unimplemented, VistrailsInternalError, Chdir
 import core.requirements
 
 ##############################################################################
@@ -231,21 +231,17 @@ def vistrails_revision():
     shows the latest release revision
 
     """
-    old_dir = os.getcwd()
-    os.chdir(vistrails_root_directory())
-    try:
+    git_dir = os.path.join(vistrails_root_directory(), '..')
+    with Chdir(git_dir):
         release = "2ad813e42ebb"
-        if core.requirements.executable_file_exists('svn'):
+        if core.requirements.executable_file_exists('git'):
             lines = []
-            result = execute_cmdline(['svn', 'info'], lines)
-            if len(lines) > 5:
-                revision_line = lines[4][:-1].split(' ')
+            result = execute_cmdline(['git', 'describe', '--always', '--abbrev=12'],
+                                     lines)
+            if len(lines) == 1:
                 if result == 0:
-                    if revision_line[0] == 'Revision:':
-                        return revision_line[1]
-        return release
-    finally:
-        os.chdir(old_dir)
+                    release = lines[0].strip(" \n")
+    return release
 
 def current_user():
     return getpass.getuser()
@@ -331,8 +327,6 @@ def execute_cmdline2(cmd_list):
 ################################################################################
 
 import unittest
-import os
-import os.path
 
 if __name__ == '__main__':
     unittest.main()
@@ -340,25 +334,22 @@ if __name__ == '__main__':
 class TestSystem(unittest.TestCase):
 
     def test_vistrails_revision(self):
-        _starting_dir = os.getcwd()
-        try:
-            r = vistrails_root_directory()
-            os.chdir(r)
+        r = vistrails_root_directory()
+        with Chdir(r):
             v1 = vistrails_revision()
             try:
-                os.chdir(os.path.join(r, '..'))
-                self.assertEquals(v1, vistrails_revision())
+                with Chdir(os.path.join(r, '..')):
+                    self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise
             except:
                 pass
             try:
-                os.chdir(os.path.join(r, '..', '..'))
-                self.assertEquals(v1, vistrails_revision())
+                with Chdir(os.path.join(r, '..', '..')):
+                    self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise
             except:
                 pass
-        finally:
-            os.chdir(_starting_dir)
+            
             

@@ -24,7 +24,7 @@
 
 from core import debug
 from core import system
-from core.utils import InstanceObject
+from core.utils import InstanceObject, Ref
 from core.utils.uxml import (named_elements,
                              elements_filter, eval_xml_value,
                              quote_xml_value)
@@ -80,7 +80,7 @@ class ConfigurationObject(InstanceObject):
         self.field is set.
         """
         append_to_dict_of_lists(self.__subscribers__, field,
-                                weakref.ref(callable_))
+                                Ref(callable_))
                   
     def has(self, key):
         """has(key) -> bool.
@@ -181,11 +181,13 @@ def default():
         'logger': default_logger(),
         'maxMemory': (None, int),
         'maximizeWindows': False,
+        'maxRecentVistrails': 5,
         'minMemory': (None, int),
         'multiHeads': False,
         'nologger': True,
         'packageDirectory': (None, str),
         'pythonPrompt': False,
+        'recentVistrailList': (None, str),
         'repositoryLocalPath': (None, str),
         'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,

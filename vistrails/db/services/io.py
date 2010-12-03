@@ -25,6 +25,7 @@ from core import debug
 from core.bundles import py_import
 from core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline, systemType
+from core.utils import Chdir
 import core.requirements
 ElementTree = get_elementtree_library()
 
@@ -784,7 +785,6 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
     output = []
     rel_vt_save_dir = os.path.split(vt_save_dir)[1]
-    cur_dir = os.getcwd()
     # on windows, we assume zip.exe is in the current directory when
     # running from the binary install
     zipcmd = 'zip'
@@ -796,9 +796,8 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     try:
         #if we want that directories are also stored in the zip file
         # we need to run from the vt directory
-        os.chdir(vt_save_dir)
-        result = execute_cmdline(cmdline,output)
-        os.chdir(cur_dir)
+        with Chdir(vt_save_dir):
+            result = execute_cmdline(cmdline,output)
         #print result, output
         if result != 0 or len(output) != 0:
             for line in output:
