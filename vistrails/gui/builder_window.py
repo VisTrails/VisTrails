@@ -45,7 +45,7 @@ from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
 from gui.vis_diff import QVisualDiff
-from gui.utils import build_custom_window
+from gui.utils import build_custom_window, show_info
 import sys
 import db.services.vistrail
 from gui import merge_gui
@@ -1489,9 +1489,14 @@ class QBuilderWindow(QtGui.QMainWindow):
                         abstraction = \
                             currentScene.controller.current_pipeline.modules[id]
                         if abstraction.vtType == 'abstraction':
-                            desc = abstraction.module_descriptor
-                            filename = desc.module.vt_fname
-                            self.openAbstraction(filename)
+                            from core.modules.abstraction import identifier as abstraction_pkg
+                            if abstraction.package == abstraction_pkg and abstraction.vistrail.get_annotation('__abstraction_descriptor_info__') is None:
+                                desc = abstraction.module_descriptor
+                                filename = desc.module.vt_fname
+                                self.openAbstraction(filename)
+                            else:
+                                show_info('Package SubWorkflow is Read-Only',
+                                          'This SubWorkflow is from a package and cannot be modified.\n\nYou can create an editable copy in \'My SubWorkflows\' using\n\'Edit->Import SubWorkflow\'')
 
     def expandBranch(self):
         """ expandBranch() -> None

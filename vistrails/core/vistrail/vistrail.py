@@ -156,11 +156,12 @@ class Vistrail(DBVistrail):
             if old_annotation.value == value:
                 return False
             self.db_delete_annotation(old_annotation)
-        annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
-                                key=key,
-                                value=value,
-                                )
-        self.db_add_annotation(annotation)
+        if not (value is None or (type(value) == str and value.strip() == '')):
+            annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
+                                    key=key,
+                                    value=value,
+                                    )
+            self.db_add_annotation(annotation)
         return True
 
     def _get_plugin_info(self):
@@ -224,7 +225,7 @@ class Vistrail(DBVistrail):
             max_ver = max(v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade'))
             # If that action has an upgrade, use it
             if self.has_upgrade(max_ver):
-                max_ver = self.get_upgrade(max_ver)
+                max_ver = long(self.get_upgrade(max_ver))
             return max_ver
         except:
             return 0

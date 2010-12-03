@@ -25,6 +25,7 @@ import __builtin__
 from itertools import izip
 import copy
 import os
+import tempfile
 import traceback
 
 from core.data_structures.graph import Graph
@@ -35,7 +36,7 @@ from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.package import Package
 from core.utils import VistrailsInternalError, memo_method, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-     all, profile, versions_increasing
+     all, profile, versions_increasing, InvalidPipeline
 from core.system import vistrails_root_directory, vistrails_version
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
@@ -1062,7 +1063,7 @@ class ModuleRegistry(DBRegistry):
             raise TypeError("Expected filename or (filename, kwargs)")
 
     def add_subworkflow(self, vt_fname, **kwargs):
-        from core.modules.sub_module import new_abstraction
+        from core.modules.sub_module import new_abstraction, read_vistrail
 
         # vt_fname is relative to the package path
         if 'package' in kwargs:
@@ -1090,9 +1091,37 @@ class ModuleRegistry(DBRegistry):
             debug.warning("Using absolute path for subworkflow: '%s'" % \
                 vt_fname)
         
+        vistrail = read_vistrail(vt_fname)
+        if 'namespace' in kwargs:
+            namespace = kwargs['namespace']
+        else:
+            namespace = vistrail.get_annotation('__abstraction_uuid__')
+            if namespace is not None:
+                namespace = namespace.value
+                kwargs['namespace'] = namespace
+                kwargs['hide_namespace'] = True
+        
         # create module from workflow
-        module = new_abstraction(name, vt_fname, None, version)
-        kwargs['version'] = str(module.internal_version)
+        module = None
+        try:
+            module = new_abstraction(name, vistrail, vt_fname, version)
+        except InvalidPipeline, e:
+            import core.vistrail.controller # This import MUST be delayed until this point or it will fail
+            from core.db.io import save_vistrail_to_xml
+            # Use a "dummy" controller to handle the upgrade
+            controller = core.vistrail.controller.VistrailController(vistrail)
+            if version == -1L:
+                version = vistrail.get_latest_version()
+            (new_version, new_pipeline) = \
+                controller.handle_invalid_pipeline(e, long(version), vistrail, False, True)
+            del controller
+            vistrail.set_annotation('__abstraction_descriptor_info__', (identifier, name, namespace, package_version, str(version)))
+            vt_save_dir = tempfile.mkdtemp(prefix='vt_upgrade_abs')
+            vt_fname = os.path.join(vt_save_dir, os.path.basename(vt_fname))
+            save_vistrail_to_xml(vistrail, vt_fname) # FIXME: Should delete this upgrade file when vistrails is exited
+            module = new_abstraction(name, vistrail, vt_fname, new_version, new_pipeline)
+        module.internal_version = str(module.internal_version)
+        kwargs['version'] = module.internal_version
         descriptor = None
         if kwargs:
             descriptor = self.add_module(module, **kwargs)

@@ -30,7 +30,10 @@ from core.modules.vistrails_module import Module, ModuleError
 from core.modules.sub_module import read_vistrail, new_abstraction, \
     get_abstraction_dependencies
 import core.modules.module_registry
+import core.vistrail.controller
+from core.db.io import save_vistrail_to_xml
 from core.system import vistrails_version
+from core.utils import InvalidPipeline
 
 name = 'My SubWorkflows'
 version = '1.6'
@@ -81,6 +84,22 @@ def initialize(*args, **kwargs):
                 try:
                     abstraction = \
                         new_abstraction(abs_name, abs_vistrail, abs_fname)
+                except InvalidPipeline, e:
+                    # handle_invalid_pipeline will raise it's own InvalidPipeline
+                    # exception if it fails
+                    try:
+                        module_version = abs_vistrail.get_latest_version()
+                        # Use a "dummy" controller to handle the upgrade
+                        controller = core.vistrail.controller.VistrailController(abs_vistrail)
+                        (new_version, new_pipeline) = \
+                            controller.handle_invalid_pipeline(e, long(module_version), 
+                                                               abs_vistrail, False)
+                        del controller
+                        save_vistrail_to_xml(abs_vistrail, abs_fname)
+                        abstraction = new_abstraction(abs_name, abs_vistrail, abs_fname,
+                                                      new_version, new_pipeline)
+                    except Exception, _e:
+                        cannot_load[abs_name] = (abs_vistrail, _e)
                 except Exception, e:
                     cannot_load[abs_name] = (abs_vistrail, e)
                 if abstraction is not None:

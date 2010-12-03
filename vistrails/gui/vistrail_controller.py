@@ -1428,6 +1428,7 @@ class VistrailController(QtCore.QObject, BaseController):
             new_name = self.get_abstraction_name(abstraction.name)
             if new_name:
                 self.import_abstraction(new_name,
+                                        abstraction.package,
                                         abstraction.name, 
                                         abstraction.namespace,
                                         abstraction.internal_version)
@@ -1542,6 +1543,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.export_abstraction(new_name,
                                         pkg_identifier,
                                         save_dir,
+                                        abstraction.package,
                                         abstraction.name, 
                                         abstraction.namespace,
                                         str(abstraction.internal_version))

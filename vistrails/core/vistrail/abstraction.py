@@ -104,7 +104,16 @@ class Abstraction(DBAbstraction, Module):
         if not hasattr(self, '_is_latest_version'):
             def update_version_status():
                 reg = get_module_registry()
-                desc = reg.get_descriptor_by_name(self.package, self.name, self.namespace)
+                try:
+                    desc = reg.get_descriptor_by_name(self.package, self.name, self.namespace)
+                except:
+                    # Should only get here if the abstraction's descriptor was removed from the registry
+                    # which only happens when the abstraction should be destroyed.  So we disconnect
+                    # here to eliminate the object reference.
+                    QObject.disconnect(reg.signals, reg.signals.new_abstraction_signal, update_version_status)
+                    QObject.disconnect(reg.signals, reg.signals.deleted_abstraction_signal, update_version_status)
+                    self._is_latest_version = False
+                    return
                 latest_version = desc.module.vistrail.get_latest_version()
                 self._is_latest_version = (long(latest_version) == long(self.internal_version))
             reg = get_module_registry()

@@ -98,12 +98,15 @@ class VistrailController(object):
         # if _cache_pipelines is True, cache pipelines to speed up
         # version switching
         self._cache_pipelines = True
-        self._pipelines = {0: Pipeline()}
+        self.flush_pipeline_cache()
         self._current_full_graph = None
         self._current_terse_graph = None
         self._asked_packages = set()
         self._delayed_actions = []
         self._loaded_abstractions = {}
+        
+    def flush_pipeline_cache(self):
+        self._pipelines = {0: Pipeline()}
 
     def logging_on(self):
         return not get_vistrails_configuration().check('nologger')
@@ -136,7 +139,8 @@ class VistrailController(object):
         self.recompute_terse_graph()
         
     def close_vistrail(self, locator):
-        self.unload_abstractions()
+        if not self.vistrail.is_abstraction:
+            self.unload_abstractions()
         if locator is not None:
             locator.close()
             
@@ -892,28 +896,30 @@ class VistrailController(object):
                                          " specified in configuration")
         return None
 
-    def get_abstraction_desc(self, name, namespace, module_version=None):
+    def get_abstraction_desc(self, package, name, namespace, module_version=None):
         reg = core.modules.module_registry.get_module_registry()
-        if reg.has_descriptor_with_name(abstraction_pkg, name, namespace,
+        if reg.has_descriptor_with_name(package, name, namespace,
                                         None, module_version):
-            return reg.get_descriptor_by_name(abstraction_pkg, name,
+            return reg.get_descriptor_by_name(package, name,
                                               namespace, None, module_version)
         return None
 
-    def parse_abstraction_name(self, filename):
+    def parse_abstraction_name(self, filename, get_all_parts=False):
         # assume only 1 possible prefix or suffix
+        import re
         prefixes = ["abstraction_"]
         suffixes = [".vt", ".xml"]
-        name = os.path.basename(filename)
-        for prefix in prefixes:
-            if name.startswith(prefix):
-                name = name[len(prefix):]
-                break
-        for suffix in suffixes:
-            if name.endswith(suffix):
-                name = name[:-len(suffix)]
-                break
-        return name
+        path, fname = os.path.split(filename)
+        hexpat = '[a-fA-F0-9]'
+        uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
+        prepat = '|'.join(prefixes).replace('.','\\.')
+        sufpat = '|'.join(suffixes).replace('.','\\.')
+        pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
+        matchobj = pattern.match(fname)
+        prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
+        if get_all_parts:
+            return (path, prefix, absname, uuid[1:-1], suffix)
+        return absname
 
     def add_abstraction_to_registry(self, abs_vistrail, abs_fname, name, 
                                     namespace=None, module_version=None,
@@ -960,7 +966,7 @@ class VistrailController(object):
                                         {'package': abstraction_pkg,
                                          'package_version': abstraction_ver,
                                          'namespace': namespace,
-                                         'version': module_version,
+                                         'version': str(module_version),
                                          'hide_namespace': True,
                                          'hide_descriptor': hide_descriptor,
                                          }))
@@ -990,12 +996,22 @@ class VistrailController(object):
         else:
             abs_vistrail = read_vistrail(abs_fname)
             self._loaded_abstractions[abs_fname] = abs_vistrail
-        abstraction_uuid = \
-            abs_vistrail.get_annotation('__abstraction_uuid__').value
+        
+        abstraction_uuid = abs_vistrail.get_annotation('__abstraction_uuid__')
         if abstraction_uuid is None:
+            # No current uuid exists - generate one
             abstraction_uuid = str(uuid.uuid1())
-            abs_vistrail.set_annotation('__abstraction_uuid__', 
-                                        abstraction_uuid)
+            abs_vistrail.set_annotation('__abstraction_uuid__', abstraction_uuid)
+        else:
+            abstraction_uuid = abstraction_uuid.value
+        origin_uuid = abs_vistrail.get_annotation('__abstraction_origin_uuid__')
+        if origin_uuid is None:
+            # No origin uuid exists - set to current uuid (for backwards compatibility)
+            origin_uuid = abstraction_uuid
+            abs_vistrail.set_annotation('__abstraction_origin_uuid__', origin_uuid)
+        else:
+            origin_uuid = origin_uuid.value
+            
         if module_version is None:
             module_version = str(abs_vistrail.get_latest_version())
         elif type(module_version) == type(1):
@@ -1009,7 +1025,7 @@ class VistrailController(object):
             old_version = module_version
             module_version = str(upgrade_version)
         
-        desc = self.get_abstraction_desc(abs_name, abstraction_uuid,
+        desc = self.get_abstraction_desc(abstraction_pkg, abs_name, abstraction_uuid,
                                          module_version)
         if desc is None:
             print "adding version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to registry"
@@ -1028,11 +1044,18 @@ class VistrailController(object):
     
     def unload_abstractions(self):
         for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
+            abs_desc_info = abs_vistrail.get_annotation('__abstraction_descriptor_info__')
+            if abs_desc_info is not None:
+                abs_desc_info = eval(abs_desc_info.value)
+                # Don't unload package abstractions that have been upgraded by this controller (during a manual version upgrade)
+                # because that would also unload the version in the module palette
+                if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
+                    continue
             abs_name = self.parse_abstraction_name(abs_fname)
             abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
             try:
                 descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
-                print "removing all versions of ", abs_name, "from registry (namespace: %s)"%abs_namespace
+                print "removing all versions of", abs_name, "from registry (namespace: %s)"%abs_namespace
                 while descriptor is not None:
                     reg = core.modules.module_registry.get_module_registry()
                     reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
@@ -1040,25 +1063,26 @@ class VistrailController(object):
             except:
                 # No versions of the abstraction exist in the registry now
                 pass
+        self._loaded_abstractions.clear()
 
-    def update_abstraction(self, abstraction, new_actions):
-        module_version = abstraction.internal_version
-        if type(module_version) == type(""):
-            module_version = int(module_version)
-        abstraction_uuid = \
-            abstraction.vistrail.get_annotation('__abstraction_uuid__').value
-        upgrade_action = self.create_upgrade_action(new_actions) 
-        
-        a = (abstraction.vistrail, 
-             module_version)
-        
-        desc = self.get_abstraction_desc(abstraction.name, abstraction_uuid,
-                                         new_version)
-        if desc is None:
-            # desc = self.add_abstraction_to_registry(abstraction.vistrail,
-            # abstraction.
-            pass
-        # FIXME finish this!
+#    def update_abstraction(self, abstraction, new_actions):
+#        module_version = abstraction.internal_version
+#        if type(module_version) == type(""):
+#            module_version = int(module_version)
+#        abstraction_uuid = \
+#            abstraction.vistrail.get_annotation('__abstraction_uuid__').value
+#        upgrade_action = self.create_upgrade_action(new_actions) 
+#        
+#        a = (abstraction.vistrail, 
+#             module_version)
+#        
+#        desc = self.get_abstraction_desc(abstraction.name, abstraction_uuid,
+#                                         new_version)
+#        if desc is None:
+#            # desc = self.add_abstraction_to_registry(abstraction.vistrail,
+#            # abstraction.
+#            pass
+#        # FIXME finish this!
                                          
                                          
         
@@ -1091,9 +1115,25 @@ class VistrailController(object):
         if package is None and self.abstraction_exists(name):
             raise VistrailsInternalError("Abstraction with name '%s' already "
                                          "exists" % name)
-        if vistrail.get_annotation('__abstraction_uuid__') is None:            
-            abstraction_uuid = str(uuid.uuid1())
-            vistrail.set_annotation('__abstraction_uuid__', abstraction_uuid)
+        
+        # Set uuid's (this is somewhat tricky because of backwards compatibility - there was
+        # originally only '__abstraction_uuid__' and no origin, so we have to handle cases
+        # where a uuid is set, but hasn't been set as the origin yet).
+        if vistrail.get_annotation('__abstraction_origin_uuid__') is None:
+            # No origin uuid exists
+            current_uuid = vistrail.get_annotation('__abstraction_uuid__')
+            if current_uuid is None:
+                # No current uuid exists - generate one and use it as origin and current uuid
+                new_uuid = str(uuid.uuid1())
+                vistrail.set_annotation('__abstraction_origin_uuid__', new_uuid)
+                vistrail.set_annotation('__abstraction_uuid__', new_uuid)
+            else:
+                # A current uuid exists - set it as origin and generate a new current uuid
+                vistrail.set_annotation('__abstraction_origin_uuid__', current_uuid.value)
+                vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
+        else:
+            # Origin uuid exists - just generate a new current uuid
+            vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
 
         if save_dir is None:
             save_dir = self.get_abstraction_dir()
@@ -1175,44 +1215,54 @@ class VistrailController(object):
 #         self.add_abstraction(abs_vistrail, abs_fname, abs_name, 
 #                              abstraction_uuid)
             
-    def unload_abstraction(self, name, namespace):
-        if self.abstraction_exists(name):
-            descriptor = self.get_abstraction_descriptor(name, namespace)
-            descriptor._abstraction_refs -= 1
-            # print 'unload ref_count:', descriptor.abstraction_refs
-            if descriptor._abstraction_refs < 1:
-                # unload abstraction
-                print "deleting module:", name, namespace
-                reg = core.modules.module_registry.get_module_registry()
-                reg.delete_module(abstraction_pkg, name, namespace)
+#    def unload_abstraction(self, name, namespace):
+#        if self.abstraction_exists(name):
+#            descriptor = self.get_abstraction_descriptor(name, namespace)
+#            descriptor._abstraction_refs -= 1
+#            # print 'unload ref_count:', descriptor.abstraction_refs
+#            if descriptor._abstraction_refs < 1:
+#                # unload abstraction
+#                print "deleting module:", name, namespace
+#                reg = core.modules.module_registry.get_module_registry()
+#                reg.delete_module(abstraction_pkg, name, namespace)
 
-    def import_abstraction(self, new_name, name, namespace, 
+    def import_abstraction(self, new_name, package, name, namespace, 
                            module_version=None):
         # copy from a local namespace to local.abstractions
         reg = core.modules.module_registry.get_module_registry()
-        descriptor = self.get_abstraction_desc(name, namespace, module_version)
+        descriptor = self.get_abstraction_desc(package, name, namespace, str(module_version))
         if descriptor is None:
             # if not self.abstraction_exists(name):
-            raise VistrailsInternalError("Abstraction %s|%s not on registry" %\
-                                             (name, namespace))
+            raise VistrailsInternalError("Abstraction %s|%s (package: %s) not on registry" %\
+                                             (name, namespace, package))
         # FIXME have save_abstraction take abs_fname as argument and do
         # shutil copy
         # abs_fname = descriptor.module.vt_fname
         abs_vistrail = descriptor.module.vistrail
+        # Strip the descriptor info annotation before saving so the imported version will be editable
+        abs_desc_info = abs_vistrail.get_annotation('__abstraction_descriptor_info__')
+        if abs_desc_info is not None:
+            abs_vistrail.set_annotation('__abstraction_descriptor_info__', None)
         abs_fname = self.save_abstraction(abs_vistrail, new_name)
-        if new_name == name:
-            reg.show_module(descriptor)
-            descriptor.module.vt_fname = abs_fname
-        else:
-            self.add_abstraction_to_registry(abs_vistrail, abs_fname, new_name,
-                                             None, module_version)
+        # Duplicate the vistrail and set the uuid and descriptor annotation back on the original vistrail
+        imported_vistrail = read_vistrail(abs_fname)
+        abs_vistrail.set_annotation('__abstraction_uuid__', namespace)
+        if abs_desc_info is not None:
+            abs_vistrail.set_annotation('__abstraction_descriptor_info__', abs_desc_info.value)
+        #if new_name == name and package == abstraction_pkg:
+        #    reg.show_module(descriptor)
+        #    descriptor.module.vt_fname = abs_fname
+        #else:
+        new_desc = self.add_abstraction_to_registry(imported_vistrail, abs_fname, new_name,
+                                                    None, str(module_version))
+        reg.show_module(new_desc)
 
-    def export_abstraction(self, new_name, pkg_name, dir, name, namespace, 
+    def export_abstraction(self, new_name, pkg_name, dir, package, name, namespace, 
                            module_version):
-        descriptor = self.get_abstraction_desc(name, namespace, module_version)
+        descriptor = self.get_abstraction_desc(package, name, namespace, module_version)
         if descriptor is None:
-            raise VistrailsInternalError("Abstraction %s|%s not on registry" %\
-                                             (name, namespace))
+            raise VistrailsInternalError("Abstraction %s|%s (package: %s) not on registry" %\
+                                             (name, namespace, package))
         
         abs_vistrail = descriptor.module.vistrail
         (abs_vistrail, dependencies) = self.manage_package_names(abs_vistrail, 
@@ -1221,7 +1271,7 @@ class VistrailController(object):
                                           dir)
         return (os.path.basename(abs_fname), dependencies)
     
-    def find_abstractions(self, vistrail, recurse=False):
+    def find_abstractions(self, vistrail, recurse=False, include_pkg_upgrades=False):
         abstractions = {}
         for action in vistrail.actions:
             for operation in action.operations:
@@ -1229,7 +1279,7 @@ class VistrailController(object):
                         operation.vtType == 'change':
                     if operation.data is not None and operation.data.vtType == Abstraction.vtType:
                         abstraction = operation.data
-                        if abstraction.package == abstraction_pkg:
+                        if abstraction.package == abstraction_pkg or (include_pkg_upgrades and abstraction.vistrail.get_annotation('__abstraction_descriptor_info__') is not None):
                             key = abstraction.descriptor_info
                             if key not in abstractions:
                                 abstractions[key] = []
@@ -1291,9 +1341,9 @@ class VistrailController(object):
             else:
                 raise
         except MissingModule, e:
-            if descriptor_tuple[1] not in lookup:
+            if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
                 raise
-            abs_fname = lookup[descriptor_tuple[1]]
+            abs_fname = lookup[(descriptor_tuple[1], descriptor_tuple[2])]
             new_desc = \
                 self.load_abstraction(abs_fname, False, 
                                       descriptor_tuple[1],
@@ -1308,9 +1358,9 @@ class VistrailController(object):
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
         for abs_fname in abs_fnames:
-            abs_name = self.parse_abstraction_name(abs_fname)
+            path, prefix, abs_name, abs_namespace, suffix = self.parse_abstraction_name(abs_fname, True)
             # abs_name = os.path.basename(abs_fname)[12:-4]
-            lookup[abs_name] = abs_fname
+            lookup[(abs_name, abs_namespace)] = abs_fname
             
         # we're going to recurse manually (see
         # add_abstraction_to_regsitry) because we can't call
@@ -1665,7 +1715,7 @@ class VistrailController(object):
         return new_action
 
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
-                                report_all_errors=False):
+                                report_all_errors=False, force_no_delay=False):
         load_other_versions = False
         # print 'running handle_invalid_pipeline'
         if vistrail is None:
@@ -1898,7 +1948,7 @@ class VistrailController(object):
 
         if len(new_actions) > 0:
             upgrade_action = self.create_upgrade_action(new_actions)
-            if get_vistrails_configuration().check('upgradeDelay'):
+            if get_vistrails_configuration().check('upgradeDelay') and not force_no_delay:
                 self._delayed_actions.append(upgrade_action)
             else:
                 vistrail.add_action(upgrade_action, new_version, 
@@ -2164,7 +2214,16 @@ class VistrailController(object):
         """write_vistrail(locator,version) -> Boolean
         It will return a boolean that tells if the tree needs to be 
         invalidated"""
-        result = False
+        def make_abstraction_path_unique(abs_save_dir, abs_fname, namespace):
+            # Constructs the abstraction name using the namespace to prevent conflicts
+            # and copies the abstraction to the new path so save_bundle has a valid file
+            if abs_save_dir is None:
+                abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
+            path, prefix, absname, old_ns, suffix = self.parse_abstraction_name(abs_fname, True)
+            new_abs_fname = os.path.join(abs_save_dir, prefix + absname + '(' + namespace + ')' + suffix)
+            shutil.copy(abs_fname, new_abs_fname)
+            return (abs_save_dir, new_abs_fname)
+        result = False 
         if self.vistrail and (self.changed or self.locator != locator):
             abs_save_dir = None
             is_abstraction = self.vistrail.is_abstraction
@@ -2172,20 +2231,52 @@ class VistrailController(object):
             save_bundle.vistrail = self.vistrail
             if self.log and len(self.log.workflow_execs) > 0:
                 save_bundle.log = self.log
-            abstractions = self.find_abstractions(self.vistrail, True)
+            abstractions = self.find_abstractions(self.vistrail, True, include_pkg_upgrades=True)
+            included_abstractions = set()
             for abstraction_list in abstractions.itervalues():
                 for abstraction in abstraction_list:
                     abs_module = abstraction.module_descriptor.module
                     if abs_module is not None:
                         abs_fname = abs_module.vt_fname
-                        if not os.path.exists(abs_fname):
-                            if abs_save_dir is None:
-                                abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
-                            abs_fname = os.path.join(abs_save_dir, 
-                                                     abstraction.name + '.xml')
-                            core.db.io.save_vistrail_to_xml(abstraction.vistrail,
-                                                            abs_fname)
-                        save_bundle.abstractions.append(abs_fname)
+                        is_upgraded_package_abs = abstraction.package != abstraction_pkg
+                        if abs_fname not in included_abstractions:
+                            included_abstractions.add(abs_fname)
+                            if not os.path.exists(abs_fname):
+                                # Write vistrail to disk if the file no longer exists (if temp file was deleted)
+                                if abs_save_dir is None:
+                                    abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
+                                abs_fname = os.path.join(abs_save_dir, abstraction.name + '.xml')
+                                core.db.io.save_vistrail_to_xml(abstraction.vistrail, abs_fname)
+                            # Retrieve the namespace
+                            old_namespace = abstraction.vistrail.get_annotation('__abstraction_uuid__').value
+                            new_namespace = old_namespace
+                            if self.locator != locator or is_upgraded_package_abs:
+                                # Need to set origin for abstractions that are stored with vistrail
+                                origin_namespace = abstraction.vistrail.get_annotation('__abstraction_origin_uuid__')
+                                if origin_namespace is None:
+                                    abstraction.vistrail.set_annotation('__abstraction_origin_uuid__', old_namespace)
+                                # Generate new namespace for abstraction when creating new save or copying an upgraded package abstraction
+                                new_namespace = str(uuid.uuid1())
+                                abstraction.vistrail.set_annotation('__abstraction_uuid__', new_namespace)
+                                core.db.io.save_vistrail_to_xml(abstraction.vistrail, abs_fname)
+                                # Temporarily set uuid back so abstractions are unloaded properly.
+                                # This won't affect objects in memory since the new abstractions will be
+                                # entirely reloaded from the saved file.
+                                abstraction.vistrail.set_annotation('__abstraction_uuid__', old_namespace)
+                            if is_upgraded_package_abs:
+                                # Set the package and version to the local store since it is being included
+                                abstraction.package = abstraction_pkg
+                                abstraction.version = abstraction_ver
+                                abstraction._descriptor_info = None
+                                abstraction._module_descriptor = None
+                            # Copy the abstraction to a unique pathname
+                            abs_save_dir, abs_unique_name = make_abstraction_path_unique(abs_save_dir, abs_fname, new_namespace)
+                            save_bundle.abstractions.append(abs_unique_name)
+                        if self.locator != locator or is_upgraded_package_abs:
+                            # Update objects in memory with the new namespace and re-generate the descriptor
+                            abstraction.namespace = new_namespace
+                            abstraction._descriptor_info = None
+                            abstraction._module_descriptor = None
 
             thumb_cache = ThumbnailCache.getInstance()
             if thumb_cache.conf.autoSave:
@@ -2200,15 +2291,20 @@ class VistrailController(object):
                 self.locator = locator
                 save_bundle = self.locator.save_as(save_bundle, version)
                 new_vistrail = save_bundle.vistrail
+                self.unload_abstractions() # Unload abstractions from old namespace
+                self.ensure_abstractions_loaded(new_vistrail, save_bundle.abstractions) # Load all abstractions from new namespaces
                 if type(self.locator) == core.db.locator.DBLocator:
                     new_vistrail.db_log_filename = None
                 self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()
                     old_locator.close()
+                self.flush_pipeline_cache()
+                self.change_selected_version(new_vistrail.db_currentVersion, from_root=True)
             else:
                 save_bundle = self.locator.save(save_bundle)
                 new_vistrail = save_bundle.vistrail
+                self.ensure_abstractions_loaded(new_vistrail, save_bundle.abstractions) # Load any abstractions that were given new namespaces
             # FIXME abstractions only work with FileLocators right now
             if is_abstraction:
                 new_vistrail.is_abstraction = True
