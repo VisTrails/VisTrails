@@ -179,6 +179,7 @@ class VistrailController(object):
     def flush_delayed_actions(self):
         start_version = self.current_version
         desc_key = Action.ANNOTATION_DESCRIPTION
+        added_upgrade = False
         for action in self._delayed_actions:
             self.vistrail.add_action(action, start_version, 
                                      self.current_session)
@@ -188,11 +189,15 @@ class VistrailController(object):
                 self.vistrail.set_upgrade(start_version, str(action.id))
             self.current_version = action.id
             start_version = action.id
+            added_upgrade = True
 
         # We have to do moves after the delayed actions because the pipeline
         # may have been updated
-        self.flush_move_actions()
+        added_moves = self.flush_move_actions()
         self._delayed_actions = []
+        if added_upgrade or added_moves:
+            self.recompute_terse_graph()
+            self.invalidate_version_tree(False)
 
     def perform_action(self, action):
         """ performAction(action: Action) -> timestep
