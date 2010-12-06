@@ -178,9 +178,6 @@ def execute_cmdline(lst, output):
     will always return 0
 
     """
-    # FIXME this is deprecated. Someone with windows experience should
-    # fix it with the correct subprocess.Popen incantation
-    #cmdline = list2cmdline(lst)
     proc = subprocess.Popen(lst, shell=True, stdin=subprocess.PIPE, 
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     proc.wait()

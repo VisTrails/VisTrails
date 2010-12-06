@@ -65,33 +65,30 @@ class DebugView(QtGui.QDialog):
         filterLabel.setFixedWidth(40)
         filter.addWidget(filterLabel, 0, 0)
 
-        self.infoFilter = QtGui.QPushButton('Info', self)
+        self.infoFilter = QtGui.QCheckBox('Info', self)
         self.infoFilter.setCheckable(True)
         self.infoFilter.setChecked(True)
-        self.infoFilter.setFixedWidth(70)
         self.infoFilter.setStyleSheet('color:' +
                                  CurrentTheme.DEBUG_INFO_COLOR.name())
-        self.connect(self.infoFilter, QtCore.SIGNAL('toggled(bool)'),
+        self.connect(self.infoFilter, QtCore.SIGNAL('stateChanged(int)'),
                      self.toggleInfo)
         filter.addWidget(self.infoFilter, 0, 1)
 
-        self.warningFilter = QtGui.QPushButton('Warning', self)
+        self.warningFilter = QtGui.QCheckBox('Warning', self)
         self.warningFilter.setCheckable(True)
         self.warningFilter.setChecked(True)
-        self.warningFilter.setFixedWidth(70)
         self.warningFilter.setStyleSheet('color:' +
                                     CurrentTheme.DEBUG_WARNING_COLOR.name())
-        self.connect(self.warningFilter, QtCore.SIGNAL('toggled(bool)'),
+        self.connect(self.warningFilter, QtCore.SIGNAL('stateChanged(int)'),
                      self.toggleWarning)
         filter.addWidget(self.warningFilter, 0, 2)
 
-        self.criticalFilter = QtGui.QPushButton('Critical', self)
+        self.criticalFilter = QtGui.QCheckBox('Critical', self)
         self.criticalFilter.setCheckable(True)
         self.criticalFilter.setChecked(True)
-        self.criticalFilter.setFixedWidth(70)
         self.criticalFilter.setStyleSheet('color:' +
                                     CurrentTheme.DEBUG_CRITICAL_COLOR.name())
-        self.connect(self.criticalFilter, QtCore.SIGNAL('toggled(bool)'),
+        self.connect(self.criticalFilter, QtCore.SIGNAL('stateChanged(int)'),
                      self.toggleCritical)
         filter.addWidget(self.criticalFilter, 0, 3)
 
@@ -141,6 +138,10 @@ class DebugView(QtGui.QDialog):
         self.resize(700, 400)
 
     def toggleType(self, s, visible):
+        if visible == QtCore.Qt.Unchecked:
+            visible = False
+        elif visible == QtCore.Qt.Checked:
+            visible == True
         for item in [self.list.item(i) for i in xrange(self.list.count())]:
             if str(item.data(32).toString()).split('\n')[0] == s:
                 self.list.setItemHidden(item, not visible)
