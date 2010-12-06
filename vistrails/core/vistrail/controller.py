@@ -266,38 +266,9 @@ class VistrailController(object):
 
     def create_module(self, identifier, name, namespace='', x=0.0, y=0.0,
                       internal_version=-1):
-        loc_id = self.id_scope.getNewId(Location.vtType)
-        location = Location(id=loc_id,
-                            x=x, 
-                            y=y,
-                            )
-        if internal_version > -1:
-            abstraction_id = self.id_scope.getNewId(Abstraction.vtType)
-            module = Abstraction(id=abstraction_id,
-                                 name=name,
-                                 package=identifier,
-                                 location=location,
-                                 namespace=namespace,
-                                 internal_version=internal_version,
-                                 )
-        elif identifier == basic_pkg and name == 'Group':
-            group_id = self.id_scope.getNewId(Group.vtType)
-            module = Group(id=group_id,
-                           name=name,
-                           package=identifier,
-                           location=location,
-                           namespace=namespace,
-                           )
-        else:
-            module_id = self.id_scope.getNewId(Module.vtType)
-            module = Module(id=module_id,
-                            name=name,
-                            package=identifier,
-                            location=location,
-                            namespace=namespace,
-                            )
-        module.is_valid = True
-        return module
+        reg = core.modules.module_registry.get_module_registry()
+        d = reg.get_descriptor_by_name(identifier, name, namespace)
+        return self.create_module_from_descriptor(d, x, y, internal_version)
 
     def create_connection_from_ids(self, output_id, output_port_spec,
                                        input_id, input_port_spec):
@@ -1162,21 +1133,40 @@ class VistrailController(object):
         ports that have been removed.
         
         """
+        # get the new descriptor first
+        invalid_module = self.current_pipeline.modules[module_id]
+        abs_fname = invalid_module.module_descriptor.module.vt_fname
+        abs_name = self.parse_abstraction_name(abs_fname)
+        lookup = {abs_name: abs_fname}
+        descriptor_info = invalid_module.descriptor_info
+        newest_version = str(invalid_module.vistrail.get_latest_version())
+        d = self.check_abstraction((descriptor_info[0],
+                                    descriptor_info[1],
+                                    descriptor_info[2],
+                                    descriptor_info[3],
+                                    newest_version),
+                                   lookup)
+
         failed = True
         src_ports_gone = {}
         dst_ports_gone = {}
         fns_gone = {}
         missing_ports = []
+        check_upgrade = UpgradeWorkflowHandler.check_upgrade
         while failed:
             try:
-                upgrade_action = UpgradeWorkflowHandler.attempt_automatic_upgrade(self, self.current_pipeline, module_id, function_remap=fns_gone, src_port_remap=src_ports_gone, dst_port_remap=dst_ports_gone)[0]
+                check_upgrade(self.current_pipeline, module_id, 
+                              function_remap=fns_gone, 
+                              src_port_remap=src_ports_gone, 
+                              dst_port_remap=dst_ports_gone)
                 if test_only:
                     return (len(missing_ports) == 0, missing_ports)
                 failed = False
             except UpgradeWorkflowError, e:
                 if test_only:
                     missing_ports.append((e._port_type, e._port_name))
-                if e._module is None or e._port_type is None or e._port_name is None:
+                if e._module is None or e._port_type is None or \
+                        e._port_name is None:
                     raise e
                 # Remove the offending connection/function by remapping to None
                 if e._port_type == 'output':
@@ -1186,10 +1176,17 @@ class VistrailController(object):
                     fns_gone[e._port_name] = None
                 else:
                     raise e
+        upgrade_action = \
+            UpgradeWorkflowHandler.replace_module(self, self.current_pipeline,
+                                                  module_id, d, 
+                                                  fns_gone,
+                                                  src_ports_gone,
+                                                  dst_ports_gone)
         self.flush_delayed_actions()
         self.add_new_action(upgrade_action)
         self.perform_action(upgrade_action)
-        self.vistrail.change_description("Upgrade Subworkflow", self.current_version)
+        self.vistrail.change_description("Upgrade Subworkflow", 
+                                         self.current_version)
 
     def get_abstraction_descriptor(self, name, namespace=None):
         reg = core.modules.module_registry.get_module_registry()
@@ -1271,7 +1268,7 @@ class VistrailController(object):
                                           dir)
         return (os.path.basename(abs_fname), dependencies)
     
-    def find_abstractions(self, vistrail, recurse=False, include_pkg_upgrades=False):
+    def find_abstractions(self, vistrail, recurse=False):
         abstractions = {}
         for action in vistrail.actions:
             for operation in action.operations:
@@ -1279,7 +1276,7 @@ class VistrailController(object):
                         operation.vtType == 'change':
                     if operation.data is not None and operation.data.vtType == Abstraction.vtType:
                         abstraction = operation.data
-                        if abstraction.package == abstraction_pkg or (include_pkg_upgrades and abstraction.vistrail.get_annotation('__abstraction_descriptor_info__') is not None):
+                        if abstraction.package == abstraction_pkg:
                             key = abstraction.descriptor_info
                             if key not in abstractions:
                                 abstractions[key] = []
@@ -2232,14 +2229,13 @@ class VistrailController(object):
             save_bundle.vistrail = self.vistrail
             if self.log and len(self.log.workflow_execs) > 0:
                 save_bundle.log = self.log
-            abstractions = self.find_abstractions(self.vistrail, True, include_pkg_upgrades=True)
+            abstractions = self.find_abstractions(self.vistrail, True)
             included_abstractions = set()
             for abstraction_list in abstractions.itervalues():
                 for abstraction in abstraction_list:
                     abs_module = abstraction.module_descriptor.module
                     if abs_module is not None:
                         abs_fname = abs_module.vt_fname
-                        is_upgraded_package_abs = abstraction.package != abstraction_pkg
                         if abs_fname not in included_abstractions:
                             included_abstractions.add(abs_fname)
                             if not os.path.exists(abs_fname):
@@ -2251,7 +2247,7 @@ class VistrailController(object):
                             # Retrieve the namespace
                             old_namespace = abstraction.vistrail.get_annotation('__abstraction_uuid__').value
                             new_namespace = old_namespace
-                            if self.locator != locator or is_upgraded_package_abs:
+                            if self.locator != locator:
                                 # Need to set origin for abstractions that are stored with vistrail
                                 origin_namespace = abstraction.vistrail.get_annotation('__abstraction_origin_uuid__')
                                 if origin_namespace is None:
@@ -2264,20 +2260,9 @@ class VistrailController(object):
                                 # This won't affect objects in memory since the new abstractions will be
                                 # entirely reloaded from the saved file.
                                 abstraction.vistrail.set_annotation('__abstraction_uuid__', old_namespace)
-                            if is_upgraded_package_abs:
-                                # Set the package and version to the local store since it is being included
-                                abstraction.package = abstraction_pkg
-                                abstraction.version = abstraction_ver
-                                abstraction._descriptor_info = None
-                                abstraction._module_descriptor = None
                             # Copy the abstraction to a unique pathname
                             abs_save_dir, abs_unique_name = make_abstraction_path_unique(abs_save_dir, abs_fname, new_namespace)
                             save_bundle.abstractions.append(abs_unique_name)
-                        if self.locator != locator or is_upgraded_package_abs:
-                            # Update objects in memory with the new namespace and re-generate the descriptor
-                            abstraction.namespace = new_namespace
-                            abstraction._descriptor_info = None
-                            abstraction._module_descriptor = None
 
             thumb_cache = ThumbnailCache.getInstance()
             if thumb_cache.conf.autoSave:

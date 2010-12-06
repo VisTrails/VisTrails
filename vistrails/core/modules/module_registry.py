@@ -401,13 +401,15 @@ class ModuleRegistry(DBRegistry):
             else:
                 self._default_package = None
                 self._current_package = None
+            self._abs_pkg_upgrades = {}
         else:
             self._constant_hasher_map = copy.copy(other._constant_hasher_map)
             self._current_package = \
                 self.packages[other._current_package.identifier]
             self._default_package = \
                 self.packages[other._default_package.identifier]
-            
+            self._abs_pkg_upgrades = copy.copy(other._abs_pkg_upgrades)
+
     def setup_indices(self):
         self.descriptors_by_id = {}
         self.package_versions = self.db_packages_identifier_index
@@ -529,6 +531,14 @@ class ModuleRegistry(DBRegistry):
                     description="Basic modules for VisTrails")
         self.add_package(self._default_package)
         return self._default_package
+
+    def has_abs_upgrade(self, descriptor_info):
+        return descriptor_info in self._abs_pkg_upgrades
+
+    def get_abs_upgrade(self, descriptor_info):
+        if self.has_abs_upgrade(descriptor_info):
+            return self._abs_pkg_upgrades[descriptor_info]
+        return None
 
     ##########################################################################
     # Per-module registry functions
@@ -1103,23 +1113,37 @@ class ModuleRegistry(DBRegistry):
         
         # create module from workflow
         module = None
+        is_upgraded_abstraction = False
         try:
             module = new_abstraction(name, vistrail, vt_fname, version)
         except InvalidPipeline, e:
-            import core.vistrail.controller # This import MUST be delayed until this point or it will fail
+            # This import MUST be delayed until this point or it will fail
+            import core.vistrail.controller 
             from core.db.io import save_vistrail_to_xml
+            from core.modules.abstraction import identifier as \
+                abstraction_pkg, version as abstraction_ver
             # Use a "dummy" controller to handle the upgrade
             controller = core.vistrail.controller.VistrailController(vistrail)
             if version == -1L:
                 version = vistrail.get_latest_version()
             (new_version, new_pipeline) = \
-                controller.handle_invalid_pipeline(e, long(version), vistrail, False, True)
+                controller.handle_invalid_pipeline(e, long(version), vistrail, 
+                                                   False, True)
             del controller
-            vistrail.set_annotation('__abstraction_descriptor_info__', (identifier, name, namespace, package_version, str(version)))
+            vistrail.set_annotation('__abstraction_descriptor_info__', 
+                                    (identifier, name, namespace, 
+                                     package_version, str(version)))
             vt_save_dir = tempfile.mkdtemp(prefix='vt_upgrade_abs')
             vt_fname = os.path.join(vt_save_dir, os.path.basename(vt_fname))
-            save_vistrail_to_xml(vistrail, vt_fname) # FIXME: Should delete this upgrade file when vistrails is exited
-            module = new_abstraction(name, vistrail, vt_fname, new_version, new_pipeline)
+            # FIXME: Should delete this upgrade file when vistrails is exited
+            save_vistrail_to_xml(vistrail, vt_fname) 
+            module = new_abstraction(name, vistrail, vt_fname, new_version, 
+                                     new_pipeline)
+            # need to set identifier to local.abstractions and its version
+            kwargs['package'] = abstraction_pkg
+            kwargs['package_version'] = abstraction_ver
+            is_upgraded_abstraction = True
+                                    
         module.internal_version = str(module.internal_version)
         kwargs['version'] = module.internal_version
         descriptor = None
@@ -1127,6 +1151,9 @@ class ModuleRegistry(DBRegistry):
             descriptor = self.add_module(module, **kwargs)
         else:
             descriptor = self.add_module(module)
+        if is_upgraded_abstraction:
+            self._abs_pkg_upgrades[(identifier, name, namespace,  
+                                    package_version, str(version))] = descriptor
         return descriptor
 
     def has_input_port(self, module, portName):

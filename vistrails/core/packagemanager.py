@@ -142,6 +142,7 @@ class PackageManager(QtCore.QObject):
         self._registry = None
         self._userpackages = None
         self._packages = None
+        self._abstraction_pkg = None
 
     def init_registry(self, registry_filename=None):
         if registry_filename is not None:
@@ -159,6 +160,14 @@ class PackageManager(QtCore.QObject):
                 self.initialize_packages(prefix_dictionary)
             setup_basic_package()
 
+            self._abstraction_pkg = self.add_package('abstraction', False)
+            # FIXME need to get this info from the package, but cannot
+            # do this since controller isn't imported yet
+            self._abstraction_pkg.identifier = 'local.abstractions'
+            self._abstraction_pkg.name = 'My SubWorkflows'
+            self._abstraction_pkg.version = '1.6'
+            self._registry.add_package(self._abstraction_pkg)
+
     def finalize_packages(self):
         """Finalizes all installed packages. Call this only prior to
 exiting VisTrails."""
@@ -169,12 +178,24 @@ exiting VisTrails."""
         global _package_manager
         _package_manager = None
 
-    def add_package(self, codepath):
+    def add_package(self, codepath, add_to_package_list=True):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
         package = self._registry.create_package(codepath)
-        self._package_list[codepath] = package
+        if add_to_package_list:
+            self.add_to_package_list(codepath, package)
         return package
+
+    def add_to_package_list(self, codepath, package):
+        self._package_list[codepath] = package
+
+    def initialize_abstraction_pkg(self, prefix_dictionary):
+        if self._abstraction_pkg is None:
+            raise Exception("Subworkflows packages is None")
+        self.add_to_package_list(self._abstraction_pkg.codepath,
+                                 self._abstraction_pkg)
+        self.late_enable_package(self._abstraction_pkg.codepath, 
+                                 prefix_dictionary, False)
 
     def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
@@ -316,15 +337,17 @@ Returns true if given package identifier is present."""
                                                    dep_name):
                 self._dependency_graph.add_edge(package.identifier, dep_name)
 
-    def late_enable_package(self, package_codepath, prefix_dictionary={}):
+    def late_enable_package(self, package_codepath, prefix_dictionary={}, 
+                            needs_add=True):
         """late_enable_package enables a package 'late', that is,
         after VisTrails initialization. All dependencies need to be
         already enabled.
         """
-        if package_codepath in self._package_list:
-            raise VistrailsInternalError('duplicate package identifier: %s' %
-                                         package_codepath)
-        self.add_package(package_codepath)
+        if needs_add:
+            if package_codepath in self._package_list:
+                msg = 'duplicate package identifier: %s' % package_codepath
+                raise VistrailsInternalError(msg)
+            self.add_package(package_codepath)
         pkg = self.get_package_by_codepath(package_codepath)
         try:
             pkg.load(prefix_dictionary.get(pkg.codepath, None))

@@ -546,8 +546,7 @@ by startup.py. This should only be called after init()."""
         import core.modules.abstraction
         abstraction_pkg = "abstraction"
         abstraction_dict = {abstraction_pkg: 'core.modules.'}
-        self._package_manager.late_enable_package(abstraction_pkg,
-                                                  abstraction_dict)
+        self._package_manager.initialize_abstraction_pkg(abstraction_dict)
 
     def runStartupHooks(self):
         """ runStartupHooks() -> None

@@ -101,21 +101,11 @@ class UpgradeWorkflowHandler(object):
             raise UpgradeWorkflowError(msg, module, port_name, port_type)
 
     @staticmethod
-    def attempt_automatic_upgrade(controller, pipeline, module_id,
-                                  function_remap={}, src_port_remap={}, 
-                                  dst_port_remap={}, annotation_remap={}):
-        """attempt_automatic_upgrade(module_id, pipeline): [Action]
-
-        Attempts to automatically upgrade module by simply adding a
-        new module with the current package version, and recreating
-        all connections and functions. If any of the ports used are
-        not available, raise an exception that will trigger the
-        failure of the entire upgrade.
-
-        attempt_automatic_upgrade returns a list of actions if
-        successful.
-        """
+    def find_descriptor(controller, pipeline, module_id, desired_version=''):
+        from core.modules.abstraction \
+            import identifier as local_abstraction_pkg
         reg = get_module_registry()
+
         get_descriptor = reg.get_descriptor_by_name
         pm = get_package_manager()
         invalid_module = pipeline.modules[module_id]
@@ -125,41 +115,13 @@ class UpgradeWorkflowHandler(object):
                                         invalid_module.id)
         pkg = pm.get_package_by_identifier(mpkg)
         desired_version = ''
-        if invalid_module.is_abstraction():
-            desc = None
-            try:
-                # If we can't get a module descriptor (in the case of a missing package version)
-                # we'll just use the most recent version in the registry as a best-effort attempt.
-                # Package developers should implement their own upgrades, rather than relying on
-                # automatic upgrades, if this behavior isn't desirable.
-                desc = invalid_module.module_descriptor
-            except:
-                pass
-            if desc is not None:
-                if invalid_module.internal_version != desc.version:
-                    # If descriptor version doesn't match internal version, the version of the abstraction
-                    # associated with this module was upgraded (and the upgraded version was added to the
-                    # module registry), but this module hasn't been replaced with the upgraded version yet.
-                    # So we use the upgraded descriptor when replacing, rather than the newest available.
-                    # (The module_descriptor references the upgraded version, while the internal_version
-                    #  number is still assigned to the original version number).
-                    pass
-                else:
-                    # Otherwise, this is an automatic upgrade initiated by a user-initiated
-                    # "Upgrade Subworkflow", in which case we want to use the newest available
-                    # descriptor (which may or may not have already been added to the module registry).
-                    abs_fname = invalid_module.module_descriptor.module.vt_fname
-                    abs_name = controller.parse_abstraction_name(abs_fname)
-                    lookup = {abs_name: abs_fname}
-                    descriptor_info = invalid_module.descriptor_info
-                    newest_version = str(invalid_module.vistrail.get_latest_version())
-                    desc = controller.check_abstraction((descriptor_info[0],
-                                                         descriptor_info[1],
-                                                         descriptor_info[2],
-                                                         descriptor_info[3],
-                                                         newest_version),
-                                                        lookup)
-                desired_version = desc.version
+        d = None
+        if invalid_module.is_abstraction() and \
+                reg.has_abs_upgrade(invalid_module.descriptor_info):
+                # this should be for package abstractions that were
+                # out of date and were upgraded to local abstractions
+                return reg.get_abs_upgrade(invalid_module.descriptor_info)
+
         try:
             try:
                 d = get_descriptor(mpkg, mname, mnamespace, '', desired_version)
@@ -168,19 +130,19 @@ class UpgradeWorkflowHandler(object):
                 if pkg.can_handle_missing_modules():
                     r = pkg.handle_missing_module(controller, module_id, 
                                                   pipeline)
-                    d = get_descriptor(mpkg, mname, mnamespace, '', desired_version)
+                    d = get_descriptor(mpkg, mname, mnamespace, '', 
+                                       desired_version)
                 if not r:
                     raise e
         except MissingModule, e:
-            if mnamespace:
-                nss = mnamespace + '|' + mname
-            else:
-                nss = mname
-            msg = ("Could not upgrade module %s from package %s.\n" %
-                    (mname, mpkg))
-            raise UpgradeWorkflowError(msg)
+            return None
         assert isinstance(d, ModuleDescriptor)
-        
+        return d
+
+    @staticmethod
+    def check_upgrade(pipeline, module_id, d, function_remap={},
+                      src_port_remap={}, dst_port_remap={}):
+        invalid_module = pipeline.modules[module_id]
         def check_connection_port(port):
             port_type = PortSpec.port_type_map.inverse[port.type]
             UpgradeWorkflowHandler.check_port_spec(invalid_module,
@@ -206,14 +168,52 @@ class UpgradeWorkflowHandler(object):
                                                        'input', d,
                                                        function.sigstring)
 
+    @staticmethod
+    def attempt_automatic_upgrade(controller, pipeline, module_id,
+                                  function_remap={}, src_port_remap={}, 
+                                  dst_port_remap={}, annotation_remap={}):
+        """attempt_automatic_upgrade(module_id, pipeline): [Action]
+
+        Attempts to automatically upgrade module by simply adding a
+        new module with the current package version, and recreating
+        all connections and functions. If any of the ports used are
+        not available, raise an exception that will trigger the
+        failure of the entire upgrade.
+
+        attempt_automatic_upgrade returns a list of actions if 
+        successful.
+        """
+
+        invalid_module = pipeline.modules[module_id]
+        mpkg, mname, mnamespace, mid = (invalid_module.package,
+                                        invalid_module.name,
+                                        invalid_module.namespace,
+                                        invalid_module.id)
+        d = UpgradeWorkflowHandler.find_descriptor(controller, pipeline, 
+                                                   module_id)
+        if not d:
+            if mnamespace:
+                nss = mnamespace + '|' + mname
+            else:
+                nss = mname
+            msg = ("Could not upgrade module %s from package %s.\n" %
+                    (mname, mpkg))
+            raise UpgradeWorkflowError(msg)
+
+        UpgradeWorkflowHandler.check_upgrade(pipeline, module_id, d, 
+                                             function_remap, 
+                                             src_port_remap, dst_port_remap)
+
         # If we passed all of these checks, then we consider module to
-        # be automatically upgradeable. Now create actions that will delete
-        # functions, module, and connections, and add new module with corresponding
-        # functions and connections.
+        # be automatically upgradeable. Now create actions that will
+        # delete functions, module, and connections, and add new
+        # module with corresponding functions and connections.
 
         return UpgradeWorkflowHandler.replace_module(controller, pipeline, 
-                                                     module_id, d, function_remap,
-                                                     src_port_remap, dst_port_remap,
+                                                     module_id, d, 
+                                                     function_remap,
+                                                     src_port_remap, 
+                                                     dst_port_remap,
                                                      annotation_remap)
 
     @staticmethod
