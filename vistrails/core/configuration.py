@@ -182,6 +182,7 @@ def default():
         'maxMemory': (None, int),
         'maximizeWindows': False,
         'maxRecentVistrails': 5,
+        'migrateTags': False,
         'minMemory': (None, int),
         'multiHeads': False,
         'nologger': True,

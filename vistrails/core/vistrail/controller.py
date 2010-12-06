@@ -180,6 +180,7 @@ class VistrailController(object):
         start_version = self.current_version
         desc_key = Action.ANNOTATION_DESCRIPTION
         added_upgrade = False
+        migrate_tags = get_vistrails_configuration().check("migrateTags")
         for action in self._delayed_actions:
             self.vistrail.add_action(action, start_version, 
                                      self.current_session)
@@ -187,6 +188,15 @@ class VistrailController(object):
             if (action.has_annotation_with_key(desc_key) and
                 action.get_annotation_by_key(desc_key).value == 'Upgrade'):
                 self.vistrail.set_upgrade(start_version, str(action.id))
+            if migrate_tags:
+                tag = self.vistrail.get_tag(start_version)
+                if tag:
+                    self.vistrail.set_tag(start_version, "")
+                    self.vistrail.set_tag(action.id, tag)
+                notes = self.vistrail.get_notes(start_version)
+                if notes:
+                    self.vistrail.set_notes(start_version, "")
+                    self.vistrail.set_notes(action.id, notes)
             self.current_version = action.id
             start_version = action.id
             added_upgrade = True
