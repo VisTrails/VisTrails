@@ -28,6 +28,7 @@ from gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
                                QThumbnailConfiguration)
 from core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
+from core import debug
 import os.path
 
 ##############################################################################
@@ -284,20 +285,15 @@ class QPackagesWidget(QtGui.QWidget):
         try:
             pm.check_dependencies(self._current_package, new_deps)
         except self._current_package.MissingDependency, e:
-            msg = QtGui.QMessageBox(QtGui.QMessageBox.Critical,
-                                    "Missing Dependencies",
-                                    str(e), QtGui.QMessageBox.Ok, self)
-            msg.exec_()
+            debug.critical("Missing dependencies", str(e))
         else:
             palette = QtGui.QApplication.instance().builderWindow.modulePalette
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
             except self._current_package.InitializationFailed, e:
-                QtGui.QMessageBox.critical(self,
-                                           "Initialization Failed",
-                                           ("Initialization of package '%s' "
-                                            "failed: %s" % (codepath, str(e))))
+                debug.critical("Initialization of package '%s' failed" %
+                               codepath, str(e))
                 raise
             finally:
                 palette.setUpdatesEnabled(True)
@@ -321,12 +317,9 @@ class QPackagesWidget(QtGui.QWidget):
 
         if dependency_graph.in_degree(identifier) > 0:
             rev_deps = dependency_graph.inverse_adjacency_list[identifier]
-            msg = QtGui.QMessageBox(QtGui.QMessageBox.Critical,
-                                    "Missing dependency",
-                                    ("There are other packages that depend on this:\n %s" +
-                                     "Please disable those first.") % rev_deps,
-                                    QtGui.QMessageBox.Ok, self)
-            msg.exec_()
+            debug.critical("Missing dependency",
+                           ("There are other packages that depend on this:\n %s" +
+                            "Please disable those first.") % rev_deps)
         else:
             pm.late_disable_package(codepath)
             inst.takeItem(pos)
@@ -357,10 +350,8 @@ class QPackagesWidget(QtGui.QWidget):
         try:
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
         except self._current_package.InitializationFailed, e:
-            QtGui.QMessageBox.critical(self,
-                                       "Re-initialization Failed",
-                                       ("Re-initialization of package '%s' "
-                                        "failed: %s" % (codepath, str(e))))
+            debug.critical("Re-initialization of package '%s' failed" % 
+                            codepath, str(e))
             raise
         finally:
             self.populate_lists()
@@ -429,7 +420,7 @@ class QPackagesWidget(QtGui.QWidget):
             self._dependencies_label.setText(msg)
             self._description_label.setText(msg)
             self._reverse_dependencies_label.setText(msg)
-            QtGui.QMessageBox.critical(self, 'Cannot load package', str(e))
+            debug.critical('Cannot load package', str(e))
         else:
             self._name_label.setText(p.name)
             deps = ', '.join(str(d) for d in p.dependencies()) or \

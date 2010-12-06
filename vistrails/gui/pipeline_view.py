@@ -1756,9 +1756,9 @@ mutual connections."""
             traceback.print_exc()
             views = self.views()
             assert len(views) > 0
-            QtGui.QMessageBox.critical(views[0],
-                                       self.tr("Missing package/module"),
-                                       self.tr("Package '%s' is missing (or module '%s' is not present in that package)" % (e._identifier, e._name)))
+            debug.critical("Missing package/module",
+                ("Package '%s' is missing (or module '%s' is not present " +
+                "in that package)") % (e._identifier, e._name))
             self.clear()
             self.controller.change_selected_version(0)
 

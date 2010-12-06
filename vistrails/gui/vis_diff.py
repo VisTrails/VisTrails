@@ -28,7 +28,7 @@ from core.vistrail.pipeline import Pipeline
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
 from gui.vistrail_controller import VistrailController
-from core import system
+from core import system, debug
 import core.db.io
 import copy
 
@@ -368,12 +368,7 @@ class QVisualDiff(QtGui.QMainWindow):
         try:
             self.controller.add_analogy(result, self.v1, self.v2)
         except:
-            QtGui.QMessageBox.warning(self,
-                                      QtCore.QString("Error"),
-                                      QtCore.QString("Analogy name already exists"),
-                                      QtGui.QMessageBox.Ok,
-                                      QtGui.QMessageBox.NoButton,
-                                      QtGui.QMessageBox.NoButton)
+            debug.critical("Analogy name already exists")
         
     def createToolWindows(self, v1Name, v2Name):
         """ createToolWindows(v1Name: str, v2Name: str) -> None

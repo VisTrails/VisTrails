@@ -72,7 +72,7 @@ _buttons_captions_dict = { OK_BUTTON   : "Ok",
 def show_warning(title, message):
     """ show_warning(title: str, message: str) -> None
     Show a warning  message box with a specific title and contents
-
+    Deprecated, consider using core.debug instead!
     """
     if systemType not in ['Darwin']:
         QtGui.QMessageBox.warning(None, title, message)
@@ -82,7 +82,7 @@ def show_warning(title, message):
 def show_info(title, message):
     """ show_info(title: str, message: str) -> None
     Show an information message box with a specific title and contents
-
+    Deprecated, consider using core.debug instead!
     """
     if systemType not in ['Darwin']:
         QtGui.QMessageBox.information(None, title, message)

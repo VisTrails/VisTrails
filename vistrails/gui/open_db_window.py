@@ -38,6 +38,7 @@ from core.system import default_connections_file
 from gui.theme import CurrentTheme
 from gui.utils import show_info, show_warning, show_question, \
 NO_BUTTON, YES_BUTTON
+from core import debug
 
 class QOpenDBWindow(QtGui.QDialog):
     """
@@ -729,9 +730,8 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
             show_info('Vistrails',"Connection succeeded!")
             
         except Exception, e:
-            QtGui.QMessageBox.critical(None,
-                                       'Vistrails',
-                                       str(e))
+            debug.critical('An error has occurred', str(e))
+
     def updateButtons(self):
         """updateButtons() -> None
         enables button if there's enough information in the dialog

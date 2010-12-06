@@ -29,7 +29,7 @@ from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 from gui.utils import getBuilderWindow
 from gui.vistrail_view import QVistrailView
-from core import system
+from core import system, debug
 from core.configuration import get_vistrails_configuration
 from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
 from core.db.io import load_vistrail
@@ -343,11 +343,10 @@ class QViewManager(QtGui.QTabWidget):
         try:
             (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
         except ModuleRegistryException, e:
-            QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
+            debug.critical("Module registry error for %s" %
+                           str(e.__class__.__name__), str(e))
         except Exception, e:
-            QtGui.QMessageBox.critical(None,
-                                       'Vistrails',
-                                       str(e))
+            debug.critical('An error has occurred', str(e))
             raise
         return self.set_vistrail_view(vistrail, locator, abstraction_files,
                                       thumbnail_files)
@@ -423,12 +422,10 @@ class QViewManager(QtGui.QTabWidget):
                                             version)
             return result
         except ModuleRegistryException, e:
-            QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
-            raise
+            debug.critical("Module registry error for %s" %
+                           str(e.__class__.__name__), str(e))
         except Exception, e:
-            QtGui.QMessageBox.critical(None,
-                                       'Vistrails',
-                                       str(e))
+            debug.critical('An error has occurred', str(e))
             raise
 
     def save_vistrail(self, locator_class,
@@ -461,9 +458,7 @@ class QViewManager(QtGui.QTabWidget):
             try:
                 vistrailView.controller.write_vistrail(locator)
             except Exception, e:
-                QtGui.QMessageBox.critical(None,
-                                           'Vistrails',
-                                           str(e))
+                debug.critical('An error has occurred', str(e))
                 raise
                 return False
             return locator
@@ -489,15 +484,13 @@ class QViewManager(QtGui.QTabWidget):
                 vistrail.addTag("Imported workflow", action.id)
                 # FIXME might need different locator?
         except ModuleRegistryException, e:
-            msg = ('Cannot find module "%s" in \n' 
-                   'package "%s". Make sure package is \n' 
+            msg = ('Cannot find module "%s" in package "%s". '
+                    'Make sure package is ' 
                    'enabled in the Preferences dialog.' % \
                        (e._name, e._identifier))
-            QtGui.QMessageBox.critical(self, 'Missing package', msg)
+            debug.critical(msg)
         except Exception, e:
-            QtGui.QMessageBox.critical(None,
-                                       'Vistrails',
-                                       str(e))
+            debug.critical('An error has occurred', str(e))
             raise
 
         return self.set_vistrail_view(vistrail, None)

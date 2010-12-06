@@ -27,6 +27,7 @@ is also a QWidget.
 
 """
 from PyQt4 import QtCore, QtGui
+from core import debug
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry
 from core.utils import PortAlreadyExists
@@ -341,7 +342,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
         except PortAlreadyExists, e:
-            QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
+            debug.critical('Port Already Exists %s' % str(e))
             return False
         return True            
 
@@ -416,6 +417,6 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
         except PortAlreadyExists, e:
-            QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
+            debug.critical('Port Already Exists %s' % str(e))
             return False
         return True

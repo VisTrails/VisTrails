@@ -21,7 +21,7 @@
 ############################################################################
 
 from PyQt4 import QtCore, QtGui
-from core import system
+from core import system, debug
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.tuple_configuration import PortTableConfigurationWidget, \
     PortTable
@@ -173,6 +173,6 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
                                                        added_ports,
                                                        functions)
         except PortAlreadyExists, e:
-            QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
+            debug.critical('Port Already Exists %s' % str(e))
             return False
         return True

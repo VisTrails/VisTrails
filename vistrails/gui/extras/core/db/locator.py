@@ -25,6 +25,7 @@ from core.configuration import get_vistrails_persistent_configuration, \
 from gui.open_db_window import QOpenDBWindow, QConnectionDBSetupWindow
 from core.db.locator import DBLocator, FileLocator, untitled_locator
 from db import VistrailsDBException
+from core import debug
 import db
 from PyQt4 import QtGui, QtCore
 import core.system
@@ -84,9 +85,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                 config['name'] = str(dialog.nameEdt.text())
                 config['id'] = dialog.id
             except VistrailsDBException, e:
-                QtGui.QMessageBox.critical(None,
-                                           'Vistrails',
-                                           str(e))
+                debug.critical('VisTrails DB Exception',  str(e))
                 config['succeeded'] = False
         return config
     #check if the information is already there

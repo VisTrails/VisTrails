@@ -353,9 +353,8 @@ after self.init()"""
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
                 if f_name is None:
-                    msg = "VisTrails could not find file %s"%filename
-                    QtGui.QMessageBox.critical(None, "File not found",
-                                               msg)
+                    msg = "Could not find file %s" % filename
+                    debug.critical(msg)
                 elif not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                     #_vnode and _vtag will be set when a .vtl file is open and
@@ -439,7 +438,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             else:
                 self._is_running = False
                 if not self.shared_memory.create(1):
-                    print "Unable to create single instance of vistrails application"
+                    debug.critical("Unable to create single instance "
+                                   "of vistrails application")
                     return
                 self.local_server = QtNetwork.QLocalServer(self)
                 self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
@@ -551,7 +551,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                       workflow_info, extra_info=extra_info)
             if len(errs) > 0:
                 for err in errs:
-                    print "*** Error in %s:%s:%s -- %s" % err
+                    debug.critical("*** Error in %s:%s:%s -- %s" % err)
                 return False
             return True
         else:
@@ -643,7 +643,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if QtCore.QT_VERSION >= 0x40400:
             local_socket = self.local_server.nextPendingConnection()
             if not local_socket.waitForReadyRead(self.timeout):
-                print local_socket.errorString().toLatin1()
+                debug.critical("Read error: %s" %
+                               local_socket.errorString().toLatin1())
                 return
             byte_array = local_socket.readAll()
             self.temp_db_options = None 
@@ -657,14 +658,15 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             local_socket = QtNetwork.QLocalSocket(self)
             local_socket.connectToServer(self._unique_key)
             if not local_socket.waitForConnected(self.timeout):
-                print "Failed: ", local_socket.errorString().toLatin1()
+                debug.critical("Connection failed: %s" %
+                               local_socket.errorString().toLatin1())
                 return False
             self.shared_memory.lock()
             local_socket.write(message)
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
-                print "Writing failed: " 
-                print local_socket.errorString().toLatin1()
+                debug.critical("Writing failed: %s" %
+                               local_socket.errorString().toLatin1())
                 return False
             local_socket.disconnectFromServer()
             return True
@@ -685,9 +687,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     self.builderWindow.raise_()
                     self.builderWindow.activateWindow()
             else:
-                print "Invalid string: %s"%msg
+                debug.critical("Invalid string: %s" % msg)
         else:
-            print "Invalid input: %s"%msg
+            debug.critical("Invalid input: %s" % msg)
         
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
@@ -696,13 +698,13 @@ def start_application(optionsDict=None):
     """Initializes the application singleton."""
     global VistrailsApplication
     if VistrailsApplication:
-        print "Application already started."""
+        debug.critical("Application already started.")
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     if VistrailsApplication.is_running():
-        print "Found another instance of VisTrails running"
+        debug.critical("Found another instance of VisTrails running")
         msg = str(sys.argv[1:])
-        print "Sending parameters to main instance ", msg
+        debug.critical("Sending parameters to main instance %s" % msg)
         VistrailsApplication.send_message(msg)
         sys.exit(0)
     try:
@@ -710,8 +712,7 @@ def start_application(optionsDict=None):
     except core.requirements.MissingRequirement, e:
         msg = ("VisTrails requires %s to properly run.\n" %
                e.requirement)
-        QtGui.QMessageBox.critical(None, "Missing requirement",
-                                   msg)
+        debug.critical("Missing requirement", msg)
         sys.exit(1)
     x = VistrailsApplication.init(optionsDict)
     if x == True:

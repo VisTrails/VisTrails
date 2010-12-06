@@ -36,6 +36,7 @@ from gui.theme import CurrentTheme
 from gui.common_widgets import QToolWindowInterface
 from gui.common_widgets import QSearchBox
 from core.utils import all
+from core import debug
 
 ################################################################################
 
@@ -218,12 +219,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
             try:
                 search = SearchCompiler(s).searchStmt
             except SearchParseError, e:
-                QtGui.QMessageBox.warning(self,
-                                          QtCore.QString("Search Parse Error"),
-                                          QtCore.QString(str(e)),
-                                          QtGui.QMessageBox.Ok,
-                                          QtGui.QMessageBox.NoButton,
-                                          QtGui.QMessageBox.NoButton)
+                debug.warning("Search Parse Error", str(e))
                 search = None
             self.controller.set_search(search, s)
             self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')
