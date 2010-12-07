@@ -27,6 +27,7 @@ import core.db.io
 from core.configuration import get_vistrails_configuration
 from core.db.io import load_vistrail
 from core.db.locator import XMLFileLocator, ZIPFileLocator
+from core import debug
 from core.utils import VistrailsInternalError, expression
 from core.vistrail.controller import VistrailController
 from core.vistrail.vistrail import Vistrail
@@ -83,16 +84,18 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if not update_vistrail:
             conf = get_vistrails_configuration()
             if conf.has('thumbs'):
-                conf.thumbs.autoSave = False    
-        (results, _) = controller.execute_current_workflow(aliases,
-                                                                 extra_info)
-        run = results[0]
-        run.workflow_info = (locator.name, version)
-        run.pipeline = controller.current_pipeline
+                conf.thumbs.autoSave = False
         
-
-        #not sure if you need to add the abstractions back
-        #but just to be safe
+        (results, _) = controller.execute_current_workflow(aliases,
+                                                           extra_info)
+        new_version = controller.current_version
+        if new_version != version:
+            debug.warning("Version '%s' (%s) was upgraded. The actual version executed \
+was %s"%(workflow, version, new_version))
+        run = results[0]
+        run.workflow_info = (locator.name, new_version)
+        run.pipeline = controller.current_pipeline
+            
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)

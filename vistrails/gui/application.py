@@ -548,7 +548,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
             errs = core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
-                                      workflow_info, extra_info=extra_info)
+                                      workflow_info, update_vistrail=True,
+                                      extra_info=extra_info)
             if len(errs) > 0:
                 for err in errs:
                     debug.critical("*** Error in %s:%s:%s -- %s" % err)

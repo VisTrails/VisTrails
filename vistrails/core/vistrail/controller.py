@@ -1612,6 +1612,7 @@ class VistrailController(object):
         As, an example, this will be useful for telling the spreadsheet where
         to dump the images.
         """
+        self.flush_delayed_actions()
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
