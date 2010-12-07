@@ -179,7 +179,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         painter.end()
         self.setBackgroundBrush(brush)
     
-    def saveToPNG(self, filename, width=800):
+    def saveToPNG(self, filename, width=None):
         try:
             self.updateSceneBoundingRect(False)
             b_rect = self.sceneBoundingRect
@@ -193,7 +193,8 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(255,255,255)))
             self.render(painter, QtCore.QRectF(), b_rect)
             painter.end()
-            pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
+            if width is not None:
+                pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
         except Exception, e:

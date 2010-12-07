@@ -1120,7 +1120,7 @@ class RequestHandler(object):
                 from gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPNG(filename,1600)
+                pipeline_view.scene().saveToPNG(filename)
                 del pipeline_view
             else:
                 self.server_logger.info("found cached image: %s" % filename)
@@ -1224,7 +1224,7 @@ class RequestHandler(object):
                 from gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)
-                version_view.scene().saveToPNG(filename,1600)
+                version_view.scene().saveToPNG(filename)
                 del version_view
             else:
                 self.server_logger.info("Found cached image: %s" % filename)
