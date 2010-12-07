@@ -69,7 +69,8 @@ class DebugView(QtGui.QDialog):
         self.infoFilter.setCheckable(True)
         self.infoFilter.setChecked(True)
         self.infoFilter.setStyleSheet('color:' +
-                                 CurrentTheme.DEBUG_INFO_COLOR.name())
+                                    CurrentTheme.DEBUG_INFO_COLOR.name() +
+                                    ';background-color:#FFFFFF')
         self.connect(self.infoFilter, QtCore.SIGNAL('stateChanged(int)'),
                      self.toggleInfo)
         filter.addWidget(self.infoFilter, 0, 1)
@@ -78,7 +79,8 @@ class DebugView(QtGui.QDialog):
         self.warningFilter.setCheckable(True)
         self.warningFilter.setChecked(True)
         self.warningFilter.setStyleSheet('color:' +
-                                    CurrentTheme.DEBUG_WARNING_COLOR.name())
+                                    CurrentTheme.DEBUG_WARNING_COLOR.name() +
+                                    ';background-color:#FFFFFF')
         self.connect(self.warningFilter, QtCore.SIGNAL('stateChanged(int)'),
                      self.toggleWarning)
         filter.addWidget(self.warningFilter, 0, 2)
@@ -87,7 +89,8 @@ class DebugView(QtGui.QDialog):
         self.criticalFilter.setCheckable(True)
         self.criticalFilter.setChecked(True)
         self.criticalFilter.setStyleSheet('color:' +
-                                    CurrentTheme.DEBUG_CRITICAL_COLOR.name())
+                                    CurrentTheme.DEBUG_CRITICAL_COLOR.name() +
+                                    ';background-color:#FFFFFF')
         self.connect(self.criticalFilter, QtCore.SIGNAL('stateChanged(int)'),
                      self.toggleCritical)
         filter.addWidget(self.criticalFilter, 0, 3)
@@ -141,7 +144,7 @@ class DebugView(QtGui.QDialog):
         if visible == QtCore.Qt.Unchecked:
             visible = False
         elif visible == QtCore.Qt.Checked:
-            visible == True
+            visible = True
         for item in [self.list.item(i) for i in xrange(self.list.count())]:
             if str(item.data(32).toString()).split('\n')[0] == s:
                 self.list.setItemHidden(item, not visible)
