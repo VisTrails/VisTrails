@@ -555,7 +555,7 @@ class DBLocator(BaseLocator):
             return None
         
     #ElementTree port
-    def to_xml(self, node=None):
+    def to_xml(self, node=None, include_name = False):
         """to_xml(node: ElementTree.Element) -> ElementTree.Element
         Convert this object to an XML representation.
         """
@@ -568,11 +568,13 @@ class DBLocator(BaseLocator):
         node.set('db', str(self._db))
         node.set('vt_id', str(self._obj_id))
         node.set('user', str(self._user))
-
+        if include_name:
+            childnode = ElementTree.SubElement(node,'name')
+            childnode.text = str(self._name)
         return node
 
     @staticmethod
-    def from_xml(node):
+    def from_xml(node, include_name=False):
         """from_xml(node:ElementTree.Element) -> DBLocator or None
         Parse an XML object representing a locator and returns a
         DBLocator object."""
@@ -622,7 +624,11 @@ class DBLocator(BaseLocator):
             data = node.get('user')
             user = convert_from_str(data, 'str')
             passwd = ""
-        
+            name = None
+            if include_name:
+                for child in node.getchildren():
+                    if child.tag == 'name':
+                        name = str(child.text).strip(" \n\t")
             return DBLocator(host, port, database,
                              user, passwd, name, vt_id, None)
         else:

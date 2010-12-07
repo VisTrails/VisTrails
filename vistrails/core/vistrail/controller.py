@@ -1151,8 +1151,8 @@ class VistrailController(object):
         # get the new descriptor first
         invalid_module = self.current_pipeline.modules[module_id]
         abs_fname = invalid_module.module_descriptor.module.vt_fname
-        abs_name = self.parse_abstraction_name(abs_fname)
-        lookup = {abs_name: abs_fname}
+        (path, prefix, abs_name, abs_namespace, suffix) = self.parse_abstraction_name(abs_fname, True)
+        lookup = {(abs_name, abs_namespace): abs_fname}
         descriptor_info = invalid_module.descriptor_info
         newest_version = str(invalid_module.vistrail.get_latest_version())
         d = self.check_abstraction((descriptor_info[0],
@@ -1170,7 +1170,7 @@ class VistrailController(object):
         check_upgrade = UpgradeWorkflowHandler.check_upgrade
         while failed:
             try:
-                check_upgrade(self.current_pipeline, module_id, 
+                check_upgrade(self.current_pipeline, module_id, d, 
                               function_remap=fns_gone, 
                               src_port_remap=src_ports_gone, 
                               dst_port_remap=dst_ports_gone)
@@ -1196,7 +1196,7 @@ class VistrailController(object):
                                                   module_id, d, 
                                                   fns_gone,
                                                   src_ports_gone,
-                                                  dst_ports_gone)
+                                                  dst_ports_gone)[0]
         self.flush_delayed_actions()
         self.add_new_action(upgrade_action)
         self.perform_action(upgrade_action)
@@ -1354,8 +1354,11 @@ class VistrailController(object):
                 raise
         except MissingModule, e:
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
-                raise
-            abs_fname = lookup[(descriptor_tuple[1], descriptor_tuple[2])]
+                if (descriptor_tuple[1], '') not in lookup:
+                    raise
+                abs_fname = lookup[(descriptor_tuple[1], '')]
+            else:
+                abs_fname = lookup[(descriptor_tuple[1], descriptor_tuple[2])]
             new_desc = \
                 self.load_abstraction(abs_fname, False, 
                                       descriptor_tuple[1],
@@ -1609,6 +1612,7 @@ class VistrailController(object):
         As, an example, this will be useful for telling the spreadsheet where
         to dump the images.
         """
+        self.flush_delayed_actions()
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
