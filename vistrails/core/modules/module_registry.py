@@ -1102,14 +1102,7 @@ class ModuleRegistry(DBRegistry):
                 vt_fname)
         
         vistrail = read_vistrail(vt_fname)
-        if 'namespace' in kwargs:
-            namespace = kwargs['namespace']
-        else:
-            namespace = vistrail.get_annotation('__abstraction_uuid__')
-            if namespace is not None:
-                namespace = namespace.value
-                kwargs['namespace'] = namespace
-                kwargs['hide_namespace'] = True
+        namespace = kwargs.get('namespace', '')
         
         # create module from workflow
         module = None
