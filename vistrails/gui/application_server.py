@@ -733,6 +733,7 @@ class RequestHandler(object):
                     core.console_mode.run_and_get_results([(locator,
                                                           int(version))],
                                                           parameters,
+                                                          update_vistrail=True,
                                                           extra_info=extra_info)
                 except Exception, e:
                     self.server_logger.error(str(e))

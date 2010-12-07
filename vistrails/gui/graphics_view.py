@@ -183,10 +183,10 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         try:
             self.updateSceneBoundingRect(False)
             b_rect = self.sceneBoundingRect
-            print "PNG %sx%s" % (b_rect.width(), b_rect.height())
+            debug.log("PNG bounding box %sx%s" % (b_rect.width(), b_rect.height()))
             pixmap = QtGui.QPixmap(QtCore.QSize(int(math.floor(b_rect.width())),
                                                 int(math.floor(b_rect.height()))))
-            print pixmap.size()
+            debug.log("PNG pixmap size: %s"%str(pixmap.size()))
             painter = QtGui.QPainter(pixmap)
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
             brush = self.backgroundBrush()
@@ -197,7 +197,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
         except Exception, e:
-            print "Exception: ", str(e)
+            debug.critical("Exception: %s"%str(e))
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """
