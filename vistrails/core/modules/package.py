@@ -436,7 +436,19 @@ class Package(DBPackage):
         """
         
         return self._init_module.handle_missing_module(*args, **kwargs)
-        
+
+    def has_contextMenuName(self):
+        return hasattr(self._init_module, 'contextMenuName')
+
+    def contextMenuName(self, signature):
+        return self._init_module.contextMenuName(signature)
+    
+    def has_callContextMenu(self):
+        return hasattr(self._init_module, 'callContextMenu')
+
+    def callContextMenu(self, signature):
+        return self._init_module.callContextMenu(signature)
+
     def check_requirements(self):
         try:
             callable_ = self._module.package_requirements
