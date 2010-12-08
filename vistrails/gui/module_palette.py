@@ -154,7 +154,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
             # skip abstract modules, they're no longer in the tree
 
             # NB: only looks for toplevel matches
-            package_identifier = descriptor.identifier
+            package_identifier = descriptor.ghost_identifier or descriptor.identifier
             if package_identifier not in self.packages:
                 package_item = self.newPackage(package_identifier, True)
             else:
