@@ -592,10 +592,14 @@ class DefaultTheme(object):
         self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.black)
         self.DEBUG_WARNING_COLOR = QtGui.QColor("#707000")
         self.DEBUG_CRITICAL_COLOR = QtGui.QColor(QtCore.Qt.red)
-
+        self.DEBUG_FILTER_BACKGROUND_COLOR = QtGui.QColor("#FFFFFF")
+        
 class MacTheme(DefaultTheme):
-
     def __init__(self):
+        class QTransparentColor(QtGui.QColor):
+            def name(self):
+                return 'transparent'
+        
         DefaultTheme.__init__(self)
         #### ICONS & IMAGES ####
         #The application icon
@@ -621,7 +625,9 @@ class MacTheme(DefaultTheme):
         # Font for Splash Screen messages
         self.SPLASH_SCREEN_FONT = QtGui.QFont('Helvetica', 10,
                                               QtGui.QFont.Light)
-
+        
+        self.DEBUG_FILTER_BACKGROUND_COLOR = QTransparentColor("transparent")
+        
 class LinuxTheme(DefaultTheme):
     def __init__(self):
         DefaultTheme.__init__(self)
