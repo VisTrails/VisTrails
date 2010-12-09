@@ -659,6 +659,8 @@ def get_current_theme():
     Instantiates the theme according to the current platform """
     if core.system.systemType in ['Darwin']:
         return MacTheme()
+    elif core.system.systemType in ['Linux']:
+        return LinuxTheme()
     else:
         return DefaultTheme()
     
