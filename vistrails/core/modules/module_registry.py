@@ -307,7 +307,7 @@ class AmbiguousResolution(ModuleRegistryException):
 
 class MissingPort(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type):
-        ModuleRegistryException.__init__(self, 
+        ModuleRegistryException.__init__(self,
                                          descriptor.identifier,
                                          descriptor.name,
                                          descriptor.namespace)
@@ -320,19 +320,21 @@ class MissingPort(ModuleRegistryException):
              self._package_name)
 
 class PortMismatch(MissingPort):
-    def __init__(self, identifier, name, namespace, port_name, port_type):
-        ModuleRegistryException.__init__(self, 
+    def __init__(self, identifier, name, namespace, port_name, port_type, port_sigstring):
+        ModuleRegistryException.__init__(self,
                                          identifier,
                                          name,
                                          namespace)
-        
+
         self._port_name = port_name
         self._port_type = port_type
-                             
+        self._port_sigstring = port_sigstring
+
     def __str__(self):
-        return "%s port '%s' has bad specification in module %s of package %s" % \
-            (self._port_type.capitalize(), self._port_name, self._module_name,
-             self._package_name)
+        return ("%s port '%s' of signature '%s' has bad specification"
+                " in module %s of package %s") % \
+                (self._port_type.capitalize(), self._port_name,
+                 self._port_sigstring, self._module_name, self._package_name)
 
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 

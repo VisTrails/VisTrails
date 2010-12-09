@@ -975,9 +975,9 @@ class Pipeline(DBWorkflow):
                     try:
                         port_spec.create_entries_and_descriptors()
                     except ModuleRegistryException, e:
-                        e = PortMismatch(module.name, module.package, 
+                        e = PortMismatch(module.package, module.name,
                                          module.namespace, port_spec.name,
-                                         port_spec.type)
+                                         port_spec.type, port_spec.sigstring)
                         port_spec.is_valid = False
                         is_valid = False
                         e._module_id = module.id
