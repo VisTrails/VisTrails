@@ -82,10 +82,12 @@ def execute_cmdline(lst, output):
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
                                close_fds=True)
-    process.wait()
-    if process.stdout:
-        output.extend(process.stdout.readlines())
-    return process.returncode
+    # cscheid: Should this be busy-waiting? What's going on here?
+    result = None
+    while result == None:
+        result = process.poll()
+    output.extend(process.stdout.readlines())
+    return result
 
 def get_executable_path(executable_name):
     #FIXME

@@ -907,6 +907,8 @@ class ModuleRegistry(DBRegistry):
           hide_namespace=False,
           hide_descriptor=False,
           is_root=False,
+          ghost_package=None,
+          ghost_package_version=None,
 
         Registers a new module with VisTrails. Receives the class
         itself and an optional name that will be the name of the
@@ -959,6 +961,19 @@ class ModuleRegistry(DBRegistry):
         If is_root is True, the added module will become the root
         module.  Note that this is only possible for the first module
         added.
+        
+        If ghost_package is not None, then the 'ghost_identifier'
+        'ghost_identifier' is set on the descriptor, which will cause
+        the module to be displayed under that package in the module
+        palette, rather than the package specified by the
+        'identifier' attribute of the descriptor.
+        
+        If ghost_package_version is not None, then the attribute
+        'ghost_package_version' is set on the descriptor.  Currently
+        this value is unused, but eventually if multiple packages
+        with the same identifier but different package versions
+        are loaded simultaneously, this will allow overriding of
+        the package_version to associate with in the module palette.
 
         Notice: in the future, more named parameters might be added to
         this method, and the order is not specified. Always call
@@ -991,6 +1006,8 @@ class ModuleRegistry(DBRegistry):
         hide_namespace = fetch('hide_namespace', False)
         hide_descriptor = fetch('hide_descriptor', False)
         is_root = fetch('is_root', False)
+        ghost_identifier = fetch('ghost_package', None)
+        ghost_package_version = fetch('ghost_package_version', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError(
@@ -1054,6 +1071,11 @@ class ModuleRegistry(DBRegistry):
             _check_fringe(moduleLeftFringe)
             _check_fringe(moduleRightFringe)
             descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
+        
+        if ghost_identifier:
+            descriptor.ghost_identifier = ghost_identifier
+        if ghost_package_version:
+            descriptor.ghost_package_version = ghost_package_version
                  
         self.signals.emit_new_module(descriptor)
         if self.is_abstraction(descriptor):
@@ -1135,6 +1157,9 @@ class ModuleRegistry(DBRegistry):
             # need to set identifier to local.abstractions and its version
             kwargs['package'] = abstraction_pkg
             kwargs['package_version'] = abstraction_ver
+            # Set ghost attributes so module palette shows it in package instead of 'My Subworkflows'
+            kwargs['ghost_package'] = identifier
+            kwargs['ghost_package_version'] = package_version
             is_upgraded_abstraction = True
                                     
         module.internal_version = str(module.internal_version)
@@ -1145,8 +1170,11 @@ class ModuleRegistry(DBRegistry):
         else:
             descriptor = self.add_module(module)
         if is_upgraded_abstraction:
-            self._abs_pkg_upgrades[(identifier, name, namespace,  
-                                    package_version, str(version))] = descriptor
+            descriptor_info = (identifier, name, namespace,  
+                               package_version, str(version))
+            self._abs_pkg_upgrades[descriptor_info] = descriptor
+            package._abs_pkg_upgrades[descriptor_info] = descriptor
+            self.auto_add_ports(descriptor.module)
         return descriptor
 
     def has_input_port(self, module, portName):
@@ -1381,6 +1409,13 @@ class ModuleRegistry(DBRegistry):
         # set up fast removal of model
         for sigstring in top_sort:
             self.delete_module(*(sigstring.split(':',2)))
+        
+        # Remove upgraded package subworkflows from registry
+        for descriptor_info, descriptor in package._abs_pkg_upgrades.iteritems():
+            self.delete_module(descriptor.identifier, descriptor.name, descriptor.namespace)
+            del self._abs_pkg_upgrades[descriptor_info]
+        package._abs_pkg_upgrades.clear()
+        
         self.delete_package(package)
         self.signals.emit_deleted_package(package)
 

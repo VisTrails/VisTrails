@@ -123,6 +123,12 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._is_hidden = False
             self._namespace_hidden = False
             self.children = []
+            # The ghost attributes represent the original values
+            # for the descriptor of an upgraded package subworkflow
+            # so it can be displayed with it's original package
+            # rather than 'local.abstractions'
+            self.ghost_identifier = ''
+            self.ghost_package_version = ''
         else:
             # FIXME this will break things, I think
             self.children = copy.copy(other.children)
@@ -140,6 +146,8 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._widget_item = other._widget_item
             self._is_hidden = other._is_hidden
             self._namespace_hidden = other._namespace_hidden
+            self.ghost_identifier = other.ghost_identifier
+            self.ghost_package_version = other.ghost_package_version
         self.port_specs = self.db_portSpecs_name_index
         if self.version is None:
             self.version = ''

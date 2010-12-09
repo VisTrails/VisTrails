@@ -55,11 +55,11 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         registry = get_module_registry()
         self.connect(registry.signals, registry.signals.new_package_signal,
                      self.newPackage)
-        self.connect(registry.signals, registry.signals.new_module_signal, 
+        self.connect(registry.signals, registry.signals.new_module_signal,
                      self.newModule)
         self.connect(registry.signals, registry.signals.deleted_module_signal,
                      self.deletedModule)
-        self.connect(registry.signals, registry.signals.deleted_package_signal, 
+        self.connect(registry.signals, registry.signals.deleted_package_signal,
                      self.deletedPackage)        
         self.connect(registry.signals, registry.signals.show_module_signal,
                      self.showModule)
@@ -81,12 +81,12 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         
         items = [x for x in
                  self.treeWidget.findItems(moduleName,
-                                           QtCore.Qt.MatchExactly |
-                                           QtCore.Qt.MatchWrap |
+                                           QtCore.Qt.MatchExactly | 
+                                           QtCore.Qt.MatchWrap | 
                                            QtCore.Qt.MatchRecursive)
                  if not x.is_top_level() and x.descriptor == descriptor]
         if len(items) <> 1:
-            raise VistrailsInternalError("Expected one item (%s), got %d: %s" %
+            raise VistrailsInternalError("Expected one item (%s), got %d: %s" % 
                                          (moduleName,
                                           len(items),
                                           ";".join(x.descriptor.name 
@@ -154,7 +154,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
             # skip abstract modules, they're no longer in the tree
 
             # NB: only looks for toplevel matches
-            package_identifier = descriptor.identifier
+            package_identifier = descriptor.ghost_identifier or descriptor.identifier
             if package_identifier not in self.packages:
                 package_item = self.newPackage(package_identifier, True)
             else:
@@ -170,7 +170,6 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
                                          QtCore.QStringList(descriptor.name))
             if descriptor.is_hidden:
                 item.setHidden(True)
-
         if recurse:
             for child in descriptor.children:
                 self.newModule(child, recurse)
@@ -214,13 +213,42 @@ class QModuleTreeWidget(QSearchTreeWidget):
         Expand/Collapse top-level item when the mouse is pressed
         
         """
-        if item and item.parent()==None:
+        if item and item.parent() == None:
             self.setItemExpanded(item, not self.isItemExpanded(item))
 
     def contextMenuEvent(self, event):
         # Just dispatches the menu event to the widget item
         item = self.itemAt(event.pos())
         if item:
+            # find top level
+            p = item
+            while p.parent():
+                p = p.parent()
+            # get package identifier
+            identifiers = [i for i, j in self.parent().packages.iteritems()
+                           if j == weakref.ref(p)]
+            if identifiers:
+                identifier = identifiers[0]
+                registry = get_module_registry()
+                package = registry.packages[identifier]
+                if package.has_contextMenuName():
+                    name = package.contextMenuName(str(item.text(0)))
+                    if name:
+                        act = QtGui.QAction(name, self)
+                        act.setStatusTip(name)
+                        def callMenu():
+                            if package.has_callContextMenu():
+                                name = package.callContextMenu(str(item.text(0)))
+                            
+                        QtCore.QObject.connect(act,
+                                               QtCore.SIGNAL("triggered()"),
+                                               callMenu)
+                        menu = QtGui.QMenu(self)
+                        menu.addAction(act)
+                        menu.exec_(event.globalPos())
+                    return
+
+                    
             item.contextMenuEvent(event, self)
 
 class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
@@ -271,8 +299,8 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
             branchOption = QtGui.QStyleOption()
             i = 9 ### hardcoded in qcommonstyle.cpp
             r = option.rect
-            branchOption.rect = QtCore.QRect(r.left() + i/2,
-                                             r.top() + (r.height() - i)/2,
+            branchOption.rect = QtCore.QRect(r.left() + i / 2,
+                                             r.top() + (r.height() - i) / 2,
                                              i, i)
             branchOption.palette = option.palette
             branchOption.state = QtGui.QStyle.State_Children
@@ -284,14 +312,14 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                 branchOption,
                                 painter, self.treeView)
 
-            textrect = QtCore.QRect(r.left() + i*2,
+            textrect = QtCore.QRect(r.left() + i * 2,
                                     r.top(),
-                                    r.width() - ((5*i)/2),
+                                    r.width() - ((5 * i) / 2),
                                     r.height())
             text = option.fontMetrics.elidedText(
                 model.data(index,
                            QtCore.Qt.DisplayRole).toString(),
-                QtCore.Qt.ElideMiddle, 
+                QtCore.Qt.ElideMiddle,
                 textrect.width())
             style.drawItemText(painter,
                                textrect,
@@ -307,7 +335,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Take into account the size of the top-level button
         
         """
-        return (QtGui.QItemDelegate.sizeHint(self, option, index) +
+        return (QtGui.QItemDelegate.sizeHint(self, option, index) + 
                 QtCore.QSize(2, 2))
 
 
@@ -353,7 +381,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         elif d.module_abstract():
             # moduletree widgets for abstract modules are never
             # draggable or enabled
-            flags = flags & ~(QtCore.Qt.ItemIsDragEnabled |
+            flags = flags & ~(QtCore.Qt.ItemIsDragEnabled | 
                               QtCore.Qt.ItemIsSelectable)
         QtGui.QTreeWidgetItem.setFlags(self, flags)
             
@@ -392,7 +420,7 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
         if len(namespace_items) <= 0:
             return self
         namespace_item = namespace_items.pop(0)
-        if namespace_item in self.namespaces:
+        if namespace_item in self.namespaces and self.namespaces[namespace_item]():
             item = self.namespaces[namespace_item]()
         else:
             item = QNamespaceTreeWidgetItem(self,
@@ -401,6 +429,10 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
         return item.get_namespace(namespace_items)
 
     def takeChild(self, index):
+        child = self.child(index)
+        if hasattr(self, "namespaces"):
+            if str(child.text(0)) in self.namespaces:
+                del self.namespaces[str(child.text(0))]
         QModuleTreeWidgetItem.takeChild(self, index)
         if self.childCount() < 1 and self.parent():
             self.parent().takeChild(self.parent().indexOfChild(self))

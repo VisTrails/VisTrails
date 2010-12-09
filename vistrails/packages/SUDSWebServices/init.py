@@ -143,7 +143,8 @@ def initialize(*args, **keywords):
             debug.warning('Duplicate WSDL entry: '+wsdl)
             continue
         s = Service(wsdl)
-        webServicesDict[wsdl] = s
+        if s.service:
+            webServicesDict[wsdl] = s
         
 class WSMethod:
     """ A WSDL method
@@ -180,6 +181,7 @@ class Service:
         """ Process WSDL and add all Types and Methods
         """
         self.address = address
+        self.modules = []
         debug.log("Installing Web Service from WSDL: %s"% address)
  #       try:
         options = dict(cachingpolicy=1, cache=package_cache)
@@ -551,3 +553,52 @@ def handle_missing_module(*args, **kwargs):
     wsdlList.append(wsdl)
     configuration.wsdlList = ';'.join(wsdlList)
     return True
+
+def contextMenuName(signature):
+    """ Returns a context menu name that depends on the signature
+        should return None if no method is available
+    """
+    if signature == name:
+        return "Add Web Service"
+    elif signature in webServicesDict:
+        return "Remove this Web Service"
+    return None
+    
+def callContextMenu(signature):
+    global webServicesDict
+    if signature == name:
+        from PyQt4 import QtGui 
+        wsdl, ret = QtGui.QInputDialog.getText(None, 'Add Web Service', 'Enter the location of the WSDL:')
+        wsdl = str(wsdl)
+        if not wsdl:
+            return
+        if not wsdl.startswith('http://'):
+            wsdl = 'http://' + wsdl
+        if wsdl in webServicesDict:
+            debug.critical('Duplicate WSDL entry: '+wsdl)
+            return
+        s = Service(wsdl)
+        if s.service:
+            webServicesDict[wsdl] = s
+            wsdlList = configuration.wsdlList.split(";")
+            wsdlList.append(wsdl)
+            configuration.wsdlList = ';'.join(wsdlList)
+        
+    elif signature in webServicesDict:
+        from PyQt4 import QtGui 
+        res = QtGui.QMessageBox.question(None, 'Remove the following web service from vistrails?',
+                                   signature,
+                                   buttons=QtGui.QMessageBox.Yes,
+                                   defaultButton=QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+            # Remove this Web Service
+            s = webServicesDict[signature]
+            reg = core.modules.module_registry.get_module_registry()
+            for i in s.typeClasses.itervalues():
+                reg.delete_module(identifier, i.wstype.qname[0], s.address+'|Types')
+            for i in s.methodClasses.itervalues():
+                reg.delete_module(identifier, i.wsmethod.qname[0], s.address+'|Methods')
+            del webServicesDict[signature]
+            wsdlList = configuration.wsdlList.split(";")
+            wsdlList.remove(signature)
+            configuration.wsdlList = ';'.join(wsdlList)
