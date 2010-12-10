@@ -1447,7 +1447,8 @@ class VistrailController(object):
                     group.get_port_spec_info(port_module)
                 new_neighbors = \
                     [(module_index[id_remap[(Module.vtType, m.id)]], n)
-                     for (m, n) in neighbors]
+                     for (m, n) in neighbors
+                     if (Module.vtType, m.id) in id_remap]
                 open_ports[(port_name, port_type)] = new_neighbors        
 
         for connection in full_pipeline.connection_list:
