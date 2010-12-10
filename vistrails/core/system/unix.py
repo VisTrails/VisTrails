@@ -76,8 +76,7 @@ def execute_cmdline(lst, output):
     cscheid: why don't we return a tuple of int, lst instead of mutating that list?
 
     """
-    cmdline = list2cmdline(lst)
-    process = subprocess.Popen(cmdline, shell=True,
+    process = subprocess.Popen(lst, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,

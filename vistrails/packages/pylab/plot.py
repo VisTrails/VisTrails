@@ -57,7 +57,7 @@ class MplPlot(PythonSource):
                      'from numpy import *\n' +
                      urllib.unquote(source))
                 if hide_toolbar:
-                    s += 'get_current_fig_manager().toolbar.hide()\n'
+                    s += '\nget_current_fig_manager().toolbar.hide()\n'
                 self.run_code(s, use_input=True, use_output=True)
 
 class MplPlotConfigurationWidget(SourceConfigurationWidget):
