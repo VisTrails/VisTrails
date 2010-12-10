@@ -25,6 +25,8 @@ import core.debug
 import StringIO
 import api
 import cgi
+from core.configuration import get_vistrails_configuration
+from gui.application import VistrailsApplication
 
 ################################################################################
 
@@ -247,6 +249,9 @@ class DebugView(QtGui.QDialog):
             self.connect(msg_box,
                          QtCore.SIGNAL('buttonClicked(QAbstractButton *)'),
                          self.messageButtonClicked)
+            self.connect(msg_box,
+                         QtCore.SIGNAL('rejected()'),
+                         self.rejectMessage)
             self.updateMessageBox(item)
         else:
             self.itemQueue.append(item)
@@ -265,7 +270,6 @@ class DebugView(QtGui.QDialog):
         else:
             # remove button if it exist
             if self.manyButton:
-                print "removing", self.manyButton
                 msg_box.removeButton(self.manyButton)
                 self.manyButton = None
         if not msg_box.isVisible():
@@ -293,7 +297,7 @@ class DebugView(QtGui.QDialog):
     def write(self, s):
         """write(s) -> None
         adds the string s to the message list and displays it
-        if it is critical."""
+        """
         # adds the string s to the list and 
         s = str(s).strip()
         msgs = s.split('\n')
@@ -311,8 +315,16 @@ class DebugView(QtGui.QDialog):
         elif msgs[0] == "CRITICAL":
             item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_CRITICAL_COLOR))
             self.list.setItemHidden(item, not self.criticalFilter.isChecked())
-        self.list.scrollToItem(item)
-        self.showMessageBox(item)
+        if self.isVisible() and not \
+          getattr(get_vistrails_configuration(),'alwaysShowDebugPopup',False):
+            self.raise_()
+            self.activateWindow()
+            modal = VistrailsApplication.activeModalWidget()
+            if modal:
+                # need to beat modal window
+                self.showMessageBox(item)
+        else:
+            self.showMessageBox(item)
 
     def closeEvent(self, e):
         """closeEvent(e) -> None
@@ -327,6 +339,11 @@ class DebugView(QtGui.QDialog):
     def reject(self):
         """ Captures Escape key and closes window correctly """
         self.close()
+
+    def rejectMessage(self):
+        """ Captures Escape key and closes messageBox correctly """
+        self.itemQueue = []
+        self.msg_box.close()
 
 class debugStream(StringIO.StringIO):
     def __init__(self, write):

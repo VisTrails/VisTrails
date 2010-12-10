@@ -44,7 +44,7 @@ class InputPort(Module):
     
     def compute(self):
         exPipe = self.forceGetInputFromPort('ExternalPipe')
-        if exPipe:
+        if exPipe is not None:
             self.setResult('InternalPipe', exPipe)
         else:
             self.setResult('InternalPipe', InvalidOutput)

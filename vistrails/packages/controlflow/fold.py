@@ -171,12 +171,7 @@ class Fold(Module, NotCacheable):
         self.partialResult = self.initialValue
         self.elementResult = None
         if self.hasInputFromPort('FunctionPort'):
-            try:
-                self.updateFunctionPort()
-            except ModuleError, e:
-                raise ModuleErrors([e, 
-                                    ModuleError(self, 
-                                                "Error inside map: " + e.msg)])
+            self.updateFunctionPort()
         else:
             for element in self.getInputFromPort('InputList'):
                 self.element = element

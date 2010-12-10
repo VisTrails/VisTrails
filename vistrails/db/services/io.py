@@ -790,7 +790,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     # running from the binary install
     zipcmd = 'zip'
     if systemType in ['Windows', 'Microsoft']:
-        zipcmd = os.path.join(cur_dir,'zip.exe')
+        zipcmd = os.path.join(os.getcwd(),'zip.exe')
         if not os.path.exists(zipcmd):
             zipcmd = 'zip.exe' #assume zip is in path
     cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']

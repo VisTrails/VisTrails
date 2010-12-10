@@ -176,11 +176,23 @@ class VistrailController(object):
     def flush_move_actions(self):
         return False
 
+    def migrate_tags(self, from_version, to_version, vistrail=None):
+        if vistrail is None:
+            vistrail = self.vistrail
+        tag = vistrail.get_tag(from_version)
+        if tag:
+            vistrail.set_tag(from_version, "")
+            vistrail.set_tag(to_version, tag)
+        notes = vistrail.get_notes(from_version)
+        if notes:
+            vistrail.set_notes(from_version, "")
+            vistrail.set_notes(to_version, notes)
+
     def flush_delayed_actions(self):
         start_version = self.current_version
         desc_key = Action.ANNOTATION_DESCRIPTION
         added_upgrade = False
-        migrate_tags = get_vistrails_configuration().check("migrateTags")
+        should_migrate_tags = get_vistrails_configuration().check("migrateTags")
         for action in self._delayed_actions:
             self.vistrail.add_action(action, start_version, 
                                      self.current_session)
@@ -188,15 +200,8 @@ class VistrailController(object):
             if (action.has_annotation_with_key(desc_key) and
                 action.get_annotation_by_key(desc_key).value == 'Upgrade'):
                 self.vistrail.set_upgrade(start_version, str(action.id))
-            if migrate_tags:
-                tag = self.vistrail.get_tag(start_version)
-                if tag:
-                    self.vistrail.set_tag(start_version, "")
-                    self.vistrail.set_tag(action.id, tag)
-                notes = self.vistrail.get_notes(start_version)
-                if notes:
-                    self.vistrail.set_notes(start_version, "")
-                    self.vistrail.set_notes(action.id, notes)
+            if should_migrate_tags:
+                self.migrate_tags(start_version, action.id)
             self.current_version = action.id
             start_version = action.id
             added_upgrade = True
@@ -1442,7 +1447,8 @@ class VistrailController(object):
                     group.get_port_spec_info(port_module)
                 new_neighbors = \
                     [(module_index[id_remap[(Module.vtType, m.id)]], n)
-                     for (m, n) in neighbors]
+                     for (m, n) in neighbors
+                     if (Module.vtType, m.id) in id_remap]
                 open_ports[(port_name, port_type)] = new_neighbors        
 
         for connection in full_pipeline.connection_list:
@@ -1970,6 +1976,8 @@ class VistrailController(object):
                 vistrail.add_action(upgrade_action, new_version, 
                                     self.current_session)
                 vistrail.set_upgrade(new_version, str(upgrade_action.id))
+                if get_vistrails_configuration().check("migrateTags"):
+                    self.migrate_tags(new_version, upgrade_action.id, vistrail)
                 new_version = upgrade_action.id
                 self.set_changed(True)
                 self.recompute_terse_graph()
