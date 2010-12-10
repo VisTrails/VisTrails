@@ -35,6 +35,7 @@ import os.path
 import shutil
 import tempfile
 import copy
+from pipes import quote as shell_quote
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
@@ -590,9 +591,9 @@ def open_vistrail_bundle_from_zip_xml(filename):
 
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     output = []
-    cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
+    cmdline = ['unzip', '-q','-o','-d', vt_save_dir, shell_quote(filename)]
     result = execute_cmdline(cmdline, output)
-    
+
     if result != 0 and len(output) != 0:
         raise VistrailsDBException("Unzip of '%s' failed" % filename)
 
