@@ -419,6 +419,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
+        self.checkUpdateAction = QtGui.QAction(self.tr('Check for Updates'), self)
+
         a = QtGui.QAction(self.tr('Execute Current Workflow\tCtrl+Enter'),
                           self)
         self.executeCurrentWorkflowAction = a
@@ -545,6 +547,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.helpMenu = self.menuBar().addMenu('Help')
         self.helpMenu.addAction(self.helpAction)
+        self.helpMenu.addAction(self.checkUpdateAction)
 
     def createToolBar(self):
         """ createToolBar() -> None
@@ -638,6 +641,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.hideBranchAction, self.hideBranch),
             (self.showAllAction, self.showAll),
             (self.helpAction, self.showAboutMessage),
+            (self.checkUpdateAction, self.showUpdatesMessage),
             (self.repositoryOptions, self.showRepositoryOptions),
             (self.editPreferencesAction, self.showPreferences),
             (self.executeCurrentWorkflowAction,
@@ -1460,6 +1464,40 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         #QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
         #                        self.tr(system.about_string()))
+
+    def showUpdatesMessage(self):
+        """ showUpdatesMessage() -> None
+        Displays Check for Updates message.
+        This queries vistrails.org for new VisTrails Versions
+
+        """
+
+        dlg = QtGui.QDialog(self)
+        dlg.setWindowTitle('Check for VisTrails Updates')
+
+        layout = QtGui.QVBoxLayout()
+        layout.setSpacing(6)
+        layout.setMargin(11)
+        layout.addStrut(400)
+        new_version_exists, version = core.system.new_vistrails_release_exists()
+        if new_version_exists:
+            msg = 'Version %s of VisTrails is available at <a href="%s">%s</a>' % \
+                    (version, "http://www.vistrails.org/index.php/Downloads",
+                     "http://www.vistrails.org/index.php/Downloads")
+            label = QtGui.QLabel(msg)
+        else:
+            label = QtGui.QLabel("No new version of VisTrails available")
+
+        closeButton = QtGui.QPushButton('Ok', dlg)
+        closeButton.setShortcut('Enter')
+
+        layout.addWidget(label)
+        layout.addWidget(closeButton)
+
+        dlg.connect(closeButton, QtCore.SIGNAL('clicked(bool)'), dlg.close)
+
+        dlg.setLayout(layout)
+        dlg.exec_()
 
     def showRepositoryOptions(self):
         """ Displays Repository Options for authentication and pushing VisTrail to Repository """
