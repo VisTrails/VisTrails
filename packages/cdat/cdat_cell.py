@@ -5,7 +5,7 @@ from packages.spreadsheet.spreadsheet_controller import spreadsheetController
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_event import DisplayCellEvent
-from cdatwrap.coreappwrap import VCSQtManager
+#from cdatwrap.coreappwrap import VCSQtManager
 import vcs
 import genutil
 import cdutil
