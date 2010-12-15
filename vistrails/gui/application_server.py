@@ -67,8 +67,6 @@ ElementTree = core.system.get_elementtree_library()
 import core.requirements
 import core.console_mode
 
-from index import indexworkflow
-
 from db.versions import currentVersion
 
 ################################################################################
@@ -834,55 +832,6 @@ class RequestHandler(object):
             result = str(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
-        return (result, 0)
-
-    def remove_workflow_index(self, wf_id):
-        self.server_logger.info("Request: remove_workflow_index(%s)" % (wf_id))
-        try:
-            wi = indexworkflow.WorkflowIndexer()
-            wi.remove(wf_id)
-            wi.close()
-            return (1, 1)
-        except xmlrpclib.ProtocolError, err:
-            err_msg = ("A protocol error occurred\n"
-                       "URL: %s\n"
-                       "HTTP/HTTPS headers: %s\n"
-                       "Error code: %d\n"
-                       "Error message: %s\n") % (err.url, err.headers,
-                                                 err.errcode, err.errmsg)
-            self.server_logger.error(err_msg)
-            return (str(err), 0)
-        except Exception, e:
-            self.server_logger.error(str(e))
-            return (str(e), 0)
-
-    def index_workflow(self, host, port, db_name, vt_id, wf_info):
-        self.server_logger.info("Request: index_workflow(%s,%s,%s,%s,%s)" % \
-                                    (host, port, db_name, vt_id, wf_info))
-        try:
-            locator = DBLocator(host=host,
-                                port=int(port),
-                                database=db_name,
-                                user=db_read_user,
-                                passwd=db_read_pass,
-                                obj_id=int(vt_id),
-                                obj_type=None,
-                                connection_id=None)
-
-            v = locator.load().vistrail
-            p = v.getPipeline(long(wf_info['wf_id']))
-
-            if p:
-                wi = indexworkflow.WorkflowIndexer()
-                wi.index_vt_wf(wf_info, p)
-                wi.close()
-                return (1, 1)
-            else:
-                result = "Pipeline was not materialized"
-                self.server_logger.error(result)
-        except Exception, e:
-            result = str(e)
-            self.server_logger.error(result)
         return (result, 0)
 
     def get_tag_version(self, host, port, db_name, vt_id, vt_tag):
