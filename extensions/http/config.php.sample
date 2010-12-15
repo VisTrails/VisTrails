@@ -1,0 +1,25 @@
+<?php
+//This file will store the configuration of your server
+// it will be used by all the other php scripts
+// Rename this file to config.php
+
+//This is where the RPC-XML server is running
+$VT_HOST = "localhost";
+$VT_PORT = 8080;
+
+// Change this to point to the folder where vistrails.py is
+// You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
+// Used in run_vistrails.php
+$PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
+
+// Change this to point to the folder where the images should be generated
+// absoulte path should be used
+$PATH_TO_IMAGES = '/path/to/images/';
+
+// Change this to the web accessible path to the folder where the images were generated
+// Something like http://your.url.com$WEB_PATH_TO_IMAGES
+$WEB_PATH_TO_IMAGES = '/images/';
+
+// Change this to the full url pointing to the root where the graphs were generated
+$URL_TO_GRAPHS = "http://your.domain.com/path/to/images/";
+?>

@@ -169,7 +169,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         b_rect = self.sceneBoundingRect
-        debug.log("%sx%s" % (b_rect.width(), b_rect.height()))
+        debug.debug("%sx%s" % (b_rect.width(), b_rect.height()))
         printer.setPaperSize(QtCore.QSizeF(b_rect.width(), b_rect.height()),
                              QtGui.QPrinter.Point)
         painter = QtGui.QPainter(printer)
@@ -179,21 +179,22 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         painter.end()
         self.setBackgroundBrush(brush)
     
-    def saveToPNG(self, filename, width=800):
+    def saveToPNG(self, filename, width=None):
         try:
             self.updateSceneBoundingRect(False)
             b_rect = self.sceneBoundingRect
-            debug.log("PNG %sx%s" % (b_rect.width(), b_rect.height()))
+            debug.debug("PNG bounding box %sx%s" % (b_rect.width(), b_rect.height()))
             pixmap = QtGui.QPixmap(QtCore.QSize(int(math.floor(b_rect.width())),
                                                 int(math.floor(b_rect.height()))))
-            debug.log(str(pixmap.size()))
+            debug.debug("PNG pixmap size: %s"%str(pixmap.size()))
             painter = QtGui.QPainter(pixmap)
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
             brush = self.backgroundBrush()
             self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(255,255,255)))
             self.render(painter, QtCore.QRectF(), b_rect)
             painter.end()
-            pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
+            if width is not None:
+                pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
         except Exception, e:
@@ -239,12 +240,13 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.setCursorState(self.defaultCursorState)
         self.canSelectBackground = True
         self.canSelectRectangle = True
-
-        self.viewport().grabGesture(QtCore.Qt.PinchGesture)
+        
+        if QtCore.QT_VERSION >= 0x40600:
+            self.viewport().grabGesture(QtCore.Qt.PinchGesture)
         self.gestureStartScale = None
 
     def viewportEvent(self, event):
-        if event.type() == QtCore.QEvent.Gesture:
+        if QtCore.QT_VERSION >= 0x40600 and event.type() == QtCore.QEvent.Gesture:
             pinch = event.gesture(QtCore.Qt.PinchGesture)
             if pinch:
                 changeFlags = pinch.changeFlags()

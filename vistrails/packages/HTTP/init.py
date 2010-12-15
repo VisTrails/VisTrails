@@ -192,15 +192,32 @@ class HTTPFile(HTTP):
         return package_directory + '/' + urllib.quote_plus(url)
 
 class RepoSync(HTTP):
-    """ enables data to be synced with a online repository. The designated file
+    """ VisTrails Server version of RepoSync modules. Customized to play 
+    nicely with crowdlabs. Needs refactoring.
+
+    RepoSync enables data to be synced with a online repository. The designated file
     parameter will be uploaded to the repository on execution,
     creating a new pipeline version that links to online repository data.
     If the local file isn't available, then the online repository data is used.
     """
+
     def __init__(self):
         HTTP.__init__(self)
-        self.base_url = \
-                get_vistrails_persistent_configuration().webRepositoryURL
+
+        config = get_vistrails_persistent_configuration()
+        if config.check('webRepositoryURL'):
+            self.base_url = config.webRepositoryURL
+        else:
+            raise ModuleError(self,
+                              ("No webRepositoryURL value defined"
+                               " in the Expert Configuration"))
+
+        # check if we are running in server mode
+        # this effects how the compute method functions
+        if config.check('isInServerMode'):
+            self.is_server = bool(config.isInServerMode)
+        else:
+            self.is_server = False
 
         # TODO: this '/' check should probably be done in core/configuration.py
         if self.base_url[-1] == '/':
@@ -227,10 +244,8 @@ class RepoSync(HTTP):
             self.up_to_date = True if \
                     check_dataset_on_repo.read() == 'uptodate' else False
             self.on_server = True
-            print 'checksum lookup'
         except urllib2.HTTPError:
             self.up_to_date = True
-            print 'checksum lookup2'
 
     def data_sync(self):
         """ downloads/uploads/uses the local file depending on availability """
@@ -289,7 +304,7 @@ class RepoSync(HTTP):
                 local_filename = package_directory + '/' + \
                         urllib.quote_plus(self.url)
                 if not self._file_is_in_local_cache(local_filename):
-                    # file not in cache, download 
+                    # file not in cache, download.
                     try:
                         urllib.urlretrieve(self.url, local_filename)
                     except IOError, e:
@@ -299,41 +314,59 @@ class RepoSync(HTTP):
                 debug.warning('RepoSync is using repository data')
                 self.setResult("file", out_file)
 
+
     def compute(self):
-        self.checkInputPort('file')
-        self.in_file = self.getInputFromPort("file")
-        if os.path.isfile(self.in_file.name):
-            # do size check
-            size = os.path.getsize(self.in_file.name)
-            if size > 10485760:
-                show_warning("File is too large", ("file is larger than 10MB, "
-                             "unable to sync with web repository"))
-                self.setResult("file", self.in_file)
+        # if server, grab local file using checksum id
+        if self.is_server:
+            self.checkInputPort('checksum')
+            self.checksum = self.getInputFromPort("checksum")
+            # get file path
+            path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
+            try:
+                dataset_path_request = urllib2.urlopen(url=path_url)
+                dataset_path = dataset_path_request.read()
+            except urllib2.HTTPError:
+                pass
+
+            if os.path.isfile(dataset_path):
+                out_file = core.modules.basic_modules.File()
+                out_file.name = dataset_path
+                self.setResult("file", out_file)
+        else: # is client
+            self.checkInputPort('file')
+            self.in_file = self.getInputFromPort("file")
+            if os.path.isfile(self.in_file.name):
+                # do size check
+                size = os.path.getsize(self.in_file.name)
+                if size > 26214400:
+                    show_warning("File is too large", ("file is larger than 25MB, "
+                                 "unable to sync with web repository"))
+                    self.setResult("file", self.in_file)
+                else:
+                    # compute checksum
+                    f = open(self.in_file.name, 'r')
+                    self.checksum = hashlib.sha1()
+                    block = 1
+                    while block:
+                        block = f.read(128)
+                        self.checksum.update(block)
+                    f.close()
+                    self.checksum = self.checksum.hexdigest()
+
+                    # upload/download file
+                    self.data_sync()
+
+                    # set checksum param in module
+                    if not self.hasInputFromPort('checksum'):
+                        self.change_parameter('checksum', [self.checksum])
+
             else:
-                # compute checksum
-                f = open(self.in_file.name, 'r')
-                self.checksum = hashlib.sha1()
-                block = 1
-                while block:
-                    block = f.read(128)
-                    self.checksum.update(block)
-                f.close()
-                self.checksum = self.checksum.hexdigest()
+                # local file not present
+                if self.hasInputFromPort('checksum'):
+                    self.checksum = self.getInputFromPort("checksum")
 
-                # upload/download file
-                self.data_sync()
-
-                # set checksum param in module
-                if not self.hasInputFromPort('checksum'):
-                    self.change_parameter('checksum', [self.checksum])
-
-        else:
-            # local file not present
-            if self.hasInputFromPort('checksum'):
-                self.checksum = self.getInputFromPort("checksum")
-
-                # download file
-                self.data_sync()
+                    # download file
+                    self.data_sync()
 
 def initialize(*args, **keywords):
     reg = core.modules.module_registry.get_module_registry()

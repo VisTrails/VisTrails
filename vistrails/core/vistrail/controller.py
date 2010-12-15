@@ -31,6 +31,7 @@ import core.db.action
 import core.db.io
 import core.db.locator
 from core import debug
+from core.data_structures.graph import Graph
 from core.interpreter.default import get_default_interpreter
 from core.log.controller import LogControllerFactory, DummyLogController
 from core.log.log import Log
@@ -62,6 +63,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
+from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from db import VistrailsDBException
 from db.domain import IdScope
 from db.services.io import create_temp_folder, remove_temp_folder
@@ -101,6 +103,19 @@ class VistrailController(object):
         self.flush_pipeline_cache()
         self._current_full_graph = None
         self._current_terse_graph = None
+        self._previous_graph_layout = None
+        self._current_graph_layout = VistrailsTreeLayoutLW()
+        self.animate_layout = False
+        self.num_versions_always_shown = 1
+
+        # if self.search is True, vistrail is currently being searched
+        self.search = None
+        self.search_str = None
+        # If self.refine is True, search mismatches are hidden instead                              
+        # of ghosted                                                                                
+        self.refine = False
+        self.full_tree = False
+
         self._asked_packages = set()
         self._delayed_actions = []
         self._loaded_abstractions = {}
@@ -1633,11 +1648,86 @@ class VistrailController(object):
                                                 extra_info)])
 
     def recompute_terse_graph(self):
-        """recomputes just the full graph, gui.VistrailController
-        does more
+        # get full version tree (including pruned nodes)                                            
+        # this tree is kept updated all the time. This                                              
+        # data is read only and should not be updated!                                              
+        fullVersionTree = self.vistrail.tree.getVersionTree()
 
-        """
+        # create tersed tree                                                                        
+        x = [(0,None)]
+        tersedVersionTree = Graph()
+
+        # cache actionMap and tagMap because they're properties, sort of slow                       
+        am = self.vistrail.actionMap
+        tm = self.vistrail.get_tagMap()
+        last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
+
+        while 1:
+            try:
+                (current,parent)=x.pop()
+            except IndexError:
+                break
+
+            # mount childs list                                                                     
+            if current in am and self.vistrail.is_pruned(current):
+                children = []
+            else:
+                children = \
+                    [to for (to, _) in fullVersionTree.adjacency_list[current]
+                     if (to in am) and (not self.vistrail.is_pruned(to) or \
+                                            to == self.current_version)]
+
+            if (self.full_tree or
+                (current == 0) or  # is root                                                        
+                (current in tm) or # hasTag:                                                        
+                (len(children) <> 1) or # not oneChild:                                             
+                (current == self.current_version) or # isCurrentVersion                             
+                (am[current].expand) or  # forced expansion                                         
+                (current in last_n)): # show latest                                                 
+                # yes it will!                                                                      
+                # this needs to be here because if we are refining                                  
+                # version view receives the graph without the non                                   
+                # matching elements                                                                 
+                if( (not self.refine) or
+                    (self.refine and not self.search) or
+                    (current == 0) or
+                    (self.refine and self.search and
+                     self.search.match(self.vistrail,am[current]) or
+                     current == self.current_version)):
+                    # add vertex...                                                                 
+                    tersedVersionTree.add_vertex(current)
+
+                    # ...and the parent                                                             
+                    if parent is not None:
+                        tersedVersionTree.add_edge(parent,current,0)
+
+                    # update the parent info that will                                              
+                    # be used by the childs of this node                                            
+                    parentToChildren = current
+                else:
+                    parentToChildren = parent
+            else:
+                parentToChildren = parent
+
+            for child in reversed(children):
+                x.append((child, parentToChildren))
+
+        self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
+        self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
+        self._current_graph_layout.layout_from(self.vistrail,
+                                               self._current_terse_graph)
+        
+    def refine_graph(self, step=1.0):
+        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)                                       
+        Refine the graph of the current vistrail based the search                                      
+        status of the controller. It also return the full graph as a                                   
+        reference                                                                                      
+                                                                                                       
+        """
+        
+        return (self._current_terse_graph, self._current_full_graph,
+                self._current_graph_layout)
 
     def get_latest_version_in_graph(self):
         if not self._current_terse_graph:

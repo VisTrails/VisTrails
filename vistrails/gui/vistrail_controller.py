@@ -26,7 +26,6 @@ from core import debug
 import core.db.action
 import core.db.locator
 import core.modules.vistrails_module
-from core.data_structures.graph import Graph
 from core.utils import VistrailsInternalError, InvalidPipeline
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
@@ -47,7 +46,6 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
-from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 
 import core.analogy
@@ -99,13 +97,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_pipeline_view = False
         self.reset_version_view = True
         self.quiet = False
-        # if self.search is True, vistrail is currently being searched
-        self.search = None
-        self.search_str = None
-        # If self.refine is True, search mismatches are hidden instead
-        # of ghosted
-        self.refine = False
-        self.full_tree = False
+        
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
         # file every 2 minutes
@@ -113,11 +105,12 @@ class VistrailController(QtCore.QObject, BaseController):
         self.timer = QtCore.QTimer(self)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
-
-        self._previous_graph_layout = None
-        self._current_graph_layout = VistrailsTreeLayoutLW()
-        self.animate_layout = False
-        self.num_versions_always_shown = 1
+        
+        #this was moved to BaseController
+        #self._previous_graph_layout = None
+        #self._current_graph_layout = VistrailsTreeLayoutLW()
+        #self.animate_layout = False
+        #self.num_versions_always_shown = 1
 
     ##########################################################################
     # Signal vistrail relayout / redraw
@@ -833,77 +826,6 @@ class VistrailController(QtCore.QObject, BaseController):
         if full != self.full_tree:
             self.full_tree = full
             self.invalidate_version_tree(True)
-
-    def recompute_terse_graph(self):
-        # get full version tree (including pruned nodes)
-        # this tree is kept updated all the time. This
-        # data is read only and should not be updated!
-        fullVersionTree = self.vistrail.tree.getVersionTree()
-
-        # create tersed tree
-        x = [(0,None)]
-        tersedVersionTree = Graph()
-
-        # cache actionMap and tagMap because they're properties, sort of slow
-        am = self.vistrail.actionMap
-        tm = self.vistrail.get_tagMap()
-        last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
-
-        while 1:
-            try:
-                (current,parent)=x.pop()
-            except IndexError:
-                break
-
-            # mount childs list
-            if current in am and self.vistrail.is_pruned(current):
-                children = []
-            else:
-                children = \
-                    [to for (to, _) in fullVersionTree.adjacency_list[current]
-                     if (to in am) and (not self.vistrail.is_pruned(to) or \
-                                            to == self.current_version)]
-
-            if (self.full_tree or 
-                (current == 0) or  # is root
-                (current in tm) or # hasTag:
-                (len(children) <> 1) or # not oneChild:
-                (current == self.current_version) or # isCurrentVersion
-                (am[current].expand) or  # forced expansion
-                (current in last_n)): # show latest
-                # yes it will!
-                # this needs to be here because if we are refining
-                # version view receives the graph without the non
-                # matching elements
-                if( (not self.refine) or
-                    (self.refine and not self.search) or
-                    (current == 0) or
-                    (self.refine and self.search and 
-                     self.search.match(self.vistrail,am[current]) or
-                     current == self.current_version)):
-                    # add vertex...
-                    tersedVersionTree.add_vertex(current)
-                
-                    # ...and the parent
-                    if parent is not None:
-                        tersedVersionTree.add_edge(parent,current,0)
-
-                    # update the parent info that will 
-                    # be used by the childs of this node
-                    parentToChildren = current
-                else:
-                    parentToChildren = parent
-            else:
-                parentToChildren = parent
-
-            for child in reversed(children):
-                x.append((child, parentToChildren))
-
-        self._current_terse_graph = tersedVersionTree
-        self._current_full_graph = self.vistrail.tree.getVersionTree()
-        self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
-        self._current_graph_layout.layout_from(self.vistrail, 
-                                               self._current_terse_graph)
 
     def refine_graph(self, step=1.0):
         """ refine_graph(step: float in [0,1]) -> (Graph, Graph)        

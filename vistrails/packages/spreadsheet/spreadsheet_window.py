@@ -77,6 +77,10 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.file_pool = module_utils.FilePool()
         self.echoMode = False
         self.echoCellEvents = []
+        # if the spreadsheet has one row and 2 columns
+        # this will cause the spreadsheet to have each cell
+        # 550 x 450 size in the server
+        #self.resize(1156, 599)
 
     def cleanup(self):
         if self.visApp!=None:

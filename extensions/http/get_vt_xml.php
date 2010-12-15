@@ -30,9 +30,7 @@
 // the url
 //functions.php is located inside the ./mediawiki folder
 require_once 'functions.php';
-
-$VT_HOST = "vistrails.sci.utah.edu";
-$VT_PORT = 8080;
+require_once 'config.php';
 
 // set variables with default values
 $host = 'vistrails.sci.utah.edu';
@@ -70,7 +68,7 @@ function clean_up($xmlstring){
     try{
 	   $node = new SimpleXMLElement($xmlstring);
 	   echo '<?xml version="1.0"?> '."\n";
-	   echo $node->params[0]->param[0]->value[0]->string[0]->vistrail[0]->asXML();;
+	   echo $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0]->vistrail[0]->asXML();
     } catch(Exception $e) {
         echo "bad xml";
     }

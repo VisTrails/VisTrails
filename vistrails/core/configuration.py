@@ -210,6 +210,7 @@ def default():
         'workflowInfo': (None, str),
         'webRepositoryLogin': (None, str),
         'webRepositoryURL': "http://www.crowdlabs.org",
+        'isInServerMode': False,
         }
     specific_dir = add_specific_config(base_dir)
     return ConfigurationObject(**specific_dir)

@@ -34,17 +34,17 @@ $USE_VISTRAILS_XML_RPC_SERVER = True;
 $VT_HOST = "localhost";
 $VT_PORT = 8080;
 
-// Change this to point to the folder where vistrails.py is
+// Change this to point to the folder where vistrails.py is 
 // You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
 $PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
 
 // Change this to point to the folder where the images should be generated
 $PATH_TO_IMAGES = '/images/vistrails/';
-$PATH_TO_GRAPHS= '/images/graphs/';
+$PATH_TO_GRAPHS= '/images/vistrails/graphs/';
 
 // Change this to the web accessible path to the folder where the images were generated
 $WEB_PATH_TO_IMAGES = '/images/';
-$WEB_PATH_TO_GRAPHS = '/images/graphs/';
+$WEB_PATH_TO_GRAPHS = "/images/graphs/";
 
 $resp_result = '';
 function registerVistrailTag() {
@@ -74,7 +74,7 @@ function printVistrailTag($input,$params, &$parser) {
     $showWorkflow = 'False';
     foreach ($params as $key=>$value) {
         if($key == "vtid")
-            $vtid = "".$value;
+            $vtid = $value;
         if($key == "version")
             $version = $value;
         if($key == "host")
@@ -91,7 +91,7 @@ function printVistrailTag($input,$params, &$parser) {
                                                        $dbname, $vtid,
                                                        $version_tag));
                 $response = do_call($VT_HOST,$VT_PORT,$request);
-                $version = get_result_from_response($response);
+                $version = get_version_from_response($response);
                 //echo $version;
             }
         }
@@ -128,7 +128,7 @@ function printVistrailTag($input,$params, &$parser) {
         list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
         if ($width > 400)
            $width = 400;
-        $res = '<a href="http://www.vistrails.org/extensions/download.php?' . $linkParams . '">';
+        $res = '<a href="http://alps.comp-phys.org/vistrails/download.php?' . $linkParams . '">';
         $res = $res . '<img src="'. $WEB_PATH_TO_GRAPHS . $result.
                         "\" alt=\"vt_id:$vtid\" width=\"$width\"/>";
         $res = $res . '</a>';
@@ -143,7 +143,7 @@ function printVistrailTag($input,$params, &$parser) {
         list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
         if ($width > 400)
            $width = 400;
-        $res = '<a href="http://www.vistrails.org/extensions/download.php?' . $linkParams . '">';
+        $res = '<a href="http://alps.comp-phys.org/vistrails/download.php?' . $linkParams . '">';
         $res = $res . '<img src="'. $WEB_PATH_TO_GRAPHS . $result.
                         "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
         $res = $res . '</a>';
@@ -156,7 +156,10 @@ function printVistrailTag($input,$params, &$parser) {
         $destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' . $version;
         $destversion = md5($destversion);
         $destdir = $destdir . $destversion;
-        if((!file_exists($destdir)) or strcasecmp($force_build,'True') == 0) {
+        $build_always_bool = False;
+        if (strcasecmp($force_build,'True') == 0)
+            $build_always_bool = True;
+        if((!path_exists_and_not_empty($destdir)) or strcasecmp($force_build,'True') == 0) {
             if(!file_exists($destdir)){
                 mkdir($destdir,0770);
                 chmod($destdir, 0770);
@@ -173,9 +176,10 @@ function printVistrailTag($input,$params, &$parser) {
             else {
                 $request = xmlrpc_encode_request('run_from_db',
                                                  array($host, $port, $dbname, $vtid,
-                                                       $destdir, $version));
+                                                       $destdir, $version, False, '',
+                                                       $build_always_bool));
                 $response = do_call($VT_HOST,$VT_PORT,$request);
-                $result = get_result_from_response($response);
+                $result = clean_up($response);
             }
         }
     }
@@ -186,8 +190,8 @@ function printVistrailTag($input,$params, &$parser) {
         foreach($files as $filename) {
             if($filename != '.' and $filename != '..'){
                 list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
-                if ($width > 400)
-                   $width = 400;
+                if ($width > 350)
+                   $width = 350;
                 $res = $res . '<img src="'.$WEB_PATH_TO_IMAGES . $destversion.'/'.
                        $filename.
                        "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
@@ -201,36 +205,21 @@ function printVistrailTag($input,$params, &$parser) {
     }
     return($res);
 }
-function contents($parser, $data){
-        global $resp_result;
-        $resp_result = $resp_result . $data;
-    }
 
-    function  start_tag($parser, $data){
-         //do nothing
+function get_version_from_response($xmlstring){
+    try{
+        $node = @new SimpleXMLElement($xmlstring);
+        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->int[0];
+    } catch(Exception $e) {
+        echo "bad xml";
     }
-
-    function end_tag($parser, $data){
-        //do nothing
-    }
-function get_result_from_response($response) {
-    global $resp_result;
-    $resp_result = '';
-    $xml_parser = xml_parser_create();
-    xml_set_element_handler($xml_parser, "start_tag", "end_tag");
-    xml_set_character_data_handler($xml_parser, "contents");
-    if(!(xml_parse($xml_parser, $response, True))){
-        die("Error on line " . xml_get_current_line_number($xml_parser));
-    }
-    xml_parser_free($xml_parser);
-    return trim($resp_result);
 }
 
 function clean_up($xmlstring){
     try{
         $node = @new SimpleXMLElement($xmlstring);
 
-        return $node->params[0]->param[0]->value[0]->string[0];
+        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
     } catch(Exception $e) {
         echo "bad xml";
     }

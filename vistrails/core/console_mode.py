@@ -42,7 +42,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     version can be a tag name or a version id.
     
     """
-    elements = parameters.split("&&")
+    elements = parameters.split("$&$")
     aliases = {}
     result = []
     for locator, workflow in w_list:
@@ -95,7 +95,7 @@ was %s"%(workflow, version, new_version))
         run = results[0]
         run.workflow_info = (locator.name, new_version)
         run.pipeline = controller.current_pipeline
-            
+
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)

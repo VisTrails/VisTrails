@@ -25,8 +25,10 @@ import core.configuration
 import core.system
 from db.services import io
 from db.services.io import SaveBundle
+from db.domain import DBVistrail
 import urllib
 from db import VistrailsDBException
+from core import debug
 from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 import hashlib
@@ -129,7 +131,7 @@ class XMLFileLocator(BaseLocator):
         return os.path.isfile(self._name)
 
     def _get_name(self):
-        return self._name
+        return str(self._name)
     name = property(_get_name)
 
     def _get_short_name(self):
@@ -371,7 +373,8 @@ class DBLocator(BaseLocator):
     cache = {}
     cache_timestamps = {}
     connections = {}
-
+    cache_connections = {}
+    
     def __init__(self, host, port, database, user, passwd, name=None,
                  obj_id=None, obj_type=None, connection_id=None,
                  version_node=None, version_tag=''):
@@ -450,6 +453,12 @@ class DBLocator(BaseLocator):
                return connection
         else:
             if self._conn_id is None:
+                if DBLocator.cache_connections.has_key(self._hash):
+                    connection = DBLocator.cache_connections[self._hash]
+                    if io.ping_db_connection(connection):
+                        debug.log("Reusing cached connection")
+                        return connection
+
                 if len(DBLocator.connections.keys()) == 0:
                     self._conn_id = 1
                 else:
@@ -462,6 +471,7 @@ class DBLocator(BaseLocator):
         connection = io.open_db_connection(config)
             
         DBLocator.connections[self._conn_id] = connection
+        DBLocator.cache_connections[self._hash] = connection
         return connection
 
     def load(self, type, tmp_dir=None):
@@ -470,13 +480,11 @@ class DBLocator(BaseLocator):
         if DBLocator.cache.has_key(self._hash):
             save_bundle = DBLocator.cache[self._hash]
             obj = save_bundle.get_primary_obj()
-            ts = io.get_db_object_modification_time(self.get_connection(),
-                                                    obj.db_id,
-                                                    obj.vtType)
-            ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
-            
-            #print DBLocator.cache_timestamps[self._hash],ts
+
+            ts = self.get_db_modification_time(obj.vtType)
+            #debug.log("cached time: %s, db time: %s"%(DBLocator.cache_timestamps[self._hash],ts))
             if DBLocator.cache_timestamps[self._hash] == ts:
+                #debug.log("using cached vistrail")
                 # If thumbnail cache was cleared, get thumbs from db
                 if tmp_dir is not None:
                     for absfname in save_bundle.thumbnails:
@@ -484,7 +492,7 @@ class DBLocator(BaseLocator):
                             save_bundle.thumbnails = io.open_thumbnails_from_db(self.get_connection(), type, self.obj_id, tmp_dir)
                             break
                 return save_bundle
-        
+        #debug.log("loading vistrail from db")
         connection = self.get_connection()
         save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
         primary_obj = save_bundle.get_primary_obj()
@@ -513,6 +521,19 @@ class DBLocator(BaseLocator):
         DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
 
+    def get_db_modification_time(self, obj_type=None):
+        if obj_type is None:
+            if self.obj_type is None:
+                obj_type = DBVistrail.vtType 
+            else:
+                obj_type = self.obj_type
+
+        ts = io.get_db_object_modification_time(self.get_connection(),
+                                                self.obj_id,
+                                                obj_type)
+        ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
+        return ts
+        
     def serialize(self, dom, element):
         """serialize(dom, element) -> None
         Convert this object to an XML representation.
