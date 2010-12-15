@@ -51,8 +51,8 @@ Source: C:\Python26\Tools\*; DestDir: {app}\vistrails\Python26\Tools; Flags: rec
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\DDBJ_webservice.vt; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\DDBJ_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\EMBOSS_webservices.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\gridfieldexample.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\bathymetry.vt; DestDir: {app}\examples; Components: examples
@@ -76,14 +76,14 @@ Source: ..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components
 Source: ..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
 Source: ..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
-Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
-Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
-Source: ..\..\examples\data\gktbhL123.vtk; DestDir: {app}\examples\data; Components: examples
-Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data; Components: examples
-Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: examples
-Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
+;Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
+;Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
+;Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
+;Source: ..\..\examples\data\gktbhL123.vtk; DestDir: {app}\examples\data; Components: examples
+;Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data; Components: examples
+;Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: examples
+;Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: ..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
@@ -97,28 +97,28 @@ Source: Input\license.txt; DestDir: {app}
 Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
 ;;;; ------- QT LIBS ------- ;;;;
 ;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\phonon4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\Qt3Support4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtAssistantClient4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtCLucene4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtCore4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtDesigner4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtDesignerComponents4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtGui4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtHelp4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtMultimedia4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtNetwork4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtOpenGL4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtScript4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtScriptTools4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtSql4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtSvg4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtTest4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtWebKit4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtXml4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\bin\QtXmlPatterns4.dll; DestDir: {app}\vistrails
-Source: D:\Qt\4.6.2\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
-Source: D:\Qt\4.6.2\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
+Source: D:\Qt\4.6.3\bin\phonon4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\Qt3Support4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtAssistantClient4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtCLucene4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtCore4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtDesigner4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtDesignerComponents4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtGui4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtHelp4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtMultimedia4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtNetwork4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtOpenGL4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtScript4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtScriptTools4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtSql4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtSvg4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtTest4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtWebKit4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtXml4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\bin\QtXmlPatterns4.dll; DestDir: {app}\vistrails
+Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
+Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
 ;Source: C:\WINDOWS\system32\Python26.dll; DestDir: {app}\vistrails
 ;Source: C:\WINDOWS\system32\Python26.dll; DestDir: {app}\vistrails\Python26
