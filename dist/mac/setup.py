@@ -31,6 +31,7 @@ OPTIONS = {'argv_emulation': True,
                         gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
                         sine,st,Numeric,pexpect,psycopg2,sqlite3,suds',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,pyGridWare,Ft,Scientific,dbflib,shapelib,distutils,h5py',
+           'excludes': 'mpl_toolkits.basemap',
            'plist': plist,
            }
 

@@ -15,7 +15,9 @@ exit 0
 fi
 VOL="$1"
 DMG="$VOL.dmg"
-
+ALPS_VERSION="2.0.0rc4-r5336"
+ALPS_URL="http://archive.comp-phys.org/software/vistrails/"
+ALPS_FILE="alps-vistrails-${ALPS_VERSION}-Darwin.tar.gz"
 echo "removing build and dist folders..."
 rm -rf dist/ build/
 echo "removing old bundle..."
@@ -55,8 +57,13 @@ echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."
 cp -r Input/plugins/* dist/VisTrails.app/Contents/MacOS
+if [ ! -e "Input/alps_libs/${ALPS_FILE}" ]
+then
+    echo "downloading ALPS file from ${ALPS_URL}${ALPS_FILE}"
+    curl --create-dirs ${ALPS_URL}${ALPS_FILE} -o Input/alps_libs/${ALPS_FILE} 
+fi
 echo "copying alps libs..."
-tar -xzf Input/alps_libs/alps-vistrails-2.0.0rc3-r5227-Darwin.tar.gz -C dist/
+tar -xzf Input/alps_libs/${ALPS_FILE} -C dist/
 echo "copying example files..."
 mkdir dist/examples
 cp ../../examples/brain_vistrail.vt dist/examples
