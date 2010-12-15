@@ -960,7 +960,7 @@ class Pipeline(DBWorkflow):
                                                         p.pos,
                                                         function.name,
                                                         function.real_id))
-                        exceptions.append(e)
+                        exceptions.add(e)
                     pos_map[p.pos] = p
                 function.is_valid = is_valid
         if len(exceptions) > 0:

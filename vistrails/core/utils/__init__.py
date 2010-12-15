@@ -433,7 +433,8 @@ class DummyView(object):
     def set_module_not_executed(self, *args, **kwargs): pass
     def set_module_progress(self, *args, **kwargs): pass
     def set_module_persistent(self, *args, **kwargs): pass
-
+    def flushMoveActions(self, *args, **kwargs): pass
+    
 ##############################################################################    
 # FIXME: Add tests
 def no_interrupt(callable_, *args, **kwargs):
@@ -586,14 +587,14 @@ class TestCommon(unittest.TestCase):
         c = C()
         cf = weakref.ref(c.f)
         #bound methods behave not as expected. You want cf() not to be None
-        self.assertIsNone(cf())
+        self.assertEquals(cf(), None)
         #so we use the new class
         cf = Ref(c.f)
         #it behaves as expected
         self.assertEquals(cf()(),'hello')
         del c
         #and after deletion the reference is dead
-        self.assertIsNone(cf())
+        self.assertEquals(cf(), None)
         
     def test_chdir(self):
         def raise_exception():

@@ -125,11 +125,9 @@ def cleanup():
 
 import core.packagemanager
 import core.system
-import sys
 import unittest
 import core.vistrail
-import random
-from core.vistrail.module import Module
+import db.domain
 
 class TestConsoleMode(unittest.TestCase):
 
@@ -138,16 +136,14 @@ class TestConsoleMode(unittest.TestCase):
         if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
             return
 
-#         m = __import__('console_mode_test')
-#         sys.path = old_path
-        old_path = sys.path
-        sys.path.append(core.system.vistrails_root_directory() +
-                        '/tests/resources')
-#         d = {'console_mode_test': 'tests.resources.'}
-        manager.add_package('console_mode_test')
-        manager.initialize_packages()
-        sys.path = old_path
+        d = {'console_mode_test': 'tests.resources.'}
+        manager.late_enable_package('console_mode_test',d)
 
+    def tearDown(self):
+        manager = core.packagemanager.get_package_manager()
+        if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
+            manager.late_disable_package('console_mode_test')
+            
     def test1(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/dummy.xml')
@@ -157,23 +153,33 @@ class TestConsoleMode(unittest.TestCase):
     def test_tuple(self):
         from core.vistrail.module_param import ModuleParam
         from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module import Module
         from core.utils import DummyView
+        from core.vistrail.module import Module
+       
+        id_scope = db.domain.IdScope()
         interpreter = core.interpreter.default.get_default_interpreter()
         v = DummyView()
         p = core.vistrail.pipeline.Pipeline()
-        params = [ModuleParam(type='Float',
+        params = [ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                              pos=0,
+                              type='Float',
                               val='2.0',
                               ),
-                  ModuleParam(type='Float',
+                  ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                              pos=1,
+                              type='Float',
                               val='2.0',
                               )]
-        p.add_module(Module(id=0,
+        function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+                                  name='input')
+        function.add_parameters(params)
+        module = Module(id=id_scope.getNewId(Module.vtType),
                            name='TestTupleExecution',
-                           package='edu.utah.sci.vistrails.console_mode_test',
-                           functions=[ModuleFunction(name='input',
-                                                     parameters=params)],
-                           ))
+                           package='edu.utah.sci.vistrails.console_mode_test')
+        module.add_function(function)
+        
+        p.add_module(module)
+        
         kwargs = {'locator': XMLFileLocator('foo'),
                   'current_version': 1L,
                   'view': v,

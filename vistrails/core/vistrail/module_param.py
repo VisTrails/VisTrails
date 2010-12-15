@@ -45,7 +45,7 @@ class ModuleParam(DBParameter):
             del kwargs['namespace']
         else:
             namespace = None
-	DBParameter.__init__(self, *args, **kwargs)
+        DBParameter.__init__(self, *args, **kwargs)
         if self.real_id is None:
             self.real_id = -1
         if self.strValue is None:
@@ -92,7 +92,7 @@ class ModuleParam(DBParameter):
     def convert(_parameter):
         if _parameter.__class__ == ModuleParam:
             return
-	_parameter.__class__ = ModuleParam
+        _parameter.__class__ = ModuleParam
         _parameter.queryMethod = 0
         _parameter.minValue = ""
         _parameter.maxValue = ""

@@ -404,20 +404,10 @@ def initialize(*args, **keywords):
 ##############################################################################
 
 import unittest
-
+from core.utils import DummyView
 
 class TestHTTPFile(unittest.TestCase):
-
-    class DummyView(object):
-        def set_module_active(self, id):
-            pass
-        def set_module_computing(self, id):
-            pass
-        def set_module_success(self, id):
-            pass
-        def set_module_error(self, id, error):
-            pass
-
+    
     def testParseURL(self):
         foo = HTTPFile()
         foo._parse_url('http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip')
@@ -440,13 +430,14 @@ class TestHTTPFile(unittest.TestCase):
                                     )
         p.add_module(Module(name='HTTPFile',
                            package=identifier,
+                           version=version,
                            id=0,
                            functions=[m_function],
                            ))
         interpreter = core.interpreter.default.get_default_interpreter()
         kwargs = {'locator': XMLFileLocator('foo'),
                   'current_version': 1L,
-                  'view': self.DummyView(),
+                  'view': DummyView(),
                   }
         interpreter.execute(p, **kwargs)
 
@@ -466,13 +457,14 @@ class TestHTTPFile(unittest.TestCase):
                                     )
         p.add_module(Module(name='HTTPFile',
                            package=identifier,
+                           version=version,
                            id=0,
                            functions=[m_function],
                            ))
         interpreter = core.interpreter.default.get_default_interpreter()
         kwargs = {'locator': XMLFileLocator('foo'),
                   'current_version': 1L,
-                  'view': self.DummyView(),
+                  'view': DummyView(),
                   }
         interpreter.execute(p, **kwargs)
 

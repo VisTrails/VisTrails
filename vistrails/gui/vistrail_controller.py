@@ -1599,6 +1599,7 @@ import unittest
 import gui.utils
 import api
 import os
+from core.utils import DummyView
 
 class TestVistrailController(gui.utils.TestVisTrailsGUI):
 
@@ -1618,6 +1619,7 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
     def test_create_functions(self):
         controller = VistrailController(Vistrail(), False)
         controller.change_selected_version(0L)
+        controller.current_pipeline_view = DummyView()
         module = controller.add_module(0.0,0.0, 'edu.utah.sci.vistrails.basic', 
                                        'ConcatenateString')
         functions = [('str1', ['foo'], -1, True),
@@ -1646,13 +1648,14 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
         config = get_vistrails_configuration()
         filename = os.path.join(config.abstractionsDirectory,
                                 '__TestFloatList.xml')
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
-                           '/tests/resources/test_abstraction.xml').load()
-
-        controller = VistrailController(v, False)
-        pipeline = v.getPipeline(9L)
-        controller.current_pipeline = pipeline
-        controller.current_version = 9L
+        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+                           '/tests/resources/test_abstraction.xml')
+        v = locator.load()
+        controller = VistrailController(auto_save=False)
+        controller.set_vistrail(v,locator)
+        controller.change_selected_version(9L)
+        self.assertNotEqual(controller.current_pipeline, None)
+        controller.current_pipeline_view = DummyView()
         
         module_ids = [1, 2, 3]
         connection_ids = [1, 2, 3]

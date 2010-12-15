@@ -678,11 +678,23 @@ class TestCachedInterpreter(unittest.TestCase):
 
     def test_cache(self):
         from core.db.locator import XMLFileLocator
+        from core.vistrail.controller import VistrailController
+        from core.db.io import load_vistrail
+        
         """Test if basic caching is working."""
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml').load()
+        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+                            '/tests/resources/dummy.xml')
+        (v, abstractions, thumbnails) = load_vistrail(locator)
+        
+        # the controller will take care of upgrades
+        controller = VistrailController()
+        controller.set_vistrail(v, locator, abstractions, thumbnails)
         p1 = v.getPipeline('int chain')
         n = v.get_version_number('int chain')
+        controller.change_selected_version(n)
+        controller.flush_delayed_actions()
+        p1 = controller.current_pipeline
+        
         view = DummyView()
         interpreter = core.interpreter.cached.CachedInterpreter.get()
         result = interpreter.execute(p1, 
