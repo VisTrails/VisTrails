@@ -1476,12 +1476,16 @@ class TestPipeline(unittest.TestCase):
 #             print c
 
     def test_incorrect_port_spec(self):
+        import core.modules.basic_modules
         p = Pipeline()
+        basic_version = core.modules.basic_modules.version
         m1 = Module(name="String",
                     package="edu.utah.sci.vistrails.basic",
+                    version=basic_version,
                     id=1L)
         m2 = Module(name="String",
                     package="edu.utah.sci.vistrails.basic",
+                    version=basic_version,
                     id=2L)
         source = Port(id=1L,
                       type='source', 
