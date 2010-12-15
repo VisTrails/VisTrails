@@ -33,6 +33,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+import traceback
 import urllib
 import xmlrpclib
 import ConfigParser
@@ -61,7 +62,6 @@ from core.vistrail.controller import VistrailController
 import core
 import db.services.io
 import gc
-import traceback
 ElementTree = core.system.get_elementtree_library()
 
 import core.requirements
@@ -222,7 +222,8 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             result = str(e)
-            self.server_logger.error(str(result))
+            self.server_logger.error(result)
+            self.server_logger.error(traceback.format_exc())
         return (result, 0)
 
     def get_packages(self):
@@ -261,6 +262,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def add_vt_to_db(self, host, port, db_name, user, vt_filepath, filename,
@@ -312,6 +314,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def merge_vt(self, host, port, db_name, user, new_vt_filepath,
@@ -360,7 +363,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
-            traceback.print_exc()
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def remove_vt_from_db(self, host, port, db_name, user, vt_id):
@@ -737,6 +740,7 @@ class RequestHandler(object):
                                                           extra_info=extra_info)
                 except Exception, e:
                     self.server_logger.error(str(e))
+                    self.server_logger.error(traceback.format_exc())
                     return (str(e), 0)
                 ok = True
 
@@ -749,6 +753,7 @@ class RequestHandler(object):
                             result += str(errors[i])
             except Exception, e:
                 self.server_logger.error(str(e))
+                self.server_logger.error(traceback.format_exc())
                 return (str(e), 0)
 
         if ok:
@@ -786,6 +791,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def get_wf_datasets(self, host, port, db_name, vt_id, version):
@@ -827,6 +833,7 @@ class RequestHandler(object):
         except Exception, e:
             result = str(e)
             self.server_logger.error(result)
+            self.server_logger.error(traceback.format_exc())
         return (result, 0)
 
     def remove_workflow_index(self, wf_id):
@@ -909,6 +916,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
 
@@ -939,6 +947,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def get_wf_xml(self, host, port, db_name, vt_id, version):
@@ -975,6 +984,7 @@ class RequestHandler(object):
         except Exception, e:
             result = str(e)
             self.server_logger.error(result)
+            self.server_logger.error(traceback.format_exc())
         return (result, 0)
 
     def get_wf_graph_pdf(self, host, port, db_name, vt_id, version, is_local=True):
@@ -1012,6 +1022,7 @@ class RequestHandler(object):
                     return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
+                    self.server_logger.error(traceback.format_exc())
                     return (str(e), 0)
 
             if not os.path.exists(filepath):
@@ -1060,6 +1071,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving pdf: %s" % str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def get_wf_graph_png(self, host, port, db_name, vt_id, version, is_local=True):
@@ -1098,6 +1110,7 @@ class RequestHandler(object):
                     return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
+                    self.server_logger.error(traceback.format_exc())
                     return (str(e), 0)
             #if it gets here, this means that we will execute on this instance
             if not os.path.exists(filepath):
@@ -1142,6 +1155,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving png %s" % str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def _is_image_stale(self, filename, host, port, db_name, vt_id):
@@ -1198,6 +1212,7 @@ class RequestHandler(object):
                     return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
+                    self.server_logger.error(traceback.format_exc())
                     return (str(e), 0)
 
             #if it gets here, this means that we will execute on this instance
@@ -1246,6 +1261,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving png: %s" % str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def get_vt_graph_pdf(self, host, port, db_name, vt_id, is_local=True):
@@ -1283,6 +1299,7 @@ class RequestHandler(object):
                     return (str(err), 0)
                 except Exception, e:
                     self.server_logger.error(str(e))
+                    self.server_logger.error(traceback.format_exc())
                     return (str(e), 0)
 
 
@@ -1332,6 +1349,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error("Error when saving pdf: %s" % str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
         
     def get_vt_zip(self, host, port, db_name, vt_id):
@@ -1374,6 +1392,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def get_wf_vt_zip(self, host, port, db_name, vt_id, version):
@@ -1427,6 +1446,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.info(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def get_db_vt_list(self, host, port, db_name):
@@ -1482,6 +1502,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
     def get_vt_tagged_versions(self, host, port, db_name, vt_id, is_local=True):
@@ -1534,6 +1555,7 @@ class RequestHandler(object):
             return (str(err), 0)
         except Exception, e:
             self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
             return (str(e), 0)
 
 ################################################################################
