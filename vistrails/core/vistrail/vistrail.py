@@ -1275,7 +1275,6 @@ class TestVistrail(unittest.TestCase):
                     print start_v, end_v
 
                 assert p == p2
-                sys.stderr.flush()
 
             if new_v is not None:
                 do_single_test(old_v, new_v)

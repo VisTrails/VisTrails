@@ -704,6 +704,9 @@ class TestCachedInterpreter(unittest.TestCase):
                                      )
         # to force fresh params
         p2 = v.getPipeline('int chain')
+        controller.change_selected_version(n)
+        controller.flush_delayed_actions()
+        p2 = controller.current_pipeline
         result = interpreter.execute(p2, 
                                      locator=v,
                                      current_version=n,

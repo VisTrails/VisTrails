@@ -504,6 +504,7 @@ class Chdir(object):
 
 
 import unittest
+import tempfile
 
 class _TestFibo(object):
     @memo_method
@@ -598,11 +599,11 @@ class TestCommon(unittest.TestCase):
         
     def test_chdir(self):
         def raise_exception():
-            with Chdir('/tmp'):
+            with Chdir(tempfile.gettempdir()):
                 raise Exception
             
         currentpath = os.getcwd()
-        with Chdir("/tmp"):
+        with Chdir(tempfile.gettempdir()):
             pass
         self.assertEquals(os.getcwd(), currentpath)
         
