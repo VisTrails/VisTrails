@@ -136,19 +136,43 @@ class PipelineInspector(object):
         """ inspect_spreadsheet_cells(pipeline: Pipeline) -> None
         Inspect the pipeline to see how many cells is needed
         
-        """        
+        """
         registry = get_module_registry()
         self.spreadsheet_cells = []
         if not pipeline: return
-        # Sometimes we run without the spreadsheet!
-        if registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'SpreadsheetCell'):
-            # First pass to check cells types
-            cellType = registry.get_descriptor_by_name('edu.utah.sci.vistrails.spreadsheet',
-                                                       'SpreadsheetCell').module
-            for mId, module in pipeline.modules.iteritems():
-                desc = registry.get_descriptor_by_name(module.package, module.name, module.namespace)
-                if issubclass(desc.module, cellType):
-                    self.spreadsheet_cells.append(mId)
+
+        def find_spreadsheet_cells(pipeline, root_id=None):
+            if root_id is None:
+                root_id = []
+            # Sometimes we run without the spreadsheet!
+            if registry.has_module('edu.utah.sci.vistrails.spreadsheet', 
+                                   'SpreadsheetCell'):
+                # First pass to check cells types
+                cellType = registry.get_descriptor_by_name( \
+                    'edu.utah.sci.vistrails.spreadsheet',
+                    'SpreadsheetCell').module
+                for mId, module in pipeline.modules.iteritems():
+                    desc = registry.get_descriptor_by_name(module.package, 
+                                                           module.name, 
+                                                           module.namespace)
+                    if issubclass(desc.module, cellType):
+                        self.spreadsheet_cells.append(root_id + [mId])
+
+            for subworkflow_id in self.find_subworkflows(pipeline):
+                subworkflow = pipeline.modules[subworkflow_id]
+                find_spreadsheet_cells(subworkflow.pipeline, 
+                                       root_id + [subworkflow_id])
+
+        find_spreadsheet_cells(pipeline)
+    
+    def find_subworkflows(self, pipeline):
+        if not pipeline: 
+            return
+        subworkflows = []
+        for m_id, module in pipeline.modules.iteritems():
+            if module.is_abstraction() or module.is_group():
+                subworkflows.append(m_id)
+        return subworkflows
 
     def inspect_ambiguous_modules(self, pipeline):
         """ inspect_ambiguous_modules(pipeline: Pipeline) -> None
@@ -162,6 +186,8 @@ class PipelineInspector(object):
         """
         self.annotated_modules = {}
         if not pipeline: return
+
+        orig_pipeline = pipeline
         count = {}
         module_name = {}
         for moduleId in pipeline.modules.iterkeys():
@@ -174,6 +200,24 @@ class PipelineInspector(object):
             else:
                 module_name[module.name] = moduleId
                 count[module.name] = 1
+
+        for id_list in self.spreadsheet_cells:
+            pipeline = orig_pipeline
+            # only need to worry about nested cells here
+            if len(id_list) >= 2:
+                id_iter = iter(id_list)
+                m = pipeline.modules[id_iter.next()]
+                for m_id in id_iter:
+                    pipeline = m.pipeline
+                    m = pipeline.modules[m_id]
+                if m.name in module_name:
+                    if count[m.name] == 1:
+                        self.annotated_modules[module_name[m.name]] = 1
+                    count[m.name] += 1
+                    self.annotated_modules[tuple(id_list)] = count[m.name]
+                else:
+                    module_name[m.name] = tuple(id_list)
+                    count[m.name] = 1
 
 
 # if __name__ == '__main__':
