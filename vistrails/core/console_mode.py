@@ -127,7 +127,6 @@ import core.packagemanager
 import core.system
 import unittest
 import core.vistrail
-import db.domain
 
 class TestConsoleMode(unittest.TestCase):
 
@@ -155,6 +154,7 @@ class TestConsoleMode(unittest.TestCase):
         from core.vistrail.module_function import ModuleFunction
         from core.utils import DummyView
         from core.vistrail.module import Module
+        import db.domain
        
         id_scope = db.domain.IdScope()
         interpreter = core.interpreter.default.get_default_interpreter()
