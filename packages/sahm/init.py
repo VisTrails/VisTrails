@@ -10,7 +10,12 @@ from core.modules.vistrails_module import Module, ModuleError, ModuleConnector
 from core.modules.basic_modules import File, Directory, new_constant, Constant
 from core.system import list2cmdline, execute_cmdline
 
+
 from widgets import get_predictor_widget, get_predictor_config
+from RunPARC import runPARC
+from SelectPredictorsLayers import SelectPredictorsLayers
+from utils import map_ports, path_value, create_file_module, create_dir_module
+
 
 identifier = 'gov.usgs.sahm'
 _temp_files = []
@@ -37,33 +42,15 @@ def run_cmd_line_jar(jar_name, args):
     print 'running', cmdline
     res = execute_cmdline(['java', '-jar', jar_name] + arg_items, output)
     return res, output
-     
-def path_value(value):
-    return value.name
 
-def map_ports(module, port_map):
-    args = {}
-    for port, (flag, access, required) in port_map.iteritems():
-        if required or module.hasInputFromPort(port):
-            value = module.getInputFromPort(port)
-            if access is not None:
-                value = access(value)
-            args[flag] = value
-    return args
-
-def create_file_module(fname, f=None):
-    if f is None:
-        f = File()
-    f.name = fname
-    f.upToDate = True
-    return f
-
-def create_dir_module(dname, d=None):
-    if d is None:
-        d = Directory()
-    d.name = dname
-    d.upToDate = True
-    return d
+def run_cmd_line_py(jar_name, args):
+    arg_items = list(itertools.chain(*args.items()))
+    output = []
+    jar_name = os.path.join(sahm_path, jar_name)
+    cmdline = ['java', '-jar', jar_name] + arg_items
+    print 'running', cmdline
+    res = execute_cmdline(['java', '-jar', jar_name] + arg_items, output)
+    return res, output
 
 def expand_ports(port_list):
     new_port_list = []
@@ -113,12 +100,20 @@ class FieldData(File):
                      ('value_as_string', 
                       '(edu.utah.sci.vistrails.basic:String)', True)]
 
+
+
 class Predictor(File):
     _input_ports = [('categorical', '(edu.utah.sci.vistrails.basic:Boolean)')]
     _output_ports = [('value', '(gov.usgs.sahm:Predictor:DataInput)'),
                      ('value_as_string', 
                       '(edu.utah.sci.vistrails.basic:String)', True)]
-    
+
+class TemplateLayer(File):
+    # _input_ports = [('csvFile', '(edu.utah.sci.vistrails.basic:File)')]
+    _output_ports = [('value', '(gov.usgs.sahm:TemplateLayer:DataInput)'),
+                     ('value_as_string', '(edu.utah.sci.vistrails.basic:String)', True)]
+    pass
+
 class RemoteSensingPredictor(Predictor):
     pass
 
@@ -182,16 +177,18 @@ class BoostedRegressionTree(Model):
 class MDSBuilder(Module):
     _input_ports = expand_ports([('fieldData', 'basic:File'),
                                  ('minValue', 'basic:Float'),
-                                 ('addPredictor', 'DataInput|Predictor'),
-                                 ('predictorList', 'DataInput|PredictorList'),
+                                 ('PredictorsDir', 'basic:Directory'),
                                  ('sessionDir', 'basic:Directory')])
     _output_ports = expand_ports([('mdsFile', 'basic:File')])
 
     def compute(self):
-        port_map = {'fieldData': ('-f', path_value, False),
+        port_map = {'fieldData': ('-f', path_value, True),
+                    'PredictorsDir':('-i',path_value, True),
                     'minValue': ('-m', None, False),
                     'sessionDir': ('-s', path_value, False)}
         args = map_ports(self, port_map)
+        
+        print args
 
         predictor_list = self.forceGetInputFromPort('predictorList', [])
         predictor_list.extend(self.forceGetInputListFromPort('addPredictor'))
@@ -202,49 +199,117 @@ class MDSBuilder(Module):
 
         output_fname = mktempfile(prefix='sahm', suffix='.mds')
         args['-o'] = output_fname
-        args['-i'] = predictors_dir
+        #args['-i'] = predictors_dir
 
         res, output = run_cmd_line_jar('MdsBuilder.jar', args)
+        print res
         if res != 0:
+            print "ModuleError", ''.join(output)
             raise ModuleError(self, ''.join(output))
+        
+        
 
         output_file = create_file_module(output_fname)
+        
+        print "finished running MDS builder"
+        
         self.setResult('mdsFile', output_file)
 
 class FieldDataQuery(Module):
-    _input_ports = expand_ports([('siteConfig', 'basic:File'),
-                                 ('fieldData', 'basic:File'),
-                                 ('siteName', 'basic:String'),
-                                 ('sessionDir', 'basic:Directory'),
+    _input_ports = expand_ports([('fieldData', 'basic:File'),
+                                 ('templateLayer', 'basic:File'),
+                                 ('outputData', 'basic:File'),
                                  ('aggregateRows', 'basic:Boolean'),
                                  ('aggregateRowsByYear', 'basic:Boolean')])
-    _output_ports = expand_ports([('outputDir', 'basic:Directory')])
-
+    _output_ports = expand_ports([('fieldData', 'basic:File')])
+    
     def compute(self):
-        port_map = {'siteConfig': ('-c', path_value, True),
-                    'fieldData': ('-f', path_value, False),
-                    'siteName': ('-n', None, True),
-                    'sessionDir': ('-s', session_dir, False),
-                    'aggregateRows': ('-p', None, False),
-                    'aggregateRowsByYear': ('-y', None, False),
-                    }
+        port_map = {'fieldData': ('-f', path_value, False),
+            'templateLayer': ('-t', path_value, True),
+            'outputData': ('-o', path_value, True),
+            'aggregateRows': ('-p', None, False),
+            'aggregateRowsByYear': ('-y', None, False),
+            }
         args = map_ports(self, port_map)
-
-        output_dname = mktempdir(prefix='sahm')
-        args['-o'] = output_dname
-
-        res, output = run_cmd_line_jar('FieldDataQuery.jar', args)
-        if res != 0:
-            raise ModuleError(self, ''.join(output))
         
-        output_dir = create_dir_module(output_dname)
-        self.setResult('outputDir', output_dir)
+        try:
+            if args['-p'] == True:
+                args['-p'] = ''
+            if args['-p'] == False:
+                del args['-p']
+            if args['-y'] == True:
+                args['-y'] = ''
+            if args['-y'] == False:
+                del args['-y']
+        except:
+            pass
+
+        FDQ_py = os.path.join(configuration.sahm_path,"python", "FieldDataQuery.py")
+        
+        arg_items = []
+        for k,v in args.items():
+            arg_items.append(k)
+            arg_items.append(v)
+        
+        cmd = ([FDQ_py] + arg_items)
+        print cmd
+        
+        cmdline = list2cmdline(cmd)
+        print cmdline
+        
+        result = os.system(cmdline)
+        if result != 0:
+            raise ModuleError(self, "Execution failed")
+        
+        output_file = create_file_module(args['-o'])
+        self.setResult('fieldData', output_file)
+
+#class FieldDataQuery(Module):
+#    _input_ports = expand_ports([('siteConfig', 'basic:File'),
+#                                 ('fieldData', 'basic:File'),
+#                                 ('siteName', 'basic:String'),
+#                                 ('sessionDir', 'basic:Directory'),
+#                                 ('aggregateRows', 'basic:Boolean'),
+#                                 ('aggregateRowsByYear', 'basic:Boolean')])
+#    _output_ports = expand_ports([('outputDir', 'basic:Directory')])
+#
+#    def compute(self):
+#        port_map = {'siteConfig': ('-c', path_value, True),
+#                    'fieldData': ('-f', path_value, False),
+#                    'siteName': ('-n', None, True),
+#                    'sessionDir': ('-s', path_value, False),
+#                    'aggregateRows': ('-p', None, False),
+#                    'aggregateRowsByYear': ('-y', None, False),
+#                    }
+#        
+#        args = map_ports(self, port_map)
+#        
+#        try:
+#            if args['-p'] == True:
+#                args['-p'] = ''
+#            if args['-p'] == False:
+#                del args['-p']
+#        except:
+#            pass
+#        
+#        output_dname = mktempdir(prefix='sahm')
+#        args['-o'] = output_dname
+#
+#        for k,v in args:
+#            print "%s=%s" % (k, v)
+#        print args
+#        
+#        res, output = run_cmd_line_jar('FieldDataQuery.jar', args)
+#        if res != 0:
+#            raise ModuleError(self, ''.join(output))
+#        
+#        output_dir = create_dir_module(output_dname)
+#        self.setResult('outputDir', output_dir)
 
 class ModelBuilder(Module):
     _input_ports = expand_ports([('mdsFile', 'basic:File'),
                                  ('addModel', 'Models|Model'),
-                                 ('addPredictor', 'DataInput|Predictor'),
-                                 ('predictorList', 'DataInput|PredictorList'),
+                                 ('PredictorLayersDir', 'basic:Directory'),
                                  ('sessionDir', 'basic:Directory')])
     _output_ports = expand_ports([('outputFile', 'basic:File'),
                                   ('ancillaryDir', 'basic:Directory')])
@@ -252,6 +317,7 @@ class ModelBuilder(Module):
     def compute(self):
         port_map = {'mdsFile': ('-f', path_value, True),
                     'sessionDir': ('-s', path_value, False),
+                    'PredictorLayersDir': ('-i', path_value, False)
                     }
         args = map_ports(self, port_map)
         
@@ -288,15 +354,18 @@ class ModelBuilder(Module):
                 # for port in model.input_ports:
                 #    port + model.getInputFromPort(port)
                 pass
-        predictors_dir = mktempdir(prefix='sahm_layers')
-        for predictor in predictor_list:
-            shutil.copy(predictor.name, predictors_dir)
+            
+#        predictors_dir = mktempdir(prefix='sahm_layers')
+#        for predictor in predictor_list:
+#            shutil.copy(predictor.name, predictors_dir)
+
+        
 
         output_fname = mktempfile(prefix='sahm', suffix='.xml')
         args['-a'] = ancillary_dname
         args['-o'] = output_fname
         args['-m'] = models_dir
-        args['-i'] = predictors_dir
+        #args['-i'] = predictors_dir
 
         res, output = run_cmd_line_jar('ModelBuilder.jar', args)
         if res != 0:
@@ -454,6 +523,7 @@ def initialize():
     global sahm_path, models_path
     sahm_path = configuration.sahm_path
     models_path = configuration.models_path
+    #RunParc.configuration = configuration
     load_max_ent_params()
     
 def finalize():
@@ -490,9 +560,9 @@ def build_available_trees():
         if row[2] not in trees:
             trees[row[2]] = {}
         available_dict = trees[row[2]]
-        if row[4] not in available_dict:
-            available_dict[row[4]] = []
-        available_dict[row[4]].append((row[0], row[1], row[3]))            
+        if 'Daymet' not in available_dict:
+            available_dict['Daymet'] = []
+        available_dict['Daymet'].append((row[0], row[1], row[3]))            
         # if row[1] not in available_dict:
         #     available_dict[row[1]] = []
         # available_dict[row[1]].append((row[3], row[2]))    
@@ -521,7 +591,9 @@ def build_predictor_modules():
     return modules
 
 _modules = generate_namespaces({'DataInput': [Predictor, 
-                                              PredictorList, 
+                                              PredictorList,
+                                              FieldData,
+                                              TemplateLayer,
                                               RemoteSensingPredictor,
                                               ClimatePredictor,
                                               StaticPredictor,
@@ -529,9 +601,11 @@ _modules = generate_namespaces({'DataInput': [Predictor,
                                     build_predictor_modules(),
                                 'Tools': [Resampler, 
                                           FieldDataQuery,
-                                          MDSBuilder,
                                           ModelBuilder,
-                                          MapBuilder],
+                                          MapBuilder,
+                                          MDSBuilder,
+                                          runPARC,
+                                          SelectPredictorsLayers],
                                 'Models': [Model,
                                            GLM,
                                            RandomForest,
