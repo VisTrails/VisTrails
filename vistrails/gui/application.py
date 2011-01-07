@@ -39,8 +39,11 @@ import core.interpreter.default
 import core.interpreter.cached
 import core.requirements
 import core.startup
+import db.services.io
+from db import VistrailsDBException
 import gui.theme
 import os.path
+import getpass
 import sys
 import copy
 
@@ -513,6 +516,23 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         usedb = False
         if self.temp_db_options.host:
             usedb = True
+            passwd = ''
+            db_config = dict((x, self.temp_db_options.__dict__[x])
+                             for x in ['host', 'port', 
+                                       'db', 'user'])
+            try:
+                db.services.io.test_db_connection(db_config)
+            except VistrailsDBException:
+                passwd = \
+                    getpass.getpass("Password for user '%s':" % \
+                                        self.temp_db_options.user)
+                db_config['passwd'] = passwd
+                try:
+                    db.services.io.test_db_connection(db_config)
+                except VistrailsDBException:
+                    debug.critical("Cannot login to database")
+                    return False
+
         if self.input:
             w_list = []
             for filename in self.input:
@@ -525,7 +545,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                             port=self.temp_db_options.port,
                                             database=self.temp_db_options.db,
                                             user=self.temp_db_options.user,
-                                            passwd='',
+                                            passwd=passwd,
                                             obj_id=f_name,
                                             obj_type=None,
                                             connection_id=None)
