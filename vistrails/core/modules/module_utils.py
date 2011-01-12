@@ -76,21 +76,10 @@ avoid race conditions, this file will already exist in the file system."""
 
     def guess_suffix(self, file_name):
         """guess_suffix(file_name) -> String.
-
-Tries to guess the suffix of the given filename."""
-        suffix = ''
-        # try to guess suffix
-        f = file_name.rfind('.')
-        if f == -1:
-            return ''
-        else:
-            # It might be a suffix, or it might be a path.  Try to
-            # work around path by checking for presence of '/' after
-            # suffix delimiter.
-            if file_name.rfind('/', f) == -1:
-                return file_name[f:]
-            else:
-                return ''
+        Tries to guess the suffix of the given filename.
+        
+        """
+        return os.path.splitext(file_name)[1]
 
     def make_local_copy(self, src):
         """make_local_copy(src) -> File
