@@ -356,6 +356,16 @@ class DuplicateModule(ModuleRegistryException):
                 (self._module_name, self._package_name, old_name, 
                  self.old_descriptor.identifier)
 
+class DuplicateIdentifier(ModuleRegistryException):
+    def __init__(self, identifier, name, namespace=None,
+                 package_version=None, module_version=None):
+        ModuleRegistryException.__init__(self, identifier, name, namespace,
+                                         package_version, module_version)
+
+    def __str__(self):
+        return "There is already a module %s in package %s" % \
+            (self._module_name, self._package_name)
+
 class MissingBaseClass(Exception):
     def __init__(self, base):
         Exception.__init__(self)
@@ -1036,6 +1046,10 @@ class ModuleRegistry(DBRegistry):
         if module in self._module_key_map:
             raise DuplicateModule(self.get_descriptor(module), identifier,
                                   name, namespace)
+        elif self.has_descriptor_with_name(identifier, name, namespace,
+                                           package_version, version):
+            raise DuplicateIdentifier(identifier, name, namespace,
+                                      package_version, version)
         descriptor = self.update_registry(base_descriptor, module, identifier, 
                                           name, namespace, package_version,
                                           version)
