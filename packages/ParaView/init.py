@@ -98,10 +98,9 @@ for i in xrange(nPartitions):
         self.run_code(prefix + s, use_input=True, use_output=True)
         
         
-def add_paraview_module(name, proxy, module_type, hide=False, pvFunction=None):
+def add_paraview_module(name, proxy, module_type, ns, hide=False, pvFunction=None):
 
     mod = new_module(module_type, name)
-    ns = get_namespace(name)
     mod.pvSpace = ns.lower()
     mod.pvClass = name
     if pvFunction != None:
@@ -142,19 +141,6 @@ def add_paraview_module(name, proxy, module_type, hide=False, pvFunction=None):
             add_input_port(mod, prop, params, optional)
 
     add_output_port(mod, "Output", module_type)
-
-def get_namespace(mod_name):
-    if sm.sources.__dict__.has_key(mod_name):
-        return 'Sources'
-    if sm.filters.__dict__.has_key(mod_name):
-        return 'Filters'
-    if sm.animation.__dict__.has_key(mod_name):
-        return 'Animation'
-    if sm.writers.__dict__.has_key(mod_name):
-        return 'Writers'
-    if sm.rendering.__dict__.has_key(mod_name):
-        return 'Rendering'
-    return ''
         
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
@@ -162,8 +148,9 @@ def initialize(*args, **keywords):
     add_module(PVBase.PVModule, namespace='base')
     mod_dict = {}
 
-    mlist = [sm.sources, sm.filters, sm.animation, sm.writers]
-    for m in mlist:
+    mlist = [("Sources", sm.sources), ("Filters", sm.filters), 
+             ("Animation", sm.animation), ("Writers", sm.writers)]
+    for ns, m in mlist:
         dt = m.__dict__
         for key in dt.keys():
             if forbidden.__contains__(key):
@@ -173,11 +160,11 @@ def initialize(*args, **keywords):
             cl = dt[key]
             if not isinstance(cl, str):
                 if paraview.simple._func_name_valid(key):
-                    add_paraview_module(key, m.__dict__[key](no_update=True), PVBase.PVModule)
+                    add_paraview_module(key, m.__dict__[key](no_update=True), PVBase.PVModule, ns)
 
 
-    add_paraview_module("GeometryRepresentation", sm.rendering.GeometryRepresentation(no_update=True), PVBase.PVModule, True, sm.rendering.GeometryRepresentation)
-    add_paraview_module("PVLookupTable", sm.rendering.PVLookupTable(no_update=True), PVBase.PVModule, False, sm.rendering.PVLookupTable)
+    add_paraview_module("GeometryRepresentation", sm.rendering.GeometryRepresentation(no_update=True), PVBase.PVModule, ns, True, sm.rendering.GeometryRepresentation)
+    add_paraview_module("PVLookupTable", sm.rendering.PVLookupTable(no_update=True), PVBase.PVModule, ns, False, sm.rendering.PVLookupTable)
     add_module(PVServerPythonSource, name = "PVServerPythonSource", configureWidgetType=PVServerPythonSourceConfigurationWidget)
     add_input_port(PVServerPythonSource, "Script", (core.modules.basic_modules.String, ""), True)
     add_output_port(PVServerPythonSource, "self", PVServerPythonSource)
