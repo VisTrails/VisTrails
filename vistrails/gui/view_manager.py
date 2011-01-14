@@ -420,6 +420,20 @@ class QViewManager(QtGui.QTabWidget):
             result = self.set_vistrail_view(vistrail, locator, 
                                             abstraction_files, thumbnail_files,
                                             version)
+            # update collection
+            debug.log("Indexing vistrail")
+            from core.collection import Collection
+            try:
+                vistrail.thumbnails = thumbnail_files
+                vistrail.abstractions = abstraction_files
+                collection = Collection.getInstance()
+                url = locator.to_url()
+                # create index if not exist
+                if not collection.hasUrl(url):
+                    collection.updateVistrail(url, vistrail)
+                collection.commit()
+            except Exception, e:
+                debug.critical('Failed to index vistrail', str(e))
             return result
         except ModuleRegistryException, e:
             debug.critical("Module registry error for %s" %
@@ -427,7 +441,7 @@ class QViewManager(QtGui.QTabWidget):
         except Exception, e:
             debug.critical('An error has occurred', str(e))
             raise
-
+        
     def save_vistrail(self, locator_class,
                       vistrailView=None,
                       force_choose_locator=False):

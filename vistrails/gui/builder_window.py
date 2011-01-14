@@ -48,12 +48,14 @@ from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
 from gui.vis_diff import QVisualDiff
 from gui.utils import build_custom_window, show_info
+from gui.browser import QBrowserDialog
 import sys
 import db.services.vistrail
 from gui import merge_gui
 from db.services.io import SaveBundle
 from core.thumbnails import ThumbnailCache
 import gui.debug
+
 
 
 ################################################################################
@@ -94,7 +96,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                                         conf.recentVistrailList)
         else:
             self.recentVistrailLocators = RecentVistrailList()
-            
+        
         conf.subscribe('maxRecentVistrails', self.max_recent_vistrails_changed)
         self.createActions()
         self.createMenu()
@@ -104,8 +106,10 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.connectSignals()
 
-        gui.debug.DebugView.getInstance(self)
-
+        self.browser = QBrowserDialog(self)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
+                               self.browser)
+        self.browser.hide()
         self.shell = None
         self.debugger = None
         
@@ -364,6 +368,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editPreferencesAction.setEnabled(True)
         self.editPreferencesAction.setStatusTip('Edit system preferences')
 
+        self.browserAction = QtGui.QAction('Vistrail Browser', self)
+        self.browserAction.setCheckable(True)
+        self.browserAction.setChecked(False)
+
         self.shellAction = QtGui.QAction(CurrentTheme.CONSOLE_MODE_ICON,
                                          'VisTrails Console', self)
         self.shellAction.setCheckable(True)
@@ -512,6 +520,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.editPreferencesAction)
 
         self.viewMenu = self.menuBar().addMenu('&View')
+        self.viewMenu.addAction(self.browserAction)
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addAction(self.debugAction)
         self.viewMenu.addAction(self.messagesAction)
@@ -684,6 +693,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.mergeActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),
                      self.vistrailMergeFromMenu)
+
+        self.connect(self.browserAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.showBrowser)
 
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
@@ -1331,6 +1344,13 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                    thumbnails=s1.thumbnails)
         self.viewManager.currentView().setup_view()
 
+    def showBrowser(self, checked=True):
+        """ showBrowser() -> None
+        Display the vistrail browser """
+        if checked:
+            self.browser.show()
+        else:
+            self.browser.hide()
     def showShell(self, checked=True):
         """ showShell() -> None
         Display the shell console
