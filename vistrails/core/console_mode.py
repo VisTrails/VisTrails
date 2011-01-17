@@ -20,6 +20,7 @@
 ##
 ############################################################################
 """ Module used when running  vistrails uninteractively """
+from __future__ import absolute_import
 import os.path
 import uuid
 import core.interpreter.default
@@ -175,7 +176,8 @@ class TestConsoleMode(unittest.TestCase):
         function.add_parameters(params)
         module = Module(id=id_scope.getNewId(Module.vtType),
                            name='TestTupleExecution',
-                           package='edu.utah.sci.vistrails.console_mode_test')
+                           package='edu.utah.sci.vistrails.console_mode_test',
+                           version='0.9.0')
         module.add_function(function)
         
         p.add_module(module)

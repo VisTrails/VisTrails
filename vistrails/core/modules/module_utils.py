@@ -111,10 +111,10 @@ class TestFilePool(unittest.TestCase):
         """Tests FilePool.guess_suffix"""
         x = FilePool()
         self.assertEquals(x.guess_suffix('asd.foo'), '.foo')
-        self.assertEquals(x.guess_suffix('.foo'), '.foo')
         self.assertEquals(x.guess_suffix('bar'), '')
         self.assertEquals(x.guess_suffix('./lalala'), '')
         self.assertEquals(x.guess_suffix('./lalala.bar'), '.bar')
+        self.assertEquals(x.guess_suffix('user.foo/lalala'), '')
         x.cleanup()
         del x
 
