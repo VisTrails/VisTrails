@@ -21,6 +21,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 require_once 'functions.php';
+require_once 'config.php';
 
 $wgExtensionFunctions[] = 'registerVistrailTag';
 $wgExtensionCredits['parserhook'][] = array(
@@ -31,20 +32,6 @@ $wgExtensionCredits['parserhook'][] = array(
 
 // This is where vistrails XML-RPC is running
 $USE_VISTRAILS_XML_RPC_SERVER = True;
-$VT_HOST = "localhost";
-$VT_PORT = 8080;
-
-// Change this to point to the folder where vistrails.py is 
-// You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
-$PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
-
-// Change this to point to the folder where the images should be generated
-$PATH_TO_IMAGES = '/images/vistrails/';
-$PATH_TO_GRAPHS= '/images/vistrails/graphs/';
-
-// Change this to the web accessible path to the folder where the images were generated
-$WEB_PATH_TO_IMAGES = '/images/';
-$WEB_PATH_TO_GRAPHS = "/images/graphs/";
 
 $resp_result = '';
 function registerVistrailTag() {
@@ -52,11 +39,10 @@ function registerVistrailTag() {
     $wgParser->setHook('vistrail', 'printVistrailTag');
 }
 
-function printVistrailTag($input,$params, &$parser) {
-    global $PATH_TO_IMAGES, $WEB_PATH_TO_IMAGES, $WEB_PATH_TO_GRAPHS,
+function printVistrailTag($input,$params) {
+    global $PATH_TO_IMAGES, $WEB_PATH_TO_IMAGES, $URL_TO_GRAPHS,
             $PATH_TO_GRAPHS, $VT_HOST, $VT_PORT,
-            $USE_VISTRAILS_XML_RPC_SERVER, $PATH_TO_VISTRAILS;
-    $parser->disableCache();
+            $USE_VISTRAILS_XML_RPC_SERVER, $PATH_TO_VISTRAILS, $URL_TO_DOWNLOAD;
     $host = "";
     $dbname = "";
     $username = "vtserver";
@@ -128,8 +114,8 @@ function printVistrailTag($input,$params, &$parser) {
         list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
         if ($width > 400)
            $width = 400;
-        $res = '<a href="http://alps.comp-phys.org/vistrails/download.php?' . $linkParams . '">';
-        $res = $res . '<img src="'. $WEB_PATH_TO_GRAPHS . $result.
+        $res = '<a href="'.$URL_TO_DOWNLOAD.'?' . $linkParams . '">';
+        $res = $res . '<img src="'. $URL_TO_GRAPHS . $result.
                         "\" alt=\"vt_id:$vtid\" width=\"$width\"/>";
         $res = $res . '</a>';
         return($res);
@@ -143,8 +129,8 @@ function printVistrailTag($input,$params, &$parser) {
         list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
         if ($width > 400)
            $width = 400;
-        $res = '<a href="http://alps.comp-phys.org/vistrails/download.php?' . $linkParams . '">';
-        $res = $res . '<img src="'. $WEB_PATH_TO_GRAPHS . $result.
+        $res = '<a href="'.$URL_TO_DOWNLOAD.'?' . $linkParams . '">';
+        $res = $res . '<img src="'. $URL_TO_GRAPHS . $result.
                         "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
         $res = $res . '</a>';
         return($res);
@@ -186,7 +172,7 @@ function printVistrailTag($input,$params, &$parser) {
     $files = scandir($destdir);
     $n = sizeof($files);
     if($n > 2){
-        $res = '<a href="http://www.vistrails.org/extensions/download.php?' . $linkParams . '">';
+        $res = '<a href="'.$URL_TO_DOWNLOAD.'?' . $linkParams . '">';
         foreach($files as $filename) {
             if($filename != '.' and $filename != '..'){
                 list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
