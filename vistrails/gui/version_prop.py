@@ -28,7 +28,7 @@ QVersionPropOverlay
 QExpandButton
 QNotesDialog
 """
-
+import os.path
 from PyQt4 import QtCore, QtGui
 from core.query.version import SearchCompiler, SearchParseError, TrueSearch
 from core.thumbnails import ThumbnailCache
@@ -115,9 +115,19 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.versionThumbs = QVersionThumbs()
         vLayout.addWidget(self.versionThumbs)
         
-        self.versionEmbed = QVersionEmbed()
-        vLayout.addWidget(self.versionEmbed)
-        self.versionEmbed.setVisible(False)
+        eLayout = QtGui.QVBoxLayout()
+        self.versionEmbedBtn = QtGui.QPushButton("Embed")
+        eLayout.addWidget(self.versionEmbedBtn)
+        self.versionEmbedBtn.setEnabled(False)
+        self.versionEmbedBtn.setMinimumHeight(20)
+        self.versionEmbedBtn.setSizePolicy(QtGui.QSizePolicy(
+                                                       QtGui.QSizePolicy.Fixed,
+                                                       QtGui.QSizePolicy.Fixed))
+        self.versionEmbedBtn.setToolTip("Get workflow embed code")
+        vLayout.addLayout(eLayout)
+        
+        self.versionEmbedPanel = QVersionEmbed(self)
+        self.versionEmbedPanel.setVisible(False)
         
         self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
                      self.tagFinished)
@@ -131,6 +141,8 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                      self.executeSearch)
         self.connect(self.searchBox, QtCore.SIGNAL('refineMode(bool)'),
                      self.refineMode)
+        self.connect(self.versionEmbedBtn, QtCore.SIGNAL('clicked()'),
+                     self.showEmbedPanel)
 
         self.controller = None
         self.versionNumber = -1
@@ -143,7 +155,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         self.controller = controller
         self.versionNotes.controller = controller
-        self.versionEmbed.controller = controller
+        self.versionEmbedPanel.controller = controller
         self.versionThumbs.controller = controller
 
     def updateVersion(self, versionNumber):
@@ -154,8 +166,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.versionNumber = versionNumber
         self.versionNotes.updateVersion(versionNumber)
         self.versionThumbs.updateVersion(versionNumber)
-        self.versionEmbed.updateVersion(versionNumber)
-        
+        self.versionEmbedPanel.updateVersion(versionNumber)
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
@@ -164,12 +175,16 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
                 self.tagEdit.setEnabled(True)
-                self.versionEmbed.setVisible(self.versionEmbed.check_version() and
-                                            versionNumber > 0)
+                self.versionEmbedBtn.setEnabled(versionNumber > 0)
+                if versionNumber == 0:
+                    self.versionEmbedPanel.hide()
                 return
             else:
                 self.tagEdit.setEnabled(False)
                 self.tagReset.setEnabled(False)
+                self.versionEmbedBtn.setEnabled(False)
+                self.versionEmbedPanel.hide()
+                
         self.tagEdit.setText('')
         self.userEdit.setText('')
         self.dateEdit.setText('')
@@ -182,6 +197,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         if self.controller:
             self.controller.update_current_tag(str(self.tagEdit.text()))
+            self.versionEmbedPanel.updateVersion(self.versionNumber)
 
     def tagChanged(self, text):
         """ tagChanged(text: QString) -> None
@@ -231,6 +247,9 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         if self.controller:
             self.controller.set_refine(on)
+            
+    def showEmbedPanel(self):
+        self.versionEmbedPanel.show()
 
 class QVersionNotes(QtGui.QTextEdit):
     """
@@ -659,60 +678,157 @@ class QNotesDialog(QtGui.QDialog):
         
 ################################################################################
 class QVersionEmbed(QtGui.QWidget):
-    def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+        QtGui.QWidget.__init__(self, parent, 
+                               f | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowTitle('Embed Options')
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.versionNumber = None
-        lfont = QtGui.QFont("Lucida Grande", 11)
-        label1 = QtGui.QLabel("Embed as:")
-        label1.setFont(lfont)
+        self.versionTag = ''
+        label1 = QtGui.QLabel("Embed:")
+        self.cbcontent = QtGui.QComboBox()
+        self.cbcontent.setEditable(False)
+        items = QtCore.QStringList()
+        items << "Workflow Results" << "Workflow Graph" << "History Tree Graph";
+        self.cbcontent.addItems(items)
+        label2 = QtGui.QLabel("In")
+        
         self.cbtype = QtGui.QComboBox()
-        self.cbtype.setFont(lfont)
         self.cbtype.setEditable(False)
         items = QtCore.QStringList()
         items << "Wiki" << "Latex" << "Shared Memory";
         self.cbtype.addItems(items)
-    
+        
         self.controller = None
-        self.wikitag = '<vistrail host="%s" db="%s" vtid="%s" version="%s" \
-tag="%s" showspreadsheetonly="True"/>'
-        self.latextag = '\\vistrail[host=%s,\ndb=%s,\nvtid=%s,\nversion=%s,\
-\ntag=%s,\nshowspreadsheetonly]{}'
         self.pptag = 'Image(s) from (%s,%s,%s,%s,%s)'
-        self.embededt = QtGui.QLineEdit(self)
-        self.embededt.setReadOnly(True)
+        
+        #options
+        self.gbEmbedOpt = QtGui.QGroupBox("Embed Options")
+        self.chbPdf = QtGui.QCheckBox("As PDF")
+        self.chbSmartTag = QtGui.QCheckBox("Smart Tag")
+        self.chbCache = QtGui.QCheckBox("Cache Images")
+        self.chbLatexVTL = QtGui.QCheckBox("Include .vtl")
+        self.chbLatexVTL.setVisible(False)
+        
+        gblayout = QtGui.QGridLayout()
+        gblayout.addWidget(self.chbPdf, 0, 0)
+        gblayout.addWidget(self.chbSmartTag, 0, 1)
+        gblayout.addWidget(self.chbCache, 0, 2)
+        gblayout.addWidget(self.chbLatexVTL, 1, 0)
+        self.gbEmbedOpt.setLayout(gblayout)
+        
+        self.gbDownOpt = QtGui.QGroupBox("Download Options")
+        self.chbWorkflow = QtGui.QCheckBox("Include Workflow")
+        self.chbFullTree = QtGui.QCheckBox("Include Full Tree")
+        self.chbFullTree.setEnabled(False)
+        self.chbExecute = QtGui.QCheckBox("Execute Workflow")
+        self.chbSpreadsheet = QtGui.QCheckBox("Show Spreadsheet Only")
+        
+        gblayout = QtGui.QGridLayout()
+        gblayout.addWidget(self.chbWorkflow, 0, 0)
+        gblayout.addWidget(self.chbFullTree, 0, 1)
+        gblayout.addWidget(self.chbExecute, 1, 0)
+        gblayout.addWidget(self.chbSpreadsheet, 1, 1)
+        self.gbDownOpt.setLayout(gblayout)
+        
+        self.embededt = QtGui.QTextEdit(self)
+        self.embededt.setAcceptRichText(False)
+        self.embededt.setReadOnly(False)
         self.exportHtml = '<a href="export">Export...</a>'
         self.copyHtml = '<a href="copy">Copy to Clipboard</a>'
         self.copylabel = QtGui.QLabel(self.copyHtml)
-        self.copylabel.setFont(lfont)
+        self.copylabel.setCursor(QtCore.Qt.PointingHandCursor)
+        
+        label3 = QtGui.QLabel("After making your selection, click on 'Copy To \
+Clipboard'. The code changes based on your selection.")
+        label3.setWordWrap(True)
+        label3.setFont(QtGui.QFont("Arial", 11, italic=True))
+        
         layout = QtGui.QGridLayout()
         layout.addWidget(label1,0,0)
-        layout.addWidget(self.cbtype,0,1)
-        layout.addWidget(self.copylabel,0,2,QtCore.Qt.AlignRight)
-        layout.addWidget(self.embededt,1,0,2,-1)
-        layout.setColumnStretch(2, 1)
+        layout.addWidget(self.cbcontent,0,1)
+        layout.addWidget(label2,1,0)
+        layout.addWidget(self.cbtype,1,1)
+        layout.addWidget(self.gbEmbedOpt,2,0,1,-1)
+        layout.addWidget(self.gbDownOpt,3,0,1,-1)
+        layout.addWidget(self.copylabel,4,1,QtCore.Qt.AlignRight)
+        layout.addWidget(self.embededt,5,0,1,-1)
+        layout.addWidget(label3,6,0,1,-1)
+        layout.setColumnStretch(1, 1)
+        
         self.setLayout(layout)
         
         #connect signals
         self.connect(self.cbtype,
-                     QtCore.SIGNAL("currentIndexChanged(const QString &)"),
-                     self.change_embed_type)
+                     QtCore.SIGNAL("activated(const QString &)"),
+                     self.changeEmbedType)
         
         self.connect(self.copylabel,
                      QtCore.SIGNAL("linkActivated(const QString &)"),
                      self.linkActivated)
-
-    def check_version(self):
-        """check_version() -> bool
+        
+        self.connect(self.cbcontent,
+                     QtCore.SIGNAL("activated(const QString &)"),
+                     self.changeOption)
+        
+        optlist = [self.cbcontent,
+                   self.chbPdf,
+                   self.chbSmartTag,
+                   self.chbCache,
+                   self.chbLatexVTL,
+                   self.chbWorkflow,
+                   self.chbFullTree,
+                   self.chbExecute,
+                   self.chbSpreadsheet]
+        for cb in optlist:
+            self.connect(cb, QtCore.SIGNAL("toggled(bool)"),
+                         self.changeOption)
+        #special cases
+        self.connect(self.chbWorkflow, QtCore.SIGNAL("toggled(bool)"),
+                     self.changeIncludeWorkflow)
+        self.connect(self.chbSpreadsheet, QtCore.SIGNAL("toggled(bool)"),
+                     self.changeShowSpreadsheet)
+        self.connect(self.chbExecute, QtCore.SIGNAL("toggled(bool)"),
+                     self.changeExecute)
+        self.connect(self.cbcontent,
+                     QtCore.SIGNAL("activated(const QString &)"),
+                     self.changeContent)
+        self.connect(self.chbSmartTag, QtCore.SIGNAL("toggled(bool)"),
+                     self.changeSmartTag)
+        self.connect(self.chbCache, QtCore.SIGNAL("toggled(bool)"),
+                     self.changeCache)
+        
+    def closeEvent(self,e):
+        """ closeEvent(e: QCloseEvent) -> None
+        Doesn't allow the Legend widget to close, but just hide
+        instead
+        
+        """
+        e.ignore()
+        self.hide()
+    
+    def focusInEvent(self, event):
+        if self.controller:
+            if self.controller.locator:
+                app = QtGui.QApplication.instance()
+                if hasattr(app, 'builderWindow'):
+                    manager = app.builderWindow.viewManager
+                    manager.ensureVistrail(self.controller.locator)
+                    
+                    
+    def checkLocator(self):
+        """checkLocator() -> bool
         Only vistrails on a database are allowed to embed a tag"""
         result = False
         if self.controller:
             if self.controller.locator:
-                if hasattr(self.controller.locator,'host'):
-                    result = True
+                title = "Embed Options for %s"%self.controller.locator.name
+                self.setWindowTitle(title)
+                result = True
         return result
 
-    def check_controller_status(self):
-        """check_controller_status() -> bool
+    def checkControllerStatus(self):
+        """checkControllerStatus() -> bool
         this checks if the controller has saved the latest changes """
         result = False
         if self.controller:
@@ -720,58 +836,203 @@ tag="%s" showspreadsheetonly="True"/>'
         return result
     
     def updateEmbedText(self):
-        ok = (self.check_version() and self.check_controller_status() and
+        ok = (self.checkLocator() and self.checkControllerStatus() and
               self.versionNumber > 0)
         self.embededt.setEnabled(ok)
         self.copylabel.setEnabled(ok)
         self.embededt.setText('')
+
         if self.controller and self.versionNumber > 0:
             if self.controller.locator and not self.controller.changed:
                 loc = self.controller.locator
-                try:
-                    if self.cbtype.currentText() == "Wiki":
-                        tag = self.wikitag
-                    elif self.cbtype.currentText() == "Latex":
-                        tag = self.latextag
-                    elif self.cbtype.currentText() == "Shared Memory":
-                        tag = self.pptag
-                    versiontag = \
-                        self.controller.vistrail.getVersionName(self.versionNumber)
+                if hasattr(loc,'host'):
+                    self.updateCbtype('db')    
+                elif hasattr(loc, 'name'):
+                    self.updateCbtype('file')
                         
-                    tag = tag % (loc.host,
-                                 loc.db,
-                                 loc.obj_id,
-                                 self.versionNumber,
-                                 versiontag)
+                if self.versionTag != "":
+                    self.chbSmartTag.setEnabled(True)
+                else:
+                    self.chbSmartTag.setChecked(False)
+                    self.chbSmartTag.setEnabled(False)
                     
-                    self.embededt.setText(tag)
-                    return
-                except Exception, e:
-                    self.embededt.setText('')
+                self.setEmbedText()
             elif self.controller.changed:
-                self.embededt.setText('Please, save your vistrails first')
+                self.embededt.setPlainText('You must save your vistrail to proceed')
             else:
-                self.embededt.setText('')
+                self.embededt.setPlainText('')
                 
+    def setEmbedText(self):
+        #check options
+        options = {}
+        options['content'] = str(self.cbcontent.currentText())
+        options['pdf'] = self.chbPdf.isChecked()
+        options['smartTag'] = self.chbSmartTag.isChecked()
+        options['buildalways'] = not self.chbCache.isChecked()
+        options['includeWorkflow'] = self.chbWorkflow.isChecked()
+        options['includeFullTree'] = self.chbFullTree.isChecked()
+        options['execute'] = self.chbExecute.isChecked()
+        options['showspreadsheetonly'] = self.chbSpreadsheet.isChecked()
+        
+        if self.cbtype.currentText() == "Wiki":
+            text = self.buildWikiTag(options)
+        elif self.cbtype.currentText() == "Latex":
+            options['getvtl'] = self.chbLatexVTL.isChecked()
+            text = self.buildLatexCommand(options)
+        elif text == "Shared Memory":
+            text = self.pptag
+        self.embededt.setPlainText(text)
+            
     def updateVersion(self, versionNumber):
         self.versionNumber = versionNumber
+        if versionNumber > 0:
+            self.versionTag = self.controller.vistrail.getVersionName(self.versionNumber)
         self.updateEmbedText()
 
     def linkActivated(self, link):
         if link=='copy':
             clipboard = QtGui.QApplication.clipboard()
-            clipboard.setText(self.embededt.text())
+            clipboard.setText(self.embededt.toPlainText())
         elif link=='export':
             app = QtCore.QCoreApplication.instance()
             app.builderWindow.interactiveExportCurrentPipeline()
     
-    def change_embed_type(self, text):
+    def changeEmbedType(self, text):
         if text!='Shared Memory':
             self.copylabel.setText(self.copyHtml)
         else:
             self.copylabel.setText(self.exportHtml)
-        self.updateEmbedText()    
+        self.chbLatexVTL.setVisible(text == 'Latex')
+        self.chbPdf.setEnabled(text == 'Latex')
+        self.setEmbedText()  
         
+    def changeOption(self, value):
+        self.setEmbedText()
+        
+    def changeContent(self, text):
+        if text == "Workflow Results":
+            self.chbExecute.setEnabled(True)
+            self.chbSpreadsheet.setEnabled(True)
+            self.chbCache.setEnabled(True)
+            self.chbSmartTag.setEnabled(True)
+        else:
+            self.chbExecute.setChecked(False)
+            self.chbSpreadsheet.setChecked(False)
+            self.chbExecute.setEnabled(False)
+            self.chbSpreadsheet.setEnabled(False)
+            if text == "History Tree Graph":
+                self.chbCache.setChecked(False)
+                self.chbCache.setEnabled(False)
+                self.chbSmartTag.setChecked(False)
+                self.chbSmartTag.setEnabled(False)
+            else:
+                self.chbCache.setEnabled(True)
+                self.chbSmartTag.setEnabled(True)
+                
+    def updateCbtype(self, type):
+        currentText = self.cbtype.currentText()
+        self.cbtype.clear()
+        items = QtCore.QStringList()
+        if type == 'db':
+            items << "Wiki" << "Latex" << "Shared Memory";
+        elif type == 'file':
+            items << "Latex";
+        self.cbtype.addItems(items)
+        index = items.indexOf(currentText)
+        if index > 0:
+            self.cbtype.setCurrentIndex(index)
+        text = str(self.cbtype.currentText())
+        self.chbLatexVTL.setVisible(text == 'Latex')
+        self.chbPdf.setEnabled(text == 'Latex')
+            
+    def buildLatexCommand(self, options):
+        text = '\\vistrail['
+        loc = self.controller.locator
+        if hasattr(loc, 'host'):
+            text += 'host=%s,\ndb=%s,\nport=%s,\nvtid=%s,\n'% (loc.host,
+                                                               loc.db,
+                                                               loc.port,
+                                                               loc.obj_id)
+        else:
+            text += 'filename=%s,\n' % os.path.basename(loc.name)
+        if options['content'] != "History Tree Graph":    
+            text += 'version=%s,\n'%self.versionNumber
+            if options['smartTag']:
+                text += 'tag=%s,\n'%self.versionTag
+        if options['pdf']:
+            text += 'pdf,\n'
+        if options['buildalways']:
+            text+= 'buildalways,\n'
+        if options['getvtl']:
+            text += 'getvtl,\n'
+        if options['includeWorkflow']:
+            text+= 'embedworkflow,\n'
+            if options['includeFullTree']:
+                text += 'includefulltree,\n'
+        if options['content'] == "Workflow Graph":
+            text += 'showworkflow,\n'
+        elif options['content'] == "History Tree Graph":
+            text += 'showtree,\n'
+        else:
+            if options['execute']:
+                text += 'execute,\n'
+            if options['showspreadsheetonly']:
+                text += 'showspreadsheetonly,\n'
+        
+        text = text[0:-2] + "]{}"
+        return text        
+
+    def buildWikiTag(self, options):
+        text = '<vistrail '
+        loc = self.controller.locator
+        
+        text += 'host="%s" db="%s" port="%s" vtid="%s" '% (loc.host,
+                                                            loc.db,
+                                                            loc.port,
+                                                            loc.obj_id)
+        if options['content'] != "History Tree Graph":
+            text += 'version="%s" '%self.versionNumber
+            if options['smartTag']:
+                text += 'tag="%s " '%self.versionTag
+        if options['buildalways']:
+            text+= 'buildalways="True" '
+        if options['includeWorkflow']:
+            text+= 'embedworkflow="True" '
+            if options['includeFullTree']:
+                text += 'includefulltree="True" '
+        if options['content'] == "Workflow Graph":
+            text += 'showworkflow="True" ' #"Workflow Results" << "Workflow Graph" << "History Tree Graph";
+        elif options['content'] == "History Tree Graph":
+            text += 'showtree="True" '
+        else:
+            if options['execute']:
+                text += 'execute="True" '
+            if options['showspreadsheetonly']:
+                text += 'showspreadsheetonly="True" '
+        
+        text += "/>"
+        return text        
+
+    def changeIncludeWorkflow(self,checked):
+        self.chbFullTree.setEnabled(checked)
+        if self.cbcontent.currentText() == "History Tree Graph":
+            self.chbFullTree.setChecked(checked)
+        
+    def changeShowSpreadsheet(self, checked):
+        if checked:
+            self.chbExecute.setChecked(True)
+            
+    def changeExecute(self, checked):
+        if not checked:
+            self.chbSpreadsheet.setChecked(False)
+            
+    def changeSmartTag(self, checked):
+        if checked and self.cbtype.currentText() == 'Latex':
+            self.chbCache.setChecked(False)
+            
+    def changeCache(self, checked):
+        if checked and self.cbtype.currentText() == 'Latex':
+            self.chbSmartTag.setChecked(False)
 ################################################################################
 
 class QVersionThumbs(QtGui.QWidget):

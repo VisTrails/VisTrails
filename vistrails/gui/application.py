@@ -129,6 +129,14 @@ The builder window can be accessed by a spreadsheet menu option.")
             help="Start VisTrails using the specified static registry")
         add("-D", "--detachHistoryView", action="store_true",
             help="Detach the history view from the builder windows")
+        add("-G", "--workflowgraph", action="store",
+            default = None,
+            help=("Save workflow graph in specified directory without running "
+                  "the workflow (only valid in console mode)."))
+        add("-U", "--evolutiongraph", action="store",
+            default = None,
+            help=("Save evolution graph in specified directory without running "
+                  "any workflow (only valid in console mode)."))
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -185,6 +193,10 @@ The builder window can be accessed by a spreadsheet menu option.")
                 self.temp_configuration.spreadsheetDumpCells = get('dumpcells')
             if get('pdf') != None:
                 self.temp_configuration.spreadsheetDumpPDF = get('pdf')
+            if get('workflowgraph') != None:
+                self.temp_configuration.workflowGraph = str(get('workflowgraph'))
+            if get('evolutiongraph') != None:
+                self.temp_configuration.evolutionGraph = str(get('evolutiongraph'))
         if get('executeworkflows') != None:
             self.temp_configuration.executeWorkflows = \
                                             bool(get('executeworkflows'))
@@ -362,13 +374,7 @@ after self.init()"""
                     locator = FileLocator(os.path.abspath(f_name))
                     #_vnode and _vtag will be set when a .vtl file is open and
                     # it can be either a FileLocator or a DBLocator
-                    if hasattr(locator, '_vnode'):
-                        version = locator._vnode
-                    if hasattr(locator,'_vtag'):
-                        # if a tag is set, it should be used instead of the
-                        # version number
-                        if locator._vtag != '':
-                            version = locator._vtag
+                    
                 elif usedb:
                     locator = DBLocator(host=self.temp_db_options.host,
                                         port=self.temp_db_options.port,
@@ -379,6 +385,13 @@ after self.init()"""
                                         obj_type=None,
                                         connection_id=None)
                 if locator:
+                    if hasattr(locator, '_vnode'):
+                        version = locator._vnode
+                    if hasattr(locator,'_vtag'):
+                        # if a tag is set, it should be used instead of the
+                        # version number
+                        if locator._vtag != '':
+                            version = locator._vtag
                     execute = self.temp_configuration.executeWorkflows
                     self.builderWindow.open_vistrail_without_prompt(locator,
                                                                     version,
@@ -432,8 +445,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
-            self.timeout = 5000
-            self._unique_key = "vistrails-single-instance-check"
+            self.timeout = 10000
+            self._unique_key = "vistrails-single-instance-check-%s"%getpass.getuser()
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
             self.local_server = None
             if self.shared_memory.attach():
@@ -517,43 +530,84 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if self.temp_db_options.host:
             usedb = True
             passwd = ''
-            db_config = dict((x, self.temp_db_options.__dict__[x])
-                             for x in ['host', 'port', 
-                                       'db', 'user'])
-            try:
-                db.services.io.test_db_connection(db_config)
-            except VistrailsDBException:
-                passwd = \
-                    getpass.getpass("Password for user '%s':" % \
-                                        self.temp_db_options.user)
-                db_config['passwd'] = passwd
+        if usedb and self.temp_db_options.user:
+            if self.temp_db_options.user:
+                db_config = dict((x, self.temp_db_options.__dict__[x])
+                                 for x in ['host', 'port', 
+                                           'db', 'user'])
                 try:
                     db.services.io.test_db_connection(db_config)
                 except VistrailsDBException:
-                    debug.critical("Cannot login to database")
-                    return False
-
+                    passwd = \
+                        getpass.getpass("Connecting to %s:%s. Password for user '%s':" % (
+                                        self.temp_db_options.host,
+                                        self.temp_db_options.db,
+                                        self.temp_db_options.user))
+                    db_config['passwd'] = passwd
+                    try:
+                        db.services.io.test_db_connection(db_config)
+                    except VistrailsDBException:
+                        debug.critical("Cannot login to database")
+                        return False
+    
         if self.input:
             w_list = []
+            vt_list = []
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
+                if not usedb:
+                    locator = FileLocator(os.path.abspath(f_name))
+                else:
+                    locator = DBLocator(host=self.temp_db_options.host,
+                                        port=self.temp_db_options.port,
+                                        database=self.temp_db_options.db,
+                                        user=self.temp_db_options.user,
+                                        passwd=passwd,
+                                        obj_id=f_name,
+                                        obj_type=None,
+                                        connection_id=None)
+                    if not locator.is_valid():
+                        #here there is a problem: as we allow execution from 
+                        #command line with VisTrails already running, we need
+                        #to update from the gui
+                        if hasattr(self, 'builderWindow'):
+                            ok = locator.update_from_gui(self.builderWindow)
+                        else:
+                            ok = locator.update_from_console()
+                        if not ok:
+                            debug.critical("Cannot login to database")
                 if f_name and version:
-                    if not usedb:
-                        locator = FileLocator(os.path.abspath(f_name))
-                    else:
-                        locator = DBLocator(host=self.temp_db_options.host,
-                                            port=self.temp_db_options.port,
-                                            database=self.temp_db_options.db,
-                                            user=self.temp_db_options.user,
-                                            passwd=passwd,
-                                            obj_id=f_name,
-                                            obj_type=None,
-                                            connection_id=None)
                     w_list.append((locator, version))
+                vt_list.append(locator)
             import core.console_mode
             if self.temp_db_options.parameters == None:
                 self.temp_db_options.parameters = ''
             
+            if self.temp_configuration.check('workflowGraph'):
+                workflow_graph = self.temp_configuration.workflowGraph
+                results = core.console_mode.get_wf_graph(w_list, workflow_graph,
+                                     self.temp_configuration.spreadsheetDumpPDF)
+                failed = True
+                for r in results:
+                    failed = False
+                    if r[0] == False:
+                        debug.critical("*** Error in get_wf_graph: %s" % r[1])
+                        failed = True
+                return not failed
+            
+            if self.temp_configuration.check('evolutionGraph'):
+                evolution_graph = self.temp_configuration.evolutionGraph
+                results = core.console_mode.get_vt_graph(vt_list, evolution_graph,
+                                     self.temp_configuration.spreadsheetDumpPDF)
+                
+                failed = True
+                for r in results:
+                    failed = False
+                    if r[0] == False:
+                        debug.critical("*** Error in get_vt_graph: %s" % r[1])
+                        failed = True
+                return not failed
+                
             if self.temp_configuration.check('workflowInfo'):
                 workflow_info = self.temp_configuration.workflowInfo
             else:
@@ -668,8 +722,23 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                local_socket.errorString().toLatin1())
                 return
             byte_array = local_socket.readAll()
-            self.temp_db_options = None 
+            self.temp_db_options = None
+            self.temp_configuration.workflowGraph = None
+            self.temp_configuration.workflowInfo = None
+            self.temp_configuration.evolutionGraph = None
+            self.temp_configuration.spreadsheetDumpPDF = False
+            self.temp_configuration.spreadsheetDumpCells = None
+            self.temp_configuration.executeWorkflows = False
+            self.temp_configuration.interactiveMode = True
+            
             self.parse_input_args_from_other_instance(str(byte_array))
+            self.shared_memory.lock()
+            local_socket.write("1")
+            self.shared_memory.unlock()
+            if not local_socket.waitForBytesWritten(self.timeout):
+                debug.debug("Writing failed: %s" %
+                            local_socket.errorString().toLatin1())
+                return
             local_socket.disconnectFromServer()
     
     def send_message(self, message):
@@ -689,6 +758,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 debug.critical("Writing failed: %s" %
                                local_socket.errorString().toLatin1())
                 return False
+            if not local_socket.waitForReadyRead(self.timeout):
+                debug.critical("Read error: %s" %
+                               local_socket.errorString().toLatin1())
+                return
+            byte_array = local_socket.readAll()
+            debug.log("Other instance processed input (%s)"%str(byte_array))
             local_socket.disconnectFromServer()
             return True
     
@@ -699,14 +774,19 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             #it's safe to eval as a list
             args = eval(msg)
             if type(args) == type([]):
+                print "args from another instance %s"%args
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()
-                self.process_interactive_input()
-                if not self.temp_configuration.showSpreadsheetOnly:
-                    # in some systems (Linux and Tiger) we need to make both calls
-                    # so builderWindow is activated
-                    self.builderWindow.raise_()
-                    self.builderWindow.activateWindow()
+                interactive = self.temp_configuration.check('interactiveMode')
+                if interactive:
+                    self.process_interactive_input()
+                    if not self.temp_configuration.showSpreadsheetOnly:
+                        # in some systems (Linux and Tiger) we need to make both calls
+                        # so builderWindow is activated
+                        self.builderWindow.raise_()
+                        self.builderWindow.activateWindow()
+                else:
+                    self.noninteractiveMode()
             else:
                 debug.critical("Invalid string: %s" % msg)
         else:
