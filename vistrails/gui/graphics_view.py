@@ -182,7 +182,9 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
     def saveToPNG(self, filename, width=None):
         try:
             self.updateSceneBoundingRect(False)
-            b_rect = self.sceneBoundingRect
+            b_rect = QtCore.QRectF(self.sceneBoundingRect)
+            b_rect.setWidth(math.floor(b_rect.width()))
+            b_rect.setHeight(math.floor(b_rect.height()))
             debug.debug("PNG bounding box %sx%s" % (b_rect.width(), b_rect.height()))
             pixmap = QtGui.QPixmap(QtCore.QSize(int(math.floor(b_rect.width())),
                                                 int(math.floor(b_rect.height()))))

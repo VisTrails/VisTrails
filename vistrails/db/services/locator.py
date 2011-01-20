@@ -441,7 +441,7 @@ class DBLocator(BaseLocator):
                       'passwd': str(self._passwd)}
             try:
                 io.test_db_connection(config)
-            except VistrailsDBException, e:
+            except VistrailsDBException:
                 return False
             return True
         
@@ -450,7 +450,7 @@ class DBLocator(BaseLocator):
                 and DBLocator.connections.has_key(self._conn_id):
             connection = DBLocator.connections[self._conn_id]
             if io.ping_db_connection(connection):
-               return connection
+                return connection
         else:
             if self._conn_id is None:
                 if DBLocator.cache_connections.has_key(self._hash):
@@ -516,7 +516,7 @@ class DBLocator(BaseLocator):
         for obj in save_bundle.get_db_objs():
             obj.locator = self
         #update the cache with a copy of the new bundle
-        self_hash = self.hash()
+        self._hash = self.hash()
         DBLocator.cache[self._hash] = save_bundle.do_copy()
         DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
@@ -670,7 +670,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._port == other._port and
                 self._db == other._db and
                 self._user == other._user and
-                self._name == other._name and
+                #self._name == other._name and
                 self._obj_id == other._obj_id and
                 self._obj_type == other._obj_type)
 

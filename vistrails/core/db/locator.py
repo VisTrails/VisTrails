@@ -21,17 +21,19 @@
 ############################################################################
 
 import base64
+import getpass
 import os.path
 from core.configuration import get_vistrails_configuration
 from core.system import vistrails_default_file_type, get_elementtree_library, \
-                        default_connections_file
+                        default_connections_file, default_dot_vistrails
 from core.external_connection import ExtConnectionList, DBConnection
 from core.thumbnails import ThumbnailCache
+from core import debug
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
-from db.services.io import SaveBundle
+from db.services.io import SaveBundle, test_db_connection
+from db import VistrailsDBException
 from PyQt4 import QtCore
-import core.configuration
 ElementTree = get_elementtree_library()
 
 class CoreLocator(object):
@@ -140,7 +142,7 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
-    def update_from_gui(self, klass=None):
+    def update_from_gui(self, parent_widget, klass=None):
         from core.vistrail.vistrail import Vistrail
         if klass is None:
             klass = Vistrail
@@ -217,21 +219,23 @@ class DBLocator(_DBLocator, CoreLocator):
         thumb_cache.add_entries_from_files(save_bundle.thumbnails)
         return save_bundle
 
-    def update_from_gui(self, klass=None):
+    def update_from_gui(self, parent_widget, klass=None):
         from core.vistrail.vistrail import Vistrail
+        import gui.extras.core.db.locator as db_gui
         if klass is None:
             klass = Vistrail
         config = self.find_connection_info(self._host, self._port, self._db) 
-        if config is None:
-            import gui.extras.core.db.locator as db_gui
-            config = db_gui.get_db_connection_from_gui(None,klass.vtType,"",
+        if config is None or config['succeeded']==False:
+            config = db_gui.get_db_connection_from_gui(parent_widget,
+                                                       -1,
+                                                       "",
                                                        self._host,
                                                        self._port,
                                                        self._user,
                                                        self._passwd,
-                                                       self._db
-                                                       )
-        if config and config['succeeded'] == True:
+                                                       self._db)
+        
+        if config is not None and config['succeeded'] == True:
             self._host = config['host']
             self._port = config['port']
             self._db = config['db']
@@ -242,6 +246,74 @@ class DBLocator(_DBLocator, CoreLocator):
         
         return False
     
+    def update_from_console(self):
+        config = self.find_connection_info(self._host, self._port, self._db)
+        print config
+        if config is None:
+            # the problem here is if VisTrails is being run through command
+            # line from LaTex, stdout is being redirected to a log file, so
+            # the user does not see the prompt in raw_input. getpass uses the 
+            # controlling terminal so it works fine. Just to make sure he sees 
+            # the first message prompt we will the controlling terminal
+            try:
+                f= open('/dev/tty', 'w')
+                f.write("\nConnect to db with username [%s]: "%self._user)
+                f.close()
+                user = raw_input()
+            except:
+                debug.warning("Couldn't write to terminal. Will try stdout")
+                user = raw_input("Connecting to db with username[%s]: "%self._user)
+            try:
+                if user != '':
+                    self._user = user
+                passwd = getpass.getpass("password:")
+                self._passwd = passwd
+                config = {'host': self._host,
+                          'port': int(self._port),
+                          'user': self._user,
+                          'passwd': self._passwd,
+                          'db': self._db
+                          }
+                test_db_connection(config)
+                config['succeeded'] = True
+                config['name'] = '%s@%s'%(self._user,self._host)
+                config['id'] = -1
+            except VistrailsDBException, e:
+                debug.critical('VisTrails DB Exception',  str(e))
+                config['succeeded'] = False
+            except Exception, e2:
+                debug.critical('VisTrails Exception', str(e2))
+                config['succeeded'] = False
+        if config is not None:
+            if config['succeeded'] == False:
+                passwd = getpass.getpass("\nVisTrails DB password for user %s:"%config['user'])
+                self._user = config['user']
+                self._passwd = passwd
+                dbconfig = {'host': self._host,
+                          'port': int(self._port),
+                          'user': self._user,
+                          'passwd': self._passwd,
+                          'db': self._db
+                          }
+                try:
+                    test_db_connection(dbconfig)
+                    config['succeeded'] = True
+                    config['passwd'] = self._passwd
+                except VistrailsDBException, e:
+                    debug.critical('VisTrails DB Exception',  str(e))
+                    config['succeeded'] = False
+            
+            if config['succeeded'] == True:
+                self._host = config['host']
+                self._port = config['port']
+                self._db = config['db']
+                self._user = config['user']
+                self._passwd = config['passwd']
+                self.ext_connection_id = self.set_connection_info(**config)
+                return True
+            return False
+        return False
+        
     def find_connection_info(self, host, port, db):
         """find_connection_info(host:str, port: int, db: str) -> dict
         Returns complete info of a connection with the given parameters
@@ -258,16 +330,23 @@ class DBLocator(_DBLocator, CoreLocator):
         Returns info of ExtConnection """
         conn = self.__list.get_connection(id)
         if conn != None:
+            succeeded = False
             key = str(conn.id) + "." + conn.name + "." + conn.host
             passwd = DBLocator.keyChain.get_key(key)
-            config = {'id': conn.id,
-                      'name': conn.name,
-                      'host': conn.host,
+            config = {'host': conn.host,
                       'port': conn.port,
                       'user': conn.user,
-                      'passwd': passwd,
-                      'db': conn.database,
-                      'succeeded': True}
+                      'passwd': passwd}
+            try:
+                test_db_connection(config)
+                succeeded = True
+            except VistrailsDBException:
+                succeeded = False
+                
+            config['id'] = conn.id
+            config['name'] = conn.name
+            config['db'] = conn.database
+            config['succeeded'] = succeeded
         else:
             config = None
         return config
@@ -302,7 +381,7 @@ class DBLocator(_DBLocator, CoreLocator):
                             database=db,
                             dbtype='MySQL')
         
-        if self.__list.has_connection(id):    
+        if self.__list.has_connection(id):   
             self.__list.set_connection(id,conn)
         else:
             if conn.id == -1:
@@ -321,7 +400,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._port == other._port and
                 self._db == other._db and
                 self._user == other._user and
-                self._name == other._name and
+                #self._name == other._name and
                 self._obj_id == other._obj_id and
                 self._obj_type == other._obj_type)
 
@@ -493,7 +572,7 @@ class FileLocator(CoreLocator):
                     if type == 'long':
                         return long(value)
                     elif type == 'float':
-                       return float(value)
+                        return float(value)
                     elif type == 'int':
                         return int(value)
                     elif type == 'bool':
@@ -584,7 +663,7 @@ class FileLocator(CoreLocator):
                              user, passwd, None, vt_id, 'vistrail',
                              None, version, tag)
         elif vtname is not None:
-            return FileLocator(vtname, version)
+            return FileLocator(vtname, version, tag)
         
         
     ##########################################################################
@@ -594,6 +673,6 @@ def untitled_locator():
     if config:
         dot_vistrails = config.dotVistrails
     else:
-        dot_vistrails = core.system.default_dot_vistrails()
+        dot_vistrails = default_dot_vistrails()
     fullname = os.path.join(dot_vistrails, basename)
     return FileLocator(fullname)
