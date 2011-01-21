@@ -1033,6 +1033,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.exportFileAction.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
             self.mergeMenu.menuAction().setEnabled(True)
+            self.viewManager.changeCursor(self.interactionToolBar.cursorMode)
             if version:
                 self.viewModeChanged(0)
             else:
@@ -1704,6 +1705,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         try:
             self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
                       False)
+            self.viewModeChanged(3)
             self.viewManager.executeCurrentExploration()
         finally:
             self._executing = False

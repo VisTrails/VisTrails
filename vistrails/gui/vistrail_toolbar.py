@@ -256,10 +256,12 @@ class QVistrailInteractionToolBar(QtGui.QToolBar):
         """
         QtGui.QToolBar.__init__(self, view)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-
+        
+        self.cursorMode = -1
         self.addAction(self.selectCursorAction())
         self.addAction(self.panCursorAction())
         self.addAction(self.zoomCursorAction())
+        
 
     def cursorMenu(self):
         """ cursorMenu() -> None        
@@ -313,6 +315,7 @@ class QVistrailInteractionToolBar(QtGui.QToolBar):
             self._selectCursorAction.setStatusTip(
                 self._selectCursorAction.toolTip())
             self._selectCursorAction.setChecked(True)
+            self.cursorMode = 0
             self.connect(self._selectCursorAction,
                          QtCore.SIGNAL('triggered(bool)'),
                          self.cursorToggled)
@@ -376,5 +379,6 @@ class QVistrailInteractionToolBar(QtGui.QToolBar):
             action = self.zoomCursorAction()
         if action:
             self.assignCursorMenuAction(action)
+            self.cursorMode = cursorMode
         self.parent().viewManager.changeCursor(cursorMode)
 

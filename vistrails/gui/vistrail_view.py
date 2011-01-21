@@ -363,6 +363,8 @@ class QVistrailView(QDockContainer):
             self.versionTab.versionView.versionProp.updateVersion(versionId)
             self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
             self.execPipelineEnabled = versionId>-1
+            self.execExploreEnabled = \
+                        self.controller.vistrail.get_paramexp(versionId) != None
             self.execDiffEnabled = False
             self.execExploreChange = False
             self.emit(QtCore.SIGNAL('execStateChange()'))
