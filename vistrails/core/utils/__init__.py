@@ -23,6 +23,8 @@
 This module defines common functions and exception class definitions
 used all over VisTrails.
 """
+from __future__ import with_statement
+
 import core.debug
 from core.utils.enum import enum
 from core.utils.timemethod import time_method, time_call

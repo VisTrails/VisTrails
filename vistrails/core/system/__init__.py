@@ -19,6 +19,9 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+
+from __future__ import with_statement
+
 import datetime
 import getpass
 import os
