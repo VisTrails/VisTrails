@@ -1066,10 +1066,13 @@ class QBuilderWindow(QtGui.QMainWindow):
     def create_recent_vistrail_actions(self):
         maxRecentVistrails = int(getattr(get_vistrails_configuration(), 
                                          'maxRecentVistrails'))
-         #check if we have enough actions
+        #check if we have enough actions
         while len(self.recentVistrailActs) < maxRecentVistrails:
-            self.recentVistrailActs.append(QtGui.QAction(self, visible=False,
-                            triggered=self.open_recent_vistrail))
+            action = QtGui.QAction(self)
+            action.setVisible(False)
+            self.connect(action, QtCore.SIGNAL("triggered()"),
+                         self.open_recent_vistrail)
+            self.recentVistrailActs.append(action)
     
     def update_recent_vistrail_menu(self):
         #check if we have enough actions
