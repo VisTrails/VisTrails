@@ -742,7 +742,10 @@ class QVersionEmbed(QtGui.QWidget):
         label3 = QtGui.QLabel("After making your selection, click on 'Copy To \
 Clipboard'. The code changes based on your selection.")
         label3.setWordWrap(True)
-        label3.setFont(QtGui.QFont("Arial", 11, italic=True))
+        
+        font = QtGui.QFont("Arial", 10, QtGui.QFont.Normal)
+        font.setItalic(True)
+        label3.setFont(font)
         
         layout = QtGui.QGridLayout()
         layout.addWidget(label1,0,0)
