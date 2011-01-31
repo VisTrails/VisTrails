@@ -339,7 +339,7 @@ class VistrailController(object):
                                 ports=[input_port, output_port])
         return connection
 
-    def create_param(self, port_spec, pos, value):
+    def create_param(self, port_spec, pos, value, alias=''):
         param_id = self.id_scope.getNewId(ModuleParam.vtType)
         descriptor = port_spec.descriptors()[pos]
         param_type = descriptor.sigstring
@@ -348,24 +348,29 @@ class VistrailController(object):
         new_param = ModuleParam(id=param_id,
                                 pos=pos,
                                 name='<no description>',
-                                alias='',
+                                alias=alias,
                                 val=value,
                                 type=param_type,
                                 )
         return new_param
 
-    def create_params(self, port_spec, values):
+    def create_params(self, port_spec, values, aliases=[]):
         params = []
         for i in xrange(len(port_spec.descriptors())):
             if i < len(values):
                 value = str(values[i])
             else:
                 value = None
-            param = self.create_param(port_spec, i, value)
+            if i < len(aliases):
+                alias = str(aliases[i])
+            else:
+                alias = ''
+            param = self.create_param(port_spec, i, value, alias)
             params.append(param)
         return params
 
-    def create_function(self, module, function_name, param_values=[]):
+    def create_function(self, module, function_name, param_values=[], 
+                        aliases=[]):
         port_spec = module.get_port_spec(function_name, 'input')
         if len(param_values) <= 0 and port_spec.defaults is not None:
             param_values = port_spec.defaults
@@ -376,7 +381,7 @@ class VistrailController(object):
                                       name=function_name,
                                       )
         new_function.is_valid = True
-        new_params = self.create_params(port_spec, param_values)
+        new_params = self.create_params(port_spec, param_values, aliases)
         new_function.add_parameters(new_params)        
         return new_function
 
@@ -492,10 +497,12 @@ class VistrailController(object):
                 old_param = function.params[i]
                 if (len(aliases) > i and old_param.alias != aliases[i]) or \
                         (old_param.strValue != new_param_value):
-                    new_param = self.create_param(port_spec, i, 
-                                                  new_param_value)
                     if len(aliases) > i:
-                        new_param.alias = aliases[i]
+                        alias = aliases[i]
+                    else:
+                        alias = ''
+                    new_param = self.create_param(port_spec, i, 
+                                                  new_param_value, alias)
                     op_list.append(('change', old_param, new_param,
                                     function.vtType, function.real_id))
         else:
