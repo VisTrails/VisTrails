@@ -327,8 +327,12 @@ class UpgradeWorkflowHandler(object):
                 else:
                     function_name = remap
 
-            new_param_vals, aliases = zip(*[(p.strValue, p.alias) 
-                                            for p in function.parameters])
+            if len(function.parameters) > 0:
+                new_param_vals, aliases = zip(*[(p.strValue, p.alias) 
+                                                for p in function.parameters])
+            else:
+                new_param_vals = []
+                aliases = []
             new_function = controller.create_function(new_module, 
                                                       function_name,
                                                       new_param_vals,
