@@ -31,9 +31,10 @@ vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
 from core.utils import all, any, VistrailsInternalError, InstanceObject
 from core.debug import debug
 from core.modules.basic_modules import Integer, Float, String, File, \
-     Variant, Color
+     Variant, Color, Boolean, identifier as basic_pkg
 from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import new_module, ModuleError
+from core.vistrail.connection import Connection
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
@@ -46,7 +47,10 @@ import offscreen
 import fix_classes
 import inspectors
 from hasher import vtk_hasher
+import operator
+import re
 import sys
+from core.upgradeworkflow import UpgradeWorkflowHandler
 
 #TODO: Change the Core > Module > Registry > Add Input : To support vector as type.
 
@@ -1167,3 +1171,155 @@ def initialize():
     inspectors.initialize()
 
 ################################################################################
+
+_remap = None
+_controller = None
+_pipeline = None
+
+def _get_controller():
+    global _controller
+    return _controller
+
+def _get_pipeline():
+    global _pipeline
+    return _pipeline
+
+def build_remap():
+    global _remap, _controller
+    _remap = {}
+
+    reg = get_module_registry()
+    uscore_num = re.compile(r"(.+)_(\d+)$")
+    
+    def get_port_specs(descriptor, port_type):
+       ports = {}
+       for desc in reversed(reg.get_module_hierarchy(descriptor)):
+           ports.update(reg.module_ports(port_type, desc))
+       return ports
+
+    def build_remap_method(desc, port_prefix, port_num, port_type):
+        # for connection, need to differentiate between src and dst
+        if port_type == 'input':
+            conn_lookup = Connection._get_destination
+            get_port_spec = reg.get_input_port_spec
+            idx = 1
+        else:
+            conn_lookup = Connection._get_source
+            get_port_spec = reg.get_output_port_spec
+            idx = 0
+
+        def remap(old_conn, new_module):
+            create_new_connection = UpgradeWorkflowHandler.create_new_connection
+            port = conn_lookup(old_conn)
+            pipeline = _get_pipeline()
+            modules = [pipeline.modules[old_conn.source.moduleId],
+                       pipeline.modules[old_conn.destination.moduleId]]
+            modules[idx] = new_module
+            ports = [old_conn.source, old_conn.destination]
+            for i in xrange(1, port_num):
+                port_name = "%s_%d" % (port_prefix, i)
+                port_spec = get_port_spec(modules[idx], port_name)
+                if port_spec.sigstring == port.signature:
+                    ports[idx] = port_name
+                    new_conn = create_new_connection(_get_controller(),
+                                                     modules[0],
+                                                     ports[0],
+                                                     modules[1],
+                                                     ports[1])
+                    return [('add', new_conn)]
+                                                                  
+            # if get here, just try to use _1 version?
+            ports[idx] = "%s_%d" % (port_prefix, 1)
+            new_conn = create_new_connection(_get_controller(),
+                                             modules[0],
+                                             ports[0],
+                                             modules[1],
+                                             ports[1])
+            return [('add', new_conn)]
+        return remap
+
+    def build_function_remap_method(desc, port_prefix, port_num):
+        def build_function(old_function, new_function_name, new_module):
+            controller = _get_controller()
+            if len(old_function.parameters) > 0:
+                new_param_vals, aliases = \
+                    zip(*[(p.strValue, p.alias) 
+                          for p in old_function.parameters])
+            else:
+                new_param_vals = []
+                aliases = []
+            new_function = controller.create_function(new_module, 
+                                                      new_function_name,
+                                                      new_param_vals,
+                                                      aliases)
+            return new_function
+            
+        def remap(old_function, new_module):
+            for i in xrange(1, port_num):
+                port_name = "%s_%d" % (port_prefix, i)
+                port_spec = reg.get_input_port_spec(new_module, port_name)
+                old_sigstring = \
+                    reg.expand_port_spec_string(old_function.sigstring,
+                                                basic_pkg)
+                if port_spec.sigstring == old_sigstring:
+                    new_function = build_function(old_function, port_name,
+                                                  new_module)
+                    new_module.add_function(new_function)
+                    return []
+            port_name = "%s_%d" % (port_prefix, 1)
+            new_function = build_function(old_function, port_name, new_module)
+            new_module.add_function(new_function)
+            return []
+
+        return remap
+                    
+    def process_ports(desc, port_type):
+        if port_type == 'input':
+            remap_dict_key = 'dst_port_remap'
+        else:
+            remap_dict_key = 'src_port_remap'
+        ports = get_port_specs(desc, port_type)
+        port_nums = {}
+        for port_name, port_spec in ports.iteritems():
+            # FIXME just start at 1 and go until don't find port (no
+            # need to track max)?
+            search_res = uscore_num.search(port_name)
+            if search_res:
+                port_prefix = search_res.group(1)
+                port_num = int(search_res.group(2))
+                if port_prefix not in port_nums:
+                    port_nums[port_prefix] = port_num
+                elif port_num > port_nums[port_prefix]:
+                    port_nums[port_prefix] = port_num
+        for port_prefix, port_num in port_nums.iteritems():
+            if desc.name not in _remap:
+                _remap[desc.name] = [(None, '0.9.3', None, dict())]
+            my_remap_dict = _remap[desc.name][0][3]
+            if remap_dict_key not in my_remap_dict:
+                my_remap_dict[remap_dict_key] = dict()
+            remap = build_remap_method(desc, port_prefix, port_num, port_type)
+            my_remap_dict[remap_dict_key][port_prefix] = remap
+            if port_type == 'input':
+                remap = build_function_remap_method(desc, port_prefix, port_num)
+                if 'function_remap' not in my_remap_dict:
+                    my_remap_dict['function_remap'] = {}
+                my_remap_dict['function_remap'][port_prefix] = remap
+
+    pkg = reg.get_package_by_name(identifier)
+    # FIXME do this by descriptor first, then build the hierarchies for each
+    # module after that...
+    for desc in pkg.descriptor_list:
+        process_ports(desc, 'input')
+        process_ports(desc, 'output')
+    
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    global _remap, _controller, _pipeline
+    reg = get_module_registry()
+    if _remap is None:
+        build_remap()
+    
+    _controller = controller
+    _pipeline = pipeline
+    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                              _remap)

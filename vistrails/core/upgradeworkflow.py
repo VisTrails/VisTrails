@@ -322,7 +322,7 @@ class UpgradeWorkflowHandler(object):
                     # don't add the function back in
                     continue                    
                 elif type(remap) != type(""):
-                    ops.extend(remap(function))
+                    ops.extend(remap(function, new_module))
                     continue
                 else:
                     function_name = remap
