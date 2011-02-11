@@ -25,12 +25,12 @@
 %% latex or by adding/changing "shell_escape = t" in your texmf.cnf .
 
 \NeedsTeXFormat{LaTeX2e}[1994/12/01]
-\ProvidesPackage{vistrails}[2010/11/19 v0.3 VisTrails in LaTeX]
+\ProvidesPackage{vistrails}[2011/02/10 v0.4 VisTrails in LaTeX]
 
 %% keyval package allows us to define arguments in a command as key-value pairs,
 %%  which is more convenient
-
-\RequirePackage{graphicx,keyval,ifthen}
+%% ifplatform for detecting which version of OS we are running on
+\RequirePackage{graphicx,keyval,ifthen,ifplatform}
 
 %% This is to hide the border of the included image
 \RequirePackage[pdfborder={0 0 0}]{hyperref}
@@ -78,7 +78,11 @@
 \def\vtincludefulltree{false}
 \newread\myinput
 %% We use '\jobname.python.temp' to store a unique file saying if python is present
-\immediate\write18{type -P \vistrailspythonpath > \jobname.python.temp}
+\ifwindows
+  \immediate\write18{find.cmd \vistrailspythonpath > \jobname.python.temp}
+\else
+  \immediate\write18{type -P "\vistrailspythonpath" > \jobname.python.temp}
+\fi
 \immediate\openin\myinput=\jobname.python.temp
 % The group localizes the change to \endlinechar
 \bgroup
@@ -90,8 +94,11 @@
 \egroup
 \immediate\closein\myinput
 % Clean up after ourselves
-\immediate\write18{rm -f -- \jobname.python.temp}
-
+\ifwindows
+  \immediate\write18{del \jobname.python.temp}
+\else
+  \immediate\write18{rm -f -- \jobname.python.temp}
+\fi
 \setkeys{vt}{#1}
 \ifthenelse{\equal{\vtpdf}{true}}{\def\vttype{pdf}}{\def\vttype{png}}
 \ifthenelse{\equal{\pythonexists}{}}{%
@@ -112,6 +119,7 @@
  { %else prepare input file for includevistrail.py
    \immediate\openout\pythonincludein=\jobname.cmdline
     \immediate\write\pythonincludein{path=\vistrailspath}
+    \immediate\write\pythonincludein{python=\vistrailspythonpath}
     \immediate\write\pythonincludein{env=\vistrailsenv}
     \immediate\write\pythonincludein{download=\vistrailsdownload}
     \ifthenelse{\equal{\vtfilename}{}}{%
@@ -141,8 +149,8 @@
         \immediate\write\pythonincludein{other=\string#2}
     \fi
     \immediate\closeout\pythonincludein
-    \immediate\write18{\vistrailspythonpath \space includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
-    \immediate\input\jobname.cmdline.out
+    \immediate\write18{"\vistrailspythonpath" \space includevistrail.py \jobname.cmdline > \jobname.cmdline.tex 2> \jobname.cmdline.err}
+    \immediate\input\jobname.cmdline.tex
 }
 }
 %% key-value pairs for the command's options

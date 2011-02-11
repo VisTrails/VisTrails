@@ -776,13 +776,15 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             if not os.path.exists(thumbnail_dir):
                 os.mkdir(thumbnail_dir)
             
-            #print 'copying %s -> %s' %(obj, png_fname)
             try:
                 shutil.copyfile(obj, png_fname)
-            except Exception, e:
+            except shutil.Error, e:
+                #files are the same no need to show warning
+                saved_thumbnails.pop()
+            except IOError, e2:
                 saved_thumbnails.pop()
                 debug.warning('copying thumbnail %s -> %s failed: %s' % \
-                              (obj, png_fname, str(e))) 
+                              (obj, png_fname, str(e2)))
         else:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'thumbnail list entry must be a filename')

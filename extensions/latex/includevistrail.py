@@ -22,6 +22,7 @@
 
 # the input file format should follow this:
 #   path=/Users/emanuele/code/vistrails/branches/v1.2/vistrails/vistrails.py
+#   python=/path/to/python
 #   env=DYLD_LIBRARY_PATH= 
 #   download=http://url.from.where.download.vt.files
 #   host=vistrails.sci.utah.edu
@@ -55,9 +56,13 @@ from urlparse import urlparse
 import urllib2
 import re
 import logging
+import shlex
 import shutil
+import subprocess
+import platform
 
-debug = False
+systemType = platform.system()
+debug = True
 logger = None
 
 ###############################################################################
@@ -142,7 +147,7 @@ forceDB="%s" tag="%s"/>'%(os.path.abspath(filename),
     f = open(vtl_filename, "w")
     f.write(header)
     f.close()
-    return "run:"+ os.path.abspath(vtl_filename)
+    return "run:"+ os.path.abspath(vtl_filename).replace("\\","/")
 
 ###############################################################################
 
@@ -310,58 +315,52 @@ def _download_content(url, request, path_to_figures):
     except Exception, e:
         return (False, str(e))
     
-def build_vistrails_cmd_line_db(path_to_vistrails, env_for_vistrails, host, 
+def build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
+                                env_for_vistrails, host, 
                                 db_name, db_user, vt_id, version, port, 
                                 path_to_figures, pdf=False, wgraph=False, 
                                 tree=False):
     """ build_vistrails_cmd_line_db(path_to_vistrails: str, env_for_vistrails: str,
                                      host: str, db_name: str, vt_id: str, 
                                      version: str, path_to_figures: str,
-                                     pdf:bool, wgraph:bool, tree: bool) -> str
+                                     pdf:bool, wgraph:bool, tree: bool) -> list
         Build the command line to run vistrails with the given parameters.
     """
     #dump pdf
     if pdf:
-        pdfoption = "-p"
+        pdfoption = ["-p"]
     else:
-        pdfoption = ""
+        pdfoption = []
     #user
     if db_user is not None and db_user != "":
-        useroption = '-u %s'%db_user
+        useroption = ['-u', '%s'%db_user]
     else:
-        useroption = ""
+        useroption = []
     #dump tree and workflow graph
     if wgraph:
-        graphoption = '-G "%s"'%os.path.abspath(path_to_figures)
+        graphoption = ['-G', '%s'%os.path.abspath(path_to_figures)]
     elif tree:
-        graphoption = '-U "%s"'%os.path.abspath(path_to_figures)
+        graphoption = ['-U' ,'%s'%os.path.abspath(path_to_figures)]
     else:
-        graphoption = '-e "%s"'%os.path.abspath(path_to_figures)
+        graphoption = ['-e', '%s'%os.path.abspath(path_to_figures)]
     #don't select a workflow
     if version is not None:
         voption = ":%s"%version
     else:
-        voption = ''
+        voption = ""
         
-    prefix = '%s "%s"'%(env_for_vistrails, path_to_vistrails)
+    prefix = ['%s'%path_to_vistrails]
     if path_to_vistrails.endswith(".py"):
-        prefix = '%s python "%s"'%(env_for_vistrails, path_to_vistrails)
-    
-    cmd_line = '%s -b %s -t %s -f %s %s -r %s %s "%s%s" > \
-vistrails_run.log' % (prefix,
-                  graphoption,
-                  host,
-                  db_name,
-                  useroption,
-                  port,
-                  pdfoption,
-                  vt_id,
-                  voption)
+        prefix = ['%s'%path_to_python,
+                  '%s'%path_to_vistrails]
+    cmd_line = prefix + ['-b'] + graphoption + ['-t', host, '-f',db_name] + \
+             useroption + ['-r', port] + pdfoption + [ '%s%s'%(vt_id, voption)]
     return cmd_line
 
 ###############################################################################
 
-def build_vistrails_cmd_line_file(path_to_vistrails, env_for_vistrails, filename, 
+def build_vistrails_cmd_line_file(path_to_vistrails, path_to_python,
+                                  env_for_vistrails, filename, 
                                   version, path_to_figures, pdf=False, 
                                   wgraph=False, tree=False):
     """ build_vistrails_cmd_line_file(path_to_vistrails: str, 
@@ -372,32 +371,28 @@ def build_vistrails_cmd_line_file(path_to_vistrails, env_for_vistrails, filename
     """
     #dump pdf
     if pdf:
-        pdfoption = "-p"
+        pdfoption = ["-p"]
     else:
-        pdfoption = ""
+        pdfoption = []
     #dump tree and workflow graph
     if wgraph:
-        graphoption = '-G "%s"'%os.path.abspath(path_to_figures)
+        graphoption = ['-G','%s'%os.path.abspath(path_to_figures)]
     elif tree:
-        graphoption = '-U "%s"'%os.path.abspath(path_to_figures)
+        graphoption = ['-U','%s'%os.path.abspath(path_to_figures)]
     else:
-        graphoption = '-e "%s"'%os.path.abspath(path_to_figures)
+        graphoption = ['-e','%s'%os.path.abspath(path_to_figures)]
     #don't select a workflow
     if version is not None:
         voption = ":%s"%version
     else:
         voption = ''
-        
-    prefix = '%s "%s"'%(env_for_vistrails, path_to_vistrails)
+    prefix = ['%s'%path_to_vistrails]
     if path_to_vistrails.endswith(".py"):
-        prefix = '%s python "%s"'%(env_for_vistrails, path_to_vistrails)
-        
-    cmd_line = '%s -b %s %s "%s%s" > \
-vistrails_run.log' % (prefix,
-                      graphoption,
-                      pdfoption,
-                      os.path.abspath(filename),
-                      voption)
+        prefix = ['%s'%path_to_python,
+                  '%s'%path_to_vistrails]
+    cmd_line = prefix + ['-b'] + graphoption + pdfoption + \
+               [ "%s%s"%(os.path.abspath(filename),voption)]
+                      
     return cmd_line
 
 ###############################################################################
@@ -443,9 +438,9 @@ def generate_latex_db(is_local, download_url, host, db_name, vt_id, version, por
     for f in images:
         filename = os.path.join(path_to_figures,f).replace("%","\%")
         if graphics_options:
-            s += "\includegraphics[%s]{%s}\n" % (graphics_options, filename)
+            s += "\includegraphics[%s]{%s}\n" % (graphics_options, filename.replace("\\","/"))
         else:
-            s += "\includegraphics{%s}\n" % filename
+            s += "\includegraphics{%s}\n" % filename.replace("\\","/")
     
     if download_url is not None and download_url != "":
         return href + s + "}"
@@ -484,9 +479,9 @@ def generate_latex_file(download_url, vtfile, version, tag,
     for f in images:
         filename = os.path.join(path_to_figures,f).replace("%","\%")
         if graphics_options:
-            s += "\includegraphics[%s]{%s}\n" % (graphics_options, filename)
+            s += "\includegraphics[%s]{%s}\n" % (graphics_options, filename.replace("\\","/"))
         else:
-            s += "\includegraphics{%s}\n" % filename
+            s += "\includegraphics{%s}\n" % filename.replace("\\","/")
     
     if download_url is not None and download_url != "":
         return href + s + "}"
@@ -507,7 +502,8 @@ def generate_latex_error(error_msg):
 
 ###############################################################################
 
-def run_vistrails_locally_db(path_to_vistrails, env_for_vistrails, host, db_name, 
+def run_vistrails_locally_db(path_to_vistrails, path_to_python, 
+                             env_for_vistrails, host, db_name, 
                              db_user, vt_id,
                              version, port, path_to_figures, build_always=False,
                              tag='', execute=False, showspreadsheetonly=False,
@@ -522,7 +518,8 @@ def run_vistrails_locally_db(path_to_vistrails, env_for_vistrails, host, db_name
     v = version
     if tag != '':
         v = tag
-    cmd_line = build_vistrails_cmd_line_db(path_to_vistrails, env_for_vistrails, 
+    cmd_line = build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
+                                           env_for_vistrails, 
                                            host, db_name, db_user, vt_id,
                                            v, port, path_to_figures, pdf)
     log("run_vistrails_locally_db")
@@ -537,12 +534,36 @@ def run_vistrails_locally_db(path_to_vistrails, env_for_vistrails, host, db_name
         os.makedirs(path_to_figures)
         
     if build_always or not path_exists_and_not_empty(path_to_figures):
-        result = os.system(cmd_line)
-        if result != 0:
+        my_env = os.environ
+        sep = ":"
+        if systemType in ["Windows", "Microsoft"]:
+            sep = ";"
+        if env_for_vistrails != '':
+            data = shlex.split(env_for_vistrails)
+            for d in data:
+                (name,val) = d.split("=")
+                my_env[name] = val + sep + my_env.get(name,'')
+        if systemType in ['Windows', 'Microsoft']:
+            log("env: %s"%my_env)
+            proc = subprocess.Popen(cmd_line,
+                                    env=my_env)
+        else:
+            proc = subprocess.Popen(cmd_line, shell=False,
+                                    env=my_env,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  close_fds=True)
+        proc.wait()
+        log("result: %s"%proc.returncode)
+        if proc.stdout:
+            lines = proc.stdout.readlines()
+            log("stdout: %s"%lines)
+        if proc.returncode != 0:
             shutil.rmtree(path_to_figures)
-            msg = "See vistrails.log and vistrails_run.log for more information."
+            msg = "See vistrails.log for more information."
             return (False, generate_latex_error(msg))
-
+        
     return (True, generate_latex_db(True,os.getcwd(), host, db_name, vt_id, version, port, tag,
                                     execute, showspreadsheetonly, 
                                     path_to_figures, graphics_options, 
@@ -550,7 +571,8 @@ def run_vistrails_locally_db(path_to_vistrails, env_for_vistrails, host, db_name
 
 ###############################################################################
 
-def run_vistrails_locally_file(path_to_vistrails, env_for_vistrails, filename, 
+def run_vistrails_locally_file(path_to_vistrails, path_to_python,
+                               env_for_vistrails, filename, 
                                version, path_to_figures, build_always=False,
                                tag='', execute=False, showspreadsheetonly=False,
                                pdf=False, embedWorkflow=False, 
@@ -566,7 +588,8 @@ def run_vistrails_locally_file(path_to_vistrails, env_for_vistrails, filename,
     v = version
     if tag != '':
         v = tag
-    cmd_line = build_vistrails_cmd_line_file(path_to_vistrails, env_for_vistrails,
+    cmd_line = build_vistrails_cmd_line_file(path_to_vistrails, path_to_python, 
+                                             env_for_vistrails,
                                              filename, v, path_to_figures, 
                                              pdf)
     log("run_vistrails_locally_file")
@@ -577,13 +600,40 @@ def run_vistrails_locally_file(path_to_vistrails, env_for_vistrails, filename,
             shutil.rmtree(path_to_figures)
             
     if not os.path.exists(path_to_figures):
+        log("creating image path")
         os.makedirs(path_to_figures)
                 
     if build_always or not path_exists_and_not_empty(path_to_figures):
-        result = os.system(cmd_line)
-        if result != 0:
+        my_env = os.environ
+        sep = ":"
+        if systemType in ["Windows", "Microsoft"]:
+            sep = ";"
+        if env_for_vistrails != '':
+            data = shlex.split(env_for_vistrails)
+            log("env_for_vistrails: %s"%data)
+            for d in data:
+                (name,val) = d.split("=")
+                my_env[name] = val + sep + my_env.get(name,'')
+        if systemType in ['Windows', 'Microsoft']:
+            log("env: %s"%my_env)
+            proc = subprocess.Popen(cmd_line,
+                                    env=my_env,
+                                    stdout=subprocess.PIPE)
+        else:
+            proc = subprocess.Popen(cmd_line, shell=False,
+                                    env=my_env,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  close_fds=True)
+        proc.wait()
+        log("result: %s"%proc.returncode)
+        if proc.stdout:
+            lines = proc.stdout.readlines()
+            log("stdout: %s"%lines)
+        if proc.returncode != 0:
             shutil.rmtree(path_to_figures)
-            msg = "See vistrails.log and vistrails_run.log for more information."
+            msg = "See vistrails.log for more information."
             return (False, generate_latex_error(msg))
     log("will generate latex")
     try:
@@ -596,7 +646,8 @@ def run_vistrails_locally_file(path_to_vistrails, env_for_vistrails, filename,
         log("Error: %s"%str(e))
 ###############################################################################
 
-def get_vt_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
+def get_vt_graph_locally_db(path_to_vistrails, path_to_python,
+                            env_for_vistrails, host, db_name,
                             db_user, vt_id, port, path_to_figures, 
                             build_always=False, pdf=False,
                             embedWorkflow=False, includeFullTree=False):
@@ -608,7 +659,8 @@ def get_vt_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
         returns a tuple containing a boolean saying if it was
         successful or not and the latex code.
     """
-    cmd_line = build_vistrails_cmd_line_db(path_to_vistrails, env_for_vistrails, 
+    cmd_line = build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
+                                           env_for_vistrails, 
                                            host, db_name, db_user, vt_id,
                                            None, port, path_to_figures, pdf, False,
                                            True)
@@ -623,10 +675,34 @@ def get_vt_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
         os.makedirs(path_to_figures)
     
     if build_always or not path_exists_and_not_empty(path_to_figures):
-        result = os.system(cmd_line)
-        if result != 0:
+        my_env = os.environ
+        sep = ":"
+        if systemType in ["Windows", "Microsoft"]:
+            sep = ";"
+        if env_for_vistrails != '':
+            data = shlex.split(env_for_vistrails)
+            for d in data:
+                (name,val) = d.split("=")
+                my_env[name] = val + sep + my_env.get(name,'')
+        if systemType in ['Windows', 'Microsoft']:
+            log("env: %s"%my_env)
+            proc = subprocess.Popen(cmd_line,
+                                    env=my_env)
+        else:
+            proc = subprocess.Popen(cmd_line, shell=False,
+                                    env=my_env,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  close_fds=True)
+        proc.wait()
+        log("result: %s"%proc.returncode)
+        if proc.stdout:
+            lines = proc.stdout.readlines()
+            log("stdout: %s"%lines)
+        if proc.returncode != 0:
             os.rmdir(path_to_figures)
-            msg = "See vistrails.log and vistrails_run.log for more information."
+            msg = "See vistrails.log for more information."
             return (False, generate_latex_error(msg))
 
     return (True, generate_latex_db(True, os.getcwd(), host, db_name, vt_id, None, port, '',
@@ -636,7 +712,8 @@ def get_vt_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
 
 ###############################################################################
 
-def get_vt_graph_locally_file(path_to_vistrails, env_for_vistrails, filename,
+def get_vt_graph_locally_file(path_to_vistrails, path_to_python,
+                              env_for_vistrails, filename,
                               path_to_figures, build_always=False, pdf=False,
                               embedWorkflow=False, includeFullTree=False):
     """get_vt_graph_locally_file(path_to_vistrails: str, env_for_vistrails: str,
@@ -647,7 +724,9 @@ def get_vt_graph_locally_file(path_to_vistrails, env_for_vistrails, filename,
         returns a tuple containing a boolean saying whether it was
         successful and the latex code.
     """
-    cmd_line = build_vistrails_cmd_line_file(path_to_vistrails, env_for_vistrails, 
+    cmd_line = build_vistrails_cmd_line_file(path_to_vistrails, 
+                                             path_to_python,
+                                             env_for_vistrails, 
                                              filename, None, path_to_figures, 
                                              pdf, False, True)
     log("get_vt_graph_locally_file")
@@ -664,8 +743,32 @@ def get_vt_graph_locally_file(path_to_vistrails, env_for_vistrails, filename,
         
     if build_always or not path_exists_and_not_empty(path_to_figures):
         log("  folder was empty or forcing execution")
-        result = os.system(cmd_line)
-        if result != 0:
+        my_env = os.environ
+        sep = ":"
+        if systemType in ["Windows", "Microsoft"]:
+            sep = ";"
+        if env_for_vistrails != '':
+            data = shlex.split(env_for_vistrails)
+            for d in data:
+                (name,val) = d.split("=")
+                my_env[name] = val + sep + my_env.get(name,'')
+        if systemType in ['Windows', 'Microsoft']:
+            log("env: %s"%my_env)
+            proc = subprocess.Popen(cmd_line,
+                                    env=my_env)
+        else:
+            proc = subprocess.Popen(cmd_line, shell=False,
+                                    env=my_env,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  close_fds=True)
+        proc.wait()
+        log("result: %s"%proc.returncode)
+        if proc.stdout:
+            lines = proc.stdout.readlines()
+            log("stdout: %s"%lines)
+        if proc.returncode != 0:
             os.rmdir(path_to_figures)
             msg = "See vistrails.log and vistrails_run.log for more information."
             return (False, generate_latex_error(msg))
@@ -680,7 +783,8 @@ def get_vt_graph_locally_file(path_to_vistrails, env_for_vistrails, filename,
 
 ###############################################################################    
 
-def get_wf_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
+def get_wf_graph_locally_db(path_to_vistrails, path_to_python,
+                            env_for_vistrails, host, db_name,
                             db_user, vt_id, version, port, path_to_figures, 
                             build_always=False, tag='', pdf=False,
                             embedWorkflow=False, includeFullTree=False):
@@ -695,7 +799,8 @@ def get_wf_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
     v = version
     if tag != '':
         v = tag
-    cmd_line = build_vistrails_cmd_line_db(path_to_vistrails, env_for_vistrails, 
+    cmd_line = build_vistrails_cmd_line_db(path_to_vistrails, 
+                                           path_to_python, env_for_vistrails, 
                                            host, db_name, db_user, vt_id,
                                            v, port, path_to_figures, pdf, 
                                            True, False)
@@ -712,8 +817,32 @@ def get_wf_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
         
     if build_always or not path_exists_and_not_empty(path_to_figures):
         log("  folder was empty or forcing execution")
-        result = os.system(cmd_line)
-        if result != 0:
+        my_env = os.environ
+        sep = ":"
+        if systemType in ["Windows", "Microsoft"]:
+            sep = ";"
+        if env_for_vistrails != '':
+            data = shlex.split(env_for_vistrails)
+            for d in data:
+                (name,val) = d.split("=")
+                my_env[name] = val + sep + my_env.get(name,'')
+        if systemType in ['Windows', 'Microsoft']:
+            log("env: %s"%my_env)
+            proc = subprocess.Popen(cmd_line,
+                                    env=my_env)
+        else:
+            proc = subprocess.Popen(cmd_line, shell=False,
+                                    env=my_env,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  close_fds=True)
+        proc.wait()
+        log("result: %s"%proc.returncode)
+        if proc.stdout:
+            lines = proc.stdout.readlines()
+            log("stdout: %s"%lines)
+        if proc.returncode != 0:
             os.rmdir(path_to_figures)
             msg = "See vistrails.log for more information."
             return (False, generate_latex_error(msg))
@@ -727,10 +856,11 @@ def get_wf_graph_locally_db(path_to_vistrails, env_for_vistrails, host, db_name,
 
 ###############################################################################
 
-def get_wf_graph_locally_file(path_to_vistrails, env_for_vistrails, filename,
-                          version, path_to_figures, build_always=False,
-                          tag='', pdf=False, embedWorkflow=False, 
-                          includeFullTree=False):
+def get_wf_graph_locally_file(path_to_vistrails, path_to_python,
+                              env_for_vistrails, filename,
+                              version, path_to_figures, build_always=False,
+                              tag='', pdf=False, embedWorkflow=False, 
+                              includeFullTree=False):
     """get_wf_graph_locally_file(path_to_vistrails: str, env_for_vistrails: str,
                                  filename: str, version: str, 
                              path_to_figures: str,build_always: bool,
@@ -742,7 +872,8 @@ def get_wf_graph_locally_file(path_to_vistrails, env_for_vistrails, filename,
     v = version
     if tag != '':
         v = tag
-    cmd_line = build_vistrails_cmd_line_file(path_to_vistrails, env_for_vistrails, 
+    cmd_line = build_vistrails_cmd_line_file(path_to_vistrails, path_to_python,
+                                             env_for_vistrails, 
                                              filename, v, path_to_figures, 
                                              pdf, True, False)
     log("get_wf_graph_locally_file")
@@ -758,11 +889,35 @@ def get_wf_graph_locally_file(path_to_vistrails, env_for_vistrails, filename,
         
     if build_always or not path_exists_and_not_empty(path_to_figures):
         log("  folder was empty or forcing execution")
-        result = os.system(cmd_line)
-        log("  after executing: %s"%result)
-        if result != 0:
+        log("  folder was empty or forcing execution")
+        my_env = os.environ
+        sep = ":"
+        if systemType in ["Windows", "Microsoft"]:
+            sep = ";"
+        if env_for_vistrails != '':
+            data = shlex.split(env_for_vistrails)
+            for d in data:
+                (name,val) = d.split("=")
+                my_env[name] = val + sep + my_env.get(name,'')
+        if systemType in ['Windows', 'Microsoft']:
+            log("env: %s"%my_env)
+            proc = subprocess.Popen(cmd_line,
+                                    env=my_env)
+        else:
+            proc = subprocess.Popen(cmd_line, shell=False,
+                                    env=my_env,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  close_fds=True)
+        proc.wait()
+        log("result: %s"%proc.returncode)
+        if proc.stdout:
+            lines = proc.stdout.readlines()
+            log("stdout: %s"%lines)
+        if proc.returncode != 0:
             os.rmdir(path_to_figures)
-            msg = "See vistrails.log and vistrails_run.log for more information."
+            msg = "See vistrails.log for more information."
             return (False, generate_latex_error(msg))
     else:
         log("  found cached images")
@@ -1006,6 +1161,7 @@ if debug:
     
 lines = options_file.readlines()
 path_to_vistrails = None
+path_to_python = None
 download_url = None
 env_for_vistrails = None
 host = None
@@ -1032,6 +1188,8 @@ for line in lines:
         args[1] = "=".join(args[1:])
     if args[0] == "path":
         path_to_vistrails = args[1].strip(" \n")
+    elif args[0] == "python":
+        path_to_python = args[1].strip(" \n")
     elif args[0] == "env":
         env_for_vistrails = args[1].strip(" \n")
     elif args[0] == "download":
@@ -1124,7 +1282,8 @@ if check_path(path_to_vistrails) and filename is None: #run locally
         # we don't need to actually run the workflow, we just get the
         # tree
         log("will run get_vt_graph_locally_db")
-        result, latex = get_vt_graph_locally_db(path_to_vistrails, 
+        result, latex = get_vt_graph_locally_db(path_to_vistrails,
+                                                path_to_python,
                                                 env_for_vistrails, host, db_name,
                                                 db_user,
                                                 vt_id, port, path_to_figures,
@@ -1135,13 +1294,15 @@ if check_path(path_to_vistrails) and filename is None: #run locally
         # workflow graph
         log("will run get_wf_graph_locally_db")
         result, latex = get_wf_graph_locally_db(path_to_vistrails,
+                                                path_to_python,
                                                 env_for_vistrails, host, db_name,
                                                 db_user,
                                                 vt_id, version, port, path_to_figures,
                                                 build_always, version_tag, pdf,
                                                 embedWorkflow, includeFullTree)
     else:    
-        result, latex = run_vistrails_locally_db(path_to_vistrails, 
+        result, latex = run_vistrails_locally_db(path_to_vistrails,
+                                                 path_to_python,
                                                  env_for_vistrails, host, db_name,
                                                  db_user,
                                                  vt_id, version, port, path_to_figures,
@@ -1152,7 +1313,8 @@ elif check_path(path_to_vistrails) and filename is not None: #run locally
     if tree:
         # we don't need to actually run the workflow, we just get the
         # tree
-        result, latex = get_vt_graph_locally_file(path_to_vistrails, 
+        result, latex = get_vt_graph_locally_file(path_to_vistrails,
+                                                  path_to_python,
                                                   env_for_vistrails, filename,
                                                   path_to_figures,
                                                   build_always, pdf,
@@ -1161,13 +1323,15 @@ elif check_path(path_to_vistrails) and filename is not None: #run locally
         # we don't need to actually run the workflow, we just get the
         # workflow graph
         log("will run get_wf_graph_locally_file")
-        result, latex = get_wf_graph_locally_file(path_to_vistrails, 
+        result, latex = get_wf_graph_locally_file(path_to_vistrails,
+                                                  path_to_python,
                                                   env_for_vistrails, filename,
                                                   version, path_to_figures,
                                                   build_always, version_tag, pdf,
                                                   embedWorkflow, includeFullTree)
     else:    
-        result, latex = run_vistrails_locally_file(path_to_vistrails, 
+        result, latex = run_vistrails_locally_file(path_to_vistrails,
+                                                   path_to_python,
                                                    env_for_vistrails, filename,
                                                    version, path_to_figures,
                                                    build_always, version_tag, 
