@@ -4,35 +4,28 @@ import glob
 import itertools
 import os
 import shutil
-import tempfile
+import sys
+import subprocess
 
 from core.modules.vistrails_module import Module, ModuleError, ModuleConnector
 from core.modules.basic_modules import File, Directory, new_constant, Constant
+from core.modules.basic_modules import List
 from core.system import list2cmdline, execute_cmdline
 
 
 from widgets import get_predictor_widget, get_predictor_config
-from RunPARC import runPARC
+#from RunPARC import PARC
 from SelectPredictorsLayers import SelectPredictorsLayers
-from utils import map_ports, path_value, create_file_module, create_dir_module
+from utils import map_ports, path_value, create_file_module, createrootdir 
+from utils import create_dir_module, mktempfile, mktempdir, cleantemps
+from utils import dir_path_value, collapse_dictionary, tif_to_color_jpeg
 
+#import our python SAHM Processing files
+import packages.sahm.pySAHM.FieldDataQuery as FDQ
+import packages.sahm.pySAHM.MDSBuilder as MDSB
+import packages.sahm.pySAHM.PARC as parc
 
 identifier = 'gov.usgs.sahm'
-_temp_files = []
-_temp_dirs = []
-
-def mktempfile(*args, **kwargs):
-    global _temp_files
-    (fd, fname) = tempfile.mkstemp(*args, **kwargs)
-    os.close(fd)
-    _temp_files.append(fname)
-    return fname
-
-def mktempdir(*args, **kwargs):
-    global _temp_dirs
-    dname = tempfile.mkdtemp(*args, **kwargs)
-    _temp_dirs.append(dname)
-    return dname
 
 def run_cmd_line_jar(jar_name, args):
     arg_items = list(itertools.chain(*args.items()))
@@ -99,9 +92,7 @@ class FieldData(File):
     _output_ports = [('value', '(gov.usgs.sahm:FieldData:DataInput)'),
                      ('value_as_string', 
                       '(edu.utah.sci.vistrails.basic:String)', True)]
-
-
-
+    
 class Predictor(File):
     _input_ports = [('categorical', '(edu.utah.sci.vistrails.basic:Boolean)')]
     _output_ports = [('value', '(gov.usgs.sahm:Predictor:DataInput)'),
@@ -114,25 +105,90 @@ class TemplateLayer(File):
                      ('value_as_string', '(edu.utah.sci.vistrails.basic:String)', True)]
     pass
 
-class RemoteSensingPredictor(Predictor):
-    pass
-
-class ClimatePredictor(Predictor):
-    pass
-
-class StaticPredictor(Predictor):
+class SingleInputPredictor(Predictor):
     pass
 
 class SpatialDef(Module):
     _output_ports = [('spatialDef', '(gov.usgs.sahm:SpatialDef:DataInput)')]
 
 class MergedDataSet(File):
-    pass
+    _input_ports = expand_ports([('mdsFile', '(edu.utah.sci.vistrails.basic:File)')])
+    _output_ports = expand_ports([('value', '(gov.usgs.sahm:MergedDataSet:DataInput)')])
+    
+    True
+    
 
-class Resampler(Module):
-    _input_ports = [('predictor', '(gov.usgs.sahm:Predictor:DataInput)'),
-                    ('spatialDef', '(gov.usgs.sahm:SpatialDef:DataInput)')]
-    _output_ports = [('predictor', '(gov.usgs.sahm:Predictor:DataInput)')]
+class Model2(Module):
+    _input_ports = [('mdsFile', '(gov.usgs.sahm:MergedDataSet:DataInput)')]
+    _output_ports = [('BinaryMap', '(edu.utah.sci.vistrails.basic:File)'), 
+                     ('ProbabilityMap', '(edu.utah.sci.vistrails.basic:File)'),
+                     ('AUC_plot', '(edu.utah.sci.vistrails.basic:File)'),
+                     ('ResponseCurves', '(edu.utah.sci.vistrails.basic:File)'),
+                     ('Text_Output', '(edu.utah.sci.vistrails.basic:File)')]
+
+    def compute(self):
+        mdsFile = dir_path_value(self.forceGetInputFromPort('mdsFile', []))
+        print "mdsFile: ", mdsFile
+        print "sys.path[0]", sys.path[0]
+        print "sys.argv[0]", sys.argv[0]
+        
+        global r_path
+        print r_path
+        
+        r_path = r_path + ""
+        program = r_path + r"\i386\Rterm.exe" #-q prevents program from running
+        Script = r"I:\VisTrails\Central_VisTrailsInstall_debug\vistrails\packages\sahm\pySAHM\Resources\R_Modules\FIT_BRT_pluggable.r"
+        output_dname = mktempdir(prefix='output_')
+        
+        args = "c=" + mdsFile + " o=" + output_dname + " rc=ResponseBinary"
+        
+        command = program + " --vanilla -f " + Script + " --args " + args
+        print command
+        p = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        # Second, use communicate to run the command; communicate() returns a
+        #   tuple (stdoutdata, stderrdata)
+        print "starting R Processing"
+
+        ret = p.communicate()
+        if ret[1]:
+            print ret[1]
+        del(ret)
+        
+        
+        input_fname = os.path.join(output_dname,"brt_1_prob_map.tif")
+        output_fname = mktempfile(prefix='brt_1_prob_map_', suffix='.jpeg')
+        tif_to_color_jpeg(input_fname, output_fname)
+        
+        
+        outFileName = os.path.join(output_dname,"brt_1_bin_map.tif")
+        output_file1 = create_file_module(outFileName)
+        self.setResult('BinaryMap', output_file1)
+        
+        outFileName = os.path.join(output_dname,"brt_1_output.txt")
+        output_file2 = create_file_module(outFileName)
+        self.setResult('Text_Output', output_file2)
+        
+        outFileName = os.path.join(output_dname,"brt_1_auc_plot.jpg")
+        print "out auc: ", outFileName
+        output_file3 = create_file_module(outFileName)
+        self.setResult('AUC_plot', output_file3)
+        
+        outFileName = output_fname
+        print "brt_1_prob_map.tif: ", outFileName
+        output_file4 = create_file_module(outFileName)
+        self.setResult('ProbabilityMap', output_file4)
+        
+        outFileName = os.path.join(output_dname,"brt_1_response_curves.pdf")
+        output_file5 = create_file_module(outFileName)
+        self.setResult('ResponseCurves', output_file5)
+        
+        
+        print "\nfinished BRT builder\n"
+        
+
+
+
 
 class Model(File):
     _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)', True)]
@@ -175,62 +231,54 @@ class BoostedRegressionTree(Model):
         self.name = os.path.join(models_path, 'FIT_BRT_pluggable.r')
 
 class MDSBuilder(Module):
-    _input_ports = expand_ports([('fieldData', 'basic:File'),
-                                 ('minValue', 'basic:Float'),
-                                 ('PredictorsDir', 'basic:Directory'),
-                                 ('sessionDir', 'basic:Directory')])
-    _output_ports = expand_ports([('mdsFile', 'basic:File')])
+
+    _input_ports = expand_ports([('PredictorsDir', 'basic:Directory'),
+                                 ('fieldData', '(gov.usgs.sahm:FieldData:DataInput)'),
+                                 ('minValue', 'basic:Float')]
+                                 )
+    _output_ports = expand_ports([('mdsFile', '(gov.usgs.sahm:MergedDataSet:DataInput)')])
 
     def compute(self):
-        port_map = {'fieldData': ('-f', path_value, True),
-                    'PredictorsDir':('-i',path_value, True),
-                    'minValue': ('-m', None, False),
-                    'sessionDir': ('-s', path_value, False)}
+        port_map = {'fieldData': ('-f', dir_path_value, True),
+                    'PredictorsDir': ('-d', path_value, True),
+                    'minValue': ('-m', None, False)}
+         
         args = map_ports(self, port_map)
-        
-        print args
-
-        predictor_list = self.forceGetInputFromPort('predictorList', [])
-        predictor_list.extend(self.forceGetInputListFromPort('addPredictor'))
-
-        predictors_dir = mktempdir(prefix='sahm_layers')
-        for predictor in predictor_list:
-            shutil.copy(predictor.name, predictors_dir)
 
         output_fname = mktempfile(prefix='sahm', suffix='.mds')
         args['-o'] = output_fname
-        #args['-i'] = predictors_dir
 
-        res, output = run_cmd_line_jar('MdsBuilder.jar', args)
-        print res
-        if res != 0:
-            print "ModuleError", ''.join(output)
-            raise ModuleError(self, ''.join(output))
+        print args
         
-        
+        cmd_args = collapse_dictionary(args)
+        print cmd_args
+
+        MDSB.run(cmd_args)
 
         output_file = create_file_module(output_fname)
         
-        print "finished running MDS builder"
+        print "\nfinished running MDS builder\n"
         
         self.setResult('mdsFile', output_file)
 
 class FieldDataQuery(Module):
-    _input_ports = expand_ports([('fieldData', 'basic:File'),
-                                 ('templateLayer', 'basic:File'),
-                                 ('outputData', 'basic:File'),
+    _input_ports = expand_ports([('templateLayer', '(gov.usgs.sahm:TemplateLayer:DataInput)'),
+                                 ('fieldData', '(gov.usgs.sahm:FieldData:DataInput)'),
                                  ('aggregateRows', 'basic:Boolean'),
                                  ('aggregateRowsByYear', 'basic:Boolean')])
-    _output_ports = expand_ports([('fieldData', 'basic:File')])
+    _output_ports = expand_ports([('fieldData', '(gov.usgs.sahm:FieldData:DataInput)')])
     
     def compute(self):
-        port_map = {'fieldData': ('-f', path_value, False),
-            'templateLayer': ('-t', path_value, True),
-            'outputData': ('-o', path_value, True),
+        port_map = {'fieldData': ('-f', dir_path_value, True),
+            'templateLayer': ('-t', dir_path_value, True),
             'aggregateRows': ('-p', None, False),
             'aggregateRowsByYear': ('-y', None, False),
             }
         args = map_ports(self, port_map)
+
+        output_fname = mktempfile(prefix='FDQ_', suffix='.csv')
+        print output_fname
+        args['-o'] = output_fname
         
         try:
             if args['-p'] == True:
@@ -243,26 +291,57 @@ class FieldDataQuery(Module):
                 del args['-y']
         except:
             pass
+        
+        cmd_args = collapse_dictionary(args)
+      
 
-        FDQ_py = os.path.join(configuration.sahm_path,"python", "FieldDataQuery.py")
-        
-        arg_items = []
-        for k,v in args.items():
-            arg_items.append(k)
-            arg_items.append(v)
-        
-        cmd = ([FDQ_py] + arg_items)
-        print cmd
-        
-        cmdline = list2cmdline(cmd)
-        print cmdline
-        
-        result = os.system(cmdline)
-        if result != 0:
-            raise ModuleError(self, "Execution failed")
-        
+        FDQ.run(cmd_args)
+#        
         output_file = create_file_module(args['-o'])
+        print "\nfinished running Field Data Query\n"
         self.setResult('fieldData', output_file)
+
+class PARC(Module):
+    '''
+    This class provides a widget to run the PARC module which
+    provides functionality to sync raster layer properties
+    with a template dataset
+    '''
+    configuration = []
+    _input_ports = [('predictor', "(gov.usgs.sahm:Predictor:DataInput)"),
+                                ('PredictorList', '(gov.usgs.sahm:PredictorList:DataInput)'),
+                                ('templateLayer', '(gov.usgs.sahm:TemplateLayer:DataInput)'),
+                                ('resampleMethod', '(edu.utah.sci.vistrails.basic:String)'),
+                                ('aggregationMethod', '(edu.utah.sci.vistrails.basic:String)')]
+
+    _output_ports = [('PredictorLayersDir', '(edu.utah.sci.vistrails.basic:Directory)')]
+
+    def compute(self):
+        port_map = {'aggregationMethod': ('-m',  None, False),
+                    'resampleMethod': ('-r', None, False)}
+        args = map_ports(self, port_map)
+
+        output_dname = mktempdir(prefix='parc')
+        args['-o'] = output_dname
+
+        arg_items = collapse_dictionary(args)
+
+        predictor_list = self.forceGetInputFromPort('PredictorList', [])
+        predictor_list.extend(self.forceGetInputListFromPort('predictor'))
+
+        predictors = []
+        for predictor in predictor_list:
+            predictors.append(os.path.join(predictor.name))
+
+        args = (arg_items + [self.getInputFromPort('templateLayer').name]
+               + predictors)
+        
+        ourPARCer = parc.PARC()
+        ourPARCer.main(args)
+        print output_dname
+        predictorsDir = create_dir_module(output_dname)
+        print "\nfinished running PARC\n"
+        self.setResult('PredictorLayersDir', predictorsDir)
 
 #class FieldDataQuery(Module):
 #    _input_ports = expand_ports([('siteConfig', 'basic:File'),
@@ -437,7 +516,7 @@ class ReportBuilder(Module):
         output_file = create_file_module(output_fname)
         self.setResult('htmlFile', output_file)
 
-from core.modules.basic_modules import List
+
 
 
 # FIXME: OK on trunk, changed for current release
@@ -520,18 +599,17 @@ def load_max_ent_params():
         classmethod(provide_input_port_documentation)
 
 def initialize():
-    global sahm_path, models_path
+    global sahm_path, models_path, r_path
     sahm_path = configuration.sahm_path
     models_path = configuration.models_path
+    r_path = configuration.r_path
+    createrootdir()
     #RunParc.configuration = configuration
     load_max_ent_params()
     
 def finalize():
-    global _temp_files, _temp_dirs
-    for file in _temp_files:
-        os.remove(file)
-    for dir in _temp_dirs:
-        shutil.rmtree(dir)
+    cleantemps()
+    
 
 # FIXME: no need for generate_namespaces on trunk, this is built in to the
 #        registry
@@ -594,19 +672,17 @@ _modules = generate_namespaces({'DataInput': [Predictor,
                                               PredictorList,
                                               FieldData,
                                               TemplateLayer,
-                                              RemoteSensingPredictor,
-                                              ClimatePredictor,
-                                              StaticPredictor,
-                                              SpatialDef] + \
+                                              SingleInputPredictor,
+                                              MergedDataSet] + \
                                     build_predictor_modules(),
-                                'Tools': [Resampler, 
-                                          FieldDataQuery,
+                                'Tools': [FieldDataQuery,
                                           ModelBuilder,
                                           MapBuilder,
                                           MDSBuilder,
-                                          runPARC,
+                                          PARC,
                                           SelectPredictorsLayers],
                                 'Models': [Model,
+                                           Model2,
                                            GLM,
                                            RandomForest,
                                            MARS,

@@ -18,8 +18,9 @@ from math import floor
 from optparse import OptionParser
 
 
-def main(argv):
-    usageStmt = "usage:  options: -t --template   -c --csv -a --aggPixel -y --aggYears"
+def run(argv):
+   
+    usageStmt = "usage:  options: -t --template   -f --fieldData -a --aggPixel -y --aggYears -o --output"
     desc = "Aggregates sample points by pixel and/or year."
 
     parser = OptionParser(usage=usageStmt, description=desc)
@@ -48,10 +49,10 @@ def main(argv):
                       action="store_true",
                       help="the verbose flag causes diagnostic output to print")
 
-    (options, args) = parser.parse_args()
+    (options, args) = parser.parse_args(argv)
 
     ulx, uly, lrx, lry, destEPSG, xScale, yScale = getTemplateParams(options.template, options.verbose)
-    #print ulx, uly, lrx, lry, destEPSG, xScale, yScale
+    print ulx, uly, lrx, lry, destEPSG, xScale, yScale
     processCSV(options.csv, options.output, ulx, uly, lrx, lry, destEPSG, xScale, yScale, options.verbose)
 
 def processCSV(fieldDataCSV, output, ulx, uly, lrx, lry, destEPSG, xScale, yScale, verbose):
@@ -59,15 +60,16 @@ def processCSV(fieldDataCSV, output, ulx, uly, lrx, lry, destEPSG, xScale, yScal
     #dialect = csv.Sniffer().sniff(csvfile.read(1024))
     reader = csv.reader(csvfile)
     usedPixels = {}
-    header = reader.next()
+    reader.next()
+    header = ["x", "y", "ResponseBinary"]
+    
     #Commented this out because it is causing an error
     #to be thrown by the java, uncomment out when the 
     #java has been replaced
-#    header.append("response:binary")
-#    header.append("frequency")
-#    header.append("numPresence")
-#    header.append("pixelColumn")
-#    header.append("pixelRow")
+    header.append("frequency")
+    header.append("numPresence")
+    header.append("pixelColumn")
+    header.append("pixelRow")
 
     #loop through each row (observation) and 
     #if that particular pixel hasn't been encountered before
@@ -114,24 +116,24 @@ def processCSV(fieldDataCSV, output, ulx, uly, lrx, lry, destEPSG, xScale, yScal
             outputLine[2] = 0
         else:
             outputLine[2] = 1
+            
+        outputLine.append(frequency)
+        outputLine.append(numPresence)
+        outputLine.append(pixelColumn)
+        outputLine.append(pixelRow)
+        
 
-##        outputLine.append(len(v))
-##        outputLine.append(numPresence)
-##        outputLine.append(pixelColumn)
-##        outputLine.append(pixelRow)
         fOut.writerow(outputLine)
     oFile.close
     print "Done"
 
-
-
 def getTemplateParams(template, verbose):
     # Get the PARC parameters from the template.
     dataset = gdal.Open(template, gdalconst.GA_ReadOnly)
-
+    
     if dataset is None:
         print "Unable to open " + template
-        sys.exit(1)
+        raise RuntimeError
     xform = dataset.GetGeoTransform()
     xScale = xform[1]
     yScale = xform[5]
@@ -140,7 +142,7 @@ def getTemplateParams(template, verbose):
         print "The template image must have square pixels."
         print "x pixel scale = " + str(math.fabs(xScale))
         print "y pixel scale = " + str(math.fabs(yScale))
-        sys.exit(1)
+        raise RuntimeError
     width = dataset.RasterXSize
     height = dataset.RasterYSize
     ulx = xform[0]
@@ -171,7 +173,7 @@ def getEPSG(dataset):
         epsg = s_srs.GetAuthorityCode("GEOGCS")
     if epsg == None:
         print "Unable to extract the EPSG code from the image."
-        sys.exit(1)
+        raise RuntimeError
     return epsg
 
 def getExtentInGeog(ulx, uly, lrx, lry, EPSG):
@@ -195,4 +197,4 @@ def getExtentInGeog(ulx, uly, lrx, lry, EPSG):
         return gulx, guly, glrx, glry
 
 if __name__ == '__main__':
-    main(sys.argv)
+    run(sys.argv)
