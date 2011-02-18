@@ -759,7 +759,16 @@ class QViewManager(QtGui.QTabWidget):
         for viewIndex in xrange(self.count()):
             vistrailView = self.widget(viewIndex)
             vistrailView.setPropertiesOverlayMode(on)
-
+            
+    def setModuleConfigMode(self, on):
+        """ setModuleConfigMode(on: Bool) -> None
+        Turn the module configuration panel on/off for all views
+        
+        """
+        for viewIndex in xrange(self.count()):
+            vistrailView = self.widget(viewIndex)
+            vistrailView.setModuleConfigMode(on)
+            
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if
@@ -813,6 +822,7 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.currentView().setFocus(QtCore.Qt.MouseFocusReason)
+        self.currentView().checkModuleConfigPanel()
         self.currentView().controller.execute_current_workflow()
 
     def executeCurrentExploration(self):
