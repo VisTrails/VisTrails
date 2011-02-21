@@ -1,17 +1,34 @@
+############################################################################
+##
+## Copyright (C) 2006-2010 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 from PyQt4 import QtGui
 from PyQt4.QtCore import QString
+from core.thumbnails import ThumbnailCache
 import xml.sax.saxutils
-
-import os
 import urlparse
 
 from entity import Entity
 from workflow import WorkflowEntity
 from workflow_exec import WorkflowExecEntity
 from thumbnail import ThumbnailEntity
-import core.db.io
-from core.db.locator import DBLocator
-from core.log.log import Log
 
 class VistrailEntity(Entity):
     type_id = 1
@@ -62,7 +79,10 @@ class VistrailEntity(Entity):
             firstVersion = self.vistrail.actionMap[1] \
                 if 1 in self.vistrail.actionMap else latestVersion
 
+
             self.name = self.vistrail.locator.short_name
+            if not self.name or self.name == 'None':
+                self.name = self.vistrail.db_name
             self.user = latestVersion.user
             self.mod_time = latestVersion.date
             self.create_time = firstVersion.date
@@ -86,20 +106,7 @@ class VistrailEntity(Entity):
                 wf_entity_map[id] = \
                     self.create_workflow_entity(workflow, action)
 
-            log = None
-            if vistrail.db_log_filename is not None:
-                log = core.db.io.open_log(vistrail.db_log_filename, True)
-            elif vistrail.log is not None and \
-                hasattr(self.vistrail.locator,"_host"):
-                locator = DBLocator(self.vistrail.locator._host,
-                                    self.vistrail.locator._port,
-                                    self.vistrail.locator._db,
-                                    self.vistrail.locator._user,
-                                    self.vistrail.locator._passwd,
-                                    obj_id=vistrail.log,
-                                    obj_type='log')
-                log = locator.load(Log)
-
+            log = vistrail.get_log()
             if log is not None:
                 for wf_exec in log.workflow_execs:
                     version_id = wf_exec.parent_version
@@ -131,14 +138,15 @@ class VistrailEntity(Entity):
                     entity.url = urlparse.urlunsplit(url_tuple)
                     wf_entity.children.append(entity)
 
-            thumbnail_map = {}
-            for thumbnail in self.vistrail.thumbnails:
-                thumbnail_map[os.path.basename(thumbnail)] = thumbnail
-
             for action in self.vistrail.actionMap.itervalues():
                 thumbnail = self.vistrail.get_thumbnail(action.id)
-                if thumbnail is not None and thumbnail in thumbnail_map:
-                    entity = ThumbnailEntity(thumbnail_map[thumbnail])
+                if thumbnail is not None:
+                    cache = ThumbnailCache.getInstance()
+                    path = cache.get_abs_name_entry(thumbnail)
+                    if not path:
+                        continue
+                    entity = ThumbnailEntity(path)
+
                     if action.id in wf_entity_map:
                         wf_entity_map[action.id].children.append(entity)
                     else:

@@ -33,6 +33,7 @@ from core import system, debug
 from core.configuration import get_vistrails_configuration
 from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
 from core.db.io import load_vistrail
+from core.thumbnails import ThumbnailCache
 from core.log.log import Log
 from core.log.opm_graph import OpmGraph
 import core.system
@@ -421,7 +422,6 @@ class QViewManager(QtGui.QTabWidget):
                                             abstraction_files, thumbnail_files,
                                             version)
             # update collection
-            debug.log("Indexing vistrail")
             from core.collection import Collection
             try:
                 vistrail.thumbnails = thumbnail_files
@@ -429,11 +429,19 @@ class QViewManager(QtGui.QTabWidget):
                 collection = Collection.getInstance()
                 url = locator.to_url()
                 # create index if not exist
-                if not collection.hasUrl(url):
-                    collection.updateVistrail(url, vistrail)
+                entity = collection.fromUrl(url)
+                if entity:
+                    # find parent vistrail
+                    while entity.parent:
+                        entity = entity.parent 
+                else:
+                    entity = collection.updateVistrail(url, vistrail)
+                # add to relevant workspace categories
+                collection.add_to_workspace(entity)
                 collection.commit()
             except Exception, e:
-                debug.critical('Failed to index vistrail', str(e))
+                import traceback
+                debug.critical('Failed to index vistrail', str(e) + traceback.format_exc())
             return result
         except ModuleRegistryException, e:
             debug.critical("Module registry error for %s" %
@@ -449,10 +457,11 @@ class QViewManager(QtGui.QTabWidget):
 
         force_choose_locator=True triggers 'save as' behavior
         """
+        global bobo
+
         if not vistrailView:
             vistrailView = self.currentWidget()
         vistrailView.flush_changes()
-        
         if vistrailView:
             gui_get = locator_class.save_from_gui
             # get a locator to write to
@@ -469,6 +478,32 @@ class QViewManager(QtGui.QTabWidget):
             # if couldn't get one, ignore the request
             if not locator:
                 return False
+            # update collection
+            from core.collection import Collection
+            try:
+                thumb_cache = ThumbnailCache.getInstance()
+                vistrailView.controller.vistrail.thumbnails = \
+                    vistrailView.controller.find_thumbnails(
+                        tags_only=thumb_cache.conf.tagsOnly)
+                vistrailView.controller.vistrail.abstractions = \
+                    vistrailView.controller.find_abstractions(
+                        vistrailView.controller.vistrail, True)
+
+                collection = Collection.getInstance()
+                url = locator.to_url()
+                # create index if not exist
+                entity = collection.fromUrl(url)
+                if entity:
+                    # find parent vistrail
+                    while entity.parent:
+                        entity = entity.parent 
+                else:
+                    entity = collection.updateVistrail(url, vistrailView.controller.vistrail)
+                # add to relevant workspace categories
+                collection.add_to_workspace(entity)
+                collection.commit()
+            except Exception, e:
+                debug.critical('Failed to index vistrail', str(e))
             try:
                 vistrailView.controller.write_vistrail(locator)
             except Exception, e:

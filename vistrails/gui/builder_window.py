@@ -48,15 +48,15 @@ from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
 from gui.vis_diff import QVisualDiff
 from gui.utils import build_custom_window, show_info
-from gui.browser import QBrowserDialog
+from gui.collection.workspace import QWorkspaceWindow
+from gui.collection.explorer import QExplorerWindow
+from gui.collection.vis_log import QVisualLog
 import sys
 import db.services.vistrail
 from gui import merge_gui
 from db.services.io import SaveBundle
 from core.thumbnails import ThumbnailCache
 import gui.debug
-
-
 
 ################################################################################
 
@@ -106,12 +106,15 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.connectSignals()
 
-        self.browser = QBrowserDialog(self)
+        self.workspace = QWorkspaceWindow(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
-                               self.browser)
-        self.browser.hide()
+                               self.workspace)
+        self.workspace.hide()
         self.shell = None
         self.debugger = None
+        
+        self.explorer = QExplorerWindow(self)
+        self.explorer.show()
         
         # If this is true, we're currently executing a pipeline, so
         # We can't allow other executions.
@@ -368,9 +371,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editPreferencesAction.setEnabled(True)
         self.editPreferencesAction.setStatusTip('Edit system preferences')
 
-        self.browserAction = QtGui.QAction('Vistrail Browser', self)
-        self.browserAction.setCheckable(True)
-        self.browserAction.setChecked(False)
+        self.workspaceAction = QtGui.QAction('Workspaces', self)
+        self.workspaceAction.setCheckable(True)
+        self.workspaceAction.setChecked(False)
 
         self.shellAction = QtGui.QAction(CurrentTheme.CONSOLE_MODE_ICON,
                                          'VisTrails Console', self)
@@ -520,7 +523,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.editPreferencesAction)
 
         self.viewMenu = self.menuBar().addMenu('&View')
-        self.viewMenu.addAction(self.browserAction)
+        self.viewMenu.addAction(self.workspaceAction)
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addAction(self.debugAction)
         self.viewMenu.addAction(self.messagesAction)
@@ -694,9 +697,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(QAction *)'),
                      self.vistrailMergeFromMenu)
 
-        self.connect(self.browserAction,
+        self.connect(self.workspaceAction,
                      QtCore.SIGNAL('triggered(bool)'),
-                     self.showBrowser)
+                     self.showWorkspace)
 
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
@@ -1019,7 +1022,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             
     def open_vistrail_without_prompt(self, locator, version=None,
                                      execute_workflow=False, 
-                                     is_abstraction=False):
+                                     is_abstraction=False, workflow_exec=None):
         """open_vistrail_without_prompt(locator_class, version: int or str,
                                         execute_workflow: bool,
                                         is_abstraction: bool) -> None
@@ -1027,6 +1030,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         If a version is given, the workflow is shown on the Pipeline View.
         If execute_workflow is True the workflow will be executed.
         If is_abstraction is True, the vistrail is flagged as abstraction
+        If workflow_exec is True, the logged execution will be displayed
         """
         if not locator.is_valid():
             ok = locator.update_from_gui()
@@ -1045,8 +1049,24 @@ class QBuilderWindow(QtGui.QMainWindow):
                 self.viewModeChanged(1)
             if execute_workflow:
                 self.execute_current_pipeline()
+            if workflow_exec:
+                self.open_workflow_exec(
+                    self.viewManager.currentWidget().vistrail, workflow_exec)
                 
-        
+    def open_workflow_exec(self, vistrail, exec_id):
+        """ open_workflow_exec(exec_id) -> None
+            Open specified workflow execution for the current pipeline
+        """
+        log = vistrail.get_log()
+        workflow_execs = [e for e in log._db_workflow_execs if e.id == exec_id]
+        if not len(workflow_execs):
+            return
+        workflow_exec = workflow_execs[0]
+        self.vislog = QVisualLog(vistrail, workflow_exec.db_parent_version,
+                                 workflow_exec, self)
+        self.vislog.show()
+
+
     def open_vistrail_default(self):
         """ open_vistrail_default() -> None
         Opens a vistrail from the file/db
@@ -1071,7 +1091,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def create_recent_vistrail_actions(self):
         maxRecentVistrails = int(getattr(get_vistrails_configuration(), 
                                          'maxRecentVistrails'))
-         #check if we have enough actions
+        #check if we have enough actions
         while len(self.recentVistrailActs) < maxRecentVistrails:
             self.recentVistrailActs.append(QtGui.QAction(self, visible=False,
                             triggered=self.open_recent_vistrail))
@@ -1344,13 +1364,14 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                    thumbnails=s1.thumbnails)
         self.viewManager.currentView().setup_view()
 
-    def showBrowser(self, checked=True):
-        """ showBrowser() -> None
-        Display the vistrail browser """
+    def showWorkspace(self, checked=True):
+        """ showWorkspace() -> None
+        Display the vistrail workspace """
         if checked:
-            self.browser.show()
+            self.workspace.show()
         else:
-            self.browser.hide()
+            self.workspace.hide()
+
     def showShell(self, checked=True):
         """ showShell() -> None
         Display the shell console

@@ -1,3 +1,24 @@
+############################################################################
+##
+## Copyright (C) 2006-2010 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 import glob
 import os
 import sqlite3
@@ -18,13 +39,15 @@ from core import debug
 schema = ["create table entity(id integer primary key, type integer, "
           "name text, user integer, mod_time text, create_time text, "
           "size integer, description text, url text)",
-          "create table entity_children(parent integer, child integer)"]
+          "create table entity_children(parent integer, child integer)",
+          "create table entity_workspace(entity integer, workspace text)",
+          "create table workspaces(id text primary key)",
+          "insert into workspaces values ('Default')"]
 
 class Collection(object):
-    entity_types = dict((x.type_id, x) 
+    entity_types = dict((x.type_id, x)
                         for x in [VistrailEntity, WorkflowEntity, 
                                   WorkflowExecEntity, ThumbnailEntity])
-
     def __init__(self, database=None):
         if database is None:
             self.database = ':memory:'
@@ -33,6 +56,8 @@ class Collection(object):
 
         self.entities = {}
         self.deleted_entities = {}
+        self.workspaces = {}
+        self.currentWorkspace = 'Default'
         self.listeners = [] # listens for entity creation removal
         self.max_id = 0
         
@@ -48,8 +73,6 @@ class Collection(object):
                                str(e))
         else:
             self.conn = sqlite3.connect(self.database)
-                
-            
         self.load_entities()
 
     #Singleton technique
@@ -68,14 +91,13 @@ class Collection(object):
                 obj = Collection(path)
                 Collection._instance = obj
             return Collection._instance
-        
+
     getInstance = CollectionSingleton()
 
     def add_listener(self, c):
         """ Add objects that listen to entity creation/removal
-            Object may implement the following methods
-             entityCreated(self, entity)
-             entityDeleted(self, entity)
+            Object may implement the following method
+             updated(self)
         """
         self.listeners.append(c)
 
@@ -83,7 +105,8 @@ class Collection(object):
         cur = self.conn.cursor()
         cur.execute('delete from entity;')
         cur.execute('delete from entity_children;')
-        self.conn.commit()
+        cur.execute('delete from workspaces;')
+        cur.execute('delete from entity_workspace;')
 
     def load_entities(self):
         cur = self.conn.cursor()
@@ -105,7 +128,21 @@ class Collection(object):
                 self.entities[row[0]].children.append(self.entities[row[1]])
                 self.entities[row[1]].parent = self.entities[row[0]]
 
+        cur.execute("select * from workspaces;")
+        for row in cur.fetchall():
+            self.workspaces[row[0]] = []
+
+        cur.execute("select * from entity_workspace;")
+        for row in cur.fetchall():
+            e_id, workspace = row
+            if e_id in self.entities:
+                if workspace not in self.workspaces:
+                    self.workspaces[workspace] = []
+                self.workspaces[workspace].append(self.entities[e_id])
+
     def save_entities(self):
+        # TODO delete entities with no workspace
+        
         for entity in self.deleted_entities.itervalues():
             self.db_delete_entity(entity)
         self.deleted_entities = {}
@@ -113,7 +150,16 @@ class Collection(object):
         for entity in self.entities.itervalues():
             if entity.was_updated:
                 self.save_entity(entity)
-            
+                
+        cur = self.conn.cursor()
+        cur.execute('delete from workspaces;')
+        cur.executemany("insert into workspaces values (?)", 
+                        [(i,) for i in self.workspaces])
+
+        cur.execute('delete from entity_workspace;')
+        cur.executemany("insert into entity_workspace values (?, ?)", 
+            ((k.id, i) for i,j in self.workspaces.iteritems() for k in j))
+
     def load_entity(self, *args):
         if args[1] in Collection.entity_types:
             entity = Collection.entity_types[args[1]].load(*args)
@@ -132,35 +178,57 @@ class Collection(object):
         for child in entity.children:
             child.parent = entity
             self.add_entity(child)
-        for o in self.listeners:
-            if hasattr(o, "entityCreated"):
-                o.entityCreated(entity)
         
+    def save_entity(self, entity):
+        """ saves entities to disk """
         cur = self.conn.cursor()
         entity_tuple = entity.save()
         cur.execute("insert or replace into entity values(%s)" % \
                     ','.join(('?',) * len(entity_tuple)), entity_tuple)
         entity.was_updated = False
-        # self.conn.commit()
         cur.execute('delete from entity_children where parent=?', (entity.id,))
-        cur.executemany("insert into entity_children values (?, ?)", 
+        cur.executemany("insert into entity_children values (?, ?)",
                         ((entity.id, child.id) for child in entity.children))
 
     def commit(self):
         self.save_entities()
         self.conn.commit()
+        for o in self.listeners:
+            if hasattr(o, "updated"):
+                o.updated()
 
     def delete_entity(self, entity):
-        """ Delete entity from memory recursively"""
+        """ Delete entity from memory recursively """
         self.deleted_entities[entity.id] = entity
-        del self.entities[entity.id]
+        if entity.id in self.entities:
+            del self.entities[entity.id]
         for child in entity.children:
             self.delete_entity(child)
-        for o in self.listeners:
-            if hasattr(o, "entityDeleted"):
-                o.entityCreated(entity)
+
+    def add_workspace(self, workspace):
+        if workspace not in self.workspaces:
+            self.workspaces[workspace] = []
+
+    def add_to_workspace(self, entity, workspace=None):
+        if not workspace:
+            workspace = self.currentWorkspace
+        self.add_workspace(workspace)
+        if entity not in self.workspaces[workspace]:
+            self.workspaces[workspace].append(entity)
+        
+    def del_from_workspace(self, entity, workspace=None):
+        if not workspace:
+            workspace = self.currentWorkspace
+        if workspace in self.workspaces:
+            if entity in self.workspaces[workspace]:
+                self.workspaces[workspace].remove(entity)
+
+    def delete_workspace(self, workspace):
+        if workspace in self.workspaces:
+            del self.workspaces[workspace]
 
     def db_delete_entity(self, entity):
+        """ Delete entity from database """
         cur = self.conn.cursor()
         if entity.id is not None:
             cur.execute("delete from entity where id=?", (entity.id,))
@@ -193,23 +261,20 @@ class Collection(object):
             (vistrail, abstractions, thumbnails) = load_vistrail(locator)
             vistrail.abstractions = abstractions
             vistrail.thumbnails = thumbnails
-
-            entity = self.create_vistrail_entity(vistrail)
+            self.create_vistrail_entity(vistrail)
 
     def update_from_directory(self, directory):
         filenames = glob.glob(os.path.join(directory, '*.vt'))
         for filename in filenames:
-            print 'processing ', filename
             locator = FileLocator(filename)
             url = locator.to_url()
             self.updateVistrail(url)
-        self.commit()
 
-    def hasUrl(self, url):
-        """ Check if entity with this url exist in index """
+    def fromUrl(self, url):
+        """ Check if entity with this url exist in index and return it """
         for e in self.entities.itervalues():
             if e.url == url:
-                return True
+                return e
         return False
 
     def urlExists(self, url):
@@ -219,20 +284,31 @@ class Collection(object):
                 return True
         return False
 
-    def updateVistrail(self, url, vistrail = None):
-        """ Update the specified url. Delete or reload as necessary. """
+    def updateVistrail(self, url, vistrail=None):
+        """ updateVistrail(self, string:url, Vistrail:vistrail)
+        Update the specified entity url. Delete or reload as necessary.
+        Need to make sure workspaces are updated if the entity is changed.
+        """
         locator = BaseLocator.from_url(url)
         entities = [e for e in self.entities.itervalues() if e.url == url]
         entity = entities[0] if len(entities) else None
+        workspaces = [p for p in self.workspaces if entity in self.workspaces[p]]  
         if entity:
-                self.delete_entity(entity)
+            for p in workspaces:
+                self.del_from_workspace(entity, p)
+            self.delete_entity(entity)
+
         if locator.is_valid():
             if not vistrail:
                 (vistrail, abstractions, thumbnails) = load_vistrail(locator)
                 vistrail.abstractions = abstractions
                 vistrail.thumbnails = thumbnails
             entity = self.create_vistrail_entity(vistrail)
-            self.add_entity(entity)
+            for p in workspaces:
+                self.add_to_workspace(entity, p)
+            return entity
+        else:
+            debug.critical("Locator is not valid!")
 
 def main():
     from db.services.locator import BaseLocator
