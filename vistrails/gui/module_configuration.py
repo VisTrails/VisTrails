@@ -26,14 +26,13 @@ the user selects a module's "Edit Configuration"
 from PyQt4 import QtCore, QtGui
 from core.modules.module_registry import get_module_registry
 from core.modules.module_configure import DefaultModuleConfigurationWidget
-from gui.common_widgets import QToolWindowInterface, QPromptWidget
+from gui.common_widgets import QToolWindowInterface
 
 ################################################################################
 
-class QConfigurationWidget(QPromptWidget):
+class QConfigurationWidget(QtGui.QWidget):
     def __init__(self, parent=None):
-        QPromptWidget.__init__(self, parent)
-        self.setPromptText('Select a module to see its configuration')
+        QtGui.QWidget.__init__(self, parent)
         self.setLayout(QtGui.QVBoxLayout())
         self.widget = None
         #self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -47,13 +46,12 @@ class QConfigurationWidget(QPromptWidget):
         Clear and delete widget in the layout
         
         """
-        self.setEnabled(False)
         if self.widget:
+            self.widget.setVisible(False)
             self.layout().removeWidget(self.widget)
             self.widget.deleteLater()
         self.widget = None
-        self.setEnabled(True)
-    
+        
     def askToSaveChanges(self):
         if self.widget:
             return self.widget.askToSaveChanges()
@@ -65,7 +63,7 @@ class QConfigurationWidget(QPromptWidget):
 ################################################################################
         
 class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, scene=None):
         """QModuleConfiguration(parent: QWidget) -> QModuleConfiguration
         Initialize widget constraints
         
@@ -75,9 +73,9 @@ class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
         self.setWidgetResizable(True)
         self.confWidget = QConfigurationWidget()
         self.setWidget(self.confWidget)
-        self.confWidget.showPrompt(True)
         self.module = None
         self.controller = None
+        self.scene = scene
         self.updateLocked = False
         self.hasChanges = False
         
@@ -101,14 +99,15 @@ class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             widget = widgetType(module, self.controller)
+            self.scene.modules[module.id]._old_connection_ids = \
+              self.scene.modules[module.id].dependingConnectionItems()
+        
             self.confWidget.setUpWidget(widget)
             self.connect(widget, QtCore.SIGNAL("doneConfigure"),
                          self.configureDone)
             self.connect(widget, QtCore.SIGNAL("stateChanged"),
                          self.stateChanged)
-            self.confWidget.showPromptByChildren()
         else:
-            self.confWidget.showPrompt(False)
             self.setWindowTitle("Module Configuration")
         self.confWidget.setUpdatesEnabled(True)
         self.confWidget.setVisible(True)

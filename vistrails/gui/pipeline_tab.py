@@ -65,7 +65,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.moduleMethods.toolWindow())
         
-        self.moduleConfig = QModuleConfiguration(self)
+        self.moduleConfig = QModuleConfiguration(self, self.pipelineView.scene())
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, 
                            self.moduleConfig.toolWindow())
         

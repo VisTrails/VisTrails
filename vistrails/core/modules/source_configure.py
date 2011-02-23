@@ -233,7 +233,7 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
     def focusOutEvent(self, event):
         if not self.mouseOver:
             self.askToSaveChanges()
-        QtGui.QDialog.focusOutEvent(self, event)
+        QtGui.QWidget.focusOutEvent(self, event)
         
     def activate(self):
         self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)

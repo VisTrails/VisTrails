@@ -50,6 +50,8 @@ class PortTable(QtGui.QTableWidget):
         self.connect(self.model(),
                      QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
                      self.handleDataChanged)
+        self.connect(self.delegate, QtCore.SIGNAL("modelDataChanged"),
+                     self, QtCore.SIGNAL("contentsChanged"))
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setMouseTracking(True)
         self.mouseOver = False
@@ -153,6 +155,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                           QtCore.Qt.DisplayRole)
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
+        self.emit(QtCore.SIGNAL("modelDataChanged"))
 
 ############################################################################
 
@@ -206,7 +209,6 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         """
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
-        self.state_changed = False
 
     def updateVistrail(self):
         msg = "Must implement updateVistrail in subclass"
@@ -253,21 +255,7 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
             self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
             
     def resetTriggered(self, checked = False):
-        pass
-    
-    def askToSaveChanges(self):
-        if self.state_changed:
-            message = ('Configuration panel contains unsaved changes. '
-                      'Do you want to save changes before proceeding?' )
-            res = show_question('VisTrails',
-                                message,
-                                buttons = [SAVE_BUTTON, DISCARD_BUTTON])
-            if res == 0:
-                self.saveTriggered()
-                return True
-            else:
-                self.resetTriggered()
-                return False
+        self.state_changed = False
     
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -416,7 +404,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
     def focusOutEvent(self, event):
         if not self.mouseOver:
             self.askToSaveChanges()
-        QtGui.QDialog.focusOutEvent(self, event)
+        QtGui.QWidget.focusOutEvent(self, event)
                 
 class UntupleConfigurationWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -480,7 +468,6 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         Update Vistrail to contain changes in the port table
         
         """
-
         (deleted_ports, added_ports) = self.getPortDiff('output', 
                                                         self.portTable)
         if len(deleted_ports) + len(added_ports) == 0:
@@ -512,7 +499,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
     def focusOutEvent(self, event):
         if not self.mouseOver:
             self.askToSaveChanges()
-        QtGui.QDialog.focusOutEvent(self, event)
+        QtGui.QWidget.focusOutEvent(self, event)
         
     def enterEvent(self, event):
         self.mouseOver = True

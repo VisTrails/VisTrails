@@ -20,21 +20,45 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
+from core.utils import VistrailsInternalError
 from core.vistrail.port import PortEndPoint
 from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
-class StandardModuleConfigurationWidget(QtGui.QDialog):
+class StandardModuleConfigurationWidget(QtGui.QWidget):
 
     def __init__(self, module, controller, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtGui.QWidget.__init__(self, parent)
         self.module = module
         self.module_descriptor = self.module.module_descriptor
         self.controller = controller
-    
+        self.state_changed = False
+        
     def activate(self):
         #reimplement this to set the focus to a certain widget when activated
         pass
-
+    
+    def askToSaveChanges(self):
+        if self.state_changed:
+            message = ('Configuration panel contains unsaved changes. '
+                      'Do you want to save changes before proceeding?' )
+            res = show_question('VisTrails',
+                                message,
+                                buttons = [SAVE_BUTTON, DISCARD_BUTTON])
+            if res == SAVE_BUTTON:
+                self.saveTriggered()
+                return True
+            else:
+                self.resetTriggered()
+                return False
+            
+    def saveTriggered(self):
+        msg = "Must implement saveTriggered in subclass"
+        raise VistrailsInternalError(msg)
+    
+    def resetTriggered(self):
+        msg = "Must implement saveTriggered in subclass"
+        raise VistrailsInternalError(msg)
+    
 class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 
     def __init__(self, module, controller, parent=None):
@@ -93,7 +117,7 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
             event.ignore()
         else:
             self.askToSaveChanges()
-            QtGui.QDialog.focusOutEvent(self, event)
+            QtGui.QWidget.focusOutEvent(self, event)
         
     def enterEvent(self, event):
         self.mouseOver = True
@@ -154,7 +178,6 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         return QtCore.QSize(384, 512)
         
     def saveTriggered(self, checked = False):
-        self.setFocus(QtCore.Qt.MouseFocusReason)
         for port in self.inputPorts:
             entry = (PortEndPoint.Destination, port.name)
             if (port.optional and
@@ -179,20 +202,6 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def closeEvent(self, event):
         self.askToSaveChanges()
         event.accept()
-
-    def askToSaveChanges(self):
-        if self.state_changed:
-            message = ('Configuration panel contains unsaved changes. '
-                      'Do you want to save changes before proceeding?' )
-            res = show_question('VisTrails',
-                                message,
-                                buttons = [SAVE_BUTTON, DISCARD_BUTTON])
-            if res == 0:
-                self.saveTriggered()
-                return True
-            else:
-                self.resetTriggered()
-                return False
                 
     def resetTriggered(self):
         self.setFocus(QtCore.Qt.MouseFocusReason)
