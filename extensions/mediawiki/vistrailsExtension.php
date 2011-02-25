@@ -195,7 +195,7 @@ function printVistrailTag($input,$params) {
 function get_version_from_response($xmlstring){
     try{
         $node = @new SimpleXMLElement($xmlstring);
-        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->int[0];
+        return (string) $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->int[0];
     } catch(Exception $e) {
         echo "bad xml";
     }

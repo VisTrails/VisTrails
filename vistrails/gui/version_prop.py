@@ -196,8 +196,11 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         
         """
         if self.controller:
-            self.controller.update_current_tag(str(self.tagEdit.text()))
-            self.versionEmbedPanel.updateVersion(self.versionNumber)
+            name = self.controller.vistrail.getVersionName(self.versionNumber)
+            currentText = str(self.tagEdit.text())
+            if name != currentText:    
+                self.controller.update_current_tag(currentText)
+                self.versionEmbedPanel.updateVersion(self.versionNumber)
 
     def tagChanged(self, text):
         """ tagChanged(text: QString) -> None
