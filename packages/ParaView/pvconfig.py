@@ -5,7 +5,7 @@ from configuration import configuration
 
 class QPVConfigWindow(QtGui.QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, proc_num=4, port=11111, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.setWindowTitle('ParaView Local Server')
         vbox = QtGui.QVBoxLayout()
@@ -17,13 +17,13 @@ class QPVConfigWindow(QtGui.QWidget):
         hbox.addWidget(QtGui.QLabel('# Procs'))
         self.procSpin = QtGui.QSpinBox()
         self.procSpin.setRange(1, 1024*1024)
-        self.procSpin.setValue(4)
+        self.procSpin.setValue(proc_num)
         hbox.addWidget(self.procSpin)
         
         hbox.addWidget(QtGui.QLabel('Port'))
         self.portSpin = QtGui.QSpinBox()
         self.portSpin.setRange(0, 64*1024)
-        self.portSpin.setValue(11111)
+        self.portSpin.setValue(port)
         hbox.addWidget(self.portSpin)
         
         hbox.addStretch()

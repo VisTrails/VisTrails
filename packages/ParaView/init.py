@@ -12,6 +12,7 @@ from core.modules.module_registry import (registry, add_module,
 from core.modules.source_configure import SourceConfigurationWidget
 from core.modules.python_source_configure import PythonEditor, PythonSourceConfigurationWidget
 from core.modules.basic_modules import PythonSource
+from configuration import configuration
 import urllib
 
 forbidden = ['AlltoN',
@@ -176,5 +177,8 @@ def initialize(*args, **keywords):
     pvcell.registerSelf()
 
     global pvConfigWindow
-    pvConfigWindow = QPVConfigWindow()
+    pvConfigWindow = QPVConfigWindow(proc_num=configuration.num_proc,
+                                     port=configuration.port)
     pvConfigWindow.show()
+    if configuration.start_server == True:
+        pvConfigWindow.togglePVServer()
