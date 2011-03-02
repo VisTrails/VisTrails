@@ -43,7 +43,7 @@ the installation wizard to complete the installation process.
 
 .. _fig-start-windows_installation:
 
-.. figure:: /figures/windows_installation_wizard.png
+.. figure:: /figures/getting_started/windows_installation_wizard.png
    :width: 4in
    :align: center
    
@@ -66,7 +66,7 @@ folder to install the software.
 
 .. _fig-start-mac_installation:
 
-.. figure:: /figures/mac_post_uncompress_window.png
+.. figure:: /figures/getting_started/mac_post_uncompress_window.png
    :width: 5in
    :align: center
 
@@ -117,7 +117,7 @@ Quick Start
 On Windows and Mac OS X, you can launch |vistrails| by double-clicking
 on the |vistrails| application icon. In general, however, it is
 possible to start |vistrails| on any system by navigating to the
-directory where the file \vtstring{vistrails.py} is located (usually
+directory where the file ``vistrails.py`` is located (usually
 the root directory of your installation) and executing the command::
 
    python vistrails.py
@@ -135,33 +135,33 @@ enabled by default.)
 
 .. _fig-start-builder:
 
-.. figure:: /figures/builder.png
+.. figure:: /figures/getting_started/builder.png
    :width: 5in
 
    |vistrails| Builder Window
 
 .. _fig-start-spreadsheet:
 
-.. figure:: /figures/spreadsheet.png
+.. figure:: /figures/getting_started/spreadsheet.png
    :width: 5in
 
    |vistrails| Spreadsheet Window
 
 .. _fig-start-toolbar:
 
-.. figure:: /figures/toolbar-left.png  
+.. figure:: /figures/getting_started/toolbar-left.png  
    
    (see Section :ref:`sec-start-file`)
    
-.. figure:: /figures/toolbar-center-left.png  
+.. figure:: /figures/getting_started/toolbar-center-left.png  
 
    (see Section :ref:`sec-start-interact`)
 
-.. figure:: /figures/toolbar-center-right.png  
+.. figure:: /figures/getting_started/toolbar-center-right.png  
    
    (see Chapters :ref:`chap-creating`, :ref:`chap-version_tree`, :ref:`chap-querying`, :ref:`chap-paramexploration`)
 
-.. figure:: /figures/toolbar-right.png
+.. figure:: /figures/getting_started/toolbar-right.png
 
    (see Section :ref:`sec-start-interact`)
 
