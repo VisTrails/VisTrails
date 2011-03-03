@@ -38,10 +38,10 @@ def parse_meminfo():
         (key, value) = line.split(':')
         value = value[:-1]
         if value.endswith(' kB'):
-            value = int(value[:-3]) * 1024
+            value = int(int(value[:-3]) /1024) * 1L
         else:
             try:
-                value = int(value)
+                value = int(value) *1L
             except ValueError:
                 raise VistrailsInternalError("I was expecting '%s' to be int" 
                                              % value)

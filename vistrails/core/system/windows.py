@@ -65,11 +65,11 @@ def parse_meminfo():
         kernel32.GlobalMemoryStatus(byref(result))
     except:
         return -1
-    return result.dwTotalPhys
+    return int(result.dwTotalPhys / 1024) * 1L
 
 def guess_total_memory():
     """ guess_total_memory() -> int 
-    Return system memory in bytes. If ctypes is not installed it returns -1 
+    Return system memory in megabytes. If ctypes is not installed it returns -1 
     
     """
     if importSuccess:
