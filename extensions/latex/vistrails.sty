@@ -25,21 +25,27 @@
 %% latex or by adding/changing "shell_escape = t" in your texmf.cnf .
 
 \NeedsTeXFormat{LaTeX2e}[1994/12/01]
-\ProvidesPackage{vistrails}[2010/11/19 v0.3 VisTrails in LaTeX]
+\ProvidesPackage{vistrails}[2011/02/10 v0.4 VisTrails in LaTeX]
 
 %% keyval package allows us to define arguments in a command as key-value pairs,
 %%  which is more convenient
-
-\RequirePackage{graphicx,keyval,ifthen}
+%% ifplatform for detecting which version of OS we are running on
+\RequirePackage{graphicx,keyval,ifthen,ifplatform}
 
 %% This is to hide the border of the included image
 \RequirePackage[pdfborder={0 0 0}]{hyperref}
+\hypersetup{extension=notused}
 
 %% we will generate a file for passing to python
 \newwrite\pythonincludein
 
 %% by default we will run vistrails on the web server
 \newcommand{\vistrailspath}{http://www.vistrails.org/extensions/run_vistrails.php}
+
+%% environment configuration to be set before executing vistrails
+%% for example
+%% \newcommand{\vistrailsenv}{DYLD_LIBRARY_PATH= }
+\newcommand{\vistrailsenv}{}
 
 %% url for downloading the vistrails linked from the images
 %% leave it empty if you don't want to embed a link in the pdf
@@ -55,7 +61,10 @@
 %% macros that will be used
 \def\vthost{vistrails.sci.utah.edu}
 \def\vtdb{vistrails}
+\def\vtuser{}
+\def\vtfilename{}
 \def\vtvtid{}
+\def\vtversion{}
 \def\vttag{}
 \def\vtport{3306}
 \def\vtbuildalways{false}
@@ -65,9 +74,15 @@
 \def\vtworkflow{false}
 \def\vttree{false}
 \def\vtgetvtl{false}
+\def\vtembedworkflow{false}
+\def\vtincludefulltree{false}
 \newread\myinput
 %% We use '\jobname.python.temp' to store a unique file saying if python is present
-\immediate\write18{type -P \vistrailspythonpath > \jobname.python.temp}
+\ifwindows
+  \immediate\write18{find.cmd \vistrailspythonpath > \jobname.python.temp}
+\else
+  \immediate\write18{type -P "\vistrailspythonpath" > \jobname.python.temp}
+\fi
 \immediate\openin\myinput=\jobname.python.temp
 % The group localizes the change to \endlinechar
 \bgroup
@@ -79,8 +94,11 @@
 \egroup
 \immediate\closein\myinput
 % Clean up after ourselves
-\immediate\write18{rm -f -- \jobname.python.temp}
-
+\ifwindows
+  \immediate\write18{del \jobname.python.temp}
+\else
+  \immediate\write18{rm -f -- \jobname.python.temp}
+\fi
 \setkeys{vt}{#1}
 \ifthenelse{\equal{\vtpdf}{true}}{\def\vttype{pdf}}{\def\vttype{png}}
 \ifthenelse{\equal{\pythonexists}{}}{%
@@ -99,12 +117,20 @@
    }
   }
  { %else prepare input file for includevistrail.py
-    \immediate\openout\pythonincludein=\jobname.cmdline
+   \immediate\openout\pythonincludein=\jobname.cmdline
     \immediate\write\pythonincludein{path=\vistrailspath}
+    \immediate\write\pythonincludein{python=\vistrailspythonpath}
+    \immediate\write\pythonincludein{env=\vistrailsenv}
     \immediate\write\pythonincludein{download=\vistrailsdownload}
-    \immediate\write\pythonincludein{host=\vthost}
-    \immediate\write\pythonincludein{db=\vtdb}
-    \immediate\write\pythonincludein{vtid=\vtvtid}
+    \ifthenelse{\equal{\vtfilename}{}}{%
+      \immediate\write\pythonincludein{host=\vthost}
+      \immediate\write\pythonincludein{db=\vtdb}
+      \immediate\write\pythonincludein{vtid=\vtvtid}
+      \immediate\write\pythonincludein{user=\vtuser}
+    }
+    {% else it's a filename
+      \immediate\write\pythonincludein{filename=\vtfilename}
+    }
     \immediate\write\pythonincludein{version=\vtversion}
     \immediate\write\pythonincludein{tag=\vttag}
     \immediate\write\pythonincludein{port=\vtport}
@@ -115,20 +141,24 @@
     \immediate\write\pythonincludein{workflow=\vtworkflow}
     \immediate\write\pythonincludein{tree=\vttree}
     \immediate\write\pythonincludein{getvtl=\vtgetvtl}
+    \immediate\write\pythonincludein{embedworkflow=\vtembedworkflow}
+    \immediate\write\pythonincludein{includefulltree=\vtincludefulltree}
     \ifx\@empty#2\@empty
         \immediate\write\pythonincludein{other=}
     \else
         \immediate\write\pythonincludein{other=\string#2}
     \fi
     \immediate\closeout\pythonincludein
-    \immediate\write18{\vistrailspythonpath \space includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
-    \immediate\input\jobname.cmdline.out
+    \immediate\write18{"\vistrailspythonpath" \space includevistrail.py \jobname.cmdline > \jobname.cmdline.tex 2> \jobname.cmdline.err}
+    \immediate\input\jobname.cmdline.tex
 }
 }
 %% key-value pairs for the command's options
 \define@key{vt}{host}[vistrails.sci.utah.edu]{\def\vthost{#1}}
 \define@key{vt}{db}[vistrails]{\def\vtdb{#1}}
+\define@key{vt}{user}[vistrails]{\def\vtuser{#1}}
 \define@key{vt}{vtid}{\def\vtvtid{#1}}
+\define@key{vt}{filename}{\def\vtfilename{#1}}
 \define@key{vt}{version}{\def\vtversion{#1}}
 \define@key{vt}{tag}[]{\def\vttag{#1}}
 \define@key{vt}{port}[3306]{\def\vtport{#1}}
@@ -139,4 +169,6 @@
 \define@key{vt}{showworkflow}[true]{\def\vtworkflow{#1}}
 \define@key{vt}{showtree}[true]{\def\vttree{#1}}
 \define@key{vt}{getvtl}[true]{\def\vtgetvtl{#1}}
+\define@key{vt}{embedworkflow}[true]{\def\vtembedworkflow{#1}}
+\define@key{vt}{includefulltree}[true]{\def\vtincludefulltree{#1}}
 

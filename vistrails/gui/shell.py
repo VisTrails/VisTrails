@@ -58,6 +58,7 @@ class QShellDialog(QToolWindow, QToolWindowInterface):
         self.shell = QShell(self.firstLocals,None)
         self.setWidget(self.shell)
         self.setWindowTitle(self.shell.windowTitle())
+        self.setTitleBarWidget(QtGui.QLabel(self.shell.windowTitle()))
         self.monitorWindowTitle(self.shell)
         self.vistrails_interpreter = get_default_interpreter()
     
@@ -315,8 +316,7 @@ class QShell(QtGui.QTextEdit):
 
         QtGui.QTextEdit.__init__(self, parent)
         self.setReadOnly(False)
-        self.setWindowTitle("VisTrails Shell")
-        
+        self.setWindowTitle("Console")
         # to exit the main interpreter by a Ctrl-D if QShell has no parent
         if parent is None:
             self.eofKey = QtCore.Qt.Key_D

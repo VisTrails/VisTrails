@@ -265,6 +265,8 @@ class QParameterExplorationTable(QPromptWidget):
         """
         if not self.pipeline:
             return None
+
+        reg = get_module_registry()
         parameterValues = [[], [], [], []]
         counts = self.label.getCounts()
         for i in xrange(self.layout().count()):
@@ -293,11 +295,17 @@ class QParameterExplorationTable(QPromptWidget):
                         actions = []
                         tmp_id = -1L
                         for v in values:
+                            getter = reg.get_descriptor_by_name
+                            desc = getter(paramInfo.identifier,
+                                          paramInfo.type,
+                                          paramInfo.namespace)
+                            str_value = desc.module.translate_to_string(v)
+
                             new_param = ModuleParam(id=tmp_id,
                                                     pos=old_param.pos,
                                                     name=pName,
                                                     alias=pAlias,
-                                                    val=str(v),
+                                                    val=str_value,
                                                     type=paramInfo.type
                                                     )
                             action_spec = ('change', old_param, new_param,

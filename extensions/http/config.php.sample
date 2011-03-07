@@ -20,6 +20,13 @@ $PATH_TO_IMAGES = '/path/to/images/';
 // Something like http://your.url.com$WEB_PATH_TO_IMAGES
 $WEB_PATH_TO_IMAGES = '/images/';
 
+// Change this to point to the folder where the workflow graphs should be generated
+// absoulte path should be used
+$PATH_TO_GRAPHS = '/path/to/graphs/';
+
 // Change this to the full url pointing to the root where the graphs were generated
-$URL_TO_GRAPHS = "http://your.domain.com/path/to/images/";
+$URL_TO_GRAPHS = "http://your.domain.com/path/to/graphs/";
+
+//Change this to the full url pointing to the download.php script
+$URL_TO_DOWNLOAD = "http://your.domain.com/path/to/download.php";
 ?>

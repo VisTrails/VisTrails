@@ -322,15 +322,21 @@ class UpgradeWorkflowHandler(object):
                     # don't add the function back in
                     continue                    
                 elif type(remap) != type(""):
-                    ops.extend(remap(function))
+                    ops.extend(remap(function, new_module))
                     continue
                 else:
                     function_name = remap
 
-            new_param_vals = [p.strValue for p in function.parameters]
+            if len(function.parameters) > 0:
+                new_param_vals, aliases = zip(*[(p.strValue, p.alias) 
+                                                for p in function.parameters])
+            else:
+                new_param_vals = []
+                aliases = []
             new_function = controller.create_function(new_module, 
                                                       function_name,
-                                                      new_param_vals)
+                                                      new_param_vals,
+                                                      aliases)
             new_module.add_function(new_function)
 
         # add the new module

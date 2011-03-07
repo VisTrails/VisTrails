@@ -1,1 +1,75 @@
-File name,Layer name,Group,Categorical,SourceI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio1.tif,Annual mean temperature,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio2.tif,Mean diurnal range,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio3.tif,Isothermality,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio4.tif,Temperature seasonality,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio5.tif,Maximum temperature of warmest month,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio6.tif,Minimum temperature of coldest month,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio7.tif,Temperature annual range,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio8.tif,Mean temperature of wettest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio9.tif,Mean temperature of driest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio10.tif,Mean temperature of warmest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio11.tif,Mean temperature of coldest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio12.tif,Annual precipitation,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio13.tif,Precipitation of wettest month,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio14.tif,Precipitation of driest month,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio15.tif,Precipitation seasonality,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio16.tif,Precipitation of wettest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio17.tif,Precipitation of driest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio18.tif,Precipitiation of warmest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio19.tif,Precipitation of coldest quarter,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\bafloind.tif,,Hydrology,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\comtopindx.tif,Compound topographic index,Hydrology,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\dist_h2o.tif,Distance to water,Hydrology,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\eastness.tif,Eastness (sin(aspect)),Topography,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\elevation.tif,Elevation,Topography,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_01.tif,EVI Beginning of season,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_02.tif,EVI End of season,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_03.tif,EVI Length of season,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_04.tif,EVI Base value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_05.tif,EVI Peak time,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_06.tif,EVI Peak value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_07.tif,EVI Amplitude,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_08.tif,EVI Greenup rate,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_09.tif,EVI Browndown rate,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_10.tif,EVI Integral over season absolute,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_11.tif,EVI Integral over season scaled,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_12.tif,EVI Maximum value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_13.tif,EVI Minimum value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_14.tif,EVI Mean value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_15.tif,EVI RMSE,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\flowaccum.tif,Flow accumulation,Hydrology,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\flowdir.tif,Flow direction,Hydrology,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\freqprcip.tif,Frequency of precipitaiton events,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\frostdays.tif,Frost free days,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\geology.tif,Geology of bedrock,Soil?,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\growday.tif,Growing degree days,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\humidity.tif,Humidity,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\maxtemp.tif,Average annual maximum temperature,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\mintemp.tif,Average annual minimum temperature,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\mjr_rd_dist.tif,Distance to major roads,Anthropogenic,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_01.tif,NDVI Beginning of season,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_02.tif,NDVI End of season,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_03.tif,NDVI Length of season,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_04.tif,NDVI Base value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_05.tif,NDVI Peak time,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_06.tif,NDVI Peak value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_07.tif,NDVI Amplitude,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_08.tif,NDVI Greenup rate,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_09.tif,NDVI Browndown rate,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_10.tif,NDVI Integral over season absolute,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_11.tif,NDVI Integral over season scaled,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_12.tif,NDVI Maximum value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_13.tif,NDVI Minimum value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_14.tif,NDVI Mean value,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_15.tif,NDVI RMSE,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_wd.tif,NDVI Winter dearth,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvieviampdif.tif,Difference of NDVI and EVI amplitude,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\northness.tif,northness (cos(aspect)),Topography,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\precipsize.tif,Average size of precipitation events,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\radiation.tif,Solar radiation,Climate,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\slpdeg.tif,Slope (degree),Topography,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_bare_vcf.tif,Cover of bare ground,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_herb_vcf.tif,Cover of herbaceous vegetation,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_tree_vcf.tif,Cover of trees,Remote sensing,N,DaymetI:\Maxent_Daymet_WGS84\UnitedStates\tiff2\uspop.tif,US population density,Anthropogenic,N,Daymet
+File name,Layer name,Group,Source,Categorical
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio1.tif,Annual mean temperature,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio2.tif,Mean diurnal range,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio3.tif,Isothermality,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio4.tif,Temperature seasonality,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio5.tif,Maximum temperature of warmest month,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio6.tif,Minimum temperature of coldest month,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio7.tif,Temperature annual range,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio8.tif,Mean temperature of wettest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio9.tif,Mean temperature of driest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio10.tif,Mean temperature of warmest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio11.tif,Mean temperature of coldest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio12.tif,Annual precipitation,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio13.tif,Precipitation of wettest month,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio14.tif,Precipitation of driest month,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio15.tif,Precipitation seasonality,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio16.tif,Precipitation of wettest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio17.tif,Precipitation of driest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio18.tif,Precipitiation of warmest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio19.tif,Precipitation of coldest quarter,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\bafloind.tif,,Hydrology,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\comtopindx.tif,Compound topographic index,Hydrology,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\dist_h2o.tif,Distance to water,Hydrology,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\eastness.tif,Eastness (sin(aspect)),Topography,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\elevation.tif,Elevation,Topography,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_01.tif,EVI Beginning of season,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_02.tif,EVI End of season,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_03.tif,EVI Length of season,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_04.tif,EVI Base value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_05.tif,EVI Peak time,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_06.tif,EVI Peak value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_07.tif,EVI Amplitude,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_08.tif,EVI Greenup rate,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_09.tif,EVI Browndown rate,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_10.tif,EVI Integral over season absolute,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_11.tif,EVI Integral over season scaled,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_12.tif,EVI Maximum value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_13.tif,EVI Minimum value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_14.tif,EVI Mean value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_15.tif,EVI RMSE,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\flowaccum.tif,Flow accumulation,Hydrology,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\flowdir.tif,Flow direction,Hydrology,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\freqprcip.tif,Frequency of precipitaiton events,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\frostdays.tif,Frost free days,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\geology.tif,Geology of bedrock,Soil?,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\growday.tif,Growing degree days,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\humidity.tif,Humidity,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\maxtemp.tif,Average annual maximum temperature,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\mintemp.tif,Average annual minimum temperature,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\mjr_rd_dist.tif,Distance to major roads,Anthropogenic,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_01.tif,NDVI Beginning of season,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_02.tif,NDVI End of season,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_03.tif,NDVI Length of season,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_04.tif,NDVI Base value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_05.tif,NDVI Peak time,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_06.tif,NDVI Peak value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_07.tif,NDVI Amplitude,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_08.tif,NDVI Greenup rate,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_09.tif,NDVI Browndown rate,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_10.tif,NDVI Integral over season absolute,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_11.tif,NDVI Integral over season scaled,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_12.tif,NDVI Maximum value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_13.tif,NDVI Minimum value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_14.tif,NDVI Mean value,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_15.tif,NDVI RMSE,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_wd.tif,NDVI Winter dearth,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvieviampdif.tif,Difference of NDVI and EVI amplitude,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\northness.tif,northness (cos(aspect)),Topography,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\precipsize.tif,Average size of precipitation events,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\radiation.tif,Solar radiation,Climate,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\slpdeg.tif,Slope (degree),Topography,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_bare_vcf.tif,Cover of bare ground,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_herb_vcf.tif,Cover of herbaceous vegetation,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_tree_vcf.tif,Cover of trees,Remote sensing,Daymet,N
+I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\uspop.tif,US population density,Anthropogenic,Daymet,N

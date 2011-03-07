@@ -42,9 +42,16 @@ class SourceEditor(QtGui.QTextEdit):
                      QtCore.SIGNAL('currentCharFormatChanged(QTextCharFormat)'),
                      self.formatChanged)
 
+        self.setFocusPolicy(QtCore.Qt.WheelFocus)
+        
     def formatChanged(self, f):
         self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)
-
+        
+    def focusOutEvent(self, event):
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        QtGui.QTextEdit.focusOutEvent(self, event)
+        
 class SourceConfigurationWidget(PortTableConfigurationWidget):
 
     def __init__(self, module, controller, editor_class=None,
@@ -65,10 +72,28 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         self.createPortTable(has_inputs, has_outputs)
         self.setupEditor()
         self.createButtons()
-
+        #connect signals
+        if has_inputs:
+            self.connect(self.inputPortTable, QtCore.SIGNAL("contentsChanged"),
+                         self.updateState)
+        if has_outputs:
+            self.connect(self.outputPortTable, QtCore.SIGNAL("contentsChanged"),
+                         self.updateState)
+        self.connect(self.codeEditor, QtCore.SIGNAL("textChanged()"),
+                     self.updateState)
+        self.adjustSize()
+        self.setMouseTracking(True)
+        self.mouseOver = False
+        
     def sizeHint(self):
         return QtCore.QSize(512, 512)
-
+    
+    def enterEvent(self, event):
+        self.mouseOver = True
+        
+    def leaveEvent(self, event):
+        self.mouseOver = False
+            
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = PortTable(self)
@@ -98,7 +123,8 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
                 break
         return fid
 
-    def setupEditor(self):
+    def initializeCode(self):
+        self.codeEditor.clear()
         fid = self.findSourceFunction()
         if fid!=-1:
             f = self.module.functions[fid]
@@ -107,6 +133,10 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
                 code = urllib.unquote(code)
             self.codeEditor.setPlainText(code)
         self.codeEditor.document().setModified(False)
+        self.codeEditor.setFocus()
+        
+    def setupEditor(self):
+        self.initializeCode()
         self.layout().addWidget(self.codeEditor, 1)
         
         self.cursorLabel = QtGui.QLabel()
@@ -114,14 +144,11 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         self.connect(self.codeEditor, QtCore.SIGNAL('cursorPositionChanged()'),
                      self.updateCursorLabel)
         self.updateCursorLabel()
-
+            
     def updateCursorLabel(self):
         cursor = self.codeEditor.textCursor()
         self.cursorLabel.setText('Line: %d / Col: %d' % (cursor.blockNumber()+1,
                                                             cursor.columnNumber()+1))
-
-    def sizeHint(self):
-        return QtCore.QSize(512, 512)
 
     def performPortConnection(self, operation):
         operation(self.inputPortTable.horizontalHeader(),
@@ -166,7 +193,7 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
             functions.append((self.sourcePortName, [code]))
         if len(deleted_ports) + len(added_ports) + len(functions) == 0:
             # nothing changed
-            return
+            return True
         try:
             self.controller.update_ports_and_functions(self.module.id, 
                                                        deleted_ports, 
@@ -176,3 +203,37 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
             debug.critical('Port Already Exists %s' % str(e))
             return False
         return True
+    
+    def resetTriggered(self, checked = False):
+        if self.has_inputs:
+            self.inputPortTable.clearContents()
+            self.inputPortTable.setRowCount(1)
+            self.inputPortTable.initializePorts(self.module.input_port_specs)
+            self.inputPortTable.fixGeometry()
+        if self.has_outputs:
+            self.outputPortTable.clearContents()
+            self.outputPortTable.setRowCount(1)
+            self.outputPortTable.initializePorts(self.module.output_port_specs, 
+                                             True)
+            self.outputPortTable.fixGeometry()
+            
+        self.initializeCode()
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        self.state_changed = False
+        self.emit(QtCore.SIGNAL("stateChanged"))
+        
+    def updateState(self):
+        self.saveButton.setEnabled(True)
+        self.resetButton.setEnabled(True)
+        if not self.state_changed:
+            self.state_changed = True
+            self.emit(QtCore.SIGNAL("stateChanged"))
+    
+    def focusOutEvent(self, event):
+        if not self.mouseOver:
+            self.askToSaveChanges()
+        QtGui.QWidget.focusOutEvent(self, event)
+        
+    def activate(self):
+        self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)

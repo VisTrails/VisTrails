@@ -134,6 +134,8 @@ class DebugPrint:
             # the session.
             import core.system
             if core.system.systemType in ["Windows", "Microsoft"]:
+                if not os.path.exists(f):
+                    open(f,'w').close()
                 rotate_file_if_necessary(f)
                 handler = logging.FileHandler(f)
             else:

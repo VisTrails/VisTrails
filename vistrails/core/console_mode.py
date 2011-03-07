@@ -20,6 +20,7 @@
 ##
 ############################################################################
 """ Module used when running  vistrails uninteractively """
+from __future__ import absolute_import
 import os.path
 import uuid
 import core.interpreter.default
@@ -37,7 +38,8 @@ from core.vistrail.vistrail import Vistrail
 def run_and_get_results(w_list, parameters='', workflow_info=None, 
                         update_vistrail=False, extra_info=None):
     """run_and_get_results(w_list: list of (locator, version), parameters: str,
-                           workflow_info:str, update_vistrail: boolean)
+                           workflow_info:str, update_vistrail: boolean,
+                           extra_info:dict)
     Run all workflows in w_list, and returns an interpreter result object.
     version can be a tag name or a version id.
     
@@ -100,7 +102,84 @@ was %s"%(workflow, version, new_version))
             controller.write_vistrail(locator)
         result.append(run)
     return result
+
+################################################################################
+
+def get_wf_graph(w_list, workflow_info=None, pdf=False):
+    """run_and_get_results(w_list: list of (locator, version), 
+                           workflow_info:str, pdf:bool)
+    Load all workflows in wf_list and dump their graph to workflow_info.
     
+    """
+    result = []
+    for locator, workflow in w_list:
+        try:
+            (v, abstractions , thumbnails)  = load_vistrail(locator)
+            controller = VistrailController()
+            controller.set_vistrail(v, locator, abstractions, thumbnails)
+            if type(workflow) == type("str"):
+                version = v.get_version_number(workflow)
+            elif type(workflow) in [ type(1), long]:
+                version = workflow
+            elif workflow is None:
+                version = controller.get_latest_version_in_graph()
+            else:
+                msg = "Invalid version tag or number: %s" % workflow
+                raise VistrailsInternalError(msg)
+            controller.change_selected_version(version)
+        
+            if (workflow_info is not None and 
+                controller.current_pipeline is not None):
+                from gui.pipeline_view import QPipelineView
+                pipeline_view = QPipelineView()
+                pipeline_view.scene().setupScene(controller.current_pipeline)
+                if pdf:
+                    base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
+                    filename = os.path.join(workflow_info, base_fname)
+                    pipeline_view.scene().saveToPDF(filename)
+                else:
+                    base_fname = "%s_%s_pipeline.png" % (locator.short_name, version)
+                    filename = os.path.join(workflow_info, base_fname)
+                    pipeline_view.scene().saveToPNG(filename)
+                del pipeline_view
+                result.append((True, ""))
+        except Exception, e:
+            result.append((False, str(e)))
+    return result
+
+################################################################################
+
+def get_vt_graph(vt_list, tree_info, pdf=False):
+    """get_vt_graph(vt_list: list of locator, tree_info:str)
+    Load all vistrails in vt_list and dump their tree to tree_info.
+    
+    """
+    result = []
+    for locator in vt_list:
+        try:
+            (v, abstractions , thumbnails)  = load_vistrail(locator)
+            controller = VistrailController()
+            controller.set_vistrail(v, locator, abstractions, thumbnails)
+            if tree_info is not None:
+                from gui.version_view import QVersionTreeView
+                version_view = QVersionTreeView()
+                version_view.scene().setupScene(controller)
+                if pdf:
+                    base_fname = "graph_%s.pdf" % locator.short_name
+                    filename = os.path.join(tree_info, base_fname)
+                    version_view.scene().saveToPDF(filename)
+                else:
+                    base_fname = "graph_%s.png" % locator.short_name
+                    filename = os.path.join(tree_info, base_fname)
+                    version_view.scene().saveToPNG(filename)
+                del version_view
+                result.append((True, ""))
+        except Exception, e:
+            result.append((False, str(e)))
+    return result
+
+################################################################################
+
 def run(w_list, parameters='', workflow_info=None, update_vistrail=False,
         extra_info=None):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
@@ -127,7 +206,6 @@ import core.packagemanager
 import core.system
 import unittest
 import core.vistrail
-import db.domain
 
 class TestConsoleMode(unittest.TestCase):
 
@@ -155,6 +233,7 @@ class TestConsoleMode(unittest.TestCase):
         from core.vistrail.module_function import ModuleFunction
         from core.utils import DummyView
         from core.vistrail.module import Module
+        import db.domain
        
         id_scope = db.domain.IdScope()
         interpreter = core.interpreter.default.get_default_interpreter()
@@ -175,7 +254,8 @@ class TestConsoleMode(unittest.TestCase):
         function.add_parameters(params)
         module = Module(id=id_scope.getNewId(Module.vtType),
                            name='TestTupleExecution',
-                           package='edu.utah.sci.vistrails.console_mode_test')
+                           package='edu.utah.sci.vistrails.console_mode_test',
+                           version='0.9.0')
         module.add_function(function)
         
         p.add_module(module)
@@ -220,7 +300,6 @@ class TestConsoleMode(unittest.TestCase):
         v = locator.load()
 
         import tempfile
-        import os
         (fd, filename) = tempfile.mkstemp()
         os.close(fd)
         locator = XMLFileLocator(filename)

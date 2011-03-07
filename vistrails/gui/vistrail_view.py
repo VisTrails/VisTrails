@@ -222,6 +222,16 @@ class QVistrailView(QDockContainer):
             self.versionTab.versionView.versionProp.show()
         else:
             self.versionTab.versionView.versionProp.hide()
+            
+    def setModuleConfigMode(self, on):
+        """ setModuleConfigMode(on: bool) -> None
+        Set the Module configuration panel state for the view
+
+        """
+        if on:
+            self.pipelineTab.moduleConfig.toolWindow().show()
+        else:
+            self.pipelineTab.moduleConfig.toolWindow().hide()
 
     def viewModeChanged(self, index):
         """ viewModeChanged(index: int) -> None        
@@ -363,6 +373,8 @@ class QVistrailView(QDockContainer):
             self.versionTab.versionView.versionProp.updateVersion(versionId)
             self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
             self.execPipelineEnabled = versionId>-1
+            self.execExploreEnabled = \
+                        self.controller.vistrail.get_paramexp(versionId) != None
             self.execDiffEnabled = False
             self.execExploreChange = False
             self.emit(QtCore.SIGNAL('execStateChange()'))
@@ -396,7 +408,12 @@ class QVistrailView(QDockContainer):
         """
         self.execExploreEnabled = notEmpty
         self.emit(QtCore.SIGNAL('execStateChange()'))
-
+        
+    def checkModuleConfigPanel(self):
+        """ checkModuleConfigPanel(self) -> None 
+        This will ask if user wants to save changes """
+        self.pipelineTab.checkModuleConfigPanel()
+         
     ##########################################################################
     # Undo/redo
         

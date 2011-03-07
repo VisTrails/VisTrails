@@ -176,6 +176,7 @@ class ExtConnectionList(XMLWrapper):
             self.changed = False
             self.current_id = 1
             self.filename = filename
+            self.load_connections()
             ExtConnectionList._instance = self
         else:
             raise RuntimeError, 'Only one instance of ExtConnectionList is \

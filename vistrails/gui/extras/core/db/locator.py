@@ -23,14 +23,13 @@
 from core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
 from gui.open_db_window import QOpenDBWindow, QConnectionDBSetupWindow
-from core.db.locator import DBLocator, FileLocator, untitled_locator
+from core.db.locator import DBLocator, FileLocator
 from db import VistrailsDBException
 from core import debug
-import db
+import db.services.io
 from PyQt4 import QtGui, QtCore
 import core.system
 import os
-import core.configuration
 
 ##############################################################################
 # DB dialogs

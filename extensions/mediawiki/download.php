@@ -1,4 +1,4 @@
-<?
+<?php
 ////////////////////////////////////////////////////////////////////////////
 //
 // Copyright (C) 2006-2010 University of Utah. All rights reserved.
@@ -22,13 +22,10 @@
 ////////////////////////////////////////////////////////////////////////////
 
 require_once 'functions.php';
-
-$VT_HOST = "localhost";
-$VT_PORT = 8080;
-$VALID_DOMAIN = array('www.vistrails.org',
-                      'vistrails.sci.utah.edu');
-
+require_once 'config.php';
+ 
 if (array_key_exists('getvt', $_GET)) {
+	
     $port = '3306';
     $host = 'vistrails.sci.utah.edu';
     $dbname = $_GET["db"];
@@ -63,7 +60,7 @@ if (array_key_exists('getvt', $_GET)) {
 	
     //change the address below to appropriate folder 
     //(with read+write access to apache user) if required
-    $fileHandle = fopen("/server/wiki/vistrails/main/images/vistrails/". $filename, 'w') or die("can't open file");
+    $fileHandle = fopen($PATH_TO_IMAGES. $filename, 'w') or die("can't open file");
     $text = '<vtlink database="' . $dbname . '" host="'. $host .
             '" port="'. $port . '" vtid="' . $vtid . '" execute="'.
             $execute . '" showSpreadsheetOnly="'. $showspreadsheetonly.
@@ -102,53 +99,13 @@ if (array_key_exists('getvt', $_GET)) {
     header("Content-Disposition: attachment;filename=" . $filename);
 
     //the address below should be the same as one above in line 12
-    readfile("/server/wiki/vistrails/main/images/vistrails/".$filename);
+    readfile($PATH_TO_IMAGES.$filename);
     exit();
-}//this part is not being used right now. 
-elseif(array_key_exists('geturl',$_GET)){
-  $url = $_GET["geturl"];
-  $version = $_GET["version"];
-  $version_tag = '';
-  $execute = "False";
-  $showspreadsheetonly = "False";
-  if(array_key_exists('tag', $_GET))
-    $version_tag = $_GET['tag'];
-  if(array_key_exists('execute', $_GET))
-    $execute = $_GET['execute'];
-  if(array_key_exists('showspreadsheetonly', $_GET))
-    $showspreadsheetonly = $_GET['showspreadsheetonly'];
-  //Checking if url is valid
-  $found = False;
-  $host = parse_url($url, PHP_URL_HOST);
-  foreach ($VALID_DOMAIN as $d) {
-    if ($host == $d)
-      $found = True;
-  }
-  if($found == True){
-    $filename = md5($url . '_' . $version);
-    $filename = $filename . ".vtl";
-    $urlcontents = base64_encode(file_get_contents($url));
-    $fileHandle = fopen("/server/wiki/vistrails/main/images/vistrails/". $filename, 'w') or die("can't open file");
-    $text = "<vtlink  url=\"". $url . "\" version=\"" . $version . "\" tag=\"" . 
-            $version_tag . "\" execute=\"" . $execute . "\" showSpreadsheetOnly=\"". 
-            $showspreadsheetonly ."\" vtcontent=\"".$urlcontents .
-            "\" forceDB=\"". "\"  />";
-    fputs($fileHandle, $text);
-    fclose($fileHandle);
-
-    header("Content-Type: text/vistrails");
-    header("Content-Disposition: attachment;filename=" . $filename);
-
-    //the address below should be the same as one above in line 47
-    readfile("/server/wiki/vistrails/main/images/vistrails/".$filename);
-    exit();
-  }
 }
-
 function get_vt_from_response($xmlstring) {
     try{
         $node = @new SimpleXMLElement($xmlstring);
-        return $node->params[0]->param[0]->value[0]->string[0];
+        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
     } catch(Exception $e) {
         echo "bad xml";
     }

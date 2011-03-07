@@ -100,7 +100,7 @@ class KeyChain(object):
             if self.__keys.has_key(hashkey):
                 return crypt(hashkey,self.__keys[hashkey])
             else:
-                debug.warning("KeyChain: the key is not present or only the"
+                debug.debug("KeyChain: the key is not present or only the"
                               " object that set the key can get it")
                 return  ""
         except KeyError:

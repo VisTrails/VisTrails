@@ -432,6 +432,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.showAllAction.setEnabled(True)
         self.showAllAction.setStatusTip('Show all hidden versions')
             
+        self.moduleConfigViewAction = QtGui.QAction('Module Configuration Panel', self)
+        self.moduleConfigViewAction.setCheckable(True)
+        self.moduleConfigViewAction.setChecked(True)
+        
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
         self.checkUpdateAction = QtGui.QAction(self.tr('Check for Updates'), self)
@@ -544,6 +548,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.modulePalette.toolWindow().toggleViewAction())
         self.viewMenu.addAction(self.methodsViewAction)
         self.viewMenu.addAction(self.setMethodsViewAction)
+        self.viewMenu.addAction(self.moduleConfigViewAction)
         self.viewMenu.addAction(self.propertiesViewAction)
         self.viewMenu.addAction(self.propertiesOverlayAction)
 
@@ -693,6 +698,10 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.viewManager.setPropertiesOverlayMode)
 
+        self.connect(self.moduleConfigViewAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.setModuleConfigMode)
+        
         self.connect(self.vistrailActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),
                      self.vistrailSelectFromMenu)
@@ -1021,7 +1030,14 @@ class QBuilderWindow(QtGui.QMainWindow):
             if locator.has_temporaries():
                 if not locator_class.prompt_autosave(self):
                     locator.clean_temporaries()
-            self.open_vistrail_without_prompt(locator)
+            if hasattr(locator, '_vnode'):
+                version = locator._vnode
+                if hasattr(locator,'_vtag'):
+                    # if a tag is set, it should be used instead of the
+                    # version number
+                    if locator._vtag != '':
+                        version = locator._vtag
+            self.open_vistrail_without_prompt(locator, version)
             self.set_current_locator(locator)
             
     def open_vistrail_without_prompt(self, locator, version=None,
@@ -1037,7 +1053,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         If workflow_exec is True, the logged execution will be displayed
         """
         if not locator.is_valid():
-            ok = locator.update_from_gui()
+            ok = locator.update_from_gui(self)
         else:
             ok = True
         if ok:
@@ -1047,6 +1063,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.exportFileAction.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
             self.mergeMenu.menuAction().setEnabled(True)
+            self.viewManager.changeCursor(self.interactionToolBar.cursorMode)
             if version:
                 self.viewModeChanged(0)
             else:
@@ -1097,8 +1114,11 @@ class QBuilderWindow(QtGui.QMainWindow):
                                          'maxRecentVistrails'))
         #check if we have enough actions
         while len(self.recentVistrailActs) < maxRecentVistrails:
-            self.recentVistrailActs.append(QtGui.QAction(self, visible=False,
-                            triggered=self.open_recent_vistrail))
+            action = QtGui.QAction(self)
+            action.setVisible(False)
+            self.connect(action, QtCore.SIGNAL("triggered()"),
+                         self.open_recent_vistrail)
+            self.recentVistrailActs.append(action)
     
     def update_recent_vistrail_menu(self):
         #check if we have enough actions
@@ -1223,7 +1243,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         locator = locator_class.load_from_gui(self, Pipeline.vtType)
         if locator:
             if not locator.is_valid():
-                ok = locator.update_from_gui()
+                ok = locator.update_from_gui(self, Pipeline.vtType)
             else:
                 ok = True
             if ok:
@@ -1742,6 +1762,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         try:
             self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
                       False)
+            self.viewModeChanged(3)
             self.viewManager.executeCurrentExploration()
         finally:
             self._executing = False

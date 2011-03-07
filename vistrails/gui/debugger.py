@@ -41,6 +41,7 @@ class QDebugger(QToolWindow, QToolWindowInterface):
         self.app = gui.application.VistrailsApplication
         self.inspector = QObjectInspector()
         self.setWidget(self.inspector)
+        self.setTitleBarWidget(QtGui.QLabel("Debugger"))
         self.controller = controller
         self.vistrails_interpreter = get_default_interpreter()
         self.vistrails_interpreter.debugger = self

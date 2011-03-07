@@ -36,14 +36,11 @@ QPipelineView
 from PyQt4 import QtCore, QtGui
 from core.configuration import get_vistrails_configuration
 from core import debug
-from core.utils import VistrailsInternalError, profile
-from core.utils.uxml import named_elements
+from core.utils import profile
 from core.modules.module_configure import DefaultModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-from core.vistrail.connection import Connection
-from core.vistrail.module import Module
-from core.vistrail.pipeline import Pipeline
+
 from core.vistrail.port import PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
@@ -57,9 +54,7 @@ from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
 from gui.utils import getBuilderWindow
 
-import sys
 import copy
-from itertools import izip
 import math
 import operator
 
@@ -321,8 +316,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Open the context menu
         
         """
+        self.scene().clearSelection()
+        self.parentItem().setSelected(True)
         self.contextMenuEvent(event)
-
+        event.ignore()
+        
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
         Captures context menu event.
@@ -334,7 +332,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
         menu.addAction(self.changeModuleLabelAct)
-	menu.addAction(self.setBreakpointAct)
+        menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
         menu.addAction(self.setErrorAct)
         if module.is_abstraction() and not module.is_latest_version():
@@ -366,9 +364,9 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.changeModuleLabelAct,
                                QtCore.SIGNAL("triggered()"),
                                self.changeModuleLabel)
-	self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
-	self.setBreakpointAct.setStatusTip("Set Breakpoint")
-	QtCore.QObject.connect(self.setBreakpointAct,
+        self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
+        self.setBreakpointAct.setStatusTip("Set Breakpoint")
+        QtCore.QObject.connect(self.setBreakpointAct,
 			       QtCore.SIGNAL("triggered()"),
 			       self.set_breakpoint)
         self.setWatchedAct = QtGui.QAction("Watch Module", self.scene())
@@ -388,11 +386,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                    self.upgradeAbstraction)
 
     def set_breakpoint(self):
-	""" set_breakpoint() -> None
-	Sets this module as a breakpoint for execution
-	"""
-	if self.moduleId >= 0:
-	    self.scene().toggle_breakpoint(self.moduleId)
+        """ set_breakpoint() -> None
+        Sets this module as a breakpoint for execution
+        """
+        if self.moduleId >= 0:
+            self.scene().toggle_breakpoint(self.moduleId)
             self.setBreakpoint(not self.is_breakpoint)
         debug = get_default_interpreter().debugger
         if debug:
@@ -1645,7 +1643,6 @@ mutual connections."""
         if not pipeline: return 
             
         needReset = len(self.items())==0
-        registry = get_module_registry()
         try:
             new_modules = set(pipeline.modules)
             modules_to_be_added = new_modules - self._old_module_ids
@@ -2070,27 +2067,30 @@ mutual connections."""
         Open the modal configuration window for module with given id
         """
         if self.controller:
-            registry = get_module_registry()
-            module = self.controller.current_pipeline.modules[id]
-            getter = registry.get_configuration_widget
-            widgetType = getter(module.package, module.name, module.namespace)
-            if not widgetType:
-                widgetType = DefaultModuleConfigurationWidget
-            global widget
-            widget = widgetType(module, self.controller, None)
-            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+#            registry = get_module_registry()
+#            module = self.controller.current_pipeline.modules[id]            
+#            getter = registry.get_configuration_widget
+#            widgetType = getter(module.package, module.name, module.namespace)
+#            if not widgetType:
+#                widgetType = DefaultModuleConfigurationWidget            
+#            widget = widgetType(module, self.controller, self.parent())
+#            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+#            #if connections will be removed as a result of the configuration
+#            # we need to be able to get them when calling
+#            # self.recreate_module()
+#            self.modules[id]._old_connection_ids = \
+#                             self.modules[id].dependingConnectionItems()
+#            self.connect(widget, QtCore.SIGNAL("doneConfigure"),
+#                         self.perform_configure_done_actions)
+#            widget.show()
+            self.emit(QtCore.SIGNAL("showConfigureWindow"))
             
-            #if connections will be removed as a result of the configuration
-            # we need to be able to get them when calling
-            # self.recreate_module()
-            self.modules[id]._old_connection_ids = \
-                             self.modules[id].dependingConnectionItems()
-            
-            widget.exec_()
+    def perform_configure_done_actions(self, module_id):
+        if self.controller:
             self.reset_module_colors()
             self.flushMoveActions()
-            self.recreate_module(self.controller.current_pipeline, id)
-
+            self.recreate_module(self.controller.current_pipeline, module_id)
+             
     def open_documentation_window(self, id):
         """ open_documentation_window(int) -> None
         Opens the modal module documentation window for module with given id
@@ -2106,19 +2106,18 @@ mutual connections."""
             widget.exec_()
 
     def toggle_breakpoint(self, id):
-	"""
-	toggle_breakpoint(int) -> None
-	Toggles the breakpoint attribute for the module with given id
-	"""
-	if self.controller:
-	    module = self.controller.current_pipeline.modules[id]
-	    module.toggle_breakpoint()
+        """ toggle_breakpoint(int) -> None
+        Toggles the breakpoint attribute for the module with given id
+        """
+        if self.controller:
+            module = self.controller.current_pipeline.modules[id]
+            module.toggle_breakpoint()
             self.recreate_module(self.controller.current_pipeline, id)
 
     def toggle_watched(self, id):
         if self.controller:
-	    module = self.controller.current_pipeline.modules[id]
-	    module.toggle_watched()
+            module = self.controller.current_pipeline.modules[id]
+            module.toggle_watched()
 
     def print_stack(self, id):
         errorTrace = self.modules[id].errorTrace
@@ -2143,9 +2142,6 @@ mutual connections."""
                              self, QtCore.SLOT('close()'))
         sp = StackPopup(errorTrace)
         sp.exec_()
-        #import sys
-        #if errorTrace:
-        #    sys.stderr.write(errorTrace)
 
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None
@@ -2252,7 +2248,6 @@ mutual connections."""
 
     def hasMoveActions(self):
         controller = self.controller
-        moves = []
         for (mId, item) in self.modules.iteritems():
             module = controller.current_pipeline.modules[mId]
             (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
@@ -2338,7 +2333,6 @@ class QPipelineView(QInteractiveGraphicsView):
 ################################################################################
 # Testing
 
-import unittest
 import api
 import gui.utils
 

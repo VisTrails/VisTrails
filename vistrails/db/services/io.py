@@ -19,6 +19,7 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+from __future__ import with_statement
 
 from datetime import datetime
 from core import debug
@@ -187,6 +188,9 @@ def test_db_connection(config):
     except get_db_lib().Error, e:
         msg = "connection test failed (%d: %s)" % (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
+    except TypeError, e:
+        msg = "connection test failed (%s)" %str(e)
+        raise VistrailsDBException(msg)
 
 def ping_db_connection(db_connection):
     """ping_db_connection(db_connection) -> boolean 
@@ -196,7 +200,7 @@ def ping_db_connection(db_connection):
     """
     try:
         db_connection.ping()
-    except get_db_lib().OperationalError, e:
+    except get_db_lib().OperationalError:
         return False
     return True
     
@@ -772,13 +776,15 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             if not os.path.exists(thumbnail_dir):
                 os.mkdir(thumbnail_dir)
             
-            #print 'copying %s -> %s' %(obj, png_fname)
             try:
                 shutil.copyfile(obj, png_fname)
-            except Exception, e:
+            except shutil.Error, e:
+                #files are the same no need to show warning
+                saved_thumbnails.pop()
+            except IOError, e2:
                 saved_thumbnails.pop()
                 debug.warning('copying thumbnail %s -> %s failed: %s' % \
-                              (obj, png_fname, str(e))) 
+                              (obj, png_fname, str(e2)))
         else:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'thumbnail list entry must be a filename')

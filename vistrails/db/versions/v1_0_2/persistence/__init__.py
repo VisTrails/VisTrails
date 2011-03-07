@@ -109,15 +109,37 @@ class DAOList(dict):
         global_props = {'entity_id': res.db_id,
                         'entity_type': res.vtType}
 
+        # collect all commands so that they can be executed together
+        # daoList should contain (dao_type, dao, dbCommand) values
+        daoList = []
+        # dbCommandList should contain dbCommand values
+        dbCommandList = []
+        
+        # generate SELECT statements
         for dao_type, dao in self['sql'].iteritems():
             if (dao_type == DBVistrail.vtType or
                 dao_type == DBWorkflow.vtType or
                 dao_type == DBLog.vtType or
                 dao_type == DBRegistry.vtType):
                 continue
-                
-            current_objs = dao.get_sql_columns(db_connection, global_props, 
-                                               lock)
+
+            # TODO new method
+            daoList.append([dao_type, dao, None])
+            dbCommand = dao.get_sql_select(db_connection, global_props, lock)
+            dbCommandList.append(dbCommand)
+            
+        # Exacute all select statements
+        results = self['sql'][vtType].executeSQLGroup(db_connection,
+                                                      dbCommandList, True)
+
+        # add result to correct dao
+        for i in xrange(len(daoList)):
+            daoList[i][2] = results[i]
+        
+        # process results
+        for dao_type, dao, data in daoList:
+            # TODO new method
+            current_objs = dao.process_sql_columns(data)
             all_objects.update(current_objs)
 
             if dao_type == DBGroup.vtType:
@@ -170,15 +192,34 @@ class DAOList(dict):
                     self['sql'][c.vtType].delete_sql_column(db_connection,
                                                             c,
                                                             global_props)
-
         child = children.pop(0)[0]
         child.is_dirty = False
         child.is_new = False
 
+        # list of all children
+        dbCommandList = []
+        writtenChildren = []
         # process remaining children
         for (child, _, _) in children:
-            self['sql'][child.vtType].set_sql_columns(db_connection, child, 
-                                                      global_props, do_copy)
+            dbCommand = self['sql'][child.vtType].set_sql_command(
+                            db_connection, child, global_props, do_copy)
+            if dbCommand is not None:
+                dbCommandList.append(dbCommand)
+                writtenChildren.append(child)
+            self['sql'][child.vtType].to_sql_fast(child, do_copy)
+
+        # Execute all insert/update statements
+        results = self['sql'][children[0][0].vtType].executeSQLGroup(
+                                                    db_connection,
+                                                    dbCommandList, False)
+        resultDict = dict(zip(writtenChildren, results))
+        # process remaining children
+        for (child, _, _) in children:
+            if child in resultDict:
+                lastId = resultDict[child]
+                self['sql'][child.vtType].set_sql_process(child, 
+                                                          global_props,
+                                                          lastId)
             self['sql'][child.vtType].to_sql_fast(child, do_copy)
             if child.vtType == DBGroup.vtType:
                 if child.db_workflow:
@@ -190,9 +231,6 @@ class DAOList(dict):
                     child.db_workflow.is_dirty = is_dirty
                     self.save_to_db(db_connection, child.db_workflow, do_copy,
                                     new_props)
-                                            
-            child.is_dirty = False
-            child.is_new = False
 
     def delete_from_db(self, db_connection, type, obj_id):
         root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 

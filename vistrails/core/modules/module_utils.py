@@ -74,23 +74,26 @@ avoid race conditions, this file will already exist in the file system."""
         self.files[name] = result
         return result
 
+    def create_directory(self, suffix = '', prefix = 'vt_tmp'):
+        """create_directory(suffix='', prefix='vt_tmp') -> Directory.
+
+Returns a Directory module representing a writable directory for use in modules. To
+avoid race conditions, this directory will already exist in the file system."""
+        name = tempfile.mkdtemp(suffix=suffix,
+                                      prefix=prefix,
+                                      dir=self.directory)
+        result = basic_modules.Directory()
+        result.name = name
+        result.upToDate = True
+        self.files[name] = result
+        return result
+
     def guess_suffix(self, file_name):
         """guess_suffix(file_name) -> String.
-
-Tries to guess the suffix of the given filename."""
-        suffix = ''
-        # try to guess suffix
-        f = file_name.rfind('.')
-        if f == -1:
-            return ''
-        else:
-            # It might be a suffix, or it might be a path.  Try to
-            # work around path by checking for presence of '/' after
-            # suffix delimiter.
-            if file_name.rfind('/', f) == -1:
-                return file_name[f:]
-            else:
-                return ''
+        Tries to guess the suffix of the given filename.
+        
+        """
+        return os.path.splitext(file_name)[1]
 
     def make_local_copy(self, src):
         """make_local_copy(src) -> File
@@ -122,10 +125,10 @@ class TestFilePool(unittest.TestCase):
         """Tests FilePool.guess_suffix"""
         x = FilePool()
         self.assertEquals(x.guess_suffix('asd.foo'), '.foo')
-        self.assertEquals(x.guess_suffix('user.foo/lalala'), '')
         self.assertEquals(x.guess_suffix('bar'), '')
         self.assertEquals(x.guess_suffix('./lalala'), '')
         self.assertEquals(x.guess_suffix('./lalala.bar'), '.bar')
+        self.assertEquals(x.guess_suffix('user.foo/lalala'), '')
         x.cleanup()
         del x
 

@@ -21,15 +21,17 @@
 ############################################################################
 
 from db import VistrailsDBException
+from core import debug
+import MySQLdb.converters
 
 class SQLDAO:
     def __init__(self):
-	pass
+        pass
 
     def convertFromDB(self, value, type, db_type):
-	if value is not None:
-	    if type == 'str':
-		return str(value)
+        if value is not None:
+            if type == 'str':
+                return str(value)
             elif type == 'long':
                 return long(value)
             elif type == 'float':
@@ -47,18 +49,58 @@ class SQLDAO:
                 else:
                     return datetime(*strptime(str(value), 
                                               '%Y-%m-%d %H:%M:%S')[0:6])
-	return None
+        return None
+
+    def convertWarning(self, before, after, _from, to):
+        text = ["Value truncated when saving to database",
+                "%s truncated to %s\nwhile converting '%s' to '%s'"]
+        debug.warning(text[0], text[1] % (before, after, _from, to))
 
     def convertToDB(self, value, type, db_type):
         if value is not None:
             if type == 'str':
+                value = str(value)
+                if db_type.startswith('varchar'):
+                    try:
+                        length = int(db_type[8:-1])
+                        if len(value) > length:
+                            self.convertWarning(value, value[:length],
+                                                type, db_type)
+                            value = value[:length]
+                    except Exception, e:
+                        pass
+                if db_type.startswith('char'):
+                    try:
+                        length = int(db_type[5:-1])
+                        if len(value) > length:
+                            self.convertWarning(value, value[:length],
+                                                type, db_type)
+                            value = value[:length]
+                    except Exception, e:
+                        pass
                 # return "'" + str(value).replace("'", "''") + "'"
-                return str(value)
+                return value
             elif type == 'long':
                 return str(value)
             elif type == 'float':
+                # necessary to avoid conversion warnings in MySQL
+                if db_type.startswith('DECIMAL'):
+                    try:
+                        value="%%.%sf"%str(db_type[8:-1].split(',')[1])%value
+                    except Exception, e:
+                        pass
                 return str(value)
             elif type == 'int':
+                # note: on 64-bit machines int:s are 64-bit
+                MIN_INT = -2147483648
+                MAX_INT =  2147483647
+                if db_type == 'int':
+                    if int(value) < MIN_INT:
+                        self.convertWarning(value, MIN_INT, type, db_type)
+                        value = MIN_INT
+                    if int(value) > MAX_INT:
+                        self.convertWarning(value, MAX_INT, type, db_type)
+                        value = MAX_INT
                 return str(value)
             elif type == 'date':
                 return value.isoformat()
@@ -93,10 +135,10 @@ class SQLDAO:
         columns = []
         values = []
         for column, value in columnMap.iteritems():
-	    if value is None:
-		value = 'NULL'
-	    columns.append(column)
-	    values.append(value)
+            if value is None:
+                value = 'NULL'
+            columns.append(column)
+            values.append(value)
         columnStr = ', '.join(columns)
         # valueStr = '%s, '.join(values)
         valueStr = ''
@@ -113,8 +155,8 @@ class SQLDAO:
         for column, value in columnMap.iteritems():
 # 	    if value is None:
 # 		value = 'NULL'
-	    setStr += '%s%s = %%s' % (comma, column)
-	    comma = ', '
+            setStr += '%s%s = %%s' % (comma, column)
+            comma = ', '
             values.append(value)
         whereStr = ''
         whereClause = ''
@@ -155,6 +197,40 @@ class SQLDAO:
                                        'failed: %s' % (dbCommand, values, e))
         finally:
             cursor.close()
+        return data
+
+    def executeSQLGroup(self, db, dbCommandList, isFetch):
+        """ Executes a command consisting of multiple SELECT statements
+            It returns a list of results from the SELECT statements
+        """
+        data = []
+        # break up into bundles
+        BUNDLE_SIZE = 10000
+        num_commands = len(dbCommandList)
+        n = 0
+        while n<num_commands:
+            dbCommands = dbCommandList[n:(n+BUNDLE_SIZE)]
+            commandString = ''
+            for prepared, values in dbCommands:
+                command = prepared % \
+                              db.escape(values,MySQLdb.converters.conversions)
+                commandString += command
+            cur = db.cursor()
+            try:
+                result = cur.execute(commandString)
+                while True:
+                    r = cur.fetchall() if isFetch else cur.lastrowid
+                    data.append(r)
+                    next = cur.nextset()
+                    if not next:
+                        break
+            except Exception, e:
+                raise VistrailsDBException('Command failed: %s -- """ %s """' % 
+                                           (e, commandString))
+            finally:
+                cur.close()
+            
+            n += BUNDLE_SIZE
         return data
 
     def start_transaction(self, db):

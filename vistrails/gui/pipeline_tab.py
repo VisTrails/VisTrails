@@ -30,6 +30,7 @@ from core.vistrail.module import Module
 from core.vistrail.connection import Connection
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.method_palette import QMethodPalette
+from gui.module_configuration import QModuleConfiguration
 from gui.module_methods import QModuleMethods
 from gui.pipeline_view import QPipelineView
 from weakref import proxy
@@ -64,12 +65,22 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.moduleMethods.toolWindow())
         
+        self.moduleConfig = QModuleConfiguration(self, self.pipelineView.scene())
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, 
+                           self.moduleConfig.toolWindow())
+        
         self.connect(self.toolWindow(),
                      QtCore.SIGNAL('topLevelChanged(bool)'),
                      self.updateWindowTitle)
         self.connect(self.pipelineView.scene(),
                      QtCore.SIGNAL('moduleSelected'),
                      self.moduleSelected)
+        self.connect(self.moduleConfig,
+                     QtCore.SIGNAL('doneConfigure'),
+                     self.pipelineView.scene().perform_configure_done_actions)
+        self.connect(self.pipelineView.scene(),
+                     QtCore.SIGNAL('showConfigureWindow'),
+                     self.moduleConfig.activate)
         self.connect(self.pipelineView,
                      QtCore.SIGNAL('resetQuery()'),
                      self.resetQuery)
@@ -83,6 +94,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         """
         menu.addAction(self.methodPalette.toolWindow().toggleViewAction())
         menu.addAction(self.moduleMethods.toolWindow().toggleViewAction())
+        menu.addAction(self.moduleConfig.toolWindow().toggleViewAction())
 
     def removeViewActionsFromMenu(self, menu):
         """removeViewActionsFromMenu(menu: QMenu) -> None
@@ -91,6 +103,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         """
         menu.removeAction(self.methodPalette.toolWindow().toggleViewAction())
         menu.removeAction(self.moduleMethods.toolWindow().toggleViewAction())
+        menu.removeAction(self.moduleConfig.toolWindow().toggleViewAction())
 
     def updatePipeline(self, pipeline):
         """ updatePipeline(pipeline: Pipeline) -> None        
@@ -124,21 +137,25 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
             module = pipeline.modules[moduleId]
             self.methodPalette.setEnabled(True)
             self.moduleMethods.setEnabled(True)
+            self.moduleConfig.setEnabled(True)
         else:
             module = None
             self.methodPalette.setEnabled(False)
             self.moduleMethods.setEnabled(False)
+            self.moduleConfig.setEnabled(False)
         self.methodPalette.setUpdatesEnabled(False)
         self.moduleMethods.setUpdatesEnabled(False)
+        self.moduleConfig.setUpdatesEnabled(False)
         try:
             self.methodPalette.updateModule(module)
             self.moduleMethods.updateModule(module)
+            self.moduleConfig.updateModule(module)
             self.emit(QtCore.SIGNAL('moduleSelectionChange'),
                       [m.id for m in selection])
         finally:
             self.methodPalette.setUpdatesEnabled(True)
             self.moduleMethods.setUpdatesEnabled(True)
-             
+            self.moduleConfig.setUpdatesEnabled(True) 
 
     def setController(self, controller):
         """ setController(controller: VistrailController) -> None
@@ -159,6 +176,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                          self.versionChanged)
             self.methodPalette.controller = controller
             self.moduleMethods.controller = controller
+            self.moduleConfig.controller = controller
             controller.current_pipeline_view = self.pipelineView.scene()
 
     def versionChanged(self, newVersion):
@@ -175,3 +193,9 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
 
         """
         self.emit(QtCore.SIGNAL('resetQuery()'))
+
+    def checkModuleConfigPanel(self):
+        """ checkModuleConfigPanel(self) -> None 
+        This will ask if user wants to save changes """
+        if self.moduleConfig.hasChanges:
+            self.moduleConfig.confWidget.widget.askToSaveChanges()

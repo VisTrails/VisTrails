@@ -26,8 +26,6 @@ class SelectListWidget(QtGui.QTreeWidget):
                 values.append(file)
         return values
 
-
-
 class SelectListDialog(QtGui.QDialog):
     def __init__(self, predictorList, parent=None):
         self.outputList= []
@@ -60,9 +58,6 @@ class SelectListDialog(QtGui.QDialog):
 
     def cancel(self):
         self.done(1)
-
-
-
 
 class SelectPredictorsLayers(Module):
     '''

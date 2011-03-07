@@ -28,9 +28,11 @@ is also a QWidget.
 """
 from PyQt4 import QtCore, QtGui
 from core import debug
+from core.utils import VistrailsInternalError
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry
 from core.utils import PortAlreadyExists
+from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
 ############################################################################
 
@@ -48,7 +50,12 @@ class PortTable(QtGui.QTableWidget):
         self.connect(self.model(),
                      QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
                      self.handleDataChanged)
-
+        self.connect(self.delegate, QtCore.SIGNAL("modelDataChanged"),
+                     self, QtCore.SIGNAL("contentsChanged"))
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setMouseTracking(True)
+        self.mouseOver = False
+        
     def sizeHint(self):
         return QtCore.QSize()
 
@@ -70,6 +77,7 @@ class PortTable(QtGui.QTableWidget):
                 changedGeometry = True
             if changedGeometry:
                 self.fixGeometry()
+            self.emit(QtCore.SIGNAL("contentsChanged"))
 
     def initializePorts(self, port_specs, reverse_order=False):
         self.disconnect(self.model(),
@@ -109,7 +117,12 @@ class PortTable(QtGui.QTableWidget):
             if name != '' and sigstring != '':
                 ports.append((name, '(' + sigstring + ')', i))
         return ports
-
+        
+    def focusOutEvent(self, event):
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        QtGui.QTableWidget.focusOutEvent(self, event)
+        
 class PortTableItemDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
@@ -142,6 +155,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                           QtCore.Qt.DisplayRole)
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
+        self.emit(QtCore.SIGNAL("modelDataChanged"))
 
 ############################################################################
 
@@ -207,20 +221,19 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         """
         self.buttonLayout = QtGui.QHBoxLayout()
         self.buttonLayout.setMargin(5)
-        self.okButton = QtGui.QPushButton('&OK', self)
-        self.okButton.setAutoDefault(False)
-        self.okButton.setFixedWidth(100)
-        self.buttonLayout.addWidget(self.okButton)
-        self.cancelButton = QtGui.QPushButton('&Cancel', self)
-        self.cancelButton.setAutoDefault(False)
-        self.cancelButton.setShortcut('Esc')
-        self.cancelButton.setFixedWidth(100)
-        self.buttonLayout.addWidget(self.cancelButton)
+        self.saveButton = QtGui.QPushButton('&Save', self)
+        self.saveButton.setFixedWidth(100)
+        self.saveButton.setEnabled(False)
+        self.buttonLayout.addWidget(self.saveButton)
+        self.resetButton = QtGui.QPushButton('&Reset', self)
+        self.resetButton.setFixedWidth(100)
+        self.resetButton.setEnabled(False)
+        self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.okTriggered)
-        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.close)        
+        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.saveTriggered)
+        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.resetTriggered)        
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -229,15 +242,25 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         """
         return QtCore.QSize(512, 256)
 
-    def okTriggered(self, checked = False):
-        """ okTriggered(checked: bool) -> None
+    def saveTriggered(self, checked = False):
+        """ saveTriggered(checked: bool) -> None
         Update vistrail controller and module when the user click Ok
         
         """
         if self.updateVistrail():
-            self.emit(QtCore.SIGNAL('doneConfigure()'))
-            self.close()
-
+            self.saveButton.setEnabled(False)
+            self.resetButton.setEnabled(False)
+            self.state_changed = False
+            self.emit(QtCore.SIGNAL("stateChanged"))
+            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            
+    def resetTriggered(self, checked = False):
+        self.state_changed = False
+    
+    def closeEvent(self, event):
+        self.askToSaveChanges()
+        event.accept()
+        
     def getRegistryPorts(self, registry, type):
         if not registry:
             return []
@@ -270,7 +293,6 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         deleted_ports = [(p_type,) + p for p in deleted_ports]
         added_ports = [(p_type,) + p for p in added_ports]
         return (deleted_ports, added_ports)
-
     
 class TupleConfigurationWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -320,8 +342,22 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
                                    QtGui.QSizePolicy.Expanding)
         centralLayout.addWidget(paddedWidget, 1)
 
-        # Then we definitely need an Ok & Cancel button
+        # Then we definitely need a Save & Reset button
         self.createButtons()
+        
+        #Connect signals
+        self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
+                     self.updateState)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setMouseTracking(True)
+        self.mouseOver = False
+        
+    def enterEvent(self, event):
+        self.mouseOver = True
+        
+    def leaveEvent(self, event):
+        self.mouseOver = False
+        
 
     def updateVistrail(self):
         """ updateVistrail() -> None
@@ -345,7 +381,31 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
             debug.critical('Port Already Exists %s' % str(e))
             return False
         return True            
+    
+    def resetTriggered(self, checked = False):
+        self.portTable.clearContents()
+        self.portTable.setRowCount(1)
+        self.portTable.initializePorts(self.module.input_port_specs)
+        self.portTable.fixGeometry()
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        self.state_changed = False
+        self.emit(QtCore.SIGNAL("stateChanged"))
 
+    def updateState(self):
+        if not self.hasFocus():
+            self.setFocus(QtCore.Qt.TabFocusReason)
+        self.saveButton.setEnabled(True)
+        self.resetButton.setEnabled(True)
+        if not self.state_changed:
+            self.state_changed = True
+            self.emit(QtCore.SIGNAL("stateChanged"))
+            
+    def focusOutEvent(self, event):
+        if not self.mouseOver:
+            self.askToSaveChanges()
+        QtGui.QWidget.focusOutEvent(self, event)
+                
 class UntupleConfigurationWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, parent=None):
         """ UntupleConfigurationWidget(module: Module,
@@ -393,15 +453,21 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
                                    QtGui.QSizePolicy.Expanding)
         centralLayout.addWidget(paddedWidget, 1)
 
-        # Then we definitely need an Ok & Cancel button
+        # Then we definitely need a Save & Reset button
         self.createButtons()
-
+        
+        #Connect signals
+        self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
+                     self.updateState)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setMouseTracking(True)
+        self.mouseOver = False
+        
     def updateVistrail(self):
         """ updateVistrail() -> None
         Update Vistrail to contain changes in the port table
         
         """
-
         (deleted_ports, added_ports) = self.getPortDiff('output', 
                                                         self.portTable)
         if len(deleted_ports) + len(added_ports) == 0:
@@ -420,3 +486,33 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
             debug.critical('Port Already Exists %s' % str(e))
             return False
         return True
+
+    def updateState(self):
+        if not self.hasFocus():
+            self.setFocus(QtCore.Qt.TabFocusReason)
+        self.saveButton.setEnabled(True)
+        self.resetButton.setEnabled(True)
+        if not self.state_changed:
+            self.state_changed = True
+            self.emit(QtCore.SIGNAL("stateChanged"))
+            
+    def focusOutEvent(self, event):
+        if not self.mouseOver:
+            self.askToSaveChanges()
+        QtGui.QWidget.focusOutEvent(self, event)
+        
+    def enterEvent(self, event):
+        self.mouseOver = True
+        
+    def leaveEvent(self, event):
+        self.mouseOver = False
+    
+    def resetTriggered(self, checked = False):
+        self.portTable.clearContents()
+        self.portTable.setRowCount(1)
+        self.portTable.initializePorts(self.module.input_port_specs)
+        self.portTable.fixGeometry()
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        self.state_changed = False
+        self.emit(QtCore.SIGNAL("stateChanged"))

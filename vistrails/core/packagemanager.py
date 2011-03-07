@@ -643,9 +643,9 @@ Returns true if given package identifier is present."""
         dep_graph = core.data_structures.graph.Graph()
 
         def process_dependencies(identifier):
+            dep_graph.add_vertex(identifier)
             pkg = self.identifier_is_available(identifier)
             if pkg:
-                dep_graph.add_vertex(identifier)
                 deps = pkg.dependencies()
                 for dep in deps:
                     if type(dep) == tuple:
