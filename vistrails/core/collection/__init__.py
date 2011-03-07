@@ -298,7 +298,6 @@ class Collection(object):
             self.delete_entity(entity)
 
         if locator.is_valid():
-            print "okaysi"
             if not vistrail:
                 (vistrail, abstractions, thumbnails) = load_vistrail(locator)
                 vistrail.abstractions = abstractions
