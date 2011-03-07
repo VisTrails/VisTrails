@@ -49,6 +49,7 @@ from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolB
 from gui.vis_diff import QVisualDiff
 from gui.utils import build_custom_window, show_info
 from gui.collection.workspace import QWorkspaceWindow
+from gui.collection.browser import QBrowserDialog, QExplorerDialog
 from gui.collection.explorer import QExplorerWindow
 from gui.collection.vis_log import QVisualLog
 import sys
@@ -85,6 +86,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.modulePalette = QModulePalette(self)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,
                            self.modulePalette.toolWindow())
+
+        self.queryPanel = QExplorerDialog(self)
+        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
+                           self.queryPanel.toolWindow())
 
         self.viewIndex = 0
         self.dbDefault = False

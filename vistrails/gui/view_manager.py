@@ -36,6 +36,7 @@ from core.db.io import load_vistrail
 from core.thumbnails import ThumbnailCache
 from core.log.log import Log
 from core.log.opm_graph import OpmGraph
+from core.collection import Collection
 import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.tag import Tag
@@ -422,7 +423,6 @@ class QViewManager(QtGui.QTabWidget):
                                             abstraction_files, thumbnail_files,
                                             version)
             # update collection
-            from core.collection import Collection
             try:
                 vistrail.thumbnails = thumbnail_files
                 vistrail.abstractions = abstraction_files
@@ -479,7 +479,6 @@ class QViewManager(QtGui.QTabWidget):
             if not locator:
                 return False
             # update collection
-            from core.collection import Collection
             try:
                 thumb_cache = ThumbnailCache.getInstance()
                 vistrailView.controller.vistrail.thumbnails = \

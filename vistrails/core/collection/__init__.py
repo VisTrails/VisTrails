@@ -142,7 +142,6 @@ class Collection(object):
 
     def save_entities(self):
         # TODO delete entities with no workspace
-        
         for entity in self.deleted_entities.itervalues():
             self.db_delete_entity(entity)
         self.deleted_entities = {}
@@ -299,6 +298,7 @@ class Collection(object):
             self.delete_entity(entity)
 
         if locator.is_valid():
+            print "okaysi"
             if not vistrail:
                 (vistrail, abstractions, thumbnails) = load_vistrail(locator)
                 vistrail.abstractions = abstractions
