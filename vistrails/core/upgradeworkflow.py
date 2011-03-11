@@ -470,9 +470,13 @@ class UpgradeWorkflowHandler(object):
         reg = get_module_registry()
 
         old_module = pipeline.modules[module_id]
+        old_desc_str = reg.create_descriptor_string(old_module.package,
+                                                    old_module.name,
+                                                    old_module.namespace,
+                                                    False)
         # print 'running module_upgrade_request', old_module.name
-        if old_module.name in module_remap:
-            for upgrade_tuple in module_remap[old_module.name]:
+        if old_desc_str in module_remap:
+            for upgrade_tuple in module_remap[old_desc_str]:
                 (start_version, end_version, new_module_type, remap) = \
                     upgrade_tuple
                 old_version = old_module.version
