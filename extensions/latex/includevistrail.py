@@ -542,18 +542,30 @@ def run_vistrails_locally_db(path_to_vistrails, path_to_python,
             data = shlex.split(env_for_vistrails)
             for d in data:
                 (name,val) = d.split("=")
-                my_env[name] = val + sep + my_env.get(name,'')
+                pos = val.find("$"+name)
+                if pos != -1:
+                    if pos == 0:
+                        my_env[name] = my_env.get(name,'') + \
+                                       val[pos+len(name)+1:]
+                    else:
+                        if pos + len(name) == len(val) -1:
+                            my_env[name] = val[0:pos] + my_env.get(name,'')
+                        else:
+                            my_env[name] = val[0:pos] + my_env.get(name,'') + \
+                                           val[pos+len(name)+1:]
+                else:
+                    my_env[name] = val
+        log("env: %s"%my_env)
         if systemType in ['Windows', 'Microsoft']:
-            log("env: %s"%my_env)
             proc = subprocess.Popen(cmd_line,
                                     env=my_env)
         else:
             proc = subprocess.Popen(cmd_line, shell=False,
                                     env=my_env,
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  close_fds=True)
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
         proc.wait()
         log("result: %s"%proc.returncode)
         if proc.stdout:
@@ -613,19 +625,31 @@ def run_vistrails_locally_file(path_to_vistrails, path_to_python,
             log("env_for_vistrails: %s"%data)
             for d in data:
                 (name,val) = d.split("=")
-                my_env[name] = val + sep + my_env.get(name,'')
+                pos = val.find("$"+name)
+                if pos != -1:
+                    if pos == 0:
+                        my_env[name] = my_env.get(name,'') + \
+                                       val[pos+len(name)+1:]
+                    else:
+                        if pos + len(name) == len(val) -1:
+                            my_env[name] = val[0:pos] + my_env.get(name,'')
+                        else:
+                            my_env[name] = val[0:pos] + my_env.get(name,'') + \
+                                           val[pos+len(name)+1:]
+                else:
+                    my_env[name] = val
+        log("env: %s"%my_env)
         if systemType in ['Windows', 'Microsoft']:
-            log("env: %s"%my_env)
             proc = subprocess.Popen(cmd_line,
                                     env=my_env,
                                     stdout=subprocess.PIPE)
         else:
             proc = subprocess.Popen(cmd_line, shell=False,
                                     env=my_env,
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  close_fds=True)
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
         proc.wait()
         log("result: %s"%proc.returncode)
         if proc.stdout:
@@ -683,18 +707,31 @@ def get_vt_graph_locally_db(path_to_vistrails, path_to_python,
             data = shlex.split(env_for_vistrails)
             for d in data:
                 (name,val) = d.split("=")
-                my_env[name] = val + sep + my_env.get(name,'')
+                pos = val.find("$"+name)
+                if pos != -1:
+                    if pos == 0:
+                        my_env[name] = my_env.get(name,'') + \
+                                       val[pos+len(name)+1:]
+                    else:
+                        if pos + len(name) == len(val) -1:
+                            my_env[name] = val[0:pos] + my_env.get(name,'')
+                        else:
+                            my_env[name] = val[0:pos] + my_env.get(name,'') + \
+                                           val[pos+len(name)+1:]
+                else:
+                    my_env[name] = val
+        log("env: %s"%my_env)        
         if systemType in ['Windows', 'Microsoft']:
-            log("env: %s"%my_env)
             proc = subprocess.Popen(cmd_line,
-                                    env=my_env)
+                                    env=my_env,
+                                    stdout=subprocess.PIPE)
         else:
             proc = subprocess.Popen(cmd_line, shell=False,
                                     env=my_env,
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  close_fds=True)
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
         proc.wait()
         log("result: %s"%proc.returncode)
         if proc.stdout:
@@ -751,18 +788,31 @@ def get_vt_graph_locally_file(path_to_vistrails, path_to_python,
             data = shlex.split(env_for_vistrails)
             for d in data:
                 (name,val) = d.split("=")
-                my_env[name] = val + sep + my_env.get(name,'')
+                pos = val.find("$"+name)
+                if pos != -1:
+                    if pos == 0:
+                        my_env[name] = my_env.get(name,'') + \
+                                       val[pos+len(name)+1:]
+                    else:
+                        if pos + len(name) == len(val) -1:
+                            my_env[name] = val[0:pos] + my_env.get(name,'')
+                        else:
+                            my_env[name] = val[0:pos] + my_env.get(name,'') + \
+                                           val[pos+len(name)+1:]
+                else:
+                    my_env[name] = val
+        log("env: %s"%my_env)
         if systemType in ['Windows', 'Microsoft']:
-            log("env: %s"%my_env)
             proc = subprocess.Popen(cmd_line,
-                                    env=my_env)
+                                    env=my_env,
+                                    stdout=subprocess.PIPE)
         else:
             proc = subprocess.Popen(cmd_line, shell=False,
                                     env=my_env,
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  close_fds=True)
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
         proc.wait()
         log("result: %s"%proc.returncode)
         if proc.stdout:
@@ -825,18 +875,32 @@ def get_wf_graph_locally_db(path_to_vistrails, path_to_python,
             data = shlex.split(env_for_vistrails)
             for d in data:
                 (name,val) = d.split("=")
-                my_env[name] = val + sep + my_env.get(name,'')
+                pos = val.find("$"+name)
+                if pos != -1:
+                    if pos == 0:
+                        my_env[name] = my_env.get(name,'') + \
+                                       val[pos+len(name)+1:]
+                    else:
+                        if pos + len(name) == len(val) -1:
+                            my_env[name] = val[0:pos] + my_env.get(name,'')
+                        else:
+                            my_env[name] = val[0:pos] + my_env.get(name,'') + \
+                                           val[pos+len(name)+1:]
+                else:
+                    my_env[name] = val
+        log("env: %s"%my_env)
         if systemType in ['Windows', 'Microsoft']:
             log("env: %s"%my_env)
             proc = subprocess.Popen(cmd_line,
-                                    env=my_env)
+                                    env=my_env,
+                                    stdout=subprocess.PIPE)
         else:
             proc = subprocess.Popen(cmd_line, shell=False,
                                     env=my_env,
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  close_fds=True)
+                                    stdin=subprocess.PIPE,    
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
         proc.wait()
         log("result: %s"%proc.returncode)
         if proc.stdout:
@@ -889,7 +953,6 @@ def get_wf_graph_locally_file(path_to_vistrails, path_to_python,
         
     if build_always or not path_exists_and_not_empty(path_to_figures):
         log("  folder was empty or forcing execution")
-        log("  folder was empty or forcing execution")
         my_env = os.environ
         sep = ":"
         if systemType in ["Windows", "Microsoft"]:
@@ -898,18 +961,31 @@ def get_wf_graph_locally_file(path_to_vistrails, path_to_python,
             data = shlex.split(env_for_vistrails)
             for d in data:
                 (name,val) = d.split("=")
-                my_env[name] = val + sep + my_env.get(name,'')
+                pos = val.find("$"+name)
+                if pos != -1:
+                    if pos == 0:
+                        my_env[name] = my_env.get(name,'') + \
+                                       val[pos+len(name)+1:]
+                    else:
+                        if pos + len(name) == len(val) -1:
+                            my_env[name] = val[0:pos] + my_env.get(name,'')
+                        else:
+                            my_env[name] = val[0:pos] + my_env.get(name,'') + \
+                                           val[pos+len(name)+1:]
+                else:
+                    my_env[name] = val
+        log("env: %s"%my_env)
         if systemType in ['Windows', 'Microsoft']:
-            log("env: %s"%my_env)
             proc = subprocess.Popen(cmd_line,
-                                    env=my_env)
+                                    env=my_env,
+                                    stdout=subprocess.PIPE)
         else:
             proc = subprocess.Popen(cmd_line, shell=False,
                                     env=my_env,
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  close_fds=True)
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    close_fds=True)
         proc.wait()
         log("result: %s"%proc.returncode)
         if proc.stdout:

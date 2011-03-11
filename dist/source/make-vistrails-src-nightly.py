@@ -45,7 +45,7 @@ EXPORT_DIR_PREFIX = "vistrails-src-nightly"
 EXPORT_DIR_SUFFIX = "-?"
 
 # Paths of files and/or directories to be removed from the exported repository (relative to export dir)
-EXPORT_DELETE_PATHS = [".git", ".gitignore", "dist"]
+EXPORT_DELETE_PATHS = [".git", ".gitignore", "dist", "packages"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
 TARBALL_NAME = "vistrails-src-nightly"

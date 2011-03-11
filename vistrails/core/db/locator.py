@@ -248,7 +248,7 @@ class DBLocator(_DBLocator, CoreLocator):
     
     def update_from_console(self):
         config = self.find_connection_info(self._host, self._port, self._db)
-        print config
+        
         if config is None:
             # the problem here is if VisTrails is being run through command
             # line from LaTex, stdout is being redirected to a log file, so

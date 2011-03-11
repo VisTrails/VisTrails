@@ -152,7 +152,7 @@ def example():
 def parse_meminfo():
     """ parse_meminfo() -> int
     Uses the system_profiler application to retrieve detailed information
-    about a Mac OS X system.
+    about a Mac OS X system. Returns memory size in Megabytes.
     
     Just use the "SPHardwareDataType" category to limit the amount of
     information gathered.
@@ -164,13 +164,9 @@ def parse_meminfo():
     mem = info['physical_memory'][0]
     # print "*** MEMORY", mem
     if mem.upper().endswith(' GB'):
-        #there are some systems that have non integer numbers
-        #FIXME: the database complains for computers with lots of memory because
-        #the number is too big and it is being truncated
-        #we should store as MB instead of Bytes.
-        result = int(float(mem[:-3]) * 1024) * 1024 * 1024L
+        result = int(float(mem[:-3]) * 1024) * 1L
     elif mem.upper().endswidth(' MB'):
-        result = int(mem[:-3]) * 1024 * 1024L
+        result = int(mem[:-3]) * 1L
     # print '>>>>', result
     return result
 

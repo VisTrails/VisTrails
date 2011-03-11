@@ -460,8 +460,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 self.local_server = QtNetwork.QLocalServer(self)
                 self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
                              self.message_received)
-                self.local_server.listen(self._unique_key)
-                #print "Listening on ", self.local_server.serverName()
+                if self.local_server.listen(self._unique_key):
+                    debug.log("Listening on %s"%self.local_server.fullServerName())
+                else:
+                    debug.warning("Server is not listening. This means it will not accept \
+parameters from other instances")
+                                  
         qt.allowQObjects()
 
     def init(self, optionsDict=None):
@@ -805,9 +809,12 @@ def start_application(optionsDict=None):
     if VistrailsApplication.is_running():
         debug.critical("Found another instance of VisTrails running")
         msg = str(sys.argv[1:])
-        debug.critical("Sending parameters to main instance %s" % msg)
-        VistrailsApplication.send_message(msg)
-        sys.exit(0)
+        debug.critical("Will send parameters to main instance %s" % msg)
+        res = VistrailsApplication.send_message(msg)
+        if res:
+            sys.exit(0)
+        else:
+            sys.exit(1)
     try:
         core.requirements.check_all_vistrails_requirements()
     except core.requirements.MissingRequirement, e:
