@@ -30,10 +30,10 @@ webpages without additional configuration.
 ..  %% TODO add this sentence back in once the Custom Cell chapter is complete!
 ..  %In addition to the included types of viewers, users can create and register additional viewers using customized cell widgets (see Chapter :ref:`chap-custom_cells`).
 
+.. _sec-spreadsheet-layout:
+
 The Spreadsheet Layout
 ======================
-
-.. _sec-spreadsheet-layout:
 
 .. index::
    pair: spreadsheet; layout
@@ -84,7 +84,7 @@ In a sheet, a cell can be both *active* and *selected*.  There can only be one a
 Depending on the cell type, additional controls may appear in the
 toolbar when a cell is activated. These controls affect only the
 active cell, and change for different cell types. As shown by
-Figure :ref:`fig-cell_states`(d), a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds
+Figure :ref:`fig-cell_states`\(d\), a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds
 controls for resizing, flipping, and rotating the image in the active
 cell.
 
@@ -120,11 +120,10 @@ works for ``VTKCell``s, but we plan to add this to other
 cell types as well.  An example of this functionality is shown in
 Figure :ref:`fig-spreadsheet_sync`.
 
+.. _sec-spreadsheet-editing:
 
 Editing Mode
 ^^^^^^^^^^^^
-
-.. _sec-spreadsheet-editing:
 
 .. _fig-editing_mode:
 

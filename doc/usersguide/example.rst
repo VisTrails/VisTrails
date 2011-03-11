@@ -9,3 +9,7 @@ Learning VisTrails By Example
    version_tree
    spreadsheet
    querying
+   analogies
+   parameter_exploration
+   database
+   example_webservices

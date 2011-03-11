@@ -98,11 +98,10 @@ version tree will be shown with these expansion buttons.
 
    More interactions on this version cause additional versions to be created. To save space, these intermediate nodes are hidden, and an expansion button appears on the edge between the current node and the last tagged node.
 
+.. _sec-adding_deleting_tags:
 
 Adding and Deleting Tags
 ========================
-
-.. _sec-adding_deleting_tags:
 
 .. index::
    pair: tags; adding
@@ -140,10 +139,10 @@ Navigating Versions
 
 Clicking on nodes in the version tree is not the only way to navigate different versions of a workflow; you can also use the ``Undo`` and ``Redo`` buttons.  Because the version tree captures all changes to a workflow, undo and redo not only revert or reinstate changes to a workflow, but also change the currently selected version in the version tree.  More precisely, undoing a change in a workflow is exactly the same as selecting the parent of the current node in the version tree.  Note that because the current version is always shown in the version tree, undo and redo provide an effective way to navigate between two nodes whose intermediate versions might be currently hidden from view.
 
+.. _sec-versions-diff:
+
 Comparing Versions
 ==================
-
-.. _sec-versions-diff:
 
 .. index::
    pair: versions; comparing

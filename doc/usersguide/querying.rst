@@ -14,9 +14,9 @@ interface which allows you to build query workflows and search for
 those with similar structures and parameters. The second is a
 textual interface with a straightforward syntax.  For each interface,
 the results are *visual*: each matching version is
-highlighted in the ``History} view, and if the query
+highlighted in the ``History`` view, and if the query
 involves specific workflow characteristics, any matching entities are
-also highlighted in the ``Pipeline} view for the current
+also highlighted in the ``Pipeline`` view for the current
 version.
 
 Query By Example
@@ -48,9 +48,10 @@ in a similar manner.  Just like the ``Pipeline`` view,
 modules are added by dragging them from the list on the left side of
 the window, connections are added by clicking and dragging from a port
 on one module to a corresponding port on another module.
-%TODO what are the next few sentences actually trying to say?
-%, and parameters can be edited on the right-side of the window.  One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations in parameter values.  For example, instead of searching for a pipeline that contains a Float with a value of \texttt{4.5}, you can search for a pipeline that contains a Float with a value \texttt{`< 4.5'} or \texttt{`> 4.5'}.
 Figure :ref:`fig-querying-query` shows an example pipeline that has been built in the query builder.
+
+.. %TODO what are the next few sentences actually trying to say?
+.. %, and parameters can be edited on the right-side of the window.  One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations in parameter values.  For example, instead of searching for a pipeline that contains a Float with a value of ``4.5``, you can search for a pipeline that contains a Float with a value ``'< 4.5'`` or ``'> 4.5'``.
 
 .. _fig-querying-results:
 
@@ -79,7 +80,7 @@ interacting with query results.
 
 .. topic:: Try it now!
 
-   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Query`` button to enter ``Query`` mode.  Create a query like the one shown in Figure :ref:`fig:querying:query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Query canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-results`).
+   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Query`` button to enter ``Query`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Query canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-results`).
 
 Note that Query by Example provides the capability to iteratively
 refine searches by adding more criteria.  For example, if you were
@@ -88,11 +89,11 @@ such a query returns too many results.  You could then refine the query
 to find only those workflows where the given module has a parameter
 setting that falls within a given range.
 This is done by specifying parameter values in the ``Methods`` panel on the right side of the window.
-One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations, such as '$<$' and '$>$', in parameter values. The following example illustrates this.
+One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations, such as '<' and '>', in parameter values. The following example illustrates this.
 
 .. topic:: Try it now!
 
-Open the "terminator.vt" example file, and enter ``Query`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Query canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` modules. Return to the ``Query`` view, select the ``vtkActor`` icon, then drag the ``RotateZ`` method from the ``Methods`` panel to the ``Set Methods`` panel. In the ``RotateZ`` text field, type \texttt{`> 90'}. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`fig-querying-vtkActor_example`.
+   Open the "terminator.vt" example file, and enter ``Query`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Query canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` modules. Return to the ``Query`` view, select the ``vtkActor`` icon, then drag the ``RotateZ`` method from the ``Methods`` panel to the ``Set Methods`` panel. In the ``RotateZ`` text field, type ``'> 90'``. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`fig-querying-vtkActor_example`.
 
 .. _fig-querying-vtkActor_example:
 
@@ -129,32 +130,23 @@ text box for input.  Begin a search by activating the
 magnifying glass icon next to it.  If you enter query text, |vistrails|
 will attempt to match logical categories, but if your query is more
 specific, |vistrails| has special syntax to markup the query.
-.. %Figure :ref:`fig-querying-date` shows an example query.
 To execute a query, simply press the 'Enter' key after typing your query.
+
+.. %Figure :ref:`fig-querying-date` shows an example query.
 
 .. _tab-querying-syntax:
 
-.. csv-table::
+.. table:: Syntax for querying specific information using textual queries.
 
-   ===========  =========
-   Search Type  Syntax
-\begin{table}[ht]
-\centering
-\begin{tabular}{|l|l|}
-\hline
-\textbf{Search Type} & \textbf{Syntax} \T\B \\
-\hline
-User name & \texttt{user:} \textit{user name} \T\B \\
-\hline
-Annotation & \texttt{notes:} \textit{phrase} \T\B \\
-\hline
-Tag & \texttt{name:} \textit{version tag} \T\B \\
-\hline
-\multirow{2}{*}{Date} & \texttt{before:} \textit{date} \texttt{|} \textit{relative time} \T \\
-& \texttt{after:} \textit{date} \texttt{|} \textit{relative time} \B \\
-\hline
-\end{tabular}
-\caption{Syntax for querying specific information using textual queries.}
+   ==============  ================================================================
+    Search Type    Syntax                                                        
+   ==============  ================================================================
+   User name       ``user:`` *user name*
+   Annotation      ``notes:`` *phrase*
+   Tag             ``name:`` *version tag*
+   Date            ``before:`` *date* ``|`` *relative time*
+   \               ``after:`` *date* ``|`` *relative time*
+   ==============  ================================================================
 
 Table :ref:`tab-querying-syntax` lists the different ways to markup a
 query.  Note that you can search by user name to see which changes a
@@ -163,29 +155,27 @@ made in a specific time frame.  When searching by date, you can search
 for all changes before or after a given date or an amount of time
 relative to the present.  If searching for changes before or after a
 specific date, the date can be entered in a variety of formats.  The
-simplest is `\textit{day} \textit{month} \textit{year}', but if the
+simplest is '*day* *month* *year*,' but if the
 year is omitted, the current year is used.  The month may be specified
-by either its full name or an abbreviation.  For example, `\texttt{before:\ 18
-  November 2004}' and `\texttt{after:\ 20 Dec}' are both valid queries.  If searching by relative time,
+by either its full name or an abbreviation.  For example, ``'before: 18 November 2004'`` and ``'after: 20 Dec'`` are both valid queries.  If searching by relative time,
 you can prepend the amount of time relative to the present including
-the units to `ago'.  An example of this type of query is
-`\texttt{after:\ 30 minutes ago}'.  The available units are seconds,
+the units to 'ago'.  An example of this type of query is
+``'after: 30 minutes ago'``.  The available units are seconds,
 minutes, hours, days, months, or years.
 
 You can concatenate simple search statements to create a compound
 query to search across different criteria or for a specific range.
 For example, to search for workflows whose tag includes
-`\texttt{brain}' *and* were created by the user `\texttt{johnsmith}',
-the query would be `\texttt{name:\ brain user:\ johnsmith}'.  To search
+``'brain'`` *and* were created by the user ``'johnsmith'``,
+the query would be ``'name: brain user: johnsmith'``.  To search
 for all workflows created between April 1 and June 1, the query would
-be `\texttt{after:\ April 1 before:\ June 1}'.
+be ``'after: April 1 before: June 1'``.
 
 .. topic:: Try it now!
 
-Open the "terminator.vt" example file, and enter ``History`` mode.
-Let's look for all workflows that were created after July 1, 2007. In the search box in the ``Properties`` panel, type `\texttt{after:~1~july~2007}' and press 'Enter'. The expected result is shown in Figure :ref:`fig-querying-july1'.
+   Open the "terminator.vt" example file, and enter ``History`` mode.  Let's look for all workflows that were created after July 1, 2007. In the search box in the ``Properties`` panel, type ``'after: 1 july 2007'`` and press 'Enter'. The expected result is shown in Figure :ref:`fig-querying-july1`.
 
-.. _fig-querying-july1
+.. _fig-querying-july1:
 
 .. figure:: figures/querying/textquery.png
    :width: 3.5in
@@ -193,10 +183,10 @@ Let's look for all workflows that were created after July 1, 2007. In the search
 
    Results of a query to find any changes made after July 1, 2007.
 
+.. _sec-querying-results:
+
 Query Results
 =============
-
-.. _sec-querying-results:
 
 .. %TODO consider dropping this section, and merging its content into the other sections.
 

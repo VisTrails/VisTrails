@@ -210,7 +210,7 @@ the same way as the others.
 
 .. %TODO screenshot!
 
-.. _fig-module_configuration
+.. _fig-module_configuration:
 
 .. figure:: figures/creating/standard_output_module.png
    :height: 1.5in
@@ -247,7 +247,7 @@ An example may clarify how this works.
 
    Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`fig-groupinga`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`fig-groupingb`. Since the label "Group" isn't very descriptive, you can change this by clicking on the triangle in the top right of the module, and selecting the ``Set Module Label`` menu option. Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`fig-groupingc`).
 
-.. _fig-groupinga
+.. _fig-groupinga:
 
 .. figure:: figures/creating/grouping1.png
    :height: 2.6in
@@ -255,7 +255,7 @@ An example may clarify how this works.
 
    Box selection of four modules.
 
-.. _fig-groupingb
+.. _fig-groupingb:
 
 .. figure:: figures/creating/grouping2.png
    :height: 2.6in
@@ -263,7 +263,7 @@ An example may clarify how this works.
 
    The modules represented as a single group module.
 
-.. _fig-groupingc
+.. _fig-groupingc:
 
 .. figure:: figures/creating/grouping4.png
    :height: 2.6in
@@ -307,7 +307,7 @@ workflow.
 
    then select ``OK`` to close the window.  Finally, connect the ``GetRadius`` output of the ``vtkCylinder`` module to the new input port of ``PythonSource``.  Upon execution, the radius of the cylinder is printed to the console as before.  Figure :ref:`fig-python_source` shows the new workflow together with the ``PythonSource`` configuration window.
 
-.. _fig-python_source
+.. _fig-python_source:
 
 .. figure:: figures/creating/python_source_module.png
    :height: 1.5in
