@@ -2410,6 +2410,7 @@ class VistrailController(object):
                 # add recent log entries
                 if self.log and len(self.log.workflow_execs) > 0:
                     for workflow_exec in self.log.db_workflow_execs:
+                        workflow_exec = copy.copy(workflow_exec)
                         workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
                         log.db_add_workflow_exec(workflow_exec)
                 if len(log.workflow_execs) > 0:

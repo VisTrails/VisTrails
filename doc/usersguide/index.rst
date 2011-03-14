@@ -6,15 +6,13 @@
 Welcome to VisTrails's documentation!
 =====================================
 
-Contents:
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   preface
+   preliminary
    intro
-   getting_started
-   creating
+   example
+   developer
 
 Indices and tables
 ==================

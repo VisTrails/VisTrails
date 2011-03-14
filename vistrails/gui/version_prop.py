@@ -964,7 +964,7 @@ Clipboard'. The code changes based on your selection.")
         if options['content'] != "History Tree Graph":    
             text += 'version=%s,\n'%self.versionNumber
             if options['smartTag']:
-                text += 'tag=%s,\n'%self.versionTag
+                text += 'tag={%s},\n'%self.versionTag
         if options['pdf']:
             text += 'pdf,\n'
         if options['buildalways']:

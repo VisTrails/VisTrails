@@ -1,0 +1,130 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Copyright (C) 2006-2010 University of Utah. All rights reserved.
+%%
+%% This file is part of VisTrails.
+%%
+%% This file may be used under the terms of the GNU General Public
+%% License version 2.0 as published by the Free Software Foundation
+%% and appearing in the file LICENSE.GPL included in the packaging of
+%% this file.  Please review the following to ensure GNU General Public
+%% Licensing requirements will be met:
+%% http://www.opensource.org/licenses/gpl-license.php
+%%
+%% If you are unsure which license is appropriate for your use (for
+%% instance, you are interested in developing a commercial derivative
+%% of VisTrails), please contact us at vistrails@sci.utah.edu.
+%%
+%% This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+%% WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+\usepackage{vistrails}
+
+%% uncomment lines below and set to a local path if you want to run vistrails
+%% locally. Otherwise, we will run at www.vistrails.org
+
+%% If you are running on a Mac from a binary distribution uncomment the next 2 lines, modifying them according to your system configuration
+%\renewcommand{\vistrailspath}{/Applications/VisTrails/VisTrails.app/Contents/MacOS/vistrails}
+%\renewcommand{\vistrailsenv}{DYLD_LIBRARY_PATH= }
+
+%% If you are running on Windows from the binary distribution uncommnet the next 3 lines
+%\renewcommand{\vistrailspath}{C:/Program Files (x86)/VisTrails/vistrails/vistrails.py}
+%\renewcommand{\vistrailspythonpath}{C:/Program Files (x86)/VisTrails/vistrails/Python26/python.exe}
+%\renewcommand{\vistrailsenv}{PATH="C:/Program Files (x86)/VisTrails/vistrails"}
+
+%% If you are running from source uncomment and modify the lines below 
+%% according to your system configuration.
+% \renewcommand{\vistrailspath}{D:/emanuele/vistrails/vistrails/vistrails.py}
+
+%% If using MikTex or cygwin on Windows, you need to set the Path to point to your Qt Libraries
+%\renewcommand{\vistrailsenv}{PATH=D:/Qt/4.6.3/bin}
+
+%% If your python is in the path, you don't need to uncomment the line. Otherwise 
+%% add the complete path to your python executable
+%\renewcommand{\vistrailspythonpath}{C:/Python26/python.exe}
+
+\begin{document}
+
+This document shows examples of how to embed a vistrail from a local
+file. The file is head.vt and it is located in the same folder as this
+file.
+
+To build the pdf version of this document, configure this file
+according to your platform and from a terminal window type:
+\begin{verbatim}
+make head
+\end{verbatim}
+
+or
+\begin{verbatim}
+pdflatex -shell-escape head
+\end{verbatim}
+
+Embedding the results of workflow \emph{aliases}:
+\begin{center}
+\vistrail[filename=head.vt,
+version=15]{width=6cm}
+\end{center}
+
+Embedding the workflow \emph{aliases} as a pdf:
+\begin{center}
+\vistrail[filename=head.vt,
+version=15,
+pdf,
+showworkflow]{width=6cm}
+\end{center}
+
+Embedding a workflow as a smart tag (if the tag changes to another
+workflow, the new workflow will be used when the latex file is
+compiled)
+\begin{center}
+\vistrail[filename=head.vt,
+version=42,
+tag={volume rendering},
+buildalways]{width=6cm}
+\end{center}
+
+Embedding the complete tree:
+\begin{center}
+\vistrail[filename=head.vt,
+buildalways,
+showtree]{width=8cm}
+\end{center}
+
+%% Uncomment the following part part for accessing workflows directly
+%% in a database
+
+% Embedding workflow result:
+% \begin{center}
+% \vistrail[host=localhost,
+% db=vistrails,
+% port=3306,
+% vtid=1,
+% version=49]{width=6cm}
+% \end{center}
+
+% Embedding workflow graph as pdf
+% \begin{center}
+% \vistrail[host=localhost,
+% db=vistrails,
+% port=3306,
+% vtid=1,
+% version=49,
+% pdf,
+% showworkflow]{width=6cm}
+% \end{center}
+
+% Embedding the tree
+% \begin{center}
+% \vistrail[host=localhost,
+% db=vistrails,
+% port=3306,
+% vtid=1,
+% buildalways,
+% showtree]{width=8cm}
+% \end{center}
+\end{document}
+

@@ -1239,7 +1239,7 @@ class ModuleRegistry(DBRegistry):
             return self.get_port_spec_from_descriptor(desc, port_name, 
                                                       port_type)
         except ModuleRegistryException, e:
-            debug.critical(e)
+            debug.critical(str(e))
             raise
         return None
 
@@ -1256,7 +1256,7 @@ class ModuleRegistry(DBRegistry):
             return self.has_port_spec_from_descriptor(desc, port_name, 
                                                       port_type)
         except ModuleRegistryException, e:
-            debug.critical(e)
+            debug.critical(str(e))
             raise
         return None        
 
@@ -1714,6 +1714,16 @@ class ModuleRegistry(DBRegistry):
         self.signals.emit_hide_module(descriptor)
     def update_module(self, old_descriptor, new_descriptor):
         self.signals.emit_module_updated(old_descriptor, new_descriptor)
+
+    def create_descriptor_string(self, package, name, namespace=None,
+                                 use_package=False):
+        package_str = ""
+        namespace_str = ""
+        if use_package:
+            package_str = "%s:" % package
+        if namespace:
+            namespace_str = "%s|" % namespace
+        return "%s%s%s" % (package_str, namespace_str, name)
 
     def expand_descriptor_string(self, d_string, cur_package=None):
         """expand_descriptor_string will expand names of modules using

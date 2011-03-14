@@ -1184,9 +1184,8 @@ def _get_pipeline():
     global _pipeline
     return _pipeline
 
-def build_remap():
+def build_remap(module_name=None):
     global _remap, _controller
-    _remap = {}
 
     reg = get_module_registry()
     uscore_num = re.compile(r"(.+)_(\d+)$")
@@ -1291,9 +1290,9 @@ def build_remap():
                     port_nums[port_prefix] = port_num
                 elif port_num > port_nums[port_prefix]:
                     port_nums[port_prefix] = port_num
+        if desc.name not in _remap:
+            _remap[desc.name] = [(None, '0.9.3', None, dict())]
         for port_prefix, port_num in port_nums.iteritems():
-            if desc.name not in _remap:
-                _remap[desc.name] = [(None, '0.9.3', None, dict())]
             my_remap_dict = _remap[desc.name][0][3]
             if remap_dict_key not in my_remap_dict:
                 my_remap_dict[remap_dict_key] = dict()
@@ -1306,20 +1305,29 @@ def build_remap():
                 my_remap_dict['function_remap'][port_prefix] = remap
 
     pkg = reg.get_package_by_name(identifier)
-    # FIXME do this by descriptor first, then build the hierarchies for each
-    # module after that...
-    for desc in pkg.descriptor_list:
+    if module_name is not None:
+        # print 'building remap for', module_name
+        desc = reg.get_descriptor_by_name(identifier, module_name)
         process_ports(desc, 'input')
         process_ports(desc, 'output')
-    
+    else:
+        # print 'building entire remap'
+        # FIXME do this by descriptor first, then build the hierarchies for each
+        # module after that...
+        for desc in pkg.descriptor_list:
+            process_ports(desc, 'input')
+            process_ports(desc, 'output')    
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
     reg = get_module_registry()
     if _remap is None:
-        build_remap()
+        _remap = {}
     
     _controller = controller
     _pipeline = pipeline
+    module_name = pipeline.modules[module_id].name
+    if module_name not in _remap:
+        build_remap(module_name)
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               _remap)
