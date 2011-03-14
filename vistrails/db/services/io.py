@@ -27,6 +27,7 @@ from core.bundles import py_import
 from core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline, systemType
 from core.utils import Chdir
+from core.log.log import Log
 import core.requirements
 ElementTree = get_elementtree_library()
 
@@ -1016,6 +1017,30 @@ def open_log_from_db(db_connection, id, lock=False, version=None):
         version = get_db_object_version(db_connection, id, DBLog.vtType)
     dao_list = getVersionDAO(version)
     log = dao_list.open_from_db(db_connection, DBLog.vtType, id, lock)
+    log = translate_log(log, version)
+    return log
+
+def open_vt_log_from_db(db_connection, vt_id, version=None):
+    """ return the logs for the specified vistrail """
+    if version is None:
+        version = get_db_object_version(db_connection, vt_id, DBVistrail.vtType)
+    dao_list = getVersionDAO(version)
+    ids = []
+    if db_connection is not None:
+        try:
+            c = db_connection.cursor()
+            # FIXME MySQL versus sqlite3
+            res = c.execute("SELECT id FROM log_tbl WHERE vistrail_id=%s;", (vt_id,))
+            ids = [i[0] for i in c.fetchall()]
+            c.close()
+        except get_db_lib().Error, e:
+            debug.critical("Error getting log id:s %d: %s" % (e.args[0], e.args[1]))
+    log = Log()
+    logs = dao_list.open_many_from_db(db_connection, DBLog.vtType, ids)
+    for new_log in logs:
+        for workflow_exec in new_log.db_workflow_execs:
+            workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
+            log.db_add_workflow_exec(workflow_exec)
     log = translate_log(log, version)
     return log
 

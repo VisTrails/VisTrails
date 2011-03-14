@@ -65,9 +65,10 @@ from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from db import VistrailsDBException
-from db.domain import IdScope
+from db.domain import IdScope, DBWorkflowExec
 from db.services.io import create_temp_folder, remove_temp_folder
-from db.services.io import SaveBundle
+from db.services.io import SaveBundle, open_vt_log_from_db, open_log_from_xml
+
 from db.services.vistrail import getSharedRoot
 from core.utils import any
 
@@ -2331,7 +2332,7 @@ class VistrailController(object):
             locator = self.get_locator()
             if locator:
                 locator.save_temporary(self.vistrail)
-                
+
     def write_vistrail(self, locator, version=None):
         """write_vistrail(locator,version) -> Boolean
         It will return a boolean that tells if the tree needs to be 
@@ -2397,6 +2398,23 @@ class VistrailController(object):
             # it's not an actual field
             self.vistrail.db_currentVersion = self.current_version
             if self.locator != locator:
+                # check for db log
+                log = Log()
+                if type(self.locator) == core.db.locator.DBLocator:
+                    connection = self.locator.get_connection()
+                    db_log = open_vt_log_from_db(connection, self.vistrail.db_id)
+                    Log.convert(db_log)
+                    for workflow_exec in db_log.workflow_execs:
+                        workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
+                        log.db_add_workflow_exec(workflow_exec)
+                # add recent log entries
+                if self.log and len(self.log.workflow_execs) > 0:
+                    for workflow_exec in self.log.db_workflow_execs:
+                        workflow_exec = copy.copy(workflow_exec)
+                        workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
+                        log.db_add_workflow_exec(workflow_exec)
+                if len(log.workflow_execs) > 0:
+                    save_bundle.log = log
                 old_locator = self.get_locator()
                 self.locator = locator
                 save_bundle = self.locator.save_as(save_bundle, version)
@@ -2468,6 +2486,21 @@ class VistrailController(object):
             save_bundle = SaveBundle(log.vtType,log=log)
             locator.save_as(save_bundle)
 
+    def read_log(self):
+        """ Returns the saved log from zip or DB
+        
+        """
+        log = Log()
+        if type(self.locator) == core.db.locator.ZIPFileLocator:
+            if self.vistrail.db_log_filename is not None:
+                log = open_log_from_xml(self.vistrail.db_log_filename, True)
+        if type(self.locator) == core.db.locator.DBLocator:
+            # read log from DB - first get log id:s
+            connection = self.locator.get_connection()
+            log = open_vt_log_from_db(connection, self.vistrail.db_id)
+        Log.convert(log)
+        return log
+ 
     def write_registry(self, locator):
         registry = core.modules.module_registry.get_module_registry()
         save_bundle = SaveBundle(registry.vtType, registry=registry)

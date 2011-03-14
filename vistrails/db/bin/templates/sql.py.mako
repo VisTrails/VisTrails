@@ -81,7 +81,7 @@ class ${obj.getClassName()}SQLDAOBase(SQLDAO):
                                              lock)
 
     ## process_sql_columns
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             % for count, field in enumerate(obj.getSQLFields()):
