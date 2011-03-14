@@ -80,7 +80,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -303,7 +303,7 @@ class DBModuleSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -519,7 +519,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -709,7 +709,7 @@ class DBTagSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -867,7 +867,7 @@ class DBPortSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -1071,7 +1071,7 @@ class DBGroupSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -1281,7 +1281,7 @@ class DBLogSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -1464,7 +1464,7 @@ class DBMachineSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -1658,7 +1658,7 @@ class DBAddSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -1837,7 +1837,7 @@ class DBOtherSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -2011,7 +2011,7 @@ class DBLocationSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -2197,7 +2197,7 @@ class DBParameterSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -2393,7 +2393,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -2559,7 +2559,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -2745,7 +2745,7 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -2937,7 +2937,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -3156,7 +3156,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -3362,7 +3362,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -3537,7 +3537,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -3736,7 +3736,7 @@ class DBChangeSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -3937,7 +3937,7 @@ class DBGroupExecSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -4178,7 +4178,7 @@ class DBPackageSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -4393,7 +4393,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -4633,7 +4633,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -4832,7 +4832,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -4994,7 +4994,7 @@ class DBActionSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -5176,9 +5176,11 @@ class DBDeleteSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
+            if type(row[2])==str:
+                print "from delete_tbl is this not:", row, global_props
             id = self.convertFromDB(row[0], 'long', 'int')
             what = self.convertFromDB(row[1], 'str', 'varchar(255)')
             objectId = self.convertFromDB(row[2], 'long', 'int')
@@ -5350,7 +5352,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
@@ -5536,7 +5538,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
-    def process_sql_columns(self, data):
+    def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')

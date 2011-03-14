@@ -123,7 +123,6 @@ class DAOList(dict):
                 dao_type == DBRegistry.vtType):
                 continue
 
-            # TODO new method
             daoList.append([dao_type, dao, None])
             dbCommand = dao.get_sql_select(db_connection, global_props, lock)
             dbCommandList.append(dbCommand)
@@ -138,8 +137,7 @@ class DAOList(dict):
         
         # process results
         for dao_type, dao, data in daoList:
-            # TODO new method
-            current_objs = dao.process_sql_columns(data)
+            current_objs = dao.process_sql_columns(data, global_props)
             all_objects.update(current_objs)
 
             if dao_type == DBGroup.vtType:
@@ -163,6 +161,96 @@ class DAOList(dict):
             obj.is_new = False
 
         return res
+
+    def open_many_from_db(self, db_connection, vtType, ids, lock=False):
+        """ Loads multiple objects. They need to be loaded as one single
+            multiple select statement command for performance reasons.
+        """
+
+        log_dao = self['sql'][vtType]
+        # loop through ids and build SELECT statements
+        selects = [log_dao.get_sql_select(db_connection, {'id': id}, lock)
+                   for id in ids]
+        # Execute all SELECT statements for main objects
+        results = log_dao.executeSQLGroup(db_connection, selects, True)
+
+        # list of final objects
+        objects = []
+        # list of selects
+        selects = []
+        # list of children id:all_objects_dict
+        all_objects_dict = {}
+        # process each result and extract child SELECTS
+        # daoList should contain (id, dao_type, dao, result) values
+        daoList = []
+        # selects should contain dbCommand values
+        selects = []
+        global_props = {}
+        for id, data in zip(ids, results):
+            res_objects = log_dao.process_sql_columns(data, global_props)
+            if len(res_objects) > 1:
+                raise VistrailsDBException("More than object of type '%s' and "
+                                           "id '%s' exist in the database" % \
+                                               (vtType, id))
+            elif len(res_objects) <= 0:
+                raise VistrailsDBException("No objects of type '%s' and "
+                                           "id '%s' exist in the database" % \
+                                               (vtType, id))
+            all_objects = {}
+            all_objects_dict[id] = all_objects
+            all_objects.update(res_objects)
+            objects.append(res_objects.values()[0])
+            # collect all commands so that they can be executed together
+        
+            # generate SELECT statements for children
+            for dao_type, dao in self['sql'].iteritems():
+                if (dao_type == DBVistrail.vtType or
+                    dao_type == DBWorkflow.vtType or
+                    dao_type == DBLog.vtType or
+                    dao_type == DBRegistry.vtType):
+                    continue
+    
+                daoList.append([id, dao_type, dao, None])
+                dbCommand = dao.get_sql_select(db_connection, global_props, lock)
+                selects.append(dbCommand)
+
+        # Execute all child select statements
+        results = self['sql'][vtType].executeSQLGroup(db_connection,
+                                                      selects, True)
+        for i in xrange(len(daoList)):
+            daoList[i][3] = results[i]
+
+        # process results
+        for id, dao_type, dao, data in daoList:
+            all_objects = all_objects_dict[id]
+            current_objs = dao.process_sql_columns(data, global_props)
+            all_objects.update(current_objs)
+
+            if dao_type == DBGroup.vtType:
+                for key, obj in current_objs.iteritems():
+                    new_props = {'parent_id': key[1],
+                                 'entity_id': global_props['entity_id'],
+                                 'entity_type': global_props['entity_type']}
+                    res_obj = self.open_from_db(db_connection, 
+                                                DBWorkflow.vtType, 
+                                                None, lock, new_props)
+                    res_dict = {}
+                    res_dict[(res_obj.vtType, res_obj.db_id)] = res_obj
+                    all_objects.update(res_dict)
+
+        
+        for id, all_objects in all_objects_dict.iteritems():
+            for key, obj in all_objects.iteritems():
+                if key[0] == vtType and key[1] == id:
+                    continue
+                self['sql'][obj.vtType].from_sql_fast(obj, all_objects)
+        for id, dao_type, dao, data in daoList:
+            all_objects = all_objects_dict[id]
+            for obj in all_objects.itervalues():
+                obj.is_dirty = False
+                obj.is_new = False
+    
+        return objects
 
     def save_to_db(self, db_connection, obj, do_copy=False, global_props=None):
         if do_copy == 'with_ids':
@@ -195,6 +283,9 @@ class DAOList(dict):
         child = children.pop(0)[0]
         child.is_dirty = False
         child.is_new = False
+        
+        if not len(children):
+            return
 
         # list of all children
         dbCommandList = []
