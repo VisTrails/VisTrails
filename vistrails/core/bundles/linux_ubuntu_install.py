@@ -34,7 +34,6 @@ import time
 
 package_name = sys.argv[1]
 
-from core import debug
 from apt.progress import InstallProgress
 from apt.progress import FetchProgress
 
@@ -46,7 +45,6 @@ except KeyError:
     sys.exit(1)
 
 if pkg.isInstalled:
-    debug.warning("Package '%s' already installed" % package_name)
     sys.exit(0)
 
 
@@ -72,9 +70,9 @@ class GUIInstallProgress(InstallProgress):
         QtGui.qApp.processEvents()
         return InstallProgress.pulse(self)
     def conffile(self,current,new):
-        debug.warning("conffile prompt: %s %s" % (current,new))
+        print "WARNING: conffile prompt: %s %s" % (current,new)
     def error(self, errorstr):
-        debug.critical("got dpkg error: '%s'" % errorstr)
+        print "ERROR: got dpkg error: '%s'" % errorstr
 
 class GUIFetchProgress(FetchProgress):
 
