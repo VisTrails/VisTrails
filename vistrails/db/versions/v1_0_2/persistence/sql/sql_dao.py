@@ -21,8 +21,8 @@
 ############################################################################
 
 from db import VistrailsDBException
+from db.services.io import get_db_lib
 from core import debug
-import MySQLdb.converters
 
 class SQLDAO:
     def __init__(self):
@@ -213,7 +213,7 @@ class SQLDAO:
             commandString = ''
             for prepared, values in dbCommands:
                 command = prepared % \
-                              db.escape(values,MySQLdb.converters.conversions)
+                              db.escape(values, get_db_lib().converters.conversions)
                 commandString += command
             cur = db.cursor()
             try:
