@@ -48,12 +48,86 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
 
    As of this writing, the |vistrails| development team is refactoring the implementation of many of the command-line switches presented in Table :ref:`table-batch-cli`. As such, depending on your version of |vistrails|, the results you achieve may not match those described. For a list of known issues with the command line switches, please refer to the |vistrails| website.
 
+.. raw::latex
+   \begin{table}
+   \caption{Command line arguments supported by VisTrails.}
+   \label{table:batch:cli}
+   \begin{center}
+   \begin{tabular}{ | l | l | p{3in} | }
+   \hline 
+   \textbf{Short form} & \textbf{Long form} & \textbf{Description} \\
+   \hline 
+     -h & -$\,$-help & Print a help message and exit. \\
+   \hline
+     -S \emph{/path} & -$\,$-startup=\emph{/path} &
+                           Set user configuration directory (default is \texttt{$\sim$/.vistrails})
+   %% (Not fully working. see Ticket 213)
+   \\
+   \hline
+     -? & &                Print a help message and exit. \\
+   \hline
+     -v & -$\,$-version &      Print version information and exit. \\
+   \hline
+     -V \emph{num} &  -$\,$-verbose=\emph{num} &
+                           Set verboseness level (0--2, default=0, higher means
+                           more verbose).
+   %% (NOT WORKING) 
+   \\
+   \hline
+     -b & -$\,$-noninteractive & Run in non-interactive (batch) mode. \\
+   \hline
+     -n & -$\,$-nosplash &       Do not display splash screen on startup.
+   %% NOT WORKING. I know the fix, I'm just waiting for my Qt license to come in.
+   \\
+   \hline
+     -c \emph{num} & -$\,$-cache=\emph{num} &
+                           Enable/disable caching (0 to disable, nonzero to enable. Default is enabled). \\
+   \hline
+     -m \emph{num} & -$\,$-movies=\emph{num} &
+                           Set automatic movie creation on spreadsheet (0 or 1,
+                           default=1). Set this to zero to work around VTK bug
+                           with offscreen renderer and OpenGL texture3D mappers. \\
+   \hline
+     -s & -$\,$-multiheads &     Display the Builder and Spreadsheet on different
+                           screens (if available).
+   \\
+   \hline
+     -x & -$\,$-maximized &      Maximize Builder and Spreadsheet windows at startup.
+   \\
+   \hline
+     -l & -$\,$-nologger &       Disable logging.
+   %% KNOWN ISSUES
+   \\
+   \hline
+     -d & -$\,$-debugsignals &   Debug Qt Signals.
+   %% currently unused... no one checks this in the code.
+   \\
+   \hline
+     -a \emph{params} & -$\,$-parameters=\emph{params} &
+                           Set workflow parameters (non-interactive mode only). \\
+   \hline
+     -e \emph{dir} & -$\,$-dumpcells=\emph{dir} &
+                           Set directory to dump spreadsheet cells before exiting (non-interactive mode only). \\
+   \hline
+     -t \emph{host} & -$\,$-host=\emph{host} & Set hostname or IP address of database server. \\
+   \hline
+     -r \emph{port} & -$\,$-port=\emph{port} & Set database port. \\
+   \hline
+     -f \emph{dbName} & -$\,$-db=\emph{dbName} & Set database name. \\
+   \hline
+     -u \emph{userName} & -$\,$-user=\emph{userName} & Set database username. \\
+   \hline
+   \end{tabular}
+   \end{center}
+   \end{table}
 
+.. tabularcolumns:: |l|l|p{7.5cm}|
+   
 .. _table-batch-cli:
 
 .. csv-table:: Command line arguments supported by |vistrails|.
    :header: **Short form**, **Long form**, **Description**
-   :widths: 10, 15, 30
+   :widths: 10, 15, 20
 
    -h, :math:`--`\ help, Print a help message and exit.
    -S */path*, -\ -startup=\ */path*, Set user configuration directory (default is :math:`\sim`\ ``/.vistrails``)
@@ -142,7 +216,7 @@ Assuming it ran correctly, this pipeline should have created a file named "image
    :align: center
    :width: 2in
 
-   ``offscreen`` version of "offscreen.vt" in batch mode produces an image named "image.png".
+   Running the ``offscreen`` version of "offscreen.vt" in batch mode produces an image named "image.png".
 
 .. %TODO should we cover aliases here?
 

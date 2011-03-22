@@ -29,16 +29,10 @@ The ``History`` button on the |vistrails| toolbar lets users interact with a wor
 
 The nodes are displayed as colored ellipses, and are either blue or orange.  A blue color denotes that the corresponding version was created by the current user while orange nodes were created by other users.  The brightness of each node indicates how recently a version was created; brighter nodes were created more recently than dimmer ones.  Each node may also have a *tag* that describes the version, and this tag is displayed as a text label in the center of the ellipse of the corresponding version.
 
-The nodes are connected by a solid line if the child node is a direct
-descendent of the parent node; that is, if you have made only a single
-change from the older version to the newer version. By default, only nodes that are leaves, have more than one
-child node, are specially tagged (see Section :ref:`sec-adding_deleting_tags`), and the current version, will be
-displayed. To save space, other nodes will be ``collapsed,'' or hidden from view.  Collapsed nodes are marked by the appearance of a small expansion button along
-an edge connecting two nodes (Figure :ref:`fig-expand_collapse_versions_A`). Clicking this button expands the
+The nodes are connected by a solid line if the child node is a direct descendent of the parent node; that is, if you have made only a single change from the older version to the newer version. By default, only nodes that are leaves, have more than one child node, are specially tagged (see Section :ref:`sec-adding_deleting_tags`), and the current version, will be
+displayed. To save space, other nodes will be "collapsed," or hidden from view.  Collapsed nodes are marked by the appearance of a small expansion button along an edge connecting two nodes (Figure :ref:`fig-expand_collapse_versions_A`). Clicking this button expands the
 version tree to reveal the hidden versions (Figure :ref:`fig-expand_collapse_versions_B`). The tree expansion is smoothly
-animated to help you maintain context from one view to the next. Clicking the
-button a second time collapses the nodes once again. Because most non-trivial
-changes to a workflow take more than action, most edges in a the
+animated to help you maintain context from one view to the next. Clicking the button a second time collapses the nodes once again. Because most non-trivial changes to a workflow take more than action, most edges in a the
 version tree will be shown with these expansion buttons.
 
 .. _fig-expang_collapse_versions:

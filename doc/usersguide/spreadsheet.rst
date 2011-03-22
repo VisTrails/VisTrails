@@ -109,16 +109,7 @@ specific cell to a different location.
 Synchronizing Cells
 ^^^^^^^^^^^^^^^^^^^
 
-Often, when a group of cells all display results from similar
-workflows, it is useful to interact with all of these cells at the
-same time.  For example, for a group of ``VTKCell``s, it is
-instructive to rotate or zoom in on multiple cells at once and compare
-the results.  For this reason, if a group of cells is selected, mouse
-and keyboard events for a single cell of the selection are propogated
-to each of the other selected cells.  Currently, this feature only
-works for ``VTKCell``s, but we plan to add this to other
-cell types as well.  An example of this functionality is shown in
-Figure :ref:`fig-spreadsheet_sync`.
+Often, when a group of cells all display results from similar workflows, it is useful to interact with all of these cells at the same time.  For example, for a group of ``VTKCell``\ s, it is instructive to rotate or zoom in on multiple cells at once and compare the results.  For this reason, if a group of cells is selected, mouse and keyboard events for a single cell of the selection are propogated to each of the other selected cells.  Currently, this feature only works for ``VTKCell``\ s, but we plan to add this to other cell types as well.  An example of this functionality is shown in Figure :ref:`fig-spreadsheet_sync`.
 
 .. _sec-spreadsheet-editing:
 
