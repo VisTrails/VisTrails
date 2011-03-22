@@ -329,7 +329,7 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         bool_type = '('+bm_identifier+':Boolean)'
         list_type = '('+bm_identifier+':List)'
         string_type = '('+bm_identifier+':String)'
-        base_input_ports = [('input', '__InnerGroup__', group_type, 0)]
+        base_input_ports = []
         base_output_ports = [('output', 'InputList', list_type, 0),
                              ('output', 'InputPort', list_type, 1),
                              ('output', 'OutputPort', string_type, 2)]
@@ -350,11 +350,9 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         # Generate the source
         source_code = '''
 psrc_module = self.moduleInfo['pipeline'].modules[self.moduleInfo['moduleId']]
-group_module = self.moduleInfo['pipeline'].modules[__InnerGroup__.moduleInfo['moduleId']]
-input_ports = [p.name for p in psrc_module.input_port_specs if p.name not in ['__InnerGroup__', 'UseCartesianProduct', 'UserDefinedInputList']]
-output_ports = [p.name for p in group_module.sourcePorts() if p.name != 'self']
+input_ports = [p.name for p in psrc_module.input_port_specs if p.name not in ['UseCartesianProduct', 'UserDefinedInputList']]
 InputPort = input_ports
-OutputPort = output_ports[0]
+OutputPort = '%s'
 custom_input_list = self.forceGetInputFromPort('UserDefinedInputList', [])
 if custom_input_list:
     InputList = custom_input_list
@@ -382,8 +380,8 @@ else:
     # Compact list format used when only one input port present
     if len(input_ports) == 1:
         InputList = [x[0] for x in InputList]
-print InputList
-'''
+print 'InputList: %%s' %% InputList
+''' % output_portspec.name
         functions = [('source', [source_code])]
         self.controller.update_ports_and_functions(py_source_module.id, [], base_input_ports + add_input_ports + base_output_ports, functions)
         
@@ -405,11 +403,6 @@ print InputList
             elif map_port.name == 'OutputPort':
                 map_conn = self.controller.add_connection(py_source_module.id, psrc_outputport, map_module.id, map_port)
             io_connections.append(map_conn)
-        
-        # Connect Inner Group to PythonSource
-        psrc_groupport = py_source_module.get_port_spec('__InnerGroup__', 'input')
-        psrc_group_conn = self.controller.add_connection(inner_group.id, inner_group_selfport, py_source_module.id, psrc_groupport)
-        io_connections.append(psrc_group_conn)
         
         # Create and connect InputPort for each of the PythonSource inputs to force it to exist on group
         offset = 165
