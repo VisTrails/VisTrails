@@ -35,6 +35,7 @@ import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
 from gui.application import VistrailsApplication
+from gui.controlflow_assist import QControlFlowAssistDialog
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
 from gui.open_db_window import QOpenDBWindow
@@ -351,6 +352,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.exportAbstractionAction.setStatusTip('Export subworkflows from '
                                                   'local subworkflows for '
                                                   'use in a package')
+        self.controlFlowAssistAction = QtGui.QAction('Control Flow Assistant', self)
+        self.controlFlowAssistAction.setStatusTip('Launch the Control Flow '
+                                                  'Assistant with the selected modules')
         self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
         self.selectAllAction.setEnabled(False)
         self.selectAllAction.setStatusTip('Select all modules in '
@@ -507,6 +511,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.importAbstractionAction)
         self.editMenu.addAction(self.exportAbstractionAction)
         self.editMenu.addSeparator()
+        self.editMenu.addAction(self.controlFlowAssistAction)
+        self.editMenu.addSeparator()
         self.editMenu.addAction(self.repositoryOptions)
         self.mergeMenu = self.editMenu.addMenu('Merge with')
         self.mergeMenu.menuAction().setEnabled(False)
@@ -623,6 +629,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.editAbstractionAction, self.editAbstraction),
             (self.importAbstractionAction, self.viewManager.importAbstraction),
             (self.exportAbstractionAction, self.viewManager.exportAbstraction),
+            (self.controlFlowAssistAction, self.controlFlowAssist),
             (self.newVistrailAction, self.newVistrail),
             (self.openFileAction, self.open_vistrail_default),
             (self.importFileAction, self.import_vistrail_default),
@@ -1641,6 +1648,25 @@ class QBuilderWindow(QtGui.QMainWindow):
                             else:
                                 show_info('Package SubWorkflow is Read-Only',
                                           'This SubWorkflow is from a package and cannot be modified.\n\nYou can create an editable copy in \'My SubWorkflows\' using\n\'Edit->Import SubWorkflow\'')
+                                
+    def controlFlowAssist(self):
+        """ controlFlowAssist() -> None
+        Launch Control Flow Assistant for selected modules.
+        """
+        currentView = self.viewManager.currentWidget()
+        if currentView:
+            currentScene = currentView.pipelineTab.pipelineView.scene()
+            if currentScene.controller:
+                selected_items = currentScene.get_selected_item_ids(True)
+                if selected_items is None:
+                    selected_items = ([],[])
+                selected_module_ids = selected_items[0]
+                selected_connection_ids = selected_items[1]
+                if len(selected_module_ids) > 0:
+                    dialog = QControlFlowAssistDialog(self, selected_module_ids, selected_connection_ids, currentScene)
+                    dialog.exec_()
+                else:
+                    show_info('No Modules Selected', 'You must select at least one module to use the Control Flow Assistant.')
 
     def expandBranch(self):
         """ expandBranch() -> None
