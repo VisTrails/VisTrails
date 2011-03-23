@@ -9,7 +9,7 @@ Using Analogies to Update Workflows
 In Chapter :ref:`chap-version_tree`, we saw how the provenance data maintained by |vistrails| allows you to compare different versions of a workflow. In Chapter :ref:`chap-querying`, you learned how this same provenance information forms the basis of an elegant Query by Example mechanism, letting you find all versions of a workflow that match a given arrangement of modules. In this chapter, we will see yet another benefit of the |vistrails| provenance architecture. Through a process we call *visualization by analogy*, you can reuse pipeline information to create new visualizations semi-automatically without directly editing the workflow.
 
 Visualization by Analogy
-================
+========================
 
 The main idea behind visualization by analogy is as follows. Given two versions of a workflow (called the "source" and "target" versions, respectively), |vistrails| can automatically find the differences between them and apply those differences to another (potentially unrelated) workflow. This powerful feature lets you create a new visualization without having to add or remove modules to/from the pipeline. |vistrails| takes care of these details for you behind the scenes.
 
@@ -34,7 +34,7 @@ Before explaining either approach, however, let's first set up the vistrail that
 .. %\label{fig-analogy_setup}
 .. %\end{figure}
 
-.. _fig-analogy_setup
+.. fig-analogy_setup
 
 .. _fig-analogy_setupa:
 
@@ -61,7 +61,7 @@ Before explaining either approach, however, let's first set up the vistrail that
    \(top left\) Original tetrahedral mesh model. \(top right\) Smoothed tetrahedral mesh. \(bottom left\) "Fran Cut" model.
 
 Using the Visual Diff Window
-===================
+============================
 
 By creating an analogy, you're telling |vistrails| to analyze and store the differences between the "source" and "target" versions of a workflow.  Then when you apply that analogy to another (perhaps completely different) version of the workflow, |vistrails| attempts to make similar types of changes to this other workflow.
 
@@ -99,15 +99,11 @@ Once the analogy has a name, you can then apply it to any version of the workflo
    Result of applying a smoothing analogy to a different workflow.
 
 Using the Spreadsheet
-==============
+=====================
 
 You can also create and apply analogies directly in the Spreadsheet, without the use of the ``Visual Diff`` window. The Spreadsheet uses a simple "drag and drop" interface to manipulate analogies, and many users find it simpler to work with than the method described above. The drawback is that the Spreadsheet does not allow you to name your analogies like the ``Visual Diff`` window does.
 
 The Spreadsheet must be in Editing Mode in order to use analogies. Please refer to Chapter :ref:`chap-spreadsheet` for more information about the Spreadsheet's modes. Identify the two cells representing the "source" and "target" visualizations for which you wish to create an analogy. Drag the ``Create Analogy`` icon *from* the "source" *to* the "target." This creates an analogy that you can use to apply changes to other workflows. To apply an analogy to another version, drag the ``Apply Analogy`` icon *from* the cell containing a visualization to which you want to apply the analogy, *to* an empty cell. A new version of the workflow will be created, and rendered in the designated cell.
-
-.. raw::latex
-
-   \pagebreak
 
 The following example illustrates how to use analogies within the Spreadsheet. If you completed the previous "Try it now!" exercise, first clear the cell containing the smoothed version of the ``Fran Cut`` model, so that it won't interfere with the present example. The Spreadsheet should again resemble Figure :ref:`fig-analogy_spreadsheet1`.
 
@@ -136,7 +132,7 @@ The following example illustrates how to use analogies within the Spreadsheet. I
 Regardless of whether you use the ``Visual Diff`` interface or the Spreadsheet interface to create your analogy, the end result is the same. To verify this, you can inspect the ``Pipeline`` view for the newly created version of the workflow. All the module(s) necessary to implement the analogy's behavior are automatically inserted by |vistrails| at the correct locations in the pipeline.
 
 Notes
-====
+=====
 
 .. %While it is also possible to create analogies among three or more versions of a workflow, this is an advanced feature and is not covered in this user's guide.
 

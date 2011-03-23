@@ -132,6 +132,10 @@ will attempt to match logical categories, but if your query is more
 specific, |vistrails| has special syntax to markup the query.
 To execute a query, simply press the 'Enter' key after typing your query.
 
+.. raw:: latex
+
+   \linebreak
+
 .. %Figure :ref:`fig-querying-date` shows an example query.
 
 .. _tab-querying-syntax:

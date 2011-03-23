@@ -6,10 +6,10 @@ Introduction to ITK
 ===================
 
 The *Insight Toolkit*, [#]_ or ITK, is an open-source software system initially
-designed to support the Visible Human Project \cite{VisibleHuman}.
+designed to support the Visible Human Project [C1]_.
 ITK is under continual development, being updated to employ
 cutting-edge segmentation and registration algorithms for multiple
-dimensions.  For more information about ITK, please refer to \cite{ITKSoftwareGuideSecondEdition,ITKPaper}.
+dimensions.  For more information about ITK, please refer to [C2]_ and [C3]_.
 
 In order to facilitate the implementation of processing mechanisms
 specific to the medical imaging community, ITK provides a robust set
@@ -119,8 +119,8 @@ On Windows, the build process is governed by the type of project or Makefile gen
 
    It is possible to use ITK without installing it.  To do this, the environment variables LD\_LIBRARY\_PATH and PYTHONPATH must be set to the appropriate build directories:
 
-      ``LD_LIBRARY\_PATH=/Path\_To\_itk/bin
-      PYTHONPATH=/Path_To\_itk/Wrapping/WrapITK/Python``
+   |   ``LD_LIBRARY_PATH=/Path_To_itk/bin``
+   |   ``PYTHONPATH=/Path_To_itk/Wrapping/WrapITK/Python``
 
 At this point, ITK is build and installed.  To validate this, open a
 Python shell and issue the following commands:
@@ -286,3 +286,8 @@ with the ``ImageToFile`` and ``ImageViewerCell`` modules to view the resulting s
 .. [#] CableSwig Interface generator.  http://www.itk.org/HTML/CableSwig.html
 .. [#] Please Note:  At the time of this writing, the |vistrails| ITK package is not a complete wrapping of all ITK functionality.  If you would like to contact the author regarding the wrapped functionality, please do so through the e-mail address on the |vistrails| website.
 .. [#] Grass roots DiCoM Project.  http://www.creatis.insa-lyon.fr/Public/Gdcm/
+
+.. rubric:: Citations
+.. [C1] R. A. Banvard, "The visible human project image data set from inception to completion and beyond," Proceedings of CODATA, 2002.
+.. [C2] L. Ibanez, W. Schroeder, L. Ng, and J. Cates, The ITK Software Guide, 2nd ed., Kitware, Inc. ISBN 1-930934-15-7, http://www.itk.org/ItkSoftwareGuide.pdf, 2005.
+.. [C3] T. S. Yoo, M. J. Ackerman, W. E. Lorensen, W. Schroeder, V. Chalana, S. Aylward, D. Metaxes, and R. Whitaker, "Engineering and algorithm design for an image processing API: A technical report on ITK - The Insight Toolkit," Proceedings of Medicine Meets Virtual Reality, pp. 586-592, 2002.
