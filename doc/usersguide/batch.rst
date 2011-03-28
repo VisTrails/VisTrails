@@ -218,12 +218,78 @@ Assuming it ran correctly, this pipeline should have created a file named "image
 
    Running the ``offscreen`` version of "offscreen.vt" in batch mode produces an image named "image.png".
 
+Running a Specific Workflow in Batch Mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To run a specific workflow in batch mode, call |Vistrails| with the following options:
+
+   ``python vistrails.py -b path_to_vistrails_file:pipeline``
+
+where pipeline can be a version **tag name** or version **id**.
+
+.. topic:: Note
+
+   If you downloaded the MacOS X bundle, you can run |vistrails| from the command line via the following commands in the terminal.  Change the current directory to wherever VisTrails was installed (often /Applications), and then type:  ``Vistrails.app/Contents/MacOS/vistrails [<cmd_line_options>]``
+
+Running a Workflow with Specific Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Users can change workflow parameters that have an alias through the command line.
+
+For example, offscreen pipeline in offscreen.vt always creates the file called image.png. If you want generate it with a different filename:
+
+``python vistrails.py -b ../examples/offscreen.vt:offscreen -a"filename=other.png"``
+
+filename in the example above is the alias name assigned to the parameter in the value method inside the String module. When running a pipeline from the command line, VisTrails will try to start the spreadsheet automatically if the pipeline requires it. For example, this other execution will also start the spreadsheet (attention to how $ characters are escaped when running on bash):
+
+``python vistrails.py -b ../examples/head.vt:aliases -a"isovalue=30\$&\$diffuse_color=0.8, 0.4, 0.2"``
+
+You can also execute more than one pipeline on the command line:
+
+``python vistrails.py -b ../examples/head.vt:aliases ../examples/spx.vt:spx \ -a"isovalue=30"``
+
+Use the -a parameter only once regardless the number of pipelines.
+
 .. %TODO should we cover aliases here?
 
 Accessing a Database in Batch Mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As discussed in Section :ref:`sec-cli-db`, you can specify most of the parameters of your database connection on the command line, but the password must be entered through the GUI. This poses a problem for running |vistrails| in non-interactive mode, since no database connection dialog will be opened. If your batch process needs to access vistrails stored on a database, the current workaround is to create a special account on the database (probably one with read-only access) that does *not* require a password, and use this account for connecting to the database in batch mode.
+
+Using |vistrails| as a Server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: server
+
+Using the VisTrails server mode, it is possible to execute workflows and control VisTrails through another application. For example, the CrowdLabs Web portal (http://www.crowdlabs.org) accesses a VisTrails sever to execute workflows, retrieve and display vistrail trees and workflows.
+
+The way you access the server is by doing XML-RPC calls. In the current VisTrails release, we include a set of PHP scripts that can talk to a VisTrails server instance. They are in "extensions/http" folder. The files are reasonably well documented. Also, it should be not difficult to create python scripts to access the server (just use xmlrpclib module).
+
+Note that the VisTrails server requires the provenance and workflows to be in a database. More detailed instructions on how to setup the server and the database are available here:
+
+http://www.crowdlabs.org/site_media/static/dev_docs/vistrails_server_setup.html
+
+http://www.crowdlabs.org/site_media/static/dev_docs/vistrails_database_setup.html
+
+If what you want is just to execute a series of workflows in batch mode, a simpler solution would be to use the VisTrails client in batch mode (see Section :ref:`sec-cli-batch`). 
+
+Executing Workflows in Parallel
+===============================
+
+The VisTrails server can only execute pipelines in parallel if there's more than one instance of VisTrails running. The command
+
+``self.rpcserver=ThreadedXMLRPCServer((self.temp_xml_rpc_options.server, self.temp_xml_rpc_options.port))``
+
+starts a multithreaded version of the XML-RPC server, so it will create a thread for each request received by the server. The problem is that Qt/PyQT doesn't allow these multiple threads create GUI objects, only in the main thread. To overcome this limitation, the multithreaded version can instantiate other single threaded versions of VisTrails and put them in a queue, so workflow executions and other GUI-related requests, such as generating workflow graphs and history trees can be forwarded to this queue, and each instance takes turns in answering the request. If the results are in the cache, the multithreaded version answers the requests directly.
+
+Note that this infrastructure works on Linux only. To make this work on Windows, you have to create a script similar to start_vistrails_xvfb.sh (located in the scripts folder) where you can send the number of other instances via command-line options to VisTrails. The command line options are:
+
+``python vistrails_server.py -T <ADDRESS> -R <PORT> -O<NUMBER_OF_OTHER_VISTRAILS_INSTANCES> [-M]&``
+
+If you want the main vistrails instance to be multithreaded, use the -M at the end.
+
+After creating this script, update function start_other_instances in vistrails/gui/application_server.py lines 1007-1023 and set the script variable to point to your script. You may also have to change the arguments sent to your script (line 1016: for example, you don't need to set a virtual display). You will need to change the path to the stop_vistrails_server.py script (on line 1026) according to your installation path.
 
 .. rubric:: Footnotes
 .. [#] The parameter "-b" stands for "batch." In this chapter, we use the terms "batch mode" and "non-interactive mode" synonymously.

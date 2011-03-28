@@ -109,6 +109,8 @@ details.
 There may also be additional dependencies, depending on which optional
 features of |vistrails| you plan to use.
 
+Please refer to http://www.vistrails.org/index.php/Mac_Intel_Instructions for more details.
+
 .. _sec-start-quick:
 
 Quick Start
@@ -285,14 +287,41 @@ Parameter Exploration.
 |vistrails| Interaction
 =======================
 
-.. index:: execute, undo, redo
+Workflow Execution
+^^^^^^^^^^^^^^^^^^
+
+.. index:: execute
 
 The ``Execute`` button on the toolbar serves as the "play" button for
 each of the modes described above.  In both the Builder and Version
 Tree modes, it executes the current workflow.  In Query mode, it
 executes the query, and in Parameter Exploration mode, it executes the
-workflow for each of the possible parameter settings.  The ``Undo``
-and ``Redo`` buttons function in the standard way, but note that these
+workflow for each of the possible parameter settings.  
+
+When a workflow is executed, the module color is determined as follows:
+
+   * lilac: module was not executed
+   * yellow: module is currently being executed
+   * green: module was successfully executed
+   * orange: module was cached
+   * red: module execution failed
+
+.. topic:: Note
+
+   VisTrails caches by default, so after a workflow is executed, if none of its parameters change, it won't be executed again.
+
+   If a workflow reads a file using the basic module File, VisTrails does check whether the file was modified since the last run. It does so by keeping a signature that is based on the modification time of the file. And if the file was modified, the File module and all downstream modules (the ones which depend on File) will be executed.
+
+   If you do not want VisTrails to cache executions, you can turn off caching: go to Menu Edit -> Preferences and in the General Configuration tab, change Cache execution results to Never.
+
+   If you would like your input and output data to be versioned, you can use the Persistence package.
+
+Additional Interactions
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: undo, redo
+
+The ``Undo`` and ``Redo`` buttons function in the standard way, but note that these
 actions are implicitly switching between different versions of a
 workflow.  Thus, you will notice that as you undo or redo a change to
 a workflow, the selected version in the version tree changes.
@@ -309,4 +338,10 @@ the scene, or zoom in and out of the scene by selecting the given
 button.  In addition, if you are using a 3-button mouse, the right
 button will zoom, and the middle button will pan.  To use the zoom
 functionality, click and drag up to zoom out and drag down to zoom in.
+
+.. index:: center
+
+.. topic:: Note
+
+   Pressing Ctrl-R will recenter the window.  You may also zoom and pan in the window in the upper right corner of the main window (the picture-in-picture window).  To recenter this picture-in-picture (PIP) window, first click on it to bring it to focus, then press Ctrl-R (or Command-R on a Mac) to recenter.
 

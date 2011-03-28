@@ -9,5 +9,6 @@ Developer's Guide
 
    packages
    batch
+   log
    example_itk
    controlflow

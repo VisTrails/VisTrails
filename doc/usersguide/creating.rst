@@ -185,6 +185,14 @@ the 'Delete' key.
 
    To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  The methods are shown hierarchically in the ``Methods`` container.  Find the ``SetRadius`` method and select it, then drag the highlighted text from the ``Methods`` container into the ``Set Methods`` container below.  The result is a ``SetRadius`` box with a ``Float`` text input.  Enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
 
+Changing Module Labels
+======================
+
+.. index::
+  pair: modules; labels
+
+A new label can be assigned to a module by selecting the triangle in its top right corner to open a popup menu and selecting the ``Set Module Label...`` menu item. You will then be prompted to enter the new label.  The new label will be displayed in the prominent position and the original module name will be displayed below it in parenthesis.
+
 Configuring Module Ports
 ========================
 

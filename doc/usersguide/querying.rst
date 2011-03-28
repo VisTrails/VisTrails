@@ -152,6 +152,10 @@ To execute a query, simply press the 'Enter' key after typing your query.
    \               ``after:`` *date* ``|`` *relative time*
    ==============  ================================================================
 
+.. topic:: Note
+
+   Since we allow regular expressions in our search box, question marks are treated as meta-characters. Thus, searching for "?" returns everything and "abc?" will return everything containing "abc". You need to use "\\?" instead to search for "?". So the search for "??" would be "\\?\\?".
+
 Table :ref:`tab-querying-syntax` lists the different ways to markup a
 query.  Note that you can search by user name to see which changes a
 particular user has made, and also by date to see which changes were

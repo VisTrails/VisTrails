@@ -48,8 +48,8 @@ calculator:
 .. include:: pythoncalc.rst
 
 To try this out in VisTrails, save the file above in the ``.vistrails/userpackages`` subdirectory of your home directory, with the filename ``pythoncalc.py``. Then, click on the ``Edit`` menu
-and select the ``Preferences`` option. (On Mac OS X, this option is under the ``|vistrails|`` menu.) A dialog similar to what is shown
-in Figure :ref:`fig-packages-enablepackage` should appear. Select the
+and select the ``Preferences`` option. (On Mac OS X, this option is under the |vistrails| menu.) A dialog similar to what is shown
+in Figure :ref:`All available packages... <fig-packages-enablepackage>` should appear. Select the
 ``pythonCalc`` package, then click on
 ``Enable``. This should move the package to the
 ``Enabled packages`` list. Close the dialog. The package and
@@ -80,10 +80,10 @@ will print the following on your terminal:
 Let's now examine how this works. The first
 two lines simply import required components. The next three lines
 give |vistrails| meta-information about the
-package. ``version`` is simply information about the package
+package. ``Version`` is simply information about the package
 version. This might be tied to the underlying library or not. The only
 recommended guideline is that compatibility is not broken across minor
-releases, but this is not enforced in any way. ``name`` is a
+releases, but this is not enforced in any way. ``Name`` is a
 human-readable name for the package. 
 
 .. %\paragraph*{Choosing a good identifier}
@@ -290,7 +290,7 @@ Package Configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
 .. index::
-   pair: packages; congiguration
+   pair: packages; configuration
 
 There are two obvious shortcomings in the way ``run()`` is
 implemented. First, the code assumes ``afront`` is available
@@ -371,7 +371,7 @@ if there is no set value, and returns the value otherwise.
 Perhaps the biggest advantage of using a configuration object is that the values can
 be changed through a GUI, and they are persistent across VisTrails
 sessions. To configure a package, open the ``Preferences``
-menu (``|vistrails|``:math:`\rightarrow`
+menu (|vistrails|:math:`\rightarrow`
 ``Preferences`` on Mac OS X, or ``Edit`` :math:`\rightarrow`
 ``Preferences`` on other platforms). Then, select the package you want to
 configure by clicking on it (a package must be enabled to be
@@ -645,7 +645,7 @@ For optimization purposes, |vistrails| caches the results of intermediate comput
 
 The ``Module`` superclass defines a function called ``is_cacheable``, which determines whether or not a module should allow itself to be cached. The default implementation of this function returns ``True``. You can override this function in your own subclasses of ``Module``, if desired.
 
-*Note: Caching is an advanced topic. Please contact the |vistrails| development team if you have questions about how this applies to your own custom modules.*
+*Note: Caching is an advanced topic. Please contact the VisTrails development team if you have questions about how this applies to your own custom modules.*
 
 For System Administrators
 =========================

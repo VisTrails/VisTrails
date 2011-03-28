@@ -99,6 +99,10 @@ configuration. When the configuration dialog opens, enable the output port
 "self" and press ``OK``. You will need this port to connect to
 the ``Map`` module.
 
+.. topic:: Note
+
+   When using ``Map``, the module (or subworkflow) used as function port in the map module MUST be a function, i.e., it can only define 1 output port.
+
 Now, select the ``MplPlot`` module and open its configuration dialog. Inside
 it, add two input ports of type ``ListOfElements``: "InputList" and
 "X_Values". Also, copy the code listed below, in order to create the
