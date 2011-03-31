@@ -115,11 +115,11 @@ def initialize(*args, **kwargs):
         abs_vistrails = new_vistrails
 
     for abs_name, (_, e) in cannot_load.iteritems():
-        debug.critical("Cannot load abstraction '%s'" % abs_name)
+        debug.critical("Cannot load subworkflow '%s'" % abs_name)
         if e:
             debug.critical("- %s" % e)
     for abs_name in abs_vistrails:
-        debug.critical("Cannot load abstraction '%s'" % abs_name)
+        debug.critical("Cannot load subworkflow '%s'" % abs_name)
 
 def package_dependencies():
     import core.packagemanager
@@ -155,7 +155,7 @@ def package_dependencies():
                 vistrails[abstraction[:-4]] = \
                     (vistrail, abs_fname, inter_depends)
             else:
-                debug.critical(("Abstraction '%s' is missing packages it " +
+                debug.critical(("Subworkflow '%s' is missing packages it " +
                                 "depends on") % abstraction)
     # print 'all_packages:', all_packages
     return list(all_packages)

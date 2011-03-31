@@ -183,6 +183,7 @@ def test_db_connection(config):
     Tests a connection raising an exception in case of error.
     
     """
+    print "Testing config", config
     try:
         db_connection = get_db_lib().connect(**config)
         close_db_connection(db_connection)
@@ -1035,7 +1036,7 @@ def open_vt_log_from_db(db_connection, vt_id, version=None):
             c.close()
         except get_db_lib().Error, e:
             debug.critical("Error getting log id:s %d: %s" % (e.args[0], e.args[1]))
-    log = Log()
+    log = DBLog()
     logs = dao_list.open_many_from_db(db_connection, DBLog.vtType, ids)
     for new_log in logs:
         for workflow_exec in new_log.db_workflow_execs:

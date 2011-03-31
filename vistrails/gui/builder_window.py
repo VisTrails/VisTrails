@@ -1082,16 +1082,26 @@ class QBuilderWindow(QtGui.QMainWindow):
                     self.viewManager.currentWidget().vistrail, workflow_exec)
                 
     def open_workflow_exec(self, vistrail, exec_id):
-        """ open_workflow_exec(exec_id) -> None
+        """ open_workflow_exec(vistrail, exec_id) -> None
             Open specified workflow execution for the current pipeline
         """
+        
         log = vistrail.get_log()
-        workflow_execs = [e for e in log._db_workflow_execs if e.id == exec_id]
+        # exec_id can be a number or a datetime
+        try:
+            workflow_execs = \
+                [e for e in log.workflow_execs if e.id == int(exec_id)]
+        except (ValueError, TypeError):
+            workflow_execs = \
+                [e for e in log._db_workflow_execs
+                   if str(e.db_ts_start) == str(exec_id)]
+            
         if not len(workflow_execs):
+            core.debug.warning("Workflow Execiution not found: %s" % exec_id)
             return
         workflow_exec = workflow_execs[0]
         self.vislog = QVisualLog(vistrail, workflow_exec.db_parent_version,
-                                 workflow_exec, self)
+                                 log, workflow_exec, self)
         self.vislog.show()
 
 

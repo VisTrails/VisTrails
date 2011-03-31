@@ -26,7 +26,7 @@ import datetime
 import getpass
 
 from db.domain import DBVistrail
-from db.services.io import open_from_db
+from db.services.io import open_vt_log_from_db, open_log_from_xml
 from core.db.locator import DBLocator
 from core.log.log import Log
 from core.data_structures.graph import Graph
@@ -1036,17 +1036,16 @@ class Vistrail(DBVistrail):
         """
         Returns the log object for this vistrail if available
         """
-        
-        log = None
-        if self.db_log_filename is not None:
-            log = core.db.io.open_log(self.db_log_filename, True)
-            Log.convert(log)
-        elif hasattr(self.locator,"_host"):
+        log = Log()
+        if type(self.locator) == core.db.locator.ZIPFileLocator:
+            if self.db_log_filename is not None:
+                log = open_log_from_xml(self.db_log_filename, True)
+        if type(self.locator) == core.db.locator.DBLocator:
             connection = self.locator.get_connection()
-            log = open_from_db(connection, Log.vtType, self.db_id)
-            Log.convert(log)
+            log = open_vt_log_from_db(connection, self.db_id)
+        Log.convert(log)
         return log
-            
+
 ##############################################################################
 
 class ExplicitExpandedVersionTree(object):

@@ -67,7 +67,7 @@ from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from db import VistrailsDBException
 from db.domain import IdScope, DBWorkflowExec
 from db.services.io import create_temp_folder, remove_temp_folder
-from db.services.io import SaveBundle, open_vt_log_from_db, open_log_from_xml
+from db.services.io import SaveBundle
 
 from db.services.vistrail import getSharedRoot
 from core.utils import any
@@ -2490,16 +2490,7 @@ class VistrailController(object):
         """ Returns the saved log from zip or DB
         
         """
-        log = Log()
-        if type(self.locator) == core.db.locator.ZIPFileLocator:
-            if self.vistrail.db_log_filename is not None:
-                log = open_log_from_xml(self.vistrail.db_log_filename, True)
-        if type(self.locator) == core.db.locator.DBLocator:
-            # read log from DB - first get log id:s
-            connection = self.locator.get_connection()
-            log = open_vt_log_from_db(connection, self.vistrail.db_id)
-        Log.convert(log)
-        return log
+        return self.vistrail.get_log()
  
     def write_registry(self, locator):
         registry = core.modules.module_registry.get_module_registry()

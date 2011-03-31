@@ -91,10 +91,6 @@ class QCollectionWidget(QtGui.QTreeWidget):
         print locator.to_url()
         print locator.name
         print '***'
-        
-#         fname = str(widget_item.data(2, QtCore.Qt.DisplayRole).toString())
-#         tag = str(widget_item.data(1, QtCore.Qt.DisplayRole).toString())
-#         print "parent emiting", fname, tag
         import gui.application
         app = gui.application.VistrailsApplication
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
