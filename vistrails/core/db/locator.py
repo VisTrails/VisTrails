@@ -94,8 +94,8 @@ class CoreLocator(object):
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
-    def __init__(self, filename, version_node=None, version_tag=''):
-        _XMLFileLocator.__init__(self, filename, version_node, version_tag)
+    def __init__(self, filename, **kwargs):
+        _XMLFileLocator.__init__(self, filename, **kwargs)
         
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail

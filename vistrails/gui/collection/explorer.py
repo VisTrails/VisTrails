@@ -371,9 +371,12 @@ class QExplorerWindow(QtGui.QDialog):
         else:
             self.nextButton.hide()
             last = self.numRows
-        self.statusText.setText("Showing %s-%s out of %s results" %
+        if self.numRows:
+            self.statusText.setText("Showing %s-%s out of %s results" %
                                     (self.offset+1, last, self.numRows))
-                
+        else:
+            self.statusText.setText("No matching results found")
+
     def setup_results(self, wf_exec_list=[]):
         self.itemView.clear()
         columns = ['Vistrail', 'Version', 'Start time', 'End time', 'Completed']

@@ -22,94 +22,83 @@
 """ This modules builds a widget to visualize workflow execution logs """
 from PyQt4 import QtCore, QtGui
 from core.vistrail.pipeline import Pipeline
+from core.log.module_exec import ModuleExec
+from core.log.group_exec import GroupExec
+from core.log.loop_exec import LoopExec
+from core.log.workflow_exec import WorkflowExec
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
 from core import system, debug
 import core.db.io
 
-################################################################################
 
-class QExecutionInspector(QtGui.QWidget):
+##############################################################################
+
+
+class QExecutionItem(QtGui.QTreeWidgetItem):
     """
-    QExecutionInspector is a widget acting as an inspector vistrail modules
-    in diff mode. It consists of a function inspector and annotation
-    inspector
+    QExecutionListWidget is a widget containing a list of workflow executions.
     
     """
-    def __init__(self, parent=None, execution=None, f=QtCore.Qt.WindowFlags()):
-        """ QParamInspector(parent: QWidget, f: WindowFlags)
-                            -> QParamInspector
-        Construct a widget containing tabs: Functions and Annotations,
-        each of them is in turn a table of two columns for two
-        corresponding versions.
-        
-        """
-        QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.Tool )
-        self.setWindowTitle('Execution Inspector')
-        self.firstTime = True
-        self.myLayout = QtGui.QVBoxLayout()
-        self.setLayout(self.myLayout)
-        self.infoList = QtGui.QListWidget()
-        self.infoList.setWrapping(True)
-        self.infoList.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        self.myLayout.addWidget(self.infoList)
-        if execution:
-            self.setDetails(execution)
-        else:
-            self.clear()
-        self.adjustSize()
-        self.hide()
+    def __init__(self, execution, parent=None):
+        QtGui.QTreeWidgetItem.__init__(self, parent)
+        self.execution = execution
+        if execution.__class__ == WorkflowExec:
+            self.setText(0, 'WorkflowExec')
+            self.setText(1, '%s' % execution.ts_start)
+            for item_exec in execution.item_execs:
+                self.addChild(QExecutionItem(item_exec))
+        if execution.__class__ == ModuleExec:
+            self.setText(0, 'ModuleExec')
+            self.setText(1, '%s' % execution.ts_start)
+            for loop_exec in execution.loop_execs:
+                self.addChild(QExecutionItem(loop_exec))
+        if execution.__class__ == GroupExec:
+            self.setText(0, 'GroupExec')
+            self.setText(1, '%s' % execution.ts_start)
+            for item_exec in execution.item_execs:
+                self.addChild(QExecutionItem(item_exec))
+        if execution.__class__ == LoopExec:
+            self.setText(0, 'LoopExec')
+            self.setText(1, '%s' % execution.ts_start)
+            for item_exec in execution.item_execs:
+                self.addChild(QExecutionItem(item_exec))
 
-    def clear(self):
-        self.infoList.clear()
-        self.infoList.addItem("None selected")
-
-    def setDetails(self, execution):
-        self.infoList.clear()
-        import api
-        api.e = execution
-        startTime = execution.ts_start
-        if startTime:
-            self.infoList.addItem("Start time: %s" % startTime)
-        endTime = execution.ts_end
-        if endTime:
-            self.infoList.addItem("End time: %s" % endTime)
-
-        error = execution.error
-        if error:
-            self.infoList.addItem("Error: %s" % error)
-
-        annotations = execution.db_annotations
-        if len(annotations):
-            self.infoList.addItem('')
-            self.infoList.addItem("Annotations:")
-            for annotation in annotations:
-                self.infoList.addItem("%s: %s" % (annotation.key,annotation.value))
-        loop_execs = execution.db_loop_execs
-        if len(loop_execs):
-            self.infoList.addItem('')
-            self.infoList.addItem("Loop executions:")
-            for e in loop_execs:
-                self.infoList.addItem("Loop %s" % e.db_id)
-                startTime = e.ts_start
-                if startTime:
-                    self.infoList.addItem("    Start time: %s" % startTime)
-                endTime = e.ts_end
-                if endTime:
-                    self.infoList.addItem("    End time: %s" % endTime)
-                error = e.error
-                if error:
-                    self.infoList.addItem("Error: %s" % error)
+class QExecutionListWidget(QtGui.QTreeWidget):
+    """
+    QExecutionListWidget is a widget containing a list of workflow executions.
     
-    def closeEvent(self, e):
-        """ closeEvent(e: QCloseEvent) -> None        
-        Doesn't allow the QParamInspector widget to close, but just hide
-        instead
-        
-        """
-        e.ignore()
-        self.parent().showInspectorAction.setChecked(False)
+    """
+    def __init__(self, log, parent=None):
+        QtGui.QTreeWidget.__init__(self, parent)
+        self.setColumnCount(2)
+        self.setHeaderLabels(['Type', 'Start time'])
+        for execution in log.workflow_execs:
+            self.addTopLevelItem(QExecutionItem(execution))
+        self.setSortingEnabled(True)
 
+#        annotations = execution.db_annotations
+#        if len(annotations):
+#            self.infoList.addItem('')
+#            self.infoList.addItem("Annotations:")
+#            for annotation in annotations:
+#                self.infoList.addItem("%s: %s" % (annotation.key,annotation.value))
+#        loop_execs = execution.db_loop_execs
+#        if len(loop_execs):
+#            self.infoList.addItem('')
+#            self.infoList.addItem("Loop executions:")
+#            for e in loop_execs:
+#                self.infoList.addItem("Loop %s" % e.db_id)
+#                startTime = e.ts_start
+#                if startTime:
+#                    self.infoList.addItem("    Start time: %s" % startTime)
+#                endTime = e.ts_end
+#                if endTime:
+#                    self.infoList.addItem("    End time: %s" % endTime)
+#                error = e.error
+#                if error:
+#                    self.infoList.addItem("Error: %s" % error)
+    
 class QLegendBox(QtGui.QFrame):
     """
     QLegendBox is just a rectangular box with a solid color
@@ -137,152 +126,122 @@ class QLegendBox(QtGui.QFrame):
                 self.setAttribute(QtCore.Qt.WA_MacBrushedMetal, False)
         
 
-class QLegendWindow(QtGui.QWidget):
+class QLegendWidget(QtGui.QWidget):
     """
     QLegendWindow contains a list of QLegendBox and its description
     
     """
-    def __init__(self, parent='', f=QtCore.Qt.WindowFlags()):
-        """ QLegendWindow(parent: QWidget, f: WindowFlags)
-                          -> QLegendWindow
-        Construct a window by default with 3 QLegendBox and 3 QLabels
-        
-        """
-        QtGui.QWidget.__init__(self, parent,
-                               f | QtCore.Qt.Tool )
-        self.setWindowTitle('Visual Log Legend')
-        self.firstTime = True
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
         self.gridLayout = QtGui.QGridLayout(self)
         self.gridLayout.setMargin(10)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
-        data = [[0, "Successful execution",CurrentTheme.SUCCESS_MODULE_BRUSH],
-                [1, "Failed execution",      CurrentTheme.ERROR_MODULE_BRUSH],
-                [2, "Not executed",     CurrentTheme.PERSISTENT_MODULE_BRUSH],
-                [3, "Cached",         CurrentTheme.NOT_EXECUTED_MODULE_BRUSH]]
+        data = [[0, "Successful",      CurrentTheme.SUCCESS_MODULE_BRUSH],
+                [1, "Error",             CurrentTheme.ERROR_MODULE_BRUSH],
+                [2, "Not executed", CurrentTheme.PERSISTENT_MODULE_BRUSH],
+                [3, "Cached",     CurrentTheme.NOT_EXECUTED_MODULE_BRUSH]]
         
         for n, text, brush in data:         
             self.gridLayout.addWidget(
                 QLegendBox(brush, CurrentTheme.VISUAL_DIFF_LEGEND_SIZE, self),
-                n, 0)
-            self.gridLayout.addWidget(QtGui.QLabel(text, self), n, 1)
+                0, n*2)
+            self.gridLayout.addWidget(QtGui.QLabel(text, self), 0, n*2+1)
 
-        self.adjustSize()
-        
-    def closeEvent(self,e):
-        """ closeEvent(e: QCloseEvent) -> None
-        Doesn't allow the Legend widget to close, but just hide
-        instead
-        
-        """
-        e.ignore()
-        self.parent().showLegendsAction.setChecked(False)
-        
-
-class QVisualLog(QtGui.QMainWindow):
+class QVisualLog(QtGui.QDialog):
     """
     QVisualLog is a main widget for Visual Log containing a GL
     Widget to draw the pipeline
     
     """
-    def __init__(self, vistrail, v, execution,
+    def __init__(self, vistrail, exec_id=None,
                  parent=None, f=QtCore.Qt.WindowFlags()):
-        """ QVisualLog(vistrail: Vistrail, v: str, execution: DBExecution
-                        parent: QWidget, f: WindowFlags) -> QVisualLog
-        Initialize with all
+        """ QVisualLog(vistrail: Vistrail, exec_id: id/date
+                       parent: QWidget, f: WindowFlags) -> QVisualLog
         
         """
-        # Set up the version name correctly
-        vName = vistrail.getVersionName(v)
-        if not vName: vName = 'Version %d' % v
+        QtGui.QDialog.__init__(self, parent)
+        self.vistrail = vistrail
+        self.version = None
+        self.execution = None
+        self.pipeline = None
+        self.log = vistrail.get_log()
+        # exec_id can be a number or a datetime
+        try:
+            workflow_execs = \
+                [e for e in self.log.workflow_execs if e.id == int(exec_id)]
+        except (ValueError, TypeError):
+            workflow_execs = [e for e in self.log.workflow_execs
+                              if str(e.ts_start) == str(exec_id)]
 
-        self.execution = execution
-        self.pipeline = vistrail.getPipeline(v)
-        self.v_name = vName
-        self.v = v
+        if len(workflow_execs):
+            self.execution = workflow_execs[0]
+            self.version = self.execution.parent_id
+        else:
+            core.debug.warning("Workflow Execution not found: %s" % exec_id)
+
+        # Set up the version name correctly
+#        vName = vistrail.getVersionName(version)
+#        if not vName: vName = 'Version %d' % version
+#        self.v_name = vName
 
         # Create the top-level Visual Diff window
-        QtGui.QMainWindow.__init__(self, parent)
-        self.setWindowTitle('Execution of "%s" starting at %s' % (vName, execution.db_ts_start))
+        self.setWindowTitle("Exploring workflow executions in vistrail '%s'" %
+                            vistrail.db_name)
+        widget = QtGui.QSplitter()
+        widget.setOrientation(QtCore.Qt.Horizontal)
+        layout=QtGui.QGridLayout()
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        layout.addWidget(widget)
+        self.setLayout(layout)
+        pipelineLayout = QtGui.QVBoxLayout()
+        pipelineLayout.setMargin(0)
+        pipelineLayout.setSpacing(0)
+        pipelineLayout.addWidget(QLegendWidget(), QtCore.Qt.AlignCenter)
+        self.pipelineView = QPipelineView()
+        pipelineLayout.addWidget(self.pipelineView)
+        pipelineLayout.setStretch(0,0)
+        pipelineLayout.setStretch(1,1)
+        pipelineWidget = QtGui.QWidget()
+        pipelineWidget.setLayout(pipelineLayout)
+        widget.addWidget(pipelineWidget)
+        executionWidget = QtGui.QSplitter()
+        executionWidget.setOrientation(QtCore.Qt.Vertical)
+        self.executionList = QExecutionListWidget(self.log)
+        executionWidget.addWidget(self.executionList)
+        self.detailsWidget = QtGui.QTextEdit()
+        executionWidget.addWidget(self.detailsWidget)
+        widget.addWidget(executionWidget)
+
+        
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Expanding))
-        self.createPipelineView()
-        self.createToolBar()
-        self.createToolWindows()
-
-        self.installEventFilter(self)
-        self.center()
-
-    def center(self):
-        screen = QtGui.QDesktopWidget().screenGeometry()
-        size =  self.geometry()
-        self.move((screen.width()-size.width())/2, 
-        (screen.height()-size.height())/2)
-
-    def eventFilter(self, object, event):
-        if event.type() == QtCore.QEvent.ShortcutOverride and \
-                event.key() == QtCore.Qt.Key_W and \
-                event.modifiers() == QtCore.Qt.ControlModifier:
-            event.accept()
-            self.close()
-        return QtGui.QMainWindow.eventFilter(self, object, event)
-
-    def closeEvent(self, event):
-        self.inspectorWindow.close()
-        self.legendWindow.close()
-
-    def createPipelineView(self):
-        """ createPipelineView() -> None        
-        Create a center pipeline view for Visual Log and setup the
-        view based on the log
-        
-        """
-        # Initialize the shape engine
-        self.pipelineView = QPipelineView()
-        self.setCentralWidget(self.pipelineView)
+        self.connect(self.executionList, QtCore.SIGNAL("itemClicked(QTreeWidgetItem *, int)"),
+                     self.itemClicked)
+#        self.center()
 
         # Add all the shapes into the view
-        self.createLogPipeline()
+        self.showExecution(self.execution)
 
         # Hook shape selecting functions
         self.connect(self.pipelineView.scene(), QtCore.SIGNAL("moduleSelected"),
                      self.moduleSelected)
-
-    def createToolBar(self):
-        """ createToolBar() -> None        
-        Create the default toolbar of Visual Log window with two
-        buttons to toggle the Parameter Inspector and Legend window
         
-        """
-        # Initialize the Visual Log toolbar
-        self.toolBar = self.addToolBar('Visual Log Toolbar')
-        self.toolBar.setMovable(False)
-
-        # Add the Show Legend window action
-        self.showLegendsAction = self.toolBar.addAction(
-            CurrentTheme.VISUAL_DIFF_SHOW_LEGEND_ICON,
-            'Show Legends')
-        self.showLegendsAction.setCheckable(True)
-        self.connect(self.showLegendsAction, QtCore.SIGNAL("toggled(bool)"),
-                     self.toggleShowLegend)
-
-        self.showInspectorAction = self.toolBar.addAction(
-            CurrentTheme.VISUAL_DIFF_SHOW_LEGEND_ICON,
-            'Show Inspector')
-        self.showInspectorAction.setCheckable(True)
-        self.connect(self.showInspectorAction, QtCore.SIGNAL("toggled(bool)"),
-                     self.toggleShowInspector)
-
-        # Add the show details action
-        self.showDetailsAction = self.toolBar.addAction(
-            CurrentTheme.VISUAL_DIFF_CREATE_ANALOGY_ICON,
-            'Show details')
-        self.showDetailsAction.setCheckable(True)
-        self.connect(self.showDetailsAction, QtCore.SIGNAL("triggered()"),
-                     self.toggleShowDetails)
+    def itemClicked(self, item, column):
+        execution = item.execution
+        print "clicked", execution
+        if execution.__class__ in [WorkflowExec, LoopExec]:
+            self.showExecution(execution)
+            
+    def center(self):
+        screen = QtGui.QDesktopWidget().screenGeometry()
+        size =  self.geometry()
+        self.move((screen.width()-size.width())/2,
+        (screen.height()-size.height())/2)
 
     def toggleShowDetails(self):
         scene = self.pipelineView.scene()
@@ -315,54 +274,18 @@ class QVisualLog(QtGui.QMainWindow):
             for item in self.infoItems:
                 scene.removeItem(item)
 
-    def toggleShowLegend(self):
-        """ toggleShowLegend() -> None
-        Show/Hide the legend window when toggle this button
-        
-        """
-        if self.legendWindow.firstTime:
-            self.legendWindow.move(self.pos().x()+self.frameSize().width()-
-                                   self.legendWindow.frameSize().width(),
-                                   self.pos().y())
-        self.legendWindow.setVisible(self.showLegendsAction.isChecked())
-        if self.legendWindow.firstTime:
-            self.legendWindow.firstTime = False
-            self.legendWindow.setFixedSize(self.legendWindow.size())            
-
-    def toggleShowInspector(self):
-        """ toggleShowInspector() -> None
-        Show/Hide the inspector window when toggle this button
-        
-        """
-        if self.inspectorWindow.firstTime:
-            self.inspectorWindow.move(self.pos().x()+self.frameSize().width()-
-                                   self.inspectorWindow.frameSize().width(),
-                                   self.pos().y())
-        self.inspectorWindow.setVisible(self.showInspectorAction.isChecked())
-        if self.inspectorWindow.firstTime:
-            self.inspectorWindow.firstTime = False
-            self.inspectorWindow.setMinimumSize(300, 200)
-            self.inspectorWindow.adjustSize()
-
-    def createToolWindows(self):
-        """ createToolWindows() -> None
-        Create Inspector and Legend window
-
-        """
-        self.inspectorWindow = QExecutionInspector(self)
-        self.legendWindow = QLegendWindow(self)
-
     def moduleSelected(self, id, selectedItems):
         """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None
         When the user click on a module, display its parameter changes
         in the Inspector
         
         """
-        if len(selectedItems)!=1 or id==-1:
-            self.moduleUnselected()
-            return
-        if selectedItems[0].execution:
-            self.inspectorWindow.setDetails(selectedItems[0].execution)
+        pass
+#        if len(selectedItems)!=1 or id==-1:
+#            self.moduleUnselected()
+#            return
+#        if selectedItems[0].execution:
+#            self.inspectorWindow.setDetails(selectedItems[0].execution)
 
 
     def moduleUnselected(self):
@@ -370,17 +293,30 @@ class QVisualLog(QtGui.QMainWindow):
         When a user selects nothing, make sure to display nothing as well
         
         """
-        self.inspectorWindow.clear()
+        pass
+#        self.inspectorWindow.clear()
                     
-    def createLogPipeline(self):
+    def showExecution(self, execution):
+#        if execution.parent_version != self.version:
+        self.version = execution.parent_version
+        self.execution = execution
+        self.updatePipeline()
+        self.showDetails(execution)
+
+    def showDetails(self, execution):
+        text = ''
+        
+#        self.
+        
+    def updatePipeline(self):
         """ createLogPipeline() -> None
-        Actually walk through the self.log result and add all modules
+        Actually walk through the version and add all modules
         into the pipeline view
         
         """
-
         scene = self.pipelineView.scene()
         scene.clearItems()
+        self.pipeline = self.vistrail.getPipeline(self.version)
         self.pipeline.validate(False)
 
         # FIXME HACK: We will create a dummy object that looks like a
