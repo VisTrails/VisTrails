@@ -33,6 +33,7 @@ import os
 import sys
 import unittest
 import os.path
+import optparse
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
@@ -48,6 +49,35 @@ else:
 sys.path.append(root_directory)
 
 import tests
+
+###############################################################################
+# Testing Examples
+
+EXAMPLES_PATH = os.path.join(_this_dir, '..', '..', 'examples')
+#dictionary of examples that will be run with the workflows that will be ignored
+VT_EXAMPLES = { 'EMBOSS_webservices.vt': [],
+                'KEGGPathway.vt': [],
+                'KEGG_SearchEntities_webservice.vt': [],
+                'KEGG_webservices.vt': [],
+                'brain_vistrail.vt': [],
+                'chebi_webservice.vt': [],
+                'head.vt': [],
+                'infovis.vt': [],
+                'noaa_webservices.vt': [],
+                'offscreen.vt': [],
+                'plot.vt': [],
+                'spx.vt': [],
+                'structure_or_id_webservice.vt': [],
+                'terminator.vt': ["Isosurface Script"],
+                'triangle_area.vt': [],
+                'vtk.vt': [],
+                'vtk_book_3rd_p189.vt': ["quadric", "SmapleFunction",
+                                         "Almost there"],
+                'vtk_book_3rd_p193.vt': ["modules", "connections",
+                                         "lookup table"],
+                'vtk_http.vt': [],
+    }
+
 
 ###############################################################################
 # Utility
@@ -72,20 +102,34 @@ def get_test_cases(module):
 
 ###############################################################################
 
+from optparse import OptionParser
+usage = "Usage: %prog [options] [module1 module2 ...]"
+parser = OptionParser(usage=usage)
+parser.add_option("-V", "--verbose", action="store", type="int",
+                  default=None, dest="verbose",
+                  help="set verboseness level(0--2, default=0, "
+                  "higher means more verbose)")
+parser.add_option("-e", "--examples", action="store_true",
+                  default=None,
+                  help="will run vistrails examples")
+
+(options, args) = parser.parse_args()
 verbose = 0
-if len(sys.argv) > 2:
-    if sys.argv[1] == '-verbose':
-        verbose = int(sys.argv[2])
-        sys.argv = [sys.argv[0]] + sys.argv[3:]
-
+if options.verbose:
+    verbose = options.verbose
+test_examples = False 
+if options.examples:
+    test_examples = True
 test_modules = None
-if len(sys.argv) > 1:
-    test_modules = set(sys.argv[1:])
+if len(args) > 0:
+    test_modules = set(args)
 
+###############################################################################
+# reinitializing arguments and options so VisTrails does not try parsing them
+sys.argv = sys.argv[:1]
 
 # creates the app so that testing can happen
 import gui.application
-sys.argv = sys.argv[:1]
 
 # We need the windows so we can test events, etc.
 gui.application.start_application({'interactiveMode': True,
@@ -151,6 +195,52 @@ for (p, subdirs, files) in os.walk(root_directory):
             print msg, "Ok: %s test cases." % len(test_cases)
 
 unittest.TextTestRunner().run(main_test_suite)
+if test_examples:
+    import core.db.io
+    import core.db.locator
+    import core.console_mode
+    print "Testing examples:"
+    summary = {}
+    nworkflows = 0
+    nvtfiles = 0
+    for vtfile in VT_EXAMPLES.keys():
+        try:
+            errs = []
+            filename = os.path.join(EXAMPLES_PATH,
+                                    vtfile)
+            print filename
+            locator = core.db.locator.FileLocator(os.path.abspath(filename))
+            (v, abstractions, thumbnails) = core.db.io.load_vistrail(locator)
+            w_list = []
+            for version,tag in v.get_tagMap().iteritems():
+                if tag not in VT_EXAMPLES[vtfile]:
+                    w_list.append((locator,version))
+                    nworkflows += 1
+            if len(w_list) > 0:
+                errs = core.console_mode.run(w_list, update_vistrail=False)
+                summary[vtfile] = errs
+        except Exception, e:
+            errs.append((vtfile,"None", "None", str(e)))
+            summary[vtfile] = errs
+        nvtfiles += 1
 
+    print "-----------------------------------------------------------------"
+    print "Summary of Examples: %s workflows in %s vistrail files"%(nworkflows,
+                                                                    nvtfiles)
+    print ""
+    errors = False
+    for vtfile, errs in summary.iteritems():        
+        print vtfile
+        if len(errs) > 0:
+            for err in errs:
+                print("   *** Error in %s:%s:%s -- %s" % err)
+            errors = True
+        else:
+            print "  Ok."
+    print "-----------------------------------------------------------------"
+    if errors:
+        print "There were errors. See summary for more information"
+    else:
+        print "Examples ran successfully."
 gui.application.VistrailsApplication.finishSession()
 gui.application.stop_application()
