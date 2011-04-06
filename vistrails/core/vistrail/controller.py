@@ -67,7 +67,7 @@ from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from db import VistrailsDBException
 from db.domain import IdScope, DBWorkflowExec
 from db.services.io import create_temp_folder, remove_temp_folder
-from db.services.io import SaveBundle
+from db.services.io import SaveBundle, open_vt_log_from_db
 
 from db.services.vistrail import getSharedRoot
 from core.utils import any

@@ -43,26 +43,27 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
     def __init__(self, execution, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         self.execution = execution
+        execution.item = self
         if execution.__class__ == WorkflowExec:
-            self.setText(0, 'WorkflowExec')
-            self.setText(1, '%s' % execution.ts_start)
+            self.setText(0, 'Workflow %s' % execution.parent_version )
             for item_exec in execution.item_execs:
                 self.addChild(QExecutionItem(item_exec))
         if execution.__class__ == ModuleExec:
-            self.setText(0, 'ModuleExec')
-            self.setText(1, '%s' % execution.ts_start)
+            self.setText(0, '%s' % execution.module_name)
             for loop_exec in execution.loop_execs:
                 self.addChild(QExecutionItem(loop_exec))
         if execution.__class__ == GroupExec:
-            self.setText(0, 'GroupExec')
-            self.setText(1, '%s' % execution.ts_start)
+            self.setText(0, 'Group')
             for item_exec in execution.item_execs:
                 self.addChild(QExecutionItem(item_exec))
         if execution.__class__ == LoopExec:
-            self.setText(0, 'LoopExec')
-            self.setText(1, '%s' % execution.ts_start)
+            self.setText(0, 'Loop #%s' % execution.db_iteration)
             for item_exec in execution.item_execs:
                 self.addChild(QExecutionItem(item_exec))
+        self.setText(1, '%s' % execution.ts_start)
+        self.setText(2, '%s' % execution.ts_end)
+        self.setText(3, '%s' % {'0':'No', '1':'Yes'}.get(
+                               str(execution.completed), 'Error'))
 
 class QExecutionListWidget(QtGui.QTreeWidget):
     """
@@ -71,8 +72,8 @@ class QExecutionListWidget(QtGui.QTreeWidget):
     """
     def __init__(self, log, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
-        self.setColumnCount(2)
-        self.setHeaderLabels(['Type', 'Start time'])
+        self.setColumnCount(4)
+        self.setHeaderLabels(['Type', 'Start', 'End', 'Completed'])
         for execution in log.workflow_execs:
             self.addTopLevelItem(QExecutionItem(execution))
         self.setSortingEnabled(True)
@@ -164,6 +165,9 @@ class QVisualLog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.vistrail = vistrail
         self.version = None
+        self.currentItem = None
+        self.workflowExecution = None
+        self.parentExecution = None
         self.execution = None
         self.pipeline = None
         self.log = vistrail.get_log()
@@ -175,12 +179,6 @@ class QVisualLog(QtGui.QDialog):
             workflow_execs = [e for e in self.log.workflow_execs
                               if str(e.ts_start) == str(exec_id)]
 
-        if len(workflow_execs):
-            self.execution = workflow_execs[0]
-            self.version = self.execution.parent_id
-        else:
-            core.debug.warning("Workflow Execution not found: %s" % exec_id)
-
         # Set up the version name correctly
 #        vName = vistrail.getVersionName(version)
 #        if not vName: vName = 'Version %d' % version
@@ -190,6 +188,7 @@ class QVisualLog(QtGui.QDialog):
         self.setWindowTitle("Exploring workflow executions in vistrail '%s'" %
                             vistrail.db_name)
         widget = QtGui.QSplitter()
+        widget.setOpaqueResize(False)
         widget.setOrientation(QtCore.Qt.Horizontal)
         layout=QtGui.QGridLayout()
         layout.setMargin(0)
@@ -214,29 +213,49 @@ class QVisualLog(QtGui.QDialog):
         self.detailsWidget = QtGui.QTextEdit()
         executionWidget.addWidget(self.detailsWidget)
         widget.addWidget(executionWidget)
-
+        self.resize(1024,768)
+        widget.setStretchFactor(0,1)
+        widget.setStretchFactor(1,1)
         
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Expanding))
-        self.connect(self.executionList, QtCore.SIGNAL("itemClicked(QTreeWidgetItem *, int)"),
-                     self.itemClicked)
+        self.connect(self.executionList, QtCore.SIGNAL(
+         "currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)"),
+         self.itemClicked)
 #        self.center()
-
-        # Add all the shapes into the view
-        self.showExecution(self.execution)
 
         # Hook shape selecting functions
         self.connect(self.pipelineView.scene(), QtCore.SIGNAL("moduleSelected"),
                      self.moduleSelected)
-        
-    def itemClicked(self, item, column):
-        execution = item.execution
-        print "clicked", execution
-        if execution.__class__ in [WorkflowExec, LoopExec]:
-            self.showExecution(execution)
-            
+
+        if len(workflow_execs):
+            self.execution = workflow_execs[0]
+            self.workflowExecution = self.execution
+            self.parentExecution = self.execution
+            self.version = self.execution.parent_id
+            self.showExecution()
+            self.executionList.setCurrentItem(self.execution.item)
+        else:
+            core.debug.warning("Workflow Execution not found: %s" % exec_id)
+
+    def itemClicked(self, item, olditem):
+        self.currentItem = item
+        self.execution = item.execution
+        import api
+        api.e = self.execution
+        self.workflowExecution = item
+        while self.workflowExecution.parent():
+            self.workflowExecution = self.workflowExecution.parent()
+        self.workflowExecution = self.workflowExecution.execution
+        self.parentExecution = item
+        while self.parentExecution.execution.__class__ not in \
+                [WorkflowExec, LoopExec]:
+            self.parentExecution = self.parentExecution.parent()
+        self.parentExecution = self.parentExecution.execution
+        self.showExecution()
+
     def center(self):
         screen = QtGui.QDesktopWidget().screenGeometry()
         size =  self.geometry()
@@ -276,37 +295,51 @@ class QVisualLog(QtGui.QDialog):
 
     def moduleSelected(self, id, selectedItems):
         """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None
-        When the user click on a module, display its parameter changes
-        in the Inspector
-        
         """
-        pass
-#        if len(selectedItems)!=1 or id==-1:
-#            self.moduleUnselected()
-#            return
-#        if selectedItems[0].execution:
-#            self.inspectorWindow.setDetails(selectedItems[0].execution)
+        if len(selectedItems)!=1 or id==-1:
+            self.moduleUnselected()
+            return
 
+        item = selectedItems[0]
+        if hasattr(item,'execution') and item.execution:
+            self.execution = item.execution
+            self.executionList.setCurrentItem(item.execution.item)
+        else:
+            self.executionList.clearSelection()
+            self.execution = self.parentExecution
+        self.showDetails()
 
     def moduleUnselected(self):
         """ moduleUnselected() -> None
         When a user selects nothing, make sure to display nothing as well
         
         """
-        pass
-#        self.inspectorWindow.clear()
+        self.executionList.clearSelection()
+        self.execution = self.parentExecution
+        self.showDetails()
                     
-    def showExecution(self, execution):
-#        if execution.parent_version != self.version:
-        self.version = execution.parent_version
-        self.execution = execution
+    def showExecution(self):
+        self.version = self.workflowExecution.parent_version
         self.updatePipeline()
-        self.showDetails(execution)
+        self.showDetails()
 
-    def showDetails(self, execution):
+    def showDetails(self):
+        if not self.execution:
+            return
+
         text = ''
-        
-#        self.
+        text += '%s\n' % self.execution.item.text(0)
+        text += 'Start: %s\n' % self.execution.ts_start
+        text += 'End: %s\n' % self.execution.ts_end
+        if hasattr(self.execution, 'user'):
+            text += 'User: %s\n' % self.execution.user
+        if hasattr(self.execution, 'cached'):
+            text += 'Cached: %s\n' % ("Yes" if self.execution.cached else 'No')
+        text += 'Completed: %s\n' % {'0':'No', '1':'Yes'}.get(
+                                    str(self.execution.completed), 'Error')
+        if hasattr(self.execution, 'error') and self.execution.error:
+            text += 'Error: %s\n' % self.execution.error
+        self.detailsWidget.setText(text)
         
     def updatePipeline(self):
         """ createLogPipeline() -> None
@@ -348,8 +381,10 @@ class QVisualLog(QtGui.QDialog):
                     pipeline.add_connection(connection)
                 return core.db.io.serialize(pipeline)
                 
+#        if 
+#        execs = 
         module_execs = dict([(e.db_module_id, e) \
-                             for e in self.execution.db_get_item_execs()])
+                             for e in self.parentExecution.db_get_item_execs()])
         controller = DummyController(self.pipeline)
         scene.controller = controller
         self.moduleItems = {}
@@ -367,13 +402,14 @@ class QVisualLog(QtGui.QDialog):
                         brush = CurrentTheme.SUCCESS_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
-                # add text to scene
             module.is_valid = True
             item = scene.addModule(module, brush)
             item.controller = controller
             self.moduleItems[m_id] = item
             if m_id in module_execs:
-                item.execution = module_execs[m_id]
+                e = module_execs[m_id]
+                item.execution = e
+                e.module = item
             else:
                 item.execution = None
         connectionItems = []
@@ -388,3 +424,6 @@ class QVisualLog(QtGui.QDialog):
 
         scene.updateSceneBoundingRect()
         scene.fitToView(self.pipelineView, True)
+        if self.execution.__class__ in [ModuleExec, GroupExec]:
+            self.execution.item.setSelected(True)
+            self.execution.module.setSelected(True)

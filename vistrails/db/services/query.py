@@ -47,18 +47,22 @@ def retrieve(config, vistrail=None, version=None, fromTime=None, toTime=None,
     db = open_db_connection(config)
     select_part = \
     """SELECT v.name, v.id, w.entity_id,
-              w.parent_version, a.value, w.id,
-              w.ts_start, w.ts_end, w.user, w.completed"""
+              w.parent_version, a1.value, w.id,
+              w.ts_start, w.ts_end, w.user, w.completed, t.image_bytes"""
     from_part = \
     """FROM workflow_exec w JOIN
             log_tbl l ON (l.id = w.entity_id) JOIN
             vistrail v ON (l.vistrail_id = v.id) LEFT JOIN
-            action_annotation a ON (a.entity_id=v.id AND
-                                    a.action_id=w.parent_version)"""
+            action_annotation a1 ON (a1.entity_id=v.id AND
+                                     a1.action_id=w.parent_version) LEFT JOIN
+            action_annotation a2 ON (a2.entity_id=v.id AND
+                                     a2.action_id=w.parent_version) LEFT JOIN
+            thumbnail t ON a2.value=t.file_name"""
     where_part = \
     """WHERE w.parent_type='vistrail' AND
              w.entity_type='log' AND
-             (a.akey='__tag__' OR a.akey IS NULL)"""
+             (a1.akey='__tag__' OR a1.akey IS NULL) AND
+             (a2.akey='__thumb__' OR a2.akey IS NULL)"""
     limit_part = 'LIMIT %s, %s' % (int(offset), int(limit))
 
     if vistrail:

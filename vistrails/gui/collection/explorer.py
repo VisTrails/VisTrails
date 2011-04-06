@@ -88,8 +88,6 @@ class QExplorerWindow(QtGui.QDialog):
         self.vSplitter = QExplorerSplitter(self)
         self.vSplitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.addWidget(self.vSplitter)
-        self.splitter.setStretchFactor(0, 1)
-        self.splitter.setStretchFactor(1, 4)
 
         self.searchButton = QtGui.QPushButton("Search")
         self.searchButton.setStatusTip("Search the database for executions")
@@ -316,7 +314,6 @@ class QExplorerWindow(QtGui.QDialog):
                     self.modules.append((v[0].strip(), v[1].strip()))
                 else:
                     self.modules.append((v[0].strip(), None))
-            print "Modules:", self.modules
 
         conn_id = self.connectionList.getCurrentItemId()
         self.conn = self.connectionList.get_connection(conn_id)
@@ -379,6 +376,7 @@ class QExplorerWindow(QtGui.QDialog):
 
     def setup_results(self, wf_exec_list=[]):
         self.itemView.clear()
+        self.itemView.setIconSize(QtCore.QSize(32,32))
         columns = ['Vistrail', 'Version', 'Start time', 'End time', 'Completed']
         self.itemView.setColumnCount(len(columns))
         self.itemView.setHeaderLabels(columns)
@@ -394,9 +392,8 @@ class QExplorerWindow(QtGui.QDialog):
         self.itemView.header().resizeSections(QtGui.QHeaderView.Stretch)
 
     def showItem(self, item, col):
-        print "showing", item.wf_exec
         (v_name, v_id, log_id, v_version, version_name, e_id,
-         ts_start, ts_end, user, completed) = item.wf_exec
+         ts_start, ts_end, user, completed, thumb) = item.wf_exec
         config = self.config
         locator = \
            DBLocator(config['host'],
@@ -426,7 +423,7 @@ class QExplorerWindow(QtGui.QDialog):
 class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, wf_exec, parent=None):
         (v_name, v_id, log_id, v_version, version_name, e_id,
-         ts_start, ts_end, user, completed) = wf_exec
+         ts_start, ts_end, user, completed, thumb) = wf_exec
         version = version_name if version_name else v_version
         completed = {'-1':'Error', '0':'No', '1':'Yes'}.get(str(completed), 'Unknown')
         labels = (str(v_name), str(version),
@@ -435,7 +432,11 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         self.wf_exec = wf_exec
         self.setToolTip(0, 'vistrail:%s version:%s log:%s wf_exec:%s user:%s' %
                            (v_id, v_version, log_id, e_id, user))
-
+        if thumb:
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(thumb)
+            self.setIcon(0, QtGui.QIcon(pixmap))
+            
     def __lt__(self, other):
         sort_col = self.treeWidget().sortColumn()
         if sort_col in set([1]):

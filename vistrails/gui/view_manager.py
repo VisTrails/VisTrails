@@ -480,6 +480,12 @@ class QViewManager(QtGui.QTabWidget):
                 return False
             # update collection
             try:
+                vistrailView.controller.write_vistrail(locator)
+            except Exception, e:
+                debug.critical('An error has occurred', str(e))
+                raise
+                return False
+            try:
                 thumb_cache = ThumbnailCache.getInstance()
                 vistrailView.controller.vistrail.thumbnails = \
                     vistrailView.controller.find_thumbnails(
@@ -503,12 +509,6 @@ class QViewManager(QtGui.QTabWidget):
                 collection.commit()
             except Exception, e:
                 debug.critical('Failed to index vistrail', str(e))
-            try:
-                vistrailView.controller.write_vistrail(locator)
-            except Exception, e:
-                debug.critical('An error has occurred', str(e))
-                raise
-                return False
             return locator
         return False
    
