@@ -34,7 +34,7 @@ from core.system import default_connections_file
 from core.external_connection import ExtConnectionList
 from db import VistrailsDBException
 from db.services.io import test_db_connection
-from db.services.query import retrieve
+from db.services.query import runLogQuery
 from gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
 from gui.theme import CurrentTheme
 from gui.open_db_window import QDBConnectionList, QConnectionDBSetupWindow
@@ -46,13 +46,14 @@ class QExplorerWindow(QtGui.QDialog):
         self.conn = None
         self.config = None
         self.offset = 0
-        self.limit = 100
+        self.limit = 50
         self.numRows = None
         self.vistrail = None
         self.version = None
         self.fromTime = None
         self.toTime = None
         self.user = None
+        self.thumbs = None
         self.completed = None
         self.modules = []
         self.layout = QtGui.QVBoxLayout()
@@ -87,10 +88,11 @@ class QExplorerWindow(QtGui.QDialog):
 
         self.vSplitter = QExplorerSplitter(self)
         self.vSplitter.setOrientation(QtCore.Qt.Vertical)
-        self.splitter.addWidget(self.vSplitter)
 
-        self.searchButton = QtGui.QPushButton("Search")
-        self.searchButton.setStatusTip("Search the database for executions")
+        self.tabView = QtGui.QTabWidget()
+        self.tabView.addTab(self.vSplitter, "Search Workflow Executions")
+
+        self.splitter.addWidget(self.tabView)
 
         self.searchLayout = QtGui.QGridLayout()
         self.vistrailEditCheckBox = QtGui.QCheckBox()
@@ -135,14 +137,20 @@ class QExplorerWindow(QtGui.QDialog):
         self.searchLayout.addWidget(QtGui.QLabel('Completed:'), 2,4)
         self.searchLayout.addWidget(self.completedEdit,         2,5)
         
-        self.searchLayout.addWidget(self.searchButton, 3, 1)
         self.moduleEditCheckBox = QtGui.QCheckBox()
         self.moduleEditCheckBox.setToolTip('Check to enable this search option')
         self.moduleEdit = QtGui.QLineEdit()
         self.moduleEdit.setToolTip('Add module names separated by ,\nResult type can be specified by using: ModuleName:Yes/No/Error')
-        self.searchLayout.addWidget(self.moduleEditCheckBox,  3,3)
-        self.searchLayout.addWidget(QtGui.QLabel('Modules:'), 3,4)
-        self.searchLayout.addWidget(self.moduleEdit,          3,5)
+        self.searchLayout.addWidget(self.moduleEditCheckBox,  3,0)
+        self.searchLayout.addWidget(QtGui.QLabel('Modules:'), 3,1)
+        self.searchLayout.addWidget(self.moduleEdit,          3,2)
+        self.thumbsCheckBox = QtGui.QCheckBox()
+        self.thumbsCheckBox.setToolTip('Check to view result thumbnails (may be slow)')
+        self.searchLayout.addWidget(self.thumbsCheckBox,  3,3)
+        self.searchLayout.addWidget(QtGui.QLabel('View thumbs'), 3,4)
+        self.searchButton = QtGui.QPushButton("Search")
+        self.searchButton.setStatusTip("Search the database for executions")
+        self.searchLayout.addWidget(self.searchButton, 3, 5)
         self.searchWidget = QtGui.QWidget()
         self.searchWidget.setLayout(self.searchLayout)
         self.vSplitter.addWidget(self.searchWidget)
@@ -314,7 +322,7 @@ class QExplorerWindow(QtGui.QDialog):
                     self.modules.append((v[0].strip(), v[1].strip()))
                 else:
                     self.modules.append((v[0].strip(), None))
-
+        self.thumbs = self.thumbsCheckBox.isChecked()
         conn_id = self.connectionList.getCurrentItemId()
         self.conn = self.connectionList.get_connection(conn_id)
         self.config = self.getConnectionInfo(conn_id)
@@ -335,12 +343,12 @@ class QExplorerWindow(QtGui.QDialog):
             config_id = config['id']
             del config['id']
             
-        wf_exec_list = retrieve(config,
+        wf_exec_list = runLogQuery(config,
                                 vistrail=self.vistrail, version=self.version,
                                 fromTime=self.fromTime, toTime=self.toTime,
                                 user=self.user, completed=self.completed,
                                 offset=self.offset, limit=self.limit,
-                                modules=self.modules )
+                                modules=self.modules, thumbs=self.thumbs)
         if 0 == self.offset:
             wf_exec_list, self.numRows = wf_exec_list
         if conn.dbtype == 'MySQL':

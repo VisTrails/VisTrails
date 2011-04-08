@@ -881,10 +881,28 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     vistrail.db_last_modified = get_current_time(db_connection)
 
     vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
+    # get saved workflows from db
+    workflows = get_saved_workflows(vistrail, db_connection)
+    print "Workflows already saved:", workflows
     dao_list.save_to_db(db_connection, vistrail, do_copy)
-    db_connection.commit()
     vistrail = translate_vistrail(vistrail, version)
     vistrail.db_currentVersion = current_action
+
+    # update all missing tagged workflows
+    for id, name in vistrail.get_tagMap().iteritems():
+        if id not in workflows:
+            print "creating workflow", vistrail.db_id, id, name, "materializing",
+            workflow = vistrail.getPipeline(id)
+            workflow.db_id = None
+            workflow.db_vistrail_id = vistrail.db_id
+            workflow.db_parent_id = id
+            workflow.db_group = id
+            workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
+            workflow.db_name = name
+            print workflow, workflow.is_new, workflow.is_dirty,
+            dao_list.save_to_db(db_connection, workflow)
+            print "done"
+    db_connection.commit()
     return vistrail
 
 ##############################################################################
@@ -967,6 +985,16 @@ def save_workflow_bundle_to_db(save_bundle, db_connection, do_copy=False,
     workflow = save_workflow_to_db(save_bundle.workflow, db_connection, do_copy, 
                                    version)
     return SaveBundle(DBWorkflow.vtType, workflow=workflow)
+
+def get_saved_workflows(vistrail, db_connection):
+    """ Returns list of action id:s representing populated workflows """
+    if not vistrail.db_id:
+        return []
+    c = db_connection.cursor()
+    c.execute("SELECT parent_id FROM workflow WHERE vistrail_id=%s;", (vistrail.db_id,))
+    ids = [i[0] for i in c.fetchall()]
+    c.close()
+    return ids
 
 ##############################################################################
 # Logging I/O
