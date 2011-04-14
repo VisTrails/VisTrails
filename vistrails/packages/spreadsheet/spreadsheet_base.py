@@ -56,7 +56,7 @@ class StandardSheetReference(object):
         Check to see if the tab is an acceptable type
         
         """
-        return issubclass(StandardWidgetSheetTab, tabWidget.__class__)
+        return issubclass(tabWidget.__class__, StandardWidgetSheetTab)
 
     def clearCandidate(self):
         """ clearCandidate() -> None        
@@ -82,7 +82,7 @@ class StandardSheetReference(object):
         tabWidget --- QWidget controlling actual sheet widget
         tabLabel  --- the display label of the sheet
         tabIndex  --- its index inside the tab controller
-        curIndex  --- the current active inedx of the tab controller
+        curIndex  --- the current active index of the tab controller
         
         """
         if self.isTabValid(tabWidget):
@@ -265,7 +265,7 @@ class StandardSingleCellSheetReference(StandardSheetReference):
         Only accepts StandardSingleCellSheetTab
         
         """
-        return issubclass(StandardSingleCellSheetTab, tabWidget.__class__)
+        return issubclass(tabWidget.__class__, StandardSingleCellSheetTab)
 
     def checkCandidate(self, tabWidget, tabLabel, tabIndex, curIndex):
         """ checkCandidate(tabWidget: QWidget,
