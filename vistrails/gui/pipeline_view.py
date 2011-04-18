@@ -45,6 +45,7 @@ from core.vistrail.port import PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from core.interpreter.default import get_default_interpreter
+from gui.base_view import BaseView
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
@@ -1064,7 +1065,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 for p in module.destinationPorts():
                     if not p.optional:
                         inputPorts.append(p)
-                    elif (d, p.name) in module.portVisible:
+                    # elif (d, p.name) in module.portVisible:
+                    elif p.name in module.visible_input_ports:
                         visibleOptionalInputPorts.append(p)
                     else:
                         self.optionalInputPorts.append(p)
@@ -1074,7 +1076,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 for p in module.sourcePorts():
                     if not p.optional:
                         outputPorts.append(p)
-                    elif (s, p.name) in module.portVisible:
+                    # elif (s, p.name) in module.portVisible:
+                    elif p.name in module.visible_output_ports:
                         visibleOptionalOutputPorts.append(p)
                     else:
                         self.optionalOutputPorts.append(p)
@@ -1479,6 +1482,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_module_ids = set()
         self._old_connection_ids = set()
         self.pipeline = None
+        self.current_pipeline = None
+        self.current_version = -1
 
 #        menu = QtGui.QMenu()
 #        self._create_abstraction = QtGui.QAction("Create abstraction", self)
@@ -1925,6 +1930,13 @@ mutual connections."""
             QInteractiveGraphicsScene.keyPressEvent(self, event)
             # super(QPipelineScene, self).keyPressEvent(event)
 
+    def get_selected_module_ids(self):
+        module_ids = []
+        for item in self.selectedItems():
+            if type(item) == QGraphicsModuleItem:
+                module_ids.append(item.module.id)
+        return module_ids
+
     def get_selected_item_ids(self, dangling=False):
         """get_selected_item_ids( self, dangling: bool) -> 
              (module_ids : list, connection_ids : list)
@@ -2067,22 +2079,22 @@ mutual connections."""
         Open the modal configuration window for module with given id
         """
         if self.controller:
-#            registry = get_module_registry()
-#            module = self.controller.current_pipeline.modules[id]            
-#            getter = registry.get_configuration_widget
-#            widgetType = getter(module.package, module.name, module.namespace)
-#            if not widgetType:
-#                widgetType = DefaultModuleConfigurationWidget            
-#            widget = widgetType(module, self.controller, self.parent())
-#            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-#            #if connections will be removed as a result of the configuration
-#            # we need to be able to get them when calling
-#            # self.recreate_module()
-#            self.modules[id]._old_connection_ids = \
-#                             self.modules[id].dependingConnectionItems()
-#            self.connect(widget, QtCore.SIGNAL("doneConfigure"),
-#                         self.perform_configure_done_actions)
-#            widget.show()
+            # registry = get_module_registry()
+            # module = self.controller.current_pipeline.modules[id]            
+            # getter = registry.get_configuration_widget
+            # widgetType = getter(module.package, module.name, module.namespace)
+            # if not widgetType:
+            #     widgetType = DefaultModuleConfigurationWidget            
+            # widget = widgetType(module, self.controller)
+            # widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            # #if connections will be removed as a result of the configuration
+            # # we need to be able to get them when calling
+            # # self.recreate_module()
+            # self.modules[id]._old_connection_ids = \
+            #                  self.modules[id].dependingConnectionItems()
+            # self.connect(widget, QtCore.SIGNAL("doneConfigure"),
+            #              self.perform_configure_done_actions)
+            # widget.show()
             self.emit(QtCore.SIGNAL("showConfigureWindow"))
             
     def perform_configure_done_actions(self, module_id):
@@ -2297,7 +2309,7 @@ class QModuleStatusEvent(QtCore.QEvent):
         self.progress = progress
         self.errorTrace = errorTrace
             
-class QPipelineView(QInteractiveGraphicsView):
+class QPipelineView(QInteractiveGraphicsView, BaseView):
     """
     QPipelineView inherits from QInteractiveGraphicsView that will
     handle drawing of module, connection shapes and selecting
@@ -2311,8 +2323,10 @@ class QPipelineView(QInteractiveGraphicsView):
         
         """
         QInteractiveGraphicsView.__init__(self, parent)
-        self.setWindowTitle('Pipeline')
+        BaseView.__init__(self)
         self.setScene(QPipelineScene(self))
+        self.set_title('Pipeline')
+        self.controller = None
 
     def keyPressEvent(self, event):
         if (event.key()==QtCore.Qt.Key_V and
@@ -2329,6 +2343,44 @@ class QPipelineView(QInteractiveGraphicsView):
         QInteractiveGraphicsView.setQueryEnabled(self, on)
         if not self.scene().noUpdate and self.scene().controller:
             self.scene().setupScene(self.scene().controller.current_pipeline)
+
+    def set_title(self, title):
+        BaseView.set_title(self, title)
+        self.setWindowTitle(title)
+
+    def set_controller(self, controller):
+        oldController = self.controller
+        if oldController != controller:
+            if oldController != None:
+                # self.disconnect(oldController,
+                #                 QtCore.SIGNAL('versionWasChanged'),
+                #                 self.version_changed)
+                oldController.current_pipeline_view = None
+            self.controller = controller
+            self.scene().controller = controller
+            # self.connect(controller,
+            #              QtCore.SIGNAL('versionWasChanged'),
+            #              self.version_changed)
+            # self.module_info.set_controller(controller)
+            # self.moduleConfig.controller = controller
+            # controller.current_pipeline_view = self.scene()
+
+    def set_to_current(self):
+        if self.controller.current_pipeline_view is not None:
+            self.disconnect(self.controller,
+                            QtCore.SIGNAL('versionWasChanged'),
+                            self.controller.current_pipeline_view.parent().version_changed)
+        self.controller.current_pipeline_view = self.scene()
+        self.connect(self.controller,
+                     QtCore.SIGNAL('versionWasChanged'),
+                     self.version_changed)
+
+    def get_controller(self):
+        return self.controller
+
+    def version_changed(self):
+        self.scene().setupScene(self.controller.current_pipeline)
+
 
 ################################################################################
 # Testing

@@ -30,7 +30,6 @@ from core.modules.vistrails_module import Module, ModuleError
 from core.modules.sub_module import read_vistrail, new_abstraction, \
     get_abstraction_dependencies
 import core.modules.module_registry
-import core.vistrail.controller
 from core.db.io import save_vistrail_to_xml
 from core.system import vistrails_version
 from core.utils import InvalidPipeline
@@ -88,6 +87,7 @@ def initialize(*args, **kwargs):
                     # handle_invalid_pipeline will raise it's own InvalidPipeline
                     # exception if it fails
                     try:
+                        import core.vistrail.controller
                         module_version = abs_vistrail.get_latest_version()
                         # Use a "dummy" controller to handle the upgrade
                         controller = core.vistrail.controller.VistrailController(abs_vistrail)

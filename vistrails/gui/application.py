@@ -510,8 +510,9 @@ parameters from other instances")
         if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
         self.builderWindow.create_first_vistrail()
-        self.builderWindow.modulePalette.updateFromModuleRegistry()
-        self.builderWindow.modulePalette.connect_registry_signals()
+        # self.builderWindow.modulePalette.updateFromModuleRegistry()
+        # self.builderWindow.modulePalette.connect_registry_signals()
+        self.builderWindow.link_registry()
         
         self.process_interactive_input()
 
@@ -675,9 +676,11 @@ parameters from other instances")
 
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.
-        from gui.builder_window import QBuilderWindow
+        # from gui.builder_window import QBuilderWindow
+        from gui.vistrails_app import VisTrailsApp
 
-        self.builderWindow = QBuilderWindow()
+        # self.builderWindow = QBuilderWindow()
+        self.builderWindow = VisTrailsApp()
         if not self.temp_configuration.showSpreadsheetOnly:
             # self.builderWindow.show()
             # self.setActiveWindow(self.builderWindow)

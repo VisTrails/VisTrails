@@ -33,14 +33,14 @@ from PyQt4 import QtCore, QtGui
 from core.query.version import SearchCompiler, SearchParseError, TrueSearch
 from core.thumbnails import ThumbnailCache
 from gui.theme import CurrentTheme
-from gui.common_widgets import QToolWindowInterface
 from gui.common_widgets import QSearchBox
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from core.utils import all
 from core import debug
 
 ################################################################################
 
-class QVersionProp(QtGui.QWidget, QToolWindowInterface):
+class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     QVersionProp is a widget holding property of a version including
     tagname and notes
@@ -157,6 +157,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.versionNotes.controller = controller
         self.versionEmbedPanel.controller = controller
         self.versionThumbs.controller = controller
+        self.updateVersion(controller.current_version)
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None

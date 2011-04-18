@@ -251,6 +251,270 @@ class QLegendWindow(QtGui.QWidget):
         self.parent().showLegendsAction.setChecked(False)
         
 
+class QDiffView(QPipelineView):
+    def __init__(self, parent=None):
+        QPipelineView.__init__(self, parent)
+        self.set_title("Diff")
+        
+    def set_to_current(self):
+        # don't do any of the normal controller hacks
+        pass
+
+    def set_diff(self, diff):
+        # Interprete the diff result
+        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
+            diff
+        p1.validate(False)
+        p2.validate(False)
+        p_both = Pipeline()
+        # the abstraction map is the same for both p1 and p2
+        # p_both.set_abstraction_map(p1.abstraction_map)
+        
+        scene = self.scene()
+        scene.clearItems()
+
+        # FIXME HACK: We will create a dummy object that looks like a
+        # controller so that the qgraphicsmoduleitems and the scene
+        # are happy. It will simply store the pipeline will all
+        # modules and connections of the diff, and know how to copy stuff
+        class DummyController(object):
+            def __init__(self, pip):
+                self.current_pipeline = pip
+                self.search = None
+            def copy_modules_and_connections(self, module_ids, connection_ids):
+                """copy_modules_and_connections(module_ids: [long],
+                                             connection_ids: [long]) -> str
+                Serializes a list of modules and connections
+                """
+
+                pipeline = Pipeline()
+#                 pipeline.set_abstraction_map( \
+#                     self.current_pipeline.abstraction_map)
+                for module_id in module_ids:
+                    module = self.current_pipeline.modules[module_id]
+#                     if module.vtType == Abstraction.vtType:
+#                         abstraction = \
+#                             pipeline.abstraction_map[module.abstraction_id]
+#                         pipeline.add_abstraction(abstraction)
+                    pipeline.add_module(module)
+                for connection_id in connection_ids:
+                    connection = self.current_pipeline.connections[connection_id]
+                    pipeline.add_connection(connection)
+                return core.db.io.serialize(pipeline)
+                
+        controller = DummyController(p_both)
+        scene.controller = controller
+
+        # Find the max version id from v1 and start the adding process
+        self.maxId1 = 0
+        for m1id in p1.modules.keys():
+            if m1id>self.maxId1:
+                self.maxId1 = m1id
+        shiftId = self.maxId1 + 1
+
+        # First add all shared modules, just use v1 module id
+        sum1_x = 0.0
+        sum1_y = 0.0
+        sum2_x = 0.0
+        sum2_y = 0.0
+        for (m1id, m2id) in v1Andv2:
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
+            sum1_x += p1.modules[m1id].location.x
+            sum1_y += p1.modules[m1id].location.y
+            sum2_x += p2.modules[m2id].location.x
+            sum2_y += p2.modules[m2id].location.y
+        for (m1id, m2id) in heuristicMatch:
+            m1 = p1.modules[m1id]
+            m2 = p2.modules[m2id]
+
+            sum1_x += p1.modules[m1id].location.x
+            sum1_y += p1.modules[m1id].location.y
+            sum2_x += p2.modules[m2id].location.x
+            sum2_y += p2.modules[m2id].location.y            
+
+            #this is a hack for modules with a dynamic local registry.
+            #The problem arises when modules have the same name but different
+            #input/output ports. We just make sure that the module we add to
+            # the canvas has the ports from both modules, so we don't have
+            # addconnection errors.
+            port_specs = dict(((p.type, p.name), p) for p in m1.port_spec_list)
+            for p in m2.port_spec_list:
+                p_key = (p.type, p.name)
+                if not p_key in port_specs:
+                    m1.add_port_spec(p)
+                elif port_specs[p_key] != p:
+                    #if we add this port, we will get port overloading.
+                    #To avoid this, just cast the current port to be of
+                    # Module or Variant type.
+                    var_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(var_port_spec)
+                    if var_port_spec.type == 'input':
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Module)'
+                    else:
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Variant)'
+                    var_port_spec.create_entries_and_descriptors()
+                    var_port_spec.create_tooltip()
+                    m1.add_port_spec(var_port_spec)
+
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_MATCH_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
+
+        # Then add parameter changed version
+        for ((m1id, m2id), matching) in paramChanged:
+            m1 = p1.modules[m1id]
+            m2 = p2.modules[m2id]
+            
+            sum1_x += p1.modules[m1id].location.x
+            sum1_y += p1.modules[m1id].location.y
+            sum2_x += p2.modules[m2id].location.x
+            sum2_y += p2.modules[m2id].location.y
+
+            #this is a hack for modules with a dynamic local registry.
+            #The problem arises when modules have the same name but different
+            #input/output ports. We just make sure that the module we add to
+            # the canvas has the ports from both modules, so we don't have
+            # addconnection errors.
+            port_specs = dict(((p.type, p.name), p) for p in m1.port_spec_list)
+            for p in m2.port_spec_list:
+                p_key = (p.type, p.name)
+                if not p_key in port_specs:
+                    m1.add_port_spec(p)
+                elif port_specs[p_key] != p:
+                    #if we add this port, we will get port overloading.
+                    #To avoid this, just cast the current port to be of
+                    # Module or Variant type.
+                    var_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(var_port_spec)
+                    if var_port_spec.type == 'input':
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Module)'
+                    else:
+                        var_port_spec.sigstring = \
+                            '(edu.utah.sci.vistrails.basic:Variant)'
+                    var_port_spec.create_entries_and_descriptors()
+                    var_port_spec.create_tooltip()
+                    m1.add_port_spec(var_port_spec)
+                            
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
+
+        total_len = len(v1Andv2) + + len(heuristicMatch) + len(paramChanged)
+        if total_len != 0:
+            avg1_x = sum1_x / total_len
+            avg1_y = sum1_y / total_len
+            avg2_x = sum2_x / total_len
+            avg2_y = sum2_y / total_len
+        else:
+            avg1_x = 0.0
+            avg1_y = 0.0
+            avg2_x = 0.0
+            avg2_y = 0.0
+#         avg1_x = sum1_x / total_len if total_len != 0 else 0.0
+#         avg1_y = sum1_y / total_len if total_len != 0 else 0.0
+#         avg2_x = sum2_x / total_len if total_len != 0 else 0.0
+#         avg2_y = sum2_y / total_len if total_len != 0 else 0.0
+
+        # Now add the ones only applicable for v1, still using v1 ids
+        for m1id in v1Only:
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
+
+        # Now add the ones for v2 only but must shift the ids away from v1
+        for m2id in v2Only:
+            p2_module = copy.copy(p2.modules[m2id])
+            p2_module.id = m2id + shiftId
+            # p2.modules[m2id].id = m2id + shiftId
+            p2_module.location.x -= avg2_x - avg1_x
+            p2_module.location.y -= avg2_y - avg1_y
+            item = scene.addModule(p2_module, #p2.modules[m2id],
+                                   CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
+            item.controller = controller
+            # p_both.add_module(copy.copy(p2.modules[m2id]))
+            p_both.add_module(p2_module)
+            
+
+        # Create a mapping between share modules between v1 and v2
+        v1Tov2 = {}
+        v2Tov1 = {}
+        for (m1id, m2id) in v1Andv2:
+            v1Tov2[m1id] = m2id
+            v2Tov1[m2id] = m1id
+        for (m1id, m2id) in heuristicMatch:
+            v1Tov2[m1id] = m2id
+            v2Tov1[m2id] = m1id
+        for ((m1id, m2id), matching) in paramChanged:
+            v1Tov2[m1id] = m2id
+            v2Tov1[m2id] = m1id
+
+        # Next we're going to add connections, only connections of
+        # v2Only need to shift their ids
+        if p1.connections.keys():
+            connectionShift = max(p1.connections.keys())+1
+        else:
+            connectionShift = 0
+        allConnections = copy.copy(p1.connections)
+        sharedConnections = []
+        v2OnlyConnections = []        
+        for (cid2, connection2) in copy.copy(p2.connections.items()):
+            if connection2.sourceId in v2Only:
+                connection2.sourceId += shiftId
+            else:
+                connection2.sourceId = v2Tov1[connection2.sourceId]
+                
+            if connection2.destinationId in v2Only:
+                connection2.destinationId += shiftId
+            else:
+                connection2.destinationId = v2Tov1[connection2.destinationId]
+
+            # Is this connection also shared by p1?
+            shared = False
+            for (cid1, connection1) in p1.connections.items():
+                if (connection1.sourceId==connection2.sourceId and
+                    connection1.destinationId==connection2.destinationId and
+                    connection1.source.name==connection2.source.name and
+                    connection1.destination.name==connection2.destination.name):
+                    sharedConnections.append(cid1)
+                    shared = True
+                    break
+            if not shared:
+                allConnections[cid2+connectionShift] = connection2
+                connection2.id = cid2+connectionShift
+                v2OnlyConnections.append(cid2+connectionShift)
+
+        connectionItems = []
+        for c in allConnections.values():
+            p_both.add_connection(copy.copy(c))
+            connectionItems.append(scene.addConnection(c))
+
+        # Color Code connections
+        for c in connectionItems:
+            if c.id in sharedConnections:
+                pass
+            elif c.id in v2OnlyConnections:
+                pen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
+                pen.setBrush(CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
+                c.connectionPen = pen
+            else:
+                pen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
+                pen.setBrush(CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
+                c.connectionPen = pen
+
+       
+
+        scene.updateSceneBoundingRect()
+        scene.fitToView(self, True)
+
 class QVisualDiff(QtGui.QMainWindow):
     """
     QVisualDiff is a main widget for Visual Diff containing a GL
