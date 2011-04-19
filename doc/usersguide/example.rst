@@ -13,3 +13,4 @@ Learning VisTrails By Example
    parameter_exploration
    database
    example_webservices
+   persistence
