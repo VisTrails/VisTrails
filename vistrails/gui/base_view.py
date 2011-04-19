@@ -21,17 +21,10 @@
 ############################################################################
 
 class BaseView(object):
-    """ BaseView is the base class for the views in VisTrails.  Each
-    view can define a set of palettes it contributes.  These are
-    coordinated and owned by the main builder window.
+    """ BaseView is the base class for the views in VisTrails.
+
 
     """
-
-    # palettes is a list of tuples of the form 
-    # (class (class), singleton (int), default_loc (QtCore.Qt.DockWidgetArea))
-    USE_GLOBAL = 0
-    USE_OWN = 1
-    palettes = []
 
     def __init__(self):
         self.controller = None

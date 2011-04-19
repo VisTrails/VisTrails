@@ -210,6 +210,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.controller.change_selected_version(version_id, by_click, 
                                                 do_validate, from_root)
         _app.notify("version_changed", version_id)
+        if by_click:
+            view = self.stack.widget(
+                self.tab_to_stack_idx[self.tabs.currentIndex()])
+            view.scene().fitToView(view, True)
         if double_click:
             # view = self.create_pipeline_view()
             # view.set_controller(self.controller)
