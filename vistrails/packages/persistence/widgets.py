@@ -602,14 +602,22 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         if is_input:
             new_layout.addWidget(QtGui.QLabel("Path:"), 0, 0)
             self.new_file = self.get_chooser_layout()
+            if hasattr(self.new_file, 'pathname_edit'):
+                self.connect(self.new_file.pathname_edit,
+                             QtCore.SIGNAL("textChanged(QString)"),
+                             self.stateChange)
             new_layout.addLayout(self.new_file, 0, 1)
             self.connect(self.new_file, QtCore.SIGNAL("pathnameChanged()"),
                          self.new_file_changed)
         new_layout.addWidget(QtGui.QLabel("Name:"), 1, 0)
         self.name_edit = QtGui.QLineEdit()
+        self.connect(self.name_edit, QtCore.SIGNAL("textChanged(QString)"),
+                     self.stateChange)
         new_layout.addWidget(self.name_edit, 1, 1)
         new_layout.addWidget(QtGui.QLabel("Tags:"), 2, 0)
         self.tags_edit = QtGui.QLineEdit()
+        self.connect(self.tags_edit, QtCore.SIGNAL("textChanged(QString)"),
+                     self.stateChange)
         new_layout.addWidget(self.tags_edit, 2, 1)
         self.new_group.setLayout(new_layout)
         layout.addWidget(self.new_group)
@@ -632,6 +640,9 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         existing_layout.addWidget(self.search_ref)
         self.ref_widget = PersistentRefView(path_type, self)
         existing_layout.addWidget(self.ref_widget)
+        self.connect(self.ref_widget,
+            QtCore.SIGNAL("clicked(QModelIndex)"),
+                          self.stateChange)
         self.existing_group.setLayout(existing_layout)
         layout.addWidget(self.existing_group)
 
@@ -642,11 +653,17 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.local_group = QtGui.QGroupBox()
         local_layout = QtGui.QGridLayout()
         self.local_path = self.get_chooser_layout()
+        if hasattr(self.local_path, 'pathname_edit'):
+            self.connect(self.local_path.pathname_edit,
+                         QtCore.SIGNAL("textChanged(QString)"),
+                         self.stateChange)
         local_layout.addLayout(self.local_path,0,0,1,2)
 
         self.r_priority_local = QtGui.QCheckBox("Read From Local Path")
         local_layout.addWidget(self.r_priority_local,1,0)
         self.write_managed_checkbox = QtGui.QCheckBox("Write To Local Path")
+        self.connect(self.write_managed_checkbox, QtCore.SIGNAL("toggled(bool)"),
+                     self.stateChange)
         local_layout.addWidget(self.write_managed_checkbox,1,1)
         self.local_group.setLayout(local_layout)
         layout.addWidget(self.local_group)
@@ -661,25 +678,44 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         button_layout = QtGui.QHBoxLayout()
         button_layout.setDirection(QtGui.QBoxLayout.RightToLeft)
         button_layout.setAlignment(QtCore.Qt.AlignRight)
-        ok_button = QtGui.QPushButton("OK")
-        ok_button.setFixedWidth(100)
-        self.connect(ok_button, QtCore.SIGNAL('clicked()'), self.ok_triggered)
-        button_layout.addWidget(ok_button)
-        cancel_button = QtGui.QPushButton("Cancel")
-        cancel_button.setFixedWidth(100)
-        self.connect(cancel_button, QtCore.SIGNAL('clicked()'), self.cancel)
-        button_layout.addWidget(cancel_button)
+        self.saveButton = QtGui.QPushButton("Save")
+        self.saveButton.setFixedWidth(100)
+        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.saveTriggered)
+        button_layout.addWidget(self.saveButton)
+        self.resetButton = QtGui.QPushButton("Reset")
+        self.resetButton.setFixedWidth(100)
+        self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
+                     self.resetTriggered)
+        button_layout.addWidget(self.resetButton)
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
-    def ok_triggered(self):
-        # run the okTriggeredCode
+
+    def saveTriggered(self, checked = False):
         self.get_values()
-        self.done(QtGui.QDialog.Accepted)
-
-    def cancel(self):
-        self.done(QtGui.QDialog.Rejected)
-
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        self.state_changed = False
+        self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+        
+    def closeEvent(self, event):
+        self.askToSaveChanges()
+        event.accept()
+                
+    def resetTriggered(self):
+        self.set_values()
+        self.setUpdatesEnabled(True)
+        self.state_changed = False
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        
+    def stateChange(self, checked = False, old = None):
+        if not self.state_changed:
+            self.state_changed = True
+            self.saveButton.setEnabled(True)
+            self.resetButton.setEnabled(True)
+    
     def search_string(self, str):
         self.ref_widget.model().setFilterWildcard(str)
 
@@ -688,21 +724,26 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.ref_widget.model().invalidate()
 
     def managed_toggle(self, checked):
+        self.stateChange()
         self.new_group.setEnabled(not checked)
         self.existing_group.setEnabled(not checked)
 
     def new_toggle(self, checked):
+        self.stateChange()
         self.new_group.setEnabled(checked)
         self.existing_group.setEnabled(not checked)
 
     def existing_toggle(self, checked):
+        self.stateChange()
         self.existing_group.setEnabled(checked)
         self.new_group.setEnabled(not checked)
 
     def local_toggle(self, checked):
+        self.stateChange()
         self.local_group.setEnabled(checked)
 
     def new_file_changed(self):
+        self.stateChange()
         new_file = str(self.new_file.get_path())
         if new_file:
             base_name = os.path.basename(new_file)
@@ -795,6 +836,9 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             self.r_priority_local.setChecked(local_read)
         if local_write is not None:
             self.write_managed_checkbox.setChecked(local_write)
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        self.state_changed = False
 
     def get_values(self):
         from core.modules.module_registry import get_module_registry
