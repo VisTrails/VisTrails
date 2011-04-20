@@ -128,3 +128,17 @@ class DatabaseAccess(object):
                         "WHERE id=? AND version=?;", (id, version))
         res = cur.fetchone()
         return res is not None
+
+    def delete_from_database(self, where_dict=None):
+        cur = self.conn.cursor()
+        if where_dict is None or len(where_dict) <= 0:
+            cur.execute("DELETE FROM file;")
+        else:
+            where_cols, where_vals = zip(*where_dict.iteritems())
+            where_str = '=? AND '.join(where_cols) + '=?'
+            cur.execute("DELETE FROM file WHERE %s;" % where_str, where_vals)
+        self.conn.commit()
+        if self.model:
+            self.model.remove_data(where_dict)
+        # return cur.fetchall()
+                     

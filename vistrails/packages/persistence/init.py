@@ -46,7 +46,7 @@ from compute_hash import compute_hash
 from widgets import PersistentRefInlineWidget, \
     PersistentInputFileConfiguration, PersistentOutputFileConfiguration, \
     PersistentInputDirConfiguration, PersistentOutputDirConfiguration, \
-    PersistentRefModel
+    PersistentRefModel, PersistentConfiguration
 from db_utils import DatabaseAccessSingleton
 
 global_db = None
@@ -170,6 +170,8 @@ class PersistentPath(Module):
             out_dirname = tempfile.mkdtemp(suffix=out_suffix,
                                            prefix='vt_persist')
             temp_persist_files.append(out_dirname)
+        elif not os.path.exists(out_dirname):
+            os.makedirs(out_dirname)
         if systemType == "Windows":    
             cmd_list = [self.git_command() + \
                         ["archive", str(version + ':' + name)],
@@ -346,6 +348,35 @@ class PersistentPath(Module):
         debug_print('***')
         
         return tree_hash
+
+    def git_remove_path(self, path):
+        global git_bin, local_db
+        # only recommended for intermediate files!
+        inner_cmd =  [git_bin, "rm", "-r", "--cached", "--ignore-unmatch", path]
+        inner_cmd_str = ' '.join(inner_cmd)
+        cmd_line = self.git_command() + \
+            ['filter-branch', '--index-filter', inner_cmd_str, 'HEAD']
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('result:', result)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
+        debug_print('***')
+        shutil.rmtree(os.path.join(local_db, ".git", "refs", "original"))
+        cmd_line = self.git_command() + ["reflog", "expire", "--all"]
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('result:', result)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
+        debug_print('***')
+        cmd_line = self.git_command() + ["gc", "--aggressive", "--prune"]
+        debug_print('executing', cmd_line)
+        result, output, errs = execute_cmdline2(cmd_line)
+        debug_print('result:', result)
+        debug_print('stdout:', type(output), output)
+        debug_print('stderr:', type(errs), errs)
+        debug_print('***')
 
     def get_path_type(self, path):
         if os.path.isdir(path):
@@ -746,9 +777,11 @@ def initialize():
             else:
                 print '*** persistence warning: cannot find path "%s"' % path
 
+_configuration_widget = None
+
 def finalize():
     # delete all temporary files/directories used by zip
-    global temp_persist_files, db_access
+    global temp_persist_files, db_access, _configuration_widget
 
     for fname in temp_persist_files:
         if os.path.isfile(fname):
@@ -756,6 +789,17 @@ def finalize():
         elif os.path.isdir(fname):
             shutil.rmtree(fname)
     db_access.finalize()
+    if _configuration_widget is not None:
+        _configuration_widget.deleteLater()
+
+def menu_items():
+    def show_configure():
+        global _configuration_widget
+        if _configuration_widget is None:
+            _configuration_widget = PersistentConfiguration()
+        _configuration_widget.show()
+    menu_tuple = (("Manage Store...", show_configure),)
+    return menu_tuple
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     module_remap = {'PersistentFile':

@@ -50,15 +50,16 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
         self.cols = {0: "name",
-                     1: "tags",
-                     2: "user",
-                     3: "date_created",
-                     4: "date_modified",
-                     5: "id",
-                     6: "version",
-                     7: "content_hash",
-                     8: "signature",
-                     9: "type"}
+                     1: "type",
+                     2: "tags",
+                     3: "user",
+                     4: "date_created",
+                     5: "date_modified",
+                     6: "id",
+                     7: "version",
+                     8: "content_hash",
+                     9: "signature",
+                     }
         self.idxs = dict((v,k) for (k,v) in self.cols.iteritems())
         self.headers = {"id": "ID",
                         "name": "Name",
@@ -68,7 +69,8 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
                         "date_modified": "Date Modified",
                         "content_hash": "Content Hash",
                         "version": "Version",
-                        "signature": "Signature"}
+                        "signature": "Signature",
+                        "type": "Type"}
 
         self.db_access = DatabaseAccessSingleton()
         self.db_access.set_model(self)
@@ -83,16 +85,6 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
 
         self.id_lists_keys = self.id_lists.keys()
 
-        self.file_idxs = set()
-        self.dir_idxs = set()
-        for i, key in enumerate(self.id_lists_keys):
-            if self.id_lists[key][0][self.idxs["type"]] == "blob":
-                self.file_idxs.add(i)
-            elif self.id_lists[key][0][self.idxs["type"]] == "tree":
-                self.dir_idxs.add(i)
-
-        print 'file:', self.file_idxs
-        print 'dir:', self.dir_idxs
         self.integer_wrappers = {}
 
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -231,16 +223,33 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
                 value_list.append(None)
         if id not in self.id_lists:
             self.id_lists[id] = []
-            if "type" in value_dict:
-                type = value_dict["type"]
-                if type == "blob":
-                    self.file_idxs.add(len(self.id_lists_keys))
-                elif type == "tree":
-                    self.dir_idxs.add(len(self.id_lists_keys))
             self.id_lists_keys.append(id)
         self.id_lists[id].append(tuple(value_list))
         self.reset()
             
+    def remove_data(self, where_dict):
+        id = where_dict['id']
+        version = where_dict.get('version', None)
+        if version is not None:
+            found = False
+            for idx, value_tuple in enumerate(self.id_lists[id]):
+                if value_tuple[self.idxs['version']] == version:
+                    found = True
+                    break
+            if found:
+                del self.id_lists[id][idx]
+        else:
+            path_type = self.id_lists[id][0][self.idxs['type']]
+            found = False
+            for idx, key_id in enumerate(self.id_lists_keys):
+                if key_id == id:
+                    found = True
+                    break
+            if found:
+                del self.id_lists_keys[idx]
+            del self.id_lists[id]
+        self.reset()
+
 class PersistentRefView(QtGui.QTreeView):
     def __init__(self, path_type=None, parent=None):
         QtGui.QTreeView.__init__(self, parent)
@@ -261,15 +270,21 @@ class PersistentRefView(QtGui.QTreeView):
 
     def set_visibility(self, path_type=None):
         if path_type == "blob":
-            for i in xrange(len(self.my_model.id_lists_keys)):
-                if i not in self.my_model.file_idxs:
+            self.header().hideSection(self.my_model.idxs["type"])
+            for i, key in enumerate(self.my_model.id_lists_keys):
+                id_list = self.my_model.id_lists[key]
+                if id_list[0][self.my_model.idxs["type"]] != "blob":
+                    # if i not in self.my_model.file_idxs:
                     print "setting index", i, "to hidden"
                     my_index = self.my_model.createIndex(i, 0, None)
                     index = self.model().mapFromSource(my_index)
                     self.setRowHidden(index.row(), QtCore.QModelIndex(), True)
         elif path_type == "tree":
-            for i in xrange(len(self.my_model.id_lists_keys)):
-                if i not in self.my_model.dir_idxs:
+            self.header().hideSection(self.my_model.idxs["type"])
+            for i, key in enumerate(self.my_model.id_lists_keys):
+                id_list = self.my_model.id_lists[key]
+                if id_list[0][self.my_model.idxs["type"]] != "blob":
+                    # if i not in self.my_model.dir_idxs:
                     print "setting index", i, "to hidden"
                     my_index = self.my_model.createIndex(i, 0, None)
                     index = self.model().mapFromSource(my_index)
@@ -329,24 +344,30 @@ class PersistentRefView(QtGui.QTreeView):
         return None
         
     def get_info(self):
-        sf_index = self.selectionModel().selectedRows()[0]
-        index = self.model().mapToSource(sf_index)        
-        if index.internalPointer():
-            paridx = index.internalPointer().idx
-            id_list = \
-                self.my_model.id_lists[self.my_model.id_lists_keys[paridx]]
-            info = id_list[index.row()]
-            version = str(info[self.my_model.idxs['version']])
-        else:
-            id_list = \
-                self.my_model.id_lists[self.my_model.id_lists_keys[index.row()]]
-            info = id_list[0]
-            version = None
-        return (str(info[self.my_model.idxs['id']]),
-                version,
-                str(info[self.my_model.idxs['name']]),
-                str(info[self.my_model.idxs['tags']]))
-                    
+        return self.get_info_list()[0]
+
+    def get_info_list(self):
+        s_indexes = self.selectionModel().selectedRows()
+        info_list = []
+        for s_idx in s_indexes:
+            index = self.model().mapToSource(s_idx)
+            if index.internalPointer():
+                paridx = index.internalPointer().idx
+                id_list = \
+                    self.my_model.id_lists[self.my_model.id_lists_keys[paridx]]
+                info = id_list[index.row()]
+                version = str(info[self.my_model.idxs['version']])
+            else:
+                id_list = self.my_model.id_lists[ \
+                    self.my_model.id_lists_keys[index.row()]]
+                info = id_list[0]
+                version = None
+            info_list.append((str(info[self.my_model.idxs['id']]),
+                              version,
+                              str(info[self.my_model.idxs['name']]),
+                              str(info[self.my_model.idxs['tags']])))
+        return info_list
+
 class PersistentRefDialog(QtGui.QDialog):
     def __init__(self, param, parent=None):
         QtGui.QDialog.__init__(self, parent)
@@ -555,6 +576,36 @@ class PathChooserLayout(QtGui.QHBoxLayout):
         else:
             self.pathname_edit.clear()
 
+class PersistentRefViewSearch(QtGui.QGroupBox):
+    def __init__(self, path_type=None, parent=None):
+        QtGui.QGroupBox.__init__(self, parent)
+        self.build_gui(path_type)
+
+    def build_gui(self, path_type):
+        layout = QtGui.QVBoxLayout()
+        self.search_ref = QSearchBox(False, False)
+
+        self.connect(self.search_ref, 
+                     QtCore.SIGNAL('executeSearch(QString)'),
+                     self.search_string)
+        self.connect(self.search_ref, 
+                     QtCore.SIGNAL('resetSearch()'),
+                     self.reset_search)
+
+        layout.addWidget(self.search_ref)
+        self.ref_widget = PersistentRefView(path_type, self)
+        layout.addWidget(self.ref_widget)
+        layout.setMargin(0)
+        self.setLayout(layout)
+
+    def search_string(self, str):
+        self.ref_widget.model().setFilterWildcard(str)
+
+    def reset_search(self):
+        self.ref_widget.model().setFilterWildcard('')
+        self.ref_widget.model().invalidate()
+    
+
 class PersistentPathConfiguration(StandardModuleConfigurationWidget):
     def __init__(self, module, controller, parent=None, 
                  is_input=None, path_type=None):
@@ -626,24 +677,27 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.connect(self.managed_existing, QtCore.SIGNAL("toggled(bool)"),
                      self.existing_toggle)
         layout.addWidget(self.managed_existing)
-        self.existing_group = QtGui.QGroupBox()
-        existing_layout = QtGui.QVBoxLayout()
-        self.search_ref = QSearchBox(False, False)
 
-        self.connect(self.search_ref, 
-                     QtCore.SIGNAL('executeSearch(QString)'),
-                     self.search_string)
-        self.connect(self.search_ref, 
-                     QtCore.SIGNAL('resetSearch()'),
-                     self.reset_search)
+        # self.existing_group = QtGui.QGroupBox()
+        # existing_layout = QtGui.QVBoxLayout()
+        # self.search_ref = QSearchBox(False, False)
 
-        existing_layout.addWidget(self.search_ref)
-        self.ref_widget = PersistentRefView(path_type, self)
-        existing_layout.addWidget(self.ref_widget)
+        # self.connect(self.search_ref, 
+        #              QtCore.SIGNAL('executeSearch(QString)'),
+        #              self.search_string)
+        # self.connect(self.search_ref, 
+        #              QtCore.SIGNAL('resetSearch()'),
+        #              self.reset_search)
+
+        # existing_layout.addWidget(self.search_ref)
+        # self.ref_widget = PersistentRefView(path_type, self)
+        # existing_layout.addWidget(self.ref_widget)
+        # self.existing_group.setLayout(existing_layout)
+        self.existing_group = PersistentRefViewSearch(path_type)
+        self.ref_widget = self.existing_group.ref_widget
         self.connect(self.ref_widget,
-            QtCore.SIGNAL("clicked(QModelIndex)"),
-                          self.stateChange)
-        self.existing_group.setLayout(existing_layout)
+                     QtCore.SIGNAL("clicked(QModelIndex)"),
+                     self.stateChange)
         layout.addWidget(self.existing_group)
 
         self.keep_local = QtGui.QCheckBox("Keep Local Version")
@@ -691,7 +745,6 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
-
     def saveTriggered(self, checked = False):
         self.get_values()
         self.saveButton.setEnabled(False)
@@ -716,13 +769,6 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(True)
             self.resetButton.setEnabled(True)
     
-    def search_string(self, str):
-        self.ref_widget.model().setFilterWildcard(str)
-
-    def reset_search(self):
-        self.ref_widget.model().setFilterWildcard('')
-        self.ref_widget.model().invalidate()
-
     def managed_toggle(self, checked):
         self.stateChange()
         self.new_group.setEnabled(not checked)
@@ -952,4 +998,116 @@ class PersistentOutputDirConfiguration(PersistentOutputPathConfiguration):
     def get_chooser_layout(self):
         return PathChooserLayout(True, self)
     
+class PersistentConfiguration(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setModal(False)
+        self.build_gui()
+        self.db_access = DatabaseAccessSingleton()
 
+    def build_gui(self):
+        layout = QtGui.QVBoxLayout()
+        self.ref_search = PersistentRefViewSearch(None)
+        self.ref_search.ref_widget.setSelectionMode(
+            QtGui.QAbstractItemView.ExtendedSelection)
+        layout.addWidget(self.ref_search)
+        
+        button_layout = QtGui.QHBoxLayout()
+        button_layout.setAlignment(QtCore.Qt.AlignRight)
+        write_button = QtGui.QPushButton("Write...")
+        write_button.setAutoDefault(False)
+        self.connect(write_button, QtCore.SIGNAL("clicked()"), self.write)
+        button_layout.addWidget(write_button)
+        delete_button = QtGui.QPushButton("Delete...")
+        delete_button.setAutoDefault(False)
+        self.connect(delete_button, QtCore.SIGNAL("clicked()"), self.delete)
+        button_layout.addWidget(delete_button)
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
+        
+    def write(self):
+        from init import PersistentPath
+        info_list = self.ref_search.ref_widget.get_info_list()
+        if len(info_list) < 1:
+            return
+        elif len(info_list) == 1:
+            # save single file/dir
+            info = info_list[0]
+            name = info[2]
+            chosen_path = str(QtGui.QFileDialog.getSaveFileName(self,
+                                                                'Save...',
+                                                                name))
+            if not chosen_path:
+                return
+
+            # FIXME really should move this calls to a higher level so
+            # we don't need to instantiate a module
+            git_util = PersistentPath()
+            if info[1] is None:
+                version = "HEAD"
+            else:
+                version = info[1]
+            git_util.git_get_path(info[0], version, None, chosen_path)
+        else:
+            # have multiple files/dirs
+            get_dir = QtGui.QFileDialog.getExistingDirectory
+            chosen_path = str(get_dir(self,
+                                      'Save All to Directory...'))
+            git_util = PersistentPath()
+            has_overwrite = False
+            for info in info_list:
+                full_path = os.path.join(chosen_path, info[2])
+                if os.path.exists(full_path):
+                    has_overwrite = True
+            if has_overwrite:
+                question_str = "One or more of the paths already exist.  " + \
+                    "Overwrite?"
+                ret_val = \
+                    QtGui.QMessageBox.question(self, "Overwrite", \
+                                                   question_str, \
+                                                   QtGui.QMessageBox.Cancel | \
+                                                   QtGui.QMessageBox.No | \
+                                                   QtGui.QMessageBox.Yes)
+                if ret_val != QtGui.QMessageBox.Yes:
+                    return
+
+            for info in info_list:
+                if info[1] is None:
+                    version = "HEAD"
+                else:
+                    version = info[1]
+                full_path = os.path.join(chosen_path, info[2])
+                git_util.git_get_path(info[0], version, None, full_path)
+            
+    def delete(self):
+        from init import PersistentPath
+        from delete import git_remove_file
+        info_list = self.ref_search.ref_widget.get_info_list()
+        if len(info_list) < 1:
+            return
+
+        delete_str = "This will permanently delete the selected data " + \
+            "from the peristent store.  This cannot be undone.  Proceed?"
+        question_f = QtGui.QMessageBox.question
+        ret_val = question_f(self, "Delete", delete_str, \
+                                 QtGui.QMessageBox.Cancel | \
+                                 QtGui.QMessageBox.Ok)
+        if ret_val != QtGui.QMessageBox.Ok:
+            return
+            
+        git_util = PersistentPath()
+        db_access = DatabaseAccessSingleton()
+        # FIXME keep entry in database with flag for deleted?
+        # NEED TO update the model...
+        for info in info_list:
+            delete_where = {'id': info[0]}
+            if info[1] is None:
+                git_util.git_remove_path(info[0])
+                db_access.delete_from_database(delete_where)
+            else:
+                # FIXME implement delete for versions...
+                delete_where['version'] = info[1]
+                print "NOT IMPLEMENTED FOR VERSIONS!!"
+                
+                
+        
