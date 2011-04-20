@@ -288,7 +288,6 @@ class Collection(object):
         Update the specified entity url. Delete or reload as necessary.
         Need to make sure workspaces are updated if the entity is changed.
         """
-        locator = BaseLocator.from_url(url)
         entities = [e for e in self.entities.itervalues() if e.url == url]
         entity = entities[0] if len(entities) else None
         workspaces = [p for p in self.workspaces if entity in self.workspaces[p]]  
@@ -297,6 +296,7 @@ class Collection(object):
                 self.del_from_workspace(entity, p)
             self.delete_entity(entity)
 
+        locator = BaseLocator.from_url(url)
         if locator.is_valid():
             if not vistrail:
                 (vistrail, abstractions, thumbnails) = load_vistrail(locator)

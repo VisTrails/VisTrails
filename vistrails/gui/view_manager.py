@@ -447,7 +447,8 @@ class QViewManager(QtGui.QTabWidget):
             debug.critical("Module registry error for %s" %
                            str(e.__class__.__name__), str(e))
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            import traceback
+            debug.critical('An error has occurred', str(e) + traceback.format_exc())
             raise
         
     def save_vistrail(self, locator_class,

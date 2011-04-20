@@ -83,6 +83,7 @@ class VistrailEntity(Entity):
             self.name = self.vistrail.locator.short_name
             if not self.name or self.name == 'None':
                 self.name = self.vistrail.db_name
+            print "locator name set to ", self.name
             self.user = latestVersion.user
             self.mod_time = latestVersion.date
             self.create_time = firstVersion.date
@@ -200,4 +201,5 @@ class VistrailEntity(Entity):
 
     def open(self):
         locator = BaseLocator.from_url(self.url)
+        locator._name = self.name
         core.open_locator(locator)
