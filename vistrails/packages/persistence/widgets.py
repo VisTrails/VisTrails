@@ -1025,6 +1025,9 @@ class PersistentConfiguration(QtGui.QDialog):
         layout.addLayout(button_layout)
         self.setLayout(layout)
         
+    def sizeHint(self):
+        return QtCore.QSize(800,320)
+
     def write(self):
         from init import PersistentPath
         info_list = self.ref_search.ref_widget.get_info_list()
@@ -1055,8 +1058,13 @@ class PersistentConfiguration(QtGui.QDialog):
                                       'Save All to Directory...'))
             git_util = PersistentPath()
             has_overwrite = False
+            # if untitled (no name, use the uuid)
             for info in info_list:
-                full_path = os.path.join(chosen_path, info[2])
+                if info[2]:
+                    name = info[2]
+                else:
+                    name = info[0]
+                full_path = os.path.join(chosen_path, name)
                 if os.path.exists(full_path):
                     has_overwrite = True
             if has_overwrite:
@@ -1076,7 +1084,11 @@ class PersistentConfiguration(QtGui.QDialog):
                     version = "HEAD"
                 else:
                     version = info[1]
-                full_path = os.path.join(chosen_path, info[2])
+                if info[2]:
+                    name = info[2]
+                else:
+                    name = info[0]
+                full_path = os.path.join(chosen_path, name)
                 git_util.git_get_path(info[0], version, None, full_path)
             
     def delete(self):

@@ -507,13 +507,12 @@ class PersistentPath(Module):
         if self.persistent_path is None and not self.hasInputFromPort('value') \
                 and is_input and not (ref.local_path and ref.local_read):
             _, suffix = os.path.splitext(ref.name)
-            if ref.version:
-                # get specific ref.uuid, ref.version combo
-                path = self.git_get_path(ref.id, ref.version, 
-                                         out_suffix=suffix)
-            else:
-                # get specific ref.uuid path
-                path = self.git_get_path(ref.id, out_suffix=suffix)
+            if ref.version is None:
+                ref.version = self.git_get_latest_version(ref.id)
+
+            # get specific ref.uuid, ref.version combo
+            path = self.git_get_path(ref.id, ref.version, 
+                                     out_suffix=suffix)
         elif self.persistent_path is None:
             # copy path to persistent directory with uuid as name
             if is_input and ref.local_path and ref.local_read:
@@ -539,7 +538,8 @@ class PersistentPath(Module):
                 # get commit id as version id
                 # persist object-hash, commit-version to repository
                 version = self.git_add_commit(ref.id)
-                
+                ref.version = version
+
                 # write object-hash, commit-version to provenance
                 if is_input:
                     signature = new_hash
@@ -563,6 +563,8 @@ class PersistentPath(Module):
                 self.copypath(path, ref.local_path)
 
         # for all paths
+        self.annotate({'persistent_id': ref.id,
+                       'persistent_version': ref.version})
         self.set_result(path)
 
     _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Path)'),
