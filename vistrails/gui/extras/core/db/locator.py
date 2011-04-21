@@ -44,9 +44,9 @@ def get_load_db_locator_from_gui(parent, obj_type):
                      config['user'],
                      config['passwd'],
                      obj_name,
-                     obj_id,
-                     obj_type,
-                     config.get('id', None))
+                     obj_id=obj_id,
+                     obj_type=obj_type,
+                     connection_id=config.get('id', None))
 
 def get_save_db_locator_from_gui(parent, obj_type, locator=None):
     config, name = QOpenDBWindow.getSaveDBObject(obj_type)
@@ -58,9 +58,9 @@ def get_save_db_locator_from_gui(parent, obj_type, locator=None):
                      config['user'],
                      config['passwd'],
                      name,
-                     None,
-                     obj_type,
-                     config.get('id', None))
+                     obj_id=None,
+                     obj_type=obj_type,
+                     connection_id=config.get('id', None))
 
 ##############################################################################
 

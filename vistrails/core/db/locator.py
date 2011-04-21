@@ -30,11 +30,28 @@ from core.external_connection import ExtConnectionList, DBConnection
 from core.thumbnails import ThumbnailCache
 from core import debug
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
-    DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
+    DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator, \
+    BaseLocator as _BaseLocator
 from db.services.io import SaveBundle, test_db_connection
 from db import VistrailsDBException
 from PyQt4 import QtCore
 ElementTree = get_elementtree_library()
+
+class BaseLocator(_BaseLocator):
+    @staticmethod
+    def convert_locator(locator):
+        if locator.__class__ == _XMLFileLocator:
+            locator.__class__ = XMLFileLocator
+        elif locator.__class__ == _ZIPFileLocator:
+            locator.__class__ = ZIPFileLocator
+        elif locator.__class__ == _DBLocator:
+            locator.__class__ = DBLocator
+            
+    @staticmethod
+    def from_url(url):
+        locator = _BaseLocator.from_url(url)
+        BaseLocator.convert_locator(locator)
+        return locator
 
 class CoreLocator(object):
     @staticmethod
@@ -77,8 +94,8 @@ class CoreLocator(object):
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
-    def __init__(self, filename, version_node=None, version_tag=''):
-        _XMLFileLocator.__init__(self, filename, version_node, version_tag)
+    def __init__(self, filename, **kwargs):
+        _XMLFileLocator.__init__(self, filename, **kwargs)
         
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -163,12 +180,10 @@ class DBLocator(_DBLocator, CoreLocator):
     keyChain = getKeyChain()
     
     def __init__(self, host, port, database, user, passwd, name=None,
-                 obj_id=None, obj_type=None, connection_id=None,
-                 version_node=None, version_tag=''):
+                 **kwargs):
         
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
-                            obj_id, obj_type, connection_id, version_node,
-                            version_tag)
+                            **kwargs)
         self.ext_connection_id = -1
 
     def load(self, klass=None):
@@ -429,8 +444,8 @@ class DBLocator(_DBLocator, CoreLocator):
     
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
-    def __init__(self, filename, version_node=None, version_tag=''):
-        _ZIPFileLocator.__init__(self, filename, version_node, version_tag)
+    def __init__(self, filename, **kwargs):
+        _ZIPFileLocator.__init__(self, filename, **kwargs)
 
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
