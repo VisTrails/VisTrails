@@ -100,5 +100,7 @@ class Entity(object):
         raise Exception("Method is abstract")
 
     def locator(self):
-        return BaseLocator.from_url(self.url)
+        locator = BaseLocator.from_url(self.url)
+        locator._name = self.name
+        return locator
 

@@ -882,16 +882,17 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
 
     vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
     # get saved workflows from db
-    workflows = get_saved_workflows(vistrail, db_connection)
-    print "Workflows already saved:", workflows
+    workflowIds = get_saved_workflows(vistrail, db_connection)
+    print "Workflows already saved:", workflowIds
     dao_list.save_to_db(db_connection, vistrail, do_copy)
     vistrail = translate_vistrail(vistrail, version)
     vistrail.db_currentVersion = current_action
 
     # update all missing tagged workflows
+    wfToSave = []
     for id, name in vistrail.get_tagMap().iteritems():
-        if id not in workflows:
-            print "creating workflow", vistrail.db_id, id, name, "materializing",
+        if id not in workflowIds:
+            print "creating workflow", vistrail.db_id, id, name,
             workflow = vistrail.getPipeline(id)
             workflow.db_id = None
             workflow.db_vistrail_id = vistrail.db_id
@@ -899,9 +900,9 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             workflow.db_group = id
             workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
             workflow.db_name = name
-            print workflow, workflow.is_new, workflow.is_dirty,
-            dao_list.save_to_db(db_connection, workflow)
+            wfToSave.append(workflow)
             print "done"
+    dao_list.save_many_to_db(db_connection, wfToSave, True)
     db_connection.commit()
     return vistrail
 

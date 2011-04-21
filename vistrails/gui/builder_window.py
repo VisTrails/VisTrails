@@ -114,12 +114,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.workspace = QWorkspaceWindow(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                                self.workspace)
+        self.provenanceBrowser = QExplorerWindow(self)
         self.workspace.hide()
         self.shell = None
         self.debugger = None
-        
-        self.explorer = QExplorerWindow(self)
-        self.explorer.show()
         
         # If this is true, we're currently executing a pipeline, so
         # We can't allow other executions.
@@ -383,6 +381,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.workspaceAction.setCheckable(True)
         self.workspaceAction.setChecked(False)
 
+        self.provenanceBrowserAction = QtGui.QAction('Provenance Browser', self)
+        self.provenanceBrowserAction.setCheckable(True)
+        self.provenanceBrowserAction.setChecked(False)
+
         self.shellAction = QtGui.QAction(CurrentTheme.CONSOLE_MODE_ICON,
                                          'VisTrails Console', self)
         self.shellAction.setCheckable(True)
@@ -540,6 +542,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu.addAction(self.workspaceAction)
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addAction(self.debugAction)
+        self.viewMenu.addAction(self.provenanceBrowserAction)
         self.viewMenu.addAction(self.messagesAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.expandBranchAction)
@@ -720,6 +723,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.workspaceAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showWorkspace)
+
+        self.connect(self.provenanceBrowserAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.showProvenanceBrowser)
 
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
@@ -1397,6 +1404,14 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.workspace.show()
         else:
             self.workspace.hide()
+
+    def showProvenanceBrowser(self, checked=True):
+        """ showWorkspace() -> None
+        Display the vistrail workspace """
+        if checked:
+            self.provenanceBrowser.show()
+        else:
+            self.provenanceBrowser.hide()
 
     def showShell(self, checked=True):
         """ showShell() -> None

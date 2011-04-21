@@ -45,7 +45,10 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         self.execution = execution
         execution.item = self
         if execution.__class__ == WorkflowExec:
-            self.setText(0, 'Workflow %s' % execution.parent_version )
+            if execution.name:
+                self.setText(0, execution.name)
+            else:
+                self.setText(0, 'Version #%s' % execution.parent_version )
             for item_exec in execution.item_execs:
                 self.addChild(QExecutionItem(item_exec))
         if execution.__class__ == ModuleExec:
@@ -143,7 +146,10 @@ class QLegendWidget(QtGui.QWidget):
                 [1, "Error",             CurrentTheme.ERROR_MODULE_BRUSH],
                 [2, "Not executed", CurrentTheme.PERSISTENT_MODULE_BRUSH],
                 [3, "Cached",     CurrentTheme.NOT_EXECUTED_MODULE_BRUSH]]
-        
+
+        self.backButton = QtGui.QPushButton('Go back')
+        self.backButton.setToolTip("Go back to parent workflow")
+        self.gridLayout.addWidget(self.backButton, 1, 0, 1, 2)
         for n, text, brush in data:         
             self.gridLayout.addWidget(
                 QLegendBox(brush, CurrentTheme.VISUAL_DIFF_LEGEND_SIZE, self),
@@ -166,9 +172,13 @@ class QVisualLog(QtGui.QDialog):
         self.vistrail = vistrail
         self.version = None
         self.currentItem = None
+        # top item in tree
         self.workflowExecution = None
+        # the parent workflow. Can be workflow, loop or group.
         self.parentExecution = None
+        # execution can be anything
         self.execution = None
+        # the visible pipeline
         self.pipeline = None
         self.log = vistrail.get_log()
         # exec_id can be a number or a datetime
@@ -198,7 +208,8 @@ class QVisualLog(QtGui.QDialog):
         pipelineLayout = QtGui.QVBoxLayout()
         pipelineLayout.setMargin(0)
         pipelineLayout.setSpacing(0)
-        pipelineLayout.addWidget(QLegendWidget(), QtCore.Qt.AlignCenter)
+        self.legendWidget = QLegendWidget()
+        pipelineLayout.addWidget(self.legendWidget, QtCore.Qt.AlignCenter)
         self.pipelineView = QPipelineView()
         pipelineLayout.addWidget(self.pipelineView)
         pipelineLayout.setStretch(0,0)
@@ -217,10 +228,14 @@ class QVisualLog(QtGui.QDialog):
         widget.setStretchFactor(0,1)
         widget.setStretchFactor(1,1)
         
+        self.legendWidget.backButton.hide()
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Expanding))
+        self.connect(self.legendWidget.backButton,
+                     QtCore.SIGNAL('clicked()'),
+                     self.goBack)
         self.connect(self.executionList, QtCore.SIGNAL(
          "currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)"),
          self.itemClicked)
@@ -243,15 +258,13 @@ class QVisualLog(QtGui.QDialog):
     def itemClicked(self, item, olditem):
         self.currentItem = item
         self.execution = item.execution
-        import api
-        api.e = self.execution
         self.workflowExecution = item
         while self.workflowExecution.parent():
             self.workflowExecution = self.workflowExecution.parent()
         self.workflowExecution = self.workflowExecution.execution
         self.parentExecution = item
         while self.parentExecution.execution.__class__ not in \
-                [WorkflowExec, LoopExec]:
+                [WorkflowExec, LoopExec, GroupExec]:
             self.parentExecution = self.parentExecution.parent()
         self.parentExecution = self.parentExecution.execution
         self.showExecution()
@@ -320,8 +333,21 @@ class QVisualLog(QtGui.QDialog):
                     
     def showExecution(self):
         self.version = self.workflowExecution.parent_version
+        self.pipeline = self.vistrail.getPipeline(self.version)
+        if self.parentExecution.__class__ == GroupExec:
+            group = self.pipeline.db_get_module_by_id(
+                                 self.parentExecution.db_module_id)
+            self.pipeline = group.pipeline
+            self.legendWidget.backButton.show()
+        else:
+            self.legendWidget.backButton.hide()
         self.updatePipeline()
         self.showDetails()
+
+    def goBack(self):
+        self.execution = self.parentExecution
+        self.parentExecution = self.parentExecution.item.parent().execution
+        self.showExecution()
 
     def showDetails(self):
         if not self.execution:
@@ -349,7 +375,6 @@ class QVisualLog(QtGui.QDialog):
         """
         scene = self.pipelineView.scene()
         scene.clearItems()
-        self.pipeline = self.vistrail.getPipeline(self.version)
         self.pipeline.validate(False)
 
         # FIXME HACK: We will create a dummy object that looks like a
@@ -424,6 +449,6 @@ class QVisualLog(QtGui.QDialog):
 
         scene.updateSceneBoundingRect()
         scene.fitToView(self.pipelineView, True)
-        if self.execution.__class__ in [ModuleExec, GroupExec]:
+        if self.execution.__class__ in [ModuleExec]:
             self.execution.item.setSelected(True)
             self.execution.module.setSelected(True)

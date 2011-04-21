@@ -92,16 +92,27 @@ class QCollectionWidget(QtGui.QTreeWidget):
         print locator.name
         print '***'
         import gui.application
+        locator.update_from_gui(self)
+        if not locator.is_valid():
+            debug.critical("Locator is not valid:" % locator.to_url())
+            return
         app = gui.application.VistrailsApplication
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
-
-        workflow_exec = locator.kwargs.get('workflow_exec', None)
         args = {}
-        if workflow_exec:
-            args['workflow_exec'] = int(workflow_exec)
-            locator = widget_item.parent().entity.locator()
         args['version'] = locator.kwargs.get('version_node', None) or \
                           locator.kwargs.get('version_tag', None)
+        if args['version']:
+            # set vistrail name
+            locator._name = widget_item.entity.parent.name
+
+        workflow_exec = locator.kwargs.get('workflow_exec', None)
+        if workflow_exec:
+            args['workflow_exec'] = int(workflow_exec)
+            locator = widget_item.entity.parent.locator()
+            locator.update_from_gui(self)
+            # set vistrail name
+            locator._name = widget_item.entity.parent.parent.name
+            
         open_vistrail(locator, **args)
                                                        
     def contextMenuEvent(self, event):
@@ -173,6 +184,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
         items = [self.topLevelItem(i) 
                  for i in xrange(self.topLevelItemCount())]
         for item in items:
+            item.entity.locator.update_from_gui()
             if not self.collection.urlExists(item.entity.url):
                 self.collection.delete_entity(item.entity) 
         self.collection.commit()
@@ -204,7 +216,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
             self.update_from_directory(str(s))
         
     def update_from_directory(self, s):
-        filenames = glob.glob(os.path.join(s, '*.vt'))
+        filenames = glob.glob(os.path.join(s, '*.vt,*.xml'))
         
         progress = QtGui.QProgressDialog('', '', 0, len(filenames))
         progress.setWindowTitle('Adding files')
@@ -215,10 +227,13 @@ class QCollectionWidget(QtGui.QTreeWidget):
             progress.setValue(i)
             progress.setLabelText(filename)
             i += 1
-            locator = FileLocator(filename)
-            url = locator.to_url()
-            entity = self.collection.updateVistrail(url)
-            self.collection.add_to_workspace(entity)
+            try:
+                locator = FileLocator(filename)
+                url = locator.to_url()
+                entity = self.collection.updateVistrail(url)
+                self.collection.add_to_workspace(entity)
+            except:
+                debug.critical("Failed to add file '%s'" % filename)
         progress.setValue(len(filenames))
         self.collection.commit()
 
@@ -250,12 +265,6 @@ class QWorkspaceWidget(QCollectionWidget):
 
     def setup_widget(self, workspace=None):
         """ Adds the items from the current workspace """
-        print "self", self
-        import api
-        api.s = self
-        print "parent"
-        print "------"
-        print self.parent()
         while self.topLevelItemCount():
             self.takeTopLevelItem(0)
         if workspace:
@@ -288,11 +297,15 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             
         for child in entity.children:
             l = child.save()
+            # handle thumbnails
             if l[1] == 4:
                 cache = ThumbnailCache.getInstance() #.get_directory()
                 path = cache.get_abs_name_entry(l[2])
                 if path:
                     self.setIcon(0, QtGui.QIcon(path))
+                    tooltip = """%(url)s<br/><img border=0 src='%(path)s'/>
+                        """ % {'url':entity.url,'path':path}
+                    self.setToolTip(0, tooltip)
                 continue
             else:
                 self.addChild(QBrowserWidgetItem(child))
@@ -387,8 +400,8 @@ class QWorkspaceWindow(QToolWindow, QToolWindowInterface):
         self.widget = QtGui.QWidget(self)
         self.setWidget(self.widget)
         self.workspace_list = QtGui.QComboBox()
-        self.titleWidget = QtGui.QWidget(self)
-        self.titleLayout = QtGui.QHBoxLayout(self)
+        self.titleWidget = QtGui.QWidget()
+        self.titleLayout = QtGui.QHBoxLayout()
         self.titleLayout.addWidget(QtGui.QLabel('Workspace:'), 0)
         self.titleLayout.addWidget(self.workspace_list, 1)
         self.titleWidget.setLayout(self.titleLayout)
