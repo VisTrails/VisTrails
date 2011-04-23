@@ -357,8 +357,9 @@ class TransferFunctionPolygon(QtGui.QGraphicsPolygonItem):
             else:
                 break
         self.setBrush(QtGui.QBrush(g))
-        pts.append(QtCore.QPointF(pt.x(), 0))
-        self.setPolygon(QtGui.QPolygonF(pts))
+        pts.append(QtCore.QPointF(pt._point.x(), 0))
+        polygon = QtGui.QPolygonF(pts)
+        self.setPolygon(polygon)
 
 class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
 
