@@ -166,6 +166,7 @@ def initialize(*args, **keywords):
 
     add_paraview_module("GeometryRepresentation", sm.rendering.GeometryRepresentation(no_update=True), PVBase.PVModule, "Rendering", True, sm.rendering.GeometryRepresentation)
     add_paraview_module("PVLookupTable", sm.rendering.PVLookupTable(no_update=True), PVBase.PVModule, "Rendering", False, sm.rendering.PVLookupTable)
+    add_paraview_module("ScalarBarWidgetRepresentation", sm.rendering.ScalarBarWidgetRepresentation(no_update=True), PVBase.PVModule, "Rendering", True, sm.rendering.ScalarBarWidgetRepresentation)
     add_module(PVServerPythonSource, name = "PVServerPythonSource", configureWidgetType=PVServerPythonSourceConfigurationWidget)
     add_input_port(PVServerPythonSource, "Script", (core.modules.basic_modules.String, ""), True)
     add_output_port(PVServerPythonSource, "self", PVServerPythonSource)
