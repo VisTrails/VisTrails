@@ -118,6 +118,9 @@ class QVistrailView(QDockContainer):
         self.execDiffEnabled = False
         self.execExploreEnabled = False
         self.execPipelineEnabled = False
+        # Mashup buttons
+        self.execMashupEnabled = False
+        self.createMashupEnabled = False
         self.execDiffId1 = -1
         self.execDiffId2 = -1
 
@@ -375,6 +378,9 @@ class QVistrailView(QDockContainer):
             self.execPipelineEnabled = versionId>-1
             self.execExploreEnabled = \
                         self.controller.vistrail.get_paramexp(versionId) != None
+            self.createMashupEnabled = versionId>-1
+            #FIXME
+			#self.executeMashupEnabled = <check if version has mashups>
             self.execDiffEnabled = False
             self.execExploreChange = False
             self.emit(QtCore.SIGNAL('execStateChange()'))
