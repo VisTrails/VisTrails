@@ -1093,7 +1093,6 @@ class PersistentConfiguration(QtGui.QDialog):
             
     def delete(self):
         from init import PersistentPath
-        from delete import git_remove_file
         info_list = self.ref_search.ref_widget.get_info_list()
         if len(info_list) < 1:
             return

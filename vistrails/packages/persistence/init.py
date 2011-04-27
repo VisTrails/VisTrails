@@ -33,6 +33,7 @@ except ImportError:
     sha_hash = sha.new
 
 from core.configuration import ConfigurationObject
+from core.cache.hasher import Hasher
 from core.modules.basic_modules import Path, File, Directory, Boolean, \
     String, Constant
 from core.modules.module_registry import get_module_registry, MissingModule, \
@@ -87,16 +88,19 @@ class PersistentRef(Constant):
         self.name = ''
         self.tags = ''
 
-    @staticmethod
-    def get_widget_class():
-        return PersistentRefInlineWidget
+    # @staticmethod
+    # def get_widget_class():
+    #     return PersistentRefInlineWidget
 
     @staticmethod
     def translate_to_python(x):
-        res = PersistentRef()
-        s_tuple = eval(x)
-        (res.type, res.id, res.version, res.local_path, res.local_read,
-         res.local_writeback, res.versioned, res.name, res.tags) = s_tuple
+        try:
+            res = PersistentRef()
+            s_tuple = eval(x)
+            (res.type, res.id, res.version, res.local_path, res.local_read,
+             res.local_writeback, res.versioned, res.name, res.tags) = s_tuple
+        except:
+            return None
 #         result.settings = dict(zip(sorted(default_settings.iterkeys()),
 #                                    s_tuple))
 #         print 'from_string:', result.settings
@@ -437,8 +441,7 @@ class PersistentPath(Module):
             else:
                 # update single port
                 self.updateUpstreamPort('ref')
-                ref = PersistentRef.translate_to_python(
-                    self.getInputFromPort('ref'))
+                ref = self.getInputFromPort('ref')
                 if db_access.ref_exists(ref.id, ref.version):
                     if ref.version is None:
                         ref.version = self.git_get_latest_version(ref.id)
@@ -476,7 +479,7 @@ class PersistentPath(Module):
             ref = self.persistent_ref
             path = self.persistent_path
         elif self.hasInputFromPort('ref'):
-            ref = PersistentRef.translate_to_python(self.getInputFromPort('ref'))
+            ref = self.getInputFromPort('ref')
             if ref.id is None:
                 ref.id = str(uuid.uuid1())
         else:
@@ -568,7 +571,8 @@ class PersistentPath(Module):
         self.set_result(path)
 
     _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Path)'),
-                    ('ref', '(edu.utah.sci.vistrails.basic:String)'),
+                    ('ref', 
+                     '(edu.utah.sci.vistrails.persistence:PersistentRef)'),
                     ('localPath', '(edu.utah.sci.vistrails.basic:Path)'),
                     ('readLocal', '(edu.utah.sci.vistrails.basic:Boolean)', \
                          True),
@@ -680,19 +684,26 @@ class PersistentOutputFile(PersistentFile):
     def compute(self):
         PersistentFile.compute(self, False)
     
-def persistent_file_hasher(pipeline, module, constant_hasher_map={}):
+def persistent_ref_hasher(p):
+    h = Hasher.parameter_signature(p)
     hasher = sha_hash()
-    u = hasher.update
-    u(module.name)
-    u(module.package)
-    u(module.namespace or '')
-    # FIXME: Not true because File can be a function!
-    # do not include functions here because they shouldn't change the
-    # hashing of the persistent_file
+    hasher.update(h)
+    ref = None
+    # print "ref hashing:", p.strValue
+    if p.strValue:
+        ref = PersistentRef.translate_to_python(p.strValue)
+    if ref and db_access.ref_exists(ref.id, ref.version):
+        if ref.version is None:
+            git_util = PersistentPath()
+            ref.version = git_util.git_get_latest_version(ref.id)
+        # print "ref exists:", ref.id, ref.version
+        hasher.update(str(ref.id))
+        hasher.update(str(ref.version))
     return hasher.digest()
 
-# _modules = [(PersistentFile, {'signatureCallable': persistent_file_hasher})]
-_modules = [PersistentRef, PersistentPath, PersistentFile, PersistentDir,
+_modules = [(PersistentRef, {'constantSignatureCallable': \
+                                 persistent_ref_hasher}),
+            PersistentPath, PersistentFile, PersistentDir,
             (PersistentInputFile, {'configureWidgetType': \
                                     PersistentInputFileConfiguration}),
             (PersistentOutputFile, {'configureWidgetType': \
@@ -813,10 +824,20 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                           {'dst_port_remap':
                                {'compress': None}})]
                     }
-
+    for module in ['PersistentPath', 'PersistentFile', 'PersistentDir',
+                   'PersistentInputFile', 'PersistentOutputFile',
+                   'PersistentIntermediateFile',
+                   'PersistentInputDir', 'PersistentOutputDir',
+                   'PersistentIntermediateDir']:
+        upgrade = ('0.2.0', '0.2.2', None,
+                   {'dst_port_remap': {'ref': 'ref'}})
+        if module in module_remap:
+            module_remap[module].append(upgrade)
+        else:
+            module_remap[module] = [upgrade]
+    
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
-
     
 # def handle_missing_module(controller, module_id, pipeline):
 #     reg = get_module_registry()
