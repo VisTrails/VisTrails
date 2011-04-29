@@ -27,7 +27,10 @@ from core.utils import PortAlreadyExists
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from gui.theme import CurrentTheme
+from core import debug
+import sys
 import urllib
+import core.bundles
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
     def __init__( self, document ):
@@ -108,7 +111,104 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
             else:
                 break
 
-class PythonEditor(QtGui.QTextEdit):
+install_attempted = False
+def PythonEditor(parent=None):
+    global install_attempted
+    installed = core.requirements.python_module_exists('PyQt4.Qsci')
+    if not installed and not install_attempted:
+        install_attempted = True
+        from core.bundles import installbundle
+        installed = installbundle.install({'linux-ubuntu': 'python-qscintilla2'})
+    if installed:
+        return NewPythonEditor(parent)
+    return OldPythonEditor(parent)
+
+def NewPythonEditor(parent):
+    core.requirements.require_python_module('PyQt4.Qsci')
+    from PyQt4.Qsci import QsciScintilla, QsciLexerPython
+    class _PythonEditor(QsciScintilla):
+    
+        def __init__(self, parent=None):
+            QsciScintilla.__init__(self, parent)
+            ## set the default font of the editor
+            ## and take the same font for line numbers
+            font = CurrentTheme.PYTHON_SOURCE_EDITOR_FONT
+            self.setFont(font)
+            fm = QtGui.QFontMetrics(font)
+        
+            ## Line numbers
+            # conventionally, margin 0 is for line numbers
+            self.setMarginWidth(0, fm.width( "0000" ) + 4)
+            self.setMarginLineNumbers(0, True)
+        
+            ## Edge Mode shows a red vetical bar at 80 chars
+            self.setEdgeMode(QsciScintilla.EdgeLine)
+            self.setEdgeColumn(80)
+            self.setEdgeColor(QtGui.QColor("#CCCCCC"))
+        
+            ## Folding visual : we will use boxes
+            self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
+        
+            ## Braces matching
+            self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+        
+            ## Editing line color
+        #    self.setCaretLineVisible(True)
+        #    self.setCaretLineBackgroundColor(QtGui.QColor("#CDA869"))
+            
+            
+                    ## Margins colors
+            # line numbers margin
+            self.setMarginsBackgroundColor(QtGui.QColor("#FFFFFF"))
+            self.setMarginsForegroundColor(QtGui.QColor("#000000"))
+        
+            # folding margin colors (foreground,background)
+            self.setFoldMarginColors(QtGui.QColor("#DDDDDD"),QtGui.QColor("#DDDDDD"))
+        
+            ## Choose a lexer
+            lexer = QsciLexerPython()
+            lexer.setDefaultFont(font)
+            self.setLexer(lexer)
+        
+            # set autocompletion
+            self.setAutoCompletionThreshold(2)
+            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+            self.setAutoCompletionCaseSensitivity(True)
+            self.setAutoCompletionReplaceWord(True)
+            self.setAutoCompletionFillupsEnabled(True)
+            
+        def setPlainText(self, text):
+            """ setPlainText(text: str) -> None
+            redirect to setText
+            
+            """
+            self.setText(text)
+        
+        def toPlainText(self):
+            """ setPlainText(text: str) -> None
+            redirect to self.text()
+            
+            """
+            return self.text()
+    
+        def keyPressEvent(self, event):
+            """ keyPressEvent(event: QKeyEvent) -> None
+            Handle tab with 4 spaces
+            
+            """
+            if event.key()==QtCore.Qt.Key_Tab:
+                self.insertPlainText('    ')
+            else:
+                QsciScintilla.keyPressEvent(self, event)
+    
+        def focusOutEvent(self, event):
+            if self.parent():
+                QtCore.QCoreApplication.sendEvent(self.parent(), event)
+            QsciScintilla.focusOutEvent(self, event)
+
+    return _PythonEditor(parent)
+
+class OldPythonEditor(QtGui.QTextEdit):
 
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
@@ -138,7 +238,7 @@ class PythonEditor(QtGui.QTextEdit):
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
         QtGui.QTextEdit.focusOutEvent(self, event)
-                 
+
 class PythonSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
         SourceConfigurationWidget.__init__(self, module, controller, 
