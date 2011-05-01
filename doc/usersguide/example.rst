@@ -11,6 +11,7 @@ Learning VisTrails By Example
    querying
    analogies
    parameter_exploration
+   controlflow1
    database
    example_webservices
    persistence
