@@ -55,7 +55,7 @@ from gui import merge_gui
 from db.services.io import SaveBundle
 from core.thumbnails import ThumbnailCache
 import gui.debug
-
+from gui.mashups.mashups_manager import MashupsManager
 
 ################################################################################
 
@@ -587,7 +587,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.undoAction)
         self.toolBar.addAction(self.redoAction)
-		self.toolBar.addSeparator()
+        self.toolBar.addSeparator()
         self.toolBar.addAction(self.createMashupAction)
 
         self.viewToolBar = QVistrailViewToolBar(self)
@@ -1790,7 +1790,12 @@ class QBuilderWindow(QtGui.QMainWindow):
     def createMashup(self):
         """createMashup() -> None
         Create a mashup from current pipeline """
-        pass
+        #get current controller and current version
+        controller = self.viewManager.currentView().controller
+        version = controller.current_version
+        if version > 0:
+            mshpManager = MashupsManager.getInstance()
+            mshpManager.createMashup(controller, version)
     
     def executeMashup(self):
         """executeMashup() -> None
