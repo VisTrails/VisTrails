@@ -1761,6 +1761,18 @@ class VistrailController(object):
         """callback for try_to_enable_package"""
         return True
        
+    def handleMissingSUDSWebServicePackage(self, identifier):
+        pm = get_package_manager()
+        suds_i = 'edu.utah.sci.vistrails.sudswebservices'
+        pkg = pm.identifier_is_available(suds_i)
+        if pkg:
+            pm.late_enable_package(pkg.codepath)
+        package = pm.get_package_by_identifier(suds_i)
+        if not package or \
+           not hasattr(package._init_module, 'load_from_signature'):
+            return False
+        return package._init_module.load_from_signature(identifier)
+
     def try_to_enable_package(self, identifier, dep_graph, confirmed=False):
         """try_to_enable_package(identifier: str,
                                  dep_graph: Graph,
@@ -1772,9 +1784,10 @@ class VistrailController(object):
         for later enables.
         """
 
-        # print 'TRYING TO ENABLE:', identifier
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
+        if not pkg and identifier.startswith('SUDS#'):
+            self.handleMissingSUDSWebServicePackage(identifier)
         if not pm.has_package(identifier) and pkg:
             deps = pm.all_dependencies(identifier, dep_graph)[:-1]
             if identifier in self._asked_packages:
@@ -1841,7 +1854,6 @@ class VistrailController(object):
         if vistrail is None:
             vistrail = self.vistrail
         pm = get_package_manager()
-
         root_exceptions = e.get_exception_set()
         missing_packages = {}
         def process_missing_packages(exception_set):
