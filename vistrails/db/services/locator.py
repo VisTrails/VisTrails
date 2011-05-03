@@ -615,7 +615,7 @@ class DBLocator(BaseLocator):
                     if type == 'long':
                         return long(value)
                     elif type == 'float':
-                       return float(value)
+                        return float(value)
                     elif type == 'int':
                         return int(value)
                     elif type == 'bool':

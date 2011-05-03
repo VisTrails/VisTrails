@@ -637,8 +637,9 @@ class VistrailController(QtCore.QObject, BaseController):
         self.quiet = old_quiet
         if changed:
             self.invalidate_version_tree(False)
+        return (results, changed)
 
-    def execute_current_workflow(self, custom_aliases=None):
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -649,13 +650,15 @@ class VistrailController(QtCore.QObject, BaseController):
             if locator:
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
-            self.execute_workflow_list([(self.locator,
+            return self.execute_workflow_list([(self.locator,
                                          self.current_version,
                                          self.current_pipeline,
                                          self.current_pipeline_view,
                                          custom_aliases,
+                                         custom_params,
                                          None)])
-
+        return ([], False)
+    
     def enable_missing_package(self, identifier, deps):
         from gui.application import VistrailsApplication
         msg = "VisTrails needs to enable package '%s'." % identifier

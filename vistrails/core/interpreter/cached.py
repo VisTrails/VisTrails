@@ -110,6 +110,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        params = fetch('params', None)
         extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
@@ -155,6 +156,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         self.resolve_aliases(pipeline, aliases)
 
+        self.update_params(pipeline, params)
+        
         (tmp_to_persistent_module_map,
          conn_map,
          module_added_set,
@@ -248,6 +251,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        params = fetch('params', None)
         extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
@@ -483,6 +487,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
           current_version = fetch('current_version', None)
           view = fetch('view', DummyView())
           aliases = fetch('aliases', None)
+          params = fetch('params', None)
           extra_info = fetch('extra_info', None)
           logger = fetch('logger', DummyLogController())
           reason = fetch('reason', None)
@@ -526,6 +531,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        params = fetch('params', None)
         extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)

@@ -1584,7 +1584,7 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
-            (locator, version, pipeline, view, aliases, extra_info) = vis
+            (locator, version, pipeline, view, aliases, params, extra_info) = vis
             
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
@@ -1600,6 +1600,7 @@ class VistrailController(object):
                       'logger': self.get_logger(),
                       'controller': self,
                       'aliases': aliases,
+                      'params': params,
                       'extra_info': extra_info,
                       }    
             result = interpreter.execute(pipeline, **kwargs)
@@ -1632,12 +1633,17 @@ class VistrailController(object):
             interpreter.debugger.update_values()
         return (results,changed)
     
-    def execute_current_workflow(self, custom_aliases=None, extra_info=None):
-        """ execute_current_workflow(custo_aliases: dict, extra_info: dict) -> (list, bool)
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None,
+                                 extra_info=None):
+        """ execute_current_workflow(custom_aliases: dict, 
+                                     custom_params: list,
+                                     extra_info: dict) -> (list, bool)
         Execute the current workflow (if exists)
+        custom_params is a list of tuples (vttype, oId, newval) with new values
+        for parameters
         extra_info is a dictionary containing extra information for execution.
         As we want to make the executions thread safe, we will pass information
-        specific to each pipeline through this parameter
+        specific to each pipeline through extra_info
         As, an example, this will be useful for telling the spreadsheet where
         to dump the images.
         """
@@ -1653,6 +1659,7 @@ class VistrailController(object):
                                                 self.current_pipeline,
                                                 view,
                                                 custom_aliases,
+                                                custom_params,
                                                 extra_info)])
 
     def recompute_terse_graph(self):

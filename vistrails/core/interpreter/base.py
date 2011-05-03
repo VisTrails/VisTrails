@@ -156,8 +156,8 @@ class BaseInterpreter(object):
             #so we need to build the Alias Dictionary always
             for k,v in customAliases.iteritems():
                 aliases[k] = v
-         # no support for expression evaluation. The code that does that is
-         # ugly and dangerous.
+            # no support for expression evaluation. The code that does that is
+            # ugly and dangerous.
 #        ordered = self.compute_evaluation_order(aliases)
 #        casting = {'int': int, 'float': float, 'double': float, 'string': str,
 #                   'Integer': int, 'Float': float, 'String': str}
@@ -177,6 +177,21 @@ class BaseInterpreter(object):
                     
         return aliases
     
+    def update_params(self, pipeline,
+                        customParams=None):
+        """update_params(pipeline: Pipeline, 
+                         customParams=[(vttype, oId, strval)] -> None
+        This will set the new parameter values in the pipeline before
+        execution 
+        
+        """
+        if customParams:
+            for (vttype, oId, strval) in customParams:
+                try:
+                    param = pipeline.db_get_object(vttype,oId)
+                    param.strValue = str(strval)
+                except Exception, e:
+                    debug.debug("Problem when updating params: %s"%str(e))
 
     def set_done_summon_hook(self, hook):
         """ set_done_summon_hook(hook: function(pipeline, objects)) -> None
