@@ -134,6 +134,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     def newPackage(self, package_identifier, prepend=False):
         # prepend places at the front of the list of packages,
         # by default adds to the end of the list of packages
+        # Right now the list is sorted so prepend has no effect
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
         package_item = \
@@ -181,12 +182,14 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         
         """
 
+        self.treeWidget.setSortingEnabled(False)
         registry = get_module_registry()
         for package in registry.package_list:
             self.newPackage(package.identifier)
         self.newModule(registry.root_descriptor, True)
-        self.treeWidget.sortItems(0, QtCore.Qt.AscendingOrder)
-        self.treeWidget.expandAll()
+        self.treeWidget.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.treeWidget.setSortingEnabled(True)
+#        self.treeWidget.expandAll()
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """
