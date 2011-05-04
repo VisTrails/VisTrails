@@ -168,6 +168,7 @@ def NewPythonEditor(parent):
             ## Choose a lexer
             lexer = QsciLexerPython()
             lexer.setDefaultFont(font)
+            lexer.setFont(font)
             self.setLexer(lexer)
         
             # set autocompletion
