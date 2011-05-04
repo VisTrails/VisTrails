@@ -143,6 +143,7 @@ def initialize(*args, **keywords):
     days = 1
     if configuration.check("cache_days"):
         days = configuration.cache_days
+    suds.client.ObjectCache.protocol = 0 # windows needs this
     package_cache = suds.client.ObjectCache(location, days=days)
 
     reg = core.modules.module_registry.get_module_registry()
@@ -221,7 +222,6 @@ class Service:
                 if len(proxy):
                     options['proxy'] = {t:proxy}
         try:
-            print "loading address", address
             self.service = suds.client.Client(address, **options)
             self.createPackage()
             self.setTypes()
@@ -262,8 +262,7 @@ class Service:
             debug.critical("File not found in SUDS cache: '%s'" % name)
             self.wsdlHash = '0'
             return
-        self.wsdlHash = str(int(hashlib.md5(str(wsdl)).hexdigest(), 16))
-        print 'HASH', self.address, name, self.wsdlHash
+        self.wsdlHash = str(int(hashlib.md5(str(wsdl.root)).hexdigest(), 16))
 
         package_id = reg.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
