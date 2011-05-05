@@ -24,15 +24,16 @@ from gui.pipeline_tab import QPipelineTab
 from gui.mashups.mashup_app import QMashupAppMainWindow
 
 class QMashupView(QtGui.QMainWindow):
-    def __init__(self, mashupController, parent=None, f=QtCore.Qt.WindowFlags()):
+    def __init__(self, mashupController, inspector, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
         self.controller = mashupController
         
+        self.createActions()
         #Setting up a toolbar
-        self.toolbar = QtGui.QToolBar(self)
+        self.createToolBar(inspector)
         
         widget = QtGui.QWidget(self)
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(0)
         self.tabBar = QtGui.QTabBar(self)
@@ -46,10 +47,25 @@ class QMashupView(QtGui.QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
         self.createPipelineTab()
-        self.createPreviewTab()
+        self.previewTab = None
+        self.setWindowTitle("Mashup Builder")
         
     def createActions(self):
-        pass
+        self.saveAction = QtGui.QAction("Save", self,
+                                        triggered=self.saveTriggered)
+        self.previewAction = QtGui.QAction("Preview",  self,
+                                           triggered=self.previewTriggered,
+                                           checkable=True)
+        
+    def createToolBar(self, inspector):
+        self.toolbar = QtGui.QToolBar(self)
+        
+        self.toolbar.addAction(self.previewAction)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.saveAction)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(inspector.toolWindow().toggleViewAction())
+        self.addToolBar(self.toolbar)
         
     def createPipelineTab(self):
         """ createPipelineTab() -> None
@@ -67,19 +83,44 @@ class QMashupView(QtGui.QMainWindow):
         self.tabBar.addTab("Pipeline")
         
     def createPreviewTab(self):
-        self.previewTab = QMashupAppMainWindow(parent=self, 
+        self.previewTab = QtGui.QWidget()
+        self.refreshButton = QtGui.QPushButton("Refresh", self)
+        self.refreshButton.setFlat(True)
+        self.refreshButton.setEnabled(False)
+        self.refreshButton.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,
+                                                           QtGui.QSizePolicy.Fixed))
+        self.previewApp = QMashupAppMainWindow(parent=self, 
                                                controller=self.controller)
-        self.stack.addWidget(self.previewTab)
-        self.tabBar.addTab("Preview")
-    
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(5)
+        layout.addWidget(self.refreshButton, QtCore.Qt.AlignLeft)
+        layout.addWidget(self.previewApp)
+        self.previewTab.setLayout(layout)
+        self.stack.insertWidget(1, self.previewTab)
+        self.tabBar.insertTab(1, "Preview")
+        self.stack.setCurrentIndex(1)
+        
     def switchTab(self, index):
         self.stack.setCurrentIndex(index)
         
     def updatePreviewTab(self, info):
         if self.previewTab:
             self.stack.removeWidget(self.previewTab)
+            self.tabBar.removeTab(1)
+            self.previewTab = None
         if info[0] != self.controller:
             print "Controllers are different!"
-        self.previewTab = QMashupAppMainWindow(parent=self, 
-                                               controller=self.controller)
-        self.stack.addWidget(self.previewTab)
+        self.createPreviewTab()
+        
+    def previewTriggered(self):
+        if self.previewAction.isChecked():
+            self.updatePreviewTab((self.controller,))
+        else:
+            if self.previewTab:
+                self.stack.removeWidget(self.previewTab)
+                self.tabBar.removeTab(1)
+                self.previewTab = None
+                
+    def saveTriggered(self):
+        print "save pressed"

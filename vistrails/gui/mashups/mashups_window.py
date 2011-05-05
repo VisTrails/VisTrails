@@ -20,7 +20,7 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
-from gui.mashups.alias_list import QAliasListPanel
+from gui.mashups.mashups_inspector import QMashupsInspector
 from gui.mashups.mashup_view import QMashupView
 
 class QMashupsWindow(QtGui.QMainWindow):
@@ -29,11 +29,7 @@ class QMashupsWindow(QtGui.QMainWindow):
         self.windows = []
         self.windows_map = {}
         self.currentWindow = None
-        self.aliasPanel = QAliasListPanel(parent=self)
-        self.aliasPanel.toolWindow().setFloating(True)
-        self.connect(self.aliasPanel, QtCore.SIGNAL("update_alias"),
-                     self.updatePreview)
-        self.setWindowTitle("Mashup")
+        self.inspector = QMashupsInspector(parent=self)
         self.createActions()
         self.createMenu()
         
@@ -42,9 +38,16 @@ class QMashupsWindow(QtGui.QMainWindow):
         Create a pipeline tab and append it to the list of windows
 
         """
-        window = QMashupView(controller, self)
+        window = QMashupView(controller, self.inspector, self)
+        controller.stateChanged.connect(self.stateChanged)
         self.windows.append(window)
         self.windows_map[controller] = window
+        self.inspector.updateController(controller)
+        if len(self.windows) == 1:
+            w = self.inspector.width()
+            self.inspector.oldPos = window.pos() - QtCore.QPoint(w,0)
+            self.inspector.toolWindow().setFloating(True)
+        window.show()
         return window
         
     def createActions(self):
@@ -60,18 +63,20 @@ class QMashupsWindow(QtGui.QMainWindow):
 
         """
         self.viewMenu = self.menuBar().addMenu('&View')
-        self.viewMenu.addAction(self.aliasPanel.toolWindow().toggleViewAction())
+        self.viewMenu.addAction(self.inspector.toolWindow().toggleViewAction())
         
     def updateController(self, mshpController):
         if mshpController not in self.windows_map.keys():
-            window = self.createWindow(mshpController)
+            self.createWindow(mshpController)
         else:
-            window = self.windows_map[mshpController]
-        self.aliasPanel.updateController(mshpController)
-        window.show()
+            self.windows_map[mshpController]
+        self.inspector.updateController(mshpController)
             
     def updatePreview(self, info):
         mshpController = info[0]
         if mshpController in self.windows_map.keys():
             window = self.windows_map[mshpController]
             window.updatePreviewTab(info)
+            
+    def stateChanged(self):
+        self.inspector.stateChanged()

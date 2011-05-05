@@ -31,15 +31,20 @@ QAliasInspector
 
 import copy
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from core.mashup.alias import Alias
 from core.modules.module_registry import get_module_registry
 from core.modules.constant_configuration import StandardConstantWidget
 from gui.theme import CurrentTheme
-
+from gui.utils import show_warning
 ################################################################################
 class QAliasInspector(QtGui.QScrollArea):
     """
     QAliasInspector is a widget to display the details of an alias.
     """
+    #signals
+    aliasChanged = pyqtSignal(Alias)
+    
     def __init__(self, alias_list, parent=None):
         QtGui.QScrollArea.__init__(self,parent)
         self.setAcceptDrops(False)
@@ -47,17 +52,18 @@ class QAliasInspector(QtGui.QScrollArea):
         self.vWidget = QAliasDetailsWidget(alias_list)
         self.setWidget(self.vWidget)
         self.vWidget.setVisible(False)
-        self.connect(self.vWidget, QtCore.SIGNAL("update_alias"), 
-                     self.emit_update_alias)
         
-    def emit_update_alias(self, alias):
-        self.emit(QtCore.SIGNAL("update_alias"), alias)
+        #connecting signals
+        self.vWidget.aliasChanged.connect(self.aliasChanged)
         
     def updateContents(self, alias_item, controller):
         self.vWidget.updateContents(alias_item, controller)
  
 ################################################################################       
 class QAliasDetailsWidget(QtGui.QWidget):
+    #signals
+    aliasChanged = pyqtSignal(Alias)
+    
     def __init__(self, table, parent=None):
         QtGui.QWidget.__init__(self,parent)
         self.alias = None
@@ -161,11 +167,19 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.main_layout.addWidget(self.vl_groupbox)
         self.main_layout.addStretch(1)
         
+        self.deleteButton = QtGui.QPushButton("Delete Alias")
+        self.deleteButton.clicked.connect(self.table.removeCurrentAlias)
+        self.deleteButton.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,
+                                                           QtGui.QSizePolicy.Fixed))
+        self.main_layout.addWidget(self.deleteButton)
+        
         self.setLayout(self.main_layout)
         
         #connect signals
-        self.connect(self.dw_combobox, QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self.toggle_dw_combobox)
+        self.dw_combobox.currentIndexChanged.connect(self.toggle_dw_combobox)
+        
+#        self.connect(self.dw_combobox, QtCore.SIGNAL("currentIndexChanged(int)"),
+#                     self.toggle_dw_combobox)
         self.connect(self.name_edit, QtCore.SIGNAL("editingFinished()"),
                      self.nameChanged)
         self.connect(self.order_spinbox, QtCore.SIGNAL("valueChanged(int)"),
@@ -178,7 +192,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
                      self.maxvalChanged)
         
     def valuesListChanged(self):
-        self.emit(QtCore.SIGNAL("update_alias"), self.alias)
+        self.aliasChanged.emit(self.alias)
         
     def minvalChanged(self):
         if self.alias:
@@ -187,8 +201,8 @@ class QAliasDetailsWidget(QtGui.QWidget):
             if old_minval == new_minval:
                 return
             self.alias.component.minVal = new_minval
-            self.emit(QtCore.SIGNAL("update_alias"), self.alias)
-        
+            self.aliasChanged.emit(self.alias)
+
     def maxvalChanged(self):
         if self.alias:
             old_maxval = self.alias.component.maxVal
@@ -196,7 +210,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             if old_maxval == new_maxval:
                 return
             self.alias.component.maxVal = new_maxval
-            self.emit(QtCore.SIGNAL("update_alias"), self.alias)
+            self.aliasChanged.emit(self.alias)
         
     def stepsizeChanged(self):
         if self.alias:
@@ -205,7 +219,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             if old_stepsize == new_stepsize:
                 return
             self.alias.component.stepSize = new_stepsize
-            self.emit(QtCore.SIGNAL("update_alias"), self.alias)
+            self.aliasChanged.emit(self.alias)
         
     def nameChanged(self):
         old_alias = self.alias.name
@@ -213,19 +227,15 @@ class QAliasDetailsWidget(QtGui.QWidget):
         if old_alias == new_alias:
             return
         if new_alias in self.table.aliases.keys():
-            QtGui.QMessageBox.warning(self,
-                                      "VisMashup",
-                                      """Label name %s already exists. 
-                                       Please type a different name. """ % 
-                                      new_alias)
+            show_warning("Mashup",
+                         """Label name %s already exists. 
+Please type a different name. """ % new_alias)
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         elif new_alias == '':
-            QtGui.QMessageBox.warning(self,
-                                      "VisMashup",
-                                      """Variables with empty name are not allowed. 
-                                       Please type a unique name. """ % 
-                                      new_alias)
+            show_warning("Mashup",
+                         """Variables with empty name are not allowed. 
+Please type a unique name. """ % new_alias)
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         else:
@@ -234,7 +244,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             del self.table.aliases[old_alias]
             #del self.table.alias_cache[old_alias]
             self.alias.name = new_alias
-            self.emit(QtCore.SIGNAL("update_alias"), self.alias)
+            self.aliasChanged.emit(self.alias)
             
     def orderChanged(self, neworder):
         if self.alias.component.pos == neworder:
@@ -243,6 +253,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.alias.component.pos = neworder
         self.table.moveItemToNewPos(oldorder, neworder)
         
+    @pyqtSlot(int)
     def toggle_dw_combobox(self, index):
         if index == 0:
             self.dw_minval_label.setVisible(False)
@@ -260,7 +271,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.dw_stepsize_edit.setVisible(True)
         if self.alias:
             self.alias.component.widget = str(self.dw_combobox.currentText())
-            self.emit(QtCore.SIGNAL("update_alias"), self.alias)
+            self.aliasChanged.emit(self.alias)
             
     def updateContents(self, alias, controller):
         self.alias = alias
@@ -349,7 +360,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.alias.component.valueList.append(self.alias.component.val)
             self.alias.component.valueList.sort()
             self.vl_editor.alias_item_updated()
-        self.emit(QtCore.SIGNAL("update_alias"), self.alias)
+        self.aliasChanged.emit(self.alias)
         
 ################################################################################
 

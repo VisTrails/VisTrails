@@ -19,6 +19,8 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+import os.path
+from core.system import current_user, current_time
 
 class MashupController(object):
     def __init__(self, vt_controller, vt_version, mshptrail=None):
@@ -32,7 +34,7 @@ class MashupController(object):
 
     def setChanged(self, on):
         self._changed = on
-
+        
     def setCurrentVersion(self, version):
         self.currentVersion = version
         if version > -1:
@@ -48,3 +50,28 @@ class MashupController(object):
         if self.vtPipeline and self.vtController:
             return self.vtController.execute_current_workflow(custom_params=params)
         return ([], False)
+    
+    def updateCurrentTag(self, name):
+        self.mshptrail.changeTag(self.currentVersion, name, current_user(),
+                                 current_time())
+        self.setChanged(True)
+    
+    def getCurrentTag(self):
+        return self.mshptrail.getTagForActionId(self.currentVersion)
+    
+    def getVistrailName(self):
+        name = ''
+        locator = self.currentMashup.vtid
+        if locator != None:
+            if locator.name == None:
+                name = ''
+            else:
+                name = os.path.split(locator.name)[1]
+            if name == '':
+                name = self.controller.vtController.name
+        return name
+        
+    
+    def getVistrailWorkflowTag(self):
+        return self.vtController.vistrail.getVersionName(self.vtVersion)
+        

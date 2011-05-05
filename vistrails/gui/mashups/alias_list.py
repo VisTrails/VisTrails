@@ -32,25 +32,31 @@ QAliasList
 
 import copy
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtCore import pyqtSlot, pyqtSignal
 
-from gui.common_widgets import QToolWindowInterface
+
 from core.data_structures.bijectivedict import Bidict
 from gui.mashups.alias_inspector import QAliasInspector
+from core.mashup.alias import Alias
+from gui.utils import show_question, YES_BUTTON, NO_BUTTON
 
 ###############################################################################
-class QAliasListPanel(QtGui.QFrame, QToolWindowInterface):
+class QAliasListPanel(QtGui.QWidget):
     """
     QAliasListPanel shows list of aliases in pipeline.
     
     """
+    #signals
+    highlightModule = pyqtSignal(int)
+    aliasesChanged = pyqtSignal()
+    aliasChanged = pyqtSignal(Alias)
+    
     def __init__(self, controller=None, parent=None):
-        """ QAliasListPanel(parent: QWidget) 
-                             -> AliasListPanel
+        """ QAliasListPanel(controller: MashupController,
+                            parent: QWidget) -> QAliasListPanel
         
         """
-        QtGui.QFrame.__init__(self, parent)
-        self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
+        QtGui.QWidget.__init__(self, parent)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
         layout = QtGui.QVBoxLayout()
@@ -69,32 +75,18 @@ class QAliasListPanel(QtGui.QFrame, QToolWindowInterface):
                            QtGui.QSizePolicy.Expanding)
         self.splitter.setStretchFactor(0,0)
         self.splitter.setStretchFactor(1,1)
-        
+
+        #connecting signals        
         self.aliases.itemSelectionChanged.connect(self.updateInspector)
-        #self.connect(self.aliases,
-        #             QtCore.SIGNAL("itemSelectionChanged()"),
-        #             self.updateInspector)
+        self.aliases.highlightModule.connect(self.highlightModule)
+        self.aliases.aliasUpdated.connect(self.updateAlias)
+        self.aliases.aliasRemoved.connect(self.removeAlias)
         
-        self.connect(self.aliases,
-                     QtCore.SIGNAL("highlightModule"),
-                     self.highlightModule)
-        
-        self.connect(self.aliases,
-                     QtCore.SIGNAL("update_alias"),
-                     self.updateAlias)
-        
-        self.connect(self.inspector,
-                     QtCore.SIGNAL("update_alias"),
-                     self.updateAlias)
+        self.inspector.aliasChanged.connect(self.updateAlias)
         
     def updateController(self, controller, other_dict=None):
         self.controller = controller
-        name = ''
         if self.controller:
-            
-            if self.controller.vtController.vistrail:
-                name = self.controller.vtController.vistrail.getVersionName(
-                                self.controller.vtController.current_version)
             self.aliases.controller = self.controller
             if (self.controller.currentMashup.alias_list and
                 len(self.controller.currentMashup.alias_list) > 0):
@@ -105,10 +97,7 @@ class QAliasListPanel(QtGui.QFrame, QToolWindowInterface):
 #            elif self.controller.current_pipeline:
 #                self.aliases.populateFromPipeline(
 #                                            self.controller.current_pipeline)
-        if name != '':
-            self.setWindowTitle('Aliases in %s'%name)
-        else:
-            self.setWindowTitle('Aliases')
+        
     
     @pyqtSlot()
     def updateInspector(self):
@@ -117,15 +106,18 @@ class QAliasListPanel(QtGui.QFrame, QToolWindowInterface):
             self.inspector.updateContents(item.alias, self.controller)
         else:
             self.inspector.setVisible(False)
+       
+    @pyqtSlot()
+    def removeAlias(self):
+        self.aliasesChanged.emit()
         
-    def highlightModule(self, mid):
-        self.emit(QtCore.SIGNAL("highlightModule"), mid)
-        
+    @pyqtSlot(Alias) 
     def updateAlias(self, alias):
         #make sure the module is highlighted in the pipeline view 
         # or method_drop box is empty
-        self.highlightModule(alias.component.vtmid)
-        self.emit(QtCore.SIGNAL("update_alias"), (self.controller, alias))
+        self.highlightModule.emit(alias.component.vtmid)
+        self.aliasChanged.emit(alias)
+        self.aliasesChanged.emit()
         
     def reloadAliases(self):
         if self.controller.current_pipeline:
@@ -139,6 +131,11 @@ class QAliasList(QtGui.QTreeWidget):
     list and items
 
     """
+    #signals
+    aliasUpdated = pyqtSignal(Alias)
+    aliasRemoved = pyqtSignal()
+    highlightModule = pyqtSignal(int)
+    
     def __init__(self, controller, panel, parent=None):
         """ QAliasList(parent: QWidget) -> QAliasTable
 
@@ -154,9 +151,7 @@ class QAliasList(QtGui.QTreeWidget):
         self.controller = controller
         self.header().setStretchLastSection(True)
         self.setHeaderLabels(QtCore.QStringList() << "Position" << "Name" << "Type")
-        self.connect(self,
-                     QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem*, int)"),
-                     self.aliasDoubleClicked)
+        
         self.connect(self,
                      QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)"),
                      self.currentAliasChanged)
@@ -198,23 +193,15 @@ class QAliasList(QtGui.QTreeWidget):
             if wdgt is not None:
                 item.alias.value = wdgt.contents()
         print self.aliases
-        self.emit(QtCore.SIGNAL("update_alias"), item)
+        self.aliasUpdated.emit(item.alias)
         
     def currentAliasChanged(self, current, previous):
         if current:
             if ((previous is not None and current.alias != previous.alias) or
                 previous is None):
-                self.emit(QtCore.SIGNAL("highlightModule"), 
-                          current.alias.component.vtmid)
+                self.highlightModule.emit(current.alias.component.vtmid)
         else:
-            self.emit(QtCore.SIGNAL("highlightModule"), -1)
-            
-    def aliasDoubleClicked(self, item, col):
-        """aliasDoubleClicked(item: QAliasListItem, col: int) -> None
-        Event handler for capturing when an alias is doubleclicked. """
-        self.emit(QtCore.SIGNAL("highlightModule"), item.alias.component.vtmid)
-        if col == 1:
-            self.editItem(item, col)
+            self.highlightModule.emit(-1)
         
     def _getOtherParameterInfo(self, pipeline, id, ptype):
         parameter = pipeline.db_get_object(ptype,id)
@@ -310,13 +297,22 @@ class QAliasList(QtGui.QTreeWidget):
         """ keyPressEvent(event: QKeyEvent) -> None
          Capture 'Del', 'Backspace' for deleting aliases
        
-        """        
+        """       
         if (event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
-            item = self.currentItem()
+            self.removeCurrentAlias()
+                
+    @pyqtSlot(bool)
+    def removeCurrentAlias(self, checked=False):
+        item = self.currentItem() 
+        name = item.alias.name
+        res = show_question("Mashups", 
+                "Are you sure do you want to remove '%s' from the mashup?"%name,
+                [YES_BUTTON, NO_BUTTON], NO_BUTTON)
+        if res == YES_BUTTON:
+        
             old_alias = item.alias.name
             del self.aliases[old_alias]
-#            del self.alias_cache[old_alias]
-            
+        
             item.alias.name = ''
             pos = self.indexOfTopLevelItem(item)
             self.takeTopLevelItem(pos)
@@ -326,8 +322,9 @@ class QAliasList(QtGui.QTreeWidget):
             else:
                 new_item = self.topLevelItem(pos-1)
             self.setCurrentItem(new_item)
-            
+            self.aliasRemoved.emit()        
 ################################################################################
+
 class QAliasListItem (QtGui.QTreeWidgetItem):
     """
     QAliasListtItem represents alias on QAliasList
