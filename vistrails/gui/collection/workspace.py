@@ -32,6 +32,7 @@ from core.collection import Collection
 from core.collection.search import SearchCompiler, SearchParseError
 from core.db.locator import FileLocator
 from gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from gui.theme import CurrentTheme
 
 class QCollectionWidget(QtGui.QTreeWidget):
@@ -393,31 +394,34 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         Collection.getInstance().del_from_workspace(self.entity)
         Collection.getInstance().commit()
 
-class QWorkspaceWindow(QToolWindow, QToolWindowInterface):
+class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QToolWindow.__init__(self, parent=parent)
+        QtGui.QWidget.__init__(self, parent)
 
-        self.widget = QtGui.QWidget(self)
-        self.setWidget(self.widget)
         self.workspace_list = QtGui.QComboBox()
-        self.titleWidget = QtGui.QWidget()
-        self.titleLayout = QtGui.QHBoxLayout()
-        self.titleLayout.addWidget(QtGui.QLabel('Workspace:'), 0)
-        self.titleLayout.addWidget(self.workspace_list, 1)
-        self.titleWidget.setLayout(self.titleLayout)
-        self.setTitleBarWidget(self.titleWidget)
+        # self.titleWidget = QtGui.QWidget()
+        # self.titleLayout = QtGui.QHBoxLayout()
+        # self.titleLayout.addWidget(QtGui.QLabel('Workspace:'), 0)
+        # self.titleLayout.addWidget(self.workspace_list, 1)
+        # self.titleWidget.setLayout(self.titleLayout)
+        # self.setTitleBarWidget(self.titleWidget)
+        self.setWindowTitle('Workspace')
         # make it possible to ignore updates during updating of workspace list
         self.updatingWorkspaceList = False
         self.connect(self.workspace_list,
                      QtCore.SIGNAL("currentIndexChanged(QString)"),
                      self.workspace_changed)
         layout = QtGui.QVBoxLayout()
-#        layout.setMargin(0)
-#        layout.setSpacing(5)
+        layout.setMargin(0)
+        layout.setSpacing(5)
         self.search_box = QSearchBox(True, False, self)
         layout.addWidget(self.search_box)
 
         self.collection = Collection.getInstance()
+
+        self.open_list = QVistrailList()
+        layout.addWidget(self.open_list)
+
         self.browser = QWorkspaceWidget(self.collection)
         layout.addWidget(self.browser)
         self.browser.setup_widget('Default')
@@ -429,7 +433,7 @@ class QWorkspaceWindow(QToolWindow, QToolWindowInterface):
                      self.refine_mode)
         self.connect(self.browser, QtCore.SIGNAL('workspaceListUpdated()'),
                      self.update_workspace_list)
-        self.widget.setLayout(layout)
+        self.setLayout(layout)
         self.update_workspace_list()
  
     def update_workspace_list(self):
@@ -476,6 +480,12 @@ class QWorkspaceWindow(QToolWindow, QToolWindowInterface):
 
     def refine_mode(self, on):
         pass
+
+    def add_vt_window(self, vistrail_window):
+        self.open_list.add_vt_window(vistrail_window)
+
+    def remove_vt_window(self, vistrail_window):
+        self.open_list.remove_vt_window(vistrail_window)
 
 class QExplorerDialog(QToolWindow, QToolWindowInterface):
     def __init__(self, parent=None):
@@ -552,6 +562,38 @@ class QExplorerDialog(QToolWindow, QToolWindowInterface):
 
     def refine_mode(self, on):
         pass
+
+class QVistrailListItem(QtGui.QTreeWidgetItem):
+    def __init__(self, window):
+        QtGui.QTreeWidgetItem.__init__(self)
+        self.window = window
+        self.setText(0, self.window.get_name())
+
+class QVistrailList(QtGui.QTreeWidget):
+    def __init__(self, parent=None):
+        QtGui.QTreeWidget.__init__(self, parent)
+        self.setColumnCount(1)
+        self.setHeaderHidden(True)
+        self.connect(self, 
+                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
+                                   "QTreeWidgetItem*)"),
+                     self.item_changed)
+        self.items = {}
+
+    def add_vt_window(self, vistrail_window):
+        item = QVistrailListItem(vistrail_window)
+        self.addTopLevelItem(item)
+        self.items[id(vistrail_window)] = item
+
+    def remove_vt_window(self, vistrail_window):
+        self.takeTopLevelItem(self.indexOfTopLevelItem(
+                self.items[id(vistrail_window)]))
+
+    def item_changed(self, item, prev_item):
+        print "*** item clicked", id(item.window)
+        self.parent().emit(QtCore.SIGNAL("vistrailChanged(QVistrailView*)"), 
+                           item.window)
+        
 
 if __name__ == '__main__':
     import sys

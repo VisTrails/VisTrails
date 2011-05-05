@@ -30,6 +30,7 @@ QPIPGraphicsView
 from core import debug
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
+from core.configuration import get_vistrails_configuration
 import core.system
 import math
 from gui.qt import qt_super
@@ -215,11 +216,6 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         QtGui.QGraphicsView.__init__(self, parent)
-        # FIXME: 
-        # Workaround for Qt/PyQt weirdness on Ubuntu 7.04 as of 2008/05/21
-        # If scroll bar is not visible, panning does not work.
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setInteractive(True)
 #        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
@@ -246,6 +242,18 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         if QtCore.QT_VERSION >= 0x40600:
             self.viewport().grabGesture(QtCore.Qt.PinchGesture)
         self.gestureStartScale = None
+
+        conf = get_vistrails_configuration()
+        conf.subscribe('showScrollbars', self.setScrollbarPolicy)
+        self.setScrollbarPolicy('showScrollbars', conf.showScrollbars)
+
+    def setScrollbarPolicy(self, field, value):
+        if value:
+            self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+            self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        else:
+            self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
     def viewportEvent(self, event):
         if QtCore.QT_VERSION >= 0x40600 and event.type() == QtCore.QEvent.Gesture:
@@ -569,6 +577,35 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             self.resetButton.updateGeometry()
         return QtGui.QGraphicsView.resizeEvent(self, event)
         # super(QInteractiveGraphicsView, self).resizeEvent(event)
+
+    def zoomToFit(self):
+        self.scene().fitToView(self, True)
+
+    def zoomIn(self):
+        self.setUpdatesEnabled(False)
+        newScale = self.currentScale + 100.0
+
+        # Clamp the scale
+        if newScale<0: newScale = 0
+        if newScale>self.scaleMax: newScale = self.scaleMax
+        
+        # Update the scale and transformation matrix
+        self.currentScale = newScale
+        self.updateMatrix()
+        self.setUpdatesEnabled(True)
+
+    def zoomOut(self):
+        self.setUpdatesEnabled(False)
+        newScale = self.currentScale - 100.0
+
+        # Clamp the scale
+        if newScale<0: newScale = 0
+        if newScale>self.scaleMax: newScale = self.scaleMax
+        
+        # Update the scale and transformation matrix
+        self.currentScale = newScale
+        self.updateMatrix()
+        self.setUpdatesEnabled(True)
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None

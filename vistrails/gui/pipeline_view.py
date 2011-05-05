@@ -166,14 +166,16 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             conn_info = (snapModuleId, self.connection.snapPort.port,
                          self.parentItem().id, self.port)
         conn = self.controller.add_connection(*conn_info)
-        self.scene().addConnection(conn)
-        self.scene().removeItem(self.connection)
+        scene = self.scene()
+        scene.addConnection(conn)
+        scene.removeItem(self.connection)
         self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
         self.connection = None
-        self.scene().reset_module_colors()
+        scene.reset_module_colors()
         # controller changed pipeline: update ids on scene
-        self.scene()._old_connection_ids = set(self.controller.current_pipeline.connections)
-        self.scene()._old_module_ids = set(self.controller.current_pipeline.modules)
+        scene._old_connection_ids = \
+            set(self.controller.current_pipeline.connections)
+        scene._old_module_ids = set(self.controller.current_pipeline.modules)
         
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -1509,6 +1511,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if moduleBrush:
             moduleItem.set_custom_brush(moduleBrush)
         self.addItem(moduleItem)
+            
         self.modules[module.id] = moduleItem
         self._old_module_ids.add(module.id)
         return moduleItem
@@ -2327,6 +2330,45 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.setScene(QPipelineScene(self))
         self.set_title('Pipeline')
         self.controller = None
+
+    def set_default_layout(self):
+        from gui.module_palette import QModulePalette
+        from gui.module_info import QModuleInfo
+        self.layout = \
+            {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
+             QtCore.Qt.RightDockWidgetArea: QModuleInfo,
+             }
+            
+    def set_action_links(self):
+        self.action_links = \
+            {'copy': ('module_changed', self.has_selected_modules),
+             'paste': ('clipboard_changed', self.clipboard_non_empty),
+             'group': ('module_changed', self.has_selected_modules),
+             'ungroup': ('module_changed', self.has_selected_groups),
+             'showGroup': ('module_changed', self.has_selected_group),
+             'makeAbstraction': ('module_changed', self.has_selected_modules),
+             }
+
+    def has_selected_modules(self, module):
+        return self.scene().get_selected_module_ids() > 0
+
+    def has_selected_groups(self, module, only_one=False):
+        module_ids = self.scene().get_selected_module_ids() 
+        if len(module_ids) <= 0:
+            return False
+        if only_one and len(module_ids) != 1:
+            return False
+        for m_id in module_ids:
+            if not self.scene().current_pipeline.modules[m_id].is_group():
+                return False
+        return True
+
+    def has_selected_group(self, module):
+        return self.has_selected_groups(True)
+
+    def clipboard_non_empty(self):
+        clipboard = QtGui.QApplication.clipboard()
+        return not clipboard.text().isEmpty()
 
     def keyPressEvent(self, event):
         if (event.key()==QtCore.Qt.Key_V and

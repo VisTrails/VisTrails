@@ -20,6 +20,8 @@
 ##
 ############################################################################
 
+from PyQt4 import QtCore, QtGui
+
 class BaseView(object):
     """ BaseView is the base class for the views in VisTrails.
 
@@ -31,6 +33,17 @@ class BaseView(object):
         self.title = None
         self.index = -1
         self.tab_idx = -1
+
+        self.layout = {}
+        self.set_default_layout()
+        self.action_links = {}
+        self.set_action_links()
+
+    def set_default_layout(self):
+        raise Exception("Class must define the layout")
+
+    def set_action_links(self):
+        raise Exception("Class must define the action links")
 
     def set_title(self, title):
         self.title = title
@@ -52,3 +65,8 @@ class BaseView(object):
 
     def set_controller(self, controller):
         pass
+
+    def changeEvent(self, event):
+        if event.type() == QtCore.QEvent.WindowTitleChange:
+            self.emit(QtCore.SIGNAL("windowTitleChanged"), self)
+        QtGui.QWidget.changeEvent(self, event)

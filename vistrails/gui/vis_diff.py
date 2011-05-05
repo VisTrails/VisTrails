@@ -28,6 +28,7 @@ from core.vistrail.pipeline import Pipeline
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
 from gui.vistrail_controller import VistrailController
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from core import system, debug
 import core.db.io
 import copy
@@ -88,10 +89,10 @@ class QParamTable(QtGui.QTableView):
         """
         QtGui.QTableView.__init__(self, parent)
         itemModel = QFunctionItemModel(0, 2, self)
-        itemModel.setHeaderData(0, QtCore.Qt.Horizontal,
-                                QtCore.QVariant(v1Name))
-        itemModel.setHeaderData(1, QtCore.Qt.Horizontal,
-                                QtCore.QVariant(v2Name))
+        itemModel.setHeaderData(0, QtCore.Qt.Horizontal, v1Name)
+        itemModel.setHeaderData(1, QtCore.Qt.Horizontal, v2Name)
+        # self.setHorizontalHeaderLabels(QtCore.QStringList() << \
+        #                                    v1Name << v2Name)
         self.setModel(itemModel)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)        
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)        
@@ -99,6 +100,12 @@ class QParamTable(QtGui.QTableView):
         self.setFont(CurrentTheme.VISUAL_DIFF_PARAMETER_FONT)
         self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         
+    def set_names(self, v1_name, v2_name):
+        self.model().setHeaderData(0, QtCore.Qt.Horizontal, v1_name)
+        self.model().setHeaderData(1, QtCore.Qt.Horizontal, v2_name)
+        # self.setHorizontalHeaderLabels(QtCore.QStringList() << \
+        #                                    v1_name << v2_name)
+
 
 class QParamInspector(QtGui.QWidget):
     """
@@ -180,7 +187,7 @@ class QLegendWindow(QtGui.QWidget):
     QLegendWindow contains a list of QLegendBox and its description
     
     """
-    def __init__(self, v1Name='', v2Name= None, parent='',
+    def __init__(self, v1Name='', v2Name='', parent=None,
                  f=QtCore.Qt.WindowFlags()):
         """ QLegendWindow(v1Name: str, v2Name: str,
                           parent: QWidget, f: WindowFlags)
@@ -188,8 +195,7 @@ class QLegendWindow(QtGui.QWidget):
         Construct a window by default with 4 QLegendBox and 4 QLabels
         
         """
-        QtGui.QWidget.__init__(self, parent,
-                               f | QtCore.Qt.Tool )
+        QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
         self.setWindowTitle('Visual Diff Legend')
         self.firstTime = True
         self.gridLayout = QtGui.QGridLayout(self)
@@ -204,7 +210,7 @@ class QLegendWindow(QtGui.QWidget):
             CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
             self)        
         self.gridLayout.addWidget(self.legendV1Box, 0, 0)
-        self.legendV1 = QtGui.QLabel("Version '" + v1Name + "'", self)
+        self.legendV1 = QtGui.QLabel(v1Name, self)
         self.gridLayout.addWidget(self.legendV1, 0, 1)
         
         self.legendV2Box = QLegendBox(
@@ -212,7 +218,7 @@ class QLegendWindow(QtGui.QWidget):
             CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
             self)        
         self.gridLayout.addWidget(self.legendV2Box, 1, 0)
-        self.legendV2 = QtGui.QLabel("Version '" + v2Name + "'", self)
+        self.legendV2 = QtGui.QLabel(v2Name, self)
         self.gridLayout.addWidget(self.legendV2, 1, 1)
         
         self.legendV12Box = QLegendBox(CurrentTheme.VISUAL_DIFF_SHARED_BRUSH,
@@ -241,6 +247,10 @@ class QLegendWindow(QtGui.QWidget):
 
         self.adjustSize()
         
+    def set_names(self, v1_name, v2_name):
+        self.legendV1.setText(v1_name)
+        self.legendV2.setText(v2_name)
+
     def closeEvent(self,e):
         """ closeEvent(e: QCloseEvent) -> None
         Doesn't allow the Legend widget to close, but just hide
@@ -250,20 +260,158 @@ class QLegendWindow(QtGui.QWidget):
         e.ignore()
         self.parent().showLegendsAction.setChecked(False)
         
+class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+
+        self.controller = None
+        self.set_title("Diff Properites")
+ 
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        self.legend = QLegendWindow()
+        legend_group = QtGui.QGroupBox("Legend")
+        g_layout = QtGui.QVBoxLayout()
+        g_layout.setMargin(0)
+        g_layout.setSpacing(0)
+        g_layout.addWidget(self.legend)
+        legend_group.setLayout(g_layout)
+        layout.addWidget(legend_group)
+
+        self.params = QParamTable()
+        params_group = QtGui.QGroupBox("Parameter Changes")
+        g_layout = QtGui.QVBoxLayout()
+        g_layout.setMargin(0)
+        g_layout.setSpacing(0)
+        g_layout.addWidget(self.params)
+        params_group.setLayout(g_layout)
+        layout.addWidget(params_group)
+        self.setLayout(layout)
+
+    def set_diff(self):
+        if not hasattr(self.controller, 'current_diff'):
+            return
+        (v1, v2) = self.controller.current_diff_versions
+        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
+            self.controller.current_diff
+
+        vistrail = self.controller.vistrail
+        # Set up the version name correctly
+        v1_name = vistrail.getVersionName(v1)
+        if not v1_name:
+            v1_name = 'Version %d' % v1
+        v2_name = vistrail.getVersionName(v2)        
+        if not v2_name:
+            v2_name = 'Version %d' % v2
+        
+        self.legend.set_names(v1_name, v2_name)
+        self.params.set_names(v1_name, v2_name)
+
+    def set_controller(self, controller=None):
+        self.controller = controller
+        self.set_diff()
+        
+    def update_module(self, module=None):
+        """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None
+        When the user click on a module, display its parameter changes
+        in the Inspector
+        
+        """
+        if module is None or not hasattr(self.controller, 'current_diff'):
+            self.params.model().clearList()
+            return
+        
+        # Interprete the diff result and setup item models
+        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
+            self.controller.current_diff
+
+        # # Set the window title
+        # if id>self.maxId1:
+        #     self.inspector.setWindowTitle('Parameter Changes - %s' %
+        #                                   p2.modules[id-self.maxId1-1].name)
+        # else:
+        #     self.inspector.setWindowTitle('Parameter Changes - %s' %
+        #                                   p1.modules[id].name)
+
+        # FIXME set the module name/package info?
+            
+        # Clear the old inspector
+        param_model = self.params.model()
+        # annotations = self.inspector.annotationsTab.model()
+        param_model.clearList()
+        # annotations.clearList()
+
+        # Find the parameter changed module
+        matching = None
+        for ((m1id, m2id), paramMatching) in paramChanged:
+            if m1id == module.id:
+                print "found match"
+                matching = paramMatching
+                break
+
+        print "matching:", matching
+        # If the module has no parameter changed, just display nothing
+        if not matching:          
+            return
+        
+        # Else just layout the diff on a table
+        param_model.insertRows(0,len(matching))
+        currentRow = 0
+        for (f1, f2) in matching:
+            if f1[0]!=None:
+                param_model.setData(
+                    param_model.index(currentRow, 0),
+                    QtCore.QVariant('%s(%s)' % (f1[0],
+                                                ','.join(v[1] for v in f1[1]))))
+            if f2[0]!=None:
+                param_model.setData(
+                    param_model.index(currentRow, 1),
+                    QtCore.QVariant('%s(%s)' % (f2[0],
+                                                ','.join(v[1] for v in f2[1]))))
+            if f1==f2:                
+                param_model.disableRow(currentRow)
+            currentRow += 1
+
+        self.params.resizeRowsToContents()
+        # self.inspector.annotationsTab.resizeRowsToContents()
 
 class QDiffView(QPipelineView):
     def __init__(self, parent=None):
         QPipelineView.__init__(self, parent)
         self.set_title("Diff")
+        self.diff = None
+        self.diff_versions = None
+        self.controller = None
         
     def set_to_current(self):
-        # don't do any of the normal controller hacks
+        # change to normal controller hacks
+        print "AAAAA doing set_to_current"
+        if self.controller.current_pipeline_view is not None:
+            self.disconnect(self.controller,
+                            QtCore.SIGNAL('versionWasChanged'),
+                            self.controller.current_pipeline_view.parent().version_changed)
+        self.controller.current_pipeline_view = self.scene()
+        self.controller.current_diff = self.diff
+        self.controller.current_diff_versions = self.diff_versions
+        self.connect(self.controller,
+                     QtCore.SIGNAL('versionWasChanged'),
+                     self.version_changed)
+
+    def version_changed(self):
         pass
 
-    def set_diff(self, diff):
+    def set_controller(self, controller):
+        self.controller = controller
+        self.scene().controller = controller
+
+    def set_diff(self, version_a, version_b):
         # Interprete the diff result
+        self.diff_versions = (version_a, version_b)
+        self.diff = \
+            self.controller.vistrail.get_pipeline_diff(version_a, version_b)
         (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
-            diff
+            self.diff
         p1.validate(False)
         p2.validate(False)
         p_both = Pipeline()
@@ -273,37 +421,37 @@ class QDiffView(QPipelineView):
         scene = self.scene()
         scene.clearItems()
 
-        # FIXME HACK: We will create a dummy object that looks like a
-        # controller so that the qgraphicsmoduleitems and the scene
-        # are happy. It will simply store the pipeline will all
-        # modules and connections of the diff, and know how to copy stuff
-        class DummyController(object):
-            def __init__(self, pip):
-                self.current_pipeline = pip
-                self.search = None
-            def copy_modules_and_connections(self, module_ids, connection_ids):
-                """copy_modules_and_connections(module_ids: [long],
-                                             connection_ids: [long]) -> str
-                Serializes a list of modules and connections
-                """
+#         # FIXME HACK: We will create a dummy object that looks like a
+#         # controller so that the qgraphicsmoduleitems and the scene
+#         # are happy. It will simply store the pipeline will all
+#         # modules and connections of the diff, and know how to copy stuff
+#         class DummyController(object):
+#             def __init__(self, pip):
+#                 self.current_pipeline = pip
+#                 self.search = None
+#             def copy_modules_and_connections(self, module_ids, connection_ids):
+#                 """copy_modules_and_connections(module_ids: [long],
+#                                              connection_ids: [long]) -> str
+#                 Serializes a list of modules and connections
+#                 """
 
-                pipeline = Pipeline()
-#                 pipeline.set_abstraction_map( \
-#                     self.current_pipeline.abstraction_map)
-                for module_id in module_ids:
-                    module = self.current_pipeline.modules[module_id]
-#                     if module.vtType == Abstraction.vtType:
-#                         abstraction = \
-#                             pipeline.abstraction_map[module.abstraction_id]
-#                         pipeline.add_abstraction(abstraction)
-                    pipeline.add_module(module)
-                for connection_id in connection_ids:
-                    connection = self.current_pipeline.connections[connection_id]
-                    pipeline.add_connection(connection)
-                return core.db.io.serialize(pipeline)
+#                 pipeline = Pipeline()
+# #                 pipeline.set_abstraction_map( \
+# #                     self.current_pipeline.abstraction_map)
+#                 for module_id in module_ids:
+#                     module = self.current_pipeline.modules[module_id]
+# #                     if module.vtType == Abstraction.vtType:
+# #                         abstraction = \
+# #                             pipeline.abstraction_map[module.abstraction_id]
+# #                         pipeline.add_abstraction(abstraction)
+#                     pipeline.add_module(module)
+#                 for connection_id in connection_ids:
+#                     connection = self.current_pipeline.connections[connection_id]
+#                     pipeline.add_connection(connection)
+#                 return core.db.io.serialize(pipeline)
                 
-        controller = DummyController(p_both)
-        scene.controller = controller
+#         controller = DummyController(p_both)
+#         scene.controller = controller
 
         # Find the max version id from v1 and start the adding process
         self.maxId1 = 0
@@ -320,7 +468,7 @@ class QDiffView(QPipelineView):
         for (m1id, m2id) in v1Andv2:
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
-            item.controller = controller
+            item.controller = self.controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
             sum1_x += p1.modules[m1id].location.x
             sum1_y += p1.modules[m1id].location.y
@@ -363,7 +511,7 @@ class QDiffView(QPipelineView):
 
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_MATCH_BRUSH)
-            item.controller = controller
+            item.controller = self.controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Then add parameter changed version
@@ -404,7 +552,7 @@ class QDiffView(QPipelineView):
                             
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
-            item.controller = controller
+            item.controller = self.controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         total_len = len(v1Andv2) + + len(heuristicMatch) + len(paramChanged)
@@ -427,7 +575,7 @@ class QDiffView(QPipelineView):
         for m1id in v1Only:
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
-            item.controller = controller
+            item.controller = self.controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Now add the ones for v2 only but must shift the ids away from v1
@@ -439,7 +587,7 @@ class QDiffView(QPipelineView):
             p2_module.location.y -= avg2_y - avg1_y
             item = scene.addModule(p2_module, #p2.modules[m2id],
                                    CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
-            item.controller = controller
+            item.controller = self.controller
             # p_both.add_module(copy.copy(p2.modules[m2id]))
             p_both.add_module(p2_module)
             
@@ -511,6 +659,7 @@ class QDiffView(QPipelineView):
                 c.connectionPen = pen
 
        
+        scene.current_pipeline = p_both
 
         scene.updateSceneBoundingRect()
         scene.fitToView(self, True)

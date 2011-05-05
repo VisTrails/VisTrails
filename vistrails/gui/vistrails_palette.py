@@ -27,6 +27,59 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
     def __init__(self):
         QToolWindowInterface.__init__(self)
         self.controller = None
+        self.title = None
+        self.p_id = None
+        self.main_window = None
+ 
+    @classmethod
+    def instance(klass):
+        if not hasattr(klass, '_instance'):
+            klass._instance = klass()
+        return klass._instance
+
+    def toolWindow(self):
+        tool_window = QToolWindowInterface.toolWindow(self)
+        return tool_window
+
+    def set_id(self, p_id):
+        self.p_id = p_id
+
+    def get_id(self):
+        return self.p_id
+
+    def set_title(self, title):
+        self.setWindowTitle(title)
+
+    def get_title(self):
+        return self.windowTitle()
+
+    def set_action(self, action):
+        self.action = action
+        self.connect(self.toolWindow(), 
+                     QtCore.SIGNAL("visibilityChanged(bool)"),
+                     self.visibility_changed)
+
+    def get_action(self):
+        return self.action
+        # return self.toolWindow().toggleViewAction()
+
+    def get_action_tuple(self):
+        return (self.get_title(), self.get_title(), 
+                {'checkable': True, 
+                 'checked': True,
+                 'callback': self.set_visible})
+
+    def set_main_window(self, mw):
+        self.main_window = mw
+
+    def set_visible(self, enabled):
+        if enabled and hasattr(self, 'main_window') and \
+                self.main_window is not None:
+            self.main_window.show()
+            self.main_window.raise_()
+
+        if enabled:
+            self.toolWindow().raise_()
 
     def set_controller(self, controller):
         self.controller = controller
@@ -46,3 +99,5 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
     def get_descriptor(self):
         return self.descriptor
 
+    def visibility_changed(self, visible):
+        self.action.setChecked(visible)

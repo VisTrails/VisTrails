@@ -441,6 +441,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
         self._is_running = False
+        self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
         # code for single instance of the application
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
@@ -677,10 +678,10 @@ parameters from other instances")
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.
         # from gui.builder_window import QBuilderWindow
-        from gui.vistrails_app import VisTrailsApp
+        from gui.vistrails_window import QVistrailsWindow
 
         # self.builderWindow = QBuilderWindow()
-        self.builderWindow = VisTrailsApp()
+        self.builderWindow = QVistrailsWindow()
         if not self.temp_configuration.showSpreadsheetOnly:
             # self.builderWindow.show()
             # self.setActiveWindow(self.builderWindow)
