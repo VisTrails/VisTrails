@@ -29,18 +29,17 @@ QModuleTreeWidgetItem
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import (QSearchTreeWindow,
-                                QSearchTreeWidget,
-                                QToolWindowInterface)
+                                QSearchTreeWidget)
 from gui.module_documentation import QModuleDocumentation
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from core.modules.module_registry import get_module_registry
 from core.system import systemType
 from core.utils import VistrailsInternalError
-from core.packagemanager import get_package_manager
 import weakref
 
 ################################################################################
                 
-class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
+class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
     """
     QModulePalette just inherits from QSearchTreeWindow to have its
     own type of tree widget
@@ -48,8 +47,14 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     """
     def __init__(self, parent=None):
         QSearchTreeWindow.__init__(self, parent)
+        self.setContentsMargins(0,5,0,0)
         self.packages = {}
         self.namespaces = {}
+
+    def link_registry(self):
+        self.updateFromModuleRegistry()
+        self.connect_registry_signals()
+        
 
     def connect_registry_signals(self):
         registry = get_module_registry()
@@ -187,6 +192,9 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.newModule(registry.root_descriptor, True)
         self.treeWidget.sortItems(0, QtCore.Qt.AscendingOrder)
         self.treeWidget.expandAll()
+
+    def sizeHint(self):
+        return QtCore.QSize(256, 760)
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """

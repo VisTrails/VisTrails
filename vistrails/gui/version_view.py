@@ -36,6 +36,7 @@ from PyQt4 import QtCore, QtGui
 from core.system import systemType
 from core.thumbnails import ThumbnailCache
 from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+from gui.base_view import BaseView
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface,
@@ -343,7 +344,6 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
                 self.reset()
             self.updatingTag = False
       
-
 ##############################################################################
 # QGraphicsVersionItem
 
@@ -616,12 +616,14 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if (hasattr(data, 'versionId') and hasattr(data, 'controller') and
             data.controller==self.scene().controller):
             event.accept()
-            visDiff = QVisualDiff(self.scene().controller.vistrail,
-                                  data.versionId,
-                                  self.id,
-                                  self.scene().controller,
-                                  self.scene().views()[0])
-            visDiff.show()
+            self.scene().emit(QtCore.SIGNAL('diffRequested(int,int)'),
+                              data.versionId, self.id)
+            # visDiff = QVisualDiff(self.scene().controller.vistrail,
+            #                       data.versionId,
+            #                       self.id,
+            #                       self.scene().controller,
+            #                       self.scene().views()[0])
+            # visDiff.show()
         else:
             event.ignore()  
 
@@ -678,6 +680,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                                        self.perform_analogy)
             menu.addMenu(analogies)
         menu.exec_(event.screenPos())
+
+    def mouseDoubleClickEvent(self, event):
+        self.scene().double_click(self.id)
+
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """
@@ -1021,21 +1027,26 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 item.text.hide()
         if len(selected_items) == 1:
             # emit versionSelected selected_id
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
-                      selected_items[0].id, self.select_by_click, True, False)
+            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+                      selected_items[0].id, self.select_by_click, 
+                      True, False, False)
             if selected_items[0].id != 0:
                 selected_items[0].text.show()
         else:
             # emit versionSelected -1
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
-                      -1, self.select_by_click, True, False)
+            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+                      -1, self.select_by_click, True, False, False)
 
         if len(selected_items) == 2:
             self.emit(
                 QtCore.SIGNAL('twoVersionsSelected(int, int)'),
                 selected_items[0].id, selected_items[1].id)
 
-class QVersionTreeView(QInteractiveGraphicsView):
+    def double_click(self, version_id):
+        self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+                  version_id, self.select_by_click, True, False, True)
+
+class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     """
     QVersionTreeView inherits from QInteractiveGraphicsView that will
     handle drawing of versions layout output from Dotty
@@ -1048,10 +1059,25 @@ class QVersionTreeView(QInteractiveGraphicsView):
         
         """
         QInteractiveGraphicsView.__init__(self, parent)
-        self.setWindowTitle('Version Tree')
+        BaseView.__init__(self)
+        self.controller = None
+        self.set_title('Version Tree')
         self.setScene(QVersionTreeScene(self))
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
+
+    def set_default_layout(self):
+        from gui.collection.workspace import QWorkspaceWindow
+        from gui.version_prop import QVersionProp
+        self.layout = \
+            {QtCore.Qt.LeftDockWidgetArea: QWorkspaceWindow,
+             QtCore.Qt.RightDockWidgetArea: QVersionProp,
+             }
+            
+    def set_action_links(self):
+        self.action_links = \
+            {
+            }
 
     def selectModules(self):
         """ selectModules() -> None
@@ -1071,4 +1097,78 @@ class QVersionTreeView(QInteractiveGraphicsView):
                     item.text.hide()
         qt_super(QVersionTreeView, self).selectModules()
                 
+    def set_title(self, title):
+        BaseView.set_title(self, title)
+        self.setWindowTitle(title)
+
+    def set_controller(self, controller):
+        oldController = self.controller
+        if oldController != controller:
+            if oldController != None:
+                self.disconnect(oldController,
+                                QtCore.SIGNAL('vistrailChanged()'),
+                                self.vistrailChanged)
+                self.disconnect(oldController,
+                                QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
+                                self.single_node_changed)
+                self.disconnect(oldController,
+                                QtCore.SIGNAL('notesChanged()'),
+                                self.notesChanged)
+            self.controller = controller
+            self.scene().controller = controller
+            self.connect(controller,
+                         QtCore.SIGNAL('vistrailChanged()'),
+                         self.vistrailChanged)
+            self.connect(controller,
+                         QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
+                         self.single_node_changed)
+            self.connect(controller,
+                         QtCore.SIGNAL("notesChanged()"),
+                         self.notesChanged)
+            if controller:
+                self.versionProp.updateController(controller)
+                self.scene().setupScene(controller)
+                # self.vistrailChanged()
+                # self.versionProp.updateController(controller)
+                # self.versionView.versionProp.updateController(controller)
+
+    def vistrailChanged(self):
+        """ vistrailChanged() -> None
+        An action was performed on the current vistrail
+        
+        """
+        self.scene().setupScene(self.controller)
+        if self.controller and self.controller.reset_version_view:
+            self.scene().fitToAllViews()
+        if self.controller:
+            # self.versionProp.updateVersion(self.controller.current_version)
+            self.versionProp.updateVersion(self.controller.current_version)
+        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+
+    def single_node_changed(self, old_version, new_version):
+        """ single_node_changed(old_version, new_version)
+        Handle single node change on version tree by not recomputing
+        entire scene.
+
+        """
+        self.scene().update_scene_single_node_change(self.controller,
+                                                     old_version,
+                                                     new_version)
+        if self.controller and self.controller.reset_version_view:
+            self.scene().fitToAllViews()
+        if self.controller:
+            # self.versionProp.updateVersion(self.controller.current_version)
+            self.versionProp.updateVersion(self.controller.current_version)
+        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+
+    def notesChanged(self):
+        """ notesChanged() -> None
+        The notes for the current vistrail version changed
+
+        """
+        if self.controller:
+            self.versionProp.updateVersion(self.controller.current_version)
+
+        
+
 ################################################################################

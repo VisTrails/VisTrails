@@ -27,11 +27,12 @@ import api
 import cgi
 from core.configuration import get_vistrails_configuration
 from gui.application import VistrailsApplication
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
 
-class DebugView(QtGui.QDialog):
+class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
     """ Class used for showing error messages and
         debugging QT signals.
 
@@ -40,18 +41,18 @@ class DebugView(QtGui.QDialog):
            gui.debug.watch_signal(my_signal)
      """
     #Singleton technique
-    _instance = None
-    class DebugViewSingleton():
-        def __call__(self, *args, **kw):
-            if DebugView._instance is None:
-                obj = DebugView(*args, **kw)
-                DebugView._instance = obj
-            return DebugView._instance
+    # _instance = None
+    # class DebugViewSingleton():
+    #     def __call__(self, *args, **kw):
+    #         if DebugView._instance is None:
+    #             obj = DebugView(*args, **kw)
+    #             DebugView._instance = obj
+    #         return DebugView._instance
         
-    getInstance = DebugViewSingleton()
+    # getInstance = DebugViewSingleton()
 
-    def __init__(self, parent = None):
-        QtGui.QDialog.__init__(self, parent)
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
         core.debug.DebugPrint.getInstance().set_stream(debugStream(self.write)) 
         self.setWindowTitle('VisTrails Messages')
         layout = QtGui.QVBoxLayout()

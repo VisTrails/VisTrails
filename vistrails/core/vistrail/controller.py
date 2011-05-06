@@ -67,7 +67,7 @@ from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from db import VistrailsDBException
 from db.domain import IdScope, DBWorkflowExec
 from db.services.io import create_temp_folder, remove_temp_folder
-from db.services.io import SaveBundle, open_vt_log_from_db, open_log_from_xml
+from db.services.io import SaveBundle, open_vt_log_from_db
 
 from db.services.vistrail import getSharedRoot
 from core.utils import any
@@ -93,9 +93,9 @@ class VistrailController(object):
             self.current_session = vistrail.idScope.getNewId('session')
             vistrail.current_session = self.current_session
             vistrail.log = self.log
-        self.current_pipeline = None
+        self._current_pipeline = None
         self.locator = None
-        self.current_version = -1
+        self._current_version = -1
         self.changed = False
 
         # if _cache_pipelines is True, cache pipelines to speed up
@@ -121,6 +121,19 @@ class VistrailController(object):
         self._delayed_actions = []
         self._loaded_abstractions = {}
         
+    # allow gui.vistrail_controller to reference individual views
+    def _get_current_version(self):
+        return self._current_version
+    def _set_current_version(self, version):
+        self._current_version = version
+    current_version = property(_get_current_version, _set_current_version)
+
+    def _get_current_pipeline(self):
+        return self._current_pipeline
+    def _set_current_pipeline(self, pipeline):
+        self._current_pipeline = pipeline
+    current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
+
     def flush_pipeline_cache(self):
         self._pipelines = {0: Pipeline()}
 
@@ -1663,16 +1676,17 @@ class VistrailController(object):
                                                 extra_info)])
 
     def recompute_terse_graph(self):
-        # get full version tree (including pruned nodes)                                            
-        # this tree is kept updated all the time. This                                              
-        # data is read only and should not be updated!                                              
+        # get full version tree (including pruned nodes) this tree is
+        # kept updated all the time. This data is read only and should
+        # not be updated!
         fullVersionTree = self.vistrail.tree.getVersionTree()
 
-        # create tersed tree                                                                        
+        # create tersed tree
         x = [(0,None)]
         tersedVersionTree = Graph()
 
-        # cache actionMap and tagMap because they're properties, sort of slow                       
+        # cache actionMap and tagMap because they're properties, sort
+        # of slow
         am = self.vistrail.actionMap
         tm = self.vistrail.get_tagMap()
         last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
@@ -1683,7 +1697,7 @@ class VistrailController(object):
             except IndexError:
                 break
 
-            # mount childs list                                                                     
+            # mount childs list
             if current in am and self.vistrail.is_pruned(current):
                 children = []
             else:
@@ -1693,31 +1707,31 @@ class VistrailController(object):
                                             to == self.current_version)]
 
             if (self.full_tree or
-                (current == 0) or  # is root                                                        
-                (current in tm) or # hasTag:                                                        
-                (len(children) <> 1) or # not oneChild:                                             
-                (current == self.current_version) or # isCurrentVersion                             
-                (am[current].expand) or  # forced expansion                                         
-                (current in last_n)): # show latest                                                 
-                # yes it will!                                                                      
-                # this needs to be here because if we are refining                                  
-                # version view receives the graph without the non                                   
-                # matching elements                                                                 
+                (current == 0) or  # is root
+                (current in tm) or # hasTag:
+                (len(children) <> 1) or # not oneChild:
+                (current == self.current_version) or # isCurrentVersion
+                (am[current].expand) or  # forced expansion
+                (current in last_n)): # show latest
+
+                # yes it will!  this needs to be here because if we
+                # are refining version view receives the graph without
+                # the non matching elements
                 if( (not self.refine) or
                     (self.refine and not self.search) or
                     (current == 0) or
                     (self.refine and self.search and
                      self.search.match(self.vistrail,am[current]) or
                      current == self.current_version)):
-                    # add vertex...                                                                 
+                    # add vertex...
                     tersedVersionTree.add_vertex(current)
 
-                    # ...and the parent                                                             
+                    # ...and the parent
                     if parent is not None:
                         tersedVersionTree.add_edge(parent,current,0)
 
-                    # update the parent info that will                                              
-                    # be used by the childs of this node                                            
+                    # update the parent info that will be used by the
+                    # childs of this node
                     parentToChildren = current
                 else:
                     parentToChildren = parent
@@ -1734,13 +1748,15 @@ class VistrailController(object):
                                                self._current_terse_graph)
         
     def refine_graph(self, step=1.0):
-        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)                                       
-        Refine the graph of the current vistrail based the search                                      
-        status of the controller. It also return the full graph as a                                   
-        reference                                                                                      
-                                                                                                       
+        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
+        Refine the graph of the current vistrail based the search
+        status of the controller. It also return the full graph as a
+        reference
+                     
         """
         
+        if self._current_full_graph is None:
+            self.recompute_terse_graph()
         return (self._current_terse_graph, self._current_full_graph,
                 self._current_graph_layout)
 
@@ -2497,16 +2513,7 @@ class VistrailController(object):
         """ Returns the saved log from zip or DB
         
         """
-        log = Log()
-        if type(self.locator) == core.db.locator.ZIPFileLocator:
-            if self.vistrail.db_log_filename is not None:
-                log = open_log_from_xml(self.vistrail.db_log_filename, True)
-        if type(self.locator) == core.db.locator.DBLocator:
-            # read log from DB - first get log id:s
-            connection = self.locator.get_connection()
-            log = open_vt_log_from_db(connection, self.vistrail.db_id)
-        Log.convert(log)
-        return log
+        return self.vistrail.get_log()
  
     def write_registry(self, locator):
         registry = core.modules.module_registry.get_module_registry()

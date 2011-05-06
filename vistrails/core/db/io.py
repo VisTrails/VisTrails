@@ -91,6 +91,12 @@ def serialize(object):
     """
     return db.services.io.serialize(object)
 
+def open_log(fname, was_appended=False):
+    log = db.services.io.open_log_from_xml(fname, was_appended)
+    Log.convert(log)
+    return log
+
+
 def merge_logs(new_log, log_fname):
     log = db.services.io.merge_logs(new_log, log_fname)
     Log.convert(log)
