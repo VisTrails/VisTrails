@@ -32,6 +32,7 @@ except ImportError:
     import sha
     sha_hash = sha.new
 
+import core.debug
 from core.configuration import ConfigurationObject
 from core.cache.hasher import Hasher
 from core.modules.basic_modules import Path, File, Directory, Boolean, \
@@ -583,7 +584,9 @@ class PersistentPath(Module):
         if ref.local_path and ref.local_writeback:
             if path != ref.local_path:
                 self.copypath(path, ref.local_path)
-
+        if not str(ref.version):
+            core.debug.critical("Persistent version annotation not set correctly "
+                           "for persistent_id=%s" % ref.id)
         # for all paths
         self.annotate({'persistent_id': ref.id,
                        'persistent_version': ref.version})
