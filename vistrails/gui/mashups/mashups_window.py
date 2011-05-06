@@ -20,10 +20,11 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
+from gui.base_view import BaseView
 from gui.mashups.mashups_inspector import QMashupsInspector
 from gui.mashups.mashup_view import QMashupView
 
-class QMashupsWindow(QtGui.QMainWindow):
+class QMashupsWindow(QtGui.QMainWindow, BaseView):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
         self.windows = []

@@ -125,7 +125,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.view_action_group = QtGui.QActionGroup(self)
         for action in [self.qactions[n] 
                        for n in ['execute', 'pipeline', 'history', 
-                                 'search', 'explore', 'provenance']]:
+                                 'search', 'explore', 'provenance', 'mashup']]:
             self.toolbar.addAction(action)
             self.view_action_group.addAction(action)
         # self.connect(self.view_action_group, 
@@ -1196,6 +1196,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
                        'callback': \
                            self.pass_through_bool(self.get_current_view,
                                                   'provenance_change')}),
+                     ("mashup", "Mashup",
+                      {'icon': CurrentTheme.CREATE_MASHUP_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'callback': \
+                           self.pass_through_bool(self.get_current_view,
+                                                  'mashup_change')}),
+           
                      "---"] + palette_actions),
                     # [("workspace", "Workspaces",
                     #   {'checkable': True,

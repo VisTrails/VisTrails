@@ -39,7 +39,7 @@ from gui.paramexplore.pe_view import QParamExploreView
 from gui.vis_diff import QDiffView
 from gui.paramexplore.param_view import QParameterView
 from gui.vistrail_controller import VistrailController
-
+from gui.mashups.mashups_window import QMashupsWindow
 ################################################################################
 
 class QVistrailView(QtGui.QWidget):
@@ -80,6 +80,7 @@ class QVistrailView(QtGui.QWidget):
         self.query_view = self.create_query_view()
         self.pe_view = self.create_pe_view()
         self.log_view = self.create_log_view()
+        self.mashup_view = self.create_mashup_view()
         
         self.set_controller(self.controller)
         self.locator = locator
@@ -241,6 +242,20 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setTabText(self.tabs.currentIndex(), 
                              self.stack.currentWidget().get_title())
 
+    def mashup_selected(self):
+        from gui.vistrails_window import _app
+        print "MASHUP"
+        self.stack.setCurrentIndex(self.stack.indexOf(self.mashup_view))
+        self.tabs.setTabText(self.tabs.currentIndex(), "Mashup")
+        self.tab_state[self.tabs.currentIndex()] = _app.qactions['mashup']
+        
+    def mashup_unselected(self):
+        print "MASHUP UN"
+        self.stack.setCurrentIndex(
+            self.tab_to_stack_idx[self.tabs.currentIndex()])
+        self.tabs.setTabText(self.tabs.currentIndex(), 
+                             self.stack.currentWidget().get_title())
+        
     def pipeline_change(self, checked):
         if checked:
             print "PIPELINE SELECTED"
@@ -281,6 +296,13 @@ class QVistrailView(QtGui.QWidget):
             self.provenance_unselected()
         self.view_changed()
 
+    def mashup_change(self, checked):
+        if checked:
+            self.mashup_selected()
+        else:
+            self.mashup_unselected()
+        self.view_changed()
+        
     def create_view(self, klass, add_tab=True):
         view = klass(self)
         idx = self.stack.addWidget(view)
@@ -422,7 +444,12 @@ class QVistrailView(QtGui.QWidget):
         view = self.create_view(QLogView, False)
         self.notifications['execution_changed'] = view.set_execution
         return view
-
+    
+    def create_mashup_view(self):
+        from gui.vistrails_window import _app
+        view = self.create_view(QMashupsWindow, False)
+        return view
+    
     def gen_module_selected(self, view):
         def module_selected(module_id, selection = []):
             from gui.vistrails_window import _app
