@@ -132,14 +132,18 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
             data = id_list[index.row()]
         else:
             # have a parent node    
-            # want to have the earliest created date and latest modified date
             id_list = self.id_lists[self.id_lists_keys[index.row()]]
             data = id_list[0]
+            # want to have the earliest created date and latest modified date
+            if index.column() == self.idxs['date_created']:
+                dates = [l[index.column()] for l in id_list]
+                return QtCore.QVariant(min(dates))
+            if index.column() == self.idxs['date_modified']:
+                dates = [l[index.column()] for l in id_list]
+                return QtCore.QVariant(max(dates))
             if index.column() == self.idxs['version'] or \
                     index.column() == self.idxs['signature'] or \
                     index.column() == self.idxs['content_hash'] or \
-                    index.column() == self.idxs['date_created'] or \
-                    index.column() == self.idxs['date_modified'] or \
                     index.column() == self.idxs['user']:
                 return QtCore.QVariant()
 
@@ -218,7 +222,7 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         value_list = []
         for _, c in sorted(self.cols.iteritems()):
             if c in value_dict:
-                value_list.append(value_dict[c])
+                value_list.append(str(value_dict[c]))
             else:
                 value_list.append(None)
         if id not in self.id_lists:
