@@ -449,7 +449,7 @@ class QVistrailView(QtGui.QWidget):
                 # view.set_controller(self.controller)
                 # view.set_to_current()
                 # self.tabs.setCurrentWidget(view.parent())
-                _app.action_triggered(self.selected_mode)
+                _app.qactions['pipeline'].trigger()
         view.set_title(self.controller.get_pipeline_name())
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
