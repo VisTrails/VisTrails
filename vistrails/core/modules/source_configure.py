@@ -60,7 +60,7 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         PortTableConfigurationWidget.__init__(self, module, controller, parent)
         if editor_class is None:
             editor_class = SourceEditor
-        self.codeEditor = editor_class(self)
+        self.codeEditor = editor_class(parent)
         self.setWindowTitle('%s Configuration' % module.name)
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
@@ -132,7 +132,10 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
             if self.sourceEncode:
                 code = urllib.unquote(code)
             self.codeEditor.setPlainText(code)
-        self.codeEditor.document().setModified(False)
+        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+            self.codeEditor.document().setModified(False)
+        else:
+            self.codeEditor.setModified(False)
         self.codeEditor.setFocus()
         
     def setupEditor(self):
@@ -141,14 +144,23 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         
         self.cursorLabel = QtGui.QLabel()
         self.layout().addWidget(self.cursorLabel)
-        self.connect(self.codeEditor, QtCore.SIGNAL('cursorPositionChanged()'),
-                     self.updateCursorLabel)
+        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+            self.connect(self.codeEditor,
+                         QtCore.SIGNAL('cursorPositionChanged()'),
+                         self.updateCursorLabel)
+        else:
+            self.connect(self.codeEditor,
+                         QtCore.SIGNAL('cursorPositionChanged(int, int)'),
+                         self.updateCursorLabel)
         self.updateCursorLabel()
             
-    def updateCursorLabel(self):
-        cursor = self.codeEditor.textCursor()
-        self.cursorLabel.setText('Line: %d / Col: %d' % (cursor.blockNumber()+1,
-                                                            cursor.columnNumber()+1))
+    def updateCursorLabel(self, x=0, y=0):
+        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+            cursor = self.codeEditor.textCursor()
+            x = cursor.blockNumber()
+            y = cursor.columnNumber()
+            
+        self.cursorLabel.setText('Line: %d / Col: %d' % (x+1, y+1))
 
     def performPortConnection(self, operation):
         operation(self.inputPortTable.horizontalHeader(),
@@ -185,8 +197,13 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
             added_ports.extend(output_added_ports)
 
         functions = []
-        if (self.codeEditor is not None and
-            self.codeEditor.document().isModified()):
+        modified = False
+        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+            modified = self.codeEditor.document().isModified()
+        else:
+            modified = self.codeEditor.isModified()
+        
+        if (self.codeEditor is not None and modified):
             code = str(self.codeEditor.toPlainText())
             if self.sourceEncode:
                 code = urllib.quote(code)
