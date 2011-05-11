@@ -409,6 +409,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         #                               thumbnail_files)
         
         self.open_vistrail(locator)
+        self.qactions['pipeline'].trigger()
 
     def open_vistrail(self, locator, version=None, is_abstraction=False):
         """open_vistrail(locator: Locator, version = None: int or str,
@@ -437,6 +438,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
                                         load_vistrail(locator, is_abstraction)
             view = self.create_view(vistrail, locator)
             self.view_changed(view)
+
+            self.qactions['history'].trigger()
+            view.version_view.zoomToFit()
+
             # self.window_changed(window)
             # result = self.set_vistrail_view(vistrail, locator, 
             #                                 abstraction_files, thumbnail_files,
@@ -449,6 +454,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             # debug.critical('An error has occurred', str(e))
             print "An error has occurred", str(e)
             raise
+
 
     def open_vistrail_from_locator(self, locator_class):
         """ open_vistrail(locator_class) -> None
@@ -601,7 +607,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
         return method
 
     def create_menus(self):
-        global _menu_bar 
         self.createActions()
         # self.fileMenu = _menu_bar.addMenu('&File')
         # self.newVistrailAction = QtGui.QAction('&New', self)
@@ -902,8 +907,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
         
         # self.vistrailActionGroup = QtGui.QActionGroup(self)
         # self.mergeActionGroup = QtGui.QActionGroup(self)
-
-        global _menu_bar
 
         # format of each item in the list is:
         # item: reference, title, options
@@ -1266,6 +1269,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                      ("checkUpdate", "Check for Updates", 
                       {'callback': self.showUpdatesMessage})])]
 
+
         qactions = {}
         qmenus = {}
         def process_list(action_list, parent):
@@ -1309,7 +1313,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.qactions = qactions
             self.qmenus = qmenus
 
-        process_list(actions, _menu_bar)
+        menu_bar = self.menuBar()
+        process_list(actions, menu_bar)
 
         for action_tuple, palette in izip(palette_actions, palettes):
             palette.set_action(self.qactions[action_tuple[0]])
@@ -1621,8 +1626,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.helpMenu.addAction(self.checkUpdateAction)
 
 _app = None
-_menu_bar = QtGui.QMenuBar()
-
 
     # def focusInEvent(self, event):
     #     print 'got focusInEvent', event, event.reason()
