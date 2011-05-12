@@ -12,7 +12,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.controller = None
         self.module = None
         self.pipeline_view = None # pipeline_view
-        self.module_config = None # module_config
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -31,6 +30,8 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                      self.configure)
         self.doc_button = QtGui.QPushButton("Documentation")
         self.doc_button.setMinimumSize(50, 30)
+        self.connect(self.doc_button, QtCore.SIGNAL('clicked()'),
+                     self.documentation)
 
         layout = QtGui.QVBoxLayout()
         layout.setMargin(2)
@@ -146,4 +147,10 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         scene.recreate_module(self.controller.current_pipeline, self.module.id)
         
     def configure(self):
-        self.module_config.activate()
+        from gui.vistrails_window import _app
+        _app.configure_module()
+
+    def documentation(self):
+        from gui.vistrails_window import _app
+        _app.show_documentation()
+        

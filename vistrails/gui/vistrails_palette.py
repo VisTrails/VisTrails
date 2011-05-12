@@ -51,7 +51,7 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
         self.setWindowTitle(title)
 
     def get_title(self):
-        return self.windowTitle()
+        return str(self.windowTitle())
 
     def set_action(self, action):
         self.action = action

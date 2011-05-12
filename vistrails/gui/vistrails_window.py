@@ -68,6 +68,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.setup_recent_vistrails()
         self.init_toolbar()
 
+        self.connect(QtGui.QApplication.clipboard(),
+                     QtCore.SIGNAL('dataChanged()'),
+                     self.clipboard_changed)
+
     def create_view(self, vistrail, locator):
         from gui.collection.workspace import QWorkspaceWindow
         view = QVistrailView(vistrail, locator)
@@ -304,6 +308,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
         if notification_id in notifications:
             for m in notifications[notification_id]:
                 m(*args)
+
+    def clipboard_changed(self):
+        self.notify("clipboard_changed")
 
     def set_action_links(self, action_links, obj):
         link_list = []
@@ -1071,11 +1078,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
                        'shortcut': QtGui.QKeySequence.Paste,
                        'enabled': False,
                        'callback': self.pass_through(self.get_current_tab,
-                                                     'paste_clipboard')}),
+                                                     'pasteFromClipboard')}),
                      ("selectAll", "Select All",
                       {'statusTip': "Select all modules in the current " \
                            "pipeline view",
-                       'enabled': False,
+                       'enabled': True,
                        'shortcut': QtGui.QKeySequence.SelectAll,
                        'callback': self.pass_through(self.get_current_tab,
                                                      'select_all')}),
@@ -1084,12 +1091,16 @@ class QVistrailsWindow(QtGui.QMainWindow):
                       {'statusTip': "Group the selected modules in the " \
                            "current pipeline view",
                        'shortcut': 'Ctrl+G',
-                       'enabled': False}),
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_tab,
+                                                     'group')}),
                      ("ungroup", "Ungroup",
                       {'statusTip': "Ungroup the selected groups in the " \
                            "current pipeline view",
                        'shortcut': 'Ctrl+Shift+G',
-                       'enabled': False}),
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_tab,
+                                                     'ungroup')}),
                      ("showGroup", "Show Group Pipeline",
                       {'statusTip': "Show the underlying pipeline for the " \
                            "selected group in the current pipeline view",
@@ -1127,13 +1138,22 @@ class QVistrailsWindow(QtGui.QMainWindow):
                        'callback': self.pass_through(self.get_current_view,
                                                      'execute')}),
                      ("flushCache", "Erase Cache Contents", 
-                      {'enabled': True})]),
+                      {'enabled': True}),
+                     "---",
+                     ("configureModule", "Configure Module...",
+                      {'shortcut': "Ctrl+E",
+                       'enabled': True,
+                       'callback': self.configure_module}),
+                     ("documentModule", "Module Documentation...",
+                      {'enabled': True,
+                       'callback': self.show_documentation})]),
                      # ("executeDiff", "Show Version Difference",
                      #  {'enabled': False}),
                      # ("executeQuery", "Perform Query",
                      #  {'enabled': False}),
                      # ("executeExploration", "Perform Parameter Exploration",
                      #  {'enabled': False})]),
+                   
                    ("view", "&Views",
                     [("newView", "New Pipeline View",
                       {'shortcut': QtGui.QKeySequence.AddTab,
@@ -1519,6 +1539,20 @@ class QVistrailsWindow(QtGui.QMainWindow):
         """
         self.update_recent_vistrail_actions()
                 
+    def configure_module(self):
+        from gui.module_configuration import QModuleConfiguration
+        action_name = QModuleConfiguration.instance().get_title()
+        # easy way to make sure that configuration window is raised
+        self.qactions[action_name].setChecked(False)
+        self.qactions[action_name].setChecked(True)
+
+    def show_documentation(self):
+        from gui.module_documentation import QModuleDocumentation
+        action_name = QModuleDocumentation.instance().get_title()
+        # easy way to make sure that documentation window is raised
+        self.qactions[action_name].setChecked(False)
+        self.qactions[action_name].setChecked(True)
+
     def createMenu(self):
         """ createMenu() -> None
         Initialize menu bar of builder window

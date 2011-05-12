@@ -430,6 +430,8 @@ class QVistrailView(QtGui.QWidget):
             if module_id in pipeline.modules:
                 module = pipeline.modules[module_id]
                 _app.notify('module_changed', module)
+            else:
+                _app.notify('module_changed', None)
         return module_selected
 
     def version_selected(self, version_id, by_click, do_validate=True,

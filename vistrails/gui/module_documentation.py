@@ -43,6 +43,7 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
         """
         QtGui.QDialog.__init__(self, parent)
         # self.setModal(True)
+        self.setWindowTitle("Module Documentation")
         self.setLayout(QtGui.QVBoxLayout())
         # self.layout().addStrut()
         self.name_label = QtGui.QLabel("")
@@ -80,13 +81,12 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
     def update_descriptor(self, descriptor=None):
         self.descriptor = descriptor
         if descriptor is None:
-            self.setWindowTitle("Module Documentation")
+            # self.setWindowTitle("Module Documentation")
             self.name_label.setText("Module name:")
             self.package_label.setText("Module package:")
             self.textEdit.setText("")
         else:
-            self.setWindowTitle('%s Documentation' % descriptor.name)
-
+            # self.setWindowTitle('%s Documentation' % descriptor.name)
             self.name_label.setText("Module name: %s" % descriptor.name)
             self.package_label.setText("Module package: %s" % \
                                            descriptor.module_package())
