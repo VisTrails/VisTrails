@@ -7,6 +7,7 @@ Learning VisTrails By Example
 
    creating
    version_tree
+   merging
    spreadsheet
    querying
    analogies
