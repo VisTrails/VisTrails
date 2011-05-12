@@ -1376,26 +1376,30 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         thumb_cache = ThumbnailCache.getInstance()
         c1 = self.viewManager.currentView().controller
-        t1 = c1.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
-            if thumb_cache.conf.autoSave else []
-        s1 = SaveBundle(c1.vistrail.vtType, c1.vistrail, c1.log, thumbnails=t1)
-        l1 = c1.locator._name if c1.locator is not None else ''
         c2 = mergeAction.view.controller
-        t2 = c2.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
-            if thumb_cache.conf.autoSave else []
-        s2 = SaveBundle(c2.vistrail.vtType, c2.vistrail, c2.log, thumbnails=t2)
-        l2 = c2.locator._name if c2.locator is not None else ''
+
         if c1.changed or c2.changed:
             text = ('Both Vistrails need to be saved before they can be merged.')
             QtGui.QMessageBox.information(None, 'Cannot perform merge',
                                       text, '&OK')
             return
+        
+        l1 = c1.locator._name if c1.locator is not None else ''
+        t1 = c1.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
+            if thumb_cache.conf.autoSave else []
+        s1 = SaveBundle(c1.vistrail.vtType, c1.vistrail.do_copy(), c1.log, thumbnails=t1)
+
+        l2 = c2.locator._name if c2.locator is not None else ''
+        t2 = c2.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
+            if thumb_cache.conf.autoSave else []
+        s2 = SaveBundle(c2.vistrail.vtType, c2.vistrail, c2.log, thumbnails=t2)
+
         db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
-        vistrail = c1.vistrail.do_copy()
-        vistrail.locator = c1.locator
-        self.viewManager.currentView().set_vistrail(vistrail, c1.locator,
-                                                   thumbnails=s1.thumbnails)
-        self.viewManager.currentView().setup_view()
+        vistrail = s1.vistrail
+        vistrail.set_defaults()
+        self.viewManager.set_vistrail_view(vistrail, None, thumbnail_files=s1.thumbnails)
+        self.viewManager.currentView().controller.changed = True
+        self.viewManager.currentView().stateChanged()
 
     def showWorkspace(self, checked=True):
         """ showWorkspace() -> None
