@@ -78,7 +78,7 @@ Setting up |vistrails|
 
 If you are planning to use the database for most of your work,
 you can configure |vistrails| to open vistrails from the database by
-default.  To do so, select the ``Preferences`` option from the ``Edit`` menu. (On Mac~OS~X, the ``Preferences`` option is found under the ``|vistrails|`` menu.) When the ``Preferences`` window opens, check the "Read/Write to database by default" box in the ``General Configuration`` tab.  You can switch the default back to a file-based interaction by unchecking this box.
+default.  To do so, select the ``Preferences`` option from the ``Edit`` menu. (On Mac OS X, the ``Preferences`` option is found under the ``VisTrails`` menu.) When the ``Preferences`` window opens, check the "Read/Write to database by default" box in the ``General Configuration`` tab.  You can switch the default back to a file-based interaction by unchecking this box.
 
 .. _sec-database-open:
 

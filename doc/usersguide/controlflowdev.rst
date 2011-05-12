@@ -476,96 +476,192 @@ This example can be found inside the "examples" directory, in the
 "protein_visualization.vt" vistrail. It was partially based on the workflow
 "Structure_or_ID", which can be found at http://www.myexperiment.org/workflows/225.
 
-**************************
-The Control Flow Assistant
-**************************
+Building your own loop structure
+================================
 
-.. index:: control flow assistant
+In functional programming, ``fold`` is a high-order function used to
+encapsulate a pattern of recursion for processing lists. A simple example of a
+``fold`` is summing the elements inside a list. If you ``fold`` the
+list [1, 2, 3, 4] with the sum operator, the result will be (((1+2)+3)+4) = 10. It's
+common to start with an initial value too. In the sum example, the initial value
+would be 0, and the result would be ((((0+1)+2)+3)+4) = 10.
 
-Using the Control Flow Assistant (CFA)
-======================================
+With this function, a programmer can do any type of recursion. In fact, the
+``map`` and ``filter`` functions, shown previously, can be implemented
+with ``fold``. The ``Control Flow`` package provides a ``Fold``
+module to enable this functionality, and the ``Map`` and the ``Filter``
+modules inherit from the ``Fold`` class.
 
-In order to simplify the process of creating a control flow loop that uses the Map module, VisTrails has a Control Flow Assistant (CFA).
-To use the CFA, you must:
+In fact, any control module that has this kind of recursion uses the ``Fold``
+class. To use this functionality for your own control modules, instead of defining
+the ``compute()`` method, you need to define two other methods:
 
-1) Enable all ports (in the Module Configuration) that you wish to use as inputs or outputs.
-2) Select the modules in the workflow that will form the basis of your mapped input-output loop.
-3) Go to 'Edit->Control Flow Assistant' to launch the CFA using the selected modules.
-4) Select the input ports that you wish to loop over using List modules as input.
-5) Select the output port that you wish to use for the values in the output List.
-6) Click OK, and the CFA will generate the control flow structure as a Group module.
-7) Connect a List input to each of the inputs on the control flow Group.
-8) Connect the Group's output List (output port 'Result') to a suitable module/port, or create a PythonSource module to handle the List output.
+* ``setInitialValue()``: in this method, you will set the initial value of the fold operator through the ``self.initialValue`` attribute; 
+* ``operation()``: in this method, you must implement the function to be applied recursively to the elements of the input list (|eg| the sum function). More specifically, you need to define the relationship between the previous iteration's result (``self.partialResult`` attribute) and the current element of the list (``self.element`` attribute); this method must be defined after the ``setInitialValue()`` one.
 
-Note: All existing connections to input and output ports selected in steps 4 and 5 will be removed.
+It's important to notice that all modules inheriting from ``Fold`` will have
+the same ports, as ``Map`` and ``Filter``, but you can add any other
+ports that will be necessary for your control structure. Also, you do not need to use
+the input ports "FunctionPort", "InputPort" and
+"OutputPort". You will only use them when you create an operator like
+``Map`` and ``Filter``, which need a function to be applied for each
+element of the input list.
 
+As an example, we will create a simple ``Sum`` module to better understand the
+idea. Create a new package, and the code inside it would be as follows:
 
-List Input
-^^^^^^^^^^
+.. role:: red
 
-By default, the List inputs will be used sequentially, one from each List, which requires that all List inputs be the same length.  As another option, the Group created by the CFA has a boolean 'UseCartesianProduct' parameter.  If this parameter is set to 'true' then the cartesian product of all of the input Lists will be used as the input for the Map.  Use caution when using this parameter, as the number of inputs can grow very rapidly with just a few List inputs.
+.. code-block:: python
+   :linenos:
+  
+   from controlflow import Fold, registerControl
 
+   version = "0.1"
+   name = "My Control Modules"
+   identifier = "edu.utah.sci.my_control_modules"
 
-List Output
-^^^^^^^^^^^
+   def package_dependencies():
+       return ["edu.utah.sci.vistrails.control_flow"]
 
-There are several ways to handle the output List.  One option would be to send the output List to a StandardOutput module to display its contents.  Another option is to simply ignore the output List, in the case where you just want part of the workflow to execute multiple times using different inputs.  For example, if the mapped portion of the workflow contains a VTKCell, and you just want to generate a new VTKCell for each input, you should select the 'self' port of the VTKCell module when choosing the output port in the CFA, and then ignore the output List.  For more specialized handling of the output List, you may wish to create a PythonSource module.
+   class Sum(Fold):
+       def setInitialValue(self):
+           self.initialValue = 0
 
+       def operation(self):
+           self.partialResult += self.element
 
-Custom List
-^^^^^^^^^^^
+   def initialize(*args,**keywords):
+       registerControl(Sum)
 
-For advanced users, the default behavior, or cartesian product behavior may not be sufficient for your needs.  If this is the case, the 'UserDefinedInputList' parameter allows you to manually specify the input list.  If this parameter is defined, it will override any input lists already defined or connected.  The format for this user-provided input list must be a list of lists of tuples.  Each inner list represents a single loop execution, and contains tuples (or single values for functions taking only one argument) representing the arguments for each input function to be used in that loop execution.  The order of the argument tuples in the inner lists should match the order in which the functions appear on the module generated by the CFA.
+.. highlight:: python
+   :linenothreshold: 1
 
-For example, if the loop has two input functions defined, in order, as SetXY(x, y) and SetZ(z), and we want two executions of the loop, the input list would be:
-[[(x1, y1), z1], [(x2, y2), z2]]
+.. .. parsed-literal::
 
+   :red:`from controlflow import Fold, registerControl`
 
-Parameter Exploration
-^^^^^^^^^^^^^^^^^^^^^
+   version = "0.1"
+   name = "My Control Modules"
+   identifier = "edu.utah.sci.my_control_modules"
 
-.. index::
-   pair: parameter exploration; control flow
-   pair: parameters; exploring
+   :red:`def package_dependencies():`
+       :red:`return ["edu.utah.sci.vistrails.control_flow"]`
 
-One useful purpose for the CFA is to provide a version-based approach to parameter exploration.  To create a parameter exploration for a workflow, you could simply select all modules in the workflow, making sure the ports for the desired parameters are enabled, then launch the CFA and select the ports of the parameters you wish to explore.  By providing a list for each parameter, you can create a parameter exploration that directly uses the version tree.
+   class Sum(:red:`Fold`):
+       :red:`def setInitialValue(self):`
+           :red:`self.initialValue = 0`
 
-.. topic:: Try it Now!
+       :red:`def operation(self):`
+           :red:`self.partialResult += self.element`
 
-   Processing a List of values with PythonCalc:
+   def initialize(\*args,**keywords):
+       :red:`registerControl(Sum)`
 
-   1) Go to 'Edit->Preferences', select the 'Module Packages' tab, and enable the 'pythonCalc' package if it is not already enabled.
-   2) Click on File->New to start a new VisTrail.
-   3) Add the following modules from the module registry to the VisTrail:
-      a) One 'PythonCalc' module from the 'pythonCalc' package
-      b) One 'List' module from the 'Basic Modules' package
-      c) One 'StandardOutput' module from the 'Basic Modules' package
-   4) Set the List 'value' parameter to: [1.0, 2.0, 3.0, 4.0, 5.0]
-   5) Set the PythonCalc 'op' parameter to: '*'
-   6) Set the PythonCalc 'value2' parameter to: 2.0
-   7) With the PythonCalc module selected, go to 'Edit->Control Flow Assistant':
-      a) Click on the input port 'value1' and ensure it is highlighted
-      b) Click on the output port 'value' and ensure it is highlighted
-      c) Click 'OK' to close the window and build the loop structure as a Group module
-   8) Connect the 'List' module's output port 'value' to the 'Group' module's input port 'value1'.
-   9) Connect the 'Group' module's output port 'Result' to the 'StandardOutput' module's input port 'value'
-   10) Click on 'Run->Execute Current Workflow'
-   11) In your Standard Output console, you should see a List containing the computation for each element in the input list: [2.0, 4.0, 6.0, 8.0, 10.0]
+We begin by importing the ``Fold`` class and the ``registerControl``
+function from the ``Control Flow`` package (Line 1).
+The ``registerControl`` function is used to register the control modules, so
+the shape of them can be set automatically.
 
-.. topic:: Try it Now!
+Also, define the variables ``version``, ``name`` and
+``identifier``, as it's done for all
+packages. The interpackage dependency (include reference of the package chapter) is
+used too, as ``My Control Modules`` requires a module and a function from
+``Control Flow`` (Lines 7 and 8); in
+this way, |vistrails| can initialize the packages in the correct order. Then, create
+the class ``Sum``, which inherits from ``Fold``. Inside it, set the
+initial value to 0 inside the ``setInitialValue()`` method
+(Lines 11 and 12), and define the sum operator
+inside ``operation()``, as shown clearly by the relation between
+``self.partialResult`` and ``self.element``
+(Lines 14 and 15).
 
-   Performing a Parameter Exploration:
+The last thing we must do is define the ``initialize()`` method, so the
+package can be loaded in |vistrails|. However, instead of calling the registry, if you
+do not need any other ports, you just have to call the ``registerControl()``
+function (Line 18).
 
-   1) Go to 'File->Open', explore to the VisTrails examples folder, and open 'spx.vt'
-   2) Open the History view and select the version tagged as 'decimate'.
-   3) Open the Pipeline view.
-   4) Open the module configuration for the 'vtkContourFilter' module and enable the 'SetValue' input port.
-   5) Click on 'Edit->Select All'.
-   6) With all modules selected, go to 'Edit->Control Flow Assistant':
-      a) Click on the 'vtkContourFilter' module's input port 'SetValue' and ensure it is highlighted
-      b) Click on the 'VTKCell' module's output port 'self' and ensure it is highlighted
-      c) Click 'OK' to close the window and build the loop structure as a Group module
-   7) Select the newly created 'Group' module, and set the 'SetValue' parameter to: [(0, 0.5), (0, 0.75), (0, 1.0)]
-   8) Click on 'Run->Execute Current Workflow'
-   9) In your VisTrails Spreadsheet, you should see three visualizations, one for each set of input parameters to the 'SetValue' port of 'vtkContourFilter'.
+Save this package and enable it inside |vistrails|. Create a similar workflow as shown
+in Figure :ref:`fig-controlflow-sum_workflow`.
 
+.. _fig-controlflow-sum_workflow:
+
+.. figure:: figures/controlflow/Sum_Workflow.png
+   :align: center
+   :width: 100%
+
+   A workflow using the ``Sum`` module
+
+Upon executing this workflow, the sum ((((0+1)+2)+3)+4), should be printed on your
+terminal as following:
+
+``10``
+
+Note that the input ports "FunctionPort", "InputPort" and
+"OutputPort" were not necessary for this module. Now, let's see another
+example that does use them. Open the workflow we used to calculate the area of
+isosurfaces (in "triangle_area.vt", "Surface Area with Map
+and Filter" version), and delete the ``Map``, the ``Filter``, and the
+``FilterCondition`` (``PythonSource``) modules.
+
+Now, create a single module that maps the list and filters the results, named as
+``AreaFilter``. Inside your package, add the following class:
+
+.. code-block:: python
+   :linenos:
+
+   class AreaFilter(Fold):
+       def setInitialValue(self):
+           self.initialValue = []
+
+       def operation(self):
+           area = self.elementResult
+
+           if area>200000:
+               self.partialResult.append(area)
+
+.. .. parsed-literal::
+
+   class AreaFilter(:red:`Fold`):
+       :red:`def setInitialValue(self):`
+       .. _ref-areafilter-config1:
+
+           :red:`self.initialValue = []`
+
+       :red:`def operation(self):`
+           :red:`area = self.elementResult`\label{ref:areafilter:config2}
+
+           :red:`if area>200000:`\label{ref:areafilter:config3}
+               :red:`self.partialResult.append(area)`\label{ref:areafilter:config4}
+
+The initial value is an empty list, so the result of each element can be appended to
+it (Line 3). In the ``operation()`` method, the
+``self.elementResult`` attribute is used (Line 6);
+it represents the result of the port chosen in "OutputPort"; so, it means
+that "FunctionPort", "InputPort" and "OutputPort" will have
+connections. In this workflow, ``self.elementResult`` is the area for each
+contour value inside the input list, and, if the area is above 200,000, it will be
+appended to the final result (Lines 8 and 9). We can easily see that this module does exactly
+the same as ``Map`` and ``Filter`` combined.
+
+Don't forget to register this module in the ``initialize()`` function. After
+doing this, save the package and load it again inside |vistrails|. Then, just connect
+``AreaFilter`` as in Figure :ref:`fig-controlflow-areafilter_workflow`.
+
+.. _fig-controlflow-areafilter_workflow:
+
+.. figure:: figures/controlflow/AreaFilter_Workflow.png
+   :align: center
+   :width: 3.8in
+
+   The same workflow, but now with ``AreaFilter``
+
+Now, you must set some values in the following parameters of ``AreaFilter``:
+
+* "InputPort": *["SetValue"]*
+* "OutputPort": *GetSurfaceArea*
+
+When you execute this workflow, the result in the |vistrails| Spreadsheet will be the
+same as shown previously (Figure :ref:`fig-controlflow-mapandfilter_spreadsheet`). It
+shows the flexibility of doing a recursion function by inheriting from
+``Fold``.
