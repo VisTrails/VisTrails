@@ -62,6 +62,7 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setDocumentMode(True)
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
+        self.tabs.hide()
         layout.addWidget(self.tabs)
         self.stack = QtGui.QStackedWidget(self)
         layout.addWidget(self.stack)
@@ -291,6 +292,10 @@ class QVistrailView(QtGui.QWidget):
             self.tab_to_stack_idx[tab_idx] = idx
         self.connect(view, QtCore.SIGNAL("windowTitleChanged"),
                      self.view_title_changed)
+        if self.tabs.count() == 1:
+            self.tabs.hide()
+        else:
+            self.tabs.show()
         return view
 
     def view_title_changed(self, view):
@@ -344,7 +349,7 @@ class QVistrailView(QtGui.QWidget):
         for action in _app.view_action_group.actions():
             action.setChecked(False)
         self.selected_mode = None
-        print 'done setting to False'
+        action = None
         if index in self.tab_state:
             action = self.tab_state[index]
             # if action is not None:

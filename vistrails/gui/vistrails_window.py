@@ -80,7 +80,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.stack.setCurrentIndex(self.stack.count() - 1)
         self.view_notifications[self.stack.currentIndex()] = {}
         for notification_id, method in view.get_notifications().iteritems():
-            print "()()()", notification_id, method
             self.register_notification(notification_id, method, True)
 
         QWorkspaceWindow.instance().add_vt_window(view)
