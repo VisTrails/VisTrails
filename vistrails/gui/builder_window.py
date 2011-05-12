@@ -1357,6 +1357,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
         vistrail = s1.vistrail
+        vistrail.locator = None
         vistrail.set_defaults()
         self.viewManager.set_vistrail_view(vistrail, None, thumbnail_files=s1.thumbnails)
         self.viewManager.currentView().controller.changed = True
