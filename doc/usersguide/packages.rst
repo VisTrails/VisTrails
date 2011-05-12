@@ -729,6 +729,11 @@ Observe that ``_modules`` is assigned a list of modules to be registered, and mo
        _input_ports = [('firstInput', String), ('secondInput', Integer, True)]
        _output_ports = [('firstOutput', String), ('secondOutput', String)]
 
+.. index::
+   pair: port; shortcut
+
+Notice that "String" and "Integer" were used for the portSignature instead of ``edu.utah.sci.vistrails.basic:String`` and ``edu.utah.sci.vistrails.basic:Integer``.  That is because the current package, ``edu.utah.sci.vistrails.basic`` is used by default.
+
 .. topic:: Note
 
    The old syntax (reg.add_module(...), reg.add_input_port(...), and reg.add_output_port(...)) is still supported.
