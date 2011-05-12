@@ -190,7 +190,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
     vt = sb.vistrail
     next_vt = next_sb.vistrail
     merge_gui = interactive
-    MergeGUI = merge_gui.MergeGUI
+    MergeGUI = merge_gui.MergeGUI if merge_gui else False
     skip = 0
 
     id_remap = {}
@@ -369,7 +369,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
             # keep both upgrades but update action id in new
             if new_annotation.db_key == '__upgrade__':
                 value = int(new_annotation.db_value)
-                if ['action', value] in id_remap:
+                if ('action', value) in id_remap:
                     new_annotation.db_value = str(id_remap(['action', value]))
                 annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
                 vt.db_add_actionAnnotation(annotation)
