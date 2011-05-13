@@ -99,13 +99,13 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.confWidget.setVisible(False)
         self.confWidget.clear()
         if module and self.controller:
-            if module.has_annotation_with_key('__desc__'):
-                label = module.get_annotation_by_key('__desc__').value.strip()
-                title = '%s (%s) Module Configuration'%(label,
-                                                        module.name)
-            else:
-                title = '%s Module Configuration'%module.name
-            self.setWindowTitle(title)
+            # if module.has_annotation_with_key('__desc__'):
+            #     label = module.get_annotation_by_key('__desc__').value.strip()
+            #     title = '%s (%s) Module Configuration'%(label,
+            #                                             module.name)
+            # else:
+            #     title = '%s Module Configuration'%module.name
+            # self.setWindowTitle(title)
             registry = get_module_registry()
             getter = registry.get_configuration_widget
             widgetType = getter(module.package, module.name, module.namespace)
@@ -120,8 +120,8 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
                          self.configureDone)
             self.connect(widget, QtCore.SIGNAL("stateChanged"),
                          self.stateChanged)
-        else:
-            self.setWindowTitle("Module Configuration")
+        # else:
+        #     self.setWindowTitle("Module Configuration")
         self.confWidget.setUpdatesEnabled(True)
         self.confWidget.setVisible(True)
         self.hasChanges = False
@@ -130,10 +130,10 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)  
         
     def stateChanged(self):
-        # self.setWindowModified seems not to work here
-        # self.setWindowModified(self.confWidget.widget.state_changed)
-        title = str(self.windowTitle())
         self.hasChanges = self.confWidget.widget.state_changed
+        # self.setWindowModified seems not to work here
+        # self.setWindowModified(self.hasChanges)
+        title = str(self.windowTitle())
         if self.hasChanges:
             if not title.endswith("*"):
                 self.setWindowTitle(title + "*")

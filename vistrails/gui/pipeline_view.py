@@ -1375,7 +1375,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # Do not allow lone connections to be selected with modules.
         # Also autoselect connections between selected modules.  Thus the
         # selection is always the subgraph
-        elif change==QtGui.QGraphicsItem.ItemSelectedChange:
+        elif change==QtGui.QGraphicsItem.ItemSelectedHasChanged:
             # Unselect any connections between modules that are not selected
             for item in self.scene().selectedItems():
                 if isinstance(item,QGraphicsConnectionItem):
@@ -1403,16 +1403,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                         item.useSelectionRules = False
                         item.setSelected(False)
             # Capture only selected modules + or - self for selection signal
-            selectedItems = []
+            selectedItems = [m for m in self.scene().selectedItems()
+                             if isinstance(m, QGraphicsModuleItem)]
+            print "selectedItems", selectedItems
             selectedId = -1
-            if value.toBool():
-                selectedItems = [m for m in self.scene().selectedItems() 
-                                 if isinstance(m,QGraphicsModuleItem)]
-                selectedItems.append(self)
-            else:
-                selectedItems = [m for m in self.scene().selectedItems()
-                                 if (isinstance(m,QGraphicsModuleItem) and 
-                                     m != self)]
             if len(selectedItems)==1:
                 selectedId = selectedItems[0].id
             self.scene().emit(QtCore.SIGNAL('moduleSelected'),
@@ -1914,24 +1908,6 @@ mutual connections."""
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             if not self.read_only_mode:
                 self.delete_selected_items()
-        elif (event.key()==QtCore.Qt.Key_C and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            self.copySelection()
-        elif (event.key()==QtCore.Qt.Key_A and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            self.selectAll()
-        elif (event.key()==QtCore.Qt.Key_E and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            selected_items = self.selectedItems()
-            module_id = -1
-            module_count = 0
-            for i in selected_items:
-                if isinstance(i,QGraphicsModuleItem):
-                    module_count+=1
-                    module_id = i.id
-            if module_count==1 and not self.read_only_mode:
-                self.open_configure_window(module_id)
-
         else:
             QInteractiveGraphicsScene.keyPressEvent(self, event)
             # super(QPipelineScene, self).keyPressEvent(event)
@@ -2354,13 +2330,23 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              'ungroup': ('module_changed', self.has_selected_groups),
              'showGroup': ('module_changed', self.has_selected_group),
              'makeAbstraction': ('module_changed', self.has_selected_modules),
+             'configureModule': ('module_changed', self.has_selected_module),
+             'documentModule': ('module_changed', self.has_selected_module),
              }
 
-    def has_selected_modules(self, module):
-        return self.scene().get_selected_module_ids() > 0
+    def has_selected_modules(self, module, only_one=False):
+        module_ids_len = len(self.scene().get_selected_module_ids())
+        print '  module_ids_len:', module_ids_len
+        if only_one and module_ids_len != 1:
+            return False
+        return module_ids_len > 0
+
+    def has_selected_module(self, module):
+        print 'calling has_selected_module'
+        return self.has_selected_modules(module, True)
 
     def has_selected_groups(self, module, only_one=False):
-        module_ids = self.scene().get_selected_module_ids() 
+        module_ids = self.scene().get_selected_module_ids()
         if len(module_ids) <= 0:
             return False
         if only_one and len(module_ids) != 1:
@@ -2375,14 +2361,9 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
     def clipboard_non_empty(self):
         clipboard = QtGui.QApplication.clipboard()
-        return not clipboard.text().isEmpty()
-
-    def keyPressEvent(self, event):
-        if (event.key()==QtCore.Qt.Key_V and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            self.pasteFromClipboard()
-        else:
-            QInteractiveGraphicsView.keyPressEvent(self, event)
+        clipboard_text = clipboard.text()
+        return not clipboard_text.isEmpty() and \
+            str(clipboard_text).startswith("<workflow")
 
     def pasteFromClipboard(self):
         center = self.mapToScene(self.width()/2.0, self.height()/2.0)
@@ -2432,6 +2413,19 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
     def version_changed(self):
         self.scene().setupScene(self.controller.current_pipeline)
+
+    def copy_selection(self):
+        self.scene().copySelection()
+
+    def select_all(self):
+        self.scene().selectAll()
+
+    def group(self):
+        self.scene().group()
+
+    def ungroup(self):
+        self.scene().ungroup()
+
 
 ################################################################################
 # Testing

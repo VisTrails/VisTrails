@@ -607,18 +607,6 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.updateMatrix()
         self.setUpdatesEnabled(True)
 
-    def keyPressEvent(self, event):
-        """ keyPressEvent(event: QKeyEvent) -> None
-        Handle general key-bindings, e.g. 'R' for Reset
-        """
-        # Reset the view when 'R' is pressed
-        if event.key()==QtCore.Qt.Key_R \
-                and event.modifiers() in [QtCore.Qt.ControlModifier]:
-            self.scene().fitToView(self, True)
-        else:
-            QtGui.QGraphicsView.keyPressEvent(self, event)
-            # super(QInteractiveGraphicsView, self).keyPressEvent(event)
-
     def sizeHint(self):
         """ sizeHint(self) -> QSize
         Return recommended size of the widget
