@@ -317,7 +317,10 @@ class QVistrailView(QtGui.QWidget):
         self.tab_changed(index)
 
     def get_current_tab(self):
-        return self.stack.currentWidget()
+        widget = self.stack.currentWidget()
+        if type(widget) == QQueryView:
+            widget = widget.get_current_view()
+        return widget
 
     def view_changed(self):
         from gui.vistrails_window import _app
