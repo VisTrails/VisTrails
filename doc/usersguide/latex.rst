@@ -10,64 +10,83 @@ The VisTrails Latex extension allows you to embed a result from a VisTrails file
 Latex Setup and Commands
 ========================
 
+This section contains instructions for setting up Latex files to use VisTrails.  For a complete example of this setup, you may also refer to example.tex in VisTrails' extensions/latex directory.
+
 To use the Latex extension, copy vistrails.sty and includevistrail.py from the extensions/latex directory to the same directory as your .tex files.  Then, add the following line to the beginning of the latex file:
 
 ``\usepackage{vistrails}``
 
-By default, vistrails will be executed at www.vistrails.org and the images
-downloaded to your hard drive.  If you want to run a local copy of VisTrails instead, add:
+By default, VisTrails will be executed at www.vistrails.org and the images
+downloaded to your hard drive.  If you want to run a local copy of VisTrails instead, add the path to your python file or executable:
 
 ``\renewcommand{\vistrailspath}{/path/to/vistrails.py}``
 
-There are a number of download options for those whose VisTrails are accessible through the Web.  Images can be set up to link to the corresponding VisTrail (see :ref:`sec-latex-setup-using-a-web-server`).  To setup the images without links (not clickable), add:
+By default, images are set up to link to their corresponding VisTrail.  However, if you are using your own web server, additional setup is required (see :ref:`sec-latex-setup-using-a-web-server`).  Otherwise, to setup the images without links (not clickable), add:
 
 ``\renewcommand{\vistrailsdownload}{}``
 
-This extension uses python. If you don't have python on your path, use this 
+Finally, if you don't have python on your path, use this 
 to set the python interpreter:
 
-``\renewcommand{\vistrailspythonpath}{python}``
+``\renewcommand{\vistrailspythonpath}{/path/to/python/executable}``
 
 **Note:** If you set the \vistrailspythonpath to an invalid path VisTrails will use 
 cached files if they exist.
 
 .. _sec-latex-setup-using-a-web-server:
 
-Additional Setup For Use With Files on a Web Server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Setup For Use With Files on MediaWiki or a Web Server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Many VisTrails files and/or data is stored in a database that readers of a pdf document might not have access to.  If the files are also accessible through the web, the following instructions explain setup that will allow readers to download the VisTrail or workflow through the web server.
+.. index:
+   pair: latex embedding; mediawiki 
+   pair: latex embedding; web server
 
-To configure VisTrails to run on your web server rather than the VisTrails server, add the following to your tex file:
+Many VisTrails files and/or data is stored in a database that readers of a pdf document might not have access to.  If the files are also accessible through the web, the following instructions explain setup that will allow readers to download the VisTrail or workflow through MediaWiki or a web server.
 
-``\renewcommand{\vistrailspath}{http://yourwebserver.somethingelse/run_vistrails.php}``
+**MediaWiki**
 
-To embed the links in the generated images, use 
+To setup your MediaWiki for use with VisTrails:
 
-``\renewcommand{\vistrailsdownload}{http://yourwebserver.somethingelse/download.php}``
+* In your wiki/extensions folder, create a config.php file based on the config.php.sample file located in VisTrails' extensions/http folder.
+* Copy download.php, functions.php, and vistrailsExtension.php from the extensions/mediawiki folder to your wiki/extentions folder and update these files according to your needs.
+* Configure your .tex files with: 
 
-.. todo: include instructions on using these php files.
+  ``\renewcommand{\vistrailsdownload}{http://yourwebserver.somethingelse/download.php}``
 
-.. Notes for Use with a Database
-.. ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. todo: How do you make clickable images with database only use?
+**Web Server**
+
+To configure VisTrails to run on your web server:
+
+* Create a config.php file based on the config.php.sample file located in VisTrails' extensions/http folder.
+* Copy functions.php and downloads.php from the extensions/mediawiki folder and update them according to your needs.
+* Depending on the functionality you want to make available, copy any or all of the following files:
+   - run_vistrails.php - will execute workflows and return images and pdf files
+   - get_db_vistrail_list.php - will return a list of VisTrails available in the database
+   - get_vt_xml.php - will return a VisTrail in xml format
+   - get_wf_pdf.php - will return a workflow graph in pdf format
+   - get_wf_xml.php - will return a workflow in xml format
+* Configure your .tex files with:
+
+  ``\renewcommand{\vistrailspath}{http://yourwebserver.somethingelse/run_vistrails.php}``
+  ``\renewcommand{\vistrailsdownload}{http://yourwebserver.somethingelse/download.php}``
 
 Including VisTrails Results in Latex
 ====================================
 
 To include VisTrails Results in a Latex file:
 
-  * Select the ``History`` view.  
-  * Ensure that a version is selected.
-  * Press the ``Embed`` button at the bottom of the Properties Panel.  This will launch a dialog with embedding options (see Figure :ref:`fig-configure-embedding`).  
-  * Select the result that you would like to display.  The choices are: workflow results, workflow graph, and history tree graph.
-  * Select ``Latex``.
-  * You should then choose from a number of "Embed" and "Download" options which will be explained in the tables below.
-  * Select "Copy to Clipboard"
-  * Paste clipboard contents into you Latex document 
-  * Run pdflatex with the -shell-escape option: pdflatex -shell-escape example.tex.
+* Select the ``History`` view.  
+* Ensure that a version is selected.
+* Press the ``Embed`` button at the bottom of the Properties Panel.  This will launch a dialog with embedding options (see Figure :ref:`fig-configure-embedding`).  
+* Select the result that you would like to display.  The choices are: workflow results, workflow graph, and history tree graph.
+* Select ``Latex``.
+* You should then choose from a number of "Embed" and "Download" options which will be explained in the tables below.
+* Select "Copy to Clipboard"
+* Paste clipboard contents into you Latex document 
+* Run pdflatex with the -shell-escape option: pdflatex -shell-escape example.tex.
 
-**Note:** When local VisTrails files are used, the text that VisTrails generates using ``Embed`` will list the name of the file you are trying to embed.  That file should be placed in the same directory as the tex file that references it.  Alternatively, you may include relative or absolute paths to the file.
+**Note on using local VisTrails files:** Relative or absolute filenames can be used in the .tex file, but absolute filenames are used in the pdf.  Thus, if the absolute location of the file has changed, the pdf will need to be regenerated even if the relative location of the file has not changed.  Also, the VisTrails ``Embed`` function assumes the .vt file is in the same directory as the .tex file.  You will need to change this to an absolute filename if it is not.
 
 .. tabularcolumns:: |p{2.8cm}|p{3.0cm}|p{7.5cm}|
    
