@@ -80,7 +80,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.stack.setCurrentIndex(self.stack.count() - 1)
         self.view_notifications[self.stack.currentIndex()] = {}
         for notification_id, method in view.get_notifications().iteritems():
-            print "()()()", notification_id, method
             self.register_notification(notification_id, method, True)
 
         QWorkspaceWindow.instance().add_vt_window(view)
@@ -300,14 +299,22 @@ class QVistrailsWindow(QtGui.QMainWindow):
         # do global notifications
         if notification_id in self.notifications:
             for m in self.notifications[notification_id]:
-                m(*args)
+                try:
+                    m(*args)
+                except Exception, e:
+                    import traceback
+                    traceback.print_exc()
 
         # do local notifications
         notifications = self.view_notifications[self.stack.currentIndex()]
         print 'local notification', notification_id, self.stack.currentIndex()
         if notification_id in notifications:
             for m in notifications[notification_id]:
-                m(*args)
+                try:
+                    m(*args)
+                except Exception, e:
+                    import traceback
+                    traceback.print_exc()
 
     def clipboard_changed(self):
         self.notify("clipboard_changed")
@@ -586,11 +593,15 @@ class QVistrailsWindow(QtGui.QMainWindow):
     def get_current_tab(self):
         return self.get_current_view().get_current_tab()
 
+    def get_current_scene(self):
+        return self.get_current_tab().scene()
+
     def pass_through(self, accessor, method_name):
         def method():
             obj = accessor()
-            if obj is not None and hasattr(obj, method_name):
-                getattr(obj, method_name)()
+            if obj is not None:
+                if hasattr(obj, method_name):
+                    getattr(obj, method_name)()
         return method
 
     def pass_through_bool(self, accessor, method_name):
@@ -1070,8 +1081,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
                            "current pipeline view",
                        'shortcut': QtGui.QKeySequence.Copy,
                        'enabled': False,
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'copy_selection')}),
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'copySelection')}),
                      ("paste", "Paste",
                       {'statusTip': "Paste modules from the clipboard into " \
                            "the current pipeline view",
@@ -1084,40 +1095,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
                            "pipeline view",
                        'enabled': True,
                        'shortcut': QtGui.QKeySequence.SelectAll,
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'select_all')}),
-                     "---",
-                     ("group", "Group",
-                      {'statusTip': "Group the selected modules in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+G',
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'group')}),
-                     ("ungroup", "Ungroup",
-                      {'statusTip': "Ungroup the selected groups in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+Shift+G',
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'ungroup')}),
-                     ("showGroup", "Show Group Pipeline",
-                      {'statusTip': "Show the underlying pipeline for the " \
-                           "selected group in the current pipeline view",
-                       'enabled': False}),
-                     ("makeAbstraction", "Make Subworkflow",
-                      {'statusTip': "Create a subworkflow from the selected " \
-                           "modules"}),
-                     ("convertToAbstraction", "Convert to Subworkflow",
-                      {'statusTip': "Convert selected group to a subworkflow"}),
-                     ("editAbstraction", "Edit Subworkflow",
-                      {'statusTip': "Edit a subworkflow"}),
-                     ("importAbstraction", "Import Subworkflow",
-                      {'statusTip': "Import subworkflow from a vistrail to " \
-                           "local subworkflows"}),
-                     ("exportAbstraction", "Export Subworkflow",
-                      {'statusTip': "Export subworkflow from local " \
-                           "subworkflows for use in a package"}),
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'selectAll')}),
                      "---",
                      ("controlFlowAssist", "Control Flow Assistant",
                       {'statusTip': "Create a loop over the selected modules"}),
@@ -1133,19 +1112,67 @@ class QVistrailsWindow(QtGui.QMainWindow):
                    ("run", "&Workflow",
                     [("execute", "Execute",
                       {'icon': CurrentTheme.EXECUTE_PIPELINE_ICON,
-                       'shortcut': "Ctrl+Enter",
-                       'enabled': True,
+                       'shortcut': 'Ctrl+Return',
+                       'enabled': False,
                        'callback': self.pass_through(self.get_current_view,
                                                      'execute')}),
                      ("flushCache", "Erase Cache Contents", 
-                      {'enabled': True}),
+                      {'enabled': True,
+                       'callback': self.flush_cache}),
+                     "---",
+                     ("group", "Group",
+                      {'statusTip': "Group the selected modules in the " \
+                           "current pipeline view",
+                       'shortcut': 'Ctrl+G',
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'group')}),
+                     ("ungroup", "Ungroup",
+                      {'statusTip': "Ungroup the selected groups in the " \
+                           "current pipeline view",
+                       'shortcut': 'Ctrl+Shift+G',
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'ungroup')}),
+                     ("showGroup", "Show Pipeline",
+                      {'statusTip': "Show the underlying pipeline for the " \
+                           "selected group in the current pipeline view",
+                       'enabled': False}),
+                     "---",
+                     ("makeAbstraction", "Create Subworkflow",
+                      {'statusTip': "Create a subworkflow from the selected " \
+                           "modules",
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'makeAbstraction')}),
+                     ("convertToAbstraction", "Convert to Subworkflow",
+                      {'statusTip': "Convert selected group to a subworkflow",
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'convertToAbstraction')}),
+                     ("editAbstraction", "Edit Subworkflow",
+                      {'statusTip': "Edit a subworkflow",
+                       'enabled': False,
+                       'callback': self.edit_abstraction}),
+                     ("importAbstraction", "Import Subworkflow",
+                      {'statusTip': "Import subworkflow from a vistrail to " \
+                           "local subworkflows",
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'importAbstraction')}),
+                     ("exportAbstraction", "Export Subworkflow",
+                      {'statusTip': "Export subworkflow from local " \
+                           "subworkflows for use in a package",
+                       'enabled': False,
+                       'callback': self.pass_through(self.get_current_scene,
+                                                     'exportAbstraction')}),
                      "---",
                      ("configureModule", "Configure Module...",
                       {'shortcut': "Ctrl+E",
-                       'enabled': True,
+                       'enabled': False,
                        'callback': self.configure_module}),
                      ("documentModule", "Module Documentation...",
-                      {'enabled': True,
+                      {'enabled': False,
                        'callback': self.show_documentation})]),
                      # ("executeDiff", "Show Version Difference",
                      #  {'enabled': False}),
@@ -1153,7 +1180,47 @@ class QVistrailsWindow(QtGui.QMainWindow):
                      #  {'enabled': False}),
                      # ("executeExploration", "Perform Parameter Exploration",
                      #  {'enabled': False})]),
-                   
+                   ("vistrail", "Vis&trail",
+                    [("tag", "Tag...",
+                      {'statusTip': "Tag the current pipeline",
+                       'shortcut': "Ctrl+Shift+T",
+                       'enabled': True,
+                       'callback': self.add_tag}),
+                     "---",
+                     ("expandBranch", "Expand Branch",
+                      {'statusTip': "Expand all versions in the tree below " \
+                           "the current version",
+                       'enabled': True,
+                       'callback': \
+                           self.pass_through(self.get_current_controller,
+                                             'expand_all_versions_below')}),
+                     ("collapseBranch", "Collapse Branch",
+                      {'statusTip': "Collapse all expanded versions of the " \
+                           "tree",
+                       'enabled': True,
+                       'callback': \
+                           self.pass_through(self.get_current_controller,
+                                             'collapse_all_versions_below')}),
+                     ("collapseAll", "Collapse All",
+                      {'statusTip': "Collapse all expanded branches of the " \
+                           "tree",
+                       'enabled': True,
+                       'callback': \
+                           self.pass_through(self.get_current_controller,
+                                             'collapse_all_versions')}),
+                     ("hideBranch", "Hide Branch",
+                      {'statusTip': "Hide all versions in the tre including " \
+                           "and below the current version",
+                       'enabled': True,
+                       'callback': \
+                           self.pass_through(self.get_current_controller,
+                                             'hide_versions_below')}),
+                     ("showAll", "Show All",
+                      {'enabled': True,
+                       'statusTip': "Show all hidden versions",
+                       'callback': \
+                           self.pass_through(self.get_current_controller,
+                                             'show_all_versions')})]),
                    ("view", "&Views",
                     [("newView", "New Pipeline View",
                       {'shortcut': QtGui.QKeySequence.AddTab,
@@ -1259,27 +1326,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
                     #  ("moduleDocumentation", "Module Documentation",
                     #   {'checkable': True,
                     #    'checked': False})]),
-                   ("vistrail", "Vis&trail",
-                    [("tag", "Tag...",
-                      {'statusTip': "Tag the current pipeline",
-                       'shortcut': "Ctrl+Shift+T",
-                       'enabled': True}),
-                     "---",
-                     ("expandBranch", "Expand Branch",
-                      {'statusTip': "Expand all versions in the tree below " \
-                           "the current version",
-                       'enabled': True}),
-                     ("collapseBranch", "Collapse Branch",
-                      {'statusTip': "Collapse all expanded versions of the " \
-                           "tree",
-                       'enabled': True}),
-                     ("hideBranch", "Hide Branch",
-                      {'statusTip': "Hide all versions in the tre including " \
-                           "and below the current version",
-                       'enabled': True}),
-                     ("showAll", "Show All",
-                      {'enabled': True,
-                       'statusTip': "Show all hidden versions"})]),
                    ("publish", "Publish",
                     [("publishPaper", "To Paper...", 
                       {'enabled': True,
@@ -1561,6 +1607,61 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
 
+    def openAbstraction(self, filename):
+        locator = XMLFileLocator(filename)
+        self.open_vistrail_without_prompt(locator, None, False, True)
+
+    def edit_abstraction(self):
+        current_scene = self.get_current_tab().scene()
+        selected_module_ids = current_scene.get_selected_module_ids()
+        if len(selected_module_ids) > 0:
+            for m_id in selected_module_ids:
+                module = current_scene.current_pipeline.modules[m_id]
+                if module.is_abstraction():
+                    from core.modules.abstraction import identifier as \
+                        abstraction_pkg                    
+                    ann_get = module.vistrail.get_annotation
+                    if module.package == abstraction_pkg and \
+                            ann_get('__abstraction_descriptor_info__') is None:
+                        desc = module.module_descriptor
+                        filename = desc.module.vt_fname
+                        self.openAbstraction(filename)
+                    else:
+                        show_info('Package SubWorkflow is Read-Only',
+                                  "This SubWorkflow is from a package and "
+                                  "cannot be modified.  You can create an "
+                                  "editable copy in 'My SubWorkflows' using "
+                                  "'Edit->Import SubWorkflow'")
+
+    def do_tag_prompt(self, name="", exists=False):
+        if exists:
+            prompt = "'%s' already exists.  Enter a new tag" % name
+        else:
+            prompt = "Enter a tag"
+            
+        (text, ok) = QtGui.QInputDialog.getText(None, 
+                                                'Tag Version',
+                                                prompt,
+                                                QtGui.QLineEdit.Normal,
+                                                name)
+        if ok and not text.isEmpty():
+            return str(text).strip().rstrip()
+        if not ok:
+            return None
+        return ""
+
+    def add_tag(self, check_exists=True):
+        controller = self.get_current_controller()
+        vistrail = controller.vistrail
+        name = self.do_tag_prompt()
+        if name is None:
+            return None
+        while name == "" or (check_exists and vistrail.has_tag_str(name)):
+            name = self.do_tag_prompt(name, name != "")
+            if name is None:
+                return None
+        controller.update_current_tag(name)
+        
     def createMenu(self):
         """ createMenu() -> None
         Initialize menu bar of builder window

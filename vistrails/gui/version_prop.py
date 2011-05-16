@@ -59,9 +59,6 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
 
-        self.searchBox = QSearchBox(True, False, self)
-        vLayout.addWidget(self.searchBox)
-        
         gLayout = QtGui.QGridLayout()
         gLayout.setMargin(0)
         gLayout.setSpacing(5)
@@ -135,18 +132,11 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                      self.tagChanged)
         self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
                      self.tagCleared)
-        self.connect(self.searchBox, QtCore.SIGNAL('resetSearch()'),
-                     self.resetSearch)
-        self.connect(self.searchBox, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.executeSearch)
-        self.connect(self.searchBox, QtCore.SIGNAL('refineMode(bool)'),
-                     self.refineMode)
         self.connect(self.versionEmbedBtn, QtCore.SIGNAL('clicked()'),
                      self.showEmbedPanel)
 
         self.controller = None
         self.versionNumber = -1
-        self.refineMode(False)
 
     def updateController(self, controller):
         """ updateController(controller: VistrailController) -> None
@@ -217,40 +207,6 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         """ 
         self.tagEdit.setText('')
         self.tagFinished()
-        
-    def resetSearch(self, emit_signal=True):
-        """
-        resetSearch() -> None
-
-        """
-        if self.controller and emit_signal:
-            self.controller.set_search(None)
-            self.emit(QtCore.SIGNAL('textQueryChange(bool)'), False)
-        else:
-            self.searchBox.clearSearch()
-    
-    def executeSearch(self, text):
-        """
-        executeSearch(text: QString) -> None
-
-        """
-        s = str(text)
-        if self.controller:
-            try:
-                search = SearchCompiler(s).searchStmt
-            except SearchParseError, e:
-                debug.warning("Search Parse Error", str(e))
-                search = None
-            self.controller.set_search(search, s)
-            self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')
-
-    def refineMode(self, on):
-        """
-        refineMode(on: bool) -> None
-        
-        """
-        if self.controller:
-            self.controller.set_refine(on)
             
     def showEmbedPanel(self):
         self.versionEmbedPanel.show()

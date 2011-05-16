@@ -1050,11 +1050,13 @@ class VistrailController(QtCore.QObject, BaseController):
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
 
-    def hide_versions_below(self, v):
+    def hide_versions_below(self, v=None):
         """ hide_versions_below(v: int) -> None
         Hide all versions including and below v
         
         """
+        if v is None:
+            v = self.current_version
         full = self.vistrail.getVersionGraph()
         x = [v]
 
@@ -1148,11 +1150,14 @@ class VistrailController(QtCore.QObject, BaseController):
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
-    def expand_or_collapse_all_versions_below(self, v, expand=True):
+    def expand_or_collapse_all_versions_below(self, v=None, expand=True):
         """ expand_or_collapse_all_versions_below(v: int) -> None
         Expand/Collapse all versions including and under version v
         
         """
+        if v is None:
+            v = self.current_version
+
         full = self.vistrail.getVersionGraph()
         x = [v]
         
@@ -1181,6 +1186,12 @@ class VistrailController(QtCore.QObject, BaseController):
             self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
+
+    def expand_all_versions_below(self, v=None):
+        self.expand_or_collapse_all_versions_below(v, True)
+
+    def collapse_all_versions_below(self, v=None):
+        self.expand_or_collapse_all_versions_below(v, False)
 
     def collapse_all_versions(self):
         """ collapse_all_versions() -> None

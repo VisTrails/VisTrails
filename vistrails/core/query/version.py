@@ -418,6 +418,14 @@ class NameSearchStmt(SearchStmt):
             m = self.content.match(vistrail.get_description(action.timestep))
         return bool(m)
 
+class ModuleSearchStmt(SearchStmt):
+    def match(self, vistrail, action):
+        pipeline = vistrail.getPipeline(action.timestep)
+        for module in pipeline.modules.itervalues():
+            if self.content.match(module.name):
+                return True
+        return False
+
 class AndSearchStmt(SearchStmt):
     def __init__(self, lst):
         self.matchList = lst
@@ -504,6 +512,17 @@ class SearchCompiler(object):
             lst.append(NameSearchStmt(tok))
             tokStream = tokStream[1:]
         return (AndSearchStmt(lst), [])
+    def parseModule(self, tokStream):
+        if len(tokStream) == 0:
+            raise SearchParseError('Expected token, got end of search')
+        lst = []
+        while len(tokStream):
+            tok = tokStream[0]
+            if ':' in tok:
+                return (AndSearchStmt(lst), tokStream)
+            lst.append(ModuleSearchStmt(tok))
+            tokStream = tokStream[1:]
+        return (AndSearchStmt(lst), [])
     def parseBefore(self, tokStream):
         old_tokstream = tokStream
         try:
@@ -560,6 +579,7 @@ class SearchCompiler(object):
                 'before': parseBefore,
                 'after': parseAfter,
                 'name': parseName,
+                'module': parseModule,
                 'any': parseAny}
                 
             

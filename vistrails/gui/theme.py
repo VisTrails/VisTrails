@@ -138,6 +138,8 @@ class DefaultTheme(object):
             QtGui.QColor(240, 240, 240))
         self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QColor(119, 143, 159))
+        self.QUERY_RESULT_BACKGROUND_BRUSH = QtGui.QBrush(
+            QtGui.QColor(208, 226, 239))
 
         # Pen to draw a module shape at regular state
         self.MODULE_PEN = QtGui.QPen(QtGui.QBrush(

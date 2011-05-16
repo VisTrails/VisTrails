@@ -2323,6 +2323,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              }
             
     def set_action_links(self):
+        # FIXME execute should be tied to a pipleine_changed signal...
         self.action_links = \
             {'copy': ('module_changed', self.has_selected_modules),
              'paste': ('clipboard_changed', self.clipboard_non_empty),
@@ -2330,8 +2331,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              'ungroup': ('module_changed', self.has_selected_groups),
              'showGroup': ('module_changed', self.has_selected_group),
              'makeAbstraction': ('module_changed', self.has_selected_modules),
+             'execute': ('pipeline_changed', self.pipeline_non_empty),
              'configureModule': ('module_changed', self.has_selected_module),
              'documentModule': ('module_changed', self.has_selected_module),
+             'makeAbstraction': ('module_changed', self.has_selected_modules),
+             'convertToAbstraction': ('module_changed', 
+                                      self.has_selected_group),
+             'editAbstraction': ('module_changed', self.has_selected_abs),
+             'importAbstraction': ('module_changed', self.has_selected_abs),
+             'exportAbstraction': ('module_changed', self.has_selected_abs),
              }
 
     def has_selected_modules(self, module, only_one=False):
@@ -2359,11 +2367,23 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def has_selected_group(self, module):
         return self.has_selected_groups(True)
 
+    def has_selected_abs(self, module):
+        module_ids = self.scene().get_selected_module_ids()
+        if len(module_ids) != 1:
+            return False
+        for m_id in module_ids:
+            if not self.scene().current_pipeline.modules[m_id].is_abstraction():
+                return False
+        return True        
+
     def clipboard_non_empty(self):
         clipboard = QtGui.QApplication.clipboard()
         clipboard_text = clipboard.text()
         return not clipboard_text.isEmpty() and \
             str(clipboard_text).startswith("<workflow")
+
+    def pipeline_non_empty(self, pipeline):
+        return pipeline is not None and len(pipeline.modules) > 0
 
     def pasteFromClipboard(self):
         center = self.mapToScene(self.width()/2.0, self.height()/2.0)
@@ -2413,19 +2433,6 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
     def version_changed(self):
         self.scene().setupScene(self.controller.current_pipeline)
-
-    def copy_selection(self):
-        self.scene().copySelection()
-
-    def select_all(self):
-        self.scene().selectAll()
-
-    def group(self):
-        self.scene().group()
-
-    def ungroup(self):
-        self.scene().ungroup()
-
 
 ################################################################################
 # Testing
