@@ -309,7 +309,7 @@ class PersistentPath(Module):
         elif path_type == 'blob':
             return PersistentPath.git_compute_file_hash(path)
         
-        raise ModuleError(self, "Unknown path type '%s'" % path_type)
+        raise ModuleError(None, "Unknown path type '%s'" % path_type)
         
 
     @staticmethod
@@ -324,7 +324,7 @@ class PersistentPath(Module):
         debug_print('***')
 
         if result != 0:
-            raise ModuleError(self, "Error retrieving file '%s'\n" % filename +
+            raise ModuleError(None, "Error retrieving file '%s'\n" % filename +
                               errs)
         return output.strip()
 
@@ -543,7 +543,12 @@ class PersistentPath(Module):
                 path = ref.local_path
             else:
                 path = self.getInputFromPort('value').name
-            new_hash = self.git_compute_hash(path, path_type)
+            # this is a static method so we need to add module ourselves
+            try:
+                new_hash = self.git_compute_hash(path, path_type)
+            except ModuleError, e:
+                e.module = self
+                raise e
             rep_path = os.path.join(local_db, ref.id)
             do_update = True
             if os.path.exists(rep_path):
