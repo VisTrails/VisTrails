@@ -568,7 +568,7 @@ class DefaultTheme(object):
         self.EXECUTE_MASHUP_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/mashup_execute.png')
-        self.CREATE_MASHUP_ICON = QtGui.QIcon(
+        self.MASHUP_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/mashup_create.png')
         

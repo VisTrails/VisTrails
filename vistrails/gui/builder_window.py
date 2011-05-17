@@ -469,7 +469,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                  'Execute Mashup', self)
         self.executeMashupAction.setEnabled(False)
         
-        self.createMashupAction = QtGui.QAction(CurrentTheme.CREATE_MASHUP_ICON,
+        self.createMashupAction = QtGui.QAction(CurrentTheme.MASHUP_ICON,
                                                 'Mashup', self)
         self.createMashupAction.setEnabled(False)
         

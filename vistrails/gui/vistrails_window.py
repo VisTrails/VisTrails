@@ -183,12 +183,18 @@ class QVistrailsWindow(QtGui.QMainWindow):
         from gui.vis_diff import QDiffProperties
         from gui.collection.workspace import QWorkspaceWindow
         from gui.collection.vis_log import QLogDetails
+        from gui.mashups.mashups_inspector import QMashupsInspector
         self.palettes = []
         palette_layout = [(QtCore.Qt.LeftDockWidgetArea, 
                            [QModulePalette, QWorkspaceWindow,
                             (QParamExplorePalette,
                              (('pipeline_changed', 'set_pipeline'),
-                              ('controller_changed', 'set_controller')))]),
+                              ('controller_changed', 'set_controller'))),
+                             (QMashupsInspector,
+                              (('controller_changed', 'updateVistrailController'),
+                               ('mshpcontroller_changed', 'updateMshpController'),
+                               ('mshpversion_changed', 'updateMshpVersion'),
+                               ('version_changed', 'updateVistrailVersion')))]),
                           (QtCore.Qt.RightDockWidgetArea,
                            [(QModuleInfo, 
                              (('controller_changed', 'set_controller'),
@@ -264,7 +270,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                         palette.set_main_window(self.palette_window)
                         
         self.connect(QWorkspaceWindow.instance(), 
-                     QtCore.SIGNAL("vistrailChanged(QVistrailView*)"),
+                     QtCore.SIGNAL("vistrailChanged"),
                      self.change_view)
 
     def create_notification(self, notification_id, link_view=False):
@@ -1287,7 +1293,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                            self.pass_through_bool(self.get_current_view,
                                                   'provenance_change')}),
                      ("mashup", "Mashup",
-                      {'icon': CurrentTheme.CREATE_MASHUP_ICON,
+                      {'icon': CurrentTheme.MASHUP_ICON,
                        'checkable': True,
                        'checked': False,
                        'callback': \

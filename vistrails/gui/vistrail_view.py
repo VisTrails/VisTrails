@@ -39,7 +39,7 @@ from gui.paramexplore.pe_view import QParamExploreView
 from gui.vis_diff import QDiffView
 from gui.paramexplore.param_view import QParameterView
 from gui.vistrail_controller import VistrailController
-from gui.mashups.mashups_window import QMashupsWindow
+from gui.mashups.mashup_view import QMashupView
 ################################################################################
 
 class QVistrailView(QtGui.QWidget):
@@ -249,13 +249,22 @@ class QVistrailView(QtGui.QWidget):
         self.stack.setCurrentIndex(self.stack.indexOf(self.mashup_view))
         self.tabs.setTabText(self.tabs.currentIndex(), "Mashup")
         self.tab_state[self.tabs.currentIndex()] = _app.qactions['mashup']
+        _app.notify("controller_changed", 
+                    self.mashup_view.mshpController.vtController)
+        _app.notify("version_changed",
+                    self.mashup_view.mshpController.vtController.current_version)
         
     def mashup_unselected(self):
         print "MASHUP UN"
+        from gui.vistrails_window import _app
         self.stack.setCurrentIndex(
             self.tab_to_stack_idx[self.tabs.currentIndex()])
         self.tabs.setTabText(self.tabs.currentIndex(), 
                              self.stack.currentWidget().get_title())
+        _app.notify("controller_changed", 
+                    self.mashup_view.controller)
+        _app.notify("version_changed",
+                    self.mashup_view.controller.current_version)
         
     def pipeline_change(self, checked):
         if checked:
@@ -454,8 +463,12 @@ class QVistrailView(QtGui.QWidget):
         return view
     
     def create_mashup_view(self):
+        print "******* create mashup view"
         from gui.vistrails_window import _app
-        view = self.create_view(QMashupsWindow, False)
+        view = self.create_view(QMashupView, False)
+        self.connect(view.pipelineTab.scene(), QtCore.SIGNAL('moduleSelected'), 
+                     self.gen_module_selected(view.pipelineTab))
+        view.set_controller(self.controller)
         return view
     
     def gen_module_selected(self, view):
@@ -528,7 +541,7 @@ class QVistrailView(QtGui.QWidget):
         try:
             self.controller.write_vistrail(locator)
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            critical('An error has occurred', str(e))
             raise
             return False
         try:
@@ -555,7 +568,7 @@ class QVistrailView(QtGui.QWidget):
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            debug.critical('Failed to index vistrail', str(e))
+            critical('Failed to index vistrail', str(e))
 
         # update name
         self.set_name()

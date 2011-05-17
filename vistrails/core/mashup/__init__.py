@@ -24,6 +24,8 @@ import uuid
 from datetime import date, datetime
 from time import strptime
 ################################################################################                           
+currentVersion = "0.1.0"
+
 class XMLObject(object):
     """Base class for mashup classes"""
     @staticmethod
@@ -65,5 +67,20 @@ class XMLObject(object):
             else:
                 return str(value)
         return ''
-
+    
+    @staticmethod
+    def indent(elem, level=0):
+        i = "\n" + level*"  "
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + "  "
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for elem in elem:
+                XMLObject.indent(elem, level+1)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
 ################################################################################

@@ -22,10 +22,11 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 
-from gui.common_widgets import QToolWindowInterface
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from gui.mashups.alias_list import QAliasListPanel
+from gui.mashups.mashups_manager import MashupsManager
 
-class QMashupsInspector(QtGui.QFrame, QToolWindowInterface):
+class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     """
     QMashupsInspector is a widget with tabs showing properties of the selected
     mashuptrail. It contains a list of tagged mashups, and when a mashup is
@@ -40,11 +41,17 @@ class QMashupsInspector(QtGui.QFrame, QToolWindowInterface):
         
         """
         QtGui.QFrame.__init__(self, parent)
-        QToolWindowInterface.__init__(self)
+        QVistrailsPaletteInterface.__init__(self)
+        print "****** Inspector INIT"
         self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
+        
+        #ok, this will store the original vistrail controller
         self.controller = controller
+        self.mshpController = None #MashupController
+        self.manager = MashupsManager.getInstance()
+        
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(0)
@@ -53,11 +60,11 @@ class QMashupsInspector(QtGui.QFrame, QToolWindowInterface):
         self.tabBar.setTabsClosable(False)
         self.tabBar.setExpanding(False)
         self.tabBar.currentChanged.connect(self.switchTab)
-        self.toolWindow().visibilityChanged.connect(self.visibilityChanged)
         self.stack = QtGui.QStackedWidget(self)
         layout.addWidget(self.tabBar)
         layout.addWidget(self.stack)
         self.setLayout(layout)
+        
         self.createMashupInspectorTab()
         self.createAliasPanelTab()
         self.createMashupsListTab()
@@ -83,19 +90,26 @@ class QMashupsInspector(QtGui.QFrame, QToolWindowInterface):
     @pyqtSlot(int)
     def switchTab(self, index):
         self.stack.setCurrentIndex(index)
-        
-    @pyqtSlot(bool)
-    def visibilityChanged(self, visible):
-        if visible == False:
-            self.oldPos = self.toolWindow().pos()
-        else:
-            self.toolWindow().move(self.oldPos)
             
-    def updateController(self, mshpController):
-        self.controller = mshpController
+    def updateVistrailController(self, controller):
+        self.controller = controller
+        print "         *** Mashup Inspector: controller changed ", controller
+    
+    def updateVistrailVersion(self, version):
+        if self.controller:
+            self.vt_version = version
+                
+        print "         *** Mashup Inspector: version changed ", version
+    
+    def updateMshpController(self, mshpController):
+        print "     **** updateMshpController", mshpController
+        self.mshpController = mshpController
         self.mashupInspector.updateController(mshpController)
         self.mashupsList.updateController(mshpController)
         self.aliasPanel.updateController(mshpController)
+        
+    def updateMshpVersion(self, version):
+        print "updateMshpVersion", version
         
     def stateChanged(self):
         versionId = self.controller.currentVersion
@@ -162,7 +176,7 @@ class QMashupProp(QtGui.QWidget):
         self.vtEdit = QtGui.QLabel('', self)
         gLayout.addWidget(self.vtEdit, 3, 2, 1, 1)
         
-        vtVersionLabel = QtGui.QLabel('Wrokflow:', self)
+        vtVersionLabel = QtGui.QLabel('Workflow:', self)
         gLayout.addWidget(vtVersionLabel, 4, 0, 1, 1)
         
         self.vtVersionEdit = QtGui.QLabel('', self)
@@ -179,6 +193,8 @@ class QMashupProp(QtGui.QWidget):
         
     def updateController(self, mshpController):
         self.controller = mshpController
+       
+        print "QMashupProp.updateController ", self.controller, self.controller.currentVersion
         if self.controller and self.controller.currentVersion > -1:
             self.versionNumber = self.controller.currentVersion
             self.tagEdit.setText(self.controller.mshptrail.getTagForActionId(

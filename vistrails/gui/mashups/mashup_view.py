@@ -20,17 +20,21 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
-from gui.pipeline_tab import QPipelineTab
+from gui.pipeline_view import QPipelineView
+from gui.base_view import BaseView
 from gui.mashups.mashup_app import QMashupAppMainWindow
-
-class QMashupView(QtGui.QMainWindow):
-    def __init__(self, mashupController, inspector, parent=None, f=QtCore.Qt.WindowFlags()):
+from gui.mashups.mashups_manager import MashupsManager
+class QMashupView(QtGui.QMainWindow, BaseView):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
-        self.controller = mashupController
+        BaseView.__init__(self)
+        self.set_title("Mashup")
         
+        self.controller = None
+        self.mshpController = None
         self.createActions()
         #Setting up a toolbar
-        self.createToolBar(inspector)
+        self.createToolBar()
         
         widget = QtGui.QWidget(self)
         layout = QtGui.QVBoxLayout()
@@ -50,6 +54,50 @@ class QMashupView(QtGui.QMainWindow):
         self.previewTab = None
         self.setWindowTitle("Mashup Builder")
         
+        self.manager = MashupsManager.getInstance()
+        
+    def set_default_layout(self):
+        from gui.mashups.mashups_inspector import QMashupsInspector
+        from gui.module_info import QModuleInfo
+        self.layout = \
+            {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
+             QtCore.Qt.RightDockWidgetArea: QModuleInfo,
+             }
+            
+    def set_action_links(self):
+        self.action_links = \
+            {
+            }
+
+    def set_controller(self, controller):
+        """set_controller(controller:VistrailController) -> None
+         This will set vistrail controller"""
+        if controller == self.controller:
+            return
+        if self.controller is not None:
+            self.disconnect(self.controller,
+                             QtCore.SIGNAL('versionWasChanged'),
+                             self.versionChanged)
+        self.controller = controller
+        if self.controller:
+            self.connect(self.controller,
+                         QtCore.SIGNAL('versionWasChanged'),
+                         self.versionChanged)
+        print "      *** mashup view set vtController: ", controller
+        
+    def versionChanged(self):
+        version = self.controller.current_version
+        print "      *** mashup view versionChanged ", version
+        from gui.vistrails_window import _app
+        # we will get the mashuptrail for this version if there's one
+        self.mshpController = self.manager.createMashupController(self.controller,
+                                                                 version,
+                                                                 self.pipelineTab)
+        self.pipelineTab.set_controller(self.mshpController.vtController)
+        self.pipelineTab.set_to_current()
+        self.mshpController.vtController.change_selected_version(version)
+        _app.notify('mshpcontroller_changed', self.mshpController)
+    
     def createActions(self):
         self.saveAction = QtGui.QAction("Save", self,
                                         triggered=self.saveTriggered)
@@ -57,14 +105,12 @@ class QMashupView(QtGui.QMainWindow):
                                            triggered=self.previewTriggered,
                                            checkable=True)
         
-    def createToolBar(self, inspector):
+    def createToolBar(self):
         self.toolbar = QtGui.QToolBar(self)
         
         self.toolbar.addAction(self.previewAction)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.saveAction)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(inspector.toolWindow().toggleViewAction())
         self.addToolBar(self.toolbar)
         
     def createPipelineTab(self):
@@ -72,12 +118,13 @@ class QMashupView(QtGui.QMainWindow):
         Create a pipeline tab and append it to the list of windows
 
         """
-        self.pipelineTab = QPipelineTab(self)
-        self.pipelineTab.pipelineView.setPIPEnabled(False)
-        self.pipelineTab.pipelineView.setReadOnlyMode(True)
-        self.pipelineTab.moduleConfig.toolWindow().hide()
-        self.pipelineTab.setController(self.controller.vtController)
-        self.controller.vtController.change_selected_version(
+        self.pipelineTab = QPipelineView(self)
+        self.pipelineTab.setPIPEnabled(False)
+        self.pipelineTab.setReadOnlyMode(True)
+        
+        if self.controller:
+            self.pipelineTab.set_controller(self.controller.vtController)
+            self.controller.vtController.change_selected_version(
                                                 self.controller.vtVersion)
         self.stack.addWidget(self.pipelineTab)
         self.tabBar.addTab("Pipeline")
@@ -90,7 +137,7 @@ class QMashupView(QtGui.QMainWindow):
         self.refreshButton.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,
                                                            QtGui.QSizePolicy.Fixed))
         self.previewApp = QMashupAppMainWindow(parent=self, 
-                                               controller=self.controller)
+                                               controller=self.mshpController)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(5)
@@ -100,6 +147,7 @@ class QMashupView(QtGui.QMainWindow):
         self.stack.insertWidget(1, self.previewTab)
         self.tabBar.insertTab(1, "Preview")
         self.stack.setCurrentIndex(1)
+        self.tabBar.setCurrentIndex(1)
         
     def switchTab(self, index):
         self.stack.setCurrentIndex(index)

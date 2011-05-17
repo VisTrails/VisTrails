@@ -25,10 +25,13 @@ from time import strptime
 
 from core.mashup import XMLObject
 from core.mashup.mashup import Mashup
-
 from core.system import get_elementtree_library
-from core import debug
 ElementTree = get_elementtree_library()
+
+from core import debug
+from db.domain import IdScope
+
+
 
 class Action(XMLObject):
     
@@ -154,13 +157,15 @@ class ActionAnnotation(XMLObject):
 class Mashuptrail(XMLObject):
     """ MashupTrail is a class that stores versions of Mashups.
     For now it keeps a linear history."""
-    def __init__(self, id, id_scope):
+    def __init__(self, id, vt_version, id_scope=IdScope(1L)):
         self.id = id
         self.actions = []
         self.actionMap = {}
         self.currentVersion = -1
         self.annotations = []
         self.id_scope = id_scope
+        self.vtVersion = vt_version
+        
         
     def addVersion(self, parent_id, mashup, user, date):
         id = self.getLatestVersion() + 1
@@ -254,6 +259,7 @@ class Mashuptrail(XMLObject):
         
         #set attributes
         node.set('id', self.convert_to_str(self.id, 'str'))
+        node.set('vtVersion', self.convert_to_str(self.version,'long'))
         for action in self.actions:
             child_ = ElementTree.SubElement(node, 'action')
             action.toXml(child_)
@@ -270,6 +276,8 @@ class Mashuptrail(XMLObject):
         #read attributes
         data = node.get('id', None)
         id = Mashuptrail.convert_from_str(data, 'uuid')
+        data = node.get('vtversion', None)
+        vtVersion = Mashuptrail.convert_from_str(data, 'long')
         actions = []
         action_map = {}
         annotations = []
@@ -282,10 +290,22 @@ class Mashuptrail(XMLObject):
                 annot = ActionAnnotation.fromXml(child)
                 annotations.append(annot)
                 
-        mtrail = Mashuptrail(id)
+        mtrail = Mashuptrail(id,vtVersion)
         mtrail.actions = actions
         mtrail.actionMap = action_map
         mtrail.annotations = annotations
         mtrail.currentVersion = mtrail.getLatestVersion()
+        mtrail.updateIdScope()
         return mtrail
-        
+    
+    ######################################################################
+    ## IdScope
+    ##      
+    def updateIdScope(self):
+        for action in self.actions:
+            self.id_scope.updateBeginId('action', action.id+1)
+            for alias in action.mashup:
+                self.id_scope.updateBeginId('alias', alias.id+1)
+                self.id_scope.updateBeginId('component', alias.compoenent.id+1)
+        for annotation in self.annotations:
+            self.id_scope.updateBeginId('actionAnnotation', annotation.id+1)
