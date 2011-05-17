@@ -202,7 +202,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
                             (QParameterView,
                              (('pipeline_changed', 'set_pipeline'),)),
                             (QLogDetails,
-                             (('controller_changed', 'set_controller'),))]),
+                             (('controller_changed', 'set_controller'),
+                              ('execution_changed', 'set_execution')))]),
                           (QtCore.Qt.NoDockWidgetArea,
                            [(QModuleConfiguration, 
                              (('controller_changed', 'set_controller'),
@@ -264,7 +265,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                         palette.set_main_window(self.palette_window)
                         
         self.connect(QWorkspaceWindow.instance(), 
-                     QtCore.SIGNAL("vistrailChanged(QVistrailView*)"),
+                     QtCore.SIGNAL("vistrailChanged()"),
                      self.change_view)
 
     def create_notification(self, notification_id, link_view=False):
@@ -492,7 +493,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
     def open_vistrail_without_prompt(self, locator, version=None,
                                      execute_workflow=False, 
-                                     is_abstraction=False):
+                                     is_abstraction=False, workflow_exec=None):
         """open_vistrail_without_prompt(locator_class, version: int or str,
                                         execute_workflow: bool,
                                         is_abstraction: bool) -> None
@@ -519,8 +520,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
             #     self.viewModeChanged(1)
             # if execute_workflow:
             #     self.execute_current_pipeline()
-                
-        
+            if workflow_exec:
+                self.current_view.provenance_change(True)
+                self.current_view.log_view.set_exec_by_id(workflow_exec) or \
+                 self.current_view.log_view.set_exec_by_date(workflow_exec)
+
     def open_vistrail_default(self):
         """ open_vistrail_default() -> None
         Opens a vistrail from the file/db
@@ -1280,7 +1284,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                            self.pass_through_bool(self.get_current_view,
                                                   'explore_change')}),
                      ("provenance", "Provenance",
-                      {'icon': CurrentTheme.PIPELINE_ICON,
+                      {'icon': CurrentTheme.PROVENANCE_ICON,
                        'checkable': True,
                        'checked': False,
                        'callback': \
