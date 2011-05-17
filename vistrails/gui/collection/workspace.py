@@ -591,7 +591,7 @@ class QVistrailList(QtGui.QTreeWidget):
 
     def item_changed(self, item, prev_item):
         print "*** item clicked", id(item.window)
-        self.parent().emit(QtCore.SIGNAL("vistrailChanged(QVistrailView*)"), 
+        self.parent().emit(QtCore.SIGNAL("vistrailChanged"), 
                            item.window)
         
 
