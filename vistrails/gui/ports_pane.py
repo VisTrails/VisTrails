@@ -8,12 +8,87 @@ from core.system import vistrails_root_directory
 from gui.common_widgets import QToolWindowInterface
 from gui.theme import CurrentTheme
 
+class AliasLabel(QtGui.QLabel):
+    """
+    AliasLabel is a QLabel that supports hover actions similar
+    to a hot link
+    """
+    def __init__(self, alias='', text='', default_label='', parent=None):
+        """ AliasLabel(alias:str , text: str, default_label: str,
+                             parent: QWidget) -> QHoverAliasLabel
+        Initialize the label with a text
+        
+        """
+        QtGui.QLabel.__init__(self, parent)
+        self.alias = alias
+        self.caption = text
+        self.default_label = default_label
+        self.updateText()
+        self.setAttribute(QtCore.Qt.WA_Hover)
+        self.setCursor(QtCore.Qt.PointingHandCursor)
+        self.setToolTip(alias)
+        self.palette().setColor(QtGui.QPalette.WindowText,
+                                CurrentTheme.HOVER_DEFAULT_COLOR)
+
+    def updateText(self):
+        """ updateText() -> None
+        Update the label text to contain the alias name when appropriate
+        
+        """
+        if self.alias != '':
+            self.setText(self.alias + ': ' + self.caption)
+        elif self.default_label != '':
+            self.setText(self.default_label + ': ' + self.caption)
+        else:
+            self.setText(self.caption)
+
+    def event(self, event):
+        """ event(event: QEvent) -> Event Result
+        Override to handle hover enter and leave events for hot links
+        
+        """
+        if event.type()==QtCore.QEvent.HoverEnter:
+            self.palette().setColor(QtGui.QPalette.WindowText,
+                                    CurrentTheme.HOVER_SELECT_COLOR)
+        if event.type()==QtCore.QEvent.HoverLeave:
+            self.palette().setColor(QtGui.QPalette.WindowText,
+                                    CurrentTheme.HOVER_DEFAULT_COLOR)
+        return QtGui.QLabel.event(self, event)
+        # return super(QHoverAliasLabel, self).event(event)
+
+    def mousePressEvent(self, event):
+        """ mousePressEvent(event: QMouseEvent) -> None        
+        If mouse click on the label, show up a dialog to change/add
+        the alias name
+        
+        """
+        if event.button()==QtCore.Qt.LeftButton:
+            (text, ok) = QtGui.QInputDialog.getText(self,
+                                                    'Set Parameter Alias',
+                                                    'Enter the parameter alias',
+                                                    QtGui.QLineEdit.Normal,
+                                                    self.alias)
+            while ok and self.parent().check_alias(str(text)):
+                msg =" This alias is already being used.\
+ Please enter a different parameter alias "
+                (text, ok) = QtGui.QInputDialog.getText(self,
+                                                        'Set Parameter Alias',
+                                                        msg,
+                                                        QtGui.QLineEdit.Normal,
+                                                        text)
+            if ok and str(text)!=self.alias:
+                if not self.parent().check_alias(str(text)):
+                    self.alias = str(text).strip()
+                    self.updateText()
+                    self.parent().updateMethod()
+
 class Parameter(object):
     def __init__(self, desc):
         self.type = desc.name
         self.identifier = desc.identifier
         self.namespace = None if not desc.namespace else desc.namespace
         self.strValue = ''
+        self.alias = ''
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
@@ -68,6 +143,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         h_layout.addLayout(v_layout)
         
         self.my_widgets = []
+        self.my_labels = []
         self.group_box = QtGui.QGroupBox()
         layout = QtGui.QGridLayout()
         layout.setMargin(5)
@@ -91,14 +167,15 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             #     ps_label = str(port_spec.labels[i])
             # label = QHoverAliasLabel(p.alias, p.type, ps_label)
 
-            label = QtGui.QLabel(desc.name)
             widget_class = desc.module.get_widget_class()
             if param is not None:
                 obj = param
             else:
                 obj = Parameter(desc)
+            label = AliasLabel(obj.alias, obj.type)
             param_widget = widget_class(obj, self.group_box)
             self.my_widgets.append(param_widget)
+            self.my_labels.append(label)
             layout.addWidget(label, i, 0)
             layout.addWidget(param_widget, i, 1)
 
@@ -109,8 +186,14 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             else:
                 real_id = -1
             self.group_box.parent().parent().parent().update_method(
-                self, self.port_spec.name, self.my_widgets, real_id)
+                self, self.port_spec.name, self.my_widgets, self.my_labels, real_id)
+        def check_alias(name):
+            controller = self.group_box.parent().parent().parent().controller
+            if controller:
+                return controller.check_alias(name)
+            return False
         self.group_box.updateMethod = updateMethod
+        self.group_box.check_alias = check_alias
         h_layout.addWidget(self.group_box)
         widget.setLayout(h_layout)
         return widget
@@ -327,7 +410,7 @@ class PortsList(QtGui.QTreeWidget):
     def set_controller(self, controller):
         self.controller = controller
 
-    def update_method(self, subitem, port_name, widgets, real_id=-1):
+    def update_method(self, subitem, port_name, widgets, labels, real_id=-1):
         print 'updateMethod called', port_name
         if self.controller:
             _, item = self.port_spec_items[port_name]
@@ -337,7 +420,8 @@ class PortsList(QtGui.QTreeWidget):
                                             [str(w.contents())
                                              for w in widgets],
                                             real_id,
-                                            [])
+                                            [str(label.alias)
+                                             for label in labels])
 
             # FIXME need to get the function set on the item somehow
             # HACK for now
