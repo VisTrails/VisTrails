@@ -497,6 +497,9 @@ class DefaultTheme(object):
         self.EXPLORE_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/explore.png')
+        self.PROVENANCE_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/search_database.png')
 
         # Toolbar icon for visual query on a vistrail
         self.VISUAL_QUERY_ICON = QtGui.QIcon(

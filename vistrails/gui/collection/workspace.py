@@ -88,28 +88,32 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def item_selected(self, widget_item, column):
         print 'item_selected'
         locator = widget_item.entity.locator()
+        print "locator", locator
         print '*** opening'
         print locator.to_url()
         print locator.name
         print '***'
         import gui.application
         locator.update_from_gui(self)
-        if not locator.is_valid():
-            debug.critical("Locator is not valid:" % locator.to_url())
-            return
+#        if not locator.is_valid():
+#            debug.critical("Locator is not valid:" % locator.to_url())
+#            return
         app = gui.application.VistrailsApplication
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
         args['version'] = locator.kwargs.get('version_node', None) or \
                           locator.kwargs.get('version_tag', None)
+        print "version is", args['version']
         if args['version']:
             # set vistrail name
             locator._name = widget_item.entity.parent.name
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
+        print "wfexec", workflow_exec
         if workflow_exec:
             args['workflow_exec'] = int(workflow_exec)
             locator = widget_item.entity.parent.locator()
+            print "locator set to", locator
             locator.update_from_gui(self)
             # set vistrail name
             locator._name = widget_item.entity.parent.parent.name
