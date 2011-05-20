@@ -183,6 +183,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         from gui.vis_diff import QDiffProperties
         from gui.collection.workspace import QWorkspaceWindow
         from gui.collection.vis_log import QLogDetails
+        from gui.publishing import QLatexAssistant as QVersionEmbed
         self.palettes = []
         palette_layout = [(QtCore.Qt.LeftDockWidgetArea, 
                            [QModulePalette, QWorkspaceWindow,
@@ -216,7 +217,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
                              (('controller_changed', 'set_controller'),)),
                             (QDebugger,
                              (('controller_changed', 'set_controller'),)),
-                            DebugView])]
+                            DebugView,
+                            (QVersionEmbed,
+                             (('controller_changed', 'set_controller'),))])]
         for dock_area, p_group in palette_layout:
             first_added = None
             for p_klass in p_group:
@@ -936,6 +939,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
         # a dictionary of options to be set for an action
         # Also, "---" denotes a separator
 
+        global _global_menubar
+
         palette_actions, palettes = self.create_palette_actions()
         palette_actions = list(palette_actions)
         # palettes = []
@@ -1383,8 +1388,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.qactions = qactions
             self.qmenus = qmenus
 
-        menu_bar = self.menuBar()
+        if core.system.systemType in ['Darwin']:
+            menu_bar = QtGui.QMenuBar()
+            _global_menubar = menu_bar
+        else:
+            menu_bar = self.menuBar()
+        print 'menu_bar:', menu_bar
         process_list(actions, menu_bar)
+        print 'done processing list'
 
         for action_tuple, palette in izip(palette_actions, palettes):
             palette.set_action(self.qactions[action_tuple[0]])
@@ -1765,6 +1776,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.helpMenu.addAction(self.checkUpdateAction)
 
 _app = None
+_global_menubar = None
 
     # def focusInEvent(self, event):
     #     print 'got focusInEvent', event, event.reason()
