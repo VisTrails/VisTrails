@@ -103,7 +103,11 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     
     def updateMshpController(self, mshpController):
         print "     **** updateMshpController", mshpController
+        if (self.mshpController is not None and 
+            self.mshpController != mshpController):
+            self.mshpController.stateChanged.disconnect(self.stateChanged)
         self.mshpController = mshpController
+        self.mshpController.stateChanged.connect(self.stateChanged)
         self.mashupInspector.updateController(mshpController)
         self.mashupsList.updateController(mshpController)
         self.aliasPanel.updateController(mshpController)
@@ -112,7 +116,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         print "updateMshpVersion", version
         
     def stateChanged(self):
-        versionId = self.controller.currentVersion
+        versionId = self.mshpController.currentVersion
         self.mashupInspector.updateVersion(versionId)
         self.mashupsList.stateChanged()
         

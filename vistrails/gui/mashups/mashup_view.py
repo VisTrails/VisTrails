@@ -69,6 +69,10 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             {
             }
 
+    def zoomToFit(self):
+        if self.pipelineTab:
+            self.pipelineTab.zoomToFit()
+        
     def set_controller(self, controller):
         """set_controller(controller:VistrailController) -> None
          This will set vistrail controller"""
