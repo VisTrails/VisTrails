@@ -232,6 +232,16 @@ class QVistrailView(QDockContainer):
             self.pipelineTab.moduleConfig.toolWindow().show()
         else:
             self.pipelineTab.moduleConfig.toolWindow().hide()
+            
+    def setVistrailVarsMode(self, on):
+        """ setVistrailVarsMode(on: bool) -> None
+        Set the vistrail variable panel state for the view
+
+        """
+        if on:
+            self.pipelineTab.vistrailVars.toolWindow().show()
+        else:
+            self.pipelineTab.vistrailVars.toolWindow().hide()
 
     def viewModeChanged(self, index):
         """ viewModeChanged(index: int) -> None        
