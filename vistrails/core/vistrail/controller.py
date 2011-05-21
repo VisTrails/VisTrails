@@ -521,7 +521,7 @@ class VistrailController(object):
                                     function.vtType, function.real_id))
         else:
             new_function = self.create_function(module, function_name,
-                                                param_values)
+                                                param_values, aliases)
             op_list.append(('add', new_function,
                             module.vtType, module.id))        
         return op_list
