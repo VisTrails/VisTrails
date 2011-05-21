@@ -885,6 +885,22 @@ or in the older syntax,
                         labels=str(["temp", "name"]))
 
 .. index::
+   pair: ports; optional
+
+**Making a Port Optional**  To add a port that is optional, simply set optional to true:
+
+.. code-block:: python
+   :linenos:
+
+   _input_ports = [('MyPort', '(edu.utah.sci.vistrails.basic:String)',
+                       {"optional": True})]
+
+   reg.add_input_port(MyModule, "MyPort", 
+                      (edu.utah.sci.vistrails.basic:String, 'MyPort Name'), 
+                      optional=True)
+
+
+.. index::
    pair: ports; multiple inputs
 
 **Multiple Inputs** For compatibility reasons, we do need to allow multiple connections to an input port. However, most package developers should never have to use this, and so we do our best to hide it. the default behavior for getting inputs from a port, then, is to always return a single input.

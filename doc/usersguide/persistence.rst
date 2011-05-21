@@ -51,10 +51,10 @@ Using the Output of One Workflow as Input for Another
 
 You need to configure the persistence modules using the module's configuration dialog. After adding a PersistentOutputFile to the workflow, click on the triangle in the upper-right corner of the PersistentOutputFile, and select "Edit Configuration" from the menu that appears. In this dialog, select "Create New Reference" and give the reference a name (and any space-delimited tags). Upon running that workflow, the data will be written to the persistent store. In the second workflow where you wish to use that file, add a PersistentInputFile and go to its configuration dialog in the same manner as with the output file. In that dialog, select "Use Existing Reference" and select the data that you just added in the first workflow in the list of files below. Now, when you run that workflow, it will grab the data from the persistent store.
 
-Deleting From the Store
-=======================
+Managing Files in the Store
+===========================
 
-You may delete from the store using the delete button, but files will be erased and not recoverable.  Also, for versioned files, a specific version of a file can not be deleted without deleting all versions of that file.
+You may manage the files in the store by selecting ``Packages -> Persistence -> Manage Store``.  You are then free to save files from the store to local files, or delete files from the store.  However, please be aware that files deleted from the store are not recoverable.  Also, for versioned files, a specific version of a file can not be deleted without deleting all versions of that file.  To delete all versions of the file, select the root version and press ``Delete``.
 
 Examples
 ========
@@ -141,6 +141,7 @@ Examples
 
 .. figure:: figures/persistence/reference.png
    :align: center
+   :width: 100%
 
    Example 1.4 - Selecting an existing reference
 
