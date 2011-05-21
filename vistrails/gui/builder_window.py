@@ -425,6 +425,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.moduleConfigViewAction.setCheckable(True)
         self.moduleConfigViewAction.setChecked(True)
         
+        self.vistrailVarsViewAction = QtGui.QAction('VisTrail Variables Panel', self)
+        self.vistrailVarsViewAction.setCheckable(True)
+        self.vistrailVarsViewAction.setChecked(True)
+        
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
         self.checkUpdateAction = QtGui.QAction(self.tr('Check for Updates'), self)
@@ -539,6 +543,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu.addAction(self.methodsViewAction)
         self.viewMenu.addAction(self.setMethodsViewAction)
         self.viewMenu.addAction(self.moduleConfigViewAction)
+        self.viewMenu.addAction(self.vistrailVarsViewAction)
         self.viewMenu.addAction(self.propertiesViewAction)
         self.viewMenu.addAction(self.propertiesOverlayAction)
 
@@ -692,6 +697,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.moduleConfigViewAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.viewManager.setModuleConfigMode)
+        
+        self.connect(self.vistrailVarsViewAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.setVistrailVarsMode)
         
         self.connect(self.vistrailActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),
@@ -1547,8 +1556,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.flush_cache()
             currentView = self.viewManager.currentWidget()
             if currentView:
-                current_pipeline = currentView.controller.current_pipeline
-                current_pipeline.validate()
+                controller = currentView.controller
+                controller.validate(controller.current_pipeline)
             
         # Update the state of the icons if changing between db and file
         # support

@@ -52,6 +52,34 @@ import copy
 
 ##############################################################################
 
+class MissingVistrailVariable(Exception):
+    def __init__(self, var_uuid, identifier, name, namespace):
+        self._var_uuid = var_uuid
+        self._identifier = identifier
+        self._name = name
+        self._namespace = namespace
+
+    def __str__(self):
+        return "Missing Vistrail Variable '%s' of type %s from package %s" % (self._var_uuid,
+                self._module_name, self._identifier)
+        
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+            self._var_uuid == other._var_uuid and \
+            self._identifier == other._identifier and \
+            self._name == other._name and \
+            self._namespace == other._namespace
+
+    def __hash__(self):
+        return (type(self), self._var_uuid, self._identifier,
+                self._name, self._namespace).__hash__()
+
+    def _get_module_name(self):
+        if self._namespace:
+            return "%s|%s" % (self._namespace, self._name)
+        return self._name
+    _module_name = property(_get_module_name)
+
 class Pipeline(DBWorkflow):
     """ A Pipeline is a set of modules and connections between them. """
     
@@ -777,7 +805,7 @@ class Pipeline(DBWorkflow):
     ##########################################################################
     # Registry-related
 
-    def validate(self, raise_exception=True):
+    def validate(self, raise_exception=True, vistrail_vars={}):
         # want to check entire pipeline and reconcile it with the
         # registry - if anything fails, generate invalid pipeline with
         # the errors
@@ -817,6 +845,10 @@ class Pipeline(DBWorkflow):
             exceptions.update(e.get_exception_set())
         try:
             self.ensure_functions()
+        except InvalidPipeline, e:
+            exceptions.update(e.get_exception_set())
+        try:
+            self.ensure_vistrail_variables(vistrail_vars)
         except InvalidPipeline, e:
             exceptions.update(e.get_exception_set())
         
@@ -963,6 +995,21 @@ class Pipeline(DBWorkflow):
                         exceptions.add(e)
                     pos_map[p.pos] = p
                 function.is_valid = is_valid
+        if len(exceptions) > 0:
+            raise InvalidPipeline(exceptions, self)
+        
+    def ensure_vistrail_variables(self, vistrail_vars):
+        if len(vistrail_vars) <= 0:
+            return
+        var_uuids = [var_uuid for var_uuid, descriptor_info, var_strValue in vistrail_vars.itervalues()]
+        exceptions = set()
+        for module in self.modules.itervalues():
+            if module.has_annotation_with_key('__vistrail_var__'):
+                var_uuid = module.get_annotation_by_key('__vistrail_var__').value
+                if var_uuid not in var_uuids:
+                    e = MissingVistrailVariable(var_uuid, module.package, module.name, module.namespace)
+                    exceptions.add(e)
+    
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)
 

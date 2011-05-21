@@ -36,7 +36,10 @@ QPipelineView
 from PyQt4 import QtCore, QtGui
 from core.configuration import get_vistrails_configuration
 from core import debug
+from core.db.action import create_action
+from core.system import systemType
 from core.utils import profile
+from core.vistrail.annotation import Annotation
 from core.modules.module_configure import DefaultModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
@@ -53,6 +56,7 @@ from gui.module_palette import QModuleTreeWidget
 from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
 from gui.utils import getBuilderWindow
+from gui.variable_dropbox import QDragVariableLabel
 
 import copy
 import math
@@ -98,6 +102,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         self.invalid = None
         self.setGhosted(ghosted)
         self.setInvalid(False)
+        self.createActions()
 
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
@@ -141,6 +146,104 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         
         """
         QtGui.QGraphicsRectItem.paint(self, painter, option, widget)
+    
+    def contextMenuEvent(self, event):
+        """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
+        Captures context menu event.
+
+        """
+        #module = self.controller.current_pipeline.modules[self.moduleId]
+        connections = self.controller.get_connections_to(self.controller.current_pipeline, [self.parentItem().module.id], self.port.name)
+        for connection in connections:
+            if self.scene().modules[connection.source.moduleId].module.has_annotation_with_key('__vistrail_var__'):
+                menu = QtGui.QMenu()
+                menu.addAction(self.removeVarsAct)
+                menu.exec_(event.screenPos())
+                break
+
+    def createActions(self):
+        """ createActions() -> None
+        Create actions related to context menu
+
+        """
+        self.removeVarsAct = QtGui.QAction("Disconnect Vistrail Variables", self.scene())
+        self.removeVarsAct.setStatusTip("Disconnects Vistrail Variables from the port")
+        QtCore.QObject.connect(self.removeVarsAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.removeVars)
+        
+    def removeVars(self):
+        # Unhighlight the port
+        self.setBrush(CurrentTheme.PORT_BRUSH)
+        # Get all connections to vistrail variables for this port
+        remove_connections = []
+        remove_modules = set()
+        connections = self.controller.get_connections_to(self.controller.current_pipeline, [self.parentItem().module.id], self.port.name)
+        for connection in connections:
+            module_item = self.scene().modules[connection.source.moduleId]
+            if module_item.module.has_annotation_with_key('__vistrail_var__'):
+                var_connections = self.controller.get_connections_from(self.controller.current_pipeline, [module_item.module.id])
+                if len(var_connections) == 1:
+                    # Tag variable module for removal if it isn't connected to anything else
+                    remove_modules.add(module_item)
+                else:
+                    # Otherwise just tag the connection for removal
+                    remove_connections.append(connection)
+        # Get ops for deleting connections to vistrail variables
+        ops = []
+        if len(remove_connections) > 0:
+            self.controller.reset_pipeline_view = False
+            idList = [conn.id for conn in remove_connections]
+            self.scene()._old_connection_ids.difference_update(set(idList))
+            for cId in idList:
+                del self.scene().connections[cId]
+            ops.extend([('delete', self.controller.current_pipeline.connections[c_id]) for c_id in idList])
+        # Get ops for deleting unconnected variable modules
+        if len(remove_modules) > 0:
+            self.scene().noUpdate = True
+            idList = [m.id for m in remove_modules]
+            connections = set()
+            for m in remove_modules:
+                # dependingConnectionItems requires the module item to be in the scene
+                self.scene().addItem(m)
+                connections.update([c[0] for c in m.dependingConnectionItems()])
+            #update the dependency list on the other side of connections
+            for conn in connections:
+                self.scene()._old_connection_ids.remove(conn.id)
+                del self.scene().connections[conn.id]
+                if conn.connection.source:
+                    mid = conn.connection.source.moduleId 
+                    m = self.scene().modules[mid]
+                if conn.connection.destination:
+                    mid = conn.connection.destination.moduleId
+                    m = self.scene().modules[mid]
+            ops.extend(self.controller.delete_module_list_ops(self.controller.current_pipeline, idList))
+            for (mId, item) in self.scene().modules.items():
+                if item in remove_modules:
+                    self.scene().remove_module(mId)
+        # Create and execute the removal action
+        var_action = create_action(ops)
+        self.controller.flush_delayed_actions()
+        self.controller.add_new_action(var_action)
+        self.controller.vistrail.change_description("Disconnected Vistrail Variables", var_action.id)
+        self.controller.perform_action(var_action)
+        # Handle scene refresh
+        self.scene().reset_module_colors()
+        if len(remove_connections) > 0:
+            self.controller.reset_pipeline_view = True
+        if len(remove_modules) > 0:
+            self.scene().updateSceneBoundingRect()
+            self.scene().update()
+            self.scene().noUpdate = False
+        # Update the version view node to fit text properly
+        version_item = self.controller.vistrail_view.versionTab.versionView.scene().versions[self.controller.current_version]
+        version_item.updateWidthFromLabel()
+        # Update the tooltip for this version
+        try:
+            tooltip = self.port.toolTip()
+            self.setToolTip(tooltip)
+        except:
+            self.setToolTip("ERROR with tool tip")
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
@@ -217,31 +320,35 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                 # Change connected port to selected color
                 self.connection.snapPort.setPen(
                     CurrentTheme.PORT_SELECTED_PEN)
+            else:
+                QtGui.QToolTip.hideText()
             self.connection.prepareGeometryChange()
             self.connection.setLine(startPos.x(), startPos.y(),
                                     endPos.x(), endPos.y())
         QtGui.QGraphicsRectItem.mouseMoveEvent(self, event)
         # super(QGraphicsPortItem, self).mouseMoveEvent(event)
-
-    def findModuleUnder(self, pos):
+        
+    def findModuleUnder(self, pos, scene=None):
         """ findModuleUnder(pos: QPoint) -> QGraphicsItem
         Search all items under pos and return the top-most module item if any
         
         """
-        itemsUnder = self.scene().items(pos)
+        if scene is None:
+            scene = self.scene()
+        itemsUnder = scene.items(pos)
         for item in itemsUnder:
             if type(item)==QGraphicsModuleItem:
                 return item
         return None
         
-    def findSnappedPort(self, pos):
+    def findSnappedPort(self, pos, scene=None):
         """ findSnappedPort(pos: QPoint) -> Port        
         Search all ports of the module under mouse cursor (if any) to
         find the closest matched port
         
         """
         # FIXME don't hardcode input/output strings...
-        snapModule = self.findModuleUnder(pos)
+        snapModule = self.findModuleUnder(pos, scene)
         if snapModule and snapModule!=self.parentItem():
             if self.port.type == 'output':
                 return snapModule.getDestPort(pos, self.port)
@@ -1478,6 +1585,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.pipeline_tab = None
         self._old_module_ids = set()
         self._old_connection_ids = set()
+        self._var_selected_port = None
         self.pipeline = None
 
 #        menu = QtGui.QMenu()
@@ -1503,7 +1611,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         moduleItem.setBreakpoint(module.is_breakpoint)
         if moduleBrush:
             moduleItem.set_custom_brush(moduleBrush)
-        self.addItem(moduleItem)
+        if not module.has_annotation_with_key('__vistrail_var__'):
+            # Don't add hidden vistrail variable modules to the scene
+            self.addItem(moduleItem)
         self.modules[module.id] = moduleItem
         self._old_module_ids.add(module.id)
         return moduleItem
@@ -1524,7 +1634,21 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connectionItem.connection = connection
         if connectionBrush:
             connectionItem.set_custom_brush(connectionBrush)
-        self.addItem(connectionItem)
+        if not srcModule.module.has_annotation_with_key('__vistrail_var__'):
+            # Don't add connections to hidden vistrail variable modules to the scene
+            self.addItem(connectionItem)
+        else:
+            var_uuid = srcModule.module.get_annotation_by_key('__vistrail_var__').value
+            var_name = self.controller.get_vistrail_variable_name_by_uuid(var_uuid)
+            port_item = dstModule.inputPorts[connection.destination.spec]
+            port_item.setBrush(CurrentTheme.PORT_FILLED_BRUSH)
+            # Update the tooltip for this version
+            try:
+                tooltip = port_item.toolTip() + '\nVistrail Variable: "%s"'%var_name
+                port_item.setToolTip(tooltip)
+            except Exception, e:
+                port_item.setToolTip("ERROR with tool tip")
+                raise e
         self.connections[connection.id] = connectionItem
         self._old_connection_ids.add(connection.id)
         return connectionItem
@@ -1768,12 +1892,14 @@ mutual connections."""
         
         """
         if (self.controller and
-            type(event.source())==QModuleTreeWidget):
+            (type(event.source())==QModuleTreeWidget or
+             type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
-            if hasattr(data, 'items'):
+            if hasattr(data, 'items') or hasattr(data, 'variableData'):
                 event.accept()
-        else:
-            event.ignore()
+                return
+        # Ignore if not accepted and returned by this point
+        event.ignore()
         
     def dragMoveEvent(self, event):
         """ dragMoveEvent(event: QDragMoveEvent) -> None
@@ -1781,11 +1907,33 @@ mutual connections."""
         
         """
         if (self.controller and
-            type(event.source())==QModuleTreeWidget):
-
+            (type(event.source())==QModuleTreeWidget or
+             type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
+                return
+            elif hasattr(data, 'variableData'):
+                # Find nearest suitable port
+                tmp_port = QGraphicsPortItem(0, 0, False)
+                tmp_port.port = data.variableData[0]
+                nearest_port = tmp_port.findSnappedPort(event.scenePos(), self)
+                # Unhighlight previous nearest port
+                if self._var_selected_port is not None:
+                    self._var_selected_port.setPen(CurrentTheme.PORT_PEN)
+                self._var_selected_port = nearest_port
+                # Highlight new nearest port
+                if nearest_port is not None:
+                    nearest_port.setPen(CurrentTheme.PORT_SELECTED_PEN)
+                    QtGui.QToolTip.showText(event.screenPos(), nearest_port.toolTip())
+                    event.accept()
+                    return
+                else:
+                    QtGui.QToolTip.hideText()
+        # Ignore if not accepted and returned by this point
+        if not systemType in ['Darwin']:
+            # Workaround: On a Mac, dropEvent isn't called if dragMoveEvent is ignored
+            event.ignore()
 
     def unselect_all(self):
         self.clearSelection()
@@ -1829,14 +1977,69 @@ mutual connections."""
         
         """
         if (self.controller and
-            type(event.source())==QModuleTreeWidget):
+            (type(event.source())==QModuleTreeWidget or
+             type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
             if hasattr(data, 'items'):
-                event.accept()
                 assert len(data.items) == 1
                 if self.controller.current_version==-1:
                     self.controller.change_selected_version(0)
                 self.add_module_event(event, data)
+                event.accept()
+                return
+            elif hasattr(data, 'variableData'):
+                if self._var_selected_port is not None:
+                    # Unhighlight selected port and get var data
+                    self._var_selected_port.setPen(CurrentTheme.PORT_PEN)
+                    output_portspec = data.variableData[0]
+                    var_uuid = data.variableData[1]
+                    var_name = data.variableData[2]
+                    descriptor = output_portspec.descriptors()[0]
+                    input_module = self._var_selected_port.parentItem().module
+                    input_portspec = self._var_selected_port.port
+                    # If no module exists for this var, create one
+                    ops = []
+                    var_module = None
+                    var_module_added = False
+                    for m_item in self.modules.itervalues():
+                        if m_item.module.has_annotation_with_key('__vistrail_var__') and m_item.module.get_annotation_by_key('__vistrail_var__').value == var_uuid:
+                            var_module = m_item.module
+                            break
+                    if var_module is None:
+                        var_module = self.controller.create_module_from_descriptor(descriptor, event.scenePos().x(), -event.scenePos().y())
+                        var_annotation = Annotation(id=self.controller.id_scope.getNewId(Annotation.vtType), key='__vistrail_var__', value=var_uuid)
+                        var_module.add_annotation(var_annotation)
+                        var_func = self.controller.create_function(var_module, 'value')
+                        var_module.add_function(var_func)
+                        ops.append(('add', var_module))
+                        var_module_added = True
+                    else:
+                        # Check if selected port is already connected to vistrail var module
+                        connections = self.controller.get_connections_to(self.controller.current_pipeline, [input_module.id])
+                        for connection in connections:
+                            if connection.source.moduleId == var_module.id:
+                                QtGui.QMessageBox.information(None, 'Already Connected', 'Vistrail Variable "%s" is already connected to this port.'%var_name)
+                                event.accept()
+                                return
+                    # Connect selected port to vistrail var module
+                    var_connection = self.controller.create_connection(var_module, output_portspec, input_module, input_portspec)
+                    ops.append(('add', var_connection))
+                    var_action = create_action(ops)
+                    self.controller.flush_delayed_actions()
+                    self.controller.add_new_action(var_action)
+                    self.controller.vistrail.change_description("Connected Vistrail Variable", var_action.id)
+                    self.controller.perform_action(var_action)
+                    # Add [hidden] items for module and connection to pipeline view
+                    if var_module_added:
+                        self.addModule(var_module)
+                    self.addConnection(var_connection)
+                    # Update the version view node to fit text properly
+                    version_item = self.controller.vistrail_view.versionTab.versionView.scene().versions[self.controller.current_version]
+                    version_item.updateWidthFromLabel()
+                    event.accept()
+                    return
+        # Ignore if not accepted and returned by this point
+        event.ignore()
 
     def delete_selected_items(self):
         selectedItems = self.selectedItems()

@@ -177,6 +177,38 @@ class VistrailController(object):
         # FIXME Why isn't this call on the pipeline?
         return self.current_pipeline.has_alias(name)
     
+    def check_vistrail_variable(self, name):
+        """check_vistrail_variable(var) -> Boolean
+        Returns True if vistrail has a variable named name """
+        if self.vistrail:
+            return self.vistrail.has_vistrail_var(name)
+        return False
+    
+    def set_vistrail_variable(self, name, value):
+        """set_vistrail_variable(var) -> Boolean
+        Returns True if vistrail variable was changed """
+        if self.vistrail:
+            changed = self.vistrail.set_vistrail_var(name, value)
+            self.set_changed(changed)
+            return changed
+        return False
+    
+    def get_vistrail_variables(self):
+        """get_vistrail_variables() -> dict
+        Returns the dictionary of vistrail variables """
+        if self.vistrail:
+            return self.vistrail.vistrail_vars
+        return {}
+    
+    def get_vistrail_variable_name_by_uuid(self, uuid):
+        """def get_vistrail_variable_name_by_uuid(uuid: str) -> dict
+        Returns the var name for vistrail variable with uuid """
+        vars = self.get_vistrail_variables()
+        for var_name, var_info in vars.iteritems():
+            var_uuid, descriptor_info, var_strValue = var_info
+            if var_uuid == uuid:
+                return var_name
+    
     def invalidate_version_tree(self, *args, **kwargs):
         """ invalidate_version_tree(self, *args, **kwargs) -> None
         Does nothing, gui/vistrail_controller.py does, though
@@ -2115,6 +2147,10 @@ class VistrailController(object):
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
 
+    def validate(self, pipeline, raise_exception=True):
+        vistrail_vars = self.get_vistrail_variables()
+        pipeline.validate(raise_exception, vistrail_vars)
+    
     def do_version_switch(self, new_version, report_all_errors=False, 
                           do_validate=True, from_root=False):
         """ do_version_switch(new_version: int,
@@ -2213,7 +2249,7 @@ class VistrailController(object):
                     # stash a copy for future use
                     if do_validate:
                         try:
-                            result.validate()
+                            self.validate(result)
                         except InvalidPipeline:
                             if not allow_fail:
                                 raise
@@ -2223,7 +2259,7 @@ class VistrailController(object):
                         self._pipelines[version] = copy.copy(result)
             if do_validate:
                 try:
-                    result.validate()
+                    self.validate(result)
                 except InvalidPipeline:
                     if not allow_fail:
                         raise
@@ -2271,7 +2307,7 @@ class VistrailController(object):
                     # check that we handled the invalid pipeline
                     # correctly
                     try:
-                        pipeline.validate()
+                        self.validate(pipeline)
                     # this means that there was a new exception after handling 
                     # the invalid pipeline and we should handle it again.    
                     except InvalidPipeline, e:
@@ -2281,7 +2317,7 @@ class VistrailController(object):
                                                               report_all_errors)
                         # check that we handled the invalid pipeline
                         # correctly
-                    pipeline.validate()
+                    self.validate(pipeline)
                     self.current_pipeline = pipeline
                     self.current_version = new_version
                 except InvalidPipeline, e:

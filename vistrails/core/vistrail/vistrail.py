@@ -131,6 +131,7 @@ class Vistrail(DBVistrail):
     THUMBNAIL_ANNOTATION = '__thumb__'
     PRUNE_ANNOTATION = '__prune__'
     UPGRADE_ANNOTATION = '__upgrade__'
+    VARIABLES_ANNOTATION = '__vistrail_vars__'
 
     ##########################################################################
     # Properties
@@ -185,6 +186,42 @@ class Vistrail(DBVistrail):
     def _set_database_info(self, value):
         return self.set_annotation("__database_info__", value)
     database_info = property(_get_database_info, _set_database_info)
+    
+    def _get_vistrail_vars(self):
+        annotation = self.get_annotation(Vistrail.VARIABLES_ANNOTATION)
+        if annotation is not None:
+            return dict(eval(annotation.value))
+        else:
+            return {}
+    
+    def _set_vistrail_vars(self, value):
+        if type(value) == type('') and value.strip() == '':
+            value = '{}'
+        return self.set_annotation(Vistrail.VARIABLES_ANNOTATION, str(value))
+    vistrail_vars = property(_get_vistrail_vars, _set_vistrail_vars)
+    
+    def has_vistrail_var(self, name):
+        return name in self.vistrail_vars
+    
+    def get_vistrail_var(self, name):
+        if name in self.vistrail_vars:
+            return self.vistrail_vars[name]
+        return None
+    
+    def set_vistrail_var(self, name, value):
+        vardict = self.vistrail_vars
+        if name in vardict:
+            if vardict[name] == value:
+                return False
+            if value is None:
+                del vardict[name]
+                self.vistrail_vars = vardict
+                return True
+        if value is None:
+            return False
+        vardict[name] = value
+        self.vistrail_vars = vardict
+        return True
 
     def getVersionName(self, version):
         """ getVersionName(version) -> str 

@@ -151,9 +151,16 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         to_delete = []
         errors = {}
 
-        pipeline.validate()
+        if controller is not None:
+            # Controller is none for sub_modules
+            controller.validate(pipeline)
+        else:
+            pipeline.validate()
 
         self.resolve_aliases(pipeline, aliases)
+        if controller is not None:
+            # Controller is none for sub_modules, so we can't resolve variables
+            self.resolve_variables(controller, pipeline)
 
         (tmp_to_persistent_module_map,
          conn_map,
