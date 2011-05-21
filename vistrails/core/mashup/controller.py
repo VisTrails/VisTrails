@@ -19,8 +19,12 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+import copy
 import os.path
 from core.system import current_user, current_time
+from core.mashup.alias import Alias
+from core.mashup.component import Component
+from core.mashup.mashup import Mashup
 
 class MashupController(object):
     def __init__(self, vt_controller, vt_version, mshptrail=None):
@@ -28,6 +32,7 @@ class MashupController(object):
         self.vtVersion = vt_version
         self.vtPipeline = self.vtController.vistrail.getPipeline(self.vtVersion)
         self.mshptrail = mshptrail
+        self.id_scope = mshptrail.id_scope
         self.currentVersion = -1
         self.currentMashup = None
         self._changed = False
@@ -59,6 +64,9 @@ class MashupController(object):
     def getCurrentTag(self):
         return self.mshptrail.getTagForActionId(self.currentVersion)
     
+    def versionHasTag(self, version):
+        return self.mshptrail.hasTagForActionId(version)
+    
     def getVistrailName(self):
         name = ''
         locator = self.currentMashup.vtid
@@ -74,4 +82,75 @@ class MashupController(object):
     
     def getVistrailWorkflowTag(self):
         return self.vtController.vistrail.getVersionName(self.vtVersion)
+    
+    def updateAliasesFromPipeline(self, pipeline):
+        pip_aliases = pipeline.aliases.keys()
+        mashup_aliases = [a.name for a in self.currentMashup.alias_list]
+        new_aliases = []
+        if len(pip_aliases) == len(mashup_aliases):
+            #an alias probably changed its name or its value    
+            old_a = None
+            new_a = None
+            for a in self.currentMashup.alias_list:
+                if a.name not in pip_aliases:
+                    old_a = copy.copy(a)
+                    new_aliases.append(old_a)
+                else:
+                    new_aliases.append(a)
+            for a in pip_aliases:
+                if a not in mashup_aliases:
+                    new_a = (a, pipeline.aliases[a])
+            if old_a is not None and new_a is not None:
+                (a, info) = new_a
+                parameter = pipeline.db_get_object(info[0],info[1])
+                old_a.name = a
+                old_a.component.vttype = parameter.vtType 
+                old_a.component.vtid = parameter.real_id
+                old_a.component.vtparent_type = info[2]
+                old_a.component.vt_parent_id = info[3]
+                old_a.component.mid = info[4]
+                old_a.component.type = parameter.type
+                old_a.component.val = parameter.strValue
+                old_a.component.vtpos = parameter.pos
+            
+        elif len(pip_aliases) < len(mashup_aliases):
+            # an alias was removed
+            pos = 0
+            for a in self.currentMashup.alias_list:
+                if a.name in pip_aliases:
+                    alias = copy.copy(a)
+                    alias.pos = pos
+                    new_aliases.append(alias)
+                    pos += 1
+        else:
+            #an alias was added
+            pos = len(mashup_aliases)
+            new_aliases = [a for a in self.currentMashup.alias_list]
+            for a in pip_aliases:
+                if a not in mashup_aliases:
+                    info = pipeline.aliases[a]
+                    parameter = pipeline.db_get_object(info[0],info[1])
+                    cid = self.id_scope.getNewId('component')
+                    aid = self.id_scope.getNewId('alias')
+                    component = Component(cid, parameter.vtType, 
+                                          parameter.real_id, info[2], info[3],
+                                          info[4], parameter.type, 
+                                          parameter.strValue, parameter.pos, 
+                                          pos, "")
+                    alias = Alias(aid, a, component) 
+                    new_aliases.append(alias)
+                    pos += 1
         
+        id = self.id_scope.getNewId('mashup')
+        mashup = Mashup(id=id, name="mashup%s"%id, 
+                        vtid=self.currentMashup.vtid, 
+                        version=self.currentMashup.version, 
+                        alias_list=new_aliases)
+        currVersion = self.mshptrail.addVersion(parent_id=self.currentVersion,
+                                                mashup=mashup, 
+                                                user=current_user(),
+                                                date=current_time())
+        self.mshptrail.currentVersion = currVersion
+        self.currentVersion = currVersion
+        self.currentMashup = mashup
+        self.setChanged(True)

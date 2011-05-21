@@ -91,14 +91,22 @@ class QAliasListPanel(QtGui.QWidget):
             if (self.controller.currentMashup.alias_list and
                 len(self.controller.currentMashup.alias_list) > 0):
                 self.aliases.populateFromMashup(self.controller)
+            else:
+                self.aliases.clear()
 #            if other_dict is not None:
 #                self.aliases.populateFromOtherDict(other_dict)
 #                
 #            elif self.controller.current_pipeline:
 #                self.aliases.populateFromPipeline(
 #                                            self.controller.current_pipeline)
-        
-    
+    def updateVersion(self, versionId):    
+        if self.controller:
+            if (self.controller.currentMashup.alias_list and
+                len(self.controller.currentMashup.alias_list) > 0):
+                self.aliases.populateFromMashup(self.controller)
+            else:
+                self.aliases.clear()
+                
     @pyqtSlot()
     def updateInspector(self):
         if len(self.aliases.selectedItems()) == 1:

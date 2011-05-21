@@ -118,6 +118,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     def stateChanged(self):
         versionId = self.mshpController.currentVersion
         self.mashupInspector.updateVersion(versionId)
+        self.aliasPanel.updateVersion(versionId)
         self.mashupsList.stateChanged()
         
 ################################################################################        
@@ -276,6 +277,7 @@ class QMashupsListPanel(QtGui.QWidget):
         self.controller = controller
         self.mashupsList = QtGui.QListWidget()
         self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.mashupsList.itemSelectionChanged.connect(self.changeSelection)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(5)
@@ -289,15 +291,43 @@ class QMashupsListPanel(QtGui.QWidget):
         self.stateChanged()
                     
     def stateChanged(self):
+        self.mashupsList.itemSelectionChanged.disconnect(self.changeSelection)
         self.mashupsList.clear()
         if self.controller:
             self.tagMap = self.controller.mshptrail.getTagMap()
             currentTag = self.controller.getCurrentTag()
             tags = self.tagMap.keys()
+            latestversion = self.controller.mshptrail.getLatestVersion()
+            if not self.controller.versionHasTag(latestversion):
+                item = QMashupListPanelItem("<latest>",
+                                            latestversion,
+                                            self.mashupsList)
+                if latestversion == self.controller.currentVersion:
+                    item.setSelected(True)
+
             if len(tags) > 0:
                 tags.sort()
                 for tag in tags:
-                    item = QtGui.QListWidgetItem(str(tag),self.mashupsList)
+                    item = QMashupListPanelItem(str(tag),
+                                                self.tagMap[tag],
+                                                self.mashupsList)
                     if tag == currentTag:
                         item.setSelected(True)
-                
+                        
+        self.mashupsList.itemSelectionChanged.connect(self.changeSelection)
+    
+    @pyqtSlot()
+    def changeSelection(self):
+        items = self.mashupsList.selectedItems()
+        if len(items) == 1:
+            version = items[0].version
+            if version != self.controller.currentVersion:
+                self.controller.setCurrentVersion(version, quiet=False)
+            
+################################################################################
+
+class QMashupListPanelItem(QtGui.QListWidgetItem):
+    def __init__(self, tag, version, parent=None):
+        QtGui.QListWidgetItem.__init__(self, tag, parent)
+        self.tag = tag
+        self.version = version

@@ -93,13 +93,20 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         version = self.controller.current_version
         print "      *** mashup view versionChanged ", version
         from gui.vistrails_window import _app
-        # we will get the mashuptrail for this version if there's one
+        if self.mshpController is not None:
+            if self.mshpController.vtController is not None:
+                self.disconnect(self.mshpController.vtController,
+                             QtCore.SIGNAL('vistrailChanged()'),
+                             self.mshpControllerVistrailChanged)
         self.mshpController = self.manager.createMashupController(self.controller,
                                                                  version,
                                                                  self.pipelineTab)
         self.pipelineTab.set_controller(self.mshpController.vtController)
         self.pipelineTab.set_to_current()
         self.mshpController.vtController.change_selected_version(version)
+        self.connect(self.mshpController.vtController,
+                     QtCore.SIGNAL('vistrailChanged()'),
+                     self.mshpControllerVistrailChanged)
         _app.notify('mshpcontroller_changed', self.mshpController)
     
     def createActions(self):
@@ -176,3 +183,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                 
     def saveTriggered(self):
         print "save pressed"
+        
+    def mshpControllerVistrailChanged(self):
+        print "*** vistrailChanged mashup view ", self.mshpController.vtController.current_version
+        pipeline = self.mshpController.vtController.current_pipeline
+        self.mshpController.updateAliasesFromPipeline(pipeline)

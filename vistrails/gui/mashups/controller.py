@@ -36,5 +36,10 @@ class MashupController(BaseController, QObject):
     def setChanged(self, on):
         BaseController.setChanged(self, on)
         self.stateChanged.emit()
-
+        
+    def setCurrentVersion(self, version, quiet=True):
+        BaseController.setCurrentVersion(self, version)
+        if not quiet:
+            self.stateChanged.emit()
+        
         
