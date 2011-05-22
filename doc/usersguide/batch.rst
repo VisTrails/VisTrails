@@ -149,6 +149,18 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
    -f *dbName*, --db=\ *dbName*, Set database name.
    -u *userName*, --user=\ *userName*, Set database username.
 
+.. index:: configuration directory
+
+Specifying a User Configuration Directory
+=========================================
+
+In addition to the default .vistrails directory, VisTrails allows you to create and use additional configuration directories.  First, you will need to create a new directory.  This is done by running:
+ ``python vistrails.py -S /path_to_new_directory/new_directory_name``.  
+
+This will both create a new directory containing default configuration files and directories, and launch VisTrails, which will use the newly created files for configuration.  The user is then free to add desired configurations to the new directory.  Once a configuration directory exists, subsequent calls using the directory name (``python vistrails.py -S /path_to_directory/existing_directory``) will launch VisTrails using the 'existing_directory' for configuration and a new directory will not be created.
+
+**Note:** If you would like to copy configuration directories, you must change the references in copy_of_directory/startup.xml to point to the new directory instead of the original.
+
 .. _sec-cli-db:
 
 Passing Database Parameters on the Command Line
