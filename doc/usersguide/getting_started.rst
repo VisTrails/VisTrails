@@ -54,12 +54,10 @@ the installation wizard to complete the installation process.
 Installing |vistrails| on Mac OS X
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install |vistrails| on Mac~OS~X, download the installation bundle
-for Windows from the |vistrails| website:
+To install |vistrails| on Mac OS X, download the installation bundle
+for Mac from the |vistrails| website:
 http://www.vistrails.org. The precompiled binary currently only
-supports Mac OS X 10.5.x or higher. Double click the file to
-uncompress it --- or, depending on your browser settings,
-uncompression may happen automatically
+supports Mac OS X 10.5.x or higher. The disk image should be mounted automatically
 (Figure :ref:`fig-start-mac_installation`). Once uncompression has
 completed, drag the |vistrails| desktop icon to the Applications
 folder to install the software.
@@ -171,7 +169,7 @@ enabled by default.)
 
 The |vistrails| toolbar serves to help you navigate
 the various modes and functions |vistrails| provides.  As illustrated
-by Figure :ref:`fig-start-toolbar`, the left side of the toolbar
+by Figure :ref:`(see Section Manipulating VisTrails Files)<fig-start-toolbar>`, the left side of the toolbar
 contains standard file manipulation buttons, and the next section
 provides buttons for execution and undo/redo functionality.  The four
 buttons in the third section serve to switch between different modes
