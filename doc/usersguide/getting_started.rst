@@ -58,8 +58,7 @@ To install |vistrails| on Mac OS X, download the installation bundle
 for Mac from the |vistrails| website:
 http://www.vistrails.org. The precompiled binary currently only
 supports Mac OS X 10.5.x or higher. The disk image should be mounted automatically
-(Figure :ref:`fig-start-mac_installation`). Once uncompression has
-completed, drag the |vistrails| desktop icon to the Applications
+(Figure :ref:`fig-start-mac_installation`). Once the disk image is mounted, drag the |vistrails| desktop icon to the Applications
 folder to install the software.
 
 .. _fig-start-mac_installation:
@@ -68,7 +67,7 @@ folder to install the software.
    :width: 5in
    :align: center
 
-   Uncompressing the |vistrails| bundle on Mac OS X.
+   Installing |vistrails| on Mac OS X.
    
 .. _sec-binary_installation_ubuntu:
 
