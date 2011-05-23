@@ -585,6 +585,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 return False
         return True
 
+    def closeEvent(self, e):
+        """ closeEvent(e: QCloseEvent) -> None
+        Close the whole application when the builder is closed
+
+        """
+        if not self.quit():
+            e.ignore()
+
     def quit(self):
         if self.close_all_vistrails():
             QtCore.QCoreApplication.quit()
