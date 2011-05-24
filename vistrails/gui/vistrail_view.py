@@ -249,10 +249,7 @@ class QVistrailView(QtGui.QWidget):
         self.stack.setCurrentIndex(self.stack.indexOf(self.mashup_view))
         self.tabs.setTabText(self.tabs.currentIndex(), "Mashup")
         self.tab_state[self.tabs.currentIndex()] = _app.qactions['mashup']
-        _app.notify("controller_changed", 
-                    self.mashup_view.mshpController.vtController)
-        _app.notify("version_changed",
-                    self.mashup_view.mshpController.vtController.current_version)
+        self.mashup_view.updateView()
         
     def mashup_unselected(self):
         print "MASHUP UN"
@@ -261,10 +258,6 @@ class QVistrailView(QtGui.QWidget):
             self.tab_to_stack_idx[self.tabs.currentIndex()])
         self.tabs.setTabText(self.tabs.currentIndex(), 
                              self.stack.currentWidget().get_title())
-        _app.notify("controller_changed", 
-                    self.mashup_view.controller)
-        _app.notify("version_changed",
-                    self.mashup_view.controller.current_version)
         
     def pipeline_change(self, checked):
         if checked:
@@ -466,9 +459,8 @@ class QVistrailView(QtGui.QWidget):
         print "******* create mashup view"
         from gui.vistrails_window import _app
         view = self.create_view(QMashupView, False)
-        self.connect(view.pipelineTab.scene(), QtCore.SIGNAL('moduleSelected'), 
-                     self.gen_module_selected(view.pipelineTab))
         view.set_controller(self.controller)
+        self.notifications['alias_changed'] = view.aliasChanged
         return view
     
     def gen_module_selected(self, view):

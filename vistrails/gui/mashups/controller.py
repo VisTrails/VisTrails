@@ -26,6 +26,7 @@ from core.mashup.controller import MashupController as BaseController
 class MashupController(BaseController, QObject):
     #signals
     stateChanged = pyqtSignal()
+    versionChanged = pyqtSignal(int)
     
     def __init__(self, vt_controller, vt_version, mshptrail=None):
         QObject.__init__(self)
@@ -41,5 +42,6 @@ class MashupController(BaseController, QObject):
         BaseController.setCurrentVersion(self, version)
         if not quiet:
             self.stateChanged.emit()
+            self.versionChanged.emit(version)
         
         

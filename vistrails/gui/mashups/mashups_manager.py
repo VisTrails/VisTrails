@@ -26,6 +26,7 @@ from gui.vistrail_controller import VistrailController
 from gui.mashups.controller import MashupController
 from core.mashup.mashup_trail import Mashuptrail
 from core.mashup.mashup import Mashup
+from core.utils import DummyView
 import core.system
 from db.domain import IdScope
 ############################################################################
@@ -47,7 +48,7 @@ class MashupsManager(object):
         else:
             raise RuntimeError, 'Only one instance of MashupsManager is allowed'
 
-    def createMashupController(self, vt_controller, version, view):
+    def createMashupController(self, vt_controller, version, view=DummyView()):
         newvt_controller = VistrailController()
         current_log = vt_controller.log
         vistrail = copy.copy(vt_controller.vistrail)

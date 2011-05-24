@@ -190,6 +190,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         from gui.collection.workspace import QWorkspaceWindow
         from gui.collection.vis_log import QLogDetails
         from gui.mashups.mashups_inspector import QMashupsInspector
+        from gui.mashups.alias_parameter_view import QAliasParameterView
         from gui.publishing import QLatexAssistant as QVersionEmbed
         self.palettes = []
         palette_layout = [(QtCore.Qt.LeftDockWidgetArea, 
@@ -216,7 +217,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
                              (('pipeline_changed', 'set_pipeline'),)),
                             (QLogDetails,
                              (('controller_changed', 'set_controller'),
-                              ('execution_changed', 'set_execution')))]),
+                              ('execution_changed', 'set_execution'))),
+                            (QAliasParameterView,
+                             (('mshpcontroller_changed', 'updateMshpController'),
+                              ('mshpversion_changed', 'updateMshpVersion')))]),
                           (QtCore.Qt.NoDockWidgetArea,
                            [(QModuleConfiguration, 
                              (('controller_changed', 'set_controller'),

@@ -66,16 +66,8 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         self.setLayout(layout)
         
         self.createMashupInspectorTab()
-        self.createAliasPanelTab()
         self.createMashupsListTab()
         self.setWindowTitle("Mashups Inspector")
-        self.oldPos = self.toolWindow().pos()
-        
-    def createAliasPanelTab(self):
-        self.aliasPanel = QAliasListPanel(parent=self)
-        self.stack.addWidget(self.aliasPanel)
-        self.tabBar.addTab("Aliases")
-        self.aliasPanel.aliasChanged.connect(self.mashupChanged)
         
     def createMashupInspectorTab(self):
         self.mashupInspector = QMashupProp(parent=self)
@@ -110,7 +102,6 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         self.mshpController.stateChanged.connect(self.stateChanged)
         self.mashupInspector.updateController(mshpController)
         self.mashupsList.updateController(mshpController)
-        self.aliasPanel.updateController(mshpController)
         
     def updateMshpVersion(self, version):
         print "updateMshpVersion", version
@@ -118,7 +109,6 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     def stateChanged(self):
         versionId = self.mshpController.currentVersion
         self.mashupInspector.updateVersion(versionId)
-        self.aliasPanel.updateVersion(versionId)
         self.mashupsList.stateChanged()
         
 ################################################################################        

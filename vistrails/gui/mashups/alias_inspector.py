@@ -56,7 +56,7 @@ class QAliasInspector(QtGui.QScrollArea):
         #connecting signals
         self.vWidget.aliasChanged.connect(self.aliasChanged)
         
-    def updateContents(self, alias_item, controller):
+    def updateContents(self, alias_item=None, controller=None):
         self.vWidget.updateContents(alias_item, controller)
  
 ################################################################################       
@@ -69,7 +69,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.alias = None
         self.table = table
         self.createWidgets()
-        self.setVisible(False)
+        self.updateContents()
         
     def createWidgets(self):
         self.main_layout = QtGui.QVBoxLayout()
@@ -273,70 +273,66 @@ Please type a unique name. """ % new_alias)
             self.alias.component.widget = str(self.dw_combobox.currentText())
             self.aliasChanged.emit(self.alias)
             
-    def updateContents(self, alias, controller):
+    def updateContents(self, alias=None, controller=None):
         self.alias = alias
         self.controller = controller
-        self.name_edit.setText(self.alias.name)
-        print "widget:", self.alias.component.widget
-        self.dw_combobox.setCurrentIndex(self.dw_combobox.findText(QtCore.QString(self.alias.component.widget)))
-        self.order_spinbox.setRange(0,self.table.topLevelItemCount()-1)
-        self.order_spinbox.setValue(self.alias.component.pos)
+        if alias is not None and controller is not None:
+            self.name_edit.setText(self.alias.name)
+            print "widget:", self.alias.component.widget
+            self.dw_combobox.setCurrentIndex(self.dw_combobox.findText(QtCore.QString(self.alias.component.widget)))
+            self.order_spinbox.setRange(0,self.table.topLevelItemCount()-1)
+            self.order_spinbox.setValue(self.alias.component.pos)
         
-        self.dw_minval_edit.setText(self.alias.component.minVal)
-        self.dw_maxval_edit.setText(self.alias.component.maxVal)
-        self.dw_stepsize_edit.setText(self.alias.component.stepSize)
+            self.dw_minval_edit.setText(self.alias.component.minVal)
+            self.dw_maxval_edit.setText(self.alias.component.maxVal)
+            self.dw_stepsize_edit.setText(self.alias.component.stepSize)
             
-        if self.dv_widget:
-            self.dv_layout.removeWidget(self.dv_widget)
-            self.disconnect(self.dv_widget,
-                            QtCore.SIGNAL("contentsChanged"),
-                            self.widgetContentsChanged)
-            self.dv_widget.deleteLater()
+            if self.dv_widget:
+                self.dv_layout.removeWidget(self.dv_widget)
+                self.disconnect(self.dv_widget,
+                                QtCore.SIGNAL("contentsChanged"),
+                                self.widgetContentsChanged)
+                self.dv_widget.deleteLater()
             
-        self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, None)
-        self.dv_layout.addWidget(self.dv_widget)
-        self.connect(self.dv_widget,
-                     QtCore.SIGNAL("contentsChanged"),
-                     self.widgetContentsChanged)
+            self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, None)
+            self.dv_layout.addWidget(self.dv_widget)
+            self.connect(self.dv_widget,
+                         QtCore.SIGNAL("contentsChanged"),
+                         self.widgetContentsChanged)
         
-#        if type(wdgt) == StandardConstantWidget:
-#            item = QAliasTableWidgetItem(alias_item, value)
-#        else:
-#            item = QAliasTableWidgetItem(alias_item, '')
-#        item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-#                      | QtCore.Qt.ItemIsEditable)
-#        self.setItem(row, 1, item)
-        
-#        self.setCellWidget(row, 1, wdgt)
-        
-#        h = wdgt.sizeHint().height()
-#        w = wdgt.sizeHint().width()
-#        self.setRowHeight(row,h)
-#        self.setColumnWidth(1,w)    
-        #capturing widget changes to send back to the vistrail
-        
-        
-#        item = QAliasTableWidgetItem(alias_item, "[%s]"%",".join(values))
-#        item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-#                      | QtCore.Qt.ItemIsEditable)
-#        self.setItem(row, 2, item)
-        if self.vl_editor:
-            self.vl_layout.removeWidget(self.vl_editor)
-            self.disconnect(self.vl_editor,
-                           QtCore.SIGNAL("valuesChanged"),
-                           self.valuesListChanged)
-            self.vl_editor.deleteLater()
+            if self.vl_editor:
+                self.vl_layout.removeWidget(self.vl_editor)
+                self.disconnect(self.vl_editor,
+                                QtCore.SIGNAL("valuesChanged"),
+                                self.valuesListChanged)
+                self.vl_editor.deleteLater()
            
-        self.vl_editor = QValuesListEditor(self.alias,self.controller)
-        self.vl_layout.addWidget(self.vl_editor)
-#        self.setCellWidget(row, 2, editor)
+            self.vl_editor = QValuesListEditor(self.alias,self.controller)
+            self.vl_layout.addWidget(self.vl_editor)
         
-        #capturing widget changes to update alias cache
-        self.connect(self.vl_editor,
-                     QtCore.SIGNAL("valuesChanged"),
-                     self.valuesListChanged)
-        self.setVisible(True)
-        
+            #capturing widget changes to update alias
+            self.connect(self.vl_editor,
+                         QtCore.SIGNAL("valuesChanged"),
+                         self.valuesListChanged)
+            self.setEnabled(True)
+        else:
+            self.name_edit.setText("")
+            
+            if self.dv_widget:
+                self.dv_layout.removeWidget(self.dv_widget)
+                self.disconnect(self.dv_widget,
+                                QtCore.SIGNAL("contentsChanged"),
+                                self.widgetContentsChanged)
+                self.dv_widget.deleteLater()
+                
+            if self.vl_editor:
+                self.vl_layout.removeWidget(self.vl_editor)
+                self.disconnect(self.vl_editor,
+                                QtCore.SIGNAL("valuesChanged"),
+                                self.valuesListChanged)
+                self.vl_editor.deleteLater()
+            self.setEnabled(False)
+            
     @staticmethod
     def createAliasWidget(alias, controller, parent=None):
         v = controller.vtController.vistrail

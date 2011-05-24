@@ -113,7 +113,7 @@ class QAliasListPanel(QtGui.QWidget):
             item = self.aliases.selectedItems()[0]
             self.inspector.updateContents(item.alias, self.controller)
         else:
-            self.inspector.setVisible(False)
+            self.inspector.updateContents()
        
     @pyqtSlot()
     def removeAlias(self):
@@ -123,14 +123,13 @@ class QAliasListPanel(QtGui.QWidget):
     def updateAlias(self, alias):
         #make sure the module is highlighted in the pipeline view 
         # or method_drop box is empty
-        self.highlightModule.emit(alias.component.vtmid)
         self.aliasChanged.emit(alias)
         self.aliasesChanged.emit()
         
     def reloadAliases(self):
         if self.controller.current_pipeline:
             self.aliases.populateFromPipeline(self.controller.current_pipeline)
-
+        
 ###############################################################################
 
 class QAliasList(QtGui.QTreeWidget):

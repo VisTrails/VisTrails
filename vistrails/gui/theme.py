@@ -574,6 +574,9 @@ class DefaultTheme(object):
         self.MASHUP_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/mashup_create.png')
+        self.MASHUP_ALIAS_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/alias.png')
         
         # Saved Queries icons
         self.QUERY_VIEW_ICON = self.ZOOM_ICON

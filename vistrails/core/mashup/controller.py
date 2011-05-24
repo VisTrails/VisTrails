@@ -79,10 +79,63 @@ class MashupController(object):
                 name = self.controller.vtController.name
         return name
         
+    def resetVistrailPipeline(self):
+        self.vtController.change_selected_version(self.vtVersion)
     
     def getVistrailWorkflowTag(self):
         return self.vtController.vistrail.getVersionName(self.vtVersion)
     
+    def updateAliasFromParam(self, param):
+        add_alias = True
+        new_aliases = []
+        pos = 0
+        for alias in self.currentMashup.alias_list:
+            if alias.component.vtid != param.id:
+                calias = copy.copy(alias)
+                calias.pos = pos
+                new_aliases.append(calias)
+                pos += 1
+            else:
+                print "found alias: ", alias
+                add_alias = False
+                if param.alias != '':
+                    new_alias = copy.copy(alias)
+                    new_alias.name = param.alias
+                    new_aliases.append(new_alias)
+                    pos += 1
+        if add_alias:
+            parameter = self.vtPipeline.db_get_object(param.dbtype, param.id)
+            cid = self.id_scope.getNewId('component')
+            aid = self.id_scope.getNewId('alias')
+            component = Component(cid, parameter.vtType, 
+                                  parameter.real_id, param.parent_dbtype, 
+                                  param.parent_id,
+                                  param.mId, parameter.type, 
+                                  parameter.strValue, parameter.pos, 
+                                  pos, "")
+            alias = Alias(aid, param.alias, component) 
+            new_aliases.append(alias)
+            self.vtPipeline.add_alias(param.alias, param.type, param.id,
+                                      param.parent_dbtype, param.parent_id,
+                                      param.mId)
+        else:
+            self.vtPipeline.change_alias(param.alias, param.type, param.id,
+                                         param.parent_dbtype, param.parent_id,
+                                         param.mId)
+        
+        id = self.id_scope.getNewId('mashup')
+        mashup = Mashup(id=id, name="mashup%s"%id, 
+                        vtid=self.currentMashup.vtid, 
+                        version=self.currentMashup.version, 
+                        alias_list=new_aliases)
+        currVersion = self.mshptrail.addVersion(parent_id=self.currentVersion,
+                                                mashup=mashup, 
+                                                user=current_user(),
+                                                date=current_time())
+        self.mshptrail.currentVersion = currVersion
+        self.setCurrentVersion(currVersion, quiet=False)
+        self.currentMashup = mashup
+        
     def updateAliasesFromPipeline(self, pipeline):
         pip_aliases = pipeline.aliases.keys()
         mashup_aliases = [a.name for a in self.currentMashup.alias_list]
