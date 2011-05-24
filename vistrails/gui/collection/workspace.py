@@ -106,17 +106,18 @@ class QCollectionWidget(QtGui.QTreeWidget):
         print "version is", args['version']
         if args['version']:
             # set vistrail name
-            locator._name = widget_item.entity.parent.name
+            pass
+            #locator._name = widget_item.entity.parent.name
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
         print "wfexec", workflow_exec
         if workflow_exec:
-            args['workflow_exec'] = int(workflow_exec)
+            args['workflow_exec'] = workflow_exec
             locator = widget_item.entity.parent.locator()
             print "locator set to", locator
             locator.update_from_gui(self)
             # set vistrail name
-            locator._name = widget_item.entity.parent.parent.name
+            #locator._name = widget_item.entity.parent.parent.name
             
         open_vistrail(locator, **args)
                                                        
@@ -189,7 +190,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
         items = [self.topLevelItem(i) 
                  for i in xrange(self.topLevelItemCount())]
         for item in items:
-            item.entity.locator.update_from_gui()
+            item.entity.locator().update_from_gui(self)
             if not self.collection.urlExists(item.entity.url):
                 self.collection.delete_entity(item.entity) 
         self.collection.commit()

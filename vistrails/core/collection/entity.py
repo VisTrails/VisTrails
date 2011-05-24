@@ -101,6 +101,5 @@ class Entity(object):
 
     def locator(self):
         locator = BaseLocator.from_url(self.url)
-        locator._name = self.name
         return locator
 

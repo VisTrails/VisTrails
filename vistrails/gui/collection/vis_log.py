@@ -159,6 +159,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.executionList = QExecutionListWidget()
         self.executionList.setExpandsOnDoubleClick(False)
         self.isDoubling = False
+        self.isUpdating = False
         layout = QtGui.QVBoxLayout()
 
         self.backButton = QtGui.QPushButton('Go back')
@@ -186,28 +187,39 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def execution_changed(self):
         item = self.executionList.selectedItems()[0]
-        if self.execution != item.execution:
+        if not hasattr(item, 'execution'):
+            self.execution = self.parentExecution
+            self.notify_app(self.wf_execution, self.wf_execution)
+        elif self.execution != item.execution:
             self.execution = item.execution
-            from gui.vistrails_window import _app
-            _app.notify("execution_changed", item.wf_execution, item.execution)
-        
+            self.notify_app(item.wf_execution, item.execution)
+
+    def notify_app(self, wf_execution, execution):
+        # make sure it is only called once
+        if self.isUpdating:
+            return
+        self.isUpdating = True
+        from gui.vistrails_window import _app
+        _app.notify("execution_changed", wf_execution, execution)
+        self.isUpdating = False
+
     def set_controller(self, controller):
         print '@@@@ QLogDetails calling set_controller'
-        # self.log = controller.vistrail.get_log()
-        self.log = controller.read_log()
-        print "read log", self.log
+        self.controller = controller
+        if not hasattr(self.controller, 'saved_log'):
+            self.controller.saved_log = self.controller.read_log()
+        self.log = self.controller.saved_log
         # set workflow tag names
         for execution in self.log.workflow_execs:
             wf_id = execution.parent_version
             tagMap = controller.vistrail.get_tagMap()
-            if execution.parent_version in tagMap:
-                execution.db_name = tagMap[execution.parent_version]
+            if wf_id in tagMap:
+                execution.db_name = tagMap[wf_id]
         if self.log is not None:
             print "  @@ len(workflow_execs):", len(self.log.workflow_execs)
         self.executionList.set_log(self.log)
 
     def set_execution(self, wf_execution, execution):
-        print "setting execution details for", execution
         if not execution:
             return
         self.execution = execution
@@ -234,6 +246,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             for annotation in annotations:
                 text += "\n  %s: %s" % (annotation.key, annotation.value)
         self.detailsWidget.setText(text)
+        self.update_selection()
         
     def singleClick(self, item, col):
         print "singleClick"
@@ -244,8 +257,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             self.backButton.show()
         else:
             self.backButton.hide()
-        from gui.vistrails_window import _app
-        _app.notify("execution_changed", item.wf_execution, item.execution)
+        self.notify_app(item.wf_execution, item.execution)
 
     def doubleClick(self, item, col):
         print "doubleClick"
@@ -255,21 +267,24 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             self.backButton.show()
         else:
             self.backButton.hide()
-        from gui.vistrails_window import _app
         if type(item.execution) == GroupExec:
             # use itself as the workflow
-            _app.notify("execution_changed", item.execution, item.execution)
+            self.notify_app(item.execution, item.execution)
         else:
-            _app.notify("execution_changed", item.wf_execution, item.execution)
+            self.notify_app(item.wf_execution, item.execution)
 
     def goBack(self):
-        print "goBack"
         if type(self.parentExecution) != GroupExec:
             self.backButton.hide()
-        from gui.vistrails_window import _app
-        _app.notify("execution_changed",
-                    self.parentExecution.item.wf_execution,
-                    self.parentExecution)
+        self.notify_app(self.parentExecution.item.wf_execution,
+                        self.parentExecution)
+
+    def update_selection(self):
+        if (type(self.execution) == ModuleExec or \
+            (type(self.execution) == GroupExec and
+             self.execution == self.parentExecution)) and \
+          not self.execution.item.isSelected():
+                self.execution.item.setSelected(True)
 
 class QLogView(QPipelineView):
     def __init__(self, parent=None):
@@ -278,6 +293,7 @@ class QLogView(QPipelineView):
         self.log = None
         self.execution = None
         self.parentExecution = None
+        self.isUpdating = False
         # self.exec_to_wf_map = {}
         # self.workflow_execs = []
         # Hook shape selecting functions
@@ -285,17 +301,27 @@ class QLogView(QPipelineView):
                      self.moduleSelected)
 
     def set_default_layout(self):
-        self.layout = \
-            {QtCore.Qt.LeftDockWidgetArea: QWorkspaceWindow,
-             QtCore.Qt.RightDockWidgetArea: QLogDetails,
-             }
+        self.layout = {QtCore.Qt.RightDockWidgetArea: QLogDetails}
             
     def set_action_links(self):
         self.action_links = { }
 
+    def notify_app(self, wf_execution, execution):
+        # make sure it is only called once
+        if self.isUpdating:
+            return
+        self.isUpdating = True
+        from gui.vistrails_window import _app
+        _app.notify("execution_changed", wf_execution, execution)
+        self.isUpdating = False
+
+
     def set_controller(self, controller):
         QPipelineView.set_controller(self, controller)
         print "@@@ set_controller called", id(self.controller), len(self.controller.vistrail.actions)
+        if not hasattr(self.controller, 'saved_log'):
+            self.controller.saved_log = self.controller.read_log()
+        self.log = self.controller.saved_log
 
     def set_to_current(self):
         # change to normal controller hacks
@@ -305,7 +331,6 @@ class QLogView(QPipelineView):
                             QtCore.SIGNAL('versionWasChanged'),
                             self.controller.current_pipeline_view.parent().version_changed)
         self.controller.current_pipeline_view = self.scene()
-        self.set_log(self.controller.log)
         self.connect(self.controller,
                      QtCore.SIGNAL('versionWasChanged'),
                      self.version_changed)
@@ -316,10 +341,9 @@ class QLogView(QPipelineView):
     def moduleSelected(self, id, selectedItems):
         """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None
         """
-        from gui.vistrails_window import _app
         if len(selectedItems)!=1 or id==-1:
             if self.execution != self.parentExecution:
-                _app.notify("execution_changed", self.parentExecution, self.parentExecution)
+                self.notify_app(self.parentExecution, self.parentExecution)
 #            self.moduleUnselected()
             return
 
@@ -327,39 +351,30 @@ class QLogView(QPipelineView):
         if hasattr(item,'execution') and item.execution:
             if self.execution != item.execution:
                 item = self.scene().selectedItems()[0]
-                _app.notify("execution_changed", self.parentExecution, item.execution)
-        else:
-            if self.execution != self.parentExecution:
-                _app.notify("execution_changed", self.parentExecution, self.parentExecution)
-
-    def set_log(self, log):
-        self.log = log
-        # self.exec_to_wf_map = {}
-        # for workflow_exec in self.log.workflow_execs:
-        #     next_level = workflow_exec.item_execs
-        #     while len(next_level) > 0:
-        #         new_next_level = []
-        #         for item_exec in next_level:
-        #             self.exec_to_wf_map[item_exec.id] = workflow_exec.id
-        #             if item_exec.vtType == ModuleExec.vtType:
-        #                 new_next_level += item_exec.loop_execs
-        #             else:
-        #                 new_next_level += item_exec.item_execs
-        #         next_level = new_next_level
+                self.notify_app(self.parentExecution, item.execution)
+        elif self.execution != self.parentExecution:
+                self.notify_app(self.parentExecution, self.parentExecution)
 
     def set_exec_by_id(self, exec_id):
-        workflow_execs = [e for e in self.log.workflow_execs 
-                          if e.id == int(exec_id)]
+        if not self.log:
+            return False
+        try:
+            workflow_execs = [e for e in self.log.workflow_execs 
+                                if e.id == int(exec_id)]
+        except ValueError:
+            return False
         if len(workflow_execs):
-            self.set_execution(workflow_execs[0], workflow_execs[0])
+            self.notify_app(workflow_execs[0], workflow_execs[0])
             return True
         return False
 
     def set_exec_by_date(self, exec_date):
+        if not self.log:
+            return False
         workflow_execs = [e for e in self.log.workflow_execs
                           if str(e.ts_start) == str(exec_date)]
         if len(workflow_execs):
-            self.set_execution(workflow_execs[0], workflow_execs[0])
+            self.notify_app(workflow_execs[0], workflow_execs[0])
             return True
         return False
 
@@ -451,14 +466,16 @@ class QLogView(QPipelineView):
         scene.fitToView(self, True)
 
     def update_selection(self):
-        for item in self.scene().selectedItems():
-            item.setSelected(False)
-        if type(self.execution) == ModuleExec:
-            if hasattr(self.execution, 'item'):
-                self.execution.item.setSelected(True)
-            if hasattr(self.execution, 'module'):
-                self.execution.module.setSelected(True)
-        if type(self.execution) == GroupExec and self.execution == self.parentExecution:
-            # viewing group as a module
-            self.execution.item.setSelected(True)
+        # avoid module update signal
+        self.isUpdating = True
+        module = None
+        if (type(self.execution) == ModuleExec or \
+            (type(self.execution) == GroupExec and
+             self.execution == self.parentExecution)) and \
+          not self.execution.module.isSelected():
             self.execution.module.setSelected(True)
+            module = self.execution.module
+        for m in self.scene().selectedItems():
+            if m.isSelected() and m != module:
+                m.setSelected(False)
+        self.isUpdating = False
