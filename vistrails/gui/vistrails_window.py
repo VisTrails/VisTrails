@@ -533,6 +533,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
             # self.vistrailMenu.menuAction().setEnabled(True)
             # self.mergeMenu.menuAction().setEnabled(True)
             # self.viewManager.changeCursor(self.interactionToolBar.cursorMode)
+            if version:
+                self.qactions['pipeline'].trigger()
             # if version:
             #     self.viewModeChanged(0)
             # else:
@@ -540,7 +542,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             # if execute_workflow:
             #     self.execute_current_pipeline()
             if workflow_exec:
-                self.current_view.provenance_change(True)
+                self.qactions['provenance'].trigger()
                 self.current_view.log_view.set_exec_by_id(workflow_exec) or \
                  self.current_view.log_view.set_exec_by_date(workflow_exec)
 

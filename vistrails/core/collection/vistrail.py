@@ -131,9 +131,9 @@ class VistrailEntity(Entity):
                     url_tuple = urlparse.urlsplit(url)
                     query_str = url_tuple[3]
                     if query_str == '':
-                        query_str = 'workflow_exec=%s' % wf_exec.id
+                        query_str = 'workflow_exec=%s' % entity.name
                     else:
-                        query_str += '&workflow_exec=%s' % wf_exec.id
+                        query_str += '&workflow_exec=%s' % entity.name
                     url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
                                  url_tuple[4])
                     entity.url = urlparse.urlunsplit(url_tuple)
