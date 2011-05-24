@@ -38,11 +38,17 @@ from core.recent_vistrails import RecentVistrailList
 import core.system
 from core.system import vistrails_default_file_type
 from core.vistrail.vistrail import Vistrail
+from core.thumbnails import ThumbnailCache
 
 from gui.application import VistrailsApplication
 from gui.preferences import QPreferencesDialog
 from gui.theme import initializeCurrentTheme, CurrentTheme
 from gui.vistrail_view import QVistrailView
+from gui import merge_gui
+
+from db.services.io import SaveBundle
+import db.services.vistrail
+
 
 class QVistrailsWindow(QtGui.QMainWindow):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
@@ -274,7 +280,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                         palette.set_main_window(self.palette_window)
                         
         self.connect(QWorkspaceWindow.instance(), 
-                     QtCore.SIGNAL("vistrailChanged"),
+                     QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"),
                      self.change_view)
 
     def create_notification(self, notification_id, link_view=False):
@@ -584,6 +590,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
             if not self.close_vistrail():
                 return False
         return True
+
+    def closeEvent(self, e):
+        """ closeEvent(e: QCloseEvent) -> None
+        Close the whole application when the builder is closed
+
+        """
+        if not self.quit():
+            e.ignore()
 
     def quit(self):
         if self.close_all_vistrails():
@@ -1653,7 +1667,33 @@ class QVistrailsWindow(QtGui.QMainWindow):
                                   "cannot be modified.  You can create an "
                                   "editable copy in 'My SubWorkflows' using "
                                   "'Edit->Import SubWorkflow'")
+    def merge_vistrails(self, c1, c2):
+        """ merge_vistrails(c1: VistrailController, c2: VistrailController) -> None
+            hamdle merge vistrail from 2 controller into new vistrail
 
+        """
+        thumb_cache = ThumbnailCache.getInstance()
+        
+        l1 = c1.locator._name if c1.locator is not None else ''
+        t1 = c1.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
+            if thumb_cache.conf.autoSave else []
+        s1 = SaveBundle(c1.vistrail.vtType, c1.vistrail.do_copy(), c1.log, thumbnails=t1)
+
+        l2 = c2.locator._name if c2.locator is not None else ''
+        t2 = c2.find_thumbnails(tags_only=thumb_cache.conf.tagsOnly) \
+            if thumb_cache.conf.autoSave else []
+        s2 = SaveBundle(c2.vistrail.vtType, c2.vistrail, c2.log, thumbnails=t2)
+
+        db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
+        vistrail = s1.vistrail
+        vistrail.locator = None
+        vistrail.set_defaults()
+        self.create_view(vistrail, None)
+        self.current_view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
+        self.current_view.controller.changed = True
+        self.set_name()
+#        self.current_view.stateChanged()
+        
     def do_tag_prompt(self, name="", exists=False):
         if exists:
             prompt = "'%s' already exists.  Enter a new tag" % name

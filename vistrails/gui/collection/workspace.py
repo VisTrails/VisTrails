@@ -572,17 +572,60 @@ class QVistrailListItem(QtGui.QTreeWidgetItem):
         QtGui.QTreeWidgetItem.__init__(self)
         self.window = window
         self.setText(0, self.window.get_name())
+        # make them draggable
+        self.setFlags(self.flags() | QtCore.Qt.ItemIsDragEnabled
+                                   | QtCore.Qt.ItemIsDropEnabled)
 
 class QVistrailList(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setColumnCount(1)
         self.setHeaderHidden(True)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
         self.connect(self, 
                      QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
                                    "QTreeWidgetItem*)"),
                      self.item_changed)
         self.items = {}
+
+    def mimeData(self, itemList):
+        """ mimeData(itemList) -> None        
+        Setup the mime data to contain itemList because Qt 4.2.2
+        implementation doesn't instantiate QTreeWidgetMimeData
+        anywhere as it's supposed to. It must have been a bug...
+        
+        """
+        data = QtGui.QTreeWidget.mimeData(self, itemList)
+        print "mimeData called", itemList
+        data.items = itemList
+        return data
+
+    def dropEvent( self, event):
+        event.accept()
+        destination = self.itemAt(event.pos())
+        if not destination or type(destination) != QVistrailListItem:
+            return
+        if type(event.source())==QVistrailList:
+            data = event.mimeData()
+            if hasattr(data, 'items'):
+                assert len(data.items) == 1
+                source = data.items[0]
+                if not source or type(source) != QVistrailListItem:
+                    return
+                if source.window.controller.changed or destination.window.controller.changed:
+                    text = ('Both Vistrails need to be saved before they can be merged.')
+                    QtGui.QMessageBox.information(None, 'Cannot perform merge',
+                                      text, '&OK')
+                    return
+                res = QtGui.QMessageBox.question(None, 'Merge the histories of these 2 vistrails into a new vistrail?',
+                                  source.window.get_name() + '\n' + destination.window.get_name(),
+                                  buttons=QtGui.QMessageBox.Yes,
+                                  defaultButton=QtGui.QMessageBox.No)
+                if res == QtGui.QMessageBox.Yes:
+                    from gui.vistrails_window import _app
+                    _app.merge_vistrails(destination.window.controller, source.window.controller)
 
     def add_vt_window(self, vistrail_window):
         item = QVistrailListItem(vistrail_window)
@@ -595,7 +638,7 @@ class QVistrailList(QtGui.QTreeWidget):
 
     def item_changed(self, item, prev_item):
         print "*** item clicked", id(item.window)
-        self.parent().emit(QtCore.SIGNAL("vistrailChanged"), 
+        self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
                            item.window)
         
 
