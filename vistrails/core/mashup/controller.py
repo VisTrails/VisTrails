@@ -31,6 +31,7 @@ class MashupController(object):
         self.vtController = vt_controller
         self.vtVersion = vt_version
         self.vtPipeline = self.vtController.vistrail.getPipeline(self.vtVersion)
+        self.vtPipeline.validate()
         self.mshptrail = mshptrail
         self.id_scope = mshptrail.id_scope
         self.currentVersion = -1
@@ -207,6 +208,24 @@ class MashupController(object):
         self.currentVersion = currVersion
         self.currentMashup = mashup
         self.setChanged(True)
+        
+    def updatePipelineAliasesFromCurrentMashup(self):
+        self.resetVistrailPipeline()
+        self.vtPipeline = self.vtController.current_pipeline
+        #first we clear all aliases in pipeline
+        to_remove = self.vtPipeline.aliases.values()
+        for (type, oId, parentType, parentId, mid) in to_remove:
+            self.vtPipeline.remove_alias(type, oId, parentType, parentId, mid)
+            parameter = self.vtPipeline.db_get_object(type,oId)
+            parameter.alias = ''
+            
+        #now we populate the pipeline according to the aliases in the mashup 
+        for alias in self.currentMashup.alias_list:
+            self.vtPipeline.add_alias(alias.name, alias.component.vttype, 
+                                      alias.component.vtid,
+                                      alias.component.vtparent_type, 
+                                      alias.component.vtparent_id,
+                                      alias.component.vtmid)
         
     def getMashupName(self):
         tag_map = self.mshptrail.getTagMap()

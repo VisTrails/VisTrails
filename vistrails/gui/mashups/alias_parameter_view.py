@@ -75,8 +75,13 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
                         self.mshpController.vtPipeline)
         self.pipeline_view.set_controller(self.mshpController.vtController)
         self.mshpController.vtController.current_pipeline_view = self.pipeline_view.scene()
-        self.mshpController.resetVistrailPipeline()
+        self.pipeline_view.scene().current_pipeline = self.mshpController.vtPipeline
+        self.mshpController.vtController.current_pipeline = self.mshpController.vtPipeline
+        
         print "**** should update mashup pipeline view "
+        
+        #self.pipeline_view.scene().setupScene(self.mshpController.vtPipeline)
+        self.pipeline_view.scene().clear()
         self.pipeline_view.version_changed()
         self.pipeline_view.zoomToFit()
         self.pipeline_view.updateAnnotatedIds(

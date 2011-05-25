@@ -430,9 +430,9 @@ def versions_increasing(v1, v2):
 class DummyScene(object):
     def __init(self):
         self.current_version = -1
+        self.current_pipeline = None
     def get_selected_module_ids(self):
-        return []
-    
+        return [] 
 class DummyView(object):
     def __init__(self):
         self._scene = DummyScene()

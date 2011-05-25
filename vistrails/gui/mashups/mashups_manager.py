@@ -49,6 +49,7 @@ class MashupsManager(object):
             raise RuntimeError, 'Only one instance of MashupsManager is allowed'
 
     def createMashupController(self, vt_controller, version, view=DummyView()):
+        #print "Manager creating mashup controller ", vt_controller, version
         newvt_controller = VistrailController()
         current_log = vt_controller.log
         vistrail = copy.copy(vt_controller.vistrail)
@@ -77,12 +78,16 @@ class MashupsManager(object):
             
             MashupsManager.addMashuptrailtoBundle(vt_controller.vistrail,
                                                      mashuptrail)
+            mshpController = MashupController(newvt_controller, version, mashuptrail)
+            mshpController.setCurrentVersion(mashuptrail.currentVersion)
+            if mshpController.currentVersion == 1L:
+                mshpController.updateCurrentTag("ROOT")
         else:
-            print "----> found mashuptrail"
-        mshpController = MashupController(newvt_controller, version, mashuptrail)
-        mshpController.setCurrentVersion(mashuptrail.currentVersion)
-        if mshpController.currentVersion == 1L:
-            mshpController.updateCurrentTag("ROOT")
+            print "----> found mashuptrail ", mashuptrail.currentVersion
+            mshpController = MashupController(newvt_controller, version, mashuptrail)
+            mshpController.setCurrentVersion(mashuptrail.currentVersion)
+            mshpController.updatePipelineAliasesFromCurrentMashup()
+        
         return mshpController
             
     @staticmethod
