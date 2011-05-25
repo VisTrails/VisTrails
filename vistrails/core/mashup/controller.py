@@ -86,6 +86,36 @@ class MashupController(object):
     def getVistrailWorkflowTag(self):
         return self.vtController.vistrail.getVersionName(self.vtVersion)
     
+    def reorderAliases(self, new_order):
+        if self.currentMashup:
+            new_aliases = []
+            pos = 0
+            for old_pos in new_order:
+                alias = copy.copy(self.currentMashup.alias_list[old_pos])
+                alias.component.pos = pos
+                new_aliases.append(alias)
+                pos += 1
+            return self.createMashupVersion(new_aliases, quiet=False)
+                
+    def updateAlias(self, alias):
+        """updateAlias(alias)-> long
+        This will create a version with an alias change (can't be a position
+        change). Position changes are taken care in reorderAliases method. 
+        
+        """
+        print " controller updateAlias ", alias
+        new_aliases = []
+
+        if self.currentMashup:
+            for a in self.currentMashup.alias_list:
+                if a.id != alias.id:
+                    calias = copy.copy(a)
+                else:
+                    print "found alias: ", a
+                    calias = copy.copy(alias)
+                new_aliases.append(calias)
+        return self.createMashupVersion(new_aliases, quiet=False)
+        
     def updateAliasFromParam(self, param):
         add_alias = True
         new_aliases = []
@@ -93,7 +123,7 @@ class MashupController(object):
         for alias in self.currentMashup.alias_list:
             if alias.component.vtid != param.id:
                 calias = copy.copy(alias)
-                calias.pos = pos
+                calias.component.pos = pos
                 new_aliases.append(calias)
                 pos += 1
             else:
@@ -124,18 +154,7 @@ class MashupController(object):
                                          param.parent_dbtype, param.parent_id,
                                          param.mId)
         
-        id = self.id_scope.getNewId('mashup')
-        mashup = Mashup(id=id, name="mashup%s"%id, 
-                        vtid=self.currentMashup.vtid, 
-                        version=self.currentMashup.version, 
-                        alias_list=new_aliases)
-        currVersion = self.mshptrail.addVersion(parent_id=self.currentVersion,
-                                                mashup=mashup, 
-                                                user=current_user(),
-                                                date=current_time())
-        self.mshptrail.currentVersion = currVersion
-        self.setCurrentVersion(currVersion, quiet=False)
-        self.currentMashup = mashup
+        return self.createMashupVersion(new_aliases, quiet=False)
         
     def updateAliasesFromPipeline(self, pipeline):
         pip_aliases = pipeline.aliases.keys()
@@ -173,7 +192,7 @@ class MashupController(object):
             for a in self.currentMashup.alias_list:
                 if a.name in pip_aliases:
                     alias = copy.copy(a)
-                    alias.pos = pos
+                    alias.component.pos = pos
                     new_aliases.append(alias)
                     pos += 1
         else:
@@ -195,19 +214,7 @@ class MashupController(object):
                     new_aliases.append(alias)
                     pos += 1
         
-        id = self.id_scope.getNewId('mashup')
-        mashup = Mashup(id=id, name="mashup%s"%id, 
-                        vtid=self.currentMashup.vtid, 
-                        version=self.currentMashup.version, 
-                        alias_list=new_aliases)
-        currVersion = self.mshptrail.addVersion(parent_id=self.currentVersion,
-                                                mashup=mashup, 
-                                                user=current_user(),
-                                                date=current_time())
-        self.mshptrail.currentVersion = currVersion
-        self.currentVersion = currVersion
-        self.currentMashup = mashup
-        self.setChanged(True)
+        return self.createMashupVersion(new_aliases, quiet=False)
         
     def updatePipelineAliasesFromCurrentMashup(self):
         self.resetVistrailPipeline()
@@ -244,3 +251,36 @@ class MashupController(object):
                 return name + count_str
             version = action_map[version].parent_id
             count += 1
+            
+    def removeAlias(self, name):
+        """removeAlias(name: str) -> long
+        This will create a new version of the mashup without alias name, add it
+        to the trail and set the version as the current version. It will return 
+        the version number 
+        """
+        new_aliases = []
+        if self.currentMashup:
+            pos = 0
+            for alias in self.currentMashup.alias_list:
+                if alias.name != name:
+                    calias = copy.copy(alias)
+                    calias.component.pos = pos
+                    new_aliases.append(calias)
+                    pos += 1
+            return self.createMashupVersion(alias_list=new_aliases, quiet=False)
+            
+    def createMashupVersion(self, alias_list, quiet=True):
+        id = self.id_scope.getNewId('mashup')
+        mashup = Mashup(id=id, name="mashup%s"%id, 
+                        vtid=self.currentMashup.vtid, 
+                        version=self.currentMashup.version, 
+                        alias_list=alias_list)
+        currVersion = self.mshptrail.addVersion(parent_id=self.currentVersion,
+                                                mashup=mashup, 
+                                                user=current_user(),
+                                                date=current_time())
+        self.mshptrail.currentVersion = currVersion
+        self.currentMashup = mashup
+        print "created new mashup ", currVersion
+        self.setCurrentVersion(currVersion, quiet=False)
+        return currVersion

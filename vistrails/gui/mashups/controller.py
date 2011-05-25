@@ -19,9 +19,10 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-from PyQt4.QtCore import QObject, pyqtSignal
+from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from core.mashup.controller import MashupController as BaseController
+from core.mashup.alias import Alias
 
 class MashupController(BaseController, QObject):
     #signals
@@ -44,4 +45,11 @@ class MashupController(BaseController, QObject):
             self.stateChanged.emit()
             self.versionChanged.emit(version)
         
+    @pyqtSlot(str)
+    def removeAlias(self, name):
+        BaseController.removeAlias(self, name)
+    
+    @pyqtSlot(Alias)
+    def updateAlias(self, alias):
+        BaseController.updateAlias(self, alias)
         

@@ -50,6 +50,7 @@ class QAliasListPanel(QtGui.QWidget):
     highlightModule = pyqtSignal(int)
     aliasesChanged = pyqtSignal()
     aliasChanged = pyqtSignal(Alias)
+    aliasRemoved = pyqtSignal(str)
     
     def __init__(self, controller=None, parent=None):
         """ QAliasListPanel(controller: MashupController,
@@ -57,6 +58,7 @@ class QAliasListPanel(QtGui.QWidget):
         
         """
         QtGui.QWidget.__init__(self, parent)
+        self.controller = None
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
         layout = QtGui.QVBoxLayout()
@@ -80,11 +82,14 @@ class QAliasListPanel(QtGui.QWidget):
         self.aliases.itemSelectionChanged.connect(self.updateInspector)
         self.aliases.highlightModule.connect(self.highlightModule)
         self.aliases.aliasUpdated.connect(self.updateAlias)
-        self.aliases.aliasRemoved.connect(self.removeAlias)
+        self.aliases.aliasRemoved.connect(self.aliasRemoved)
         
         self.inspector.aliasChanged.connect(self.updateAlias)
         
     def updateController(self, controller, other_dict=None):
+        if self.controller:
+            self.aliasRemoved.disconnect(self.controller.removeAlias)
+            self.aliasChanged.disconnect(self.controller.updateAlias)
         self.controller = controller
         if self.controller:
             self.aliases.controller = self.controller
@@ -93,13 +98,11 @@ class QAliasListPanel(QtGui.QWidget):
                 self.aliases.populateFromMashup(self.controller)
             else:
                 self.aliases.clear()
-#            if other_dict is not None:
-#                self.aliases.populateFromOtherDict(other_dict)
-#                
-#            elif self.controller.current_pipeline:
-#                self.aliases.populateFromPipeline(
-#                                            self.controller.current_pipeline)
+            self.aliasRemoved.connect(self.controller.removeAlias)
+            self.aliasChanged.connect(self.controller.updateAlias)
+
     def updateVersion(self, versionId):    
+        print "AliasPanel.updateVersion "
         if self.controller:
             if (self.controller.currentMashup.alias_list and
                 len(self.controller.currentMashup.alias_list) > 0):
@@ -115,20 +118,12 @@ class QAliasListPanel(QtGui.QWidget):
         else:
             self.inspector.updateContents()
        
-    @pyqtSlot()
-    def removeAlias(self):
-        self.aliasesChanged.emit()
-        
     @pyqtSlot(Alias) 
     def updateAlias(self, alias):
         #make sure the module is highlighted in the pipeline view 
         # or method_drop box is empty
         self.aliasChanged.emit(alias)
         self.aliasesChanged.emit()
-        
-    def reloadAliases(self):
-        if self.controller.current_pipeline:
-            self.aliases.populateFromPipeline(self.controller.current_pipeline)
         
 ###############################################################################
 
@@ -140,7 +135,7 @@ class QAliasList(QtGui.QTreeWidget):
     """
     #signals
     aliasUpdated = pyqtSignal(Alias)
-    aliasRemoved = pyqtSignal()
+    aliasRemoved = pyqtSignal(str)
     highlightModule = pyqtSignal(int)
     
     def __init__(self, controller, panel, parent=None):
@@ -158,11 +153,20 @@ class QAliasList(QtGui.QTreeWidget):
         self.controller = controller
         self.header().setStretchLastSection(True)
         self.setHeaderLabels(QtCore.QStringList() << "Position" << "Name" << "Type")
-        
+        self.itemSelectionChanged.connect(self.setPreviousSelected)
         self.connect(self,
                      QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)"),
                      self.currentAliasChanged)
-                        
+        self.previousSelected = -1
+    
+    @pyqtSlot() 
+    def setPreviousSelected(self):
+        if len(self.selectedItems()) == 1:
+            item = self.selectedItems()[0]
+            self.previousSelected = self.indexOfTopLevelItem(item)
+        else:
+            self.previousSelected = -1      
+    
     def processCellChanges(self, row, col):
         """ processCellChanges(row: int, col: int) -> None
         Event handler for capturing when the contents in a cell changes
@@ -229,10 +233,10 @@ class QAliasList(QtGui.QTreeWidget):
         return alias
      
     def populateFromMashup(self, mashupController):
-        print "populateFromMashup"   
+        print "populateFromMashup ", self , self.previousSelected    
         if self.controller != mashupController:
             self.controller = mashupController
-            
+        self.itemSelectionChanged.disconnect(self.setPreviousSelected)
         self.aliases = {}
         self.alias_cache = {}
         self.alias_widgets = {}
@@ -240,52 +244,22 @@ class QAliasList(QtGui.QTreeWidget):
         mashup = self.controller.currentMashup
         if len(mashup.alias_list) > 0:
             for alias in mashup.alias_list:
-                item = self.createAliasItem(alias)
-                self.aliases[item.name] = item
-                
-    def populateFromOtherDict(self, other):
-        #FIXME This function has not been migrated for the new GUI components
-        print "populateFromOtherDict"
-        for k, v in other.iteritems():
-            print k , v
-#        self.disconnect(self,
-#                        QtCore.SIGNAL("cellChanged(int,int)"),
-#                        self.processCellChanges)
-        self.aliases = {}
-        self.alias_cache = {}
-        self.alias_widgets = {}
-        self.clear()
-        self.createHeader()
-        self.setRowCount(0)
-        if other:
-            sorted_items = range(len(other))
-            for aname, item in other.iteritems():
-                sorted_items[item.pos] = aname
-            
-            for aname in sorted_items:
-                info_item = other[aname]
-                #print "before creating", aname, info_item.value
-                self.alias_cache[aname] = copy.copy(info_item)
-                item = self.createAliasRow(aname, info_item)
-                self.aliases[aname] = item
-                        
-#        self.connect(self,
-#                     QtCore.SIGNAL("cellChanged(int,int)"),
-#                     self.processCellChanges)
+                alias = self.createAliasItem(copy.copy(alias))
+                self.aliases[alias.name] = alias
         
-    def getItemRow(self, alias):
-        for i in xrange(self.rowCount()):
-            item = self.item(i,0)
-            if item:
-                if item.alias == alias:
-                    return i
-        return -1
-    
+        if (self.previousSelected > -1 and 
+            self.previousSelected < self.topLevelItemCount()):
+            item = self.topLevelItem(self.previousSelected)
+            self.setItemSelected(item, True)
+        self.itemSelectionChanged.connect(self.setPreviousSelected)
+            
     def updatePosNumbers(self):
+        new_order = []
         for idx in range(self.topLevelItemCount()):
             item = self.topLevelItem(idx)
-            item.alias.component.pos = idx
-            item.setText(0,str(item.alias.component.pos))
+            new_order.append(item.alias.component.pos)
+            item.setText(0,str(idx))
+        return new_order
             
     def moveItemToNewPos(self, old, new):
         """moveItemToNewPos(old:int, new:int) -> None
@@ -296,10 +270,11 @@ class QAliasList(QtGui.QTreeWidget):
         item = self.takeTopLevelItem(old)
         self.insertTopLevelItem(new,item)
         self.clearSelection()
-        self.updatePosNumbers()
+        new_order = self.updatePosNumbers()
         self.setItemSelected(item, True)
         self.itemSelectionChanged.connect(self.panel.updateInspector)
-        
+        self.controller.reorderAliases(new_order)
+            
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
          Capture 'Del', 'Backspace' for deleting aliases
@@ -320,7 +295,6 @@ class QAliasList(QtGui.QTreeWidget):
             old_alias = item.alias.name
             del self.aliases[old_alias]
         
-            item.alias.name = ''
             pos = self.indexOfTopLevelItem(item)
             self.takeTopLevelItem(pos)
             self.updatePosNumbers()
@@ -329,7 +303,7 @@ class QAliasList(QtGui.QTreeWidget):
             else:
                 new_item = self.topLevelItem(pos-1)
             self.setCurrentItem(new_item)
-            self.aliasRemoved.emit()        
+            self.aliasRemoved.emit(name)        
 ################################################################################
 
 class QAliasListItem (QtGui.QTreeWidgetItem):

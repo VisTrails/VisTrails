@@ -26,6 +26,10 @@ selected alias in the list
 Classes defined in this file:
 
 QAliasInspector
+QAliasDetailsWidget
+QValuesListEditor
+QListEditDialog
+QListEditItemDelegate
 
 """
 
@@ -175,24 +179,28 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.setLayout(self.main_layout)
         
         #connect signals
-        self.dw_combobox.currentIndexChanged.connect(self.toggle_dw_combobox)
+        self.plugSignals()
         
-#        self.connect(self.dw_combobox, QtCore.SIGNAL("currentIndexChanged(int)"),
-#                     self.toggle_dw_combobox)
-        self.connect(self.name_edit, QtCore.SIGNAL("editingFinished()"),
-                     self.nameChanged)
-        self.connect(self.order_spinbox, QtCore.SIGNAL("valueChanged(int)"),
-                     self.orderChanged)
-        self.connect(self.dw_minval_edit, QtCore.SIGNAL("editingFinished()"),
-                     self.minvalChanged)
-        self.connect(self.dw_stepsize_edit, QtCore.SIGNAL("editingFinished()"),
-                     self.stepsizeChanged)
-        self.connect(self.dw_maxval_edit, QtCore.SIGNAL("editingFinished()"),
-                     self.maxvalChanged)
+    def plugSignals(self):
+        self.dw_combobox.currentIndexChanged.connect(self.toggle_dw_combobox)
+        self.name_edit.editingFinished.connect(self.nameChanged)
+        self.order_spinbox.valueChanged.connect(self.orderChanged)
+        self.dw_minval_edit.editingFinished.connect(self.minvalChanged)
+        self.dw_stepsize_edit.editingFinished.connect(self.stepsizeChanged)
+        self.dw_maxval_edit.editingFinished.connect(self.maxvalChanged)
+        
+    def unplugSignals(self):
+        self.dw_combobox.currentIndexChanged.disconnect(self.toggle_dw_combobox)
+        self.name_edit.editingFinished.disconnect(self.nameChanged)
+        self.order_spinbox.valueChanged.disconnect(self.orderChanged)
+        self.dw_minval_edit.editingFinished.disconnect(self.minvalChanged)
+        self.dw_stepsize_edit.editingFinished.disconnect(self.stepsizeChanged)
+        self.dw_maxval_edit.editingFinished.disconnect(self.maxvalChanged)
         
     def valuesListChanged(self):
         self.aliasChanged.emit(self.alias)
         
+    @pyqtSlot()
     def minvalChanged(self):
         if self.alias:
             old_minval = self.alias.component.minVal
@@ -201,7 +209,8 @@ class QAliasDetailsWidget(QtGui.QWidget):
                 return
             self.alias.component.minVal = new_minval
             self.aliasChanged.emit(self.alias)
-
+    
+    @pyqtSlot()
     def maxvalChanged(self):
         if self.alias:
             old_maxval = self.alias.component.maxVal
@@ -211,6 +220,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.alias.component.maxVal = new_maxval
             self.aliasChanged.emit(self.alias)
         
+    @pyqtSlot()
     def stepsizeChanged(self):
         if self.alias:
             old_stepsize = self.alias.component.stepSize
@@ -220,6 +230,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.alias.component.stepSize = new_stepsize
             self.aliasChanged.emit(self.alias)
         
+    @pyqtSlot()
     def nameChanged(self):
         old_alias = self.alias.name
         new_alias = str(self.name_edit.text())
@@ -244,7 +255,8 @@ Please type a unique name. """ % new_alias)
             #del self.table.alias_cache[old_alias]
             self.alias.name = new_alias
             self.aliasChanged.emit(self.alias)
-            
+         
+    @pyqtSlot(int)   
     def orderChanged(self, neworder):
         if self.alias.component.pos == neworder:
             return
@@ -273,8 +285,9 @@ Please type a unique name. """ % new_alias)
             self.aliasChanged.emit(self.alias)
             
     def updateContents(self, alias=None, controller=None):
-        self.alias = alias
+        self.alias = copy.copy(alias)
         self.controller = controller
+        self.unplugSignals()
         if alias is not None and controller is not None:
             self.name_edit.setText(self.alias.name)
             print "widget:", self.alias.component.widget
@@ -331,7 +344,8 @@ Please type a unique name. """ % new_alias)
                                 self.valuesListChanged)
                 self.vl_editor.deleteLater()
             self.setEnabled(False)
-            
+        self.plugSignals()
+        
     @staticmethod
     def createAliasWidget(alias, controller, parent=None):
         v = controller.vtController.vistrail
