@@ -402,7 +402,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
         if not self.dbDefault and untitled_locator().has_temporaries():
             if not FileLocator().prompt_autosave(self):
                 untitled_locator().clean_temporaries()
+        self._first_view = None
         self.new_vistrail(True)
+        self._first_view = self.get_current_view()
 
     def change_view(self, view):
         print 'changing view', id(view)
@@ -445,6 +447,32 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.open_vistrail(locator)
         self.qactions['pipeline'].trigger()
 
+    def close_first_vistrail_if_necessary(self):
+        # Close first vistrail of no change was made
+        if not self._first_view:
+            return
+        vt = self._first_view.controller.vistrail
+        if vt.get_version_count() == 0:
+            self.close_vistrail(self._first_view)
+            self._first_view = None
+        else:
+            # We set it to none, since it's been changed, so
+            # we don't want to ever close it again.
+            self._first_view = None
+
+    def ensureVistrail(self, locator):
+        """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
+        This will first find among the opened vistrails to see if
+        vistrails from locator has been opened. If not, it will return None.
+        
+        """
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if view.controller.vistrail.locator == locator:
+                self.stack.setCurrentWidget(view)
+                return view
+        return None
+
     def open_vistrail(self, locator, version=None, is_abstraction=False):
         """open_vistrail(locator: Locator, version = None: int or str,
                          is_abstraction: bool)
@@ -453,20 +481,19 @@ class QVistrailsWindow(QtGui.QMainWindow):
         given version.
 
         """
-        # self.close_first_vistrail_if_necessary()
-        # if self.single_document_mode and self.currentView():
-        #     self.closeVistrail()
-        # view = self.ensureVistrail(locator)
-        # if view:
-        #     if version is not None:
-        #         if type(version) == type(""):
-        #             try:
-        #                 version = view.vistrail.get_version_number(version)
-        #             except:
-        #                 version = None
-        #         if version is not None:
-        #             view.setup_view(version)
-        #     return view
+        self.close_first_vistrail_if_necessary()
+
+        view = self.ensureVistrail(locator)
+        if view:
+            if version is not None:
+                if type(version) == type(""):
+                    try:
+                        version = view.vistrail.get_version_number(version)
+                    except:
+                        version = None
+                if version is not None:
+                    view.version_selected(version, True, double_click=True)
+            return view
         try:
             (vistrail, abstraction_files, thumbnail_files) = \
                                         load_vistrail(locator, is_abstraction)
@@ -475,7 +502,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
             self.qactions['history'].trigger()
             view.version_view.zoomToFit()
-
+            if version:
+                view.version_selected(version, True, double_click=True)
             # self.window_changed(window)
             # result = self.set_vistrail_view(vistrail, locator, 
             #                                 abstraction_files, thumbnail_files,
@@ -533,8 +561,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
             # self.vistrailMenu.menuAction().setEnabled(True)
             # self.mergeMenu.menuAction().setEnabled(True)
             # self.viewManager.changeCursor(self.interactionToolBar.cursorMode)
-            if version:
-                self.qactions['pipeline'].trigger()
             # if version:
             #     self.viewModeChanged(0)
             # else:
@@ -556,8 +582,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
         else:
             self.open_vistrail_from_locator(FileLocator())
 
-    def close_vistrail(self):
-        current_view = self.get_current_view()
+    def close_vistrail(self, current_view = None):
+        if not current_view:
+            current_view = self.get_current_view()
         if current_view.has_changes():
             text = current_view.controller.name
             if text=='':
