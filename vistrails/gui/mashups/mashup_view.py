@@ -152,7 +152,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         layout.addWidget(self.previewApp)
         self.previewTab.setLayout(layout)
         self.stack.insertWidget(1, self.previewTab)
-        self.tabBar.insertTab(1, "Preview")
+        self.tabBar.insertTab(1, "Preview: %s"%self.mshpController.getMashupName())
         self.stack.setCurrentIndex(1)
         self.tabBar.setCurrentIndex(1)
     

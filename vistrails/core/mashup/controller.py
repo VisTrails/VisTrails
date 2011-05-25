@@ -207,3 +207,21 @@ class MashupController(object):
         self.currentVersion = currVersion
         self.currentMashup = mashup
         self.setChanged(True)
+        
+    def getMashupName(self):
+        tag_map = self.mshptrail.getTagMap()
+        action_map = self.mshptrail.actionMap
+        version = self.currentVersion
+        count = 0
+        while True:
+            if version in tag_map or version <= 1:
+                if version in tag_map:
+                    name = tag_map[version]
+                else:
+                    name = "ROOT"
+                count_str = ""
+                if count > 0:
+                    count_str = " + " + str(count)
+                return name + count_str
+            version = action_map[version].parent_id
+            count += 1

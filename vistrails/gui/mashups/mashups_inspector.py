@@ -23,7 +23,6 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 
 from gui.vistrails_palette import QVistrailsPaletteInterface
-from gui.mashups.alias_list import QAliasListPanel
 from gui.mashups.mashups_manager import MashupsManager
 
 class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
@@ -43,6 +42,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         QtGui.QFrame.__init__(self, parent)
         QVistrailsPaletteInterface.__init__(self)
         print "****** Inspector INIT"
+        self.set_title("Mashups Inspector")
         self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
@@ -53,36 +53,25 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         self.manager = MashupsManager.getInstance()
         
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
-        layout.setSpacing(0)
-        self.tabBar = QtGui.QTabBar(self)
-        self.tabBar.setDocumentMode(True)
-        self.tabBar.setTabsClosable(False)
-        self.tabBar.setExpanding(False)
-        self.tabBar.currentChanged.connect(self.switchTab)
-        self.stack = QtGui.QStackedWidget(self)
-        layout.addWidget(self.tabBar)
-        layout.addWidget(self.stack)
-        self.setLayout(layout)
-        
-        self.createMashupInspectorTab()
-        self.createMashupsListTab()
-        self.setWindowTitle("Mashups Inspector")
-        
-    def createMashupInspectorTab(self):
-        self.mashupInspector = QMashupProp(parent=self)
-        self.stack.addWidget(self.mashupInspector)
-        self.tabBar.addTab("Mashup")
-        
-    def createMashupsListTab(self):
+        layout.setMargin(2)
+        layout.setSpacing(3)
+        self.workflowLabel = QtGui.QLabel("Workflow: ")
+        layout.addWidget(self.workflowLabel)
         self.mashupsList = QMashupsListPanel(parent=self)
-        self.stack.addWidget(self.mashupsList)
-        self.tabBar.addTab("List")
+        listLabel = QtGui.QLabel("Available Mashups:")
+        layout.addWidget(listLabel)
+        layout.addWidget(self.mashupsList)
         
-    @pyqtSlot(int)
-    def switchTab(self, index):
-        self.stack.setCurrentIndex(index)
-            
+        self.mashupInspector = QMashupProp(parent=self)
+        inspector_group = QtGui.QGroupBox("Mashup properties")
+        g_layout = QtGui.QVBoxLayout()
+        g_layout.setMargin(1)
+        g_layout.setSpacing(3)
+        g_layout.addWidget(self.mashupInspector)
+        inspector_group.setLayout(g_layout)
+        layout.addWidget(inspector_group)
+        self.setLayout(layout)
+                    
     def updateVistrailController(self, controller):
         self.controller = controller
         print "         *** Mashup Inspector: controller changed ", controller
@@ -99,6 +88,8 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
             self.mshpController != mshpController):
             self.mshpController.stateChanged.disconnect(self.stateChanged)
         self.mshpController = mshpController
+        self.workflowLabel.setText(
+          "Workflow: <b>%s</b>"%self.mshpController.getVistrailWorkflowTag())
         self.mshpController.stateChanged.connect(self.stateChanged)
         self.mashupInspector.updateController(mshpController)
         self.mashupsList.updateController(mshpController)
@@ -132,7 +123,13 @@ class QMashupProp(QtGui.QWidget):
         gLayout.setRowMinimumHeight(3,24)        
         vLayout.addLayout(gLayout)
         
-        tagLabel = QtGui.QLabel('Tag:', self)
+        #vtVersionLabel = QtGui.QLabel('Workflow:', self)
+        #gLayout.addWidget(vtVersionLabel, 0, 0, 1, 1)
+        
+        #self.vtVersionEdit = QtGui.QLabel('', self)
+        #gLayout.addWidget(self.vtVersionEdit, 0, 2, 1, 1)
+        
+        tagLabel = QtGui.QLabel('Mashup Tag:', self)
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
         editLayout = QtGui.QHBoxLayout()
@@ -165,17 +162,11 @@ class QMashupProp(QtGui.QWidget):
         self.dateEdit = QtGui.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
         
-        vtLabel = QtGui.QLabel('Vistrail:', self)
-        gLayout.addWidget(vtLabel, 3, 0, 1, 1)
+        #vtLabel = QtGui.QLabel('Vistrail:', self)
+        #gLayout.addWidget(vtLabel, 3, 0, 1, 1)
         
-        self.vtEdit = QtGui.QLabel('', self)
-        gLayout.addWidget(self.vtEdit, 3, 2, 1, 1)
-        
-        vtVersionLabel = QtGui.QLabel('Workflow:', self)
-        gLayout.addWidget(vtVersionLabel, 4, 0, 1, 1)
-        
-        self.vtVersionEdit = QtGui.QLabel('', self)
-        gLayout.addWidget(self.vtVersionEdit, 4, 2, 1, 1)
+        #self.vtEdit = QtGui.QLabel('', self)
+        #gLayout.addWidget(self.vtEdit, 3, 2, 1, 1)
         
         vLayout.addStretch()
         
@@ -198,8 +189,8 @@ class QMashupProp(QtGui.QWidget):
             action = self.controller.mshptrail.actionMap[self.controller.currentVersion]
             self.userEdit.setText(action.user)
             self.dateEdit.setText(action.date)
-            self.vtEdit.setText(self.controller.getVistrailName())
-            self.vtVersionEdit.setText(self.controller.getVistrailWorkflowTag())
+            #self.vtEdit.setText(self.controller.getVistrailName())
+            #self.vtVersionEdit.setText(self.controller.getVistrailWorkflowTag())
             return
         else:
             self.tagEdit.setEnabled(False)
@@ -207,8 +198,8 @@ class QMashupProp(QtGui.QWidget):
             self.tagEdit.setText('')
             self.userEdit.setText('')
             self.dateEdit.setText('')  
-            self.vtEdit.setText('')
-            self.vtVersionEdit.setText('')
+            #self.vtEdit.setText('')
+            #self.vtVersionEdit.setText('')
         
     def updateVersion(self, versionNumber):
         self.versionNumber = versionNumber
@@ -220,16 +211,16 @@ class QMashupProp(QtGui.QWidget):
             action = self.controller.mshptrail.actionMap[self.versionNumber]
             self.userEdit.setText(action.user)
             self.dateEdit.setText(action.date)
-            self.vtEdit.setText(self.controller.getVistrailName())
-            self.vtVersionEdit.setText(self.controller.getVistrailWorkflowTag())
+            #self.vtEdit.setText(self.controller.getVistrailName())
+            #self.vtVersionEdit.setText(self.controller.getVistrailWorkflowTag())
         else:
             self.tagEdit.setEnabled(False)
             self.tagReset.setEnabled(False)
             self.tagEdit.setText('')
             self.userEdit.setText('')
             self.dateEdit.setText('')  
-            self.vtEdit.setText('')
-            self.vtVersionEdit.setText('')
+            #self.vtEdit.setText('')
+            #self.vtVersionEdit.setText('')
             
     def tagFinished(self):
         """ tagFinished() -> None
@@ -271,8 +262,6 @@ class QMashupsListPanel(QtGui.QWidget):
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(5)
-        label = QtGui.QLabel("Available mashups")
-        layout.addWidget(label)
         layout.addWidget(self.mashupsList)
         self.setLayout(layout)
             

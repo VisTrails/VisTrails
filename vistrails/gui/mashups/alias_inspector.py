@@ -51,7 +51,6 @@ class QAliasInspector(QtGui.QScrollArea):
         self.setWidgetResizable(True)
         self.vWidget = QAliasDetailsWidget(alias_list)
         self.setWidget(self.vWidget)
-        self.vWidget.setVisible(False)
         
         #connecting signals
         self.vWidget.aliasChanged.connect(self.aliasChanged)
