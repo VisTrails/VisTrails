@@ -98,6 +98,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.stack.removeWidget(view)
         QWorkspaceWindow.instance().remove_vt_window(view)
 
+
     def init_toolbar(self):
         # have a toolbar
         # self.create_pass_actions()
@@ -362,7 +363,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
         return self.windowTitle()
 
     def set_name(self):
-        self.setWindowTitle(self.stack.currentWidget().get_name())
+        widget = self.stack.currentWidget()
+        if widget:
+            self.setWindowTitle(widget.get_name())
 
     # def action_triggered(self, action):
     #     if self.selected_mode is not None:
@@ -416,8 +419,13 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.current_view = new_view
             self.notify('controller_changed', new_view.get_controller())
             self.set_name()
+
             if new_view is not None:
-                # self.qactions['saveFile'].setEnabled(True)
+                if self.current_view.has_changes():
+                    self.qactions['saveFile'].setEnabled(True)
+                    # un-remember first view when it is changed
+                    if self._first_view:
+                         self._first_view = None
                 self.qactions['saveFileAs'].setEnabled(True)
                 self.qactions['closeVistrail'].setEnabled(True)
             else:
@@ -616,10 +624,15 @@ class QVistrailsWindow(QtGui.QMainWindow):
             return False
         current_view.controller.close_vistrail(locator)
         self.remove_view(current_view)
+        if current_view == self._first_view:
+            self._first_view = None
+        if not self.stack.count():
+            self.create_first_vistrail()
         return True
 
     def close_all_vistrails(self):
-        while self.stack.count() > 0:
+        while self.stack.count() > 0 or \
+              (self.stack.count() == 1 and self._first_view):
             if not self.close_vistrail():
                 return False
         return True

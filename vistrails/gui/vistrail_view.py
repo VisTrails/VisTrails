@@ -564,6 +564,8 @@ class QVistrailView(QtGui.QWidget):
 
         # update name
         self.set_name()
+        from gui.vistrails_window import _app
+        _app.view_changed(self)
         return locator
 
     def save_vistrail_as(self, locator_class):
