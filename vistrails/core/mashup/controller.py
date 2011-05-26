@@ -234,15 +234,16 @@ class MashupController(object):
                                       alias.component.vtparent_id,
                                       alias.component.vtmid)
         
-    def getMashupName(self):
-        tag_map = self.mshptrail.getTagMap()
+    def getMashupName(self, version=-1):
         action_map = self.mshptrail.actionMap
-        version = self.currentVersion
+        if version == -1:
+            version = self.currentVersion
         count = 0
         while True:
-            if version in tag_map or version <= 1:
-                if version in tag_map:
-                    name = tag_map[version]
+            hasTag = self.mshptrail.hasTagForActionId(version)
+            if hasTag or version <= 1:
+                if hasTag:
+                    name = self.mshptrail.getTagForActionId(version)
                 else:
                     name = "ROOT"
                 count_str = ""

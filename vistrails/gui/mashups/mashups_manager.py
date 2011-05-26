@@ -52,14 +52,14 @@ class MashupsManager(object):
         #print "Manager creating mashup controller ", vt_controller, version
         newvt_controller = VistrailController()
         current_log = vt_controller.log
-        vistrail = copy.copy(vt_controller.vistrail)
+        vistrail = vt_controller.vistrail
         newvt_controller.log = current_log
         newvt_controller.current_pipeline_view = view.scene()
         newvt_controller.set_vistrail(vistrail, None)
         newvt_controller.disable_autosave()
         mashuptrail = \
-         MashupsManager.getMashuptrailforVersionInBundle(vt_controller.vistrail,
-                                                         version)
+         MashupsManager.getMashuptrailforVersionInVistrailController(vt_controller,
+                                                                     version)
         if mashuptrail is None:
             id_scope = IdScope(1L)
             mashuptrail = Mashuptrail(self.getNewMashuptrailId(), version, 
@@ -76,8 +76,8 @@ class MashupsManager(object):
     
             mashuptrail.currentVersion = currVersion
             
-            MashupsManager.addMashuptrailtoBundle(vt_controller.vistrail,
-                                                     mashuptrail)
+            MashupsManager.addMashuptrailtoVistrailController(vt_controller,
+                                                              mashuptrail)
             mshpController = MashupController(newvt_controller, version, mashuptrail)
             mshpController.setCurrentVersion(mashuptrail.currentVersion)
             if mshpController.currentVersion == 1L:
@@ -95,17 +95,17 @@ class MashupsManager(object):
         return uuid.uuid1()
     
     @staticmethod
-    def getMashuptrailforVersionInBundle(bundle, version):
+    def getMashuptrailforVersionInVistrailController(controller, version):
+        print version, controller
         res = None
-        if hasattr(bundle, "mashups"):
-            for mashuptrail in bundle.mashups:
+        if hasattr(controller, "_mashups"):
+            for mashuptrail in controller._mashups:
+                print mashuptrail.vtVersion
                 if mashuptrail.vtVersion == version:
                     return mashuptrail
         return res
     
     @staticmethod
-    def addMashuptrailtoBundle(bundle, mashuptrail):
-        if not hasattr(bundle, "mashups"):
-            setattr(bundle, "mashups", [])
-        bundle.mashups.append(mashuptrail)
-            
+    def addMashuptrailtoVistrailController(controller, mashuptrail):
+        controller._mashups.append(mashuptrail)
+        controller.set_changed(True)    

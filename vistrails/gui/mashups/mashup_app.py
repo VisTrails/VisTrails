@@ -28,7 +28,7 @@ from gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
-    def __init__(self, parent=None, dumpcells=False, controller=None):
+    def __init__(self, parent=None, dumpcells=False, controller=None, version=-1):
         """ QMashupAppMainWindow()
         Initialize an app window from a mashup.
 
@@ -50,7 +50,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         if controller:
             self.controller = controller
             self.mshptrail = controller.mshptrail
-            self.currentMashup = self.controller.currentMashup
+            if version == -1:
+                self.currentMashup = self.controller.currentMashup
+            else:
+                self.currentMashup = self.mshptrail.getMashup(version)
             self.setWindowTitle('%s Mashup'%self.currentMashup.name)
         else:
             self.setWindowTitle('Mashup')

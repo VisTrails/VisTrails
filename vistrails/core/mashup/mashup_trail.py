@@ -149,7 +149,7 @@ class ActionAnnotation(XMLObject):
         user = Action.convert_from_str(data, 'str')
         data = node.get('date', None)
         date = Action.convert_from_str(data, 'datetime')
-        return Action(id=id, action_id=action_id, key=key, value=value,
+        return ActionAnnotation(id=id, action_id=action_id, key=key, value=value,
                       user=user, date=date)
         
 ################################################################################
@@ -165,6 +165,7 @@ class Mashuptrail(XMLObject):
         self.annotations = []
         self.id_scope = id_scope
         self.vtVersion = vt_version
+        self.version = ""
         
         
     def addVersion(self, parent_id, mashup, user, date):
@@ -258,8 +259,9 @@ class Mashuptrail(XMLObject):
             node = ElementTree.Element('mashuptrail')
         
         #set attributes
-        node.set('id', self.convert_to_str(self.id, 'str'))
-        node.set('vtVersion', self.convert_to_str(self.version,'long'))
+        node.set('id', self.convert_to_str(self.id, 'uuid'))
+        node.set('vtVersion', self.convert_to_str(self.vtVersion,'long'))
+        node.set('version', self.convert_to_str(self.version, 'str'))
         for action in self.actions:
             child_ = ElementTree.SubElement(node, 'action')
             action.toXml(child_)
@@ -276,8 +278,10 @@ class Mashuptrail(XMLObject):
         #read attributes
         data = node.get('id', None)
         id = Mashuptrail.convert_from_str(data, 'uuid')
-        data = node.get('vtversion', None)
+        data = node.get('vtVersion', None)
         vtVersion = Mashuptrail.convert_from_str(data, 'long')
+        data = node.get('version', None)
+        version = Mashuptrail.convert_from_str(data, 'str')
         actions = []
         action_map = {}
         annotations = []
@@ -291,6 +295,7 @@ class Mashuptrail(XMLObject):
                 annotations.append(annot)
                 
         mtrail = Mashuptrail(id,vtVersion)
+        mtrail.version = version
         mtrail.actions = actions
         mtrail.actionMap = action_map
         mtrail.annotations = annotations
@@ -304,8 +309,8 @@ class Mashuptrail(XMLObject):
     def updateIdScope(self):
         for action in self.actions:
             self.id_scope.updateBeginId('action', action.id+1)
-            for alias in action.mashup:
+            for alias in action.mashup.alias_list:
                 self.id_scope.updateBeginId('alias', alias.id+1)
-                self.id_scope.updateBeginId('component', alias.compoenent.id+1)
+                self.id_scope.updateBeginId('component', alias.component.id+1)
         for annotation in self.annotations:
             self.id_scope.updateBeginId('actionAnnotation', annotation.id+1)

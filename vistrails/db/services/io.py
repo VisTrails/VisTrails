@@ -804,7 +804,11 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'thumbnail list entry must be a filename')
     # Save Mashups
+    #print " mashups:"
+    if len(save_bundle.mashups) > 0 and not os.path.exists(mashup_dir):
+        os.mkdir(mashup_dir)
     for obj in save_bundle.mashups:
+        #print "  ", obj
         try:
             xml_fname = os.path.join(mashup_dir, str(obj.id))
             save_mashuptrail_to_xml(obj, xml_fname)
@@ -1455,7 +1459,7 @@ def open_mashuptrail_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     try:
         #ignoring version for now 
-        mashuptrail = Mashuptrail.fromXml(filename, tree.getroot())
+        mashuptrail = Mashuptrail.fromXml(tree.getroot())
     except VistrailsDBException, e:
         msg = "There was a problem when reading mashups from the xml file: "
         msg += str(e)

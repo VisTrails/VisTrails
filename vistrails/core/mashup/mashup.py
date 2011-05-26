@@ -70,11 +70,11 @@ class Mashup(XMLObject):
         #set attributes
         node.set('id', self.convert_to_str(self.id,'long'))
         node.set('version', self.convert_to_str(self.version,'long'))
-        node.set('vtid', self.convert_to_str(self.vtid,'long'))
+        node.set('vtid', self.convert_to_str(self.vtid,'str'))
         node.set('name', self.convert_to_str(self.name,'str'))
         node.set('type', self.convert_to_str(self.type,'str'))
         node.set('has_seq', self.convert_to_str(self.has_seq,'bool'))
-        for (_,v) in self.alias_list.iteritems():
+        for v in self.alias_list:
             child_ = ElementTree.SubElement(node, 'alias')
             v.toXml(child_)
         
@@ -99,22 +99,22 @@ class Mashup(XMLObject):
         data = node.get('version', None)
         version = Mashup.convert_from_str(data, 'long')
         data = node.get('vtid', None)
-        vtid = Mashup.convert_from_str(data, 'long')
+        vtid = Mashup.convert_from_str(data, 'str')
         data = node.get('type', None)
         type = Mashup.convert_from_str(data, 'str')
         data = node.get('has_seq', None)
         seq = Component.convert_from_str(data, 'bool')
-        alias_list = {}
+        alias_list = []
         layout = None
         geometry = None
         for child in node.getchildren():
             if child.tag == "alias":
                 alias = Alias.fromXml(child)
-                alias_list[alias._name] = alias
+                alias_list.append(alias)
             if child.tag == "layout":
                 layout = str(child.text).strip(" \n\t")
             if child.tag == "geometry":
-                geometry = str(child.tex).strip(" \n\t")
+                geometry = str(child.text).strip(" \n\t")
         return Mashup(id=id, name=name, vtid=vtid, version=version, 
                                alias_list=alias_list, t=type, has_seq=seq,
                                layout=layout, geometry=geometry)

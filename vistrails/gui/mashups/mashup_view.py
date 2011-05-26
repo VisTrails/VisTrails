@@ -42,6 +42,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         #Setting up a toolbar
         self.createToolBar()
         
+        self.previewVersion = -1
         widget = QtGui.QWidget(self)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
@@ -138,45 +139,50 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         
     def createPreviewTab(self):
         self.previewTab = QtGui.QWidget()
-        self.refreshButton = QtGui.QPushButton("Refresh", self)
-        self.refreshButton.setFlat(True)
-        self.refreshButton.setEnabled(False)
-        self.refreshButton.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,
-                                                           QtGui.QSizePolicy.Fixed))
+#        self.refreshButton = QtGui.QPushButton("Refresh", self)
+#        self.refreshButton.setFlat(True)
+#        self.refreshButton.setEnabled(False)
+#        self.refreshButton.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,
+#                                                           QtGui.QSizePolicy.Fixed))
         self.previewApp = QMashupAppMainWindow(parent=self, 
-                                               controller=self.mshpController)
+                                               controller=self.mshpController,
+                                               version=self.previewVersion)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(5)
-        layout.addWidget(self.refreshButton, QtCore.Qt.AlignLeft)
+        #layout.addWidget(self.refreshButton, QtCore.Qt.AlignLeft)
         layout.addWidget(self.previewApp)
         self.previewTab.setLayout(layout)
         self.stack.insertWidget(1, self.previewTab)
-        self.tabBar.insertTab(1, "Preview: %s"%self.mshpController.getMashupName())
-        self.stack.setCurrentIndex(1)
-        self.tabBar.setCurrentIndex(1)
+        self.tabBar.insertTab(1, "Preview: %s"%self.mshpController.getMashupName(self.previewVersion))
     
     @pyqtSlot(int)    
     def switchTab(self, index):
         self.stack.setCurrentIndex(index)
         
-    def updatePreviewTab(self, info):
+    def updatePreviewTab(self):
         if self.previewTab:
             self.stack.removeWidget(self.previewTab)
             self.tabBar.removeTab(1)
             self.previewTab = None
-        if info[0] != self.controller:
-            print "Controllers are different!"
         self.createPreviewTab()
         
+    def checkAndUpdatePreview(self):
+        if self.previewTab:
+            self.updatePreviewTab()
+            
     def previewTriggered(self):
         if self.previewAction.isChecked():
-            self.updatePreviewTab((self.controller,))
+            self.previewVersion = self.mshpController.currentVersion
+            self.updatePreviewTab()
+            self.stack.setCurrentIndex(1)
+            self.tabBar.setCurrentIndex(1)
         else:
             if self.previewTab:
                 self.stack.removeWidget(self.previewTab)
                 self.tabBar.removeTab(1)
                 self.previewTab = None
+                self.previewVersion = -1
                 
     def saveTriggered(self):
         print "save pressed"

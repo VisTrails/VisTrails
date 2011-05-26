@@ -52,7 +52,7 @@ class Alias(XMLObject):
         node.set('id', self.convert_to_str(self.id,'long'))
         node.set('name', self.convert_to_str(self.name,'str'))
         child_ = ElementTree.SubElement(node, 'component')
-        self._component.toXml(child_)
+        self.component.toXml(child_)
 
         return node
 

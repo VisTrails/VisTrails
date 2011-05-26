@@ -173,7 +173,7 @@ class Component(XMLObject):
                               minVal=minVal,
                               maxVal=maxVal,
                               stepSize=stepSize,
-                              strvalueList=values,
+                              strvaluelist=values,
                               parent=parent,
                               seq=seq,
                               widget=widget)

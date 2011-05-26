@@ -70,6 +70,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.parameter_panel.treeWidget.aliasChanged.connect(self.aliasChanged)
         
     def updateMshpController(self, mshpController):
+        from gui.vistrails_window import _app
         self.mshpController = mshpController
         self.parameter_panel.set_pipeline(
                         self.mshpController.vtPipeline)
@@ -86,6 +87,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pipeline_view.zoomToFit()
         self.pipeline_view.updateAnnotatedIds(
                         self.mshpController.vtPipeline)
+        _app.notify('mashup_pipeline_view_set')
         
     def updateMshpVersion(self, version):
         print "will update alias param view"
