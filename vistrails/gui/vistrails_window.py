@@ -355,7 +355,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
     def set_name(self):
         widget = self.stack.currentWidget()
         if widget:
-            self.setWindowTitle(widget.get_name())
+            self.set_title(widget.get_name())
+        else:
+            self.set_title('(empty)')
 
     # def action_triggered(self, action):
     #     if self.selected_mode is not None:
@@ -405,23 +407,34 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.view_changed(view)
 
     def view_changed(self, new_view):
+        """ Updates the controller when the view changes and 
+            updates buttons when """
         if self.current_view != new_view:
             self.current_view = new_view
-            self.notify('controller_changed', new_view.get_controller())
-            self.set_name()
-
             if new_view is not None:
-                if self.current_view.has_changes():
-                    self.qactions['saveFile'].setEnabled(True)
-                    # un-remember first view when it is changed
-                    if self._first_view:
-                         self._first_view = None
-                self.qactions['saveFileAs'].setEnabled(True)
-                self.qactions['closeVistrail'].setEnabled(True)
-            else:
-                self.qactions['saveFile'].setEnabled(False)
-                self.qactions['saveFileAs'].setEnabled(False)
-                self.qactions['closeVistrail'].setEnabled(False)
+                self.notify('controller_changed', new_view.get_controller())
+            from gui.collection.workspace import QWorkspaceWindow
+            QWorkspaceWindow.instance().change_vt_window(new_view)
+
+        if new_view is not None:
+            if self.current_view.has_changes():
+                print "current view has changes"
+                self.qactions['saveFile'].setEnabled(True)
+                # un-remember first view when it is changed
+                if self._first_view:
+                    self._first_view = None
+            self.qactions['saveFileAs'].setEnabled(True)
+            self.qactions['closeVistrail'].setEnabled(True)
+        else:
+            self.qactions['saveFile'].setEnabled(False)
+            self.qactions['saveFileAs'].setEnabled(False)
+            self.qactions['closeVistrail'].setEnabled(False)
+
+        self.set_name()
+
+    def state_changed(self, view):
+        """ state for the view changed so we need to update buttons"""
+        self.view_changed(view)
 
     def new_vistrail(self, recover_files=True):
         # if self.single_document_mode and self.currentView():
@@ -451,6 +464,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             return
         vt = self._first_view.controller.vistrail
         if vt.get_version_count() == 0:
+            print "closing first vistrail"
             self.close_vistrail(self._first_view)
             self._first_view = None
         else:
@@ -491,6 +505,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                         version = None
                 if version is not None:
                     view.version_selected(version, True, double_click=True)
+            self.view_changed(view)
             return view
         try:
             (vistrail, abstraction_files, thumbnail_files) = \
@@ -616,12 +631,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.remove_view(current_view)
         if current_view == self._first_view:
             self._first_view = None
-        if not self.stack.count():
+        elif not self.stack.count():
             self.create_first_vistrail()
         return True
 
     def close_all_vistrails(self):
-        while self.stack.count() > 0 or \
+        while self.stack.count() > 0 and not \
               (self.stack.count() == 1 and self._first_view):
             if not self.close_vistrail():
                 return False
@@ -1720,7 +1735,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.current_view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
         self.current_view.controller.changed = True
         self.set_name()
-#        self.current_view.stateChanged()
+        self.current_view.stateChanged()
         
     def do_tag_prompt(self, name="", exists=False):
         if exists:

@@ -95,6 +95,9 @@ class QVistrailView(QtGui.QWidget):
         self.view_changed()
         self.tab_changed(0)
 
+        self.connect(self.controller,
+                     QtCore.SIGNAL('stateChanged'),
+                     self.stateChanged)
 
         # self.controller = VistrailController()
         # self.controller.vistrail_view = self
@@ -713,6 +716,13 @@ class QVistrailView(QtGui.QWidget):
     #     self.versionTab.setController(self.controller)
     #     self.pipelineTab.setController(self.controller)
     #     self.peTab.setController(self.controller)
+
+    def stateChanged(self):
+        """ stateChanged() -> None
+        Handles 'stateChanged' signal from VistrailController """
+        from gui.vistrails_window import _app
+        _app.state_changed(self)
+        
 
     # def stateChanged(self):
     #     """ stateChanged() -> None
