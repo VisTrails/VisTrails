@@ -48,9 +48,9 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     aliases = {}
     result = []
     for locator, workflow in w_list:
-        (v, abstractions , thumbnails)  = load_vistrail(locator)
+        (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
         controller = VistrailController()
-        controller.set_vistrail(v, locator, abstractions, thumbnails)
+        controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
         if type(workflow) == type("str"):
             version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
@@ -114,9 +114,10 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
     result = []
     for locator, workflow in w_list:
         try:
-            (v, abstractions , thumbnails)  = load_vistrail(locator)
+            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
             controller = VistrailController()
-            controller.set_vistrail(v, locator, abstractions, thumbnails)
+            controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                    mashups)
             if type(workflow) == type("str"):
                 version = v.get_version_number(workflow)
             elif type(workflow) in [ type(1), long]:
@@ -157,9 +158,10 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
     result = []
     for locator in vt_list:
         try:
-            (v, abstractions , thumbnails)  = load_vistrail(locator)
+            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
             controller = VistrailController()
-            controller.set_vistrail(v, locator, abstractions, thumbnails)
+            controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                    mashups)
             if tree_info is not None:
                 from gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()

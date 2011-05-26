@@ -256,7 +256,7 @@ class VisTrailsApp(QtGui.QMainWindow):
         #             view.setup_view(version)
         #     return view
         try:
-            (vistrail, abstraction_files, thumbnail_files) = \
+            (vistrail, abstraction_files, thumbnail_files, _) = \
                                         load_vistrail(locator, is_abstraction)
             window = self.add_window(vistrail)
             self.window_changed(None, window)

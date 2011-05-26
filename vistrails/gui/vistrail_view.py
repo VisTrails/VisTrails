@@ -48,7 +48,8 @@ class QVistrailView(QtGui.QWidget):
     Version Tree View, Query View and Parameter Exploration view
     for manipulating vistrails.
     """
-    def __init__(self, vistrail, locator=None, parent=None):
+    def __init__(self, vistrail, locator=None, abstraction_files=None,
+                 thumbnail_files=None, mashups=None, parent=None):
         """ QVistrailView(parent: QWidget) -> QVistrailView
         
         """
@@ -85,7 +86,8 @@ class QVistrailView(QtGui.QWidget):
         
         self.set_controller(self.controller)
         self.locator = locator
-        self.controller.set_vistrail(vistrail, self.locator)
+        self.controller.set_vistrail(vistrail, self.locator, abstraction_files,
+                                     thumbnail_files, mashups)
 
         self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
                      self.tab_changed)
@@ -464,6 +466,7 @@ class QVistrailView(QtGui.QWidget):
         view = self.create_view(QMashupView, False)
         view.set_controller(self.controller)
         self.notifications['alias_changed'] = view.aliasChanged
+        self.notifications['mashup_pipeline_view_set'] = view.checkAndUpdatePreview
         return view
     
     def gen_module_selected(self, view):

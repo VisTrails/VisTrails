@@ -121,6 +121,10 @@ class VistrailController(object):
         self._delayed_actions = []
         self._loaded_abstractions = {}
         
+        # This will just store the mashups in memory and send them to SaveBundle
+        # when writing the vistrail
+        self._mashups = []
+        
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
         return self._current_version
@@ -149,7 +153,8 @@ class VistrailController(object):
     def get_locator(self):
         return self.locator
     
-    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
+    def set_vistrail(self, vistrail, locator, abstractions=None, 
+                     thumbnails=None, mashups=None):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
@@ -160,6 +165,8 @@ class VistrailController(object):
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
+            if mashups is not None:
+                self._mashups = mashups
         self.current_version = -1
         self.current_pipeline = None
         if self.locator != locator and self.locator is not None:
@@ -2429,6 +2436,8 @@ class VistrailController(object):
                 save_bundle.thumbnails = self.find_thumbnails(
                                            tags_only=thumb_cache.conf.tagsOnly)
             
+            #mashups
+            save_bundle.mashups = self._mashups
             # FIXME hack to use db_currentVersion for convenience
             # it's not an actual field
             self.vistrail.db_currentVersion = self.current_version

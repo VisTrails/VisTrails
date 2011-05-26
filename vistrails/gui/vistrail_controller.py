@@ -184,14 +184,15 @@ class VistrailController(QtCore.QObject, BaseController):
         self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.stop()
 
-    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
+    def set_vistrail(self, vistrail, locator, abstractions=None, 
+                     thumbnails=None, mashups=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         # self.vistrail = vistrail
         BaseController.set_vistrail(self, vistrail, locator, abstractions,
-                                    thumbnails)
+                                    thumbnails, mashups)
         if locator != None:
             self.set_file_name(locator.name)
         else:

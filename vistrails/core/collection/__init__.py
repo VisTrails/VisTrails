@@ -257,9 +257,10 @@ class Collection(object):
                 continue
             kwargs = {'obj_type': 'vistrail', 'obj_id': row[0]}
             locator = DBLocator(*[x[1] for x in config], **kwargs)
-            (vistrail, abstractions, thumbnails) = load_vistrail(locator)
+            (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
             vistrail.abstractions = abstractions
             vistrail.thumbnails = thumbnails
+            vistrail.mashups = mashups
             self.create_vistrail_entity(vistrail)
 
     def update_from_directory(self, directory):
@@ -299,9 +300,10 @@ class Collection(object):
         locator = BaseLocator.from_url(url)
         if locator.is_valid():
             if not vistrail:
-                (vistrail, abstractions, thumbnails) = load_vistrail(locator)
+                (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
                 vistrail.abstractions = abstractions
                 vistrail.thumbnails = thumbnails
+                vistrail.mashups = mashups
             entity = self.create_vistrail_entity(vistrail)
             for p in workspaces:
                 self.add_to_workspace(entity, p)

@@ -396,7 +396,7 @@ class RequestHandler(object):
                                 obj_id=int(vt_id),
                                 obj_type=None,
                                 connection_id=None)
-            (vistrail, _, _)  = io.load_vistrail(locator)
+            (vistrail, _, _, _)  = io.load_vistrail(locator)
 
             # get server packages
             local_packages = [x.identifier for x in \
@@ -848,7 +848,7 @@ class RequestHandler(object):
                                 obj_type=None,
                                 connection_id=None)
 
-            (v, _ , _)  = io.load_vistrail(locator)
+            (v, _ , _, _)  = io.load_vistrail(locator)
             if v.has_tag_str(vt_tag):
                 version = v.get_tag_str(vt_tag).action_id
             self.server_logger.info("Answer: %s" % version)
@@ -882,7 +882,7 @@ class RequestHandler(object):
                                 obj_type=None,
                                 connection_id=None)
 
-            (v, _ , _)  = io.load_vistrail(locator)
+            (v, _ , _, _)  = io.load_vistrail(locator)
             result = io.serialize(v)
             return (result, 1)
         except xmlrpclib.ProtocolError, err:
@@ -912,7 +912,7 @@ class RequestHandler(object):
                                 obj_type=None,
                                 connection_id=None)
 
-            (v, _ , _)  = io.load_vistrail(locator)
+            (v, _ , _, _)  = io.load_vistrail(locator)
             p = v.getPipeline(long(version))
             if p:
                 result = io.serialize(p)
@@ -987,9 +987,10 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
 
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                controller.set_vistrail(v, locator, abstractions, 
+                                        thumbnails, mashups)
                 controller.change_selected_version(version)
 
                 p = controller.current_pipeline
@@ -1074,9 +1075,10 @@ class RequestHandler(object):
                                     obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                        mashups)
                 controller.change_selected_version(version)
                 p = controller.current_pipeline
                 from gui.pipeline_view import QPipelineView
@@ -1182,9 +1184,10 @@ class RequestHandler(object):
                                     obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                        mashups)
                 from gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)
@@ -1270,9 +1273,10 @@ class RequestHandler(object):
                                     obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
-                (v, abstractions , thumbnails)  = io.load_vistrail(locator)
+                (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, thumbnails)
+                controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                        mashups)
                 from gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)
@@ -1363,7 +1367,7 @@ class RequestHandler(object):
                                 obj_type=None,
                                 connection_id=None)
 
-            (v, _ , _)  = io.load_vistrail(locator)
+            (v, _ , _, _)  = io.load_vistrail(locator)
             p = v.getPipeline(long(version))
             if p:
                 vistrail = Vistrail()

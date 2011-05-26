@@ -499,12 +499,12 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
                     updated_locator = FileLocator(updated_filename)
 
-                    (up_vistrail, abstractions, thumbnails) = \
+                    (up_vistrail, abstractions, thumbnails, mashups) = \
                             load_vistrail(updated_locator)
 
                     controller.set_vistrail(up_vistrail,
                                             controller.vistrail.locator,
-                                            abstractions, thumbnails)
+                                            abstractions, thumbnails, mashups)
 
                     # update version tree drawing
                     controller.recompute_terse_graph()

@@ -78,9 +78,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
 
-    def create_view(self, vistrail, locator):
+    def create_view(self, vistrail, locator,  abstraction_files=None, 
+                                    thumbnail_files=None, mashups=None):
         from gui.collection.workspace import QWorkspaceWindow
-        view = QVistrailView(vistrail, locator)
+        view = QVistrailView(vistrail, locator, abstraction_files,
+                             thumbnail_files, mashups)
         self.vistrail_to_widget[view.get_name()] = view
         self.stack.addWidget(view)
         self.stack.setCurrentIndex(self.stack.count() - 1)
@@ -518,9 +520,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.view_changed(view)
             return view
         try:
-            (vistrail, abstraction_files, thumbnail_files) = \
+            (vistrail, abstraction_files, thumbnail_files, mashups) = \
                                         load_vistrail(locator, is_abstraction)
-            view = self.create_view(vistrail, locator)
+            # we need to send all the elements above to create_view so they are 
+            # sent to the controller.
+            view = self.create_view(vistrail, locator, abstraction_files, 
+                                    thumbnail_files, mashups)
             self.view_changed(view)
 
             self.qactions['history'].trigger()
