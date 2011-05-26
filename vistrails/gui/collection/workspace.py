@@ -486,6 +486,9 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def refine_mode(self, on):
         pass
 
+    def change_vt_window(self, vistrail_window):
+        self.open_list.change_vt_window(vistrail_window)
+
     def add_vt_window(self, vistrail_window):
         self.open_list.add_vt_window(vistrail_window)
 
@@ -575,13 +578,19 @@ class QVistrailListItem(QtGui.QTreeWidgetItem):
         self.setText(0, self.window.get_name())
         # make them draggable
         self.setFlags(self.flags() | QtCore.Qt.ItemIsDragEnabled
-                                   | QtCore.Qt.ItemIsDropEnabled)
+                                   | QtCore.Qt.ItemIsDropEnabled
+                                   | QtCore.Qt.ItemIsSelectable)
+    def setBold(self, bold):
+        if bold:
+            self.setText(0, '<b>' + self.window.get_name() + '</b>')
 
 class QVistrailList(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setColumnCount(1)
         self.setHeaderHidden(True)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
@@ -613,7 +622,7 @@ class QVistrailList(QtGui.QTreeWidget):
             if hasattr(data, 'items'):
                 assert len(data.items) == 1
                 source = data.items[0]
-                if not source or type(source) != QVistrailListItem:
+                if not source or type(source) != QVistrailListItem or source == destination:
                     return
                 if source.window.controller.changed or destination.window.controller.changed:
                     text = ('Both Vistrails need to be saved before they can be merged.')
@@ -628,19 +637,34 @@ class QVistrailList(QtGui.QTreeWidget):
                     from gui.vistrails_window import _app
                     _app.merge_vistrails(destination.window.controller, source.window.controller)
 
+
     def add_vt_window(self, vistrail_window):
         item = QVistrailListItem(vistrail_window)
         self.addTopLevelItem(item)
         self.items[id(vistrail_window)] = item
+        self.setSelected(vistrail_window)
 
     def remove_vt_window(self, vistrail_window):
         self.takeTopLevelItem(self.indexOfTopLevelItem(
                 self.items[id(vistrail_window)]))
 
+    def change_vt_window(self, vistrail_window):
+        self.setSelected(vistrail_window)
+
+    def setSelected(self, view):
+        for i in xrange(self.topLevelItemCount()):
+            item = self.topLevelItem(i)
+            font = item.font(0)
+            font.setBold(view == item.window)
+            item.setFont(0, font)
+            item.setText(0, item.window.get_name())
+                
     def item_changed(self, item, prev_item):
         if not item:
             return
         print "*** item clicked", id(item.window)
+
+        self.setSelected(item.window)
         self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
                            item.window)
         
