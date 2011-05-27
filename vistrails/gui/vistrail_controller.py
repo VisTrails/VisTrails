@@ -628,7 +628,7 @@ class VistrailController(QtCore.QObject, BaseController):
         action = core.db.action.create_action(op_list)
         self.add_new_action(action)
         res = self.perform_action(action)
-        self.current_pipeline.validate(False)
+        self.validate(self.current_pipeline, False)
         return res
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
@@ -1371,7 +1371,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.add_new_action(action)
             self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)
-            self.current_pipeline.validate(False)
+            self.validate(self.current_pipeline, False)
         return modules
 
     def get_abstraction_name(self, name="", check_exists=True):
@@ -1627,13 +1627,13 @@ class VistrailController(QtCore.QObject, BaseController):
 
         try:
             pipeline_a = self.vistrail.getPipeline(a)
-            pipeline_a.validate()
+            self.validate(pipeline_a)
         except InvalidPipeline, e:
             (_, pipeline_a) = \
                 self.handle_invalid_pipeline(e, a, Vistrail())
         try:
             pipeline_c = self.vistrail.getPipeline(c)
-            pipeline_c.validate()
+            self.validate(pipeline_c)
         except InvalidPipeline, e:
             (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
                                                      
@@ -1646,7 +1646,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
                                           action.id)
         self.perform_action(action)
-        self.current_pipeline.validate(False)
+        self.validate(self.current_pipeline, False)
         self.current_pipeline_view.setupScene(self.current_pipeline)
     
 ################################################################################

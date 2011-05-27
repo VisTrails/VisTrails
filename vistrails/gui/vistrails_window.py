@@ -46,6 +46,7 @@ from gui.pipeline_view import QPipelineView
 from gui.theme import initializeCurrentTheme, CurrentTheme
 from gui.vistrail_view import QVistrailView
 from gui import merge_gui
+from gui.vistrail_variables import QVistrailVariables
 
 from db.services.io import SaveBundle
 import db.services.vistrail
@@ -212,7 +213,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
                              (('pipeline_changed', 'set_pipeline'),)),
                             (QLogDetails,
                              (('controller_changed', 'set_controller'),
-                              ('execution_changed', 'set_execution')))]),
+                              ('execution_changed', 'set_execution'))),
+                            (QVistrailVariables,
+                             (('controller_changed', 'updateController'),))]),
                           (QtCore.Qt.NoDockWidgetArea,
                            [(QModuleConfiguration, 
                              (('controller_changed', 'set_controller'),

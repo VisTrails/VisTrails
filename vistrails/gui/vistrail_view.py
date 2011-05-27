@@ -678,10 +678,19 @@ class QVistrailView(QtGui.QWidget):
     #     """ viewModeChanged(index: int) -> None        
     #     Slot for switching different views when the tab's current
     #     widget is changed
-        
     #     """
     #     if self.stackedWidget.count()>index:
     #         self.stackedWidget.setCurrentIndex(index)
+
+    def setVistrailVarsMode(self, on):
+        """ setVistrailVarsMode(on: bool) -> None
+        Set the vistrail variable panel state for the view
+
+        """
+        if on:
+            self.pipelineTab.vistrailVars.toolWindow().show()
+        else:
+            self.pipelineTab.vistrailVars.toolWindow().hide()
 
     # def pasteToCurrentTab(self):
     #     index = self.stackedWidget.currentIndex()

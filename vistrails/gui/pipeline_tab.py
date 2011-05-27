@@ -33,6 +33,7 @@ from gui.method_palette import QMethodPalette
 from gui.module_configuration import QModuleConfiguration
 from gui.module_methods import QModuleMethods
 from gui.pipeline_view import QPipelineView
+from gui.vistrail_variables import QVistrailVariables
 from weakref import proxy
 
 ################################################################################
@@ -69,6 +70,10 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, 
                            self.moduleConfig.toolWindow())
         
+        self.vistrailVars = QVistrailVariables(self)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
+                           self.vistrailVars.toolWindow())
+        
         self.connect(self.toolWindow(),
                      QtCore.SIGNAL('topLevelChanged(bool)'),
                      self.updateWindowTitle)
@@ -95,6 +100,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         menu.addAction(self.methodPalette.toolWindow().toggleViewAction())
         menu.addAction(self.moduleMethods.toolWindow().toggleViewAction())
         menu.addAction(self.moduleConfig.toolWindow().toggleViewAction())
+        menu.addAction(self.vistrailVars.toolWindow().toggleViewAction())
 
     def removeViewActionsFromMenu(self, menu):
         """removeViewActionsFromMenu(menu: QMenu) -> None
@@ -104,6 +110,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         menu.removeAction(self.methodPalette.toolWindow().toggleViewAction())
         menu.removeAction(self.moduleMethods.toolWindow().toggleViewAction())
         menu.removeAction(self.moduleConfig.toolWindow().toggleViewAction())
+        menu.removeAction(self.vistrailVars.toolWindow().toggleViewAction())
 
     def updatePipeline(self, pipeline):
         """ updatePipeline(pipeline: Pipeline) -> None        
@@ -177,6 +184,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
             self.methodPalette.controller = controller
             self.moduleMethods.controller = controller
             self.moduleConfig.controller = controller
+            self.vistrailVars.updateController(controller)
             controller.current_pipeline_view = self.pipelineView.scene()
 
     def versionChanged(self, newVersion):
