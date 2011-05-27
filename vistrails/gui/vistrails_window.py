@@ -643,6 +643,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         elif res == 2:
             return False
         current_view.controller.close_vistrail(locator)
+        current_view.controller.cleanup()
         self.remove_view(current_view)
         if current_view == self._first_view:
             self._first_view = None

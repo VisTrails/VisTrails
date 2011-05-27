@@ -21,11 +21,11 @@
 ############################################################################
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
-from gui.pipeline_view import QPipelineView
 from gui.base_view import BaseView
 from gui.mashups.mashup_app import QMashupAppMainWindow
 from gui.mashups.mashups_manager import MashupsManager
 from gui.mashups.alias_list import QAliasListPanel
+from gui.utils import show_question, YES_BUTTON, NO_BUTTON, CANCEL_BUTTON
 
 class QMashupView(QtGui.QMainWindow, BaseView):
     #signals
@@ -118,7 +118,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         _app.notify('mshpcontroller_changed', self.mshpController)
     
     def createActions(self):
-        self.saveAction = QtGui.QAction("Save", self,
+        self.saveAction = QtGui.QAction("Keep this", self,
                                         triggered=self.saveTriggered)
         self.previewAction = QtGui.QAction("Preview",  self,
                                            triggered=self.previewTriggered,
@@ -129,7 +129,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         
         self.toolbar.addAction(self.previewAction)
         self.toolbar.addSeparator()
-        self.toolbar.addAction(self.saveAction)
+        #self.toolbar.addAction(self.saveAction)
         self.addToolBar(self.toolbar)
         
     def createAliasPanelTab(self):
@@ -185,7 +185,21 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                 self.previewVersion = -1
                 
     def saveTriggered(self):
-        print "save pressed"
+        (pid, pname) = self.mshpController.findFirstTaggedParent(self.mshpController.currentVersion)
+        if pid >= 1:
+            res = show_question("Mashups", 
+                """You've decided to keep a modified version of '%s'.
+Would you like to update it (this will move the tag to this new version)?
+Click on No to create a new tag.""" %pname,
+                [YES_BUTTON, NO_BUTTON, CANCEL_BUTTON], NO_BUTTON)
+            if res == YES_BUTTON:
+                #move tag
+                self.mshpController.moveTag(pid, 
+                                            self.mshpController.currentVersion,
+                                            pname)
+        elif res == NO_BUTTON:
+            # show createNewtag dialog
+            pass
         
     def mshpControllerVistrailChanged(self):
         print "*** vistrailChanged mashup view ", self.mshpController.vtController.current_version
@@ -195,6 +209,10 @@ class QMashupView(QtGui.QMainWindow, BaseView):
     def mshpVersionChanged(self, versionId):
         print "mshpVersion", versionId
         self.aliasPanel.updateVersion(versionId)
+        if not self.mshpController.versionHasTag(versionId):
+            self.saveAction.setEnabled(True)
+        else:
+            self.saveAction.setEnabled(False)
         
     def aliasChanged(self, param):
         print "mashupView aliasChanged", param

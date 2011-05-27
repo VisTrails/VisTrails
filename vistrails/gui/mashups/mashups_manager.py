@@ -109,3 +109,14 @@ class MashupsManager(object):
     def addMashuptrailtoVistrailController(controller, mashuptrail):
         controller._mashups.append(mashuptrail)
         controller.set_changed(True)    
+        
+    @staticmethod
+    def createMashupApp(vtcontroller, mashuptrail, version):
+        from gui.mashups.mashup_app import QMashupAppMainWindow
+        vtVersion = mashuptrail.vtVersion
+        mshpController = MashupController(vtcontroller, vtVersion, mashuptrail)
+        mshpController.setCurrentVersion(version)
+        app = QMashupAppMainWindow(parent=None, 
+                                   controller=mshpController,
+                                   version=version)
+        return app

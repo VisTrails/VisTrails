@@ -52,16 +52,19 @@ class MashupController(object):
                                                   alias.component.vtid)
         return None
     
-    def executeCurrentMashup(self, params):
+    def execute(self, params):
         if self.vtPipeline and self.vtController:
             return self.vtController.execute_current_workflow(custom_params=params)
         return ([], False)
-    
+            
     def updateCurrentTag(self, name):
         self.mshptrail.changeTag(self.currentVersion, name, current_user(),
                                  current_time())
         self.setChanged(True)
     
+    def moveTag(self, from_version, to_version, name):
+        self.mshptrail.changeTag()
+        
     def getCurrentTag(self):
         return self.mshptrail.getTagForActionId(self.currentVersion)
     
@@ -252,6 +255,18 @@ class MashupController(object):
                 return name + count_str
             version = action_map[version].parent_id
             count += 1
+            
+    def findFirstTaggedParent(self, version):
+        action_map = self.mshptrail.actionMap
+        version = action_map[version].parent_id
+        while True:
+            hasTag = self.mshptrail.hasTagForActionId(version)
+            if hasTag or version <= 1:
+                name = ""
+                if hasTag:
+                    name = self.mshptrail.getTagForActionId(version)
+                return (version, name)
+            version = action_map[version].parent_id
             
     def removeAlias(self, name):
         """removeAlias(name: str) -> long

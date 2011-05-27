@@ -20,6 +20,8 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSignal
+
 spreadsheet = __import__('packages.spreadsheet', globals(), locals(), 
                             ['spreadsheet_controller'], -1) 
 spreadsheetController = spreadsheet.spreadsheet_controller.spreadsheetController
@@ -28,6 +30,9 @@ from gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
+    #signals
+    appWasClosed = pyqtSignal(QtGui.QMainWindow)
+    
     def __init__(self, parent=None, dumpcells=False, controller=None, version=-1):
         """ QMashupAppMainWindow()
         Initialize an app window from a mashup.
@@ -54,7 +59,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 self.currentMashup = self.controller.currentMashup
             else:
                 self.currentMashup = self.mshptrail.getMashup(version)
-            self.setWindowTitle('%s Mashup'%self.currentMashup.name)
+            self.setWindowTitle('%s Mashup'%self.controller.getMashupName(version))
         else:
             self.setWindowTitle('Mashup')
             
@@ -193,6 +198,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
    
     def closeEvent(self, event):
         self.saveSettings()
+        self.appWasClosed.emit(self)
         event.accept()
         
     def auto_update_changed(self, state):
@@ -323,7 +329,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                     val =str(edit.text())
                 params.append((alias.component.vttype, alias.component.vtid,
                               val))    
-        results = self.controller.executeCurrentMashup(params)[0]
+        results = self.controller.execute(params)[0]
         result = results[0]
         (objs, errors, executed) = (result.objects, result.errors,
                                                    result.executed)
