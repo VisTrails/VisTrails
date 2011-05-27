@@ -431,7 +431,7 @@ class QVistrailView(QtGui.QWidget):
     def create_log_view(self):
         from gui.vistrails_window import _app
         view = self.create_view(QLogView, False)
-        self.notifications['execution_changed'] = view.set_execution
+        self.notifications['execution_changed'] = view.execution_changed
         return view
 
     def gen_module_selected(self, view):
@@ -561,6 +561,8 @@ class QVistrailView(QtGui.QWidget):
             view.setFocus(QtCore.Qt.MouseFocusReason)
             # view.checkModuleConfigPanel()
             self.controller.execute_current_workflow()
+            from gui.vistrails_window import _app
+            _app.notify('execution_updated')
 
     # def updateCursorState(self, mode):
     #     """ updateCursorState(mode: Int) -> None 
