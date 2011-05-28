@@ -236,6 +236,9 @@ class MashupController(object):
                                       alias.component.vtparent_type, 
                                       alias.component.vtparent_id,
                                       alias.component.vtmid)
+            parameter = self.vtPipeline.db_get_object(alias.component.vttype,
+                                                      alias.component.vtid)
+            parameter.alias = alias.name
         
     def getMashupName(self, version=-1):
         action_map = self.mshptrail.actionMap
