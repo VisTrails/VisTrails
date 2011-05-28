@@ -42,9 +42,11 @@ from core.thumbnails import ThumbnailCache
 
 from gui.application import VistrailsApplication
 from gui.preferences import QPreferencesDialog
+from gui.pipeline_view import QPipelineView
 from gui.theme import initializeCurrentTheme, CurrentTheme
 from gui.vistrail_view import QVistrailView
 from gui import merge_gui
+from gui.vistrail_variables import QVistrailVariables
 
 from db.services.io import SaveBundle
 import db.services.vistrail
@@ -220,10 +222,13 @@ class QVistrailsWindow(QtGui.QMainWindow):
                              (('pipeline_changed', 'set_pipeline'),)),
                             (QLogDetails,
                              (('controller_changed', 'set_controller'),
-                              ('execution_changed', 'set_execution'))),
+                              ('execution_updated', 'execution_updated'),
+                              ('execution_changed', 'execution_changed'))),
                             (QAliasParameterView,
                              (('mshpcontroller_changed', 'updateMshpController'),
                               ('mshpversion_changed', 'updateMshpVersion')))]),
+                            (QVistrailVariables,
+                             (('controller_changed', 'updateController'),))]),
                           (QtCore.Qt.NoDockWidgetArea,
                            [(QModuleConfiguration, 
                              (('controller_changed', 'set_controller'),
@@ -1233,7 +1238,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
                      ("showGroup", "Show Pipeline",
                       {'statusTip': "Show the underlying pipeline for the " \
                            "selected group in the current pipeline view",
-                       'enabled': False}),
+                       'enabled': False,
+                       'callback': self.show_group}),
                      "---",
                      ("makeAbstraction", "Create Subworkflow",
                       {'statusTip': "Create a subworkflow from the selected " \
@@ -1708,6 +1714,38 @@ class QVistrailsWindow(QtGui.QMainWindow):
         # easy way to make sure that documentation window is raised
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
+
+    def show_group(self):
+        class DummyController(object):
+            def __init__(self, pip):
+                self.current_pipeline = pip
+                self.search = None
+        active_window = VistrailsApplication.activeWindow()
+        central_widget = active_window.centralWidget()
+        if central_widget.metaObject().className() == "QPipelineView":
+            current_scene = central_widget.scene()
+        else:
+            current_scene = self.get_current_tab().scene()
+        selected_module_ids = current_scene.get_selected_module_ids()
+        if len(selected_module_ids) > 0:
+            for m_id in selected_module_ids:
+                module = current_scene.current_pipeline.modules[m_id]
+                if module.is_group() or module.is_abstraction():
+                    pipelineMainWindow = QtGui.QMainWindow(self)
+                    pipelineView = QPipelineView()
+                    controller = DummyController(module.pipeline)
+                    pipelineView.controller = controller
+                    pipelineMainWindow.setCentralWidget(pipelineView)
+                    pipelineView.scene().controller = \
+                        controller
+                    controller.current_pipeline_view = \
+                        pipelineView.scene()
+                    module.pipeline.ensure_connection_specs()
+                    pipelineView.scene().setupScene(module.pipeline)
+                    pipelineView.scene().current_pipeline = module.pipeline
+                    pipelineView.scene().fitToView(pipelineView, True)
+                    pipelineView.show()
+                    pipelineMainWindow.show()
 
     def openAbstraction(self, filename):
         locator = XMLFileLocator(filename)

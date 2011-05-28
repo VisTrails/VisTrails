@@ -905,8 +905,8 @@ class QVisualDiff(QtGui.QMainWindow):
         # Interprete the diff result
         (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
             self.diff
-        p1.validate(False)
-        p2.validate(False)
+        self.controller.validate(p1, False)
+        self.controller.validate(p2, False)
         p_both = Pipeline()
         # the abstraction map is the same for both p1 and p2
         # p_both.set_abstraction_map(p1.abstraction_map)

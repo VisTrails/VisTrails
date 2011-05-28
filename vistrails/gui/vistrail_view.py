@@ -457,7 +457,7 @@ class QVistrailView(QtGui.QWidget):
     def create_log_view(self):
         from gui.vistrails_window import _app
         view = self.create_view(QLogView, False)
-        self.notifications['execution_changed'] = view.set_execution
+        self.notifications['execution_changed'] = view.execution_changed
         return view
     
     def create_mashup_view(self):
@@ -596,6 +596,8 @@ class QVistrailView(QtGui.QWidget):
             view.setFocus(QtCore.Qt.MouseFocusReason)
             # view.checkModuleConfigPanel()
             self.controller.execute_current_workflow()
+            from gui.vistrails_window import _app
+            _app.notify('execution_updated')
 
     # def updateCursorState(self, mode):
     #     """ updateCursorState(mode: Int) -> None 
@@ -713,10 +715,19 @@ class QVistrailView(QtGui.QWidget):
     #     """ viewModeChanged(index: int) -> None        
     #     Slot for switching different views when the tab's current
     #     widget is changed
-        
     #     """
     #     if self.stackedWidget.count()>index:
     #         self.stackedWidget.setCurrentIndex(index)
+
+    def setVistrailVarsMode(self, on):
+        """ setVistrailVarsMode(on: bool) -> None
+        Set the vistrail variable panel state for the view
+
+        """
+        if on:
+            self.pipelineTab.vistrailVars.toolWindow().show()
+        else:
+            self.pipelineTab.vistrailVars.toolWindow().hide()
 
     # def pasteToCurrentTab(self):
     #     index = self.stackedWidget.currentIndex()

@@ -205,6 +205,8 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('black')))), 1)
         self.PORT_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_grey'))))
+        self.PORT_FILLED_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium'))))
         self.PORT_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
         self.PORT_OPTIONAL_PEN = QtGui.QPen(QtGui.QBrush(
