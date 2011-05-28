@@ -226,7 +226,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                               ('execution_changed', 'execution_changed'))),
                             (QAliasParameterView,
                              (('mshpcontroller_changed', 'updateMshpController'),
-                              ('mshpversion_changed', 'updateMshpVersion')))]),
+                              ('mshpversion_changed', 'updateMshpVersion'))),
                             (QVistrailVariables,
                              (('controller_changed', 'updateController'),))]),
                           (QtCore.Qt.NoDockWidgetArea,
