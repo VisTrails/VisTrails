@@ -56,7 +56,13 @@ class MashupController(object):
     
     def execute(self, params):
         if self.vtPipeline and self.vtController:
-            return self.vtController.execute_current_workflow(custom_params=params)
+            mashup_id = self.mshptrail.id
+            mashup_version = self.currentVersion
+            reason = "mashup::%s::%s"%(str(mashup_id), mashup_version)
+            result = self.vtController.execute_current_workflow(custom_params=params,
+                                                              reason=reason)
+            self.originalController.set_changed(True)
+            return result
         return ([], False)
             
     def updateCurrentTag(self, name):

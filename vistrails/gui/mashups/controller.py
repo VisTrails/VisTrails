@@ -66,3 +66,9 @@ class MashupController(BaseController, QObject):
     def moveTag(self, from_version, to_version, name):
         BaseController.moveTag(self, from_version, to_version, name)
         self.stateChanged.emit()
+        
+    def execute(self, params):
+        from gui.vistrails_window import _app
+        result = BaseController.execute(self, params)
+        _app.notify('execution_updated')
+        return result
