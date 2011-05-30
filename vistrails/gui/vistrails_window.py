@@ -435,6 +435,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.qactions['saveFileAs'].setEnabled(False)
             self.qactions['closeVistrail'].setEnabled(False)
 
+        self.update_merge_menu()
         self.set_name()
 
     def state_changed(self, view):
@@ -1186,7 +1187,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                      "---",
                      ("controlFlowAssist", "Control Flow Assistant",
                       {'statusTip': "Create a loop over the selected modules"}),
-                     ("merge", "Merge...", 
+                     ("merge", "Merge with...", 
                       []),
                      "---",
                      ("editPreferences", "Preferences...",
@@ -1648,7 +1649,23 @@ class QVistrailsWindow(QtGui.QMainWindow):
             action.locator = locator
             action.setText("&%d %s" % (i+1, locator.name))
             openRecentMenu.addAction(action)
-        
+
+    def update_merge_menu(self):
+        #check if we have enough actions
+        mergeMenu = self.qmenus['merge']
+        mergeMenu.clear()
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            # skip merge with self and not saved views
+            if view == self.current_view or not view.controller.vistrail.locator:
+                continue
+            action = QtGui.QAction(self)
+            self.connect(action, QtCore.SIGNAL("triggered()"),
+                         self.merge_vistrail)
+            action.controller = view.controller
+            action.setText("%s" % view.controller.vistrail.locator.name)
+            mergeMenu.addAction(action)
+
     def update_recent_vistrail_actions(self):
         maxRecentVistrails = \
             int(get_vistrails_configuration().maxRecentVistrails)
@@ -1749,6 +1766,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
                                   "cannot be modified.  You can create an "
                                   "editable copy in 'My SubWorkflows' using "
                                   "'Edit->Import SubWorkflow'")
+    def merge_vistrail(self):
+        action = self.sender()
+        if action:
+            self.merge_vistrails(self.current_view.controller, action.controller)
+
     def merge_vistrails(self, c1, c2):
         """ merge_vistrails(c1: VistrailController, c2: VistrailController) -> None
             hamdle merge vistrail from 2 controller into new vistrail
@@ -1775,6 +1797,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.current_view.controller.changed = True
         self.set_name()
         self.current_view.stateChanged()
+        self.qactions['history'].trigger()
+
         
     def do_tag_prompt(self, name="", exists=False):
         if exists:
