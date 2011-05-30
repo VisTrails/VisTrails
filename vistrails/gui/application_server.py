@@ -735,7 +735,8 @@ class RequestHandler(object):
                                                           int(version))],
                                                           parameters,
                                                           update_vistrail=True,
-                                                          extra_info=extra_info)
+                                                          extra_info=extra_info,
+                                                          reason="Server Pipeline Execution")
                 except Exception, e:
                     self.server_logger.error(str(e))
                     self.server_logger.error(traceback.format_exc())

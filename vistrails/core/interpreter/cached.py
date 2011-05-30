@@ -38,6 +38,7 @@ import core.interpreter.utils
 import core.system
 import core.vistrail.pipeline
 import gc
+import cPickle
 
 ##############################################################################
 
@@ -568,12 +569,28 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         self.parent_execs = [None]
         logger.start_workflow_execution(vistrail, pipeline, current_version)
+        self.annotate_workflow_execution(logger, reason, aliases, params)
         result = self.unlocked_execute(pipeline, **new_kwargs)
         logger.finish_workflow_execution(result.errors)
         self.parent_execs = [None]
 
         return result
 
+    def annotate_workflow_execution(self, logger, reason, aliases, params):
+        """annotate_workflow_Execution(logger: LogController, reason:str,
+                                        aliases:dict, params:list)-> None
+        It will annotate the workflow execution in logger with the reason,
+        aliases and params.
+        
+        """
+        d = {}
+        d["__reason__"] = reason
+        if aliases is not None and type(aliases) == dict:
+            d["__aliases__"] = cPickle.dumps(aliases)
+        if params is not None and type(params) == list:
+            d["__params__"] = cPickle.dumps(params)
+        logger.insert_workflow_exec_annotations(d)
+        
     def add_to_persistent_pipeline(self, pipeline):
         """add_to_persistent_pipeline(pipeline):
         (module_id_map, connection_id_map, modules_added)

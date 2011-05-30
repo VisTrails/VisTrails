@@ -665,7 +665,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.invalidate_version_tree(False)
         return (results, changed)
 
-    def execute_current_workflow(self, custom_aliases=None, custom_params=None):
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None,
+                                 reason='Pipeline Execution'):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -682,6 +683,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          self.current_pipeline_view,
                                          custom_aliases,
                                          custom_params,
+                                         reason,
                                          None)])
         return ([], False)
     

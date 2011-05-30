@@ -1636,7 +1636,7 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
-            (locator, version, pipeline, view, aliases, params, extra_info) = vis
+            (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
             
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
@@ -1653,6 +1653,7 @@ class VistrailController(object):
                       'controller': self,
                       'aliases': aliases,
                       'params': params,
+                      'reason': reason,
                       'extra_info': extra_info,
                       }    
             result = interpreter.execute(pipeline, **kwargs)
@@ -1686,7 +1687,7 @@ class VistrailController(object):
         return (results,changed)
     
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 extra_info=None):
+                                 extra_info=None, reason='Pipeline Execution'):
         """ execute_current_workflow(custom_aliases: dict, 
                                      custom_params: list,
                                      extra_info: dict) -> (list, bool)
@@ -1712,6 +1713,7 @@ class VistrailController(object):
                                                 view,
                                                 custom_aliases,
                                                 custom_params,
+                                                reason,
                                                 extra_info)])
 
     def recompute_terse_graph(self):

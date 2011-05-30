@@ -36,7 +36,8 @@ from core.vistrail.vistrail import Vistrail
 ################################################################################
     
 def run_and_get_results(w_list, parameters='', workflow_info=None, 
-                        update_vistrail=False, extra_info=None):
+                        update_vistrail=True, extra_info=None, 
+                        reason='Console Mode Execution'):
     """run_and_get_results(w_list: list of (locator, version), parameters: str,
                            workflow_info:str, update_vistrail: boolean,
                            extra_info:dict)
@@ -88,8 +89,9 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        (results, _) = controller.execute_current_workflow(aliases,
-                                                           extra_info)
+        (results, _) = controller.execute_current_workflow(custom_aliases=aliases,
+                                                           extra_info=extra_info,
+                                                           reason=reason)
         new_version = controller.current_version
         if new_version != version:
             debug.warning("Version '%s' (%s) was upgraded. The actual version executed \
@@ -182,15 +184,15 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
 
 ################################################################################
 
-def run(w_list, parameters='', workflow_info=None, update_vistrail=False,
-        extra_info=None):
+def run(w_list, parameters='', workflow_info=None, update_vistrail=True,
+        extra_info=None, reason="Console Mode Execution"):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns list of errors (empty list if there are no errors)
     """
     all_errors = []
     results = run_and_get_results(w_list, parameters, workflow_info, 
-                                  update_vistrail,extra_info)
+                                  update_vistrail,extra_info, reason)
     for result in results:
         (objs, errors, executed) = (result.objects,
                                     result.errors, result.executed)
