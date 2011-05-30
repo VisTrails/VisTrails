@@ -23,15 +23,16 @@ from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from core.mashup.controller import MashupController as BaseController
 from core.mashup.alias import Alias
+from gui.utils import show_warning
 
 class MashupController(BaseController, QObject):
     #signals
     stateChanged = pyqtSignal()
     versionChanged = pyqtSignal(int)
     
-    def __init__(self, vt_controller, vt_version, mshptrail=None):
+    def __init__(self, originalController, vt_controller, vt_version, mshptrail=None):
         QObject.__init__(self)
-        BaseController.__init__(self, vt_controller, vt_version, mshptrail)
+        BaseController.__init__(self, originalController, vt_controller, vt_version, mshptrail)
         self.name = ''
         self.currentMashupView = None
         
@@ -44,6 +45,15 @@ class MashupController(BaseController, QObject):
         if not quiet:
             self.stateChanged.emit()
             self.versionChanged.emit(version)
+            
+    def updateCurrentTag(self, name):
+        if BaseController.updateCurrentTag(self, name) == False:
+            show_warning('Name Exists',
+                         "There is already another version named '%s'.\n"
+                         "Please enter a different one." % name)
+            return False
+        else:
+            return True
         
     @pyqtSlot(str)
     def removeAlias(self, name):
@@ -53,3 +63,6 @@ class MashupController(BaseController, QObject):
     def updateAlias(self, alias):
         BaseController.updateAlias(self, alias)
         
+    def moveTag(self, from_version, to_version, name):
+        BaseController.moveTag(self, from_version, to_version, name)
+        self.stateChanged.emit()

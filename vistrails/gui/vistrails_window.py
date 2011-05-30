@@ -1392,6 +1392,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                       {'icon': CurrentTheme.MASHUP_ICON,
                        'checkable': True,
                        'checked': False,
+                       'enabled': False,
                        'callback': \
                            self.pass_through_bool(self.get_current_view,
                                                   'mashup_change')}),

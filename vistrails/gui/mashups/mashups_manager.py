@@ -23,6 +23,7 @@ import copy
 import uuid
 
 from gui.vistrail_controller import VistrailController
+from core.vistrail.controller import VistrailController as BaseVistrailController
 from gui.mashups.controller import MashupController
 from core.mashup.mashup_trail import Mashuptrail
 from core.mashup.mashup import Mashup
@@ -50,13 +51,8 @@ class MashupsManager(object):
 
     def createMashupController(self, vt_controller, version, view=DummyView()):
         #print "Manager creating mashup controller ", vt_controller, version
-        newvt_controller = VistrailController()
-        current_log = vt_controller.log
-        vistrail = vt_controller.vistrail
-        newvt_controller.log = current_log
-        newvt_controller.current_pipeline_view = view.scene()
-        newvt_controller.set_vistrail(vistrail, None)
-        newvt_controller.disable_autosave()
+        newvt_controller = MashupsManager.copyVistrailController(vt_controller,
+                                                                view)
         mashuptrail = \
          MashupsManager.getMashuptrailforVersionInVistrailController(vt_controller,
                                                                      version)
@@ -78,13 +74,17 @@ class MashupsManager(object):
             
             MashupsManager.addMashuptrailtoVistrailController(vt_controller,
                                                               mashuptrail)
-            mshpController = MashupController(newvt_controller, version, mashuptrail)
+            mshpController = MashupController(vt_controller,
+                                              newvt_controller, 
+                                              version, mashuptrail)
             mshpController.setCurrentVersion(mashuptrail.currentVersion)
             if mshpController.currentVersion == 1L:
                 mshpController.updateCurrentTag("ROOT")
         else:
             print "----> found mashuptrail ", mashuptrail.currentVersion
-            mshpController = MashupController(newvt_controller, version, mashuptrail)
+            mshpController = MashupController(vt_controller, 
+                                              newvt_controller, 
+                                              version, mashuptrail)
             mshpController.setCurrentVersion(mashuptrail.currentVersion)
             mshpController.updatePipelineAliasesFromCurrentMashup()
         
@@ -93,6 +93,26 @@ class MashupsManager(object):
     @staticmethod
     def getNewMashuptrailId():  
         return uuid.uuid1()
+    
+    @staticmethod
+    def copyVistrailController(vt_controller, view=DummyView()):
+        newvt_controller = VistrailController()
+        current_log = vt_controller.log
+        vistrail = vt_controller.vistrail
+        newvt_controller.log = current_log
+        newvt_controller.current_pipeline_view = view.scene()
+        newvt_controller.set_vistrail(vistrail, None)
+        newvt_controller.disable_autosave()
+        return newvt_controller
+    
+    @staticmethod
+    def copyBaseVistrailController(vt_controller):
+        newvt_controller = BaseVistrailController()
+        current_log = vt_controller.log
+        vistrail = vt_controller.vistrail
+        newvt_controller.log = current_log
+        newvt_controller.set_vistrail(vistrail, None)
+        return newvt_controller
     
     @staticmethod
     def getMashuptrailforVersionInVistrailController(controller, version):
@@ -114,7 +134,14 @@ class MashupsManager(object):
     def createMashupApp(vtcontroller, mashuptrail, version):
         from gui.mashups.mashup_app import QMashupAppMainWindow
         vtVersion = mashuptrail.vtVersion
-        mshpController = MashupController(vtcontroller, vtVersion, mashuptrail)
+        view = DummyView()
+        view.scene().current_pipeline = vtcontroller.vistrail.getPipeline(vtVersion)
+        view.scene().current_pipeline.validate()
+        new_vtcontroller = MashupsManager.copyBaseVistrailController(vtcontroller)
+        new_vtcontroller.change_selected_version(vtVersion)
+        mshpController = MashupController(vtcontroller,
+                                          new_vtcontroller, 
+                                          vtVersion, mashuptrail)
         mshpController.setCurrentVersion(version)
         app = QMashupAppMainWindow(parent=None, 
                                    controller=mshpController,

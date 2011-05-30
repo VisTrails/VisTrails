@@ -27,8 +27,9 @@ from core.mashup.component import Component
 from core.mashup.mashup import Mashup
 
 class MashupController(object):
-    def __init__(self, vt_controller, vt_version, mshptrail=None):
+    def __init__(self, originalController, vt_controller, vt_version, mshptrail=None):
         self.vtController = vt_controller
+        self.originalController = originalController
         self.vtVersion = vt_version
         self.vtPipeline = self.vtController.vistrail.getPipeline(self.vtVersion)
         self.vtPipeline.validate()
@@ -40,6 +41,7 @@ class MashupController(object):
 
     def setChanged(self, on):
         self._changed = on
+        self.originalController.set_changed(True)
         
     def setCurrentVersion(self, version):
         self.currentVersion = version
@@ -58,18 +60,28 @@ class MashupController(object):
         return ([], False)
             
     def updateCurrentTag(self, name):
-        self.mshptrail.changeTag(self.currentVersion, name, current_user(),
-                                 current_time())
-        self.setChanged(True)
+        if self.mshptrail.changeTag(self.currentVersion, name, current_user(),
+                                 current_time()):
+            self.setChanged(True)
+            return True
+        else:
+            return False
     
     def moveTag(self, from_version, to_version, name):
-        self.mshptrail.changeTag()
-        
+        tag = self.mshptrail.getTagForActionId(from_version)
+        if tag:
+            self.mshptrail.removeTagByActionId(from_version)
+            self.mshptrail.addTag(to_version, tag, user=current_user(),
+                                  date=current_time())
+            
     def getCurrentTag(self):
         return self.mshptrail.getTagForActionId(self.currentVersion)
     
     def versionHasTag(self, version):
         return self.mshptrail.hasTagForActionId(version)
+    
+    def hasTagWithName(self, name):
+        return self.mshptrail.hasTagWithName(name)
     
     def getVistrailName(self):
         name = ''
@@ -288,7 +300,7 @@ class MashupController(object):
                     pos += 1
             return self.createMashupVersion(alias_list=new_aliases, quiet=False)
             
-    def createMashupVersion(self, alias_list, quiet=True):
+    def createMashupVersion(self, alias_list, quiet=False):
         id = self.id_scope.getNewId('mashup')
         mashup = Mashup(id=id, name="mashup%s"%id, 
                         vtid=self.currentMashup.vtid, 
@@ -301,5 +313,6 @@ class MashupController(object):
         self.mshptrail.currentVersion = currVersion
         self.currentMashup = mashup
         print "created new mashup ", currVersion
-        self.setCurrentVersion(currVersion, quiet=False)
+        self.setCurrentVersion(currVersion, quiet)
+        self.setChanged(True)
         return currVersion

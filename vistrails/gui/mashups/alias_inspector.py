@@ -403,7 +403,7 @@ class QValuesListEditor(QtGui.QWidget):
         
         hLayout.addWidget(self.listValues)
         
-        self.connect(self.listValues, QtCore.SIGNAL('textEdited(QString)'),
+        self.connect(self.listValues, QtCore.SIGNAL('editingFinished()'),
                      self.values_were_edited)
 
         inputButton = QtGui.QToolButton()
@@ -427,8 +427,8 @@ class QValuesListEditor(QtGui.QWidget):
             self.listValues.setReadOnly(True)
         self.listValues.home(False)
         
-    def values_were_edited(self, new_text):
-        """values_were_edited(new_text): None
+    def values_were_edited(self):
+        """values_were_edited(): None
 
         Connected to self.listValues.textEdited. 
         Updates self._alias.valueList.
@@ -445,6 +445,7 @@ class QValuesListEditor(QtGui.QWidget):
         a list of strings with commas in them."""
 
         print "values_were_edited"
+        new_text = self.listValues.text()
         t = str(new_text)
         if len(t) < 2:
             self._alias.component.valueList = []

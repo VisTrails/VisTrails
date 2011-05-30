@@ -466,7 +466,6 @@ class QVistrailView(QtGui.QWidget):
         view = self.create_view(QMashupView, False)
         view.set_controller(self.controller)
         self.notifications['alias_changed'] = view.aliasChanged
-        self.notifications['mashup_pipeline_view_set'] = view.checkAndUpdatePreview
         return view
     
     def gen_module_selected(self, view):

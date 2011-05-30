@@ -165,7 +165,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
     def updateCells(self):
         cellEvents = self.runAndGetCellEvents()
         if len(cellEvents) != self.numberOfCells:
-            raise 'The number of cells has been changed (unexpectedly) (%d vs. %d)!' % (len(cellEvents), self.numberOfCells)
+            raise Exception('The number of cells has been changed (unexpectedly) (%d vs. %d)!' % (len(cellEvents), self.numberOfCells))
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []

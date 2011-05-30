@@ -433,6 +433,8 @@ class DummyScene(object):
         self.current_pipeline = None
     def get_selected_module_ids(self):
         return [] 
+    def flushMoveActions(self, *args, **kwargs): pass
+    
 class DummyView(object):
     def __init__(self):
         self._scene = DummyScene()

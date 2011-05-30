@@ -36,12 +36,13 @@ from PyQt4.QtCore import pyqtSlot, pyqtSignal
 
 
 from core.data_structures.bijectivedict import Bidict
-from gui.mashups.alias_inspector import QAliasInspector
 from core.mashup.alias import Alias
+from gui.base_view import BaseView
+from gui.mashups.alias_inspector import QAliasInspector
 from gui.utils import show_question, YES_BUTTON, NO_BUTTON
 
 ###############################################################################
-class QAliasListPanel(QtGui.QWidget):
+class QAliasListPanel(QtGui.QWidget, BaseView):
     """
     QAliasListPanel shows list of aliases in pipeline.
     
@@ -124,6 +125,19 @@ class QAliasListPanel(QtGui.QWidget):
         # or method_drop box is empty
         self.aliasChanged.emit(alias)
         self.aliasesChanged.emit()
+        
+    def set_default_layout(self):
+        from gui.mashups.mashups_inspector import QMashupsInspector
+        from gui.mashups.alias_parameter_view import QAliasParameterView
+        self.layout = \
+            {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
+             QtCore.Qt.RightDockWidgetArea: QAliasParameterView,
+             }
+            
+    def set_action_links(self):
+        self.action_links = \
+            {
+            }
         
 ###############################################################################
 

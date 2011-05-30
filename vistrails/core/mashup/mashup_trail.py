@@ -213,6 +213,8 @@ class Mashuptrail(XMLObject):
         return ""
     
     def changeTag(self, action_id, name, user, date):
+        if self.hasTagWithName(name):
+            return False
         if self.hasTagForActionId(action_id):
             self.removeTagByActionId(action_id)
         return self.addTag(action_id, name, user, date)
