@@ -1564,7 +1564,7 @@ class VistrailController(QtCore.QObject, BaseController):
         need_invalidate = BaseController.write_vistrail(self, locator, version)
         if need_invalidate:
             self.invalidate_version_tree(False)
-            #self.set_changed(False)
+            self.set_changed(False)
 
     def write_opm(self, locator):
         if self.log:

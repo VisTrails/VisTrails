@@ -228,10 +228,8 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
          self.doubleClick)
 
     def execution_updated(self):
-        print "execution updated"
         for e in self.controller.log.workflow_execs:
             if e not in self.log:
-                print "adding execution", e
                 self.log[e] = e
                 wf_id = e.parent_version
                 tagMap = self.controller.vistrail.get_tagMap()
@@ -262,7 +260,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
     def set_controller(self, controller):
         print '@@@@ QLogDetails calling set_controller'
         self.controller = controller
-        if not hasattr(self.controller, 'saved_log'):
+        if not hasattr(self.controller, 'loaded_workflow_execs'):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
                 # set workflow tag names
@@ -281,11 +279,12 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             return
         self.execution = execution
         self.parentExecution = wf_execution
+        text = ''
         if hasattr(execution, 'item') and \
            not execution.item == self.executionList.currentItem():
             self.executionList.setCurrentItem(execution.item)
-        text = ''
-        text += '%s\n' % execution.item.text(0)
+        if hasattr(execution, 'item'):
+            text += '%s\n' % execution.item.text(0)
         text += 'Start: %s\n' % execution.ts_start
         text += 'End: %s\n' % execution.ts_end
         if hasattr(execution, 'user'):
@@ -306,7 +305,6 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.update_selection()
         
     def singleClick(self, item, col):
-        print "singleClick"
         if self.isDoubling:
             self.isDoubling = False
             return
@@ -317,7 +315,6 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.notify_app(item.wf_execution, item.execution)
 
     def doubleClick(self, item, col):
-        print "doubleClick"
         # only difference here is that we should show contents of GroupExecs 
         self.isDoubling = True
         if type(item.wf_execution) == GroupExec:
@@ -337,11 +334,9 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
                         self.parentExecution)
 
     def update_selection(self):
-        if (type(self.execution) == ModuleExec or \
-            (type(self.execution) == GroupExec and
-             self.execution == self.parentExecution)) and \
+        if hasattr(self.execution, 'item') and \
           not self.execution.item.isSelected():
-                self.execution.item.setSelected(True)
+            self.execution.item.setSelected(True)
 
 class QLogView(QPipelineView):
     def __init__(self, parent=None):
@@ -376,7 +371,7 @@ class QLogView(QPipelineView):
     def set_controller(self, controller):
         QPipelineView.set_controller(self, controller)
         print "@@@ set_controller called", id(self.controller), len(self.controller.vistrail.actions)
-        if not hasattr(self.controller, 'saved_log'):
+        if not hasattr(self.controller, 'loaded_workflow_execs'):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
                 # set workflow tag names
@@ -423,7 +418,7 @@ class QLogView(QPipelineView):
         if not self.log:
             return False
         try:
-            workflow_execs = [e for e in self.log.workflow_execs 
+            workflow_execs = [e for e in self.log 
                                 if e.id == int(exec_id)]
         except ValueError:
             return False
@@ -435,7 +430,7 @@ class QLogView(QPipelineView):
     def set_exec_by_date(self, exec_date):
         if not self.log:
             return False
-        workflow_execs = [e for e in self.log.workflow_execs
+        workflow_execs = [e for e in self.log
                           if str(e.ts_start) == str(exec_date)]
         if len(workflow_execs):
             self.notify_app(workflow_execs[0], workflow_execs[0])
@@ -454,7 +449,6 @@ class QLogView(QPipelineView):
                                    execution.db_module_id).pipeline
 
     def execution_changed(self, wf_execution, execution):
-        print "execution_changed:", wf_execution, execution
         self.execution = execution
         if self.parentExecution != wf_execution:
             self.parentExecution = wf_execution
