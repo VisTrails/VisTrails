@@ -28,6 +28,7 @@ spreadsheetController = spreadsheet.spreadsheet_controller.spreadsheetController
 
 from gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
+from gui.utils import show_warning
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
     #signals
@@ -77,10 +78,13 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
         spreadsheetController.setEchoMode(True)        
         #will run to get Spreadsheet Cell events
-        cellEvents = self.runAndGetCellEvents(useDefaultValues=True)
+        (cellEvents, errors) = self.runAndGetCellEvents(useDefaultValues=True)
         if cellEvents:
             self.numberOfCells = len(cellEvents)
             self.initCells(cellEvents)
+        if len(errors) > 0:
+            show_warning("VisTrails::Mashup Preview", 
+                         "There was a problem executing the pipeline: %s."%errors)
         # Construct the controllers for aliases
         self.controlDocks = {}
         self.cellControls = {}
@@ -153,19 +157,21 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         #will run to get Spreadsheet Cell events
         cellEvents = []
         try:
-            self.run(useDefaultValues)
-            cellEvents = spreadsheetController.getEchoCellEvents()
+            (res, errors) = self.run(useDefaultValues)
+            if res:
+                cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
             print "Executing pipeline failed: ", str(e)
         finally:
             spreadsheetController.setEchoMode(False)
             
-        return cellEvents
+        return (cellEvents, errors)
     
     def updateCells(self):
-        cellEvents = self.runAndGetCellEvents()
+        (cellEvents, errors) = self.runAndGetCellEvents()
         if len(cellEvents) != self.numberOfCells:
-            raise Exception('The number of cells has been changed (unexpectedly) (%d vs. %d)!' % (len(cellEvents), self.numberOfCells))
+            raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
+Pipeline results: %s' % (len(cellEvents), self.numberOfCells), errors)
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []
@@ -336,8 +342,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         if len(errors) > 0:
             print '=== ERROR EXECUTING PIPELINE ==='
             print errors
-            return False
-        return True
+            return (False, errors)
+        return (True, [])
             
 class QCustomDockWidget(QtGui.QDockWidget):
     def __init__(self, title, parent=None):
