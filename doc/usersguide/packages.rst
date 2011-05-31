@@ -19,7 +19,7 @@ Introduction
 |vistrails| provides a
 plugin infrastructure to integrate user-defined functions and
 libraries. Specifically, users can incorporate their own visualization
-and simulation code into pipelines by defining custom modules. These
+and simulation code into pipelines by defining custom modules (or wrappers). These
 modules are bundled in what we call *packages*. A \vistrails
 package is simply a collection of Python classes stored in one or more
 files, respecting some conventions that will be described shortly.
@@ -42,13 +42,38 @@ However, if you do not yet know Python but are familiar with another object-orie
 A Simple Example
 ================
 
-Let us start with a minimal complete example of a very simple
-calculator:
+Here is a simplified example of a very simple user-defined module:
+
+.. code-block:: python
+   :linenos:
+
+   class Divide(Module):
+       def compute(self):
+           arg1 = self.getInputFromPort("arg1")
+           arg2 = self.getInputFromPort("arg2")
+           if arg2 == 0.0:
+               raise ModuleError(self, "Division by zero")
+           self.setResult("result", arg1 / arg2)
+
+       _input_ports = [('arg1', '(edu.utah.sci.vistrails.basic:Float)',\
+                        {"labels": str(["dividend"])}),\
+                       ('arg2', '(edu.utah.sci.vistrails.basic:Float)',\
+                        {"labels": str(["divisor"])})]
+       _output_ports = [('result', '(edu.utah.sci.vistrails.basic:Float)',\
+                        {"labels": str(["quotient"])})]
+
+   _modules = [Divide]
+   #old syntax
+   #registry.addModule(Divide)
+   #registry.addInputPort(Divide, "arg1", (basic.Float, 'dividend'))
+   #registry.addInputPort(Divide, "arg2", (basic.Float, 'divisor'))
+   #registry.addOutputPort(Divide, "result", (basic.Float, 'quotient'))
+
+New VisTrails modules must subclass from Module, the base class that defines basic functionality. The only required override is the compute() method, which performs the actual module computation. Input and output is specified through ports, which currently have to be explicitly registered with VisTrails. However, this is straightforward, and done through method calls to the module registry. An example of a (slightly) more complicated module follows:
 
 .. include:: pythoncalc.rst
 
-To try this out in VisTrails, save the file above in the ``.vistrails/userpackages`` subdirectory of your home directory, with the filename ``pythoncalc.py``. Then, click on the ``Edit`` menu
-and select the ``Preferences`` option. (On Mac OS X, this option is under the |vistrails| menu.) A dialog similar to what is shown
+To try this out in VisTrails, save the file above in the ``.vistrails/userpackages`` subdirectory of your home directory, with the filename ``pythoncalc.py``. Then, click on the ``Edit`` menu (or the ``VisTrails`` menu on Mac OS X), select the ``Preferences`` option and select the ``Module Packages`` tab.  A dialog similar to what is shown
 in Figure :ref:`All available packages... <fig-packages-enablepackage>` should appear. Select the
 ``pythonCalc`` package, then click on
 ``Enable``. This should move the package to the
@@ -136,7 +161,7 @@ parameters: the module that generated the exception (typically
 
 .. index::
    pair: packages; ``initialize``
-   pair: Module registry; ``addModule``
+   pair: Module registry; ``add_Module``
    pair: Module registry; ``add_input_port``
    pair: Module registry; ``add_output_port``
 
@@ -164,6 +189,39 @@ and not Python types.
 That is it --- you have successfully created a new package and
 module. From now on, we will look at more complicated examples, and
 more advanced features of the package mechanism.
+
+Creating Reloadable Packages
+============================
+
+When creating or making changes to packages, it is often desirable to reload the package without having to restart |vistrails|.  To create a package that is reloadable, users should create a new directory for the package in ``userpackages`` directory.  This new directory should have the same name as the package and should contain an ``__init__.py`` file and an ``init.py`` file.  The identified, name, version, configuration, and package_dependencies fields/methods should be in ``__init__.py``.  An example of ``__init__.py`` from Vistrails' pylab package follows.
+
+.. code-block:: python
+   :linenos:
+
+   identifier = 'edu.utah.sci.vistrails.matplotlib'
+   name = 'matplotlib'
+   version = '0.9.0'
+
+   def package_dependencies():
+       import core.packagemanager
+       manager = core.packagemanager.get_package_manager()
+       if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
+           return ['edu.utah.sci.vistrails.spreadsheet']
+       else:
+           return []
+
+   def package_requirements():
+       import core.requirements
+       if not core.requirements.python_module_exists('matplotlib'):
+           raise core.requirements.MissingRequirement('matplotlib')
+       if not core.requirements.python_module_exists('pylab'):
+           raise core.requirements.MissingRequirement('pylab')
+
+Imports (excluding core.configuration), other class definitions, and the initialize method should be in the ``init.py`` file.  Finally, to reload a package, select the ``reload`` button from the ``Preferences`` dialog's ``Module Packages`` tab.
+
+.. topic:: Note
+
+   To make the previous example :ref:`sec-packages-simple_example` reloadable, rather than having just one file ``pythoncalc.py``, one would have a ``pythoncalc`` directory with the "version", "name", and "identifier" lines in ``__init__.py`` and all other lines in ``init.py``.
 
 .. _sec-wrapping_cmdline_tools:
 
@@ -440,36 +498,6 @@ illustrate the feature.
            self.setResult("output", o)
    ...
 
-.. .. parsed-literal::
-
-   ...
-   class Afront(Module, AfrontRun):
-           
-       def compute(self):
-   .. _ref-packages-tfcreate:
-           :red:`o = self.interpreter.filePool.create_file(suffix='.m')`
-           args = []
-   .. _ref-packages-hasInputFromPort1:
-           :red:`if not self.hasInputFromPort("file"):`
-               raise ModuleError(self, "Needs input file")
-           args.append(self.getInputFromPort("file").name)
-   .. _ref-packages-hasInputFromPort2:
-           :red:`if self.hasInputFromPort("rho"):`
-               args.append("-rho")
-               args.append(str(self.getInputFromPort("rho")))
-   .. _ref-packages-hasInputFromPort3:
-           :red:`if self.hasInputFromPort("eta"):`
-               args.append("-reduction")
-               args.append(str(self.getInputFromPort("eta")))
-           args.append("-outname")
-   .. _ref-packages-tfname:
-           :red:`args.append(o.name)`
-           args.append("-tri")
-           self.run(args)
-   .. _ref-packages-tfsetresult:
-           :red:`self.setResult("output", o)`
-   ...
-
 Line 5 shows how to create a temporary file
 during the execution of a pipeline. There are a few new things
 happening, so let us look at them one at a time. Every module holds a
@@ -641,11 +669,429 @@ For additional information or examples of any of the functions described above, 
 Interaction with Caching
 ========================
 
-For optimization purposes, |vistrails| caches the results of intermediate computations performed as part of a workflow. This is generally a safe practice because most computations are deterministic. However, if a module's operation includes any randomization, then its behavior will likely change with each execution of the workflow, and thus should not be cached.
+.. index::
+   pair: modules; caching
 
-The ``Module`` superclass defines a function called ``is_cacheable``, which determines whether or not a module should allow itself to be cached. The default implementation of this function returns ``True``. You can override this function in your own subclasses of ``Module``, if desired.
+VisTrails provides a caching mechanism, in which portions of pipelines that are common across different executions are automatically shared. However, some modules should not be shared. Caching control is therefore up to the package developer. By default, caching is enabled. So a developer that doesn't want caching to apply must make small changes to the module.  For example, look at the StandardOutput module:
 
-*Note: Caching is an advanced topic. Please contact the VisTrails development team if you have questions about how this applies to your own custom modules.*
+.. code-block:: python
+
+   from core.modules.vistrails_module import Module, newModule, \
+       NotCacheable, ModuleError
+   (...)
+   class StandardOutput(NotCacheable, Module):
+       """StandardOutput is a VisTrails Module that simply prints the
+       value connected on its port to standard output. It is intended
+       mostly as a debugging device."""
+    
+       def compute(self):
+           v = self.getInputFromPort("value")
+           print v
+
+By subclassing from ``NotCacheable`` and ``Module`` (or one of its subclasses), we are telling VisTrails not to cache this module, or anything downstream from it.
+
+VisTrails also allows a more sophisticated decision on whether or not to use caching. To do that, a user simply overrides the method ``is_cacheable`` to return the appropriate value (the default implementation returns ``True``).  For example, in the `teem <http://teem.sourceforge.net/>` package, there's a module that generates a scalar field with random numbers. This is non-deterministic, so shouldn't be cached. However, this module only generates non-deterministic values in special occasions, depending on its input port values. To keep efficiency when caching is possible, while still maintaining correctness, that module implements the following override:
+
+.. code-block:: python
+
+   class Unu1op(Unu):
+   (...)
+       def is_cacheable(self):
+           return not self.getInputFromPort('op') in ['rand', 'nrand']
+   (...)
+
+Notice that the module explicitly uses inputs to decide whether it should be cached. This allows reasonably fine-grained control over the process.
+
+Customizing Modules and Ports
+=============================
+
+.. index:: 
+   pair: Module registry; ``-output_ports``
+   pair: Module registry; ``_input_ports``
+   pair: Module registry; ``_modules``
+
+Here we will explore the options for registry initialization of modules and ports which was introduced in Section :ref:`sec-packages-simple_example`.  There is a new syntax for specifying modules in packages:
+
+.. code-block:: python
+   :linenos:
+
+   _modules = [MyModule1, (MyModule2, {'option_name' : 'value'})]
+
+Observe that ``_modules`` is assigned a list of modules to be registered, and module options can be provided as keyword arguments by specifying a tuple (class, kwargs).  Similarly, ports are defined by providing a list of tuples of the form (portName, portSignature, optional=False, sort_key=-1).  For example:
+
+.. code-block:: python
+   :linenos:
+
+   class MyModule(Module):
+       def compute(self):
+          pass
+
+       _input_ports = [('firstInput', String), ('secondInput', Integer, True)]
+       _output_ports = [('firstOutput', String), ('secondOutput', String)]
+
+.. index::
+   pair: port; shortcut
+
+Notice that "String" and "Integer" were used for the portSignature instead of ``edu.utah.sci.vistrails.basic:String`` and ``edu.utah.sci.vistrails.basic:Integer``.  That is because the current package, ``edu.utah.sci.vistrails.basic`` is used by default.
+
+.. topic:: Note
+
+   The old syntax (reg.add_module(...), reg.add_input_port(...), and reg.add_output_port(...)) is still supported.
+
+Configuring Modules
+^^^^^^^^^^^^^^^^^^^
+
+.. index::
+   pair: packages; modules
+   pair: modules; visibility
+   pair: modules; namespaces
+
+**Hierarchy and Visibility** There are a few options that assist in the organization and display of modules: ``namespace``,  ``abstract``, and ``hide_descriptor``.  The ``namespace`` option can be used to define a hierarchy in the module palette, which hierarchies can be nested through the use of the '|' character.  For example:
+
+.. code-block:: python
+   :linenos:
+
+   _modules = [MyModule1, (MyModule2, {'namespace': 'MyNamespace'})]
+    or
+   _modules = [MyModule1, (MyModule2, {'namespace': 'ParentNamespace|\
+               ChildNamespace'})]
+
+The other options, ``abstract`` and ``hide_descriptor`` can be used to prevent modules from appearing in the module palette.  ``Abstract`` is for use with modules that should never be instantiated in the workflow and will not add the item to the module palette.  On the other hand, ``hide-descriptor`` will add the item to the palette, but hides it.  This will prevent users from adding the module to a pipeline, but allow code to add it programmatically.  To use either of these options, ``abstract`` or ``hide_descriptor``, set it to ``True``:
+
+.. code-block:: python
+   :linenos:
+
+   _modules = [AnotherModule, (InvisibleModule, {'abstract': True})]
+    or
+   _modules = [AnotherModule, (InvisibleModule, {'hide-descriptor': True})]
+
+.. index::
+   pair: modules; shape
+   pair: modules; color
+
+**Defining Module Shapes and Colors**  VisTrails allows users to define custom colors and shapes to modules. This must be done at module registration time, by using the ``moduleColor`` and ``moduleFringe`` options. For example:
+
+.. code-block:: python
+
+   _modules = [(Afront, {'moduleColor' : (1.0, 0.0, 0.0), 
+                         'moduleFringe' : [(0.0, 0.0),
+                                           (0.2, 0.0),
+                                           (0.2, 0.4),
+                                           (0.0, 0.4),
+                                           (0.0, 1.0)]})]
+  
+.. reg.addModule(Afront,
+                 moduleColor=(1.0,0.0,0.0),
+                 moduleFringe=[(0.0, 0.0),
+                               (0.2, 0.0),
+                               (0.2, 0.4),
+                               (0.0, 0.4),
+                               (0.0, 1.0)])
+
+gives:
+
+.. figure:: figures/packages/CustomColorShape1.png
+   :align: center
+   :width: 5in
+
+and
+
+.. code-block:: python
+
+   _modules = [(Afront, {'moduleColor': (0.4,0.6,0.8),
+                         'moduleFringe' : [(0.0, 0.0),
+                                           (0.2, 0.0),
+                                           (0.0, 0.2),
+                                           (0.2, 0.4),
+                                           (0.0, 0.6),
+                                           (0.2, 0.8),
+                                           (0.0, 1.0)]})]
+
+..   reg = core.modules.module_registry
+..   reg.addModule(Afront,
+                 moduleColor=(0.4,0.6,0.8),
+                 moduleFringe=[(0.0, 0.0),
+                               (0.2, 0.0),
+                               (0.0, 0.2),
+                               (0.2, 0.4),
+                               (0.0, 0.6),
+                               (0.2, 0.8),
+                               (0.0, 1.0)])
+
+gives:
+
+.. figure:: figures/packages/CustomColorShape2.png
+   :align: center
+   :width: 5in
+
+The moduleColor parameter must be a tuple of three floats between 0 and 1 that specify RGB colors for the module background, while moduleFringe is a list of pairs of floats that specify points as they go around a side of the module (the same one is used to go from the top-right corner to bottom-right corner, and from the bottom-left corner to the top-left one. If this is not enough, let the developers know!)
+
+Alternatively, you can use different fringes for the left and right borders:
+
+.. code-block:: python
+
+   _modules = [(Afront, {'moduleColor': (1.0,0.8,0.6),
+                         'moduleLeftFringe' : [(0.0, 0.0),
+                                               (-0.2, 0.0),
+                                               (0.0, 1.0)],
+                         'moduleRightFringe' : [(0.0, 0.0),
+                                                (0.2, 1.0),
+                                                (0.0, 1.0)]})]
+
+
+..   reg.addModule(Afront,
+                 moduleColor=(1.0,0.8,0.6),
+                 moduleLeftFringe=[(0.0, 0.0),
+                                   (-0.2, 0.0),
+                                   (0.0, 1.0)],
+                 moduleRightFringe=[(0.0, 0.0),
+                                    (0.2, 1.0),
+                                    (0.0, 1.0)])
+
+.. figure:: figures/packages/CustomColorShape3.png
+   :align: center
+   :width: 5in
+
+Configuring Ports
+^^^^^^^^^^^^^^^^^
+
+.. index::
+   pair: packages; ports
+   pair: ports; default values
+   pair: ports; labels
+
+**Default Values and Labels** In versions 1.4 and greater, package developers can add labels and default values for parameters. To add this functionality, you need to use the defaults and labels keyword arguments and pass the values as strings. For example,
+
+.. code-block:: python
+   :linenos:
+
+   class TestDefaults(Module):
+      _input_ports = [('f1', '(edu.utah.sci.vistrails.basic:Float, \
+                               edu.utah.sci.vistrails.basic:String)',
+                       {"defaults": str([1.23, "abc"]), 
+                        "labels": str(["temp", "name"])})]
+   _modules = [TestDefaults]
+
+or in the older syntax,
+
+.. code-block:: python
+   :linenos:
+
+   def initialize():
+     reg = core.modules.module_registry.get_module_registry()
+     reg.add_module(TestDefaults)
+     reg.add_input_port(TestDefaults, "f1", [Float, String], 
+                        defaults=str([1.23, "abc"]), 
+                        labels=str(["temp", "name"]))
+
+.. index::
+   pair: ports; optional
+
+**Making a Port Optional**  To add a port that is optional, simply set optional to true:
+
+.. code-block:: python
+   :linenos:
+
+   _input_ports = [('MyPort', '(edu.utah.sci.vistrails.basic:String)',
+                       {"optional": True})]
+
+   reg.add_input_port(MyModule, "MyPort", 
+                      (edu.utah.sci.vistrails.basic:String, 'MyPort Name'), 
+                      optional=True)
+
+
+.. index::
+   pair: ports; multiple inputs
+
+**Multiple Inputs** For compatibility reasons, we do need to allow multiple connections to an input port. However, most package developers should never have to use this, and so we do our best to hide it. the default behavior for getting inputs from a port, then, is to always return a single input.
+
+If on your module you need multiple inputs connected to a single port, use the 'forceGetInputListFromPort' method. It will return a list of all the data items coming through the port. The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
+
+.. index::
+   pair: ports; port types
+
+**Port Types** To define ports to be of types that are not imported into the package, pass and identifier string as the portSignature:
+
+.. code-block:: python
+   :linenos:
+
+   <module_string> := <package_identifier>:[<namespace>|]<module_name>,
+   <port_signature> := (<module_string>*)
+
+For example,
+
+.. code-block:: python
+
+   registry.add_input_port(MyModule, 'myInputPort', \
+                           '(edu.utah.sci.vistrails.basic:String)')
+
+or
+
+.. code-block:: python
+
+   _input_ports = [('myInputPort', '(edu.utah.sci.vistrails.basic:String)')]
+
+.. index::
+   pair: ports; input dependency
+
+**Varying Output According to the Input** There are a few ways to tackle this - each has it's own benefits and pitfalls. Firstly, module connections do respect class hierarchies as we're familiar with in object oriented languages. For instance, A module can output a Constant of which String, Float, Integer, etc are specifications. In this way, you can have a subclass of something like MyData be passed out of the module and the connections will be established regardless of the sub-type. This is a bit dangerous though. Modules downstream of such a class may not really know how to operate on certain types derived from the super-class. Extreme care must be taken both when creating the modules as well as connecting them to prevent things like this from happening.
+
+A second method that is employed in several different packages is the idea of a container class. For instance, the NumSciPy package uses a relatively generic container "Numpy Array" to encapsulate the data. Of course, these encapsulating objects can store dictionaries that other modules can easily access and understand how to operate on. Although this method is slightly more work, the benefits of a stricter typing of ports is beneficial - particularly upon interfacing with other packages that may depend on strongly typed constants (for example).
+
+.. index::
+   pair: ports; module connectivity
+
+**Determining Whether or Not a Module is Attached to an Output Port** The outputPorts dictionary of the base Module stores connection information. Thus, you should be able to check
+
+``("myPortName" in self.outputPorts)``
+
+on the parent module to check if there are any downstream connections from the port "myPortName". This might be used, for example, to only set results for output ports that will be used. **Note**, however, that the caching algorithm assumes that all outputs are set so adding a new connection to a previously unconnected output port will not work as desired if that module is cached. For this reason, I would currently recommend making such a module not cacheable. Another possibility is overriding the update() method to check the outputPorts and set the upToDate flag if they are not equal. In a single, limited test, this seemed to work, but be warned that it is not fully tested. Here is an example:
+
+.. code-block:: python
+   :linenos:
+
+   class TestModule(Module):
+       _output_ports = [('a1', '(edu.utah.sci.vistrails.basic:String)'),
+                        ('a2', '(edu.utah.sci.vistrails.basic:String)')]
+       def __init__(self):
+           Module.__init__(self)
+           self._cached_output_ports = set()
+    
+       def update(self):
+           if len(set(self.outputPorts) - self._cached_output_ports) > 0:
+               self.upToDate = False
+           Module.update(self)
+    
+       def compute(self):
+           if "a1" in self.outputPorts:
+               self.setResult("a1", "test")
+           if "a2" in self.outputPorts:
+               self.setResult("a2", "test2")
+           self._cached_output_ports = set(self.outputPorts)
+
+Generating Modules Dynamically
+==============================
+
+.. index::
+  pair: modules; dynamic
+
+When wrapping existing libraries or trying to generate modules in a more procedural manner, it is useful to dynamically generate modules. In our work, we have created some shortcuts to make this easier. In addition, the list of modules can also be based on the package configuration. Here is some example code:
+
+**__init__.py**
+
+.. code-block:: python
+   :linenos:
+
+   from core.configuration import ConfigurationObject
+ 
+   identifier = "edu.utah.sci.dakoop.auto_example"
+   version = "0.0.1"
+   name = "AutoExample"
+ 
+   configuration = ConfigurationObject(use_b=True)
+
+**init.py**
+
+The expand_ports and build_modules methods are functions to help the construction of the modules easier. The key parts are the new_module call and setting the _modules variable.
+
+.. code-block:: python
+   :linenos:
+
+   from core.modules.vistrails_module import new_module, Module
+ 
+   identifier = "edu.utah.sci.dakoop.auto_example"
+ 
+   def expand_ports(port_list):
+       new_port_list = []
+       for port in port_list:
+           port_spec = port[1]
+           if type(port_spec) == str: # or unicode...
+               if port_spec.startswith('('):
+                   port_spec = port_spec[1:]
+               if port_spec.endswith(')'):
+                   port_spec = port_spec[:-1]
+               new_spec_list = []
+               for spec in port_spec.split(','):
+                   spec = spec.strip()
+                   parts = spec.split(':', 1)
+                   print 'parts:', parts
+                   namespace = None
+                   if len(parts) > 1:
+                       mod_parts = parts[1].rsplit('|', 1)
+                       if len(mod_parts) > 1:
+                           namespace, module_name = mod_parts
+                       else:
+                           module_name = parts[1]
+                       if len(parts[0].split('.')) == 1:
+                           id_str = 'edu.utah.sci.vistrails.' + parts[0]
+                       else:
+                           id_str = parts[0]
+                   else:
+                       mod_parts = spec.rsplit('|', 1)
+                       if len(mod_parts) > 1:
+                           namespace, module_name = mod_parts
+                       else:
+                           module_name = spec
+                       id_str = identifier
+                   if namespace:
+                       new_spec_list.append(id_str + ':' + module_name + \
+                                            ':' + namespace)
+                   else:
+                       new_spec_list.append(id_str + ':' + module_name)
+               port_spec = '(' + ','.join(new_spec_list) + ')'
+           new_port_list.append((port[0], port_spec) + port[2:])
+       print new_port_list
+       return new_port_list
+ 
+   def build_modules(module_descs):
+       new_classes = {}
+       for m_name, m_dict in module_descs:
+           m_doc = m_dict.get("_doc", None)
+           m_inputs = m_dict.get("_inputs", [])
+           m_outputs = m_dict.get("_outputs", [])
+           if "_inputs" in m_dict:
+               del m_dict["_inputs"]
+           if "_outputs" in m_dict:
+               del m_dict["_outputs"]
+           if "_doc" in m_dict:
+               del m_dict["_doc"]
+           klass_dict = {}
+           if "_compute" in m_dict:
+               klass_dict["compute"] = m_dict["_compute"]
+               del m_dict["_compute"]
+           m_class = new_module(Module, m_name, klass_dict, m_doc)
+           m_class._input_ports = expand_ports(m_inputs)
+           m_class._output_ports = expand_ports(m_outputs)
+           new_classes[m_name] = (m_class, m_dict)
+       return new_classes.values()
+ 
+   def initialize():
+       global _modules
+       def a_compute(self):
+           a = self.getInputFromPort("a")
+           i = 0
+           if self.hasInputFromPort("i"):
+               i = self.getInputFromPort("i")
+           if a == "abc":
+               i += 100
+           self.setResult("b", i)
+ 
+       module_descs = [("ModuleA", {"_inputs": [("a", "basic:String")],
+                                    "_outputs": [("b", "basic:Integer")],
+                                    "_doc": "ModuleA documentation",
+                                    "_compute": a_compute,
+                                    "namespace": "Test"}),
+                       ("ModuleB", {"_inputs": [("a", "Test|ModuleA")],
+                                    "_outputs": [("b", "Test|ModuleA")],
+                                    "_doc": "ModuleB documentation"})
+                     ]
+ 
+       if configuration.use_b:
+           _modules = build_modules(module_descs)
+       else:
+           _modules = build_modules(module_descs[:1])
+ 
+   _modules = []
 
 For System Administrators
 =========================

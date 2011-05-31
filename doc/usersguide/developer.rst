@@ -11,4 +11,4 @@ Developer's Guide
    batch
    log
    example_itk
-   controlflow
+   controlflowdev

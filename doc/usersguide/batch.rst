@@ -149,6 +149,18 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
    -f *dbName*, --db=\ *dbName*, Set database name.
    -u *userName*, --user=\ *userName*, Set database username.
 
+.. index:: configuration directory
+
+Specifying a User Configuration Directory
+=========================================
+
+In addition to the default .vistrails directory, VisTrails allows you to create and use additional configuration directories.  First, you will need to create a new directory.  This is done by running:
+ ``python vistrails.py -S /path_to_new_directory/new_directory_name``.  
+
+This will both create a new directory containing default configuration files and directories, and launch VisTrails, which will use the newly created files for configuration.  The user is then free to add desired configurations to the new directory.  Once a configuration directory exists, subsequent calls using the directory name (``python vistrails.py -S /path_to_directory/existing_directory``) will launch VisTrails using the 'existing_directory' for configuration and a new directory will not be created.
+
+**Note:** If you would like to copy configuration directories, you must change the references in copy_of_directory/startup.xml to point to the new directory instead of the original.
+
 .. _sec-cli-db:
 
 Passing Database Parameters on the Command Line
@@ -281,7 +293,7 @@ The VisTrails server can only execute pipelines in parallel if there's more than
 
 ``self.rpcserver=ThreadedXMLRPCServer((self.temp_xml_rpc_options.server, self.temp_xml_rpc_options.port))``
 
-starts a multithreaded version of the XML-RPC server, so it will create a thread for each request received by the server. The problem is that Qt/PyQT doesn't allow these multiple threads create GUI objects, only in the main thread. To overcome this limitation, the multithreaded version can instantiate other single threaded versions of VisTrails and put them in a queue, so workflow executions and other GUI-related requests, such as generating workflow graphs and history trees can be forwarded to this queue, and each instance takes turns in answering the request. If the results are in the cache, the multithreaded version answers the requests directly.
+starts a multithreaded version of the XML-RPC server, so it will create a thread for each request received by the server. The problem is that Qt/PyQT doesn't allow these multiple threads to create GUI objects.  Only the main thread can. To overcome this limitation, the multithreaded version can instantiate other single threaded versions of VisTrails and put them in a queue, so workflow executions and other GUI-related requests, such as generating workflow graphs and history trees can be forwarded to this queue, and each instance takes turns in answering the request. If the results are in the cache, the multithreaded version answers the requests directly.
 
 Note that this infrastructure works on Linux only. To make this work on Windows, you have to create a script similar to start_vistrails_xvfb.sh (located in the scripts folder) where you can send the number of other instances via command-line options to VisTrails. The command line options are:
 
@@ -290,6 +302,40 @@ Note that this infrastructure works on Linux only. To make this work on Windows,
 If you want the main vistrails instance to be multithreaded, use the -M at the end.
 
 After creating this script, update function start_other_instances in vistrails/gui/application_server.py lines 1007-1023 and set the script variable to point to your script. You may also have to change the arguments sent to your script (line 1016: for example, you don't need to set a virtual display). You will need to change the path to the stop_vistrails_server.py script (on line 1026) according to your installation path.
+
+Finding Methods Via the Command Line
+====================================
+
+We have tried to make some methods more accessible in the console via an api. You can import the api via import api in the console and see the available methods with dir(api). To open a vistrail:
+
+.. code-block:: python
+
+   import api
+   api.open_vistrail_from_file('/Applications/VisTrails/examples/terminator.vt')
+
+To execute a version of a workflow, you currently have to go through the controller:
+
+.. code-block:: python
+
+   api.select_version('Histogram')
+   api.get_current_controller().execute_current_workflow()
+
+Currently, only a subset of VisTrails functionality is directly available from the api. However, since VisTrails is written in python, you can dig down starting with the VistrailsApplication or controller object to expose most of our internal methods. If you have suggestions for calls to be added to the api, please let us know.
+
+One other feature that we're working on, but is still in progress is the ability to construct workflows via the console. For example:
+
+.. code-block:: python
+
+   vtk = load_package('edu.utah.sci.vistrails.vtk')
+   vtk.vtkDataSetReader() # adds a vtkDataSetReader module to the pipeline
+   # click on the new module
+   a = selected_modules()[0] # get the one currently selected module
+   a.SetFile('/vistrails/examples/data/head120.vtk') # sets the SetFile\  
+                    parameter for the data set reader
+   b = vtk.vtkContourFilter() # adds a vtkContourFilter module to the\
+                    pipeline and saves to var b
+   b.SetInputConnection0(a.GetOutputPort0()) # connects a's GetOutputPort0\
+                    port to b's SetInputConnection0
 
 .. rubric:: Footnotes
 .. [#] The parameter "-b" stands for "batch." In this chapter, we use the terms "batch mode" and "non-interactive mode" synonymously.
