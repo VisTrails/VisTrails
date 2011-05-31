@@ -1,3 +1,22 @@
+#################
+Preliminary Pages
+#################
+
+.. toctree::
+   :maxdepth: 1
+
+   preface
+
+############################
+An Introduction to VisTrails
+############################
+
+.. toctree::
+   :maxdepth: 2
+
+   intro2
+   getting_started
+
 #############################
 Learning VisTrails By Example
 #############################

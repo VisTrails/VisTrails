@@ -54,14 +54,11 @@ the installation wizard to complete the installation process.
 Installing |vistrails| on Mac OS X
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install |vistrails| on Mac~OS~X, download the installation bundle
-for Windows from the |vistrails| website:
+To install |vistrails| on Mac OS X, download the installation bundle
+for Mac from the |vistrails| website:
 http://www.vistrails.org. The precompiled binary currently only
-supports Mac OS X 10.5.x or higher. Double click the file to
-uncompress it --- or, depending on your browser settings,
-uncompression may happen automatically
-(Figure :ref:`fig-start-mac_installation`). Once uncompression has
-completed, drag the |vistrails| desktop icon to the Applications
+supports Mac OS X 10.5.x or higher. The disk image should be mounted automatically
+(Figure :ref:`fig-start-mac_installation`). Once the disk image is mounted, drag the |vistrails| folder to the Applications
 folder to install the software.
 
 .. _fig-start-mac_installation:
@@ -70,7 +67,7 @@ folder to install the software.
    :width: 5in
    :align: center
 
-   Uncompressing the |vistrails| bundle on Mac OS X.
+   Installing |vistrails| on Mac OS X.
    
 .. _sec-binary_installation_ubuntu:
 
@@ -151,34 +148,27 @@ enabled by default.)
 
 .. _fig-start-toolbar:
 
-.. figure:: /figures/getting_started/toolbar-left.png  
+.. figure:: /figures/getting_started/toolbar.png  
    
-   (see Section :ref:`sec-start-file`)
-   
-.. figure:: /figures/getting_started/toolbar-center-left.png  
-
-   (see Section :ref:`sec-start-interact`)
-
-.. figure:: /figures/getting_started/toolbar-center-right.png  
-   
-   (see Chapters :ref:`chap-creating`, :ref:`chap-version_tree`, :ref:`chap-querying`, :ref:`chap-paramexploration`)
-
-.. figure:: /figures/getting_started/toolbar-right.png
-
-   (see Section :ref:`sec-start-interact`)
+   |vistrails| Toolbar
 
 .. index:: toolbar
 
-The |vistrails| toolbar serves to help you navigate
-the various modes and functions |vistrails| provides.  As illustrated
-by Figure :ref:`fig-start-toolbar`, the left side of the toolbar
-contains standard file manipulation buttons, and the next section
-provides buttons for execution and undo/redo functionality.  The four
-buttons in the third section serve to switch between different modes
-to manipulate, query, and explore workflows.  The right-most buttons
-allow you to toggle between different ways of navigating around
-the current canvas.
+The |vistrails| toolbar both allows you to execute the current workflow or function, and switch between various modes.  A brief description of each member of the toolbar follows:
 
+**Execute** ``Execute`` will either execute the current pipeline when the ``Pipeline``, ``History``, or ``Provenance`` views are selected, or perform the search or exploration when in ``Search`` or ``Exploration`` mode.  This button is disabled for ``Mashup`` mode, or when there is not a current workflow to execute.
+
+**Pipeline** This view shows the current workflow.  See Chapter :ref:`chap-creating` for information about creating a workflow.
+
+**History** This view shows different versions of the workflow(s) as it has  progressed over time.  See Chapter :ref:`chap-version_tree`.
+
+**Search** Use this mode to search for modules or subpipeline within the current version, the current vistrail, or all vistrails.  See Chapter :ref:`chap-querying`.
+
+**Explore** This option allows you to select one or more parameter(s) for which a set of values is created.  The workflow is then executed once for each value in the set and displayed in the spreadsheet for comparison purposes.  See Chapter :ref:`chap-paramexploration`.
+
+**Provenance** The ``Provenance`` mode shows the user a given VisTrail's execution history.  When a particular execution is selected, its pipeline view with modules colored according to its associated execution result is shown.  See Chapter :ref:`chap-provenance_browser`.
+
+**Mashup** :ref:`chap-mashups`
 
 .. _sec-start-file:
 

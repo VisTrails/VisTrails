@@ -30,7 +30,7 @@ As a running example in this chapter, we will make some changes to the
 
 .. topic:: Try it now!
 
-   Open the "vtk\_book\_3rd\_p189.vt" vistrail, either by selecting ``File`` :math:`\rightarrow` ``Open`` from the menu, or by clicking the ``Open`` button on the toolbar. After opening this vistrail, click on the ``Pipeline`` toolbar button to enter workflow editing mode.
+   Open the "vtk\_book\_3rd\_p189.vt" vistrail, either by selecting ``File`` :math:`\rightarrow` ``Open`` from the menu, or by clicking the ``Open`` button on the toolbar. After opening this vistrail, select the version labeled ``final``, then click on the ``Pipeline`` toolbar button to enter workflow editing mode.
 
 Adding and Deleting Modules
 ===========================
@@ -53,7 +53,7 @@ the ``Module`` container to the workflow canvas.
 .. _fig-pipeline_screenshot:
 
 .. figure:: /figures/creating/pipeline_screenshot_labeled.png
-   :width: 4 in
+   :width: 5 in
    :align: center
 
    The main |vistrails| Pipeline user interface. The major components are labeled.
@@ -140,25 +140,14 @@ Changing Module Parameters
    single: methods
 
 The parameters for a module can be accessed in the
-``Methods`` container located on the right side of the
-Builder window.  When a module is selected from the canvas, the corresponding
-methods are displayed.  As with the ``Modules`` container, a
-search box is provided to quickly find a desired method.  By default,
-the Builder only manages methods with "set parameters."  To check the
-set parameters, a ``Set Methods`` container is available
-below the ``Methods`` container.  Changing a parameter can
-be performed directly in the
-``Set Methods`` container.  To set a parameter for the first
-time, click on the corresponding method and drag it into the
-``Set Methods`` container, then enter the parameters directly
-into the text boxes.  To remove a method, simply select the
-method in the ``Set Methods`` container and press
-the 'Delete' key.
+``Module Information`` tab located on the right side of the
+Builder window.  When a module on the canvas is selected, the corresponding
+module information is displayed.  The ``Inputs``, ``Outputs``, and ``Annotations`` tabs can be selected to set parameters within the respective categories.  To set a parameter, simply click on its name to reveal its input box and enter the desired value.  Notice that a ``-`` and ``+`` button appears to the left of the input box.  The ``-`` button removes the corresponding input box and the ``+`` button adds one.  This allows you to experiment with different values, but only the values in the last box are used in the final result.  
 
 .. _fig-parameter_changes:
 
 .. figure:: figures/creating/change_parameter_interface1.png
-   :height: 1.5in
+   :height: 2.5in
    :align: center
 
    The module methods interface is shown with a change of the ``SetRadius`` parameter to 1.0.
@@ -170,7 +159,7 @@ the 'Delete' key.
    The results of the changes are displayed on execution.
 
 .. figure:: figures/creating/change_parameter_interface2.png
-   :height: 1.5in
+   :height: 2.5in
    :align: center
 
    The module methods interface is shown with a change of the ``SetRadius`` parameter to 0.25.
@@ -183,15 +172,15 @@ the 'Delete' key.
 
 .. topic:: Try it now!
 
-   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  The methods are shown hierarchically in the ``Methods`` container.  Find the ``SetRadius`` method and select it, then drag the highlighted text from the ``Methods`` container into the ``Set Methods`` container below.  The result is a ``SetRadius`` box with a ``Float`` text input.  Enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
+   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  Select ``SetRadius``, enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
 
-Changing Module Labels
-======================
+Configuring Module Labels
+=========================
 
 .. index::
-  pair: modules; labels
+   pair: modules; labels
 
-A new label can be assigned to a module by selecting the triangle in its top right corner to open a popup menu and selecting the ``Set Module Label...`` menu item. You will then be prompted to enter the new label.  The new label will be displayed in the prominent position and the original module name will be displayed below it in parenthesis.
+To give the module a custom name, enter it in the ``Module Information`` tab's ``Name`` box.  The modules name will be displayed with the original module name(type) displayed in parenthesis below it.
 
 Configuring Module Ports
 ========================
@@ -203,38 +192,30 @@ Configuring Module Ports
 
 For convenience, all the inputs and outputs of a module are not always
 shown in the canvas as ports.  The ports that are shown by default are
-defined using an option when defining the method signatures of a
-package.  To access the full list of ports, the module configuration
-window is used.  This is opened by selecting the triangle at the top
-right of a module to open a popup menu and selecting
-the ``Edit Configuration`` menu item,
-or alternatively by
-pressing 'Ctrl-E' when a module is selected. The window shows a
-list of input and output ports and allows you to toggle any
-additional ports to enable.  When the configuration is complete, the
-new ports will appear on a module with a circle icon instead of the
-normal square.  These new ports can then be used for connections in
-the same way as the others.
+defined with the method signatures of a package.  A full list of ports is available in the ``Module Configuraton`` window, which is accessed by clicking on the ``Configure`` button in the module information tab or pressing 'Ctrl-E' when a module is selected.  Alternatively, module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs of the ``Module Information`` tab (see Figure :ref:`Enabling <fig-enabling_ports>`).  When enabled, an eye icon will appear to the left of the port name.  New ports will appear on the module with a circle icon instead of a square to signify that they are not visible by default, but can be connected in the same way as the others.
 
-.. %TODO screenshot!
+.. _fig-enabling_ports:
+
+.. figure:: figures/creating/enabling_ports.png
+   :align: center
+
+Enabling the EvaluateGradient port from the ``Module Information`` tab.
 
 .. _fig-module_configuration:
 
 .. figure:: figures/creating/standard_output_module.png
-   :height: 1.5in
+   :height: 1.3 in
    :align: center
 
    The ``vtkCylinder`` module is configured to show an additional ``GetRadius`` port, which is then connected to a ``StandardOutput`` module.
 
-.. figure:: figures/creating/module_configuration.png
-   :height: 1.5in
-   :align: center
 
-   The module configuration window allows the hidden ports to be displayed.
+
+.. %TODO module_configuration.png should be changed to reflect v2.0.  Caption: The module configuration window allows the hidden ports to be displayed.
 
 .. topic:: Try it now!
 
-   As an example of configuring a module port, select the ``vtkCylinder`` module in the canvas and press 'Ctrl-E'.  In the newly opened configuration window, check the box for the ``GetRadius`` port, then click ``OK`` to close the window.  A new circle port should appear on the module.  Next, add a new ``StandardOutput`` module from the basic modules and connect the output port for ``GetRadius`` to the input port of ``StandardOutput``.  Upon execution, the value 0.25 is now output to the console.  Figure :ref:`fig-module_configuration` shows the new workflow together with the module configuration window.
+   As an example of configuring a module port, select the ``vtkCylinder`` module in the canvas, select ``Outputs`` from the ``Module Information`` tab, and click in the left margin next to GetRadius (see Figure :ref:`Enabling <fig-enabling_ports>`). A new circle port should appear on the module.  Next, add a new ``StandardOutput`` module from the basic modules and connect the output port for ``GetRadius`` to the input port of ``StandardOutput``.  Upon execution, the value 0.25 is now output to the console.  Figure :ref:`The vtkCylinder Module <fig-module_configuration>` shows the new workflow.
 
 .. _sec-creating-grouping:
 

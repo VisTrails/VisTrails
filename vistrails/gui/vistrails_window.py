@@ -39,6 +39,8 @@ import core.system
 from core.system import vistrails_default_file_type
 from core.vistrail.vistrail import Vistrail
 from core.thumbnails import ThumbnailCache
+from core.collection import Collection
+from core import debug
 
 from gui.application import VistrailsApplication
 from gui.preferences import QPreferencesDialog
@@ -430,8 +432,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.current_view = new_view
             if new_view is not None:
                 self.notify('controller_changed', new_view.get_controller())
-            from gui.collection.workspace import QWorkspaceWindow
-            QWorkspaceWindow.instance().change_vt_window(new_view)
 
         if new_view is not None:
             if self.current_view.has_changes():
@@ -447,6 +447,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.qactions['saveFileAs'].setEnabled(False)
             self.qactions['closeVistrail'].setEnabled(False)
 
+        from gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().change_vt_window(new_view)
         self.update_merge_menu()
         self.set_name()
 
@@ -538,6 +540,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             view.version_view.zoomToFit()
             if version:
                 view.version_selected(version, True, double_click=True)
+            view.controller.set_changed(False)
             # self.window_changed(window)
             # result = self.set_vistrail_view(vistrail, locator, 
             #                                 abstraction_files, thumbnail_files,
@@ -550,6 +553,34 @@ class QVistrailsWindow(QtGui.QMainWindow):
             # debug.critical('An error has occurred', str(e))
             print "An error has occurred", str(e)
             raise
+        # update collection
+        try:
+            if not locator:
+                return
+            thumb_cache = ThumbnailCache.getInstance()
+            view.controller.vistrail.thumbnails = \
+                view.controller.find_thumbnails(
+                    tags_only=thumb_cache.conf.tagsOnly)
+            view.controller.vistrail.abstractions = \
+                view.controller.find_abstractions(view.controller.vistrail, 
+                                                  True)
+
+            collection = Collection.getInstance()
+            url = locator.to_url()
+            # create index if not exist
+            entity = collection.fromUrl(url)
+            if entity:
+                # find parent vistrail
+                while entity.parent:
+                    entity = entity.parent 
+            else:
+                entity = collection.updateVistrail(url, 
+                                                   view.controller.vistrail)
+            # add to relevant workspace categories
+            collection.add_to_workspace(entity)
+            collection.commit()
+        except Exception, e:
+            debug.critical('Failed to index vistrail', str(e))
 
 
     def open_vistrail_from_locator(self, locator_class):
@@ -1818,9 +1849,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
         vistrail.set_defaults()
         self.create_view(vistrail, None)
         self.current_view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
-        self.current_view.controller.changed = True
-        self.set_name()
-        self.current_view.stateChanged()
+#        self.current_view.controller.changed = True
+#        self.set_name()
+        self.current_view.controller.setChanged(True)
         self.qactions['history'].trigger()
 
         

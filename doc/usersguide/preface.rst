@@ -1,8 +1,10 @@
+
+
 *******
 Preface
 *******
 
-Welcome to the *VisTrails User's Guide*. This book has been updated for version 1.6.2 of the VisTrails software.
+Welcome to the *VisTrails User's Guide*. This book has been updated for version 2.0.0 of the VisTrails software.
 
 VisTrails is a new scientific workflow management system developed at the University of Utah that provides support for data exploration and visualization. For an engineer or scientist, generating and evaluating hypotheses is an interactive process. With each change, a different, albeit related, workflow is created. VisTrails was designed to manage these rapidly-evolving workflows. By automatically managing the data, metadata, and the data exploration process, VisTrails allows you to focus on the task at hand and relieves you from tedious and time-consuming tasks involved in organizing vast volumes of data. VisTrails provides infrastructure that can be combined with and enhance existing visualization and workflow systems.
 
@@ -12,13 +14,13 @@ VisTrails community. The easiest way to get started is to sign up for
 the VisTrails Users mailing list. Instructions for doing this can be
 found on the VisTrails web site: www.vistrails.org.
 
-This book is divided into three parts. The first part, :doc:`Introduction
+This book is divided into four parts. The first part, :doc:`Introduction
 to VisTrails </intro>`, provides instructions on how to download and install
 the VisTrails software, and introduces you to its user interface. The
 second and longest part, "Learning VisTrails by Example," consists
 of a number of tutorial chapters that guide you, step by step, through
 the features of VisTrails. We encourage you to try out these examples
-for yourself as you read this book. The third and final part is the
+for yourself as you read this book. The third part provides information on additional features and packages.  The forth and final part is the
 "Developer's Guide" and is intended for programmers who wish to add
 new features, packages, and modules to VisTrails.
 

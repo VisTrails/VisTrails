@@ -149,6 +149,18 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
    -f *dbName*, --db=\ *dbName*, Set database name.
    -u *userName*, --user=\ *userName*, Set database username.
 
+.. index:: configuration directory
+
+Specifying a User Configuration Directory
+=========================================
+
+In addition to the default .vistrails directory, VisTrails allows you to create and use additional configuration directories.  First, you will need to create a new directory.  This is done by running:
+ ``python vistrails.py -S /path_to_new_directory/new_directory_name``.  
+
+This will both create a new directory containing default configuration files and directories, and launch VisTrails, which will use the newly created files for configuration.  The user is then free to add desired configurations to the new directory.  Once a configuration directory exists, subsequent calls using the directory name (``python vistrails.py -S /path_to_directory/existing_directory``) will launch VisTrails using the 'existing_directory' for configuration and a new directory will not be created.
+
+**Note:** If you would like to copy configuration directories, you must change the references in copy_of_directory/startup.xml to point to the new directory instead of the original.
+
 .. _sec-cli-db:
 
 Passing Database Parameters on the Command Line
@@ -281,7 +293,7 @@ The VisTrails server can only execute pipelines in parallel if there's more than
 
 ``self.rpcserver=ThreadedXMLRPCServer((self.temp_xml_rpc_options.server, self.temp_xml_rpc_options.port))``
 
-starts a multithreaded version of the XML-RPC server, so it will create a thread for each request received by the server. The problem is that Qt/PyQT doesn't allow these multiple threads create GUI objects, only in the main thread. To overcome this limitation, the multithreaded version can instantiate other single threaded versions of VisTrails and put them in a queue, so workflow executions and other GUI-related requests, such as generating workflow graphs and history trees can be forwarded to this queue, and each instance takes turns in answering the request. If the results are in the cache, the multithreaded version answers the requests directly.
+starts a multithreaded version of the XML-RPC server, so it will create a thread for each request received by the server. The problem is that Qt/PyQT doesn't allow these multiple threads to create GUI objects.  Only the main thread can. To overcome this limitation, the multithreaded version can instantiate other single threaded versions of VisTrails and put them in a queue, so workflow executions and other GUI-related requests, such as generating workflow graphs and history trees can be forwarded to this queue, and each instance takes turns in answering the request. If the results are in the cache, the multithreaded version answers the requests directly.
 
 Note that this infrastructure works on Linux only. To make this work on Windows, you have to create a script similar to start_vistrails_xvfb.sh (located in the scripts folder) where you can send the number of other instances via command-line options to VisTrails. The command line options are:
 

@@ -26,6 +26,7 @@ from PyQt4 import QtCore, QtGui
 
 from core.collection import Collection
 from core.db.locator import untitled_locator
+from core import debug
 from core.debug import critical
 from core.system import vistrails_default_file_type
 from core.thumbnails import ThumbnailCache
@@ -506,6 +507,7 @@ class QVistrailView(QtGui.QWidget):
         view.set_controller(self.controller)
         view.set_diff(version_a,version_b)
         self.switch_to_tab(-1)
+        view.scene().fitToView(view, True)
 
     def save_vistrail(self, locator_class, force_choose_locator=False):
         """
@@ -534,13 +536,13 @@ class QVistrailView(QtGui.QWidget):
         # if couldn't get one, ignore the request
         if not locator:
             return False
-        # update collection
         try:
             self.controller.write_vistrail(locator)
         except Exception, e:
             critical('An error has occurred', str(e))
             raise
             return False
+        # update collection
         try:
             thumb_cache = ThumbnailCache.getInstance()
             self.controller.vistrail.thumbnails = \
@@ -568,7 +570,7 @@ class QVistrailView(QtGui.QWidget):
             critical('Failed to index vistrail', str(e))
 
         # update name
-        self.set_name()
+#        self.set_name()
         from gui.vistrails_window import _app
         _app.view_changed(self)
         return locator
