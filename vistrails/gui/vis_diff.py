@@ -265,7 +265,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         QtGui.QWidget.__init__(self, parent)
 
         self.controller = None
-        self.set_title("Diff Properites")
+        self.set_title("Diff Properties")
  
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
