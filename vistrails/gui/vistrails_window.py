@@ -553,19 +553,19 @@ class QVistrailsWindow(QtGui.QMainWindow):
             collection = Collection.getInstance()
             url = locator.to_url()
             # create index if not exist
-            entity = collection.fromUrl(url)
-            if entity:
+#            entity = collection.fromUrl(url)
+#            if entity:
                 # find parent vistrail
-                while entity.parent:
-                    entity = entity.parent 
-            else:
-                entity = collection.updateVistrail(url, 
-                                                   view.controller.vistrail)
+#                while entity.parent:
+#                    entity = entity.parent
+#            else:
+            entity = collection.updateVistrail(url, view.controller.vistrail)
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            debug.critical('Failed to index vistrail', str(e))
+            import traceback
+            debug.critical('Failed to index vistrail', traceback.print_exc())
 
 
     def open_vistrail_from_locator(self, locator_class):

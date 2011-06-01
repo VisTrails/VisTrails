@@ -89,12 +89,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
         print 'item_selected'
         locator = widget_item.entity.locator()
         print "locator", locator
-        print '*** opening'
-        print locator.to_url()
-        print locator.name
-        print '***'
         import gui.application
-        locator.update_from_gui(self)
 #        if not locator.is_valid():
 #            debug.critical("Locator is not valid:" % locator.to_url())
 #            return
@@ -106,6 +101,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
         print "version is", args['version']
         if args['version']:
             # set vistrail name
+            locator = widget_item.entity.parent.locator()
+            print "locator set to", locator
             pass
             #locator._name = widget_item.entity.parent.name
 
@@ -113,12 +110,17 @@ class QCollectionWidget(QtGui.QTreeWidget):
         print "wfexec", workflow_exec
         if workflow_exec:
             args['workflow_exec'] = workflow_exec
-            locator = widget_item.entity.parent.locator()
+            locator = widget_item.entity.parent.parent.locator()
             print "locator set to", locator
             locator.update_from_gui(self)
             # set vistrail name
             #locator._name = widget_item.entity.parent.parent.name
             
+        locator.update_from_gui(self)
+        print '*** opening'
+        print locator.to_url()
+        print locator.name
+        print '***'
         open_vistrail(locator, **args)
                                                        
     def contextMenuEvent(self, event):
@@ -278,9 +280,9 @@ class QWorkspaceWidget(QCollectionWidget):
         for entity in self.collection.workspaces[self.collection.currentWorkspace]:
             item = QBrowserWidgetItem(entity, self)
             self.addTopLevelItem(item)
-        if self.collection.currentWorkspace != 'Default':
-            self.setSortingEnabled(True)
-            self.sortItems(0, QtCore.Qt.AscendingOrder)
+#        if self.collection.currentWorkspace != 'Default':
+        self.setSortingEnabled(True)
+        self.sortItems(0, QtCore.Qt.AscendingOrder)
 
 class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
@@ -348,9 +350,9 @@ class QExplorerWidget(QCollectionWidget):
         for entity in self.collection.workspaces[self.collection.currentWorkspace]:
             item = QExplorerWidgetItem(entity)
             self.addTopLevelItem(item)
-        if self.collection.currentWorkspace != 'Default':
-            self.setSortingEnabled(True)
-            self.sortItems(0, QtCore.Qt.AscendingOrder)
+#        if self.collection.currentWorkspace != 'Default':
+        self.setSortingEnabled(True)
+        self.sortItems(0, QtCore.Qt.AscendingOrder)
 
 class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
@@ -404,12 +406,14 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         QtGui.QWidget.__init__(self, parent)
 
         self.workspace_list = QtGui.QComboBox()
-        # self.titleWidget = QtGui.QWidget()
-        # self.titleLayout = QtGui.QHBoxLayout()
-        # self.titleLayout.addWidget(QtGui.QLabel('Workspace:'), 0)
-        # self.titleLayout.addWidget(self.workspace_list, 1)
-        # self.titleWidget.setLayout(self.titleLayout)
-        # self.setTitleBarWidget(self.titleWidget)
+        self.titleWidget = QtGui.QWidget()
+        self.titleLayout = QtGui.QHBoxLayout()
+        self.titleLayout.setMargin(0)
+        self.titleLayout.setSpacing(5)
+        self.titleLayout.addWidget(QtGui.QLabel('Project:'), 0)
+        self.titleLayout.addWidget(self.workspace_list, 1)
+        self.titleWidget.setLayout(self.titleLayout)
+#        self.setTitleBarWidget(self.titleWidget)
         self.setWindowTitle('Workspace')
         # make it possible to ignore updates during updating of workspace list
         self.updatingWorkspaceList = False
@@ -426,6 +430,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
 
         self.open_list = QVistrailList()
         layout.addWidget(self.open_list)
+        layout.addWidget(self.titleWidget)
 
         self.browser = QWorkspaceWidget(self.collection)
         layout.addWidget(self.browser)
