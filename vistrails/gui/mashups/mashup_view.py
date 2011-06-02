@@ -75,6 +75,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.action_links = \
             {
             }
+            
+    def set_action_defaults(self):
+        self.action_defaults = \
+            {'execute' : [('setEnabled', False, False)],
+             }
         
     def set_controller(self, controller):
         """set_controller(controller:VistrailController) -> None
