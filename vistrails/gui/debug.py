@@ -122,13 +122,6 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         rightbuttons = QtGui.QGridLayout()
         buttons.addLayout(rightbuttons, 0, 1, QtCore.Qt.AlignRight)
 
-        close = QtGui.QPushButton('&Close', self)
-        close.setFixedWidth(120)
-        close.setDefault(True)
-        leftbuttons.addWidget(close, 0, 0)
-        self.connect(close, QtCore.SIGNAL('clicked()'),
-                     self, QtCore.SLOT('close()'))
-
         copy = QtGui.QPushButton('Copy &Message', self)
         copy.setToolTip('Copy selected message to clipboard')
         copy.setFixedWidth(120)

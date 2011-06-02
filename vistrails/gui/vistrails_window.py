@@ -33,11 +33,14 @@ from core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
     untitled_locator
 from core.db.io import load_vistrail
 from core.interpreter.cached import CachedInterpreter
-from core.modules.module_registry import ModuleRegistryException
+from core.modules.module_registry import ModuleRegistry, \
+                                         ModuleRegistryException
 from core.recent_vistrails import RecentVistrailList
 import core.system
+import core.db.action
 from core.system import vistrails_default_file_type
 from core.vistrail.vistrail import Vistrail
+from core.vistrail.pipeline import Pipeline
 from core.thumbnails import ThumbnailCache
 from core.collection import Collection
 from core import debug
@@ -106,6 +109,15 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
 
     def init_toolbar(self):
+        def create_spacer():
+            spacer = QtGui.QWidget()
+            spacer.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
+                                  QtGui.QSizePolicy.Preferred)
+            return spacer
+        def create_separator():
+            sep = QtGui.QWidget()
+            sep.setMinimumWidth(50)
+            return sep
         # have a toolbar
         # self.create_pass_actions()
         # self.toolbar = QtGui.QToolBar(self)
@@ -131,23 +143,33 @@ class QVistrailsWindow(QtGui.QMainWindow):
         # self.addToolBar(self.toolbar)
         self.selected_mode = None
         self.toolbar = QtGui.QToolBar(self)
-        spacer_left = QtGui.QWidget()
-        spacer_left.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
-                                  QtGui.QSizePolicy.Preferred)
-        spacer_right = QtGui.QWidget()
-        spacer_right.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
-                                   QtGui.QSizePolicy.Preferred)
-        self.toolbar.addWidget(spacer_left)
+        
+        #left side
+        for action in [self.qactions[n] 
+                       for n in ['newVistrail', 'openFile', 'saveFile']]:
+            self.toolbar.addAction(action)
+        
+        self.toolbar.addWidget(create_spacer())
+        
+        #second group
         self.view_action_group = QtGui.QActionGroup(self)
         for action in [self.qactions[n] 
-                       for n in ['execute', 'pipeline', 'history', 
+                       for n in ['pipeline', 'history', 
                                  'search', 'explore', 'provenance', 'mashup']]:
             self.toolbar.addAction(action)
             self.view_action_group.addAction(action)
+        self.toolbar.addWidget(create_separator())
         # self.connect(self.view_action_group, 
         #              QtCore.SIGNAL("triggered(QAction*)"),
         #              self.view_triggered)
-        self.toolbar.addWidget(spacer_right)
+        #third group
+        for action in [self.qactions[n] 
+                       for n in ['execute']]:
+            self.toolbar.addAction(action)
+            
+        
+        self.toolbar.addWidget(create_spacer())
+        self.toolbar.addWidget(create_spacer())
         self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.addToolBar(self.toolbar)
         self.setUnifiedTitleAndToolBarOnMac(True)
@@ -194,6 +216,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         from gui.shell import QShellDialog
         from gui.version_prop import QVersionProp
         from gui.vis_diff import QDiffProperties
+        from gui.collection.explorer import QExplorerWindow
         from gui.collection.workspace import QWorkspaceWindow
         from gui.collection.vis_log import QLogDetails
         from gui.mashups.mashups_inspector import QMashupsInspector
@@ -244,6 +267,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                             (QDebugger,
                              (('controller_changed', 'set_controller'),)),
                             DebugView,
+                            QExplorerWindow,
                             (QVersionEmbed,
                              (('controller_changed', 'set_controller'),))])]
         for dock_area, p_group in palette_layout:
@@ -281,6 +305,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 else:
                     if first_added is None:
                         self.palette_window = QtGui.QMainWindow()
+                        self.palette_window.setWindowTitle('VisTrails - Tools')
                         self.palette_window.setGeometry(200, 200, 768, 512)
                         self.palette_window.setDocumentMode(True)
                         self.palette_window.addDockWidget(
@@ -367,7 +392,16 @@ class QVistrailsWindow(QtGui.QMainWindow):
         if id(obj) in self.action_links:
             for notification in self.action_links[id(obj)]:
                 self.unregister_notification(*notification)
-
+        
+    def set_action_defaults(self, obj):
+        for action, mlist in obj.action_defaults.iteritems():
+            qaction = self.qactions[action]
+            for (method, is_callback, value) in mlist:
+                if is_callback:
+                    getattr(qaction, method)(value())
+                else:
+                    getattr(qaction, method)(value)
+            
     def get_name(self):
         return self.windowTitle()
 
@@ -568,19 +602,19 @@ class QVistrailsWindow(QtGui.QMainWindow):
             collection = Collection.getInstance()
             url = locator.to_url()
             # create index if not exist
-            entity = collection.fromUrl(url)
-            if entity:
+#            entity = collection.fromUrl(url)
+#            if entity:
                 # find parent vistrail
-                while entity.parent:
-                    entity = entity.parent 
-            else:
-                entity = collection.updateVistrail(url, 
-                                                   view.controller.vistrail)
+#                while entity.parent:
+#                    entity = entity.parent
+#            else:
+            entity = collection.updateVistrail(url, view.controller.vistrail)
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            debug.critical('Failed to index vistrail', str(e))
+            import traceback
+            debug.critical('Failed to index vistrail', traceback.print_exc())
 
 
     def open_vistrail_from_locator(self, locator_class):
@@ -647,6 +681,63 @@ class QVistrailsWindow(QtGui.QMainWindow):
         else:
             self.open_vistrail_from_locator(FileLocator())
 
+    def import_vistrail_default(self):
+        """ import_vistrail_default() -> None
+        Imports a vistrail from the file/db
+
+        """
+        if self.dbDefault:
+            self.open_vistrail_from_locator(FileLocator())
+        else:
+            self.open_vistrail_from_locator(DBLocator)
+
+    def import_workflow(self, locator_class):
+        locator = locator_class.load_from_gui(self, Pipeline.vtType)
+        if locator:
+            if not locator.is_valid():
+                ok = locator.update_from_gui(self, Pipeline.vtType)
+            else:
+                ok = True
+            if ok:
+                self.open_workflow(locator)
+
+    def import_workflow_default(self):
+        self.import_workflow(XMLFileLocator)
+
+    def open_workflow(self, locator, version=None):
+        self.close_first_vistrail_if_necessary()
+
+        vistrail = Vistrail()
+        try:
+            if locator is not None:
+                workflow = locator.load(Pipeline)
+                action_list = []
+                for module in workflow.module_list:
+                    action_list.append(('add', module))
+                for connection in workflow.connection_list:
+                    action_list.append(('add', connection))
+                action = core.db.action.create_action(action_list)
+                vistrail.add_action(action, 0L)
+                vistrail.update_id_scope()
+                vistrail.addTag("Imported workflow", action.id)
+                # FIXME might need different locator?
+        except ModuleRegistryException, e:
+            msg = ('Cannot find module "%s" in package "%s". '
+                    'Make sure package is ' 
+                   'enabled in the Preferences dialog.' % \
+                       (e._name, e._identifier))
+            debug.critical(msg)
+        except Exception, e:
+            debug.critical('An error has occurred', str(e))
+            raise
+
+        view = self.create_view(vistrail, None)
+        self.view_changed(view)
+        view.controller.set_changed(True)
+        view.version_selected(vistrail.get_latest_version(), \
+                              True)
+        self.qactions['pipeline'].trigger()
+    
     def close_vistrail(self, current_view = None):
         if not current_view:
             current_view = self.get_current_view()
@@ -748,7 +839,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             obj = accessor()
             obj_method = getattr(obj, method_name)
             if locator_klass is not None:
-                obj_method(locator_klass())
+                obj_method(locator_klass)
             elif self.dbDefault ^ reverse:
                 obj_method(DBLocator())
             else:
@@ -1111,16 +1202,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'statusTip': "Import an existing vistrail " \
                              "from a database",
                          'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'import_vistrail', 
-                                                       reverse=True)}),
+                             self.import_vistrail_default}),
                        "---",
                        ('importWorkflow', "Workflow...",
                         {'statusTip': "Import a workflow from an XML file",
                          'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'import_workflow')})]),
+                         'callback': self.import_workflow_default})]),
                      ("export", "Export",
                       [('exportFile', "To DB...",
                         {'statusTip': "Export the current vistrail to a " \
@@ -1150,7 +1237,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'callback': \
                              self.pass_through_locator(self.get_current_view,
                                                        'save_workflow',
-                                                       FileLocator)}),
+                                                       FileLocator())}),
                        ('exportWorkflow', "Workflow to DB...",
                         {'statusTip': "Save the current workflow to a database",
                          'enabled': True,
@@ -1171,7 +1258,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'callback': \
                              self.pass_through_locator(self.get_current_view,
                                                        'save_log',
-                                                       FileLocator)}),
+                                                       FileLocator())}),
                        ('exportLog', "Log to DB...",
                         {'statusTip': "Save the execution log to a database",
                          'enabled': True,
@@ -1186,7 +1273,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'callback': \
                              self.pass_through_locator(self.get_current_view,
                                                        'save_registry',
-                                                       FileLocator)}),
+                                                       FileLocator())}),
                        ('exportRegistry', "Registry to DB...",
                         {'statusTip': "Save the current registry to a database",
                          'enabled': True,
@@ -1847,12 +1934,13 @@ class QVistrailsWindow(QtGui.QMainWindow):
         vistrail = s1.vistrail
         vistrail.locator = None
         vistrail.set_defaults()
-        self.create_view(vistrail, None)
-        self.current_view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
-#        self.current_view.controller.changed = True
-#        self.set_name()
-        self.current_view.controller.setChanged(True)
+        view = self.create_view(vistrail, None)
+        view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
+        view.controller.set_changed(True)
+        self.view_changed(view)
         self.qactions['history'].trigger()
+        view.version_view.scene().fitToView(view.version_view, True)
+
 
         
     def do_tag_prompt(self, name="", exists=False):

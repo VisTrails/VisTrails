@@ -37,6 +37,8 @@ class BaseView(object):
         self.layout = {}
         self.set_default_layout()
         self.action_links = {}
+        self.action_defaults = {}
+        self.set_action_defaults()
         self.set_action_links()
 
     def set_default_layout(self):
@@ -45,6 +47,9 @@ class BaseView(object):
     def set_action_links(self):
         raise Exception("Class must define the action links")
 
+    def set_action_defaults(self):
+        raise Exception("Class must define the action defaults")
+    
     def set_title(self, title):
         self.title = title
 

@@ -59,7 +59,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         if type(execution) == WorkflowExec:
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
-            if execution.completed:
+            if str(execution.completed) == '1':
                 brush = CurrentTheme.SUCCESS_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
@@ -292,7 +292,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         if hasattr(execution, 'cached'):
             text += 'Cached: %s\n' % ("Yes" if execution.cached else 'No')
         text += 'Completed: %s\n' % {'0':'No', '1':'Yes'}.get(
-                                    str(execution.completed), 'Error')
+                                    str(execution.completed), 'No')
         if hasattr(execution, 'error') and execution.error:
             text += 'Error: %s\n' % execution.error
         annotations = execution.db_annotations \
@@ -357,6 +357,11 @@ class QLogView(QPipelineView):
             
     def set_action_links(self):
         self.action_links = { }
+        
+    def set_action_defaults(self):
+        self.action_defaults = \
+            {'execute' : [('setEnabled', False, False)],
+             }
 
     def notify_app(self, wf_execution, execution):
         # make sure it is only called once
@@ -419,7 +424,7 @@ class QLogView(QPipelineView):
             return False
         try:
             workflow_execs = [e for e in self.log 
-                                if e.id == int(exec_id)]
+                                if e.id == int(str(exec_id))]
         except ValueError:
             return False
         if len(workflow_execs):

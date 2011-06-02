@@ -31,6 +31,11 @@ from core.debug import critical
 from core.system import vistrails_default_file_type
 from core.thumbnails import ThumbnailCache
 from core.vistrail.vistrail import Vistrail
+from core.vistrail.pipeline import Pipeline
+from core.log.log import Log
+from core.log.opm_graph import OpmGraph
+from core.db.locator import FileLocator, XMLFileLocator
+from core.modules.module_registry import ModuleRegistry
 
 from gui.collection.vis_log import QLogView
 from gui.pipeline_view import QPipelineView
@@ -356,8 +361,10 @@ class QVistrailView(QtGui.QWidget):
         from gui.vistrails_window import _app
 
         view = self.stack.currentWidget()
+        #print "changing tab from: ",self.current_tab, " to ", view
         _app.unset_action_links(self.current_tab)
         self.current_tab = view
+        _app.set_action_defaults(self.current_tab)
         _app.set_action_links(self.current_tab.action_links, self.current_tab)
 
         for dock_loc, palette_klass in self.current_tab.layout.iteritems():
@@ -453,6 +460,8 @@ class QVistrailView(QtGui.QWidget):
 
     def create_pe_view(self):
         view = self.create_view(QParamExploreView, False)
+        self.notifications['controller_changed'] = view.set_controller
+        self.notifications['pipeline_changed'] = view.updatePipeline
         return view
 
     def create_log_view(self):
@@ -539,7 +548,7 @@ class QVistrailView(QtGui.QWidget):
         try:
             self.controller.write_vistrail(locator)
         except Exception, e:
-            critical('An error has occurred', str(e))
+            debug.critical('An error has occurred', str(e))
             raise
             return False
         # update collection
@@ -555,19 +564,19 @@ class QVistrailView(QtGui.QWidget):
             collection = Collection.getInstance()
             url = locator.to_url()
             # create index if not exist
-            entity = collection.fromUrl(url)
-            if entity:
+#            entity = collection.fromUrl(url)
+#            if entity:
                 # find parent vistrail
-                while entity.parent:
-                    entity = entity.parent 
-            else:
-                entity = collection.updateVistrail(url, 
-                                                   self.controller.vistrail)
+#                while entity.parent:
+#                    entity = entity.parent 
+#            else:
+            entity = collection.updateVistrail(url, self.controller.vistrail)
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            critical('Failed to index vistrail', str(e))
+            import traceback
+            debug.critical('Failed to index vistrail', traceback.print_exc())
 
         # update name
 #        self.set_name()
@@ -578,6 +587,76 @@ class QVistrailView(QtGui.QWidget):
     def save_vistrail_as(self, locator_class):
         print "CALLED SAVE AS VISTRAIL", locator_class
         self.save_vistrail(locator_class, force_choose_locator=True)
+
+    # FIXME normalize workflow/log/registry!!!
+    def save_workflow(self, locator_class, force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, Pipeline.vtType, self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, Pipeline.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, Pipeline.vtType, self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_workflow(locator)
+
+    def save_log(self, locator_class, force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, Log.vtType,
+                              self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, Log.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, Log.vtType,
+                              self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_log(locator)
+
+    def save_registry(self, locator_class, force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, ModuleRegistry.vtType,
+                              self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, ModuleRegistry.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, ModuleRegistry.vtType,
+                              self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_registry(locator)
+
+
+    def save_opm(self, locator_class=XMLFileLocator, 
+             force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, OpmGraph.vtType,
+                              self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, OpmGraph.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, OpmGraph.vtType,
+                              self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_opm(locator)
+
 
     def has_changes(self):
         return self.controller.changed
@@ -593,12 +672,9 @@ class QVistrailView(QtGui.QWidget):
 
     def execute(self):
         view = self.get_current_tab()
-        if isinstance(view, QPipelineView):
+        if hasattr(view, 'execute'):
             view.setFocus(QtCore.Qt.MouseFocusReason)
-            # view.checkModuleConfigPanel()
-            self.controller.execute_current_workflow()
-            from gui.vistrails_window import _app
-            _app.notify('execution_updated')
+            view.execute()            
 
     # def updateCursorState(self, mode):
     #     """ updateCursorState(mode: Int) -> None 

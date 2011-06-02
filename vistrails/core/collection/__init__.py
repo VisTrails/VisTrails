@@ -291,7 +291,10 @@ class Collection(object):
         """
         entities = [e for e in self.entities.itervalues() if e.url == url]
         entity = entities[0] if len(entities) else None
-        workspaces = [p for p in self.workspaces if entity in self.workspaces[p]]  
+        while entity and entity.parent:
+            entity = entity.parent 
+            url = entity.url
+        workspaces = [p for p in self.workspaces if entity in self.workspaces[p]]
         if entity:
             for p in workspaces:
                 self.del_from_workspace(entity, p)

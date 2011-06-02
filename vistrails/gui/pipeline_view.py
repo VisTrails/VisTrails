@@ -2545,6 +2545,24 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              'importAbstraction': ('module_changed', self.has_selected_abs),
              'exportAbstraction': ('module_changed', self.has_selected_abs),
              }
+    
+    def set_action_defaults(self):
+        self.action_defaults = \
+        { 'execute': [('setEnabled', True, self.set_execute_action),
+                      ('setIcon', False, CurrentTheme.EXECUTE_PIPELINE_ICON),
+                      ('setToolTip', False, 'Execute the current pipeline')],
+        }
+        
+    def set_execute_action(self):
+        if self.controller:
+            return self.pipeline_non_empty(self.controller.current_pipeline)
+        return False
+    
+    def execute(self):
+        # view.checkModuleConfigPanel()
+        self.controller.execute_current_workflow()
+        from gui.vistrails_window import _app
+        _app.notify('execution_updated')
 
     def has_selected_modules(self, module, only_one=False):
         module_ids_len = len(self.scene().get_selected_module_ids())
