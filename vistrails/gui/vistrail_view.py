@@ -31,6 +31,11 @@ from core.debug import critical
 from core.system import vistrails_default_file_type
 from core.thumbnails import ThumbnailCache
 from core.vistrail.vistrail import Vistrail
+from core.vistrail.pipeline import Pipeline
+from core.log.log import Log
+from core.log.opm_graph import OpmGraph
+from core.db.locator import FileLocator, XMLFileLocator
+from core.modules.module_registry import ModuleRegistry
 
 from gui.collection.vis_log import QLogView
 from gui.pipeline_view import QPipelineView
@@ -548,6 +553,76 @@ class QVistrailView(QtGui.QWidget):
     def save_vistrail_as(self, locator_class):
         print "CALLED SAVE AS VISTRAIL", locator_class
         self.save_vistrail(locator_class, force_choose_locator=True)
+
+    # FIXME normalize workflow/log/registry!!!
+    def save_workflow(self, locator_class, force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, Pipeline.vtType, self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, Pipeline.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, Pipeline.vtType, self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_workflow(locator)
+
+    def save_log(self, locator_class, force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, Log.vtType,
+                              self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, Log.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, Log.vtType,
+                              self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_log(locator)
+
+    def save_registry(self, locator_class, force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, ModuleRegistry.vtType,
+                              self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, ModuleRegistry.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, ModuleRegistry.vtType,
+                              self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_registry(locator)
+
+
+    def save_opm(self, locator_class=XMLFileLocator, 
+             force_choose_locator=True):
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, OpmGraph.vtType,
+                              self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                       gui_get(self, OpmGraph.vtType,
+                               self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, OpmGraph.vtType,
+                              self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_opm(locator)
+
 
     def has_changes(self):
         return self.controller.changed

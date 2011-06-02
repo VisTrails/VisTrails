@@ -33,11 +33,14 @@ from core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
     untitled_locator
 from core.db.io import load_vistrail
 from core.interpreter.cached import CachedInterpreter
-from core.modules.module_registry import ModuleRegistryException
+from core.modules.module_registry import ModuleRegistry, \
+                                         ModuleRegistryException
 from core.recent_vistrails import RecentVistrailList
 import core.system
+import core.db.action
 from core.system import vistrails_default_file_type
 from core.vistrail.vistrail import Vistrail
+from core.vistrail.pipeline import Pipeline
 from core.thumbnails import ThumbnailCache
 from core.collection import Collection
 from core import debug
@@ -663,6 +666,63 @@ class QVistrailsWindow(QtGui.QMainWindow):
         else:
             self.open_vistrail_from_locator(FileLocator())
 
+    def import_vistrail_default(self):
+        """ import_vistrail_default() -> None
+        Imports a vistrail from the file/db
+
+        """
+        if self.dbDefault:
+            self.open_vistrail_from_locator(FileLocator())
+        else:
+            self.open_vistrail_from_locator(DBLocator)
+
+    def import_workflow(self, locator_class):
+        locator = locator_class.load_from_gui(self, Pipeline.vtType)
+        if locator:
+            if not locator.is_valid():
+                ok = locator.update_from_gui(self, Pipeline.vtType)
+            else:
+                ok = True
+            if ok:
+                self.open_workflow(locator)
+
+    def import_workflow_default(self):
+        self.import_workflow(XMLFileLocator)
+
+    def open_workflow(self, locator, version=None):
+        self.close_first_vistrail_if_necessary()
+
+        vistrail = Vistrail()
+        try:
+            if locator is not None:
+                workflow = locator.load(Pipeline)
+                action_list = []
+                for module in workflow.module_list:
+                    action_list.append(('add', module))
+                for connection in workflow.connection_list:
+                    action_list.append(('add', connection))
+                action = core.db.action.create_action(action_list)
+                vistrail.add_action(action, 0L)
+                vistrail.update_id_scope()
+                vistrail.addTag("Imported workflow", action.id)
+                # FIXME might need different locator?
+        except ModuleRegistryException, e:
+            msg = ('Cannot find module "%s" in package "%s". '
+                    'Make sure package is ' 
+                   'enabled in the Preferences dialog.' % \
+                       (e._name, e._identifier))
+            debug.critical(msg)
+        except Exception, e:
+            debug.critical('An error has occurred', str(e))
+            raise
+
+        view = self.create_view(vistrail, None)
+        self.view_changed(view)
+        view.controller.set_changed(True)
+        view.version_selected(vistrail.get_latest_version(), \
+                              True)
+        self.qactions['pipeline'].trigger()
+    
     def close_vistrail(self, current_view = None):
         if not current_view:
             current_view = self.get_current_view()
@@ -764,7 +824,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             obj = accessor()
             obj_method = getattr(obj, method_name)
             if locator_klass is not None:
-                obj_method(locator_klass())
+                obj_method(locator_klass)
             elif self.dbDefault ^ reverse:
                 obj_method(DBLocator())
             else:
@@ -1127,16 +1187,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'statusTip': "Import an existing vistrail " \
                              "from a database",
                          'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'import_vistrail', 
-                                                       reverse=True)}),
+                             self.import_vistrail_default}),
                        "---",
                        ('importWorkflow', "Workflow...",
                         {'statusTip': "Import a workflow from an XML file",
                          'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'import_workflow')})]),
+                         'callback': self.import_workflow_default})]),
                      ("export", "Export",
                       [('exportFile', "To DB...",
                         {'statusTip': "Export the current vistrail to a " \
@@ -1166,7 +1222,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'callback': \
                              self.pass_through_locator(self.get_current_view,
                                                        'save_workflow',
-                                                       FileLocator)}),
+                                                       FileLocator())}),
                        ('exportWorkflow', "Workflow to DB...",
                         {'statusTip': "Save the current workflow to a database",
                          'enabled': True,
@@ -1187,7 +1243,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'callback': \
                              self.pass_through_locator(self.get_current_view,
                                                        'save_log',
-                                                       FileLocator)}),
+                                                       FileLocator())}),
                        ('exportLog', "Log to DB...",
                         {'statusTip': "Save the execution log to a database",
                          'enabled': True,
@@ -1202,7 +1258,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                          'callback': \
                              self.pass_through_locator(self.get_current_view,
                                                        'save_registry',
-                                                       FileLocator)}),
+                                                       FileLocator())}),
                        ('exportRegistry', "Registry to DB...",
                         {'statusTip': "Save the current registry to a database",
                          'enabled': True,
