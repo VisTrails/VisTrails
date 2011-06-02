@@ -143,7 +143,12 @@ class QQueryPipelineView(QPipelineView):
         QPipelineView.__init__(self, parent)
         self.setBackgroundBrush(CurrentTheme.QUERY_BACKGROUND_BRUSH)
         self.scene().current_pipeline = Pipeline()
-
+        
+    def execute(self):
+        #FIXME: this does not work yet because pipeline view does not know about the query controller
+        #self.query_controller.query_by_example(self.scene().current_pipeline)
+        pass
+    
 class QQueryResultGlobalView(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -264,8 +269,12 @@ class QQueryView(QtGui.QWidget, BaseView):
         layout.setSpacing(0)
 
         self.query_controller = QueryController(self)
-        self.vt_controller = VistrailController()
-        self.p_controller = VistrailController(Vistrail())
+        self.vt_controller = VistrailController(auto_save=False)
+        self.p_controller = VistrailController(Vistrail(), auto_save=False)
+        
+        self.connect(self.p_controller,
+                     QtCore.SIGNAL('vistrailChanged()'),
+                     self.vistrailChanged)
 
         self.query_box = QQueryBox()
         self.query_box.set_controller(self.query_controller)
@@ -302,10 +311,33 @@ class QQueryView(QtGui.QWidget, BaseView):
              }
             
     def set_action_links(self):
-        self.action_links = {}
+        self.action_links = \
+            { 'execute': ('query_pipeline_changed', self.pipeline_non_empty),
+            }
 
     def set_display_view(self, view_type):
         self.stacked_widget.setCurrentIndex(view_type)
 
     def get_current_view(self):
         return self.stacked_widget.currentWidget()
+    
+    def set_action_defaults(self):
+        self.action_defaults = \
+            {
+             'execute': [('setEnabled', True, self.set_execute_action),
+                          ('setIcon', False, CurrentTheme.VISUAL_QUERY_ICON),
+                          ('setToolTip', False, 'Execute a visual query')],
+            }
+    
+    def set_execute_action(self):
+        if self.vt_controller:
+            return self.pipeline_non_empty(self.p_controller.current_pipeline)
+        return False
+        
+    def pipeline_non_empty(self, pipeline):
+        return pipeline is not None and len(pipeline.modules) > 0
+    
+    def vistrailChanged(self):
+        from gui.vistrails_window import _app
+        self.p_controller.current_pipeline.ensure_connection_specs()
+        _app.notify('query_pipeline_changed', self.p_controller.current_pipeline)

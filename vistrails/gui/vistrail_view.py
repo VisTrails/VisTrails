@@ -330,8 +330,10 @@ class QVistrailView(QtGui.QWidget):
         from gui.vistrails_window import _app
 
         view = self.stack.currentWidget()
+        #print "changing tab from: ",self.current_tab, " to ", view
         _app.unset_action_links(self.current_tab)
         self.current_tab = view
+        _app.set_action_defaults(self.current_tab)
         _app.set_action_links(self.current_tab.action_links, self.current_tab)
 
         for dock_loc, palette_klass in self.current_tab.layout.iteritems():
@@ -427,6 +429,8 @@ class QVistrailView(QtGui.QWidget):
 
     def create_pe_view(self):
         view = self.create_view(QParamExploreView, False)
+        self.notifications['controller_changed'] = view.set_controller
+        self.notifications['pipeline_changed'] = view.updatePipeline
         return view
 
     def create_log_view(self):
@@ -559,12 +563,9 @@ class QVistrailView(QtGui.QWidget):
 
     def execute(self):
         view = self.get_current_tab()
-        if isinstance(view, QPipelineView):
+        if hasattr(view, 'execute'):
             view.setFocus(QtCore.Qt.MouseFocusReason)
-            # view.checkModuleConfigPanel()
-            self.controller.execute_current_workflow()
-            from gui.vistrails_window import _app
-            _app.notify('execution_updated')
+            view.execute()            
 
     # def updateCursorState(self, mode):
     #     """ updateCursorState(mode: Int) -> None 

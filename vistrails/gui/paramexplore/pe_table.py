@@ -26,14 +26,18 @@ QParameterExplorationTable
 
 
 from PyQt4 import QtCore, QtGui
+from xml.dom.minidom import parseString
+from xml.sax.saxutils import escape
 from gui.theme import CurrentTheme
 from gui.common_widgets import QPromptWidget
 from gui.paramexplore.param_view import QParameterTreeWidget
 from gui.utils import show_warning
-from core.modules.module_registry import get_module_registry
+from core import debug
 from core.modules.basic_modules import Constant
-from core.vistrail.module_param import ModuleParam
+from core.modules.module_registry import get_module_registry
 from core.modules.paramexplore import QParameterEditor
+from core.system import current_time
+from core.vistrail.module_param import ModuleParam
 import core.db.action
 
 ################################################################################
@@ -95,6 +99,149 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         
         """
         self.table.setPipeline(pipeline)
+        # Update the UI with the most recent parameter exploration
+        # TODO: For now, we just strip the root tags since there's only one
+        #       exploration - Later we should parse the root tree and select
+        #       the active exploration based on date, or user choice
+        if self.controller:
+            currentVersion = self.controller.current_version
+            xmlString = self.controller.vistrail.get_paramexp(currentVersion)
+            if xmlString is not None:
+                striplen = len("<paramexps>")
+                xmlString = xmlString[striplen:-(striplen+1)].strip()
+                self.setParameterExploration(xmlString)
+        
+    def getParameterExploration(self):
+        """ getParameterExploration() -> string
+        Generates an XML string that represents the current
+        parameter exploration, and which can be loaded with
+        setParameterExploration().
+        
+        """
+        # Construct xml for persisting parameter exploration
+        escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
+        timestamp = current_time().strftime('%Y-%m-%d %H:%M:%S')
+        palette = self.get_palette()
+        # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
+        xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.table.label.getCounts()), str(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
+        for i in xrange(self.table.layout().count()):
+            pEditor = self.table.layout().itemAt(i).widget()
+            if pEditor and type(pEditor)==QParameterSetEditor:
+                firstParam = True
+                for paramWidget in pEditor.paramWidgets:
+                    paramInfo = paramWidget.param
+                    interpolator = paramWidget.editor.stackedEditors.currentWidget()
+                    intType = interpolator.exploration_name
+                    # Write function tag prior to the first parameter of the function
+                    if firstParam:
+                        xml += '\n\t\t<function id="%s" alias="%s" name="%s">' % (paramInfo.parent_id, paramInfo.is_alias, pEditor.info[0])
+                        firstParam = False
+                    # Write parameter tag
+                    xml += '\n\t\t\t<param id="%s" dim="%s" interp="%s"' % (paramInfo.id, paramWidget.getDimension(), intType)
+                    if intType in ['Linear Interpolation', 'RGB Interpolation',
+                                   'HSV Interpolation']:
+                        xml += ' min="%s" max="%s"' % (interpolator.fromEdit.get_value(), interpolator.toEdit.get_value())
+                    elif intType == 'List':
+                        xml += ' values="%s"' % escape(str(interpolator._str_values), escape_dict)
+                    elif intType == 'User-defined Function':
+                        xml += ' code="%s"' % escape(interpolator.function, escape_dict)
+                    xml += '/>'
+                xml += '\n\t\t</function>'
+        xml += '\n\t</paramexp>'
+        return xml
+    
+    def setParameterExploration(self, xmlString):
+        """ setParameterExploration(xmlString: string) -> None
+        Sets the current parameter exploration to the one
+        defined by 'xmlString'.
+        
+        """
+        if not xmlString:
+            return
+        # Parse/validate the xml
+        try:
+            xmlDoc = parseString(xmlString).documentElement
+        except:
+            debug.critical("Parameter Exploration load failed because of "
+                           "invalid XML:\n\n%s" % xmlString)
+            return
+        palette = self.get_palette()
+        paramView = self.get_param_view()
+        # Set the exploration dimensions
+        dims = eval(str(xmlDoc.attributes['dims'].value))
+        self.table.label.setCounts(dims)
+        # Set the virtual cell layout
+        layout = eval(str(xmlDoc.attributes['layout'].value))
+        palette.virtual_cell.setConfiguration(layout)
+        # Populate parameter exploration window with stored functions and aliases
+        for f in xmlDoc.getElementsByTagName('function'):
+            # Retrieve function attributes
+            f_id = long(f.attributes['id'].value)
+            f_name = str(f.attributes['name'].value)
+            f_is_alias = (str(f.attributes['alias'].value) == 'True')
+            # Search the parameter treeWidget for this function and add it directly
+            newEditor = None
+            for tidx in xrange(paramView.treeWidget.topLevelItemCount()):
+                moduleItem = paramView.treeWidget.topLevelItem(tidx)
+                for cidx in xrange(moduleItem.childCount()):
+                    paramInfo = moduleItem.child(cidx).parameter
+                    name, params = paramInfo
+                    if params[0].parent_id == f_id and params[0].is_alias == f_is_alias:
+                        newEditor = self.table.addParameter(paramInfo)
+            # Retrieve params for this function and set their values in the UI
+            if newEditor:
+                for p in f.getElementsByTagName('param'):
+                    # Locate the param in the newly added param editor and set values
+                    p_id = long(p.attributes['id'].value)
+                    for paramWidget in newEditor.paramWidgets:
+                        if paramWidget.param.id == p_id:
+                            # Set Parameter Dimension (radio button)
+                            p_dim = int(p.attributes['dim'].value)
+                            paramWidget.setDimension(p_dim)
+                            # Set Interpolator Type (dropdown list)
+                            p_intType = str(p.attributes['interp'].value)
+                            paramWidget.editor.selectInterpolator(p_intType)
+                            # Set Interpolator Value(s)
+                            interpolator = paramWidget.editor.stackedEditors.currentWidget()
+                            if p_intType in ['Linear Interpolation', 'RGB Interpolation',
+                                             'HSV Interpolation']:
+                                try:
+                                    # Set min/max
+                                    p_min = str(p.attributes['min'].value)
+                                    p_max = str(p.attributes['max'].value)
+                                    interpolator.fromEdit.set_value(p_min)
+                                    interpolator.toEdit.set_value(p_max)
+                                except:
+                                    pass
+                            elif p_intType == 'List':
+                                p_values = str(p.attributes['values'].value)
+                                # Set internal list structure
+                                interpolator._str_values = eval(p_values)
+                                # Update UI list
+                                if interpolator.type == 'String':
+                                    interpolator.listValues.setText(p_values)
+                                else:
+                                    interpolator.listValues.setText(p_values.replace("'", "").replace('"', ''))
+                            elif p_intType == 'User-defined Function':
+                                # Set function code
+                                p_code = str(p.attributes['code'].value)
+                                interpolator.function = p_code
+
+    def get_palette(self):
+        from gui.vistrails_window import _app
+        from gui.paramexplore.pe_palette import QParamExplorePalette
+        for p in _app.palettes:
+            if isinstance(p, QParamExplorePalette):
+                return p
+        return None
+    
+    def get_param_view(self):
+        from gui.vistrails_window import _app
+        from gui.paramexplore.param_view import QParameterView
+        for p in _app.palettes:
+            if isinstance(p, QParameterView):
+                return p
+        return None
                     
 class QParameterExplorationTable(QPromptWidget):
     """
@@ -247,12 +394,15 @@ class QParameterExplorationTable(QPromptWidget):
         
         """
         if pipeline:
+            to_be_deleted = []
             for i in xrange(self.layout().count()):
                 pEditor = self.layout().itemAt(i).widget()
                 if pEditor and type(pEditor)==QParameterSetEditor:
                     for param in pEditor.info[1]:
                         if not pipeline.db_has_object(param.type, param.id):
-                            pEditor.removeSelf()
+                            to_be_deleted.append(pEditor)
+            for pEditor in to_be_deleted:
+                pEditor.removeSelf()
         else:
             self.clear()
         self.pipeline = pipeline
@@ -299,8 +449,10 @@ class QParameterExplorationTable(QPromptWidget):
                             desc = getter(paramInfo.identifier,
                                           paramInfo.type,
                                           paramInfo.namespace)
-                            str_value = desc.module.translate_to_string(v)
-
+                            if type(v) != str:
+                                str_value = desc.module.translate_to_string(v)
+                            else:
+                                str_value = v
                             new_param = ModuleParam(id=tmp_id,
                                                     pos=old_param.pos,
                                                     name=pName,

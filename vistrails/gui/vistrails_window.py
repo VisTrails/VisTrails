@@ -104,6 +104,15 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
 
     def init_toolbar(self):
+        def create_spacer():
+            spacer = QtGui.QWidget()
+            spacer.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
+                                  QtGui.QSizePolicy.Preferred)
+            return spacer
+        def create_separator():
+            sep = QtGui.QWidget()
+            sep.setMinimumWidth(50)
+            return sep
         # have a toolbar
         # self.create_pass_actions()
         # self.toolbar = QtGui.QToolBar(self)
@@ -129,23 +138,33 @@ class QVistrailsWindow(QtGui.QMainWindow):
         # self.addToolBar(self.toolbar)
         self.selected_mode = None
         self.toolbar = QtGui.QToolBar(self)
-        spacer_left = QtGui.QWidget()
-        spacer_left.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
-                                  QtGui.QSizePolicy.Preferred)
-        spacer_right = QtGui.QWidget()
-        spacer_right.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
-                                   QtGui.QSizePolicy.Preferred)
-        self.toolbar.addWidget(spacer_left)
+        
+        #left side
+        for action in [self.qactions[n] 
+                       for n in ['newVistrail', 'openFile', 'saveFile']]:
+            self.toolbar.addAction(action)
+        
+        self.toolbar.addWidget(create_spacer())
+        
+        #second group
         self.view_action_group = QtGui.QActionGroup(self)
         for action in [self.qactions[n] 
-                       for n in ['execute', 'pipeline', 'history', 
+                       for n in ['pipeline', 'history', 
                                  'search', 'explore', 'provenance']]:
             self.toolbar.addAction(action)
             self.view_action_group.addAction(action)
+        self.toolbar.addWidget(create_separator())
         # self.connect(self.view_action_group, 
         #              QtCore.SIGNAL("triggered(QAction*)"),
         #              self.view_triggered)
-        self.toolbar.addWidget(spacer_right)
+        #third group
+        for action in [self.qactions[n] 
+                       for n in ['execute']]:
+            self.toolbar.addAction(action)
+            
+        
+        self.toolbar.addWidget(create_spacer())
+        self.toolbar.addWidget(create_spacer())
         self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.addToolBar(self.toolbar)
         self.setUnifiedTitleAndToolBarOnMac(True)
@@ -355,7 +374,16 @@ class QVistrailsWindow(QtGui.QMainWindow):
         if id(obj) in self.action_links:
             for notification in self.action_links[id(obj)]:
                 self.unregister_notification(*notification)
-
+        
+    def set_action_defaults(self, obj):
+        for action, mlist in obj.action_defaults.iteritems():
+            qaction = self.qactions[action]
+            for (method, is_callback, value) in mlist:
+                if is_callback:
+                    getattr(qaction, method)(value())
+                else:
+                    getattr(qaction, method)(value)
+            
     def get_name(self):
         return self.windowTitle()
 

@@ -357,6 +357,11 @@ class QLogView(QPipelineView):
             
     def set_action_links(self):
         self.action_links = { }
+        
+    def set_action_defaults(self):
+        self.action_defaults = \
+            {'execute' : [('setEnabled', False, False)],
+             }
 
     def notify_app(self, wf_execution, execution):
         # make sure it is only called once

@@ -1079,6 +1079,11 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
             {
             }
 
+    def set_action_defaults(self):
+        self.action_defaults = \
+            {'execute' : [('setEnabled', False, False)],
+             }
+    
     def selectModules(self):
         """ selectModules() -> None
         Overrides parent class to disable text items if you click on background
