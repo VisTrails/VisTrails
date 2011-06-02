@@ -674,7 +674,18 @@ class QVistrailView(QtGui.QWidget):
         view = self.get_current_tab()
         if hasattr(view, 'execute'):
             view.setFocus(QtCore.Qt.MouseFocusReason)
-            view.execute()            
+            view.execute()      
+            
+    def publish_to_web(self):
+        view = self.get_current_tab()
+        if hasattr(view, 'publish_to_web'):
+            view.publish_to_web()
+                 
+    def publish_to_paper(self):
+        view = self.get_current_tab()
+        if hasattr(view, 'publish_to_paper'):
+            view.publish_to_paper()
+        
 
     # def updateCursorState(self, mode):
     #     """ updateCursorState(mode: Int) -> None 

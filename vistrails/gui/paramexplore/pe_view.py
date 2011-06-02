@@ -63,6 +63,8 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
             { 'execute': [('setEnabled', True, self.set_execute_action),
                           ('setIcon', False, CurrentTheme.EXECUTE_EXPLORE_ICON),
                           ('setToolTip', False, 'Execute the parameter exploration')],
+              'publishWeb': [('setEnabled', False, False)],
+              'publishPaper': [('setEnabled', False, False)],
             }
             
     def set_execute_action(self):

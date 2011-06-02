@@ -48,6 +48,7 @@ from core import debug
 from gui.application import VistrailsApplication
 from gui.preferences import QPreferencesDialog
 from gui.pipeline_view import QPipelineView
+from gui.repository import QRepositoryDialog
 from gui.theme import initializeCurrentTheme, CurrentTheme
 from gui.vistrail_view import QVistrailView
 from gui import merge_gui
@@ -1552,13 +1553,18 @@ class QVistrailsWindow(QtGui.QMainWindow):
                     [("publishPaper", "To Paper...", 
                       {'enabled': True,
                        'statusTip': \
-                           "Embed workflow and results into a paper"}),
-                     ("publishWeb", "To Web...",
+                           "Embed workflow and results into a paper",
+                        'callback': self.pass_through(self.get_current_view,
+                                                      'publish_to_paper')}),
+                     ("publishWeb", "To Wiki...",
                       {'enabled': True,
-                       'statusTip': "Embed workflow in wiki or web page"}),
+                       'statusTip': "Embed workflow in wiki",
+                       'callback' : self.pass_through(self.get_current_view,
+                                                      'publish_to_web')}),
                      ("publishCrowdLabs", "To crowdLabs...",
                       {'enabled': True,
-                       'statusTip': "Publish workflows on crowdlabs.org"})]),
+                       'statusTip': "Publish workflows on crowdlabs.org",
+                       'callback': self.publish_to_crowdlabs})]),
                    ("help", "Help",
                     [("help", "About VisTrails...", 
                       {'callback': self.showAboutMessage}),
@@ -1971,6 +1977,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
             if name is None:
                 return None
         controller.update_current_tag(name)
+        
+    def publish_to_crowdlabs(self):
+        dialog = QRepositoryDialog(self)
+        dialog.exec_()
         
     def createMenu(self):
         """ createMenu() -> None

@@ -40,7 +40,7 @@ def switch_to_pipeline_view():
     Changes current viewing mode to pipeline view in the builder window.
 
     """
-    _app.builderWindow.viewModeChanged(0)
+    _app.builderWindow.qactions['pipeline'].trigger()
 
 def switch_to_history_view():
     """switch_to_history_view():
@@ -48,15 +48,15 @@ def switch_to_history_view():
     Changes current viewing mode to history view in the builder window.
 
     """
-    _app.builderWindow.viewModeChanged(1)
-
+    _app.builderWindow.qactions['history'].trigger()
+    
 def switch_to_query_view():
     """switch_to_query_view():
 
     Changes current viewing mode to query view in the builder window.
 
     """
-    _app.builderWindow.viewModeChanged(2)
+    _app.builderWindow.qactions['search'].trigger()
 
 ################################################################################
 # Access to current state
@@ -83,7 +83,7 @@ def get_current_controller():
 
     """
     try:
-        return get_builder_window().viewManager.currentWidget().controller
+        return _app.builderWindow.get_current_controller()
     except AttributeError:
         raise NoVistrail
 
@@ -101,10 +101,10 @@ def get_current_vistrail_view():
     Returns the currently selected vistrail view.
 
     """
-    return get_current_controller().vistrail_view
+    return _app.builderWindow.get_current_view()
 
 def close_current_vistrail(quiet=False):
-    get_builder_window().viewManager.closeVistrail(get_current_vistrail_view())
+    _app.builderWindow.close_vistrail(get_current_vistrail_view())
 
 def get_module_registry():
     from core.modules.module_registry import get_module_registry
@@ -281,7 +281,8 @@ def close_vistrail(view, quiet=True):
 
 def new_vistrail():
     # Returns VistrailView - remember to be consistent about it..
-    result = _app.builderWindow.viewManager.newVistrail(False)
+    _app.builderWindow.new_vistrail(False)
+    result = _app.builderWindow.get_current_view()
     return result
 
 def get_vistrail_from_file(filename):
@@ -313,15 +314,15 @@ class TestAPI(gui.utils.TestVisTrailsGUI):
         close_vistrail(v)
 
     def test_new_vistrail_button_states(self):
-        assert _app.builderWindow.newVistrailAction.isEnabled()
-        assert not _app.builderWindow.closeVistrailAction.isEnabled()
-        assert not _app.builderWindow.saveFileAction.isEnabled()
-        assert not _app.builderWindow.saveFileAsAction.isEnabled()
+        assert _app.builderWindow.qactions['newVistrail'].isEnabled()
+        assert not _app.builderWindow.qactions['closeVistrail'].isEnabled()
+        assert not _app.builderWindow.qactions['saveFile'].isEnabled()
+        assert not _app.builderWindow.qactions['saveFileAs'].isEnabled()
         new_vistrail()
-        assert _app.builderWindow.newVistrailAction.isEnabled()
-        assert _app.builderWindow.closeVistrailAction.isEnabled()
-        assert _app.builderWindow.saveFileAction.isEnabled()
-        assert _app.builderWindow.saveFileAsAction.isEnabled()
+        assert _app.builderWindow.qactions['newVistrail'].isEnabled()
+        assert _app.builderWindow.qactions['closeVistrail'].isEnabled()
+        assert _app.builderWindow.qactions['saveFile'].isEnabled()
+        assert _app.builderWindow.qactions['saveFileAs'].isEnabled()
 
     
     

@@ -1077,13 +1077,39 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     def set_action_links(self):
         self.action_links = \
             {
+             'publishWeb' : ('version_changed', self.check_publish_db),
+             'publishPaper': ('version_changed', self.check_publish)
             }
-
+        
     def set_action_defaults(self):
         self.action_defaults = \
             {'execute' : [('setEnabled', False, False)],
              }
     
+    def check_publish_db(self, versionId):
+        loc = self.controller.locator
+        result = False
+        if hasattr(loc,'host'):
+            result = True    
+        return result and self.check_publish(versionId)
+    
+    def check_publish(self, versionId):
+        return versionId > 0 
+    
+    def publish_to_web(self):
+        from gui.publishing import QVersionEmbed
+        from gui.vistrails_window import _app
+        panel = QVersionEmbed(_app)
+        panel.set_controller(self.controller)
+        panel.updateVersion(self.controller.current_version)
+        panel.switchType('Wiki')
+        panel.show()
+        
+    def publish_to_paper(self):
+        from gui.publishing import QLatexAssistant
+        latex_palette = QLatexAssistant.instance()
+        latex_palette.toolWindow().raise_()
+        
     def selectModules(self):
         """ selectModules() -> None
         Overrides parent class to disable text items if you click on background
