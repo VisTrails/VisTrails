@@ -514,13 +514,13 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         layout = QtGui.QGridLayout()
         layout.addWidget(label1,0,0)
         layout.addWidget(self.cbcontent,0,1)
-        layout.addWidget(label2,0,2)
-        layout.addWidget(self.cbtype,0,3)
-        layout.addWidget(self.gbEmbedOpt,1,0,1,2)
-        layout.addWidget(self.gbDownOpt,1,2,1,2)
-        layout.addWidget(self.embededt,2,0,1,-1)
-        layout.addWidget(self.helpLabel,3,0,1,3)
-        layout.addWidget(self.copyButton,3,3,QtCore.Qt.AlignRight)
+        layout.addWidget(label2,1,0)
+        layout.addWidget(self.cbtype,1,1)
+        layout.addWidget(self.gbEmbedOpt,2,0,1,2)
+        layout.addWidget(self.gbDownOpt,3,0,1,2)
+        layout.addWidget(self.embededt,4,0,1,-1)
+        layout.addWidget(self.helpLabel,5,0,1,2)
+        layout.addWidget(self.copyButton,6,1,QtCore.Qt.AlignRight)
 
         self.setLayout(layout)
         self.changeEmbedType("Wiki")
@@ -571,7 +571,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         
     def set_controller(self, controller):
         self.controller = controller
-
+        
     def closeEvent(self,e):
         """ closeEvent(e: QCloseEvent) -> None
         Doesn't allow the Legend widget to close, but just hide
@@ -584,10 +584,8 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     def focusInEvent(self, event):
         if self.controller:
             if self.controller.locator:
-                app = QtGui.QApplication.instance()
-                if hasattr(app, 'builderWindow'):
-                    manager = app.builderWindow.viewManager
-                    manager.ensureVistrail(self.controller.locator)
+                from gui.vistrails_window import _app
+                _app.ensureVistrail(self.controller.locator)
                     
                     
     def checkLocator(self):
@@ -613,7 +611,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         ok = (self.checkLocator() and self.checkControllerStatus() and
               self.versionNumber > 0)
         self.embededt.setEnabled(ok)
-        self.copylabel.setEnabled(ok)
+        self.copyButton.setEnabled(ok)
         self.embededt.setText('')
 
         if self.controller and self.versionNumber > 0:
@@ -679,7 +677,22 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     #         app = QtCore.QCoreApplication.instance()
     #         app.builderWindow.interactiveExportCurrentPipeline()
     
+    def switchType(self, text):
+        if text == 'Wiki':
+            index = 0
+        elif text == "Latex":
+            index = 1
+        else:
+            index = 2
+        self.cbtype.setCurrentIndex(index)
+        self.changeEmbedType(text)
+        
     def changeEmbedType(self, text):
+        """changeEmbedType(text) -> None
+        This is called when the combobox is activated so the proper gui elements
+        are enabled.
+        
+        """
         if text!='Shared Memory':
             # self.copylabel.setText(self.copyHtml)
             self.link = 'copy'

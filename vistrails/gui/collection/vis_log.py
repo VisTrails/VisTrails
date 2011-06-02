@@ -361,7 +361,9 @@ class QLogView(QPipelineView):
     def set_action_defaults(self):
         self.action_defaults = \
             {'execute' : [('setEnabled', False, False)],
-             }
+             'publishWeb': [('setEnabled', False, False)],
+             'publishPaper': [('setEnabled', False, False)],
+            }
 
     def notify_app(self, wf_execution, execution):
         # make sure it is only called once

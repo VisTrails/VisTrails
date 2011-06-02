@@ -327,6 +327,8 @@ class QQueryView(QtGui.QWidget, BaseView):
              'execute': [('setEnabled', True, self.set_execute_action),
                           ('setIcon', False, CurrentTheme.VISUAL_QUERY_ICON),
                           ('setToolTip', False, 'Execute a visual query')],
+             'publishWeb': [('setEnabled', False, False)],
+             'publishPaper': [('setEnabled', False, False)],
             }
     
     def set_execute_action(self):

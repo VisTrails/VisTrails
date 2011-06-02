@@ -2536,6 +2536,8 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              'editAbstraction': ('module_changed', self.has_selected_abs),
              'importAbstraction': ('module_changed', self.has_selected_abs),
              'exportAbstraction': ('module_changed', self.has_selected_abs),
+             'publishWeb' : ('pipeline_changed', self.check_publish_db),
+             'publishPaper' : ('pipeline_changed', self.pipeline_non_empty),
              }
     
     def set_action_defaults(self):
@@ -2555,7 +2557,28 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.controller.execute_current_workflow()
         from gui.vistrails_window import _app
         _app.notify('execution_updated')
+        
+    def publish_to_web(self):
+        from gui.publishing import QVersionEmbed
+        from gui.vistrails_window import _app
+        panel = QVersionEmbed(_app)
+        panel.set_controller(self.controller)
+        panel.updateVersion(self.controller.current_version)
+        panel.switchType('Wiki')
+        panel.show()
+        
+    def publish_to_paper(self):
+        from gui.publishing import QLatexAssistant
+        latex_palette = QLatexAssistant.instance()
+        latex_palette.toolWindow().raise_()
 
+    def check_publish_db(self, pipeline):
+        loc = self.controller.locator
+        result = False
+        if hasattr(loc,'host'):
+            result = True    
+        return result and self.pipeline_non_empty(pipeline)
+    
     def has_selected_modules(self, module, only_one=False):
         module_ids_len = len(self.scene().get_selected_module_ids())
         print '  module_ids_len:', module_ids_len

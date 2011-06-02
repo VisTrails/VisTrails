@@ -228,21 +228,13 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                 interpolator.function = p_code
 
     def get_palette(self):
-        from gui.vistrails_window import _app
         from gui.paramexplore.pe_palette import QParamExplorePalette
-        for p in _app.palettes:
-            if isinstance(p, QParamExplorePalette):
-                return p
-        return None
+        return QParamExplorePalette.instance()
     
     def get_param_view(self):
-        from gui.vistrails_window import _app
         from gui.paramexplore.param_view import QParameterView
-        for p in _app.palettes:
-            if isinstance(p, QParameterView):
-                return p
-        return None
-                    
+        return QParameterView.instance()
+    
 class QParameterExplorationTable(QPromptWidget):
     """
     QParameterExplorationTable is a grid layout widget having 4
