@@ -211,6 +211,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         from gui.shell import QShellDialog
         from gui.version_prop import QVersionProp
         from gui.vis_diff import QDiffProperties
+        from gui.collection.explorer import QExplorerWindow
         from gui.collection.workspace import QWorkspaceWindow
         from gui.collection.vis_log import QLogDetails
         from gui.publishing import QLatexAssistant as QVersionEmbed
@@ -251,6 +252,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                             (QDebugger,
                              (('controller_changed', 'set_controller'),)),
                             DebugView,
+                            QExplorerWindow,
                             (QVersionEmbed,
                              (('controller_changed', 'set_controller'),))])]
         for dock_area, p_group in palette_layout:
@@ -288,6 +290,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 else:
                     if first_added is None:
                         self.palette_window = QtGui.QMainWindow()
+                        self.palette_window.setWindowTitle('VisTrails - Tools')
                         self.palette_window.setGeometry(200, 200, 768, 512)
                         self.palette_window.setDocumentMode(True)
                         self.palette_window.addDockWidget(
@@ -1851,12 +1854,13 @@ class QVistrailsWindow(QtGui.QMainWindow):
         vistrail = s1.vistrail
         vistrail.locator = None
         vistrail.set_defaults()
-        self.create_view(vistrail, None)
-        self.current_view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
-#        self.current_view.controller.changed = True
-#        self.set_name()
-        self.current_view.controller.setChanged(True)
+        view = self.create_view(vistrail, None)
+        view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
+        view.controller.set_changed(True)
+        self.view_changed(view)
         self.qactions['history'].trigger()
+        view.version_view.scene().fitToView(view.version_view, True)
+
 
         
     def do_tag_prompt(self, name="", exists=False):

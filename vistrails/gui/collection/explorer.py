@@ -33,10 +33,11 @@ from db.services.io import test_db_connection
 from db.services.query import runLogQuery, runWorkflowQuery
 from gui.theme import CurrentTheme
 from gui.open_db_window import QDBConnectionList, QConnectionDBSetupWindow
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
-class QExplorerWindow(QtGui.QDialog):
-    def __init__(self, parent):
-        QtGui.QDialog.__init__(self, parent)
+class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
         
         self.layout = QtGui.QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -84,14 +85,14 @@ class QExplorerWindow(QtGui.QDialog):
         self.tabView = QtGui.QTabWidget()
         self.tabView.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(self.tabView)
-        self.workflowSearch = WorkflowSearchWidget(self.connectionList)
-        self.tabView.addTab(self.workflowSearch, "Search for Workflows")
+#        self.workflowSearch = WorkflowSearchWidget(self.connectionList)
+#        self.tabView.addTab(self.workflowSearch, "Search for Workflows")
         self.executionSearch = ExecutionSearchWidget(self.connectionList)
         self.tabView.addTab(self.executionSearch, "Search for Workflow Executions")
         self.setLayout(self.layout)
         self.setWindowTitle('Provenance Browser')
         self.resize(QtCore.QSize(800, 600))
-        self.workflowSearch.setup_results()
+#        self.workflowSearch.setup_results()
         self.executionSearch.setup_results()
 
     def showConnConfig(self, *args, **keywords):
