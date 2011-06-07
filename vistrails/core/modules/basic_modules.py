@@ -39,8 +39,7 @@ from core.utils import InstanceObject
 from core import debug
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
-     IntegerLinearInterpolator
-from core.upgradeworkflow import UpgradeWorkflowHandler
+     IntegerLinearInterpolator, BasePEWidget
 from PyQt4 import QtGui
 
 
@@ -1048,6 +1047,7 @@ def initialize(*args, **kwargs):
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
+   from core.upgradeworkflow import UpgradeWorkflowHandler
    reg = get_module_registry()
 
    def outputName_remap(old_conn, new_module):
