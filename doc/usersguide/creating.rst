@@ -199,7 +199,7 @@ defined with the method signatures of a package.  A full list of ports is availa
 .. figure:: figures/creating/enabling_ports.png
    :align: center
 
-Enabling the EvaluateGradient port from the ``Module Information`` tab.
+Enabling the GetRadius port from the ``Module Information`` tab.
 
 .. _fig-module_configuration:
 
@@ -226,7 +226,7 @@ Grouping Modules
    pair: modules; grouping
    pair: modules; ungrouping
 
-As the number of modules in a pipeline increases, the pipeline can grow quite large and cumbersome. This also makes the pipeline more difficult to understand and maintain.  With any large system, it can be helpful to cluster related pieces together and represent them as a single unit. This idea, called *encapsulation*, is commonly used in computer programming as a way of controlling complexity. |vistrails| likewise supports the grouping of multiple modules together so that they can be treated as a single module. This "group module" can be thought of as a monolithic entity that performs all the same functions as its individual parts, but shields its inner details from everyone else.  As such, a group module inherits all the input and output ports of the modules inside it, but only displays those ports that have connections to another module outside of the group. To borrow another term from programming languages, these visible ports might be considered the *public interface* of the group module.
+As the number of modules in a pipeline increases, the pipeline can grow quite large and cumbersome. This also makes the pipeline more difficult to understand and maintain.  With any large system, it can be helpful to cluster related pieces together and represent them as a single unit. This idea, called *encapsulation*, is commonly used in computer programming as a way of controlling complexity. |vistrails| likewise supports the grouping of multiple modules together so that they can be treated as a single module. This "group" module can be thought of as a monolithic entity that performs all the same functions as its individual parts, but shields its inner details from everyone else.  As such, a group module inherits all the input and output ports of the modules inside it, but only displays those ports that have connections to another module outside of the group. To borrow another term from programming languages, these visible ports might be considered the *public interface* of the group module.
 
 Multiple modules are grouped together by first selecting them, and then choosing the ``Group`` option from the ``Edit`` menu. Alternatively, you can use the keyboard shortcut 'Ctrl-G'.
 
@@ -234,7 +234,7 @@ An example may clarify how this works.
 
 .. topic:: Try it now!
 
-   Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`fig-groupinga`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`fig-groupingb`. Since the label "Group" isn't very descriptive, you can change this by clicking on the triangle in the top right of the module, and selecting the ``Set Module Label`` menu option. Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`fig-groupingc`).
+   Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`fig-groupinga`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`fig-groupingb`. Since the label "Group" isn't very descriptive, you can change this by selecting the ``Group`` module, and entering a name in the ``Name`` box of the ``Module Information`` panel.  Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`fig-groupingc`).
 
 .. _fig-groupinga:
 
@@ -260,9 +260,12 @@ An example may clarify how this works.
 
    Renaming the group.
 
-Just as any number of modules may be clustered into a group, any number of groups may be combined with other groups or modules to form still larger groups. This is done in the same way as described above.
+Just as any number of modules may be clustered into a group, any number of groups may be combined with other groups or modules to form still larger groups. This is done in the same way as described above.  
 
-In addition, any group may be also un-grouped; that is, restored to its individual modules. This is done by selecting the group module in the pipeline, and then choosing the ``Edit`` :math:`\rightarrow` ``Ungroup`` menu option. Alternatively, you can use the keyboard shortcut 'Ctrl-Shift-G'.
+Additional functionality provided to allow users to view the contents of or edit a group includes the ``Show Pipeline`` and ``Ungroup`` options from the ``Workflow`` menu.  
+In addition, any group may be also un-grouped; that is, restored to its individual modules. This is done by selecting the group module in the pipeline, and then choosing the ``Edit`` :math:`\rightarrow` ``Ungroup`` menu option or by pressing 'Ctrl-Shift-G'.
+
+
 
 Basic Modules
 =============
