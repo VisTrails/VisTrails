@@ -43,6 +43,7 @@ from PyQt4 import QtCore, QtGui
 from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget)
 from gui.module_documentation import QModuleDocumentation
+from gui.theme import CurrentTheme
 from gui.vistrails_palette import QVistrailsPaletteInterface
 from core.modules.module_registry import get_module_registry
 from core.system import systemType
@@ -62,6 +63,26 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         self.setContentsMargins(0,5,0,0)
         self.packages = {}
         self.namespaces = {}
+        self.addButtonsToToolBar()
+        
+    def addButtonsToToolBar(self):
+        self.expandAction = QtGui.QAction(CurrentTheme.EXPAND_ALL_ICON,
+                                           "Expand All", self.toolWindow().toolbar,
+                                           triggered=self.expandAll)
+        
+        self.collapseAction = QtGui.QAction(CurrentTheme.COLLAPSE_ALL_ICON,
+                                           "Collapse All", self.toolWindow().toolbar,
+                                           triggered=self.collapseAll)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.collapseAction)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.expandAction)
+        
+    def expandAll(self):
+        self.treeWidget.expandAll()
+    
+    def collapseAll(self):
+        self.treeWidget.collapseAll()
 
     def link_registry(self):
         self.updateFromModuleRegistry()

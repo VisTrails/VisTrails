@@ -78,7 +78,9 @@ class QToolWindow(QtGui.QDockWidget):
         spacer.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
                              QtGui.QSizePolicy.Preferred)
         self.toolbar.addWidget(spacer)
-        self.toolbar.addWidget(self.pinButton)
+        self.pinAction = self.toolbar.addWidget(self.pinButton)
+        self.toolbar.setFloatable(False)
+        self.toolbar.setIconSize(QtCore.QSize(16,16))
         self.window.addToolBar(self.toolbar)
                    
     def setDefaultPinStatus(self, topLevel):

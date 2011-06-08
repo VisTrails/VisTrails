@@ -498,6 +498,15 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/down.png')
 
+        # Icon for expand all/collapse all buttons in the Module Palette
+        self.EXPAND_ALL_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/expand_all.png')
+        
+        self.COLLAPSE_ALL_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/collapse_all.png')
+        
         # Toolbar icons for views
         self.PIPELINE_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
