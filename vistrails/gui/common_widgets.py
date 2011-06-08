@@ -80,6 +80,7 @@ class QToolWindow(QtGui.QDockWidget):
         self.toolbar.addWidget(spacer)
         self.pinAction = self.toolbar.addWidget(self.pinButton)
         self.toolbar.setFloatable(False)
+        self.toolbar.setMovable(False)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
         self.window.addToolBar(self.toolbar)
                    
