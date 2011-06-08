@@ -232,51 +232,58 @@ class QVistrailsWindow(QtGui.QMainWindow):
         from gui.collection.vis_log import QLogDetails
         from gui.publishing import QLatexAssistant as QVersionEmbed
         self.palettes = []
+        self.palette_window = None
+        
         palette_layout = [(QtCore.Qt.LeftDockWidgetArea, 
-                           [QModulePalette, QWorkspaceWindow,
-                            (QParamExplorePalette,
+                           [(QModulePalette, True), (QWorkspaceWindow,True),
+                            ((QParamExplorePalette, False),
                              (('pipeline_changed', 'set_pipeline'),
                               ('controller_changed', 'set_controller')))]),
                           (QtCore.Qt.RightDockWidgetArea,
-                           [(QModuleInfo, 
+                           [((QModuleInfo, True), 
                              (('controller_changed', 'set_controller'),
                               ('module_changed', 'update_module'))),
-                            (QVersionProp, 
+                            ((QVersionProp, True), 
                              (('controller_changed', 'updateController'),
                               ('version_changed', 'updateVersion'))),
-                            (QDiffProperties,
+                            ((QDiffProperties, False),
                              (('controller_changed', 'set_controller'),
                               ('module_changed', 'update_module'))),
-                            (QParameterView,
+                            ((QParameterView, False),
                              (('pipeline_changed', 'set_pipeline'),)),
-                            (QLogDetails,
+                            ((QLogDetails, False),
                              (('controller_changed', 'set_controller'),
                               ('execution_updated', 'execution_updated'),
                               ('execution_changed', 'execution_changed'))),
-                            (QVistrailVariables,
+                            ((QVistrailVariables, False),
                              (('controller_changed', 'updateController'),))]),
                           (QtCore.Qt.NoDockWidgetArea,
-                           [(QModuleConfiguration, 
+                           [((QModuleConfiguration, True), 
                              (('controller_changed', 'set_controller'),
                               ('module_changed', 'updateModule'))),
-                            (QModuleDocumentation,
+                            ((QModuleDocumentation, True),
                              (('controller_changed', 'set_controller'),
                               ('module_changed', 'update_module'),
                               ('descriptor_changed', 'update_descriptor'))),
-                            (QShellDialog,
+                            ((QShellDialog, True),
                              (('controller_changed', 'set_controller'),)),
-                            (QDebugger,
+                            ((QDebugger, True),
                              (('controller_changed', 'set_controller'),)),
-                            DebugView,
-                            QExplorerWindow,
-                            (QVersionEmbed,
+                            (DebugView, True),
+                            (QExplorerWindow, True),
+                            ((QVersionEmbed, True),
                              (('controller_changed', 'set_controller'),))])]
         for dock_area, p_group in palette_layout:
             first_added = None
             for p_klass in p_group:
                 notifications = []
+                print p_klass
                 if type(p_klass) == tuple:
-                    p_klass, notifications = p_klass
+                    p_klass, visible = p_klass
+                    print p_klass
+                    if type(p_klass) == tuple:
+                        notifications = visible
+                        p_klass, visible = p_klass      
                 print "generating instance", p_klass
                 palette = p_klass.instance()
                 print 'palette:', palette
@@ -298,11 +305,15 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 # palette.toolWindow().show()
                 # palette.toolWindow().setFloating(True)
                 if dock_area != QtCore.Qt.NoDockWidgetArea:
+                    palette.set_pin_status(visible)
                     if first_added is None:
                         self.addDockWidget(dock_area, palette.toolWindow())
                         first_added = palette.toolWindow()
                     else:
                         self.tabifyDockWidget(first_added, palette.toolWindow())
+                    if not visible:
+                        palette.toolWindow().close()
+                    
                 else:
                     if first_added is None:
                         self.palette_window = QtGui.QMainWindow()
@@ -311,13 +322,15 @@ class QVistrailsWindow(QtGui.QMainWindow):
                         self.palette_window.setDocumentMode(True)
                         self.palette_window.addDockWidget(
                             QtCore.Qt.TopDockWidgetArea, palette.toolWindow())
-                        self.palette_window.show()
+                        #self.palette_window.show()
                         first_added = palette.toolWindow()
                         palette.set_main_window(self.palette_window)
                     else:
                         self.palette_window.tabifyDockWidget(
                             first_added, palette.toolWindow())
                         palette.set_main_window(self.palette_window)
+        if self.palette_window:
+            self.palette_window.hide()
                         
         self.connect(QWorkspaceWindow.instance(), 
                      QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"),
@@ -336,9 +349,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
     def register_notification(self, notification_id, method, link_view=False):
         if link_view:
             notifications = self.view_notifications[self.stack.currentIndex()]
-            print 'adding notification', notification_id, self.stack.currentIndex()
+            #print '>>> LOCAL adding notification', notification_id, self.stack.currentIndex(), method
+            #print id(notifications), notifications
         else:
-            notifications = self.notifications        
+            notifications = self.notifications     
+            #print '>>> GLOBAL adding notification', notification_id, method  
+            #print id(notifications), notifications
         if notification_id not in notifications:
             self.create_notification(notification_id, link_view)
         notifications[notification_id].add(method)
@@ -346,16 +362,22 @@ class QVistrailsWindow(QtGui.QMainWindow):
     def unregister_notification(self, notification_id, method, link_view=False):
         if link_view:
             notifications = self.view_notifications[self.stack.currentIndex()]
+            #print '>>> LOCAL remove notification', notification_id, self.stack.currentIndex()
+            #print id(notifications), notifications
         else:
-            notifications = self.notifications                
+            notifications = self.notifications    
+            #print '>>> GLOBAL remove notification', notification_id, method   
+            #print id(notifications), notifications           
         if notification_id in notifications:
             notifications[notification_id].remove(method)
 
     def notify(self, notification_id, *args):
         # do global notifications
         if notification_id in self.notifications:
+            #print 'global notification ', notification_id
             for m in self.notifications[notification_id]:
                 try:
+                    #print "  m: ", m
                     m(*args)
                 except Exception, e:
                     import traceback
@@ -363,10 +385,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
         # do local notifications
         notifications = self.view_notifications[self.stack.currentIndex()]
-        print 'local notification', notification_id, self.stack.currentIndex()
+        #print 'local notification ', notification_id, self.stack.currentIndex()
         if notification_id in notifications:
             for m in notifications[notification_id]:
                 try:
+                    #print "  m: ", m
                     m(*args)
                 except Exception, e:
                     import traceback
@@ -384,7 +407,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         for action, (notification_id, check) in action_links.iteritems():
             qaction = self.qactions[action]
             method = get_method(qaction, check)
-            notification = (notification_id, method)
+            notification = (notification_id, method, True)
             self.register_notification(*notification)
             link_list.append(notification)
         self.action_links[id(obj)] = link_list
@@ -1739,7 +1762,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
             currentView = self.get_current_view()
             if currentView:
                 current_pipeline = currentView.controller.current_pipeline
-                current_pipeline.validate()
+                if current_pipeline:
+                    current_pipeline.validate()
             
         # Update the state of the icons if changing between db and file
         # support
@@ -1970,6 +1994,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
         dialog = QRepositoryDialog(self)
         dialog.exec_()
         
+    def closeNotPinPalettes(self):
+        for p in self.palettes:
+            if p.toolWindow().isVisible() and not p.get_pin_status():
+                p.toolWindow().close()
+                      
     def createMenu(self):
         """ createMenu() -> None
         Initialize menu bar of builder window

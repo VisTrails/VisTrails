@@ -79,7 +79,8 @@ class QVistrailView(QtGui.QWidget):
         self.tabs = QtGui.QTabBar(self)
         self.tabs.setDocumentMode(True)
         self.tabs.setTabsClosable(True)
-        self.tabs.setMovable(True)
+        self.tabs.setExpanding(False)
+        #self.tabs.setMovable(True)
         self.tabs.hide()
         layout.addWidget(self.tabs)
         self.stack = QtGui.QStackedWidget(self)
@@ -314,26 +315,70 @@ class QVistrailView(QtGui.QWidget):
         self.connect(view, QtCore.SIGNAL("windowTitleChanged"),
                      self.view_title_changed)
         if self.tabs.count() == 1:
-            self.tabs.hide()
+            #self.tabs.hide()
+            self.tabs.setTabsClosable(False)
         else:
-            self.tabs.show()
+            self.tabs.setTabsClosable(True)
+            #self.tabs.show()
+        self.tabs.show()
         return view
 
     def view_title_changed(self, view):
         if self.stack.currentWidget() == view:
             self.tabs.setTabText(self.tabs.currentIndex(), view.windowTitle())
 
+    def update_indexes(self, rm_tab_idx, rm_stack_idx):
+        for (t,s) in self.tab_to_stack_idx.iteritems():
+            if s > rm_stack_idx:
+                self.tab_to_stack_idx[t] -= 1
+        tabs = self.tab_to_stack_idx.keys()
+        tabs.sort()
+        for t in tabs:
+            if t > rm_tab_idx:
+                self.tab_to_stack_idx[t-1] = self.tab_to_stack_idx[t]
+                self.tab_state[t-1] = self.tab_state[t]
+        del self.tab_to_stack_idx[tabs[-1]]
+        del self.tab_state[tabs[-1]]
+        for idx in range(self.stack.count()):
+            if idx >= rm_stack_idx:
+                view = self.get_tab(idx)
+                view.set_index(idx)
+                if view.tab_idx > rm_tab_idx:
+                    view.set_tab_idx(view.tab_idx-1)
+    
     def remove_view_by_index(self, index):
-        self.tabs.removeTab(index)
+        self.disconnect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
+                     self.tab_changed)
+        close_current = False
+        if index == self.tabs.currentIndex():
+            close_current = True
         stack_idx = self.tab_to_stack_idx[index]
+        print "\n\n >>>>> remove_view_by_index ", index, stack_idx, self.tabs.currentIndex()
+        self.tabs.removeTab(index)
         if stack_idx >= 0:
             self.stack.removeWidget(self.stack.widget(stack_idx))
+        self.update_indexes(index, stack_idx)
         if self.tabs.count() == 1:
-            self.tabs.hide()
+            #self.tabs.hide()
+            self.tabs.setTabsClosable(False)
+        if close_current:
+            if index >= self.tabs.count():
+                new_index = index - 1
+            else:
+                new_index = index
+        
+            self.tab_changed(new_index)
+        self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
+                     self.tab_changed)
+#        self.tabs.setCurrentIndex(new_index)
+#        print self.current_tab
+        
+#        self.view_changed()
+        
 
     def switch_to_tab(self, index):
-        if index < 0:
-            index = self.tabs.count() + index
+#        if index < 0:
+#            index = self.tabs.count() + index
         self.tabs.setCurrentIndex(index)
         self.tab_changed(index)
 
@@ -342,27 +387,53 @@ class QVistrailView(QtGui.QWidget):
         if type(widget) == QQueryView:
             widget = widget.get_current_view()
         return widget
+    
+    def get_tab(self, stack_idx):
+        widget = self.stack.widget(stack_idx)
+        if type(widget) == QQueryView:
+            widget = widget.get_current_view()
+        return widget
 
     def view_changed(self):
         from gui.vistrails_window import _app
-
+        _app.closeNotPinPalettes()
         view = self.stack.currentWidget()
-        #print "changing tab from: ",self.current_tab, " to ", view
-        _app.unset_action_links(self.current_tab)
-        self.current_tab = view
-        _app.set_action_defaults(self.current_tab)
-        _app.set_action_links(self.current_tab.action_links, self.current_tab)
-
-        for dock_loc, palette_klass in self.current_tab.layout.iteritems():
-            palette_instance = palette_klass.instance()
-            current_loc = _app.dockWidgetArea(palette_instance.toolWindow())
-            print ">> P:", palette_instance.__class__.__name__, current_loc, \
-                dock_loc
+        print "changing tab from: ",self.current_tab, " to ", view
+        print self.tab_to_stack_idx
+        if view != self.current_tab:
+            #print "!!unset_action_links of ", self.current_tab
+            _app.unset_action_links(self.current_tab)
+            self.current_tab = view
+#            print "\n!! _app.notifications: "
+#            for (k, v) in _app.notifications.iteritems():
+#                print "   ", k, "  (%s) "%len(v)
+#                for m in v: 
+#                    print "     ", m
+#            print "\n!!set_action_defaults of ", self.current_tab
+            _app.set_action_defaults(self.current_tab)
+            #print "\n!!set_action_links of ", self.current_tab 
+            _app.set_action_links(self.current_tab.action_links, self.current_tab)
+#            print "\n!! _app.notifications: "
+#            for (k, v) in _app.notifications.iteritems():
+#                print "   ", k, "  (%s) "%len(v)
+#                for m in v: 
+#                    print "     ", m
+#            print "\n!! palette layout: ", self.current_tab.layout
+            for dock_loc, palette_klass in self.current_tab.layout.iteritems():
+                palette_instance = palette_klass.instance()
+                current_loc = _app.dockWidgetArea(palette_instance.toolWindow())
+                print ">> P:", palette_instance.__class__.__name__, current_loc, \
+                    dock_loc
+                
+                if current_loc == dock_loc:
+                    # palette_instance.get_action().trigger()
+                    palette_instance.set_visible(True)
+                    #print ">> doing show", palette_instance.toolWindow().isVisible() 
             
-            if current_loc == dock_loc:
-                # palette_instance.get_action().trigger()
-                palette_instance.toolWindow().raise_()
-                # print ">> doing show", palette_instance.toolWindow().isVisible()        
+            #for p in _app.palettes:
+#                print p.__class__.__name__, p.toolWindow().isVisible()        
+        else:
+            print "tabs the same. do nothing"
 
     def tab_changed(self, index):
         print 'raw tab_changed', index
@@ -389,6 +460,7 @@ class QVistrailView(QtGui.QWidget):
             # _app.view_triggered(action)
 
         view = self.stack.widget(self.tab_to_stack_idx[index])
+        #print "view changed: ", view
         if isinstance(view, QDiffView):
             view.set_to_current()
             print "view changed!", self.controller, \
@@ -421,7 +493,7 @@ class QVistrailView(QtGui.QWidget):
                      self.gen_module_selected(view))
         view.set_controller(self.controller)
         view.set_to_current()
-        self.switch_to_tab(-1)
+        self.switch_to_tab(view.tab_idx)
         return view
 
     def create_version_view(self):
@@ -474,7 +546,7 @@ class QVistrailView(QtGui.QWidget):
         view = self.stack.widget(
             self.tab_to_stack_idx[self.tabs.currentIndex()])
 
-        if by_click:
+        if view and by_click:
             self.controller.change_selected_version(version_id, by_click, 
                                                     do_validate, from_root)
 
@@ -485,7 +557,8 @@ class QVistrailView(QtGui.QWidget):
                 # view.set_to_current()
                 # self.tabs.setCurrentWidget(view.parent())
                 _app.qactions['pipeline'].trigger()
-        view.set_title(self.controller.get_pipeline_name())
+        if view:
+            view.set_title(self.controller.get_pipeline_name())
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
@@ -493,7 +566,7 @@ class QVistrailView(QtGui.QWidget):
         view = self.create_diff_view()
         view.set_controller(self.controller)
         view.set_diff(version_a,version_b)
-        self.switch_to_tab(-1)
+        self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
 
     def save_vistrail(self, locator_class, force_choose_locator=False):

@@ -161,23 +161,24 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             # self.package_edit.setEnabled(True)
             
     def name_editing_finished(self):
-        old_text = ''
-        if self.module.has_annotation_with_key('__desc__'):
-            old_text = self.module.get_annotation_by_key('__desc__').value
-        new_text = str(self.name_edit.text()).strip()
-        if not new_text:
-            if old_text:
-                print 'delete annotation'
-                self.controller.delete_annotation('__desc__', 
-                                                  self.module.id)
-        elif old_text != new_text:
-            print 'add annotation', old_text, new_text
-            self.controller.add_annotation(('__desc__', new_text), 
-                                           self.module.id)
+        if self.module is not None:
+            old_text = ''
+            if self.module.has_annotation_with_key('__desc__'):
+                old_text = self.module.get_annotation_by_key('__desc__').value
+            new_text = str(self.name_edit.text()).strip()
+            if not new_text:
+                if old_text:
+                    print 'delete annotation'
+                    self.controller.delete_annotation('__desc__', 
+                                                      self.module.id)
+            elif old_text != new_text:
+                print 'add annotation', old_text, new_text
+                self.controller.add_annotation(('__desc__', new_text), 
+                                               self.module.id)
                 
 
-        scene = self.controller.current_pipeline_view
-        scene.recreate_module(self.controller.current_pipeline, self.module.id)
+            scene = self.controller.current_pipeline_view
+            scene.recreate_module(self.controller.current_pipeline, self.module.id)
         
     def configure(self):
         from gui.vistrails_window import _app

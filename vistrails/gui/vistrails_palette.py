@@ -85,14 +85,21 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
         self.main_window = mw
 
     def set_visible(self, enabled):
-        if enabled and hasattr(self, 'main_window') and \
-                self.main_window is not None:
+        #print "set_visible ", self, enabled
+        if hasattr(self, 'main_window') and self.main_window is not None:
             self.main_window.show()
             self.main_window.raise_()
 
         if enabled:
+            self.toolWindow().show()
             self.toolWindow().raise_()
-
+            
+    def set_pin_status(self, pin_status):
+        self.toolWindow().setPinStatus(pin_status)
+    
+    def get_pin_status(self):
+        return self.toolWindow().pinStatus
+    
     def set_controller(self, controller):
         self.controller = controller
 

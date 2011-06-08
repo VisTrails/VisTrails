@@ -57,8 +57,50 @@ class QToolWindow(QtGui.QDockWidget):
         self.setWidget(widget)
         if widget:
             self.setWindowTitle(widget.windowTitle())
+        self.pinStatus = False
         self.monitorWindowTitle(widget)
-
+        self.default_title_bar = self.titleBarWidget()
+        self.title_bar_widget = QToolWindowTitleBar(True, True, True, False, self)
+        self.setTitleBarWidget(self.title_bar_widget)
+        self.connect(self.title_bar_widget.closeButton,
+                     QtCore.SIGNAL('clicked()'),
+                     self.close)
+        
+        self.connect(self.title_bar_widget.floatButton,
+                     QtCore.SIGNAL('clicked()'),
+                     self.toggleTopLevel)
+        
+        self.connect(self, QtCore.SIGNAL("topLevelChanged(bool)"),
+                     self.changeTitleBar)
+        self.connect(self.title_bar_widget, QtCore.SIGNAL("dragRequest"),
+                     self.changeTitleBarToDefault)
+        self.connect(self.title_bar_widget, QtCore.SIGNAL("pinStatusChanged"),
+                     self.pinStatusChanged)
+                
+    def toggleTopLevel(self):
+        #print " will set Floating "
+        if not self.isFloating():
+            self.setTitleBarWidget(self.default_title_bar)
+        else:
+            self.setTitleBarWidget(self.title_bar_widget)
+        self.setFloating(not self.isFloating())
+        
+    def changeTitleBarToDefault(self):
+        self.setTitleBarWidget(self.default_title_bar)
+        
+    def changeTitleBar(self, topLevel):
+        if topLevel:
+            self.setTitleBarWidget(self.default_title_bar)
+        else:
+            self.setTitleBarWidget(self.title_bar_widget)    
+    
+    def pinStatusChanged(self, pinStatus):
+        self.pinStatus = pinStatus
+        
+    def setPinStatus(self, pinStatus):
+        self.pinStatus = pinStatus
+        self.title_bar_widget.setPinStatus(pinStatus, quiet=True)
+        
     def monitorWindowTitle(self, widget):
         """ monitorWindowTitle(widget: QWidget) -> None        
         Watching window title changed on widget and use it as a window
@@ -80,6 +122,142 @@ class QToolWindow(QtGui.QDockWidget):
         return QtGui.QDockWidget.eventFilter(self, object, event)
         # return super(QToolWindow, self).eventFilter(object, event)
 
+class QToolWindowTitleBar(QtGui.QFrame):
+    def __init__(self, with_close_btn=True, with_float_btn=True, 
+                 with_pin_btn=False, is_vertical=False, parent=None):
+        QtGui.QFrame.__init__(self, parent)
+        self.setFrameStyle(QtGui.QFrame.Sunken | QtGui.QFrame.StyledPanel)
+        self.pinButton = None
+        self.floatButton = None
+        self.closeButton = None
+        self.buttons = []
+        if is_vertical:
+            layout = QtGui.QVBoxLayout()
+        else:
+            layout = QtGui.QHBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        layout.addStretch(1)
+        
+        if with_pin_btn:
+            self.pinButton = QToolWindowTitleButton()
+            opt = QtGui.QStyleOptionDockWidget()
+            self.parent().initStyleOption(opt)
+            self.pinButton.setIcon(self.style().standardIcon(QtGui.QStyle.SP_TitleBarMaxButton,
+                                                               opt, self))
+            self.pinStatus = False
+            self.pinButton.setFocusPolicy(QtCore.Qt.NoFocus)
+            self.pinButton.setToolTip("Pin this on the Tab Bar")
+            self.connect(self.pinButton,
+                         QtCore.SIGNAL('clicked()'),
+                         self.togglePinState)
+
+            self.buttons.append(self.pinButton)
+            layout.addWidget(self.pinButton, 0, QtCore.Qt.AlignRight)
+        if with_float_btn:
+            self.floatButton = QToolWindowTitleButton()
+            opt = QtGui.QStyleOptionDockWidget()
+            self.parent().initStyleOption(opt)
+            self.floatButton.setIcon(self.style().standardIcon(QtGui.QStyle.SP_TitleBarNormalButton,
+                                                               opt, self))
+            self.floatButton.setFocusPolicy(QtCore.Qt.NoFocus)
+            self.floatButton.setToolTip("Toggle floating status")
+            self.buttons.append(self.floatButton)
+            layout.addWidget(self.floatButton, 0, QtCore.Qt.AlignRight)
+        if with_close_btn:
+            self.closeButton = QToolWindowTitleButton()
+            opt = QtGui.QStyleOptionDockWidget()
+            self.parent().initStyleOption(opt)
+            self.closeButton.setIcon(self.style().standardIcon(QtGui.QStyle.SP_TitleBarCloseButton,
+                                                               opt, self))
+            self.closeButton.setFocusPolicy(QtCore.Qt.NoFocus)
+            self.closeButton.setToolTip("Close this")
+            self.buttons.append(self.closeButton)
+            layout.addWidget(self.closeButton, 0, QtCore.Qt.AlignRight)
+        
+        self.setLayout(layout)
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                           QtGui.QSizePolicy.Preferred)
+    def togglePinState(self):
+        self.setPinStatus(not self.pinStatus)
+        
+    def setPinStatus(self, pinStatus, quiet=False):
+        
+        if pinStatus == True:
+            opt = QtGui.QStyleOptionDockWidget()
+            self.parent().initStyleOption(opt)
+            self.pinButton.setIcon(self.style().standardIcon(QtGui.QStyle.SP_TitleBarMinButton,
+                                                               opt, self))
+        else:
+            opt = QtGui.QStyleOptionDockWidget()
+            self.parent().initStyleOption(opt)
+            self.pinButton.setIcon(self.style().standardIcon(QtGui.QStyle.SP_TitleBarMaxButton,
+                                                               opt, self))
+        self.pinStatus = pinStatus
+        if not quiet:
+            self.emit(QtCore.SIGNAL("pinStatusChanged"), self.pinStatus)
+        
+    def mousePressEvent(self, event):
+        event.ignore()
+        
+    def mouseReleaseEvent(self, event):
+        event.ignore()
+        
+    def mouseMoveEvent(self, event):
+        if event.buttons() == QtCore.Qt.LeftButton:
+            self.emit(QtCore.SIGNAL("dragRequest"))
+        event.ignore()
+        
+class QToolWindowTitleButton(QtGui.QAbstractButton):
+    def __init__(self, parent=None):
+        QtGui.QAbstractButton.__init__(self, parent)
+        
+    def sizeHint(self):
+        self.ensurePolished()
+        size = 2 * self.style().pixelMetric(QtGui.QStyle.PM_DockWidgetTitleBarButtonMargin,
+                                            None, self)
+        if not self.icon().isNull():
+            iconSize = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize,
+                                                None, self)
+            sz = self.icon().actualSize(QtCore.QSize(iconSize, iconSize))
+            size += max(sz.width(), sz.height())
+        return QtCore.QSize(size, size)
+    
+    def enterEvent(self, event):
+        if self.isEnabled():
+            self.update()
+        QtGui.QAbstractButton.enterEvent(self, event)
+        
+    def leaveEvent(self, event):
+        if self.isEnabled():
+            self.update()
+        QtGui.QAbstractButton.leaveEvent(self, event)
+        
+    def paintEvent(self, event):
+        p = QtGui.QPainter(self)
+        r = self.rect()
+        opt = QtGui.QStyleOptionToolButton()
+        opt.init(self)
+        opt.state |= QtGui.QStyle.State_AutoRaise
+        if self.style().styleHint(QtGui.QStyle.SH_DockWidget_ButtonsHaveFrame,
+                                  None, self):
+            if (self.isEnabled() and self.underMouse() and 
+            not self.isChecked() and not self.isDown()):
+                opt.state |= QtGui.QStyle.State_Raised
+            if self.isChecked():
+                opt.state |= QtGui.QStyle.State_On
+            if self.isDown():
+                opt.state |= QtGui.QStyle.State_Sunken
+            self.style().drawPrimitive(QtGui.QStyle.PE_PanelButtonTool, opt, p, self)
+        opt.icon = self.icon()
+        opt.subControls = QtGui.QStyle.SC_None
+        opt.activeSubControls = QtGui.QStyle.SC_None
+        opt.features = QtGui.QStyleOptionToolButton.None
+        opt.arrowType = QtCore.Qt.NoArrow
+        size = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, None, self)
+        opt.iconSize = QtCore.QSize(size, size)
+        self.style().drawComplexControl(QtGui.QStyle.CC_ToolButton, opt, p, self)
+        
 class QToolWindowInterface(object):
     """
     QToolWindowInterface can be co-inherited in any class to allow the
