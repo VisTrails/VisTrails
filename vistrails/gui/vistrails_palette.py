@@ -78,7 +78,7 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
     def get_action_tuple(self):
         return (self.get_title(), self.get_title(), 
                 {'checkable': True, 
-                 'checked': True,
+                 'checked': self.toolWindow().isVisible(),
                  'callback': self.set_visible})
 
     def set_main_window(self, mw):
