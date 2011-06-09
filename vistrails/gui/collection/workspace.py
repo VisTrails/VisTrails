@@ -298,6 +298,10 @@ class QWorkspaceWidget(QCollectionWidget):
 
 class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
+        if not entity:
+            QtGui.QTreeWidgetItem.__init__(self, parent)
+            self.setIcon(0, CurrentTheme.HISTORY_ICON)
+            return
         l = list(str(x) for x in entity.save())
         l.pop(0) # remove identifier
         type = l.pop(0)
@@ -313,7 +317,7 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
         elif type == '3':
             self.setIcon(0, CurrentTheme.EXECUTE_PIPELINE_ICON)
 
-        self.setToolTip(0, entity.url)
+        tooltip = '<html>%s' % entity.url
             
         for child in entity.children:
             l = child.save()
@@ -323,12 +327,15 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
                 path = cache.get_abs_name_entry(l[2])
                 if path:
                     self.setIcon(0, QtGui.QIcon(path))
-                    tooltip = """%(url)s<br/><img border=0 src='%(path)s'/>
-                        """ % {'url':entity.url,'path':path}
-                    self.setToolTip(0, tooltip)
+                    tooltip += """<br/><img border=0 src='%(path)s'/>
+                        """ % {'path':path}
                 continue
-            else:
+            elif not child.name.startswith('Version #'):
                 self.addChild(QBrowserWidgetItem(child))
+        if entity.description:
+            tooltip += '<br/>%s' % entity.description
+        tooltip += '</html>'
+        self.setToolTip(0, tooltip)
 
     def __lt__(self, other):
         sort_col = self.treeWidget().sortColumn()
@@ -417,46 +424,46 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
-        self.workspace_list = QtGui.QComboBox()
-        self.titleWidget = QtGui.QWidget()
-        self.titleLayout = QtGui.QHBoxLayout()
-        self.titleLayout.setMargin(0)
-        self.titleLayout.setSpacing(5)
-        self.titleLayout.addWidget(QtGui.QLabel('Project:'), 0)
-        self.titleLayout.addWidget(self.workspace_list, 1)
-        self.titleWidget.setLayout(self.titleLayout)
+#        self.workspace_list = QtGui.QComboBox()
+#        self.titleWidget = QtGui.QWidget()
+#        self.titleLayout = QtGui.QHBoxLayout()
+#        self.titleLayout.setMargin(0)
+#        self.titleLayout.setSpacing(5)
+#        self.titleLayout.addWidget(QtGui.QLabel('Project:'), 0)
+#        self.titleLayout.addWidget(self.workspace_list, 1)
+#        self.titleWidget.setLayout(self.titleLayout)
 #        self.setTitleBarWidget(self.titleWidget)
         self.setWindowTitle('Workspace')
         # make it possible to ignore updates during updating of workspace list
         self.updatingWorkspaceList = False
-        self.connect(self.workspace_list,
-                     QtCore.SIGNAL("currentIndexChanged(QString)"),
-                     self.workspace_changed)
+#        self.connect(self.workspace_list,
+#                     QtCore.SIGNAL("currentIndexChanged(QString)"),
+#                     self.workspace_changed)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(5)
-        self.search_box = QSearchBox(True, False, self)
-        layout.addWidget(self.search_box)
+#        self.search_box = QSearchBox(True, False, self)
+#        layout.addWidget(self.search_box)
 
         self.collection = Collection.getInstance()
 
         self.open_list = QVistrailList()
         layout.addWidget(self.open_list)
-        layout.addWidget(self.titleWidget)
+#        layout.addWidget(self.titleWidget)
 
-        self.browser = QWorkspaceWidget(self.collection)
-        layout.addWidget(self.browser)
-        self.browser.setup_widget('Default')
-        self.connect(self.search_box, QtCore.SIGNAL('resetSearch()'),
-                     self.reset_search)
-        self.connect(self.search_box, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.execute_search)
-        self.connect(self.search_box, QtCore.SIGNAL('refineMode(bool)'),
-                     self.refine_mode)
-        self.connect(self.browser, QtCore.SIGNAL('workspaceListUpdated()'),
-                     self.update_workspace_list)
+#        self.browser = QWorkspaceWidget(self.collection)
+#        layout.addWidget(self.browser)
+#        self.browser.setup_widget('Default')
+#        self.connect(self.search_box, QtCore.SIGNAL('resetSearch()'),
+#                     self.reset_search)
+#        self.connect(self.search_box, QtCore.SIGNAL('executeSearch(QString)'),
+#                     self.execute_search)
+#        self.connect(self.search_box, QtCore.SIGNAL('refineMode(bool)'),
+#                     self.refine_mode)
+#        self.connect(self.browser, QtCore.SIGNAL('workspaceListUpdated()'),
+#                     self.update_workspace_list)
         self.setLayout(layout)
-        self.update_workspace_list()
+#        self.update_workspace_list()
  
     def update_workspace_list(self):
         """ Updates workspace list and highlights currentWorkspace
@@ -588,34 +595,80 @@ class QExplorerDialog(QToolWindow, QToolWindowInterface):
     def refine_mode(self, on):
         pass
 
-class QVistrailListItem(QtGui.QTreeWidgetItem):
-    def __init__(self, window):
-        QtGui.QTreeWidgetItem.__init__(self)
+class QVistrailListItem(QBrowserWidgetItem):
+    def __init__(self, entity, window):
+        QBrowserWidgetItem.__init__(self, entity)
         self.window = window
-        self.setText(0, self.window.get_name())
+        if not entity:
+            self.setText(0, self.window.get_name())
         # make them draggable
         self.setFlags(self.flags() | QtCore.Qt.ItemIsDragEnabled
                                    | QtCore.Qt.ItemIsDropEnabled
-                                   | QtCore.Qt.ItemIsSelectable)
-    def setBold(self, bold):
-        if bold:
-            self.setText(0, '<b>' + self.window.get_name() + '</b>')
+#                                   | QtCore.Qt.ItemIsSelectable
+                                   )
 
 class QVistrailList(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setColumnCount(1)
         self.setHeaderHidden(True)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
+        self.setExpandsOnDoubleClick(False)
         self.connect(self, 
                      QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
                                    "QTreeWidgetItem*)"),
                      self.item_changed)
+        self.collection = Collection.getInstance()
         self.items = {}
+
+        self.connect(self,
+                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
+                     self.item_selected)
+        self.setIconSize(QtCore.QSize(16,16))
+
+    def item_selected(self, widget_item, column):
+        print 'item_selected'
+        if not hasattr(widget_item, 'entity'):
+            return
+        locator = widget_item.entity.locator()
+        print "locator", locator
+        import gui.application
+#        if not locator.is_valid():
+#            debug.critical("Locator is not valid:" % locator.to_url())
+#            return
+        app = gui.application.VistrailsApplication
+        open_vistrail = app.builderWindow.open_vistrail_without_prompt
+        args = {}
+        args['version'] = locator.kwargs.get('version_node', None) or \
+                          locator.kwargs.get('version_tag', None)
+        print "version is", args['version']
+        if args['version']:
+            # set vistrail name
+            locator = widget_item.entity.parent.locator()
+            print "locator set to", locator
+            pass
+            #locator._name = widget_item.entity.parent.name
+
+        workflow_exec = locator.kwargs.get('workflow_exec', None)
+        print "wfexec", workflow_exec
+        if workflow_exec:
+            args['workflow_exec'] = workflow_exec
+            locator = widget_item.entity.parent.parent.locator()
+            print "locator set to", locator
+            locator.update_from_gui(self)
+            # set vistrail name
+            #locator._name = widget_item.entity.parent.parent.name
+            
+        locator.update_from_gui(self)
+        print '*** opening'
+        print locator.to_url()
+        print locator.name
+        print '***'
+        open_vistrail(locator, **args)
 
     def mimeData(self, itemList):
         """ mimeData(itemList) -> None        
@@ -656,7 +709,11 @@ class QVistrailList(QtGui.QTreeWidget):
 
 
     def add_vt_window(self, vistrail_window):
-        item = QVistrailListItem(vistrail_window)
+        entity = None
+        locator = vistrail_window.controller.locator
+        if locator:
+            entity = self.collection.fromUrl(locator.to_url())
+        item = QVistrailListItem(entity, vistrail_window)
         self.addTopLevelItem(item)
         self.items[id(vistrail_window)] = item
         self.setSelected(vistrail_window)
@@ -679,12 +736,14 @@ class QVistrailList(QtGui.QTreeWidget):
     def item_changed(self, item, prev_item):
         if not item:
             return
-        print "*** item clicked", id(item.window)
+        vistrail = item
+        while not hasattr(vistrail, 'window'):
+            vistrail = vistrail.parent()
+        print "*** item clicked", id(vistrail.window)
 
-        self.setSelected(item.window)
+        self.setSelected(vistrail.window)
         self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
-                           item.window)
-        
+                           vistrail.window)
 
 if __name__ == '__main__':
     import sys

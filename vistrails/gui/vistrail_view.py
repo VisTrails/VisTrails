@@ -614,13 +614,6 @@ class QVistrailView(QtGui.QWidget):
 
             collection = Collection.getInstance()
             url = locator.to_url()
-            # create index if not exist
-#            entity = collection.fromUrl(url)
-#            if entity:
-                # find parent vistrail
-#                while entity.parent:
-#                    entity = entity.parent 
-#            else:
             entity = collection.updateVistrail(url, self.controller.vistrail)
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
@@ -629,10 +622,12 @@ class QVistrailView(QtGui.QWidget):
             import traceback
             debug.critical('Failed to index vistrail', traceback.print_exc())
 
-        # update name
-#        self.set_name()
         from gui.vistrails_window import _app
         _app.view_changed(self)
+        # reload workspace entry
+        from gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().remove_vt_window(self)
+        QWorkspaceWindow.instance().add_vt_window(self)
         return locator
 
     def save_vistrail_as(self, locator_class):
