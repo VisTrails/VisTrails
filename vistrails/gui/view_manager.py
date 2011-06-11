@@ -355,7 +355,7 @@ class QViewManager(QtGui.QTabWidget):
         else:
             locator = None
         try:
-            (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
+            (vistrail, abstraction_files, thumbnail_files, _) = load_vistrail(locator)
         except ModuleRegistryException, e:
             debug.critical("Module registry error for %s" %
                            str(e.__class__.__name__), str(e))
@@ -429,7 +429,7 @@ class QViewManager(QtGui.QTabWidget):
                     view.setup_view(version)
             return view
         try:
-            (vistrail, abstraction_files, thumbnail_files) = \
+            (vistrail, abstraction_files, thumbnail_files, _) = \
                                         load_vistrail(locator, is_abstraction)
             result = self.set_vistrail_view(vistrail, locator, 
                                             abstraction_files, thumbnail_files,

@@ -36,17 +36,31 @@ import suds
 
 import sys
 import os.path
+import hashlib
 import core.system
 import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules import vistrails_module
+from core.modules.package import Package
 from core.modules.vistrails_module import Module, ModuleError, new_module
+from core.upgradeworkflow import UpgradeWorkflowHandler
 from core import debug
 from core import configuration
 
 package_cache = None
 
 webServicesDict = {}
+
+def toSignature(s):
+    """ transform wsdl address to valid package signature """
+    # cannot have ':' in package name
+    return 'SUDS#' + s.replace(':', '$')
+
+def toAddress(s):
+    """ transform package signature to valid wsdl address """
+    # look up address for a specific signature
+    return s[5:].replace('$', ':')
+
 ###############################################################################
 
 class SUDSWebService(Module):
@@ -137,13 +151,15 @@ def initialize(*args, **keywords):
 """Could not create SUDS cache directory. Make sure
 '%s' does not exist and parent directory is writable""" % location)
             sys.exit(1)
-    days = 10
+    # the number of days to cache wsdl files
+    days = 1
     if configuration.check("cache_days"):
         days = configuration.cache_days
-    package_cache = suds.client.ObjectCache(location, days=days)    
+    suds.client.ObjectCache.protocol = 0 # windows needs this
+    package_cache = suds.client.ObjectCache(location, days=days)
 
     reg = core.modules.module_registry.get_module_registry()
-    reg.add_module(SUDSWebService, **{'abstract':True})
+    reg.add_module(SUDSWebService, **{'hide_descriptor':True})
 
     wsdlList = []
     if configuration.check('wsdlList'):
@@ -158,6 +174,14 @@ def initialize(*args, **keywords):
         if s.service:
             webServicesDict[wsdl] = s
         
+def finalize():
+    # unload service packages
+    reg = core.modules.module_registry.get_module_registry()
+    for s in webServicesDict.itervalues():
+        if s.package:
+            reg.remove_package(s.package)
+
+
 class WSMethod:
     """ A WSDL method
     """
@@ -193,7 +217,10 @@ class Service:
         """ Process WSDL and add all Types and Methods
         """
         self.address = address
+        self.signature = toSignature(self.address)
+        self.wsdlHash = '0'
         self.modules = []
+        self.package = None
         debug.log("Installing Web Service from WSDL: %s"% address)
  #       try:
         options = dict(cachingpolicy=1, cache=package_cache)
@@ -208,12 +235,15 @@ class Service:
                     options['proxy'] = {t:proxy}
         try:
             self.service = suds.client.Client(address, **options)
+            self.createPackage()
             self.setTypes()
             self.setMethods()
             self.createTypeClasses()
             self.createMethodClasses()
         except Exception, e:
-            debug.critical("Could not load WSDL: %s - %s" % (address,str(e)))
+            import traceback
+            debug.critical("Could not load WSDL: %s" % address,
+                           str(e) + '\n' + str(traceback.format_exc()))
             self.service = None
         
     def makeDictType(self, obj):
@@ -233,6 +263,34 @@ class Service:
                     d[o] = self.makeDictType(e)
         return d
             
+    def createPackage(self):
+        reg = core.modules.module_registry.get_module_registry()
+
+        # create a document hash integer from the cached sax tree
+        # "name" is what suds use as the cache key
+        name = '%s-%s' % (abs(hash(self.address)), "wsdl")
+        wsdl = package_cache.get(name)
+        if not wsdl:
+            debug.critical("File not found in SUDS cache: '%s'" % name)
+            self.wsdlHash = '0'
+            return
+        self.wsdlHash = str(int(hashlib.md5(str(wsdl.root)).hexdigest(), 16))
+
+        package_id = reg.idScope.getNewId(Package.vtType)
+        package = Package(id=package_id,
+                          codepath=__file__,
+                          load_configuration=False,
+                          name="SUDS#" + self.address,
+                          identifier=self.signature,
+                          version=self.wsdlHash,
+                          )
+        self.package = package
+        reg.add_package(package)
+        self.module = new_module(Module, str(self.signature))
+        reg.add_module(self.module, **{'package':self.signature,
+                                       'package_version':self.wsdlHash,
+                                       'abstract':True})
+
     def setTypes(self):
         """ Return dict containing all exposed types in the service
         """
@@ -387,14 +445,14 @@ from the WSDL spec at:
    %s
 It is a WSDL type with signature:
    %s(%s)"""%(self.address, t.qname[0], parts)
-            M = new_module(SUDSWebService, str(t.qname[0]),{"compute":compute,
+            M = new_module(self.module, str(t.qname[0]),{"compute":compute,
                                                          "wstype":t,
                                                          "service":self,
                                                          "__doc__":d})
             self.typeClasses[t.qname] = M
-            reg.add_module(M, **{'namespace':self.address+'|Types',
-                                 'package':identifier,
-                                 'package_version':version})
+            reg.add_module(M, **{'namespace':'Types',
+                                 'package':self.signature,
+                                 'package_version':self.wsdlHash})
 
         # then add ports
         for t in self.wstypes:
@@ -492,14 +550,14 @@ Outputs:
    (%s)
 """%(self.address, m.qname[0], inputs, outputs)
 
-            M = new_module(SUDSWebService, str(m.qname[0]), {"compute":compute,
-                                                         "wsmethod":m,
-                                                         "service":self,
-                                                         "__doc__":d})
+            M = new_module(self.module, str(m.qname[0]), {"compute":compute,
+                                                          "wsmethod":m,
+                                                          "service":self,
+                                                           "__doc__":d})
             self.methodClasses[m.qname] = M
-            reg.add_module(M, **{'namespace':self.address+'|Methods',
-                                 'package':identifier,
-                                 'package_version':version})
+            reg.add_module(M, **{'namespace':'Methods',
+                                 'package':self.signature,
+                                 'package_version':self.wsdlHash})
             # add ports
             for p, ptype in m.inputs.iteritems():
                 if ptype[1] in wsdlSchemas:
@@ -520,29 +578,85 @@ Outputs:
                     continue
                 reg.add_output_port(M, p, c)
 
-def handle_missing_module(*args, **kwargs):
+def load_from_signature(signature):
+    """ Load wsdl from signature and return success status """
+    wsdl = toAddress(signature)
+    wsdlList = []
+    if configuration.check('wsdlList'):
+        wsdlList = configuration.wsdlList.split(";")
+    if not wsdl in wsdlList:
+        try:
+            service = Service(wsdl)
+        except:
+            return False
+        if not service.service:
+            return False
+        webServicesDict[wsdl] = service
+        wsdlList.append(wsdl)
+        configuration.wsdlList = ';'.join(wsdlList)
+    return True
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    old_module = pipeline.modules[module_id]
+    # first check package
+    # v1.0 types:
+    if old_module.package == 'edu.utah.sci.vistrails.sudswebservices':
+        wsdl = old_module.namespace.split('|')[0]
+        namespace = old_module.namespace.split('|')[1]
+    else:
+        wsdl = toAddress(old_module.package)
+        namespace = old_module.namespace
+    name = old_module.name
+
+    wsdlList = []
+    if configuration.check('wsdlList'):
+        wsdlList = configuration.wsdlList.split(";")
+    if not wsdl in wsdlList:
+        service = Service(wsdl)
+        if not service.service:
+            return []
+        webServicesDict[wsdl] = service
+        wsdlList.append(wsdl)
+        configuration.wsdlList = ';'.join(wsdlList)
+
+    if old_module.package == 'edu.utah.sci.vistrails.sudswebservices':
+        reg = core.modules.module_registry.get_module_registry()
+        new_descriptor = reg.get_descriptor_by_name(toSignature(wsdl), name,
+                                                    namespace)
+        if not new_descriptor:
+            return []
+        try:
+            return UpgradeWorkflowHandler.replace_module(controller, pipeline,
+                                                    module_id, new_descriptor)
+        except Exception, e:
+            import traceback
+            traceback.print_exc()
+            raise
+
+    return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
+                                                            pipeline,
+                                                            module_id)
+
+def handle_missing_module(controller, module_id, pipeline):
     global webServicesDict
     global package_cache
-    #this is the order the arguments are passed to the function
-    controller = args[0]
-    m_id = args[1]
-    pipeline = args[2]
-    
+
     def get_wsdl_from_namespace(m_namespace):
         try:
             wsdl = m_namespace.split("|")
             return wsdl[0]
         except:
             return None
-
-    m = pipeline.modules[m_id]
-    m_namespace = m.namespace
     
-    wsdl = get_wsdl_from_namespace(m_namespace)
-    if not wsdl:
-        debug.critical("'%s' is not a valid namespace" % m_namespace)
-        return False
-
+    m = pipeline.modules[module_id]
+    if m.package == identifier:
+        # v1.0 old style
+        m_namespace = m.namespace
+        wsdl = get_wsdl_from_namespace(m_namespace)
+    else:
+        # v1.1 new style
+        wsdl = toAddress(m.name)
+    
     wsdlList = []
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
@@ -572,7 +686,7 @@ def contextMenuName(signature):
     """
     if signature == name:
         return "Add Web Service"
-    elif signature in webServicesDict:
+    elif signature.startswith('SUDS#'):
         return "Remove this Web Service"
     return None
     
@@ -587,7 +701,7 @@ def callContextMenu(signature):
         if not wsdl.startswith('http://'):
             wsdl = 'http://' + wsdl
         if wsdl in webServicesDict:
-            debug.critical('Duplicate WSDL entry: '+wsdl)
+            debug.critical('WSDL already loaded: '+wsdl)
             return
         s = Service(wsdl)
         if s.service:
@@ -595,22 +709,20 @@ def callContextMenu(signature):
             wsdlList = configuration.wsdlList.split(";")
             wsdlList.append(wsdl)
             configuration.wsdlList = ';'.join(wsdlList)
-        
-    elif signature in webServicesDict:
+    elif signature.startswith('SUDS#'):
+        address = toAddress(signature)
         from PyQt4 import QtGui 
         res = QtGui.QMessageBox.question(None, 'Remove the following web service from vistrails?',
-                                   signature,
+                                   address,
                                    buttons=QtGui.QMessageBox.Yes,
                                    defaultButton=QtGui.QMessageBox.No)
         if res == QtGui.QMessageBox.Yes:
             # Remove this Web Service
-            s = webServicesDict[signature]
+            s = webServicesDict[address]
+            del webServicesDict[address]
+
             reg = core.modules.module_registry.get_module_registry()
-            for i in s.typeClasses.itervalues():
-                reg.delete_module(identifier, i.wstype.qname[0], s.address+'|Types')
-            for i in s.methodClasses.itervalues():
-                reg.delete_module(identifier, i.wsmethod.qname[0], s.address+'|Methods')
-            del webServicesDict[signature]
+            reg.remove_package(s.package)
             wsdlList = configuration.wsdlList.split(";")
-            wsdlList.remove(signature)
+            wsdlList.remove(address)
             configuration.wsdlList = ';'.join(wsdlList)

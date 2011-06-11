@@ -58,7 +58,19 @@ class DatabaseAccess(object):
             cur = self.conn.cursor()
             self.run_sql_file(cur, os.path.join(os.path.dirname(
                         os.path.abspath(__file__)), 'schema.sql'))
+        self.ensure_deleted_column_exist()
         self.model = None
+
+    def ensure_deleted_column_exist(self):
+        """ Add a "deleted" column if not already exist
+            This was added in version 0.2.2 without bumping the schema
+        """
+        cur = self.conn.cursor()
+        if 'deleted' not in [i[1] for i in cur.execute(
+                    "PRAGMA table_info(file);").fetchall()]:
+            cur.execute("ALTER TABLE file ADD COLUMN "
+                        "deleted bool NOT NULL DEFAULT False;")
+            self.conn.commit()
 
     def set_model(self, model):
         self.model = model
@@ -104,12 +116,13 @@ class DatabaseAccess(object):
                     "date_modified", "content_hash", "version", "signature"]
         col_str = ', '.join(cols)
         if where_dict is None or len(where_dict) <= 0:
-            cur.execute("SELECT " + ", ".join(cols) + " FROM file;")
+            cur.execute("SELECT " + ", ".join(cols) +
+                        " FROM file WHERE deleted != 'True';")
         else:
             where_cols, where_vals = zip(*where_dict.iteritems())
             where_str = '=? AND '.join(where_cols) + '=?'
-            cur.execute("SELECT " + ", ".join(cols) + " FROM file "
-                        "WHERE %s;" % where_str, where_vals)
+            cur.execute("SELECT " + ", ".join(cols) + " FROM file WHERE "
+                        "%s AND deleted != 'True';" % where_str, where_vals)
         return cur.fetchall()
 
     def search_by_signature(self, signature):
@@ -140,3 +153,18 @@ class DatabaseAccess(object):
                         "WHERE id=? AND version=?;", (id, version))
         res = cur.fetchone()
         return res is not None
+
+    def delete_from_database(self, where_dict=None):
+        cur = self.conn.cursor()
+        if where_dict is None or len(where_dict) <= 0:
+            cur.execute("UPDATE file SET deleted='True';")
+        else:
+            where_cols, where_vals = zip(*where_dict.iteritems())
+            where_str = '=? AND '.join(where_cols) + '=?'
+            cur.execute("UPDATE file SET deleted='True' WHERE %s;" %
+                           where_str, where_vals)
+        self.conn.commit()
+        if self.model:
+            self.model.remove_data(where_dict)
+        # return cur.fetchall()
+                     

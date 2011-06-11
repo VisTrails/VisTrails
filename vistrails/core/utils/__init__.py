@@ -437,9 +437,19 @@ def versions_increasing(v1, v2):
                 
 
 ##############################################################################
-# DummyView
+# DummyView & DummyScene
 
+class DummyScene(object):
+    def __init(self):
+        self.current_version = -1
+        self.current_pipeline = None
+    def get_selected_module_ids(self):
+        return [] 
+    def flushMoveActions(self, *args, **kwargs): pass
+    
 class DummyView(object):
+    def __init__(self):
+        self._scene = DummyScene()
     def set_module_active(self, *args, **kwargs): pass
     def set_module_computing(self, *args, **kwargs): pass
     def set_module_success(self, *args, **kwargs): pass
@@ -448,7 +458,8 @@ class DummyView(object):
     def set_module_progress(self, *args, **kwargs): pass
     def set_module_persistent(self, *args, **kwargs): pass
     def flushMoveActions(self, *args, **kwargs): pass
-    
+    def scene(self): 
+        return self._scene
 ##############################################################################    
 # FIXME: Add tests
 def no_interrupt(callable_, *args, **kwargs):

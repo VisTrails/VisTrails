@@ -102,9 +102,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
                      self.applicationFocusChanged)
 
-    def create_view(self, vistrail, locator):
+    def create_view(self, vistrail, locator,  abstraction_files=None, 
+                                    thumbnail_files=None, mashups=None):
         from gui.collection.workspace import QWorkspaceWindow
-        view = QVistrailView(vistrail, locator)
+        view = QVistrailView(vistrail, locator, abstraction_files,
+                             thumbnail_files, mashups)
         self.vistrail_to_widget[view.get_name()] = view
         self.stack.addWidget(view)
         self.stack.setCurrentIndex(self.stack.count() - 1)
@@ -174,7 +176,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.view_action_group = QtGui.QActionGroup(self)
         for action in [self.qactions[n] 
                        for n in ['pipeline', 'history', 
-                                 'search', 'explore', 'provenance']]:
+                                 'search', 'explore', 'provenance', 'mashup']]:
             self.toolbar.addAction(action)
             self.view_action_group.addAction(action)
         self.toolbar.addWidget(create_separator())
@@ -238,6 +240,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
         from gui.collection.explorer import QExplorerWindow
         from gui.collection.workspace import QWorkspaceWindow
         from gui.collection.vis_log import QLogDetails
+        from gui.mashups.mashups_inspector import QMashupsInspector
+        from gui.mashups.alias_parameter_view import QAliasParameterView
         from gui.publishing import QLatexAssistant as QVersionEmbed
         self.palettes = []
         self.palette_window = None
@@ -246,7 +250,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
                            [(QModulePalette, True), (QWorkspaceWindow,True),
                             ((QParamExplorePalette, False),
                              (('pipeline_changed', 'set_pipeline'),
-                              ('controller_changed', 'set_controller')))]),
+                              ('controller_changed', 'set_controller'))),
+                             ((QMashupsInspector, False),
+                              (('controller_changed', 'updateVistrailController'),
+                               ('mshpcontroller_changed', 'updateMshpController'),
+                               ('mshpversion_changed', 'updateMshpVersion'),
+                               ('version_changed', 'updateVistrailVersion')))]),
                           (QtCore.Qt.RightDockWidgetArea,
                            [((QModuleInfo, True), 
                              (('controller_changed', 'set_controller'),
@@ -263,6 +272,9 @@ class QVistrailsWindow(QtGui.QMainWindow):
                              (('controller_changed', 'set_controller'),
                               ('execution_updated', 'execution_updated'),
                               ('execution_changed', 'execution_changed'))),
+                            ((QAliasParameterView, False),
+                             (('mshpcontroller_changed', 'updateMshpController'),
+                              ('mshpversion_changed', 'updateMshpVersion'))),
                             ((QVistrailVariables, False),
                              (('controller_changed', 'updateController'),))]),
                           (QtCore.Qt.NoDockWidgetArea,
@@ -286,10 +298,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
             first_added = None
             for p_klass in p_group:
                 notifications = []
-                print p_klass
                 if type(p_klass) == tuple:
                     p_klass, visible = p_klass
-                    print p_klass
                     if type(p_klass) == tuple:
                         notifications = visible
                         p_klass, visible = p_klass      
@@ -422,10 +432,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 #print '>>> LOCAL remove notification', notification_id, view
             
             #print id(notifications), notifications
-            for n, o in notifications.iteritems():
-                print "    ", n , "(%s)"%len(o)
-                for m in o:
-                    print "        ", m
+#            for n, o in notifications.iteritems():
+#                print "    ", n , "(%s)"%len(o)
+#                for m in o:
+#                    print "        ", m
         else:
             notifications = self.notifications    
             #print '>>> GLOBAL remove notification', notification_id, method   
@@ -546,11 +556,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self._first_view = self.get_current_view()
 
     def change_view(self, view):
-        print 'changing view', id(view)
+        print 'changing view', id(view), view
         if not self.windows.has_key(view):
-            self.stack.setCurrentWidget(view)
-            view.reset_tab_state()
-        self.view_changed(view)
+            if self.stack.currentWidget() != view:
+                self.stack.setCurrentWidget(view)
+                view.reset_tab_state()
+                self.view_changed(view)
 
     def detach_view(self, view):
         if not self.windows.has_key(view):
@@ -686,9 +697,12 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.view_changed(view)
             return view
         try:
-            (vistrail, abstraction_files, thumbnail_files) = \
+            (vistrail, abstraction_files, thumbnail_files, mashups) = \
                                         load_vistrail(locator, is_abstraction)
-            view = self.create_view(vistrail, locator)
+            # we need to send all the elements above to create_view so they are 
+            # sent to the controller.
+            view = self.create_view(vistrail, locator, abstraction_files, 
+                                    thumbnail_files, mashups)
             self.view_changed(view)
 
             self.qactions['history'].trigger()
@@ -1643,6 +1657,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
                        'callback': \
                            self.pass_through_bool(self.get_current_view,
                                                   'provenance_change')}),
+                    ("mashup", "Mashup",
+                      {'icon': CurrentTheme.MASHUP_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'enabled': False,
+                       'callback': \
+                           self.pass_through_bool(self.get_current_view,
+                                                  'mashup_change')}),
                      "---"] + palette_actions + ["---", 
                        ("dockPalettes", "Dock Palettes", 
                         {'enabled': True,
@@ -2273,8 +2295,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
         if current is not None:
             if (self.isAncestorOf(current) or 
                 current.window() in self.windows.values()):
-                self.change_view(self.get_current_view())
-                self.update_window_menu()
+                view = self.get_current_view()
+                if view:
+                    self.change_view(view)
+                    self.update_window_menu()
 
 _app = None
 _global_menubar = None
@@ -2645,6 +2669,14 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                        'callback': \
                            _app.pass_through_bool(self.get_current_view,
                                                   'provenance_change')}),
+                    ("mashup", "Mashup",
+                      {'icon': CurrentTheme.MASHUP_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'enabled': False,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'mashup_change')}),
                      "---"] + palette_actions + ["---", 
                        ("dockPalettes", "Dock Palettes", 
                         {'enabled': True,
@@ -2758,7 +2790,7 @@ class QVistrailViewWindow(QtGui.QMainWindow):
         self.view_action_group = QtGui.QActionGroup(self)
         for action in [self.qactions[n] 
                        for n in ['pipeline', 'history', 
-                                 'search', 'explore', 'provenance']]:
+                                 'search', 'explore', 'provenance', 'mashup']]:
             self.toolbar.addAction(action)
             self.view_action_group.addAction(action)
             

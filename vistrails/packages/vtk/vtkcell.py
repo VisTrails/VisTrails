@@ -204,7 +204,7 @@ class QVTKWidget(QCellWidget):
 
         QCellWidget.deleteLater(self)
 
-    def updateContents(self, inputPorts):
+    def updateContents(self, inputPorts, cameralist = None):
         """ updateContents(inputPorts: tuple)
         Updates the cell contents with new vtkRenderer
         
@@ -227,6 +227,10 @@ class QVTKWidget(QCellWidget):
             renderView.vtkInstance.SetupRenderWindow(renWin)
             renderers = [renderView.vtkInstance.GetRenderer()]
         self.renderer_maps = {}
+        self.usecameras = False
+        if cameralist != None and len(cameralist) == len(renderers):
+            self.usecameras = True
+        j = 0
         for renderer in renderers:
             if renderView==None:
                 vtkInstance = renderer.vtkInstance
@@ -235,6 +239,9 @@ class QVTKWidget(QCellWidget):
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
+                if self.usecameras:
+                    vtkInstance.SetActiveCamera(cameralist[j])
+                    j = j + 1
                 if not vtkInstance.IsActiveCameraCreated():
                     vtkInstance.ResetCamera()
                 else:

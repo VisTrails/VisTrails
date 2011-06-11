@@ -133,6 +133,10 @@ class VistrailController(object):
         self._delayed_actions = []
         self._loaded_abstractions = {}
         
+        # This will just store the mashups in memory and send them to SaveBundle
+        # when writing the vistrail
+        self._mashups = []
+        
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
         return self._current_version
@@ -161,7 +165,8 @@ class VistrailController(object):
     def get_locator(self):
         return self.locator
     
-    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
+    def set_vistrail(self, vistrail, locator, abstractions=None, 
+                     thumbnails=None, mashups=None):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
@@ -172,6 +177,8 @@ class VistrailController(object):
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
+            if mashups is not None:
+                self._mashups = mashups
         self.current_version = -1
         self.current_pipeline = None
         if self.locator != locator and self.locator is not None:
@@ -565,7 +572,7 @@ class VistrailController(object):
                                     function.vtType, function.real_id))
         else:
             new_function = self.create_function(module, function_name,
-                                                param_values)
+                                                param_values, aliases)
             op_list.append(('add', new_function,
                             module.vtType, module.id))        
         return op_list
@@ -1641,7 +1648,7 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
-            (locator, version, pipeline, view, aliases, extra_info) = vis
+            (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
             
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
@@ -1657,6 +1664,8 @@ class VistrailController(object):
                       'logger': self.get_logger(),
                       'controller': self,
                       'aliases': aliases,
+                      'params': params,
+                      'reason': reason,
                       'extra_info': extra_info,
                       }    
             result = interpreter.execute(pipeline, **kwargs)
@@ -1689,12 +1698,17 @@ class VistrailController(object):
             interpreter.debugger.update_values()
         return (results,changed)
     
-    def execute_current_workflow(self, custom_aliases=None, extra_info=None):
-        """ execute_current_workflow(custo_aliases: dict, extra_info: dict) -> (list, bool)
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None,
+                                 extra_info=None, reason='Pipeline Execution'):
+        """ execute_current_workflow(custom_aliases: dict, 
+                                     custom_params: list,
+                                     extra_info: dict) -> (list, bool)
         Execute the current workflow (if exists)
+        custom_params is a list of tuples (vttype, oId, newval) with new values
+        for parameters
         extra_info is a dictionary containing extra information for execution.
         As we want to make the executions thread safe, we will pass information
-        specific to each pipeline through this parameter
+        specific to each pipeline through extra_info
         As, an example, this will be useful for telling the spreadsheet where
         to dump the images.
         """
@@ -1710,6 +1724,8 @@ class VistrailController(object):
                                                 self.current_pipeline,
                                                 view,
                                                 custom_aliases,
+                                                custom_params,
+                                                reason,
                                                 extra_info)])
 
     def recompute_terse_graph(self):
@@ -1821,6 +1837,18 @@ class VistrailController(object):
         """callback for try_to_enable_package"""
         return True
        
+    def handleMissingSUDSWebServicePackage(self, identifier):
+        pm = get_package_manager()
+        suds_i = 'edu.utah.sci.vistrails.sudswebservices'
+        pkg = pm.identifier_is_available(suds_i)
+        if pkg:
+            pm.late_enable_package(pkg.codepath)
+        package = pm.get_package_by_identifier(suds_i)
+        if not package or \
+           not hasattr(package._init_module, 'load_from_signature'):
+            return False
+        return package._init_module.load_from_signature(identifier)
+
     def try_to_enable_package(self, identifier, dep_graph, confirmed=False):
         """try_to_enable_package(identifier: str,
                                  dep_graph: Graph,
@@ -1832,9 +1860,10 @@ class VistrailController(object):
         for later enables.
         """
 
-        # print 'TRYING TO ENABLE:', identifier
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
+        if not pkg and identifier.startswith('SUDS#'):
+            self.handleMissingSUDSWebServicePackage(identifier)
         if not pm.has_package(identifier) and pkg:
             deps = pm.all_dependencies(identifier, dep_graph)[:-1]
             if identifier in self._asked_packages:
@@ -1901,7 +1930,6 @@ class VistrailController(object):
         if vistrail is None:
             vistrail = self.vistrail
         pm = get_package_manager()
-
         root_exceptions = e.get_exception_set()
         missing_packages = {}
         def process_missing_packages(exception_set):
@@ -2458,6 +2486,8 @@ class VistrailController(object):
                 save_bundle.thumbnails = self.find_thumbnails(
                                            tags_only=thumb_cache.conf.tagsOnly)
             
+            #mashups
+            save_bundle.mashups = self._mashups
             # FIXME hack to use db_currentVersion for convenience
             # it's not an actual field
             self.vistrail.db_currentVersion = self.current_version

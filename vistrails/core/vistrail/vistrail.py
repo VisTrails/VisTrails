@@ -90,6 +90,7 @@ class Vistrail(DBVistrail):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBVistrail.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Vistrail
+        cp.locator = copy.copy(self.locator)
         cp.set_defaults(self)
         return cp
 
