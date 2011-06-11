@@ -54,11 +54,11 @@ class QToolWindow(QtGui.QDockWidget):
         """
         QtGui.QDockWidget.__init__(self, parent)
         self.setFeatures(QtGui.QDockWidget.AllDockWidgetFeatures)  
-        self.window = QtGui.QMainWindow(self)
+        self.mwindow = QtGui.QMainWindow(self)
         self.centralwidget = widget
-        self.window.setWindowFlags(QtCore.Qt.Widget) 
-        self.window.setCentralWidget(widget)     
-        self.setWidget(self.window)
+        self.mwindow.setWindowFlags(QtCore.Qt.Widget) 
+        self.mwindow.setCentralWidget(widget)     
+        self.setWidget(self.mwindow)
         self.createToolBar()
         if widget:
             self.setWindowTitle(widget.windowTitle())
@@ -69,7 +69,7 @@ class QToolWindow(QtGui.QDockWidget):
                      self.setDefaultPinStatus)
              
     def createToolBar(self):
-        self.toolbar = QtGui.QToolBar(self.window)
+        self.toolbar = QtGui.QToolBar(self.mwindow)
         self.pinButton = QtGui.QRadioButton(self.toolbar, 
                                             toggled=self.pinStatusChanged)
         
@@ -82,7 +82,7 @@ class QToolWindow(QtGui.QDockWidget):
         self.toolbar.setFloatable(False)
         self.toolbar.setMovable(False)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
-        self.window.addToolBar(self.toolbar)
+        self.mwindow.addToolBar(self.toolbar)
                    
     def setDefaultPinStatus(self, topLevel):
         if topLevel:
@@ -117,7 +117,8 @@ class QToolWindow(QtGui.QDockWidget):
         elif event.type()==QtCore.QEvent.Close:
             object.removeEventFilter(self)
         return QtGui.QDockWidget.eventFilter(self, object, event)
-        # return super(QToolWindow, self).eventFilter(object, event)
+        # return super(QToolWindow, self).eventFilter(object, event)                    
+            
         
 class QToolWindowInterface(object):
     """
