@@ -46,24 +46,25 @@ import core.system
 class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
-    def start_workflow_execution(*args, **kwargs): pass
-    def finish_workflow_execution(*args, **kwargs): pass
-    def create_module_exec(*args, **kwargs): pass
-    def create_group_exec(*args, **kwargs): pass
-    def create_loop_exec(*args, **kwargs): pass
-    def start_execution(*args, **kwargs): pass
-    def finish_execution(*args, **kwargs): pass
-    def start_module_loop_execution(*args, **kwargs): pass
-    def finish_module_loop_execution(*args, **kwargs): pass
-    def start_group_loop_execution(*args, **kwargs): pass
-    def finish_group_loop_execution(*args, **kwargs): pass
-    def start_module_execution(*args, **kwargs): pass
-    def finish_module_execution(*args, **kwargs): pass
-    def start_group_execution(*args, **kwargs): pass
-    def finish_group_execution(*args, **kwargs): pass
-    def start_loop_execution(*args, **kwargs): pass
-    def finish_loop_execution(*args, **kwargs): pass
-    def insert_module_annotations(*args, **kwargs): pass
+    def start_workflow_execution(self, *args, **kwargs): pass
+    def finish_workflow_execution(self, *args, **kwargs): pass
+    def create_module_exec(self, *args, **kwargs): pass
+    def create_group_exec(self, *args, **kwargs): pass
+    def create_loop_exec(self, *args, **kwargs): pass
+    def start_execution(self, *args, **kwargs): pass
+    def finish_execution(self, *args, **kwargs): pass
+    def start_module_loop_execution(self, *args, **kwargs): pass
+    def finish_module_loop_execution(self, *args, **kwargs): pass
+    def start_group_loop_execution(self, *args, **kwargs): pass
+    def finish_group_loop_execution(self, *args, **kwargs): pass
+    def start_module_execution(self, *args, **kwargs): pass
+    def finish_module_execution(self, *args, **kwargs): pass
+    def start_group_execution(self, *args, **kwargs): pass
+    def finish_group_execution(self, *args, **kwargs): pass
+    def start_loop_execution(self, *args, **kwargs): pass
+    def finish_loop_execution(self, *args, **kwargs): pass
+    def insert_module_annotations(self, *args, **kwargs): pass
+    def insert_workflow_exec_annotations(self, *args, **kwargs): pass
 
 class LogControllerFactory(object):
     _instance = None
@@ -321,3 +322,14 @@ class LogController(object):
             else:
                 module.module_exec.add_annotation(annotation)
             
+    def insert_workflow_exec_annotations(self, a_dict):
+        """insert_workflow_exec_annotations(a_dict)-> None
+        This will create an annotation for each pair in a_dict in 
+        self.workflow_exec"""
+        if self.workflow_exec:
+            for k,v in a_dict.iteritems():
+                a_id = self.log.id_scope.getNewId(Annotation.vtType)
+                annotation = Annotation(id=a_id,
+                                        key=k,
+                                        value=v)
+                self.workflow_exec.add_annotation(annotation)

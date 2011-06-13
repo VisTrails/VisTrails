@@ -40,6 +40,9 @@ from core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline, systemType
 from core.utils import Chdir
 from core.log.log import Log
+from core.mashup.mashup_trail import Mashuptrail
+from core.mashup import currentVersion as currentMashupVersion
+
 import core.requirements
 ElementTree = get_elementtree_library()
 
@@ -116,6 +119,7 @@ class SaveBundle(object):
         self.opm_graph = None
         self.abstractions = []
         self.thumbnails = []
+        self.mashups = []
         # Make all args into attrs using vtType as attr name
         # This requires that attr names in this class match the vtTypes
         # i.e. if arg's vtType is 'vistrail', self.vistrail = arg, etc...
@@ -622,6 +626,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
     abstraction_files = []
     unknown_files = []
     thumbnail_files = []
+    mashups = []
     try:
         for root, dirs, files in os.walk(vt_save_dir):
             for fname in files:
@@ -641,6 +646,10 @@ def open_vistrail_bundle_from_zip_xml(filename):
                       root == os.path.join(vt_save_dir,'thumbs')):
                     thumbnail_file = os.path.join(root, fname)
                     thumbnail_files.append(thumbnail_file)
+                elif root == os.path.join(vt_save_dir,'mashups'):
+                    mashup_file = os.path.join(root, fname)
+                    mashup = open_mashuptrail_from_xml(mashup_file)
+                    mashups.append(mashup)
                 else:
                     unknown_files.append(os.path.join(root, fname))
     except OSError, e:
@@ -652,7 +661,9 @@ def open_vistrail_bundle_from_zip_xml(filename):
         raise VistrailsDBException("vt file does not contain vistrail")
     vistrail.db_log_filename = log_fname
 
-    save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=abstraction_files, thumbnails=thumbnail_files)
+    save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
+                             abstractions=abstraction_files, 
+                             thumbnails=thumbnail_files, mashups=mashups)
     return (save_bundle, vt_save_dir)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
@@ -732,10 +743,12 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
                                    'bundle does not contain a vistrail')
     if not vt_save_dir:
         vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    # saving zip files flat so we'll do without this dir for now
+    # abstractions are saved in the root of the zip file
     # abstraction_dir = os.path.join(vt_save_dir, 'abstractions')
+    #thumbnails and mashups have their own folder
     thumbnail_dir = os.path.join(vt_save_dir, 'thumbs')
-
+    mashup_dir = os.path.join(vt_save_dir, 'mashups')
+    
     # Save Vistrail
     xml_fname = os.path.join(vt_save_dir, 'vistrail')
     save_vistrail_to_xml(save_bundle.vistrail, xml_fname, version)
@@ -802,6 +815,18 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         else:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'thumbnail list entry must be a filename')
+    # Save Mashups
+    #print " mashups:"
+    if len(save_bundle.mashups) > 0 and not os.path.exists(mashup_dir):
+        os.mkdir(mashup_dir)
+    for obj in save_bundle.mashups:
+        #print "  ", obj
+        try:
+            xml_fname = os.path.join(mashup_dir, str(obj.id))
+            save_mashuptrail_to_xml(obj, xml_fname)
+        except Exception, e:
+            raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
+                                       'when saving mashup: %s'%str(e))
 
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
@@ -1438,6 +1463,35 @@ def save_thumbnails_to_db(absfnames, db_connection):
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
     return None
+##############################################################################
+# Mashup I/O 
+def open_mashuptrail_from_xml(filename):
+    """open_mashuptrail_from_xml(filename) -> Mashuptrail"""
+    tree = ElementTree.parse(filename)
+    version = get_version_for_xml(tree.getroot())
+    try:
+        #ignoring version for now 
+        mashuptrail = Mashuptrail.fromXml(tree.getroot())
+    except VistrailsDBException, e:
+        msg = "There was a problem when reading mashups from the xml file: "
+        msg += str(e)
+        raise VistrailsDBException(msg)
+    return mashuptrail
+
+def save_mashuptrail_to_xml(mashuptrail, filename, version=None):
+    tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+            'xsi:schemaLocation': 'http://www.vistrails.org/mashup.xsd'
+            }
+    if version is None:
+        version = currentMashupVersion
+    root = mashuptrail.toXml()
+    root.set('version', version)
+    for k, v in tags.iteritems():
+        root.set(k, v)
+    tree = ElementTree.ElementTree(root)
+    Mashuptrail.indent(tree.getroot())
+    tree.write(filename)
+    return mashuptrail
 
 ##############################################################################
 # I/O Utilities

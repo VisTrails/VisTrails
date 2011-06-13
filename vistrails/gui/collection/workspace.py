@@ -607,6 +607,12 @@ class QVistrailListItem(QBrowserWidgetItem):
 #                                   | QtCore.Qt.ItemIsSelectable
                                    )
 
+    def open_in_new_window(self):
+        if hasattr(self, "window"):
+            self.treeWidget().setSelected(self.window)
+            self.treeWidget().parent().emit(QtCore.SIGNAL("detachVistrail"), 
+                                   self.window)
+         
 class QVistrailList(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
@@ -742,9 +748,21 @@ class QVistrailList(QtGui.QTreeWidget):
         print "*** item clicked", id(vistrail.window)
 
         self.setSelected(vistrail.window)
+        import traceback
+        traceback.print_stack()
         self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
                            vistrail.window)
 
+    def contextMenuEvent(self, event):
+        item = self.itemAt(event.pos())
+        if item and self.indexOfTopLevelItem(item) != -1:
+            menu = QtGui.QMenu(self)
+            act = QtGui.QAction("Open in New Window", self,
+                                triggered=item.open_in_new_window)
+            act.setStatusTip("Open specified vistrail file in another window")
+            menu.addAction(act)
+            menu.exec_(event.globalPos())
+            
 if __name__ == '__main__':
     import sys
     sys.path.append('/vistrails/src/query/vistrails')

@@ -45,6 +45,7 @@ from core.utils.uxml import (named_elements, enter_named_element)
 from core import debug
 from core.configuration import ConfigurationObject, get_vistrails_configuration
 from core.modules.module_descriptor import ModuleDescriptor
+
 from db.domain import DBPackage
 
 ##############################################################################
@@ -430,15 +431,27 @@ class Package(DBPackage):
         return hasattr(self._init_module, 'handle_all_errors')
 
     def can_handle_upgrades(self):
+        # redirect webservices to SUDSWebServices
+        if self.package.startswith("SUDS#"):
+            return True
         return hasattr(self._init_module, 'handle_module_upgrade_request')
     
     def can_handle_missing_modules(self):
+        # redirect webservices to SUDSWebServices
+        if self.identifier.startswith("SUDS#"):
+            return True
         return hasattr(self._init_module, 'handle_missing_module')
 
     def handle_all_errors(self, *args, **kwargs):
         return self._init_module.handle_all_errors(*args, **kwargs)
 
     def handle_module_upgrade_request(self, *args, **kwargs):
+        # redirect webservices to SUDSWebServices
+        if self.identifier.startswith("SUDS#"):
+            from core.packagemanager import get_package_manager
+            pm = get_package_manager()
+            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
+            return package._init_module.handle_module_upgrade_request(*args, **kwargs)
         return self._init_module.handle_module_upgrade_request(*args, **kwargs)
         
     def handle_missing_module(self, *args, **kwargs):
@@ -449,18 +462,42 @@ class Package(DBPackage):
         module.
         """
         
+        # redirect webservices to SUDSWebServices
+        if self.identifier.startswith("SUDS#"):
+            from core.packagemanager import get_package_manager
+            pm = get_package_manager()
+            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
+            return package._init_module.handle_missing_module(*args, **kwargs)
         return self._init_module.handle_missing_module(*args, **kwargs)
 
     def has_contextMenuName(self):
+        # redirect webservices to SUDSWebServices
+        if self.identifier.startswith("SUDS#"):
+            return True
         return hasattr(self._init_module, 'contextMenuName')
 
     def contextMenuName(self, signature):
+        # redirect webservices to SUDSWebServices
+        if self.identifier.startswith("SUDS#"):
+            from core.packagemanager import get_package_manager
+            pm = get_package_manager()
+            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
+            return package._init_module.contextMenuName(signature)
         return self._init_module.contextMenuName(signature)
     
     def has_callContextMenu(self):
+        # redirect webservices to SUDSWebServices
+        if self.identifier.startswith("SUDS#"):
+            return True
         return hasattr(self._init_module, 'callContextMenu')
 
     def callContextMenu(self, signature):
+        # redirect webservices to SUDSWebServices
+        if self.identifier.startswith("SUDS#"):
+            from core.packagemanager import get_package_manager
+            pm = get_package_manager()
+            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
+            return package._init_module.callContextMenu(signature)
         return self._init_module.callContextMenu(signature)
 
     def check_requirements(self):

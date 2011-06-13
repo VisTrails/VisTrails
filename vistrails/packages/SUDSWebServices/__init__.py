@@ -40,7 +40,7 @@ from core.configuration import ConfigurationObject
 
 identifier = 'edu.utah.sci.vistrails.sudswebservices'
 name = 'SUDS Web Services'
-version = '0.1.0'
+version = '0.1.1'
 configuration = ConfigurationObject(wsdlList=(None, str),
                                     proxy_http=(None, str),
                                     cache_days=(None, int))

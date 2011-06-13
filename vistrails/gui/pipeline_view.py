@@ -263,7 +263,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         Prepare for dragging a connection
         
         """
-        if self.controller and event.buttons() & QtCore.Qt.LeftButton:
+        if (self.controller and event.buttons() & QtCore.Qt.LeftButton
+            and not self.scene().read_only_mode):
             self.dragging = True
             self.setPen(CurrentTheme.PORT_SELECTED_PEN);
             event.accept()
@@ -1598,6 +1599,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_connection_ids = set()
         self._var_selected_port = None
         self.pipeline = None
+        self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
 
@@ -1909,7 +1911,8 @@ mutual connections."""
             (type(event.source())==QModuleTreeWidget or
              type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
-            if hasattr(data, 'items') or hasattr(data, 'variableData'):
+            if (hasattr(data, 'items') or hasattr(data, 'variableData')
+                and not self.read_only_mode):
                 event.accept()
                 return
         # Ignore if not accepted and returned by this point
@@ -1924,7 +1927,7 @@ mutual connections."""
             (type(event.source())==QModuleTreeWidget or
              type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
-            if hasattr(data, 'items'):
+            if hasattr(data, 'items') and not self.read_only_mode:
                 event.accept()
                 return
             elif hasattr(data, 'variableData'):
@@ -1994,7 +1997,7 @@ mutual connections."""
             (type(event.source())==QModuleTreeWidget or
              type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
-            if hasattr(data, 'items'):
+            if hasattr(data, 'items') and not self.read_only_mode:
                 assert len(data.items) == 1
                 if self.controller.current_version==-1:
                     self.controller.change_selected_version(0)
@@ -2119,7 +2122,8 @@ mutual connections."""
         """        
         if (self.controller and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
-            self.delete_selected_items()
+            if not self.read_only_mode:
+                self.delete_selected_items()
         else:
             QInteractiveGraphicsScene.keyPressEvent(self, event)
             # super(QPipelineScene, self).keyPressEvent(event)
@@ -2216,7 +2220,7 @@ mutual connections."""
         Paste modules/connections from the clipboard into this pipeline view
         
         """
-        if self.controller:
+        if self.controller and not self.read_only_mode:
             if self.controller.current_version == -1:
                 self.controller.change_selected_version(0)
             cb = QtGui.QApplication.clipboard()        
@@ -2480,6 +2484,10 @@ mutual connections."""
             return True
         return False
 
+    def set_read_only_mode(self, on):
+        """set_read_only_mode(on: bool) -> None
+        This will prevent user to add/remove modules and connections."""
+        self.read_only_mode = on
 
 class QModuleStatusEvent(QtCore.QEvent):
     """
@@ -2642,6 +2650,9 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         QInteractiveGraphicsView.setQueryEnabled(self, on)
         if not self.scene().noUpdate and self.scene().controller:
             self.scene().setupScene(self.scene().controller.current_pipeline)
+            
+    def setReadOnlyMode(self, on):
+        self.scene().set_read_only_mode(on)
 
     def set_title(self, title):
         BaseView.set_title(self, title)

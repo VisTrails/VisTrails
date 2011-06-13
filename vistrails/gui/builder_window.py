@@ -70,6 +70,7 @@ from gui import merge_gui
 from db.services.io import SaveBundle
 from core.thumbnails import ThumbnailCache
 import gui.debug
+from gui.mashups.mashups_manager import MashupsManager
 
 ################################################################################
 
@@ -479,6 +480,15 @@ class QBuilderWindow(QtGui.QMainWindow):
             'Execute Parameter Exploration', self)
         self.executeExplorationAction.setEnabled(False)
 
+        #mashup actions
+        self.executeMashupAction = QtGui.QAction(CurrentTheme.EXECUTE_MASHUP_ICON,
+                                                 'Execute Mashup', self)
+        self.executeMashupAction.setEnabled(False)
+        
+        self.createMashupAction = QtGui.QAction(CurrentTheme.MASHUP_ICON,
+                                                'Mashup', self)
+        self.createMashupAction.setEnabled(False)
+        
         self.executeShortcuts = [
             QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
                                                QtCore.Qt.Key_Return), self),
@@ -546,6 +556,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.controlFlowAssistAction)
         self.editMenu.addSeparator()
+        self.editMenu.addAction(self.createMashupAction)
+        self.editMenu.addSeparator()
         self.editMenu.addAction(self.repositoryOptions)
         self.mergeMenu = self.editMenu.addMenu('Merge with')
         self.mergeMenu.menuAction().setEnabled(False)
@@ -583,6 +595,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.runMenu.addAction(self.executeDiffAction)
         self.runMenu.addAction(self.executeQueryAction)
         self.runMenu.addAction(self.executeExplorationAction)
+        self.runMenu.addAction(self.executeMashupAction)
         self.runMenu.addSeparator()
         self.runMenu.addAction(self.flushCacheAction)
 
@@ -611,6 +624,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.undoAction)
         self.toolBar.addAction(self.redoAction)
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(self.createMashupAction)
 
         self.viewToolBar = QVistrailViewToolBar(self)
         self.addToolBar(self.viewToolBar)
@@ -700,6 +715,8 @@ class QBuilderWindow(QtGui.QMainWindow):
              self.execute_current_exploration),
             (self.flushCacheAction, self.flush_cache),
             (self.quitVistrailsAction, self.quitVistrails),
+            (self.createMashupAction, self.createMashup),
+            (self.executeMashupAction, self.executeMashup)
             ]
 
         for (emitter, receiver) in trigger_actions:
@@ -964,6 +981,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.executeDiffAction.setEnabled(currentView.execDiffEnabled)
             self.executeQueryAction.setEnabled(currentView.execQueryEnabled)
             self.executeExplorationAction.setEnabled(currentView.execExploreEnabled)
+            self.createMashupAction.setEnabled(currentView.createMashupEnabled)
+            self.executeMashupAction.setEnabled(currentView.execMashupEnabled)
         else:
             self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
                       False)
@@ -971,6 +990,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.executeDiffAction.setEnabled(False)
             self.executeQueryAction.setEnabled(False)
             self.executeExplorationAction.setEnabled(False)
+            self.createMashupAction.setEnabled(False)
+            self.executeMashupAction.setEnabled(False)
 
     def viewModeChanged(self, index):
         """ viewModeChanged(index: int) -> None
@@ -1848,6 +1869,21 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
                       True)
 
+    def createMashup(self):
+        """createMashup() -> None
+        Create a mashup from current pipeline """
+        #get current controller and current version
+        controller = self.viewManager.currentView().controller
+        version = controller.current_version
+        if version > 0:
+            mshpManager = MashupsManager.getInstance()
+            mshpManager.createMashup(controller, version)
+    
+    def executeMashup(self):
+        """executeMashup() -> None
+        Execute current mashup  """
+        pass
+    
     def interactiveExportCurrentPipeline(self):
         """ interactiveExportPipeline()
         Hide the builder window and show the spreadsheet window with

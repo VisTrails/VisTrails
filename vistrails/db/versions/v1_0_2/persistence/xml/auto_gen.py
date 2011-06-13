@@ -2950,6 +2950,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
         
+        annotations = []
         item_execs = []
         
         # read children
@@ -2958,7 +2959,10 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'moduleExec':
+            if child_tag == 'annotation':
+                _data = self.getDao('annotation').fromXML(child)
+                annotations.append(_data)
+            elif child_tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 item_execs.append(_data)
             elif child_tag == 'groupExec':
@@ -2984,7 +2988,8 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                              parent_type=parent_type,
                              parent_version=parent_version,
                              completed=completed,
-                             name=name)
+                             name=name,
+                             annotations=annotations)
         obj.is_dirty = False
         return obj
     
@@ -3007,6 +3012,10 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         node.set('name',self.convertToStr(workflow_exec.db_name, 'str'))
         
         # set elements
+        annotations = workflow_exec.db_annotations
+        for annotation in annotations:
+            childNode = ElementTree.SubElement(node, 'annotation')
+            self.getDao('annotation').toXML(annotation, childNode)
         item_execs = workflow_exec.db_item_execs
         for item_exec in item_execs:
             if item_exec.vtType == 'module_exec':

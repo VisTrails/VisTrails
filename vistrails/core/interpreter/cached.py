@@ -50,6 +50,7 @@ import core.interpreter.utils
 import core.system
 import core.vistrail.pipeline
 import gc
+import cPickle
 
 ##############################################################################
 
@@ -122,6 +123,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        params = fetch('params', None)
         extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
@@ -174,6 +176,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             # Controller is none for sub_modules, so we can't resolve variables
             self.resolve_variables(controller, pipeline)
 
+        self.update_params(pipeline, params)
+        
         (tmp_to_persistent_module_map,
          conn_map,
          module_added_set,
@@ -267,6 +271,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        params = fetch('params', None)
         extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
@@ -502,6 +507,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
           current_version = fetch('current_version', None)
           view = fetch('view', DummyView())
           aliases = fetch('aliases', None)
+          params = fetch('params', None)
           extra_info = fetch('extra_info', None)
           logger = fetch('logger', DummyLogController())
           reason = fetch('reason', None)
@@ -545,6 +551,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
         aliases = fetch('aliases', None)
+        params = fetch('params', None)
         extra_info = fetch('extra_info', None)
         logger = fetch('logger', DummyLogController())
         sinks = fetch('sinks', None)
@@ -574,12 +581,28 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         self.parent_execs = [None]
         logger.start_workflow_execution(vistrail, pipeline, current_version)
+        self.annotate_workflow_execution(logger, reason, aliases, params)
         result = self.unlocked_execute(pipeline, **new_kwargs)
         logger.finish_workflow_execution(result.errors)
         self.parent_execs = [None]
 
         return result
 
+    def annotate_workflow_execution(self, logger, reason, aliases, params):
+        """annotate_workflow_Execution(logger: LogController, reason:str,
+                                        aliases:dict, params:list)-> None
+        It will annotate the workflow execution in logger with the reason,
+        aliases and params.
+        
+        """
+        d = {}
+        d["__reason__"] = reason
+        if aliases is not None and type(aliases) == dict:
+            d["__aliases__"] = cPickle.dumps(aliases)
+        if params is not None and type(params) == list:
+            d["__params__"] = cPickle.dumps(params)
+        logger.insert_workflow_exec_annotations(d)
+        
     def add_to_persistent_pipeline(self, pipeline):
         """add_to_persistent_pipeline(pipeline):
         (module_id_map, connection_id_map, modules_added)
@@ -703,11 +726,11 @@ class TestCachedInterpreter(unittest.TestCase):
         """Test if basic caching is working."""
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
-        (v, abstractions, thumbnails) = load_vistrail(locator)
+        (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
         
         # the controller will take care of upgrades
         controller = VistrailController()
-        controller.set_vistrail(v, locator, abstractions, thumbnails)
+        controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
         p1 = v.getPipeline('int chain')
         n = v.get_version_number('int chain')
         controller.change_selected_version(n)

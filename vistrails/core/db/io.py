@@ -67,6 +67,7 @@ def load_vistrail(locator, is_abstraction=False):
 
     abstraction_files = []
     thumbnail_files = []
+    mashups = []
     vistrail = None
     if locator is None:
         vistrail = Vistrail()
@@ -76,10 +77,11 @@ def load_vistrail(locator, is_abstraction=False):
             vistrail = res.vistrail
             abstraction_files.extend(res.abstractions)
             thumbnail_files.extend(res.thumbnails)
+            mashups.extend(res.mashups)
         else:
             vistrail = res
     vistrail.is_abstraction = is_abstraction
-    return (vistrail, abstraction_files, thumbnail_files)
+    return (vistrail, abstraction_files, thumbnail_files, mashups)
     
 def open_registry(filename):
     from core.modules.module_registry import ModuleRegistry

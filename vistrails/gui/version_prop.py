@@ -39,6 +39,9 @@ QVersionNotes
 QVersionPropOverlay
 QExpandButton
 QNotesDialog
+QVersionThumbs
+QVersionMashups
+
 """
 import os.path
 from PyQt4 import QtCore, QtGui
@@ -123,6 +126,9 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
 
         self.versionThumbs = QVersionThumbs()
         vLayout.addWidget(self.versionThumbs)
+        
+        self.versionMashups = QVersionMashups()
+        vLayout.addWidget(self.versionMashups)
                 
         self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
                      self.tagFinished)
@@ -142,6 +148,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.controller = controller
         self.versionNotes.controller = controller
         self.versionThumbs.controller = controller
+        self.versionMashups.controller = controller
         self.updateVersion(controller.current_version)
 
     def updateVersion(self, versionNumber):
@@ -152,6 +159,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionNumber = versionNumber
         self.versionNotes.updateVersion(versionNumber)
         self.versionThumbs.updateVersion(versionNumber)
+        self.versionMashups.updateVersion(versionNumber)
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
@@ -668,3 +676,128 @@ class QVersionThumbs(QtGui.QWidget):
                 
         self.thumbs.setPixmap(QtGui.QPixmap())
         self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)
+
+################################################################################
+class QVersionMashups(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.versionNumber = None
+        self.controller = None
+        #label = QtGui.QLabel("Mashups:")
+        self.mashupsButton = QtGui.QToolButton()
+        self.mashupsButton.setText("Mashups")
+        self.mashupsButton.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.mashupsButton.setArrowType(QtCore.Qt.RightArrow)
+        self.mashupsButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        
+#        font = QtGui.QFont("Arial", 11, QtGui.QFont.Normal)
+#        font.setItalic(True)
+#        self.group = QtGui.QGroupBox()
+#        helplabel = QtGui.QLabel("Double-click a mashup to execute it")
+#        helplabel.setFont(font)
+#        self.mashupsList = QtGui.QListWidget()
+#        self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+#        self.mashupsList.itemDoubleClicked.connect(self.mashupDoubleClicked)
+#        glayout = QtGui.QVBoxLayout()
+#        glayout.setMargin(2)
+#        glayout.setSpacing(5)
+#        #layout.addWidget(label)
+#        glayout.addWidget(self.mashupsList)
+#        glayout.addWidget(helplabel)
+#        self.group.setLayout(glayout)
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(2)
+        layout.setSpacing(5)
+        #layout.addStretch()
+        layout.addWidget(self.mashupsButton)
+        #layout.addWidget(self.group)
+        self.setLayout(layout)
+        self.apps = {}
+        #self.group.setVisible(False)
+        #self.connect(self.mashupsButton, QtCore.SIGNAL("clicked(bool)"),
+        #             self.showList)
+        
+    def createMashupsMenu(self, tagMap):
+        tags = tagMap.keys()
+        self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+        #latestversion = mtrail.getLatestVersion()
+        mashupsMenu = QtGui.QMenu(self)
+        if len(tags) > 0:
+            tags.sort()
+            for tag in tags:
+                action = QtGui.QAction(str(tag), self, 
+                                       triggered=self.mashupSelected)
+                action.setData(tagMap[tag])
+                mashupsMenu.addAction(action)
+            self.mashupsButton.setEnabled(True)
+        return mashupsMenu
+    
+#    def showList(self, on):
+#        self.group.setVisible(on)
+        
+    def updateController(self, controller):
+        """ updateController(controller: VistrailController) -> None
+
+        """
+        self.controller = controller
+
+    def updateVersion(self, versionNumber):
+        """ updateVersion(versionNumber: int) -> None
+
+        """
+        #self.mashupsList.clear()
+        
+        from gui.mashups.mashups_manager import MashupsManager
+        from gui.mashups.mashups_inspector import QMashupListPanelItem
+        getMshptrail = MashupsManager.getMashuptrailforVersionInVistrailController
+        if self.controller:
+            vistrail = self.controller.vistrail
+            if versionNumber in vistrail.actionMap.keys():
+                self.mtrail = getMshptrail(self.controller, versionNumber)
+                if self.mtrail:
+                    tagMap = self.mtrail.getTagMap()
+                    self.mashupsButton.setMenu(self.createMashupsMenu(tagMap))
+#                    tags = tagMap.keys()
+#                    self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+#                    #latestversion = mtrail.getLatestVersion()
+#                    if len(tags) > 0:
+#                        tags.sort()
+#                        for tag in tags:
+#                            item = QMashupListPanelItem(str(tag),
+#                                                        tagMap[tag],
+#                                                        self.mashupsList)
+#                        self.mashupsButton.setEnabled(True)
+#                    else:
+#                        self.mashupsButton.setEnabled(False)
+                else:
+                    self.mashupsButton.setText("Mashups (0)")
+                    self.mashupsButton.setEnabled(False)
+            else:
+                self.mashupsButton.setText("Mashups (0)")
+                self.mashupsButton.setEnabled(False)
+        else:
+            self.mashupsButton.setText("Mashups (0)")
+            self.mashupsButton.setEnabled(False)
+                
+    def mashupSelected(self):
+        action = self.sender()
+        version, ok = action.data().toInt()
+        print "mashupSelected ", version
+        from gui.mashups.mashups_manager import MashupsManager
+        item_key = (self.mtrail.id, version)
+        if self.apps.has_key(item_key):
+            app = self.apps[item_key]
+            if app:
+                app.activateWindow()
+                return
+        
+        app = MashupsManager.createMashupApp(self.controller, self.mtrail, 
+                                             version)
+        app.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        app.appWasClosed.connect(self.appWasClosed)
+        self.apps[item_key] = app
+
+    def appWasClosed(self, app):
+        for (k, a) in self.apps.iteritems():
+            if a == app:
+                self.apps[k] = None

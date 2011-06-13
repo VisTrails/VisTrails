@@ -196,14 +196,15 @@ class VistrailController(QtCore.QObject, BaseController):
         self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.stop()
 
-    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
+    def set_vistrail(self, vistrail, locator, abstractions=None, 
+                     thumbnails=None, mashups=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         # self.vistrail = vistrail
         BaseController.set_vistrail(self, vistrail, locator, abstractions,
-                                    thumbnails)
+                                    thumbnails, mashups)
         if locator != None:
             self.set_file_name(locator.name)
         else:
@@ -674,8 +675,10 @@ class VistrailController(QtCore.QObject, BaseController):
         self.quiet = old_quiet
         if changed:
             self.invalidate_version_tree(False)
+        return (results, changed)
 
-    def execute_current_workflow(self, custom_aliases=None):
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None,
+                                 reason='Pipeline Execution'):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -686,13 +689,16 @@ class VistrailController(QtCore.QObject, BaseController):
             if locator:
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
-            self.execute_workflow_list([(self.locator,
+            return self.execute_workflow_list([(self.locator,
                                          self.current_version,
                                          self.current_pipeline,
                                          self.current_pipeline_view,
                                          custom_aliases,
+                                         custom_params,
+                                         reason,
                                          None)])
-
+        return ([], False)
+    
     def enable_missing_package(self, identifier, deps):
         from gui.application import VistrailsApplication
         msg = "VisTrails needs to enable package '%s'." % identifier

@@ -39,10 +39,10 @@ import subprocess
 import core.system
 
 try:
-    from ctypes import windll, Structure, c_ulong, byref, sizeof
+    from ctypes import windll, Structure, c_ulong, c_ulonglong, byref, sizeof
     importSuccess = True
     
-    class WIN32MEMORYSTATUS(Structure):
+    class WIN32MEMORYSTATUSEX(Structure):
         """ Structure that represents memory information returned by 
         Windows API
         
@@ -50,12 +50,13 @@ try:
         _fields_ = [
             ('dwLength', c_ulong),
             ('dwMemoryLoad', c_ulong),
-            ('dwTotalPhys', c_ulong),
-            ('dwAvailPhys', c_ulong),
-            ('dwTotalPageFile', c_ulong),
-            ('dwAvailPageFile', c_ulong),
-            ('dwTotalVirtual', c_ulong),
-            ('dwAvailVirtual', c_ulong)
+            ('dwTotalPhys', c_ulonglong),
+            ('dwAvailPhys', c_ulonglong),
+            ('dwTotalPageFile', c_ulonglong),
+            ('dwAvailPageFile', c_ulonglong),
+            ('dwTotalVirtual', c_ulonglong),
+            ('dwAvailVirtual', c_ulonglong),
+            ('dwAvailExtendedVirtual', c_ulonglong),
             ]
 
 except ImportError:
@@ -64,7 +65,7 @@ except ImportError:
 ##############################################################################
 def parse_meminfo():
     """ 
-    parse_meminfo() -> int
+    parse_meminfo() -> long
     Calls Windows 32 API GlobalMemoryStatus(Ex) to get memory information 
     It requires ctypes module
     
@@ -72,12 +73,12 @@ def parse_meminfo():
     try:
         kernel32 = windll.kernel32
 
-        result = WIN32MEMORYSTATUS()
-        result.dwLength = sizeof(WIN32MEMORYSTATUS)
-        kernel32.GlobalMemoryStatus(byref(result))
+        result = WIN32MEMORYSTATUSEX()
+        result.dwLength = sizeof(WIN32MEMORYSTATUSEX)
+        kernel32.GlobalMemoryStatusEx(byref(result))
     except:
         return -1
-    return int(result.dwTotalPhys / 1024) * 1L
+    return long(result.dwTotalPhys / 1024)
 
 def guess_total_memory():
     """ guess_total_memory() -> int 

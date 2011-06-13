@@ -178,8 +178,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                 
 
             scene = self.controller.current_pipeline_view
-            scene.recreate_module(self.controller.current_pipeline, self.module.id)
-        
+            scene.recreate_module(self.controller.current_pipeline, 
+                                  self.module.id)
+            
     def configure(self):
         from gui.vistrails_window import _app
         _app.configure_module()

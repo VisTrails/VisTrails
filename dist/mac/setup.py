@@ -62,8 +62,8 @@ OPTIONS = {'argv_emulation': True,
 			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
                         shelve, uuid, gridfield, gridfield.core, \
                         gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
-                        sine,st,Numeric,pexpect,psycopg2,sqlite3,suds',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,pyGridWare,Ft,Scientific,dbflib,shapelib,distutils,h5py',
+                        sine,st,Numeric,pexpect,psycopg2,sqlite3,suds,shapelib, dbflib',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,Scientific,distutils,h5py',
            'excludes': 'mpl_toolkits.basemap',
            'plist': plist,
            }
