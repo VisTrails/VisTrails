@@ -672,6 +672,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
             if view.controller.vistrail.locator == locator:
                 self.stack.setCurrentWidget(view)
                 return view
+        for (view, window) in self.windows.iteritems():
+            if view.controller.vistrail.locator == locator:
+                window.activateWindow()
+                window.raise_()
+                return view
         return None
 
     def open_vistrail(self, locator, version=None, is_abstraction=False):

@@ -748,8 +748,6 @@ class QVistrailList(QtGui.QTreeWidget):
         print "*** item clicked", id(vistrail.window)
 
         self.setSelected(vistrail.window)
-        import traceback
-        traceback.print_stack()
         self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
                            vistrail.window)
 
