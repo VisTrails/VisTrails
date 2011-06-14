@@ -2051,7 +2051,7 @@ mutual connections."""
                         self.addModule(var_module)
                     self.addConnection(var_connection)
                     # Update the version view node to fit text properly
-                    version_item = self.controller.vistrail_view.versionTab.versionView.scene().versions[self.controller.current_version]
+                    version_item = self.controller.vistrail_view.version_view.scene().versions[self.controller.current_version]
                     version_item.updateWidthFromLabel()
                     event.accept()
                     return
