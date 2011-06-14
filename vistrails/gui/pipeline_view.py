@@ -2529,6 +2529,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.setScene(QPipelineScene(self))
         self.set_title('Pipeline')
         self.controller = None
+        self.detachable = True
 
     def set_default_layout(self):
         from gui.module_palette import QModulePalette

@@ -544,6 +544,15 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/dragging.png')
 
+        #Tabbar icon for detach a tab        
+        self.DETACH_TAB_ICON = QtGui.QIcon()
+        self.DETACH_TAB_ICON.addFile(core.system.vistrails_root_directory() +
+                                     '/gui/resources/images/detach.png',
+                                     mode=QtGui.QIcon.Normal)
+        self.DETACH_TAB_ICON.addFile(core.system.vistrails_root_directory() +
+                                     '/gui/resources/images/detach_on.png',
+                                     mode=QtGui.QIcon.Active)
+
         # Parameter Exploration Pixmaps
         self.EXPLORE_COLUMN_PIXMAP = QtGui.QPixmap(
             core.system.vistrails_root_directory() +

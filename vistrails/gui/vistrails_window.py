@@ -619,6 +619,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         QWorkspaceWindow.instance().change_vt_window(new_view)
         self.update_merge_menu()
         self.update_window_menu()
+        self.update_recent_vistrail_menu()
         self.set_name()
 
     def state_changed(self, view):
@@ -671,6 +672,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
             view = self.stack.widget(i)
             if view.controller.vistrail.locator == locator:
                 self.stack.setCurrentWidget(view)
+                return view
+        for (view, window) in self.windows.iteritems():
+            if view.controller.vistrail.locator == locator:
+                window.activateWindow()
+                window.raise_()
                 return view
         return None
 

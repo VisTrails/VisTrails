@@ -660,3 +660,95 @@ class QSearchBox(QtGui.QWidget):
             self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
                       self.searchEdit.currentText())
 
+class QTabBarDetachButton(QtGui.QAbstractButton):
+    """QTabBarDetachButton is a special button to be added to a tab
+    
+    """
+    def __init__(self, parent):
+        QtGui.QAbstractButton.__init__(self)
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.setCursor(QtCore.Qt.ArrowCursor)
+        self.setToolTip("Detach Tab")
+        self.setIcon(CurrentTheme.DETACH_TAB_ICON)
+        self.activePixmap = self.icon().pixmap(self.sizeHint(),
+                                               mode=QtGui.QIcon.Active)
+        self.normalPixmap = self.icon().pixmap(self.sizeHint(),
+                                               mode=QtGui.QIcon.Normal)
+        
+        self.resize(self.sizeHint())
+        
+    def sizeHint(self):
+        self.ensurePolished()
+        size = QtCore.QSize()
+        if not self.icon().isNull():
+            iconSize = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
+                                                None, self)
+            sz = self.icon().actualSize(QtCore.QSize(iconSize, iconSize))
+            size = max(sz.width(), sz.height())
+        
+        return QtCore.QSize(size, size)
+    
+    def enterEvent(self, event):
+        if self.isEnabled():
+            icon = QtGui.QIcon(self.activePixmap)
+            self.setIcon(icon)
+            self.update()
+        else:
+            icon = QtGui.QIcon(self.normalPixmap)
+            self.setIcon(icon)
+        QtGui.QAbstractButton.enterEvent(self, event)
+        
+    def leaveEvent(self, event):
+        icon = QtGui.QIcon(self.normalPixmap)
+        self.setIcon(icon)
+        if self.isEnabled():
+            self.update()
+        QtGui.QAbstractButton.leaveEvent(self, event)
+        
+    def closePosition(self):
+        tb = self.parent()
+        if isinstance(tb, QtGui.QTabBar):
+            close_position = self.style().styleHint(QtGui.QStyle.SH_TabBar_CloseButtonPosition,
+                                                  None, tb)
+            return close_position
+        return -1
+    
+    def otherPosition(self):
+        tb = self.parent()
+        if isinstance(tb, QtGui.QTabBar):
+            close_position = self.closePosition()
+            if close_position == QtGui.QTabBar.LeftSide:
+                position = QtGui.QTabBar.RightSide
+            else:
+                position = QtGui.QTabBar.LeftSide
+            return position
+        return -1
+            
+    def paintEvent(self, event):
+        p = QtGui.QPainter(self)
+        opt = QtGui.QStyleOptionToolButton()
+        opt.init(self)
+        opt.state |= QtGui.QStyle.State_AutoRaise
+        if (self.isEnabled() and self.underMouse() and 
+            not self.isChecked() and not self.isDown()):
+            opt.state |= QtGui.QStyle.State_Raised
+        if self.isChecked():
+            opt.state |= QtGui.QStyle.State_On
+        if self.isDown():
+            opt.state |= QtGui.QStyle.State_Sunken
+        tb = self.parent()
+        if isinstance(tb, QtGui.QTabBar):
+            index = tb.currentIndex()
+            position = self.otherPosition()
+            if tb.tabButton(index, position) == self:
+                opt.state |= QtGui.QStyle.State_Selected
+            opt.icon = self.icon()
+            opt.subControls = QtGui.QStyle.SC_None
+            opt.activeSubControls = QtGui.QStyle.SC_None
+            opt.features = QtGui.QStyleOptionToolButton.None
+            opt.arrowType = QtCore.Qt.NoArrow
+            size = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
+                                                None, self)
+            opt.iconSize = QtCore.QSize(size,size)
+            self.style().drawComplexControl(QtGui.QStyle.CC_ToolButton, opt, p, 
+                                            self)
