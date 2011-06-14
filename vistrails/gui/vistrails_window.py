@@ -619,6 +619,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         QWorkspaceWindow.instance().change_vt_window(new_view)
         self.update_merge_menu()
         self.update_window_menu()
+        self.update_recent_vistrail_menu()
         self.set_name()
 
     def state_changed(self, view):

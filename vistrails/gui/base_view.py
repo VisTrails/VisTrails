@@ -52,6 +52,7 @@ class BaseView(object):
         self.action_defaults = {}
         self.set_action_defaults()
         self.set_action_links()
+        self.detachable = False
 
     def set_default_layout(self):
         raise Exception("Class must define the layout")
