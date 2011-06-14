@@ -53,6 +53,7 @@ class BaseView(object):
         self.set_action_defaults()
         self.set_action_links()
         self.detachable = False
+        self.vistrail_view = None
 
     def set_default_layout(self):
         raise Exception("Class must define the layout")
@@ -83,7 +84,13 @@ class BaseView(object):
 
     def set_controller(self, controller):
         pass
-
+    
+    def set_vistrail_view(self, view):
+        self.vistrail_view = view
+        
+    def get_vistrail_view(self):
+        return self.vistrail_view
+    
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.WindowTitleChange:
             self.emit(QtCore.SIGNAL("windowTitleChanged"), self)

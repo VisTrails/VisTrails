@@ -59,6 +59,7 @@ from core import debug
 
 from gui.application import VistrailsApplication
 from gui.preferences import QPreferencesDialog
+from gui.base_view import BaseView
 from gui.pipeline_view import QPipelineView
 from gui.repository import QRepositoryDialog
 from gui.theme import initializeCurrentTheme, CurrentTheme
@@ -108,8 +109,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
         view = QVistrailView(vistrail, locator, abstraction_files,
                              thumbnail_files, mashups)
         self.vistrail_to_widget[view.get_name()] = view
-        self.stack.addWidget(view)
-        self.stack.setCurrentIndex(self.stack.count() - 1)
+        index = self.stack.addWidget(view)
+        self.stack.setCurrentIndex(index)
         self.view_notifications[view] = {}
         for notification_id, method in view.get_notifications().iteritems():
             self.register_notification(notification_id, method, True, view)
@@ -561,7 +562,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
             if self.stack.currentWidget() != view:
                 self.stack.setCurrentWidget(view)
                 view.reset_tab_state()
-                self.view_changed(view)
+        self.view_changed(view)
+            
 
     def detach_view(self, view):
         if not self.windows.has_key(view):
@@ -622,6 +624,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.update_recent_vistrail_menu()
         self.set_name()
 
+    def reset_toolbar_for_view(self, view):
+        if view:
+            window = view.window()
+        else:
+            window = self
+        for action in window.view_action_group.actions():
+            action.setChecked(False)
+            
     def state_changed(self, view):
         """ state for the view changed so we need to update buttons"""
         self.view_changed(view)
@@ -710,7 +720,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             view = self.create_view(vistrail, locator, abstraction_files, 
                                     thumbnail_files, mashups)
             self.view_changed(view)
-
+            self.reset_toolbar_for_view(view)
             self.qactions['history'].trigger()
             view.version_view.zoomToFit()
             if version:
@@ -1604,7 +1614,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                        'enabled': True,
                        'statusTip': "Create a new pipeline view",
                        'callback': self.pass_through(self.get_current_view,
-                                                     'create_pipeline_view')}),
+                                                     'add_pipeline_view')}),
                      ("newDiff", "New Visual Difference",
                       {'enabled': True,
                        'statusTip': "Create a new visual difference for two" \
@@ -2304,8 +2314,15 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 view = self.get_current_view()
                 if view:
                     self.change_view(view)
+                    view.reset_tab_view_to_current()
                     self.update_window_menu()
-
+            elif isinstance(current, BaseView):
+                view = current.get_vistrail_view()
+                if view:
+                    self.change_view(view)
+                    view.set_to_current(current)
+                    self.update_window_menu()
+ 
 _app = None
 _global_menubar = None
     
@@ -2616,7 +2633,7 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                        'enabled': True,
                        'statusTip': "Create a new pipeline view",
                        'callback': _app.pass_through(self.get_current_view,
-                                                     'create_pipeline_view')}),
+                                                     'add_pipeline_view')}),
                      ("newDiff", "New Visual Difference",
                       {'enabled': True,
                        'statusTip': "Create a new visual difference for two" \

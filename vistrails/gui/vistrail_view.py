@@ -113,15 +113,16 @@ class QVistrailView(QtGui.QWidget):
         self.locator = locator
         self.controller.set_vistrail(vistrail, self.locator, abstraction_files,
                                      thumbnail_files, mashups)
-
+        self.tabs.setCurrentIndex(0)
+        self.current_tab = self.stack.setCurrentIndex(0)
+        self.pipeline_selected()
         self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
                      self.tab_changed)
         self.connect(self.tabs, QtCore.SIGNAL("tabCloseRequested(int)"),
                      self.remove_view_by_index)
-        self.tabs.setCurrentIndex(0)
-        self.current_tab = self.stack.currentWidget()
-        self.view_changed()
-        self.tab_changed(0)
+       
+        #self.view_changed()
+        #self.tab_changed(0)
 
         self.connect(self.controller,
                      QtCore.SIGNAL('stateChanged'),
@@ -207,6 +208,12 @@ class QVistrailView(QtGui.QWidget):
             qaction.trigger()
         except:
             pass
+        
+    def reset_tab_view_to_current(self):
+        index = self.tabs.currentIndex()
+        view = self.stack.widget(self.tab_to_stack_idx[index])
+        #print "view changed: ", view
+        self.set_to_current(view)
          
     def pipeline_selected(self):
         from gui.vistrails_window import _app
@@ -389,6 +396,7 @@ class QVistrailView(QtGui.QWidget):
         
     def create_view(self, klass, add_tab=True):
         view = klass(self)
+        view.set_vistrail_view(self)
         idx = self.stack.addWidget(view)
         view.set_index(idx)
         if add_tab:
@@ -412,24 +420,27 @@ class QVistrailView(QtGui.QWidget):
 
     def detach_view(self):
         button = self.sender()
-        tab_idx = self.button_to_tab_idx[button]
-        stack_index = self.tab_to_stack_idx[tab_idx]
-        view = self.stack.widget(stack_index)
-        self.remove_view_by_index(tab_idx)
-        view.setParent(self.window())
-        view.setWindowFlags(QtCore.Qt.Window)
-        view.set_title("%s from %s"%(self.controller.get_pipeline_name(),
-                                     self.get_name()))
-        self.detached_views.append(view)
-        view.show()
+        if self.button_to_tab_idx.has_key(button):
+            tab_idx = self.button_to_tab_idx[button]
+            stack_index = self.tab_to_stack_idx[tab_idx]
+            view = self.stack.widget(stack_index)
+            self.remove_view_by_index(tab_idx)
+            view.setParent(None)
+            view.setWindowFlags(QtCore.Qt.Window)
+            view.set_title("%s from %s"%(self.controller.get_pipeline_name(),
+                                         self.get_name()))
+            self.detached_views.append(view)
+            view.show()
+        else:
+            print "Error detach_view: ", button, self.button_to_tab_idx
         
     def setTabDetachable(self, index, detachable=True):
         if detachable and self.tabs.count() > 1 and self.tab_to_view[index].detachable:
             if not self.button_to_tab_idx.inverse.has_key(index):
                 button = QTabBarDetachButton(self.tabs)
+                self.button_to_tab_idx[button] = index
                 self.connect(button, QtCore.SIGNAL("clicked()"),
                              self.detach_view)
-                self.button_to_tab_idx[button] = index
             button = self.button_to_tab_idx.inverse[index] 
             #print "Setting tab %s detachable == True"%index
             self.tabs.setTabButton(index, button.otherPosition(), button)
@@ -599,6 +610,10 @@ class QVistrailView(QtGui.QWidget):
 
         view = self.stack.widget(self.tab_to_stack_idx[index])
         #print "view changed: ", view
+        self.set_to_current(view)
+        
+    def set_to_current(self, view):
+        from gui.vistrails_window import _app, QVistrailViewWindow
         if isinstance(view, QDiffView):
             view.set_to_current()
             print "view changed!", self.controller, \
@@ -623,14 +638,18 @@ class QVistrailView(QtGui.QWidget):
                 self.controller.current_version
             _app.notify("controller_changed", self.controller)
             self.reset_version_view()
-
-
+            
     def create_pipeline_view(self):
         view = self.create_view(QPipelineView)
         self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'), 
                      self.gen_module_selected(view))
         view.set_controller(self.controller)
         view.set_to_current()
+        #self.switch_to_tab(view.tab_idx)
+        return view
+    
+    def add_pipeline_view(self):
+        view = self.create_pipeline_view()
         self.switch_to_tab(view.tab_idx)
         return view
 
