@@ -36,6 +36,7 @@ only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from gui.theme import CurrentTheme
 from core.modules.constant_configuration import StandardConstantWidget
 
@@ -149,6 +150,8 @@ class QToolWindowInterface(object):
             if self.parent()!=self._toolWindow:
                 self._toolWindow.setParent(self.parent())
 
+###############################################################################
+
 class QDockContainer(QtGui.QMainWindow):
     """
     QDockContainer is a window that can contain dock widgets while
@@ -164,6 +167,7 @@ class QDockContainer(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
         self.setDockNestingEnabled(True)
 
+###############################################################################
 
 class QSearchTreeWidget(QtGui.QTreeWidget):
     """
@@ -445,8 +449,10 @@ class QStringEdit(QtGui.QFrame):
         if not fileName.isEmpty():
             self.setText(fileName)
         
+###############################################################################
+
 class MultiLineWidget(StandardConstantWidget):
-     def __init__(self, contents, contentType, parent=None):
+    def __init__(self, contents, contentType, parent=None):
         """__init__(contents: str, contentType: str, parent: QWidget) ->
                                              StandardConstantWidget
         Initialize the line edit with its contents. Content type is limited
@@ -455,32 +461,34 @@ class MultiLineWidget(StandardConstantWidget):
         """
         StandardConstantWidget.__init__(self, parent)
 
-     def update_parent(self):
-         pass
+    def update_parent(self):
+        pass
      
-     def keyPressEvent(self, event):
-         """ keyPressEvent(event) -> None       
-         If this is a string line edit, we can use Ctrl+Enter to enter
-         the file name 	       
+    def keyPressEvent(self, event):
+        """ keyPressEvent(event) -> None       
+        If this is a string line edit, we can use Ctrl+Enter to enter
+        the file name 	       
 
-         """
-         k = event.key()
-         s = event.modifiers()
-         if ((k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return) and
-             s & QtCore.Qt.ShiftModifier):
-             event.accept()
-             if self.contentIsString and self.multiLines:
-                 fileNames = QtGui.QFileDialog.getOpenFileNames(self,
-                                                                'Use Filename '
-                                                                'as Value...',
-                                                                self.text(),
-                                                                'All files '
-                                                                '(*.*)')
-                 fileName = fileNames.join(',')
-                 if not fileName.isEmpty():
-                     self.setText(fileName)
-                     return
-         QtGui.QLineEdit.keyPressEvent(self,event)
+        """
+        k = event.key()
+        s = event.modifiers()
+        if ((k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return) and
+            s & QtCore.Qt.ShiftModifier):
+            event.accept()
+            if self.contentIsString and self.multiLines:
+                fileNames = QtGui.QFileDialog.getOpenFileNames(self,
+                                                               'Use Filename '
+                                                               'as Value...',
+                                                               self.text(),
+                                                               'All files '
+                                                               '(*.*)')
+                fileName = fileNames.join(',')
+                if not fileName.isEmpty():
+                    self.setText(fileName)
+                    return
+        QtGui.QLineEdit.keyPressEvent(self,event)
+        
+###############################################################################
 
 class QSearchEditBox(QtGui.QComboBox):
     def __init__(self, incremental=True, parent=None):
@@ -512,6 +520,8 @@ class QSearchEditBox(QtGui.QComboBox):
             return
         QtGui.QComboBox.keyPressEvent(self, e)
         
+###############################################################################
+
 class QSearchBox(QtGui.QWidget):
     """ 
     QSearchBox contains a search combo box with a clear button and
@@ -660,6 +670,8 @@ class QSearchBox(QtGui.QWidget):
             self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
                       self.searchEdit.currentText())
 
+###############################################################################
+
 class QTabBarDetachButton(QtGui.QAbstractButton):
     """QTabBarDetachButton is a special button to be added to a tab
     
@@ -752,3 +764,22 @@ class QTabBarDetachButton(QtGui.QAbstractButton):
             opt.iconSize = QtCore.QSize(size,size)
             self.style().drawComplexControl(QtGui.QStyle.CC_ToolButton, opt, p, 
                                             self)
+
+###############################################################################
+
+class QMouseTabBar(QtGui.QTabBar):
+    """QMouseTabBar is a QTabBar that emits a signal when a tab
+    receives a mouse event. For now only doubleclick events are
+    emitted."""
+    #signals
+    tabDoubleClicked = pyqtSignal(int,QtCore.QPoint)
+    
+    def __init__(self, parent=None):
+        QtGui.QTabBar.__init__(self, parent)
+        
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            tab_idx = self.tabAt(event.pos())
+            if tab_idx != -1:
+                self.tabDoubleClicked.emit(tab_idx, event.pos())
+        QtGui.QTabBar.mouseDoubleClickEvent(self, event)
