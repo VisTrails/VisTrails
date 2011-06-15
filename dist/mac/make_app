@@ -97,6 +97,10 @@ echo "adding extension files..."
 cp -r ../../extensions dist/extensions
 echo "adding script files..."
 cp -r ../../scripts dist/scripts
+echo "Building User's Guide and adding it distribution"
+#make sure that build_usersguide is configured for this step
+mkdir dist/doc
+python ../../scripts/build_usersguide.py
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/VisTrails.app dist/VisTrails/
@@ -104,6 +108,7 @@ mv dist/examples dist/VisTrails/
 mv dist/extensions dist/VisTrails/
 mv dist/scripts dist/VisTrails/
 mv dist/VisTrails.command dist/VisTrails/
+mv dist/doc dist/VisTrails/doc
 #uncomment the following lines for itk support
 #echo "including itk..."
 #python fix_itk_libraries.py ~/src/itk dist/VisTrails/VisTrails.app/Contents
