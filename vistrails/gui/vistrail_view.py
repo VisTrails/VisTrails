@@ -51,7 +51,7 @@ from core.db.locator import FileLocator, XMLFileLocator
 from core.modules.module_registry import ModuleRegistry
 
 from gui.collection.vis_log import QLogView
-from gui.common_widgets import QTabBarDetachButton
+from gui.common_widgets import QMouseTabBar
 from gui.pipeline_view import QPipelineView
 from gui.version_view import QVersionTreeView
 from gui.query_view import QQueryView
@@ -79,12 +79,13 @@ class QVistrailView(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
         self.notifications = {}
-        self.tabs = QtGui.QTabBar(self)
+        self.tabs = QMouseTabBar(self)
         self.tabs.setDocumentMode(True)
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
         #self.tabs.setMovable(True)
         self.tabs.hide()
+        self.tabs.tabDoubleClicked.connect(self.tabDoubleClicked)
         layout.addWidget(self.tabs)
         self.stack = QtGui.QStackedWidget(self)
         layout.addWidget(self.stack)
@@ -94,7 +95,7 @@ class QVistrailView(QtGui.QWidget):
         self.tab_to_stack_idx = {}
         self.tab_state = {}
         self.tab_to_view = {}
-        self.button_to_tab_idx = Bidict()
+        #self.button_to_tab_idx = Bidict()
         self.detached_views = []
 
         # Initialize the vistrail controller
@@ -113,15 +114,16 @@ class QVistrailView(QtGui.QWidget):
         self.locator = locator
         self.controller.set_vistrail(vistrail, self.locator, abstraction_files,
                                      thumbnail_files, mashups)
-
+        self.tabs.setCurrentIndex(0)
+        self.current_tab = self.stack.setCurrentIndex(0)
+        self.pipeline_selected()
         self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
                      self.tab_changed)
         self.connect(self.tabs, QtCore.SIGNAL("tabCloseRequested(int)"),
                      self.remove_view_by_index)
-        self.tabs.setCurrentIndex(0)
-        self.current_tab = self.stack.currentWidget()
-        self.view_changed()
-        self.tab_changed(0)
+       
+        #self.view_changed()
+        #self.tab_changed(0)
 
         self.connect(self.controller,
                      QtCore.SIGNAL('stateChanged'),
@@ -207,6 +209,12 @@ class QVistrailView(QtGui.QWidget):
             qaction.trigger()
         except:
             pass
+        
+    def reset_tab_view_to_current(self):
+        index = self.tabs.currentIndex()
+        view = self.stack.widget(self.tab_to_stack_idx[index])
+        #print "view changed: ", view
+        self.set_to_current(view)
          
     def pipeline_selected(self):
         from gui.vistrails_window import _app
@@ -221,8 +229,6 @@ class QVistrailView(QtGui.QWidget):
                              self.stack.currentWidget().get_title())
         self.tab_state[self.tabs.currentIndex()] = window.qactions['pipeline']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
-        self.setTabDetachable(self.tabs.currentIndex(), 
-                              self.get_current_tab().detachable)
 
     def pipeline_unselected(self):
         print "PIPELINE UN"
@@ -242,8 +248,6 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setTabText(self.tabs.currentIndex(), "History")
         self.tab_state[self.tabs.currentIndex()] = window.qactions['history']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
-        self.setTabDetachable(self.tabs.currentIndex(), 
-                              self.get_current_tab().detachable)
 
     def history_unselected(self):
         print "VERSION UN"
@@ -263,8 +267,6 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setTabText(self.tabs.currentIndex(), "Search")
         self.tab_state[self.tabs.currentIndex()] = window.qactions['search']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
-        self.setTabDetachable(self.tabs.currentIndex(), 
-                              self.get_current_tab().detachable)
 
     def query_unselected(self):
         print "QUERY UN"
@@ -284,8 +286,6 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setTabText(self.tabs.currentIndex(), "Explore")
         self.tab_state[self.tabs.currentIndex()] = window.qactions['explore']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
-        self.setTabDetachable(self.tabs.currentIndex(), 
-                              self.get_current_tab().detachable)
 
     def explore_unselected(self):
         print "EXPLORE UN"
@@ -305,8 +305,6 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setTabText(self.tabs.currentIndex(), "Provenance")
         self.tab_state[self.tabs.currentIndex()] = window.qactions['provenance']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
-        self.setTabDetachable(self.tabs.currentIndex(), 
-                              self.get_current_tab().detachable)
 
     def provenance_unselected(self):
         print "PROVENANCE UN"
@@ -329,8 +327,6 @@ class QVistrailView(QtGui.QWidget):
             self.tab_state[self.tabs.currentIndex()] = window.qactions['mashup']
             self.mashup_view.updateView()
             self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
-            self.setTabDetachable(self.tabs.currentIndex(), 
-                              self.get_current_tab().detachable)
         except Exception, e:
             print "EXCEPTION: ", str(e)
     def mashup_unselected(self):
@@ -389,6 +385,7 @@ class QVistrailView(QtGui.QWidget):
         
     def create_view(self, klass, add_tab=True):
         view = klass(self)
+        view.set_vistrail_view(self)
         idx = self.stack.addWidget(view)
         view.set_index(idx)
         if add_tab:
@@ -396,54 +393,52 @@ class QVistrailView(QtGui.QWidget):
             view.set_tab_idx(tab_idx)
             self.tab_to_stack_idx[tab_idx] = idx
             self.tab_to_view[tab_idx] = view
-            self.setTabDetachable(tab_idx, view.detachable)
+            if self.isTabDetachable(tab_idx):
+                self.tabs.setTabToolTip(tab_idx, "Double-click to detach it")
+            
         self.connect(view, QtCore.SIGNAL("windowTitleChanged"),
                      self.view_title_changed)
         if self.tabs.count() == 1:
             #self.tabs.hide()
             self.tabs.setTabsClosable(False)
-            self.setAllTabsDetachable(False)
         else:
             self.tabs.setTabsClosable(True)
-            self.setAllTabsDetachable(True)
-            #self.tabs.show()
+        self.updateTabsTooTip()
         self.tabs.show()
         return view
 
-    def detach_view(self):
-        button = self.sender()
-        tab_idx = self.button_to_tab_idx[button]
-        stack_index = self.tab_to_stack_idx[tab_idx]
-        view = self.stack.widget(stack_index)
-        self.remove_view_by_index(tab_idx)
-        view.setParent(self.window())
-        view.setWindowFlags(QtCore.Qt.Window)
-        view.set_title("%s from %s"%(self.controller.get_pipeline_name(),
-                                     self.get_name()))
-        self.detached_views.append(view)
-        view.show()
-        
-    def setTabDetachable(self, index, detachable=True):
-        if detachable and self.tabs.count() > 1 and self.tab_to_view[index].detachable:
-            if not self.button_to_tab_idx.inverse.has_key(index):
-                button = QTabBarDetachButton(self.tabs)
-                self.connect(button, QtCore.SIGNAL("clicked()"),
-                             self.detach_view)
-                self.button_to_tab_idx[button] = index
-            button = self.button_to_tab_idx.inverse[index] 
-            #print "Setting tab %s detachable == True"%index
-            self.tabs.setTabButton(index, button.otherPosition(), button)
-            button.setVisible(True)
+    def detach_view(self, tab_idx):
+        if self.tab_to_stack_idx.has_key(tab_idx):
+            stack_index = self.tab_to_stack_idx[tab_idx]
+            view = self.stack.widget(stack_index)
+            self.remove_view_by_index(tab_idx)
+            view.setParent(None)
+            view.setWindowFlags(QtCore.Qt.Window)
+            view.set_title("%s from %s"%(self.controller.get_pipeline_name(),
+                                         self.get_name()))
+            self.detached_views.append(view)
+            view.adjustSize()
+            view.move(self.rect().center()-view.rect().center())
+            view.show()
         else:
-            button = QTabBarDetachButton(self.tabs)
-            #print "Setting tab %s detachable == False"%index
-            self.tabs.setTabButton(index, button.otherPosition(), None)
-            button.deleteLater()
-            
-    def setAllTabsDetachable(self, detachable=True):
-        for i in range(self.tabs.count()):
-            self.setTabDetachable(i, detachable)
+            print "Error detach_view: ", tab_idx, self.tab_to_stack_idx
     
+    def isTabDetachable(self, index):
+        if self.tab_to_view.has_key(index):
+            return self.tabs.count() > 1 and self.tab_to_view[index].detachable
+        return False
+    
+    def updateTabsTooTip(self):
+        for i in range(self.tabs.count()):
+            if self.isTabDetachable(i):
+                self.tabs.setTabToolTip(i, "Double-click to detach it")
+            else:
+                self.tabs.setTabToolTip(i, "")
+    
+    def tabDoubleClicked(self, index, pos):
+        if self.isTabDetachable(index):
+            self.detach_view(index)
+            
     def view_title_changed(self, view):
         if self.stack.currentWidget() == view:
             self.tabs.setTabText(self.tabs.currentIndex(), view.windowTitle())
@@ -473,22 +468,16 @@ class QVistrailView(QtGui.QWidget):
         close_current = False
         if index == self.tabs.currentIndex():
             close_current = True
-        button = self.button_to_tab_idx.inverse[index]
         stack_idx = self.tab_to_stack_idx[index]
         print "\n\n >>>>> remove_view_by_index ", index, stack_idx, self.tabs.currentIndex()
         self.tabs.removeTab(index)
-        del self.button_to_tab_idx[button]
         del self.tab_to_view[index]
         if stack_idx >= 0:
             self.stack.removeWidget(self.stack.widget(stack_idx))
         self.update_indexes(index, stack_idx)
         if self.tabs.count() == 1:
-            #self.tabs.hide()
             self.tabs.setTabsClosable(False)
-            self.setAllTabsDetachable(False)
-        else:
-            self.setAllTabsDetachable(True)
-            
+            self.updateTabsTooTip()
         if close_current:
             if index >= self.tabs.count():
                 new_index = index - 1
@@ -548,6 +537,7 @@ class QVistrailView(QtGui.QWidget):
 #                for m in v: 
 #                    print "     ", m
 #            print "\n!! palette layout: ", self.current_tab.layout
+
             for dock_loc, palette_klass in self.current_tab.layout.iteritems():
                 palette_instance = palette_klass.instance()
                 window = palette_instance.toolWindow().parentWidget()
@@ -567,6 +557,12 @@ class QVistrailView(QtGui.QWidget):
 #                print p.__class__.__name__, p.toolWindow().isVisible()        
         else:
             print "tabs the same. do nothing"
+        if self.isTabDetachable(self.tabs.currentIndex()):
+            self.tabs.setTabToolTip(self.tabs.currentIndex(),
+                                    "Double-click to detach it")
+        else:
+            self.tabs.setTabToolTip(self.tabs.currentIndex(),
+                                    "")
 
     def tab_changed(self, index):
         print 'raw tab_changed', index
@@ -599,6 +595,10 @@ class QVistrailView(QtGui.QWidget):
 
         view = self.stack.widget(self.tab_to_stack_idx[index])
         #print "view changed: ", view
+        self.set_to_current(view)
+        
+    def set_to_current(self, view):
+        from gui.vistrails_window import _app, QVistrailViewWindow
         if isinstance(view, QDiffView):
             view.set_to_current()
             print "view changed!", self.controller, \
@@ -623,14 +623,18 @@ class QVistrailView(QtGui.QWidget):
                 self.controller.current_version
             _app.notify("controller_changed", self.controller)
             self.reset_version_view()
-
-
+            
     def create_pipeline_view(self):
         view = self.create_view(QPipelineView)
         self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'), 
                      self.gen_module_selected(view))
         view.set_controller(self.controller)
         view.set_to_current()
+        #self.switch_to_tab(view.tab_idx)
+        return view
+    
+    def add_pipeline_view(self):
+        view = self.create_pipeline_view()
         self.switch_to_tab(view.tab_idx)
         return view
 
@@ -1298,7 +1302,6 @@ class QVistrailView(QtGui.QWidget):
     #     self.redo_stack = []
 
 ################################################################################
-
 # FIXME: There is a bug on VisTrails that shows up if you load terminator.vt,
 # open the image slices HW, undo about 300 times and then try to redo.
 # This should be a test here, as soon as we have an api for that.
