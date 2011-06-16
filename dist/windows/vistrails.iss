@@ -106,6 +106,7 @@ Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}\vistrails
 Source: Input\license.txt; DestDir: {app}
 Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
+Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 ;;;; ------- QT LIBS ------- ;;;;
 ;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\phonon4.dll; DestDir: {app}\vistrails
@@ -158,7 +159,8 @@ Name: {app}\vistrails
 Name: {app}\examples; Components: examples; Tasks: 
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
-Name: {app}\extensions; Components: extensions; Tasks: 
+Name: {app}\extensions; Components: extensions; Tasks:
+Name: {app}\doc; Components: usersguide; Tasks:  
 Name: {app}\scripts
 Name: {app}\scripts\gen_vtk_examples
 Name: {app}\vistrails\libsrc
@@ -177,11 +179,13 @@ Name: {app}\vistrails\Python27\Tools
 Name: main; Description: Main Files; Types: full compact custom; Flags: fixed
 Name: examples; Description: Example Files; Types: full
 Name: extensions; Description: Extension Files; Types: full
+Name: usersguide; Description: User's Guide PDF document; Types: full
 
 [Icons]
 Name: {group}\VisTrails; Filename: {app}\vistrails\Python27\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py
 Name: {commondesktop}\VisTrails; Filename: {app}\vistrails\Python27\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails.py; Components: main; Tasks: desktopicon
 Name: {group}\Uninstall VisTrails; Filename: {uninstallexe}
+Name: {group}\VisTrails.pdf; Filename: {app}\doc\VisTrails.pdf; Components: usersguide
 [Tasks]
 Name: desktopicon; Description: Create a &desktop icon; GroupDescription: Additional icons:; Components: main
 Name: desktopicon\common; Description: For all users; GroupDescription: Additional icons:; Components: main; Flags: exclusive
@@ -329,3 +333,6 @@ end;
 LogFile=Output\build.log
 LogFileOverwrite=false
 
+
+[InnoIDE_PreCompile]
+Name: C:\Python27\python.exe; Parameters: I:\emanuele\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 
