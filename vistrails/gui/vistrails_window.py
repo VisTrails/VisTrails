@@ -96,6 +96,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.setup_recent_vistrails()
         self.init_toolbar()
 
+        self._focus_owner = None
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
@@ -2309,20 +2310,23 @@ class QVistrailsWindow(QtGui.QMainWindow):
         
     def applicationFocusChanged(self, old, current):
         if current is not None:
-            if (self.isAncestorOf(current) or 
-                current.window() in self.windows.values()):
-                view = self.get_current_view()
-                if view:
-                    self.change_view(view)
-                    view.reset_tab_view_to_current()
-                    self.update_window_menu()
-            elif isinstance(current, BaseView):
-                view = current.get_vistrail_view()
-                if view:
-                    self.change_view(view)
-                    view.set_to_current(current)
-                    self.update_window_menu()
- 
+            owner = current.window()
+            if owner != self._focus_owner:
+                self._focus_owner = owner
+                if (self.isAncestorOf(current) or 
+                    current.window() in self.windows.values()):
+                    view = self.get_current_view()
+                    if view:
+                        self.change_view(view)
+                        view.reset_tab_view_to_current()
+                        self.update_window_menu()
+                elif isinstance(current, BaseView):
+                    view = current.get_vistrail_view()
+                    if view:
+                        self.change_view(view)
+                        view.set_to_current(current)
+                        self.update_window_menu()
+     
 _app = None
 _global_menubar = None
     
