@@ -50,6 +50,7 @@ from core.modules.module_registry import ModuleRegistry, \
 from core.recent_vistrails import RecentVistrailList
 import core.system
 import core.db.action
+from core.packagemanager import get_package_manager
 from core.system import vistrails_default_file_type
 from core.vistrail.vistrail import Vistrail
 from core.vistrail.pipeline import Pipeline
@@ -63,6 +64,7 @@ from gui.base_view import BaseView
 from gui.pipeline_view import QPipelineView
 from gui.repository import QRepositoryDialog
 from gui.theme import initializeCurrentTheme, CurrentTheme
+from gui.utils import build_custom_window
 from gui.vistrail_view import QVistrailView
 from gui import merge_gui
 from gui.vistrail_variables import QVistrailVariables
@@ -91,6 +93,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.vistrail_to_widget = {}
         self.setCentralWidget(self.stack)
         self.setDocumentMode(True)
+        
+        # This keeps track of the menu items for each package
+        self._package_menu_items = {}
+        
         self.init_palettes()
         self.create_menus()
         self.setup_recent_vistrails()
@@ -1734,6 +1740,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
                       {'enabled': True,
                        'statusTip': "Publish workflows on crowdlabs.org",
                        'callback': self.publish_to_crowdlabs})]),
+                    ("packages", "Packages", 
+                      []),
                     ("window", "Window", 
                       []),
                    ("help", "Help",
@@ -1798,11 +1806,91 @@ class QVistrailsWindow(QtGui.QMainWindow):
         for action_tuple, palette in izip(palette_actions, palettes):
             palette.set_action(self.qactions[action_tuple[0]])
 
+        self.connect_package_manager_signals()
         # view_menu = self.qmenus["view"]
         # for action_name, action in self.create_palette_actions():
         #     self.qactions[action_name] = action
         #     view_menu.addAction(action)
 
+    def connect_package_manager_signals(self):
+        """ connect_package_manager_signals()->None
+        Connect specific signals related to the package manager """
+        pm = get_package_manager()
+        self.connect(pm,
+                     pm.add_package_menu_signal,
+                     self.add_package_menu_items)
+        self.connect(pm,
+                     pm.remove_package_menu_signal,
+                     self.remove_package_menu_items)
+        self.connect(pm,
+                     pm.package_error_message_signal,
+                     self.show_package_error_message)
+
+    def add_package_menu_items(self, pkg_id, pkg_name, items):
+        """add_package_menu_items(pkg_id: str,pkg_name: str,items: list)->None
+        Add a pacckage menu entry with submenus defined by 'items' to
+        Packages menu.
+
+        """
+        if len(self._package_menu_items) == 0:
+            self.qmenus['packages'].menuAction().setEnabled(True)
+
+        # we don't support a menu hierarchy yet, only a flat list
+        # this can be added later
+        def update_menu(d, packagesMenu):
+            if not d.has_key(pkg_id):
+                pkg_menu = packagesMenu.addMenu(str(pkg_name))
+                d[pkg_id] = {}
+                d[pkg_id]['menu'] = pkg_menu
+                d[pkg_id]['items'] = []
+            else:
+                pkg_menu = d[pkg_id]['menu']
+                pkg_menu.clear()
+            d[pkg_id]['items'] = [(pkg_name,items)]
+            
+            for item in items:
+                (name, callback) = item
+                action = QtGui.QAction(name,self,
+                                       triggered=callback)
+                pkg_menu.addAction(action)
+                
+        update_menu(self._package_menu_items,self.qmenus['packages'])    
+        
+        for w in self.windows.values():
+            update_menu(w._package_menu_items, w.qmenus['packages'])
+
+    def remove_package_menu_items(self, pkg_id):
+        """remove_package_menu_items(pkg_id: str)-> None
+        removes all menu entries from the Packages Menu created by pkg_id """
+        def update_menu(items, menu):
+            if items.has_key(pkg_id):
+                pkg_menu = items[pkg_id]['menu']
+                del items[pkg_id]
+                pkg_menu.clear()
+                pkg_menu.deleteLater()
+            if len(items) == 0:
+                menu.menuAction().setEnabled(False)
+            
+        update_menu(self._package_menu_items, self.qmenus['packages'])
+        for w in self.windows.values():
+            update_menu(w._package_menu_items, w.qmenus['packages'])
+            
+    def show_package_error_message(self, pkg_id, pkg_name, msg):
+        """show_package_error_message(pkg_id: str, pkg_name: str, msg:str)->None
+        shows a message box with the message msg.
+        Because the way initialization is being set up, the messages will be
+        shown after the builder window is shown.
+
+        """
+        msgbox = build_custom_window("Package %s (%s) says:"%(pkg_name,pkg_id),
+                                    msg,
+                                    modal=True,
+                                    parent=self)
+        #we cannot call self.msgbox.exec_() or the initialization will hang
+        # creating a modal window and calling show() does not cause it to hang
+        # and forces the messages to be shown on top of the builder window after
+        # initialization
+        msgbox.show()
 
     def showAboutMessage(self):
         """showAboutMessage() -> None
@@ -2336,6 +2424,10 @@ class QVistrailViewWindow(QtGui.QMainWindow):
         self.view = view
         self.setDocumentMode(True)
         self.setCentralWidget(view)
+        
+        # This keeps track of the menu items for each package
+        self._package_menu_items = {}
+        
         self.create_actions()
         self.init_toolbar()
         self.view.setVisible(True)
@@ -2725,6 +2817,8 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                       {'enabled': True,
                        'statusTip': "Publish workflows on crowdlabs.org",
                        'callback': _app.publish_to_crowdlabs})]),
+                   ("packages", "Packages", 
+                      []),
                    ("window", "Window", 
                       []),
                    ("help", "Help",
@@ -2782,6 +2876,8 @@ class QVistrailViewWindow(QtGui.QMainWindow):
         process_list(actions, menu_bar)
         print 'done processing list'
             
+        self.build_packages_menu_from_main_app()
+        
     def get_current_controller(self):
         return self.view.get_controller()
 
@@ -2832,6 +2928,22 @@ class QVistrailViewWindow(QtGui.QMainWindow):
         self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.addToolBar(self.toolbar)
         self.setUnifiedTitleAndToolBarOnMac(True)
+        
+    def build_packages_menu_from_main_app(self):
+        if len(self._package_menu_items) == 0:
+            self.qmenus['packages'].menuAction().setEnabled(True)
+            
+        for (pkg_id, d) in _app._package_menu_items.iteritems():
+            self._package_menu_items[pkg_id] = {}
+            for pkg_name,items in d['items']:
+                pkg_menu = self.qmenus['packages'].addMenu(str(pkg_name))
+                self._package_menu_items[pkg_id]['menu'] = pkg_menu
+                self._package_menu_items[pkg_id]['items'] = (pkg_name, items)
+                for item in items:
+                    (name, callback) = item
+                    action = QtGui.QAction(name,self,
+                                           triggered=callback)
+                    pkg_menu.addAction(action)
         
     def set_title(self, title):
         self.setWindowTitle(title)
