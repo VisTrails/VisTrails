@@ -128,6 +128,8 @@ def menu_items():
     """
     def show_spreadsheet():
         spreadsheetWindow.show()
+        spreadsheetWindow.activateWindow()
+        spreadsheetWindow.raise_()
     lst = []
     lst.append(("Show Spreadsheet", show_spreadsheet))
     return tuple(lst)

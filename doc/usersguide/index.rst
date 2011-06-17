@@ -7,7 +7,7 @@ Welcome to VisTrails's documentation!
 =====================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    example
    developer

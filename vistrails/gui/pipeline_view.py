@@ -2223,8 +2223,8 @@ mutual connections."""
             if self.controller.current_version == -1:
                 self.controller.change_selected_version(0)
             cb = QtGui.QApplication.clipboard()        
-            text = str(cb.text())
-            if text=='': return
+            text = str(cb.text().toAscii())
+            if text=='' or not text.startswith("<workflow"): return
             ids = self.controller.paste_modules_and_connections(text, center)
             self.setupScene(self.controller.current_pipeline)
             self.reset_module_colors()
@@ -2636,8 +2636,8 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def clipboard_non_empty(self):
         clipboard = QtGui.QApplication.clipboard()
         clipboard_text = clipboard.text()
-        return not clipboard_text.isEmpty() and \
-            str(clipboard_text).startswith("<workflow")
+        return not clipboard_text.isEmpty() #and \
+        #    str(clipboard_text).startswith("<workflow")
 
     def pipeline_non_empty(self, pipeline):
         return pipeline is not None and len(pipeline.modules) > 0

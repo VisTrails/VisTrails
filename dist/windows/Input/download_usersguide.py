@@ -1,4 +1,3 @@
-#!/bin/bash
 ###############################################################################
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
@@ -32,42 +31,19 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-SRC_PATH="vistrails"
-BIN_PATH_25="Contents/Resources/lib/python2.5"
-BIN_PATH_26="Contents/Resources/lib/python2.6"
-BIN_PATH_27="Contents/Resources/lib/python2.7"
-DIRS="api core db gui packages tests"
 
-if [ -z "$1" ] || [ -z "$2" ]
-then
-    echo "usage: $0 <src_dir> <bin_dir>"
-    exit 65
-fi
+import os.path
+import sys
+import urllib2
 
-if [ -e "$2/$BIN_PATH_27/$dir" ]
-then
-    BIN_PATH=$BIN_PATH_27
-elif [ -e "$2/$BIN_PATH_26/$dir" ]
-then
-    BIN_PATH=$BIN_PATH_26
-elif [ -e "$2/$BIN_PATH_25/$dir" ]
-then
-    BIN_PATH=$BIN_PATH_25
-fi
+DOWNLOAD_URL = "http://www.vistrails.org/usersguide-v2.0/VisTrails.pdf"
+SAVE_TO = "./Input"
 
-for dir in $DIRS
-do
-    if [ -e "$2/$BIN_PATH/$dir" ]
-    then
-	rm -r $2/$BIN_PATH/$dir
-    fi
-    ln -s $1/$SRC_PATH/$dir $2/$BIN_PATH/$dir
-done
-
-if [ -e "$2/$BIN_PATH/../../vistrails.py" ]
-then
-    rm $2/$BIN_PATH/../../vistrails.py
-fi
-ln -s $1/$SRC_PATH/vistrails.py $2/$BIN_PATH/../../vistrails.py
-
-exit 0
+if __name__ == "__main__":
+    response = urllib2.urlopen(DOWNLOAD_URL)
+    filename = os.path.join(SAVE_TO,
+                            DOWNLOAD_URL.split('/')[-1])
+    f = open(filename, 'wb')
+    f.write(response.read())
+    f.close()
+    
