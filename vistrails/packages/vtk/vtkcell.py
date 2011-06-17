@@ -1095,8 +1095,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                     self.toolBar.row, self.toolBar.col)
                 if info:
                     info = info[0]
-                    viewManager = builderWindow.viewManager
-                    view = viewManager.ensureVistrail(info['locator'])
+                    view = builderWindow.ensureVistrail(info['locator'])
                     if view:
                         controller = view.controller
                         controller.change_selected_version(info['version'])
