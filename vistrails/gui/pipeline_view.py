@@ -1626,7 +1626,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         moduleItem.setBreakpoint(module.is_breakpoint)
         if moduleBrush:
             moduleItem.set_custom_brush(moduleBrush)
-        self.addItem(moduleItem)
         if not module.has_annotation_with_key('__vistrail_var__'):
             # Don't add hidden vistrail variable modules to the scene
             self.addItem(moduleItem)

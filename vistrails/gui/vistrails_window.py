@@ -722,6 +722,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         try:
             (vistrail, abstraction_files, thumbnail_files, mashups) = \
                                         load_vistrail(locator, is_abstraction)
+
             # we need to send all the elements above to create_view so they are 
             # sent to the controller.
             view = self.create_view(vistrail, locator, abstraction_files, 
@@ -770,6 +771,11 @@ class QVistrailsWindow(QtGui.QMainWindow):
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
+            # update workspace (view creation used the old entities)
+            from gui.collection.workspace import QWorkspaceWindow
+            QWorkspaceWindow.instance().remove_vt_window(view)
+            QWorkspaceWindow.instance().add_vt_window(view)
+
         except Exception, e:
             import traceback
             debug.critical('Failed to index vistrail', traceback.print_exc())
