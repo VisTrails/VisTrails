@@ -5,7 +5,7 @@ Embedding VisTrails Files Via Latex
 .. index:
    pair: embed; latex
 
-The VisTrails Latex extension allows you to embed a result from a VisTrails file in a Latex document.  Images to be included in the Latex document will be generated through VisTrails and can be linked to the VisTrails file and version from which it was generated.  In other words, Latex call VisTrails to generate an image for a resulting PDF document.  The resulting image can be set up so, when clicked, the generating VisTrails file will be opened in Vistrails.
+The VisTrails Latex extension allows you to embed the result from a VisTrails file into a Latex document.  Images to be included in the Latex document will be generated through VisTrails and can be linked to the VisTrails file and version from which it was generated.  In other words, Latex calls VisTrails to generate an image for a resulting PDF document.  The resulting image can be set up so, when clicked, the generated VisTrails file will be opened in VisTrails.
 
 Latex Setup and Commands
 ========================

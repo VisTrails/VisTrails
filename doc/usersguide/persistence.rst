@@ -12,7 +12,7 @@ Although, we will focus primarily on the use of persistent files, persistent dir
 Getting Started With Persistence
 ================================
 
-A persistent file is simply a file that is kept in a repository and identified by an id and version string and annotated with a signature and content hash.  To begin, notice that there are three persistent file/directory types: input, intermediate, and output. It is helpful to understand the differences among these files as well as their distinguishing characteristics nod configuration options.
+A persistent file is simply a file that is kept in a repository and identified by an id and version string and annotated with a signature and content hash.  To begin, notice that there are three persistent file/directory types: input, intermediate, and output. It is helpful to understand the differences among these files as well as their distinguishing characteristics and configuration options.
 
 Input Files
 ^^^^^^^^^^^
@@ -26,7 +26,7 @@ To use a persistent input file, after dragging it onto the canvas, it is necessa
 
    A new version of a persistent file is created each time its contents change.  A persistent input file will always use the most recent version of a file if it is assigned to the root of the file tree.
 
-The ``PersitentInputFile`` module can also be used to read or write data directly from or to a local file.  To use this feature, you will need to set ``localPath`` point to a local file.  This can be done in the Set Methods Panel, the Configuration Dialog, or by connecting a file to the localPath input port.  Then, the local file will be read when readLocal is set to true and written when writeLocal is set to true.  To do this using the Configuration Dialog, select ``Keep Local Version``, enter the file location or click on the folder icon to select a file, then select ``Read From Local Path``.
+The ``PersitentInputFile`` module can also be used to read or write data directly from or to a local file.  To use this feature, you will need to set ``localPath`` to point to a local file.  This can be done in the Set Methods Panel, the Configuration Dialog, or by connecting a file to the localPath input port.  Then, the local file will be read when readLocal is set to true and written when writeLocal is set to true.  To do this using the Configuration Dialog, select ``Keep Local Version``, enter the file location or click on the folder icon to select a file, then select ``Read From Local Path``.
 
 Output Files
 ^^^^^^^^^^^^
@@ -34,7 +34,7 @@ Output Files
 .. index::
    pair: persistent files; output
 
-To use a persistent output file, after dragging it onto the canvas, it is necessary to edit the configuration (CTRL+E).  Notice that the Configuration Dialog for the output file is the same as that of a the input file except that an option to ``Always Create New Reference`` exists.  Selecting this new option will cause a new file to be created and added to the persistent store each time the workflow is executed.  The new file does not get a name or tag, so it can be difficult to identify the newly created file.
+To use a persistent output file, after dragging it onto the canvas, it is necessary to edit the configuration (CTRL+E).  Notice that the Configuration Dialog for the output file is the same as that of the input file except that an option to ``Always Create New Reference`` exists.  Selecting this new option will cause a new file to be created and added to the persistent store each time the workflow is executed.  The new file does not get a name or tag, so it can be difficult to identify the newly created file.
 
 If you prefer to have a new version of the file created each time the workflow is changed, you should choose either of the other options.  The other two options and the option to read from or write to a local path are used in the same manner as with the input file.  However, when the input file is read from a local path, it is not also read from the persistent store.  In contrast, when an output file is written to a local path, it is also written to the selected entry in the persistent store.
 

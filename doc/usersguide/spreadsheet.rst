@@ -69,7 +69,7 @@ Multiple Spreadsheets
    triple: spreadsheet; sheets; docking
    triple: spreadsheet; sheets; ordering
 
-|VisTrails| supports the use of multiple spreadsheets which can be added, docked, ordered and deleted.  Sheets are added either by clicking the ``New Sheet`` button in the ``Spreadsheet`` toolbar or choosing the menu item with the same name from the ``Main`` menu.  Each of these sheets can optionally be displayed as a dock widget separated from the main spreadsheet window by dragging its tab name out of the tab bar at the bottom of the spreadsheet, allowing multiple spreadsheets to be visible at the same time.  To dock a sheet back to the main window, drag it back to the tab bar or double-click on its title bar.  Similarly, sheets are ordered by dragging sheet names to desired locations within the tab bar.  Finally, a sheet can be deleted by clicking the red 'X' button in the lower-right corner or choosing the ``Delete Sheet`` menu item.    
+|VisTrails| supports the use of multiple spreadsheets which can be added, docked, ordered and deleted.  Sheets are added either by clicking the ``New Sheet`` button in the ``Spreadsheet`` toolbar or choosing the menu item with the same name from the ``Main`` menu.  Each of these sheets can optionally be displayed as a dock widget separated from the main spreadsheet window by dragging its tab name out of the tab bar at the bottom of the spreadsheet, allowing multiple spreadsheets to be visible at the same time.  To dock a sheet back to the main window, drag it back to the tab bar or double-click on its title bar.  Similarly, sheets are ordered by dragging sheet names to desired locations within the tab bar.  Finally, a sheet can be deleted by clicking the 'X' button in the lower-right corner or choosing the ``Delete Sheet`` menu item.    
 
 Sending Output to the Spreadsheet
 =================================
@@ -216,7 +216,7 @@ It is sometimes difficult to view web pages within a spreadsheet cell due to lim
 
 (2) The spreadsheet is extensible so you can write a custom spreadsheet cell widget that has a button or label with the desired link (a QLabel with openExternalLinks set to True, for example).
 
-(3) You can tweak the existing RichTextCell be adding the line "self.browser.setOpenExternalLinks(True)" at line 63 of the source file "vistrails/packages/spreadsheet/widgets/richtext/richtext.py". Then, if your workflow creates a file with html markup text like "<a href="http://www.vistrails.org">VisTrails</a>" connected to a RichTextCell, clicking on the rendered link in the cell will open it in a web browser. You need to add the aforementioned line to the source to let Qt know that you want the link opened externally; by default, it will just issue an event that isn't processed. 
+(3) You can tweak the existing RichTextCell by adding the line "self.browser.setOpenExternalLinks(True)" at line 63 of the source file "vistrails/packages/spreadsheet/widgets/richtext/richtext.py". Then, if your workflow creates a file with html markup text like "<a href="http://www.vistrails.org">VisTrails</a>" connected to a RichTextCell, clicking on the rendered link in the cell will open it in a web browser. You need to add the aforementioned line to the source to let Qt know that you want the link opened externally; by default, it will just issue an event that isn't processed. 
 
 Saving a Spreadsheet
 ====================
