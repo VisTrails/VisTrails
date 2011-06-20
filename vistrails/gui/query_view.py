@@ -69,6 +69,8 @@ class QueryController(object):
         """
         search_pipeline = \
             self.query_view.pipeline_view.scene().current_pipeline
+        if search_str is None:
+            search_str = self.query_view.query_box.getCurrentText()
         if self.search_str != search_str or \
                 self.search_pipeline != search_pipeline:
             self.search_str = search_str
@@ -120,24 +122,9 @@ class QueryController(object):
             self.query_view.pipeline_view.controller.current_pipeline)
         self.query_view.set_display_view(self.query_view.VISUAL_SEARCH_VIEW)
 
-    def query_by_example(self, pipeline):
-        """ query_by_example(pipeline: Pipeline) -> None
-        Perform visual query on the current vistrail
-        
-        """
-        if len(pipeline.modules)==0:
-            search = TrueSearch()
-        else:
-            if not self._current_terse_graph:
-                self.recompute_terse_graph()
-            versions_to_check = \
-                set(self._current_terse_graph.vertices.iterkeys())
-            search = VisualQuery(pipeline, versions_to_check)
-
-        self.set_search(search, '') # pipeline.dump_to_string())
-
     def invalidate_version_tree(self, *args, **kwargs):
         self.query_view.set_display_view(self.query_view.VERSION_RESULT_VIEW)
+        self.query_view.query_box.setManualResetEnabled(True)
         result_view = self.query_view.version_result_view
         result_view.controller.search = self.search
         result_view.controller.search_str = self.search_str
@@ -145,6 +132,7 @@ class QueryController(object):
 
     def recompute_terse_graph(self, *args, **kwargs):
         self.query_view.set_display_view(self.query_view.VERSION_RESULT_VIEW)
+        self.query_view.query_box.setManualResetEnabled(True)
         result_view = self.query_view.version_result_view
         result_view.controller.search = self.search
         result_view.controller.search_str = self.search_str
@@ -155,11 +143,13 @@ class QQueryPipelineView(QPipelineView):
         QPipelineView.__init__(self, parent)
         self.setBackgroundBrush(CurrentTheme.QUERY_BACKGROUND_BRUSH)
         self.scene().current_pipeline = Pipeline()
-        
+        self.query_controller = None
+      
+    def set_query_controller(self, controller):
+        self.query_controller = controller
+  
     def execute(self):
-        #FIXME: this does not work yet because pipeline view does not know about the query controller
-        #self.query_controller.query_by_example(self.scene().current_pipeline)
-        pass
+        self.query_controller.set_search(None)
     
 class QQueryResultGlobalView(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -251,6 +241,11 @@ class QQueryBox(QtGui.QWidget):
         if self.controller:
             self.controller.set_refine(on)
 
+    def getCurrentText(self):
+        return self.searchBox.getCurrentText()
+
+    def setManualResetEnabled(self, boolVal):
+        self.searchBox.setManualResetEnabled(boolVal)
 
 class QQueryView(QtGui.QWidget, BaseView):
     VISUAL_SEARCH_VIEW = 0
@@ -295,7 +290,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.stacked_widget = QtGui.QStackedWidget()
         self.pipeline_view = QQueryPipelineView()
         self.p_controller.current_pipeline_view = self.pipeline_view.scene()
-        self.pipeline_view.set_controller(self.p_controller)        
+        self.pipeline_view.set_controller(self.p_controller)
+        self.pipeline_view.set_query_controller(self.query_controller)
         QQueryView.VISUAL_SEARCH_VIEW = \
             self.stacked_widget.addWidget(self.pipeline_view)
         self.global_result_view = QQueryResultGlobalView()
@@ -324,8 +320,15 @@ class QQueryView(QtGui.QWidget, BaseView):
             
     def set_action_links(self):
         self.action_links = \
-            { 'execute': ('query_pipeline_changed', self.pipeline_non_empty),
-            }
+            { 'execute': ('query_pipeline_changed', self.pipeline_non_empty) }
+
+        # also add other notification here...
+        from gui.vistrails_window import _app
+        _app.register_notification('query_pipeline_changed', 
+                                   self.set_reset_button)
+
+    def set_reset_button(self, pipeline):
+        self.query_box.setManualResetEnabled(self.pipeline_non_empty(pipeline))
 
     def set_display_view(self, view_type):
         self.stacked_widget.setCurrentIndex(view_type)

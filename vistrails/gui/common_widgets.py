@@ -586,6 +586,7 @@ class QSearchBox(QtGui.QWidget):
         self.resetButton.setAutoRaise(True)
         self.resetButton.setEnabled(False)
         hLayout.addWidget(self.resetButton)
+        self.manualResetEnabled = False
 
         self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
                      self.resetSearch)
@@ -612,6 +613,7 @@ class QSearchBox(QtGui.QWidget):
         """
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
+        self.manualResetEnabled = False
         self.emit(QtCore.SIGNAL('resetSearch()'))
 
     def clearSearch(self):
@@ -623,6 +625,7 @@ class QSearchBox(QtGui.QWidget):
         """
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
+        self.manualResetEnabled = False
 
     def searchMode(self):
         """
@@ -639,7 +642,8 @@ class QSearchBox(QtGui.QWidget):
         self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
 
     def resetToggle(self, text):
-        self.resetButton.setEnabled(str(text)!='')
+        self.resetButton.setEnabled((str(text) != '') or 
+                                    self.manualResetEnabled)
 
     def executeIncrementalSearch(self, text):
         """
@@ -647,7 +651,8 @@ class QSearchBox(QtGui.QWidget):
         The text is changing, so update the search.
 
         """
-        self.resetButton.setEnabled(str(text)!='')
+        self.resetButton.setEnabled((str(text)!='') or
+                                    self.manualResetEnabled)
         self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
 
     def executeTextSearch(self, text):
@@ -669,6 +674,14 @@ class QSearchBox(QtGui.QWidget):
             self.resetButton.setEnabled(True) 
             self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
                       self.searchEdit.currentText())
+
+    def getCurrentText(self):
+        return str(self.searchEdit.currentText())
+
+    def setManualResetEnabled(self, boolVal):
+        self.manualResetEnabled = boolVal
+        self.resetButton.setEnabled((self.getCurrentText() != '') or
+                                    self.manualResetEnabled)
 
 ###############################################################################
 
