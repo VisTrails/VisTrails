@@ -98,12 +98,13 @@ class SpreadsheetAnalogyObject(object):
         def get_controller_by_locator(locator):
             import gui.application
             app = gui.application.VistrailsApplication
-            m = app.builderWindow.viewManager
+            m = app.builderWindow
             # slow, but who cares
-            for v in app.builderWindow.viewManager._views.values():
-                if v.locator == locator:
-                    return v
-            if not v:
+            for v in xrange(m.stack.count()):
+                view = m.stack.widget(v)
+                if view.controller.vistrail.locator == locator:
+                    return view.controller
+            if not view:
                 raise Exception("Couldn't find")
 
 
