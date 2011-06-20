@@ -39,7 +39,7 @@ from core.utils import InstanceObject
 from core import debug
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
-     IntegerLinearInterpolator, BasePEWidget
+     IntegerLinearInterpolator
 from PyQt4 import QtGui
 
 
