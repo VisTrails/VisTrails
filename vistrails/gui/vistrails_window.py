@@ -232,6 +232,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.selected_mode
         current_view.view_changed()
 
+    # enumeration for dock areas
+    (UPPER_LEFT_DOCK_AREA, LOWER_LEFT_DOCK_AREA, RIGHT_DOCK_AREA,
+     UTILITY_WINDOW_AREA) = range(4)
+    DOCK_AREA_MAP = {UPPER_LEFT_DOCK_AREA: QtCore.Qt.LeftDockWidgetArea,
+                     LOWER_LEFT_DOCK_AREA: QtCore.Qt.LeftDockWidgetArea,
+                     RIGHT_DOCK_AREA: QtCore.Qt.RightDockWidgetArea,
+                     UTILITY_WINDOW_AREA: QtCore.Qt.NoDockWidgetArea}
+
     def init_palettes(self):
         # palettes are global!
         from gui.debug import DebugView
@@ -254,54 +262,58 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.palettes = []
         self.palette_window = None
         
-        self.palette_layout = [(QtCore.Qt.LeftDockWidgetArea, 
-                           [(QModulePalette, True), (QWorkspaceWindow,True),
-                            ((QParamExplorePalette, False),
-                             (('pipeline_changed', 'set_pipeline'),
-                              ('controller_changed', 'set_controller'))),
-                             ((QMashupsInspector, False),
-                              (('controller_changed', 'updateVistrailController'),
-                               ('mshpcontroller_changed', 'updateMshpController'),
-                               ('mshpversion_changed', 'updateMshpVersion'),
-                               ('version_changed', 'updateVistrailVersion')))]),
-                          (QtCore.Qt.RightDockWidgetArea,
-                           [((QModuleInfo, True), 
-                             (('controller_changed', 'set_controller'),
-                              ('module_changed', 'update_module'))),
-                            ((QVersionProp, True), 
-                             (('controller_changed', 'updateController'),
-                              ('version_changed', 'updateVersion'))),
-                            ((QDiffProperties, False),
-                             (('controller_changed', 'set_controller'),
-                              ('module_changed', 'update_module'))),
-                            ((QParameterView, False),
-                             (('pipeline_changed', 'set_pipeline'),)),
-                            ((QLogDetails, False),
-                             (('controller_changed', 'set_controller'),
-                              ('execution_updated', 'execution_updated'),
-                              ('execution_changed', 'execution_changed'))),
-                            ((QAliasParameterView, False),
-                             (('mshpcontroller_changed', 'updateMshpController'),
-                              ('mshpversion_changed', 'updateMshpVersion'))),
-                            ((QVistrailVariables, False),
-                             (('controller_changed', 'updateController'),))]),
-                          (QtCore.Qt.NoDockWidgetArea,
-                           [((QModuleConfiguration, True), 
-                             (('controller_changed', 'set_controller'),
-                              ('module_changed', 'updateModule'))),
-                            ((QModuleDocumentation, True),
-                             (('controller_changed', 'set_controller'),
-                              ('module_changed', 'update_module'),
-                              ('descriptor_changed', 'update_descriptor'))),
-                            ((QShellDialog, True),
-                             (('controller_changed', 'set_controller'),)),
-                            ((QDebugger, True),
-                             (('controller_changed', 'set_controller'),)),
-                            (DebugView, True),
-                            (QExplorerWindow, True),
-                            ((QVersionEmbed, True),
-                             (('controller_changed', 'set_controller'),))])]
+        self.palette_layout = \
+            [(self.UPPER_LEFT_DOCK_AREA,
+              [(QWorkspaceWindow,True)]),
+             (self.LOWER_LEFT_DOCK_AREA,
+              [(QModulePalette, True),
+               ((QParamExplorePalette, False),
+                (('pipeline_changed', 'set_pipeline'),
+                 ('controller_changed', 'set_controller'))),
+               ((QMashupsInspector, False),
+                (('controller_changed', 'updateVistrailController'),
+                 ('mshpcontroller_changed', 'updateMshpController'),
+                 ('mshpversion_changed', 'updateMshpVersion'),
+                 ('version_changed', 'updateVistrailVersion')))]),
+             (self.RIGHT_DOCK_AREA,
+              [((QModuleInfo, True),
+                (('controller_changed', 'set_controller'),
+                 ('module_changed', 'update_module'))),
+               ((QVersionProp, True),
+                (('controller_changed', 'updateController'),
+                 ('version_changed', 'updateVersion'))),
+               ((QDiffProperties, False),
+                (('controller_changed', 'set_controller'),
+                 ('module_changed', 'update_module'))),
+               ((QParameterView, False),
+                (('pipeline_changed', 'set_pipeline'),)),
+               ((QLogDetails, False),
+                (('controller_changed', 'set_controller'),
+                 ('execution_updated', 'execution_updated'),
+                 ('execution_changed', 'execution_changed'))),
+               ((QAliasParameterView, False),
+                (('mshpcontroller_changed', 'updateMshpController'),
+                 ('mshpversion_changed', 'updateMshpVersion'))),
+               ((QVistrailVariables, False),
+                (('controller_changed', 'updateController'),))]),
+             (self.UTILITY_WINDOW_AREA,
+              [((QModuleConfiguration, True),
+                (('controller_changed', 'set_controller'),
+                 ('module_changed', 'updateModule'))),
+               ((QModuleDocumentation, True),
+                (('controller_changed', 'set_controller'),
+                 ('module_changed', 'update_module'),
+                 ('descriptor_changed', 'update_descriptor'))),
+               ((QShellDialog, True),
+                (('controller_changed', 'set_controller'),)),
+               ((QDebugger, True),
+                (('controller_changed', 'set_controller'),)),
+               (DebugView, True),
+               (QExplorerWindow, True),
+               ((QVersionEmbed, True),
+                (('controller_changed', 'set_controller'),))])]
         
+        left_added = None
         for dock_area, p_group in self.palette_layout:
             first_added = None
             for p_klass in p_group:
@@ -331,16 +343,31 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
                 # palette.toolWindow().show()
                 # palette.toolWindow().setFloating(True)
-                if dock_area != QtCore.Qt.NoDockWidgetArea:
+                if dock_area != self.UTILITY_WINDOW_AREA:
                     palette.set_pin_status(visible)
+                    qt_dock_area = self.DOCK_AREA_MAP[dock_area]
                     if first_added is None:
-                        self.addDockWidget(dock_area, palette.toolWindow())
+                        if qt_dock_area == QtCore.Qt.LeftDockWidgetArea and \
+                                left_added is not None:
+                            if dock_area == self.UPPER_LEFT_DOCK_AREA:
+                                self.splitDockWidget(palette.toolWindow(),
+                                                     left_added,
+                                                     QtCore.Qt.Vertical)
+                            else:
+                                self.splitDockWidget(left_added,
+                                                     palette.toolWindow(),
+                                                     QtCore.Qt.Vertical)
+                        else:
+                            self.addDockWidget(qt_dock_area,
+                                               palette.toolWindow())
                         first_added = palette.toolWindow()
+                        if qt_dock_area == QtCore.Qt.LeftDockWidgetArea and \
+                                left_added is None:
+                            left_added = first_added
                     else:
                         self.tabifyDockWidget(first_added, palette.toolWindow())
                     if not visible:
                         palette.toolWindow().close()
-                    
                 else:
                     if first_added is None:
                         self.palette_window = QtGui.QMainWindow()
