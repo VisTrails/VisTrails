@@ -61,6 +61,7 @@ from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from core.interpreter.default import get_default_interpreter
 from gui.base_view import BaseView
+from gui.controlflow_assist import QControlFlowAssistDialog
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
@@ -2558,6 +2559,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              'exportAbstraction': ('module_changed', self.has_selected_abs),
              'publishWeb' : ('pipeline_changed', self.check_publish_db),
              'publishPaper' : ('pipeline_changed', self.pipeline_non_empty),
+             'controlFlowAssist': ('pipeline_changed', self.pipeline_non_empty),
              }
     
     def set_action_defaults(self):
@@ -2690,6 +2692,25 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
     def version_changed(self):
         self.scene().setupScene(self.controller.current_pipeline)
+
+    def run_control_flow_assist(self):
+        print 'got here'
+        currentScene = self.scene()
+        if currentScene.controller:
+            selected_items = currentScene.get_selected_item_ids(True)
+            if selected_items is None:
+                selected_items = ([],[])
+            selected_module_ids = selected_items[0]
+            selected_connection_ids = selected_items[1]
+            if len(selected_module_ids) > 0:
+                dialog = QControlFlowAssistDialog(self, selected_module_ids, 
+                                                  selected_connection_ids, 
+                                                  currentScene)
+                dialog.exec_()
+            else:
+                show_info('No Modules Selected', 
+                          'You must select at least one module to use the '
+                          'Control Flow Assistant.')
 
 ################################################################################
 # Testing
