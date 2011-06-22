@@ -39,6 +39,7 @@ import api
 import cgi
 from core.configuration import get_vistrails_configuration
 from gui.application import VistrailsApplication
+from gui.common_widgets import QDockPushButton
 from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
@@ -134,16 +135,16 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         rightbuttons = QtGui.QGridLayout()
         buttons.addLayout(rightbuttons, 0, 1, QtCore.Qt.AlignRight)
 
-        copy = QtGui.QPushButton('Copy &Message', self)
+        copy = QDockPushButton('Copy &Message', self)
         copy.setToolTip('Copy selected message to clipboard')
-        copy.setFixedWidth(120)
+        copy.setFixedWidth(125)
         rightbuttons.addWidget(copy, 0, 0)
         self.connect(copy, QtCore.SIGNAL('clicked()'),
                      self.copyMessage)
 
-        copyAll = QtGui.QPushButton('Copy &All', self)
+        copyAll = QDockPushButton('Copy &All', self)
         copyAll.setToolTip('Copy all messages to clipboard (Can be a lot)')
-        copyAll.setFixedWidth(120)
+        copyAll.setFixedWidth(125)
         rightbuttons.addWidget(copyAll, 0, 1)
         self.connect(copyAll, QtCore.SIGNAL('clicked()'),
                      self.copyAll)

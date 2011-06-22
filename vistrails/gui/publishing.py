@@ -38,6 +38,7 @@ import os
 from core.db.locator import FileLocator, DBLocator
 from core.publishing.parse_latex import parse_latex_file, parse_vt_command, \
     build_vt_command
+from gui.common_widgets import QDockPushButton
 from gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QLatexFigureItem(QtGui.QListWidgetItem):
@@ -65,8 +66,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         # set includegraphics options
         source_label = QtGui.QLabel("LaTeX Source:")
         self.source_edit = QtGui.QLineEdit()
-        source_selector = QtGui.QPushButton("Select...")
-        source_selector.setMinimumSize(30,30)
+        source_selector = QDockPushButton("Select...")
         # source_selector = QtGui.QToolButton()
         # source_selector.setIcon(QtGui.QIcon(
         #         self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
@@ -90,11 +90,9 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         self.preview_image = QtGui.QLabel()
         self.preview_image.setScaledContents(False)
         self.preview_image.setMinimumSize(240, 240)
-        add_figure = QtGui.QPushButton("Add Figure")
-        add_figure.setMinimumSize(30,30)
-        delete_figure = QtGui.QPushButton("Delete Figure")
-        delete_figure.setMinimumSize(30,30)
-
+        add_figure = QDockPushButton("Add Figure")
+        delete_figure = QDockPushButton("Delete Figure")
+        
         self.connect(add_figure,
                      QtCore.SIGNAL("clicked()"),
                      self.addFigure)
@@ -128,8 +126,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         self.figure_tag = QtGui.QComboBox()
         self.figure_tag.setEditable(True)
         self.figure_smart = QtGui.QCheckBox("Smart Tag")
-        current_button = QtGui.QPushButton("Use Current")
-        current_button.setMinimumSize(30,30)
+        current_button = QDockPushButton("Use Current")
         
         self.connect(current_button, QtCore.SIGNAL("clicked()"),
                      self.useCurrent)
@@ -185,10 +182,8 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         gblayout.addWidget(self.chbSpreadsheet, 1, 1)
         self.gbDownOpt.setLayout(gblayout)
 
-        revert_button = QtGui.QPushButton("Revert...")
-        revert_button.setMinimumSize(30,30)
-        save_button = QtGui.QPushButton("Save...")
-        save_button.setMinimumSize(30,30)
+        revert_button = QDockPushButton("Revert...")
+        save_button = QDockPushButton("Save...")
         save_button.setAutoDefault(True)
 
         self.connect(save_button, QtCore.SIGNAL("clicked()"),

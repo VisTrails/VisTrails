@@ -34,6 +34,7 @@
 from PyQt4 import QtCore, QtGui
 
 from core.utils import versions_increasing
+from gui.common_widgets import QDockPushButton
 from gui.module_annotation import QModuleAnnotationTable
 from gui.ports_pane import PortsList
 from gui.vistrails_palette import QVistrailsPaletteInterface
@@ -51,47 +52,47 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.name_edit = QtGui.QLineEdit()
         self.connect(self.name_edit, QtCore.SIGNAL('editingFinished()'),
                      self.name_editing_finished)
+        self.name_edit.setMinimumSize(50, 22)
         type_label = QtGui.QLabel("Type:")
         self.type_edit = QtGui.QLabel("")
         # self.type_edit.setReadOnly(True)
         package_label = QtGui.QLabel("Package:")
         self.package_edit = QtGui.QLabel("")
         # self.package_edit.setReadOnly(True)
-        self.configure_button = QtGui.QPushButton("Configure")
-        self.configure_button.setMinimumSize(50, 30)
+        self.configure_button = QDockPushButton("Configure")
         self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
                      self.configure)
-        self.doc_button = QtGui.QPushButton("Documentation")
-        self.doc_button.setMinimumSize(50, 30)
+        self.doc_button = QDockPushButton("Documentation")
+        self.doc_button.setMinimumWidth(96)
         self.connect(self.doc_button, QtCore.SIGNAL('clicked()'),
                      self.documentation)
 
         layout = QtGui.QVBoxLayout()
         layout.setMargin(2)
-        layout.setSpacing(2)
+        layout.setSpacing(4)
         h_layout = QtGui.QHBoxLayout()
-        h_layout.setMargin(0)
-        h_layout.setSpacing(0)
+        h_layout.setMargin(2)
+        h_layout.setSpacing(2)
         h_layout.setAlignment(QtCore.Qt.AlignLeft)
         h_layout.addWidget(name_label)
         h_layout.addWidget(self.name_edit)
         layout.addLayout(h_layout)
         h_layout = QtGui.QHBoxLayout()        
-        h_layout.setMargin(0)
-        h_layout.setSpacing(0)
+        h_layout.setMargin(2)
+        h_layout.setSpacing(2)
         h_layout.setAlignment(QtCore.Qt.AlignLeft)
         h_layout.addWidget(type_label)
         h_layout.addWidget(self.type_edit)
         layout.addLayout(h_layout)
         h_layout = QtGui.QHBoxLayout()        
-        h_layout.setMargin(0)
-        h_layout.setSpacing(0)
+        h_layout.setMargin(2)
+        h_layout.setSpacing(2)
         h_layout.setAlignment(QtCore.Qt.AlignLeft)
         h_layout.addWidget(package_label)
         h_layout.addWidget(self.package_edit)
         layout.addLayout(h_layout)
         h_layout = QtGui.QHBoxLayout()        
-        h_layout.setMargin(0)
+        h_layout.setMargin(2)
         h_layout.setSpacing(5)
         h_layout.setAlignment(QtCore.Qt.AlignCenter)
         h_layout.addWidget(self.configure_button)

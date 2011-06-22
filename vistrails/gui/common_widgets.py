@@ -39,7 +39,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from gui.theme import CurrentTheme
 from core.modules.constant_configuration import StandardConstantWidget
-
+from core.system import systemType
 ################################################################################
 
 class QToolWindow(QtGui.QDockWidget):
@@ -796,3 +796,13 @@ class QMouseTabBar(QtGui.QTabBar):
             if tab_idx != -1:
                 self.tabDoubleClicked.emit(tab_idx, event.pos())
         QtGui.QTabBar.mouseDoubleClickEvent(self, event)
+
+###############################################################################
+
+class QDockPushButton(QtGui.QPushButton):
+    """QDockPushButton is a button to be used inside QDockWidgets. It will 
+    set the minimum height on Mac so it looks nice on both Mac and Windows"""
+    def __init__(self, text, parent=None):
+        QtGui.QPushButton.__init__(self, text, parent) 
+        if systemType in ['Darwin']:
+            self.setMinimumHeight(32)
