@@ -63,7 +63,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
                      self.configure)
         self.doc_button = QDockPushButton("Documentation")
-        self.doc_button.setMinimumWidth(96)
         self.connect(self.doc_button, QtCore.SIGNAL('clicked()'),
                      self.documentation)
 

@@ -315,6 +315,10 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 (('controller_changed', 'set_controller'),))])]
         
         left_added = None
+        self.palette_window = QPaletteMainWindow()
+        self.palette_window.setWindowTitle('VisTrails - Tools')
+        self.palette_window.setGeometry(200, 200, 768, 512)
+        self.palette_window.setDocumentMode(True)
         for dock_area, p_group in self.palette_layout:
             first_added = None
             for p_klass in p_group:
@@ -365,25 +369,14 @@ class QVistrailsWindow(QtGui.QMainWindow):
                         if qt_dock_area == QtCore.Qt.LeftDockWidgetArea and \
                                 left_added is None:
                             left_added = first_added
-                    else:
+                    else:   
                         self.tabifyDockWidget(first_added, palette.toolWindow())
                     if not visible:
                         palette.toolWindow().close()
                 else:
-                    if first_added is None:
-                        self.palette_window = QtGui.QMainWindow()
-                        self.palette_window.setWindowTitle('VisTrails - Tools')
-                        self.palette_window.setGeometry(200, 200, 768, 512)
-                        self.palette_window.setDocumentMode(True)
-                        self.palette_window.addDockWidget(
-                            QtCore.Qt.TopDockWidgetArea, palette.toolWindow())
-                        #self.palette_window.show()
-                        first_added = palette.toolWindow()
-                        palette.set_main_window(self.palette_window)
-                    else:
-                        self.palette_window.tabifyDockWidget(
-                            first_added, palette.toolWindow())
-                        palette.set_main_window(self.palette_window)
+                    self.palette_window.addPalette(palette)
+                    palette.set_main_window(self.palette_window)
+                    
         if self.palette_window:
             self.palette_window.hide()
                         
@@ -1079,282 +1072,13 @@ class QVistrailsWindow(QtGui.QMainWindow):
             # palette_actions.append((palette.get_title(), palette.get_action()))
             palette_actions.append((palette.get_action_tuple(), palette))
         palette_actions.sort()
-        return zip(*palette_actions)
+        return palette_actions
 
     def createActions(self):
         """ createActions() -> None
         Construct all menu/toolbar actions for builder window
 
         """
-        # self.newVistrailAction = QtGui.QAction(CurrentTheme.NEW_VISTRAIL_ICON,
-        #                                        '&New', self)
-        # self.newVistrailAction.setShortcut('Ctrl+N')
-        # self.newVistrailAction.setStatusTip('Create a new vistrail')
-
-        # self.openFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_ICON,
-        #                                     '&Open', self)
-        # self.openFileAction.setShortcut('Ctrl+O')
-        # self.openFileAction.setStatusTip('Open an existing vistrail from '
-        #                                  'a file')
-        
-        # self.create_recent_vistrail_actions()
-            
-        # self.importFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
-        #                                       'From DB...', self)
-        # self.importFileAction.setStatusTip('Import an existing vistrail from '
-        #                                    'a database')
-
-        # self.saveFileAction = QtGui.QAction(CurrentTheme.SAVE_VISTRAIL_ICON,
-        #                                         '&Save', self)
-        # self.saveFileAction.setShortcut('Ctrl+S')
-        # self.saveFileAction.setStatusTip('Save the current vistrail '
-        #                                  'to a file')
-        # self.saveFileAction.setEnabled(False)
-
-        # self.saveFileAsAction = QtGui.QAction('Save as...', self)
-        # self.saveFileAsAction.setShortcut('Ctrl+Shift+S')
-        # self.saveFileAsAction.setStatusTip('Save the current vistrail '
-        #                                    'to a different file location')
-        # self.saveFileAsAction.setEnabled(False)
-
-        # self.exportFileAction = QtGui.QAction('To DB...', self)
-        # self.exportFileAction.setStatusTip('Export the current vistrail to '
-        #                                    'a database')
-        # self.exportFileAction.setEnabled(False)
-
-        # self.closeVistrailAction = QtGui.QAction('Close', self)
-        # self.closeVistrailAction.setShortcut('Ctrl+W')
-        # self.closeVistrailAction.setStatusTip('Close the current vistrail')
-        # self.closeVistrailAction.setEnabled(False)
-
-        # self.exportStableAction = QtGui.QAction('To Stable Version...', 
-        #                                         self)
-        # self.exportStableAction.setStatusTip('Save vistrail as XML according '
-        #                                      'to the older (stable) schema')
-        # self.exportStableAction.setEnabled(True)
-
-        # self.saveOpmAction = QtGui.QAction('OPM XML...', self)
-        # self.saveOpmAction.setStatusTip('Saves provenance according to the'
-        #                                 'Open Provenance Model in XML')
-        # self.saveOpmAction.setEnabled(True)
-
-        # self.saveLogAction = QtGui.QAction('Log To XML...', self)
-        # self.saveLogAction.setStatusTip('Save the execution log to '
-        #                                 'a file')
-        # self.saveLogAction.setEnabled(True)
-
-        # self.exportLogAction = QtGui.QAction('Log To DB...', self)
-        # self.exportLogAction.setStatusTip('Save the execution log to '
-        #                                   'a database')
-        # self.exportLogAction.setEnabled(True)
-
-        # self.importWorkflowAction = QtGui.QAction('Workflow...', self)
-        # self.importWorkflowAction.setStatusTip('Import a workflow from an '
-        #                                        'xml file')
-        # self.importWorkflowAction.setEnabled(True)
-
-        # self.saveWorkflowAction = QtGui.QAction('Workflow To XML...', self)
-        # self.saveWorkflowAction.setStatusTip('Save the current workflow to '
-        #                                      'a file')
-        # self.saveWorkflowAction.setEnabled(True)
-
-        # self.exportWorkflowAction = QtGui.QAction('Workflow To DB...', self)
-        # self.exportWorkflowAction.setStatusTip('Save the current workflow to '
-        #                                        'a database')
-        # self.exportWorkflowAction.setEnabled(True)
-
-        # self.saveRegistryAction = QtGui.QAction('Registry To XML...', self)
-        # self.saveRegistryAction.setStatusTip('Save the current registry to '
-        #                                      'a file')
-        # self.saveRegistryAction.setEnabled(True)
-
-        # self.exportRegistryAction = QtGui.QAction('Registry To DB...', self)
-        # self.exportRegistryAction.setStatusTip('Save the current registry to '
-        #                                        'a database')
-        # self.exportRegistryAction.setEnabled(True)
-
-        # self.savePDFAction = QtGui.QAction('PDF...', self)
-        # self.savePDFAction.setStatusTip('Save the current view'
-        #                                              'to a PDF file')
-        # self.savePDFAction.setEnabled(True)
-
-        # self.quitVistrailsAction = QtGui.QAction('Quit', self)
-        # self.quitVistrailsAction.setShortcut('Ctrl+Q')
-        # self.quitVistrailsAction.setStatusTip('Exit Vistrails')
-
-        # self.undoAction = QtGui.QAction(CurrentTheme.UNDO_ICON,
-        #                                 'Undo', self)
-        # self.undoAction.setEnabled(False)
-        # self.undoAction.setStatusTip('Undo the previous action')
-        # self.undoAction.setShortcut('Ctrl+Z')
-
-        # self.redoAction = QtGui.QAction(CurrentTheme.REDO_ICON,
-        #                                 'Redo', self)
-        # self.redoAction.setEnabled(False)
-        # self.redoAction.setStatusTip('Redo an undone action')
-        # self.redoAction.setShortcut('Ctrl+Y')
-
-        # self.copyAction = QtGui.QAction('Copy\tCtrl+C', self)
-        # self.copyAction.setEnabled(False)
-        # self.copyAction.setStatusTip('Copy selected modules in '
-        #                              'the current pipeline view')
-
-        # self.pasteAction = QtGui.QAction('Paste\tCtrl+V', self)
-        # self.pasteAction.setEnabled(False)
-        # self.pasteAction.setStatusTip('Paste copied modules in the clipboard '
-        #                               'into the current pipeline view')
-
-                   
-                     
-                    
-                    
-        # self.groupAction = QtGui.QAction('Group', self)
-        # self.groupAction.setShortcut('Ctrl+G')
-        # self.groupAction.setEnabled(False)
-        # self.groupAction.setStatusTip('Group the '
-        #                               'selected modules in '
-        #                               'the current pipeline view')
-        # self.ungroupAction = QtGui.QAction('Ungroup', self)
-        # self.ungroupAction.setShortcut('Ctrl+Shift+G')
-        # self.ungroupAction.setEnabled(False)
-        # self.ungroupAction.setStatusTip('Ungroup the '
-        #                               'selected groups in '
-        #                               'the current pipeline view')
-        # self.showGroupAction = QtGui.QAction('Show Group Pipeline', self)
-        # self.showGroupAction.setEnabled(True)
-        # self.showGroupAction.setStatusTip('Show the underlying pipelines '
-        #                                   'for the selected groups in '
-        #                                   'the current pipeline view')
-
-        # self.makeAbstractionAction = QtGui.QAction('Make SubWorkflow', self)
-        # self.makeAbstractionAction.setStatusTip('Create a subworkflow '
-        #                                         'from the selected modules')
-        # self.convertToAbstractionAction = \
-        #     QtGui.QAction('Convert to SubWorkflow', self)
-        # self.convertToAbstractionAction.setStatusTip('Convert selected group '
-        #                                              'to a subworkflow')
-        # self.editAbstractionAction = QtGui.QAction("Edit SubWorkflow", self)
-        # self.editAbstractionAction.setStatusTip("Edit a subworkflow")
-        # self.importAbstractionAction = QtGui.QAction('Import SubWorkflow', self)
-        # self.importAbstractionAction.setStatusTip('Import subworkflow from '
-        #                                           'a vistrail to local '
-        #                                           'subworkflows')
-        # self.exportAbstractionAction = QtGui.QAction('Export SubWorkflows', self)
-        # self.exportAbstractionAction.setStatusTip('Export subworkflows from '
-        #                                           'local subworkflows for '
-        #                                           'use in a package')
-        # self.controlFlowAssistAction = QtGui.QAction('Control Flow Assistant', self)
-        # self.controlFlowAssistAction.setStatusTip('Launch the Control Flow '
-        #                                           'Assistant with the selected modules')
-        # self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
-        # self.selectAllAction.setEnabled(False)
-        # self.selectAllAction.setStatusTip('Select all modules in '
-        #                                   'the current pipeline view')
-
-        # self.repositoryOptions = QtGui.QAction('Web Repository Options', self)
-        # self.repositoryOptions.setEnabled(True)
-        # self.repositoryOptions.setStatusTip('Add this VisTrail to VisTrails Repository')
-
-        # self.editPreferencesAction = QtGui.QAction('Preferences...', self)
-        # self.editPreferencesAction.setEnabled(True)
-        # self.editPreferencesAction.setStatusTip('Edit system preferences')
-
-        # self.workspaceAction = QtGui.QAction('Workspaces', self)
-        # self.workspaceAction.setCheckable(True)
-        # self.workspaceAction.setChecked(False)
-
-        # self.provenanceBrowserAction = QtGui.QAction('Provenance Browser', self)
-        # self.provenanceBrowserAction.setCheckable(True)
-        # self.provenanceBrowserAction.setChecked(False)
-
-        # self.shellAction = QtGui.QAction(CurrentTheme.CONSOLE_MODE_ICON,
-        #                                  'VisTrails Console', self)
-        # self.shellAction.setCheckable(True)
-        # self.shellAction.setShortcut('Ctrl+H')
-
-        # self.debugAction = QtGui.QAction('VisTrails Debugger', self)
-        # self.debugAction.setCheckable(True)
-        # self.debugAction.setChecked(False)
-
-        # self.messagesAction = QtGui.QAction('VisTrails Messages', self)
-        # self.messagesAction.setCheckable(True)
-        # self.messagesAction.setChecked(False)
-
-        # self.pipViewAction = QtGui.QAction('Picture-in-Picture', self)
-        # self.pipViewAction.setCheckable(True)
-        # self.pipViewAction.setChecked(True)
-
-        # self.methodsViewAction = QtGui.QAction('Methods Panel', self)
-        # self.methodsViewAction.setCheckable(True)
-        # self.methodsViewAction.setChecked(True)
-
-        # self.setMethodsViewAction = QtGui.QAction('Set Methods Panel', self)
-        # self.setMethodsViewAction.setCheckable(True)
-        # self.setMethodsViewAction.setChecked(True)
-
-        # self.propertiesViewAction = QtGui.QAction('Properties Panel', self)
-        # self.propertiesViewAction.setCheckable(True)
-        # self.propertiesViewAction.setChecked(True)
-
-        # self.propertiesOverlayAction = QtGui.QAction('Properties Overlay', self)
-        # self.propertiesOverlayAction.setCheckable(True)
-        # self.propertiesOverlayAction.setChecked(False)
-
-        # self.expandBranchAction = QtGui.QAction('Expand Branch', self)
-        # self.expandBranchAction.setEnabled(True)
-        # self.expandBranchAction.setStatusTip('Expand all versions in the tree below the current version')
-
-        # self.collapseBranchAction = QtGui.QAction('Collapse Branch', self)
-        # self.collapseBranchAction.setEnabled(True)
-        # self.collapseBranchAction.setStatusTip('Collapse all expanded versions in the tree below the current version')
-
-        # self.collapseAllAction = QtGui.QAction('Collapse All', self)
-        # self.collapseAllAction.setEnabled(True)
-        # self.collapseAllAction.setStatusTip('Collapse all expanded branches of the tree')
-
-        # self.hideBranchAction = QtGui.QAction('Hide Branch', self)
-        # self.hideBranchAction.setEnabled(True)
-        # self.hideBranchAction.setStatusTip('Hide all versions in the tree including and below the current version')
-
-        # self.showAllAction = QtGui.QAction('Show All', self)
-        # self.showAllAction.setEnabled(True)
-        # self.showAllAction.setStatusTip('Show all hidden versions')
-            
-        # self.moduleConfigViewAction = QtGui.QAction('Module Configuration Panel', self)
-        # self.moduleConfigViewAction.setCheckable(True)
-        # self.moduleConfigViewAction.setChecked(True)
-        
-        # self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
-
-        # self.checkUpdateAction = QtGui.QAction(self.tr('Check for Updates'), self)
-
-        # a = QtGui.QAction(self.tr('Execute Current Workflow\tCtrl+Enter'),
-        #                   self)
-        # self.executeCurrentWorkflowAction = a
-        # self.executeCurrentWorkflowAction.setEnabled(False)
-
-        # self.executeDiffAction = QtGui.QAction('Execute Version Difference', self)
-        # self.executeDiffAction.setEnabled(False)
-        # self.flushCacheAction = QtGui.QAction(self.tr('Erase Cache Contents'),
-        #                                       self)
-
-        # self.executeQueryAction = QtGui.QAction('Execute Visual Query', self)
-        # self.executeQueryAction.setEnabled(False)
-
-        # self.executeExplorationAction = QtGui.QAction(
-        #     'Execute Parameter Exploration', self)
-        # self.executeExplorationAction.setEnabled(False)
-
-        # self.executeShortcuts = [
-        #     QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
-        #                                        QtCore.Qt.Key_Return), self),
-        #     QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
-        #                                        QtCore.Qt.Key_Enter), self)
-        #     ]
-        
-        # self.vistrailActionGroup = QtGui.QActionGroup(self)
-        # self.mergeActionGroup = QtGui.QActionGroup(self)
-
         # format of each item in the list is:
         # item: reference, title, options
         # where options is either a list of subitems or
@@ -1363,8 +1087,16 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
         global _global_menubar
 
-        palette_actions, palettes = self.create_palette_actions()
-        palette_actions = list(palette_actions)
+        all_palette_actions =  self.create_palette_actions()
+        print all_palette_actions
+        tools_actions = []
+        palette_actions = []
+        for a,p in all_palette_actions:
+            if p.toolWindow().window() == self.palette_window:
+                tools_actions.append(a)
+            else:
+                palette_actions.append(a)
+        
         # palettes = []
         # palette_actions = []
 
@@ -1722,7 +1454,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
                        'callback': \
                            self.pass_through_bool(self.get_current_view,
                                                   'mashup_change')}),
-                     "---"] + palette_actions + ["---", 
+                     "---"] +
+                     [("tools", "Tools", tools_actions)] + palette_actions + ["---", 
                        ("dockPalettes", "Dock Palettes", 
                         {'enabled': True,
                          'statusTip': "Dock palettes on active window",
@@ -1837,7 +1570,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         process_list(actions, menu_bar)
         print 'done processing list'
 
-        for action_tuple, palette in izip(palette_actions, palettes):
+        for action_tuple, palette in all_palette_actions:
             palette.set_action(self.qactions[action_tuple[0]])
 
         self.connect_package_manager_signals()
@@ -2479,8 +2212,14 @@ class QVistrailViewWindow(QtGui.QMainWindow):
         
     def create_actions(self):
 
-        palette_actions, palettes = _app.create_palette_actions()
-        palette_actions = list(palette_actions)
+        all_palette_actions =  _app.create_palette_actions()
+        tools_actions = []
+        palette_actions = []
+        for a,p in all_palette_actions:
+            if p.toolWindow().window() == _app.palette_window:
+                tools_actions.append(a)
+            else:
+                palette_actions.append(a)
         
         actions = [("file", "&File",
                     [('newVistrail', "&New",
@@ -2830,7 +2569,7 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                        'callback': \
                            _app.pass_through_bool(self.get_current_view,
                                                   'mashup_change')}),
-                     "---"] + palette_actions + ["---", 
+                     "---"] + [("tools", "Tools", tools_actions)] +  palette_actions + ["---", 
                        ("dockPalettes", "Dock Palettes", 
                         {'enabled': True,
                          'statusTip': "Dock palettes on active window",
@@ -2990,4 +2729,36 @@ class QVistrailViewWindow(QtGui.QMainWindow):
             self.set_title(self.view.get_name())
         else:
             self.set_title('(empty)')
+            
+class QPaletteMainWindow(QtGui.QMainWindow):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+        QtGui.QMainWindow.__init__(self, parent, f)
+        self.palettes = []
         
+    def addPalette(self, palette):
+        if palette not in self.palettes:
+            self.palettes.append(palette)
+        if len(self.palettes) == 1:
+            self.addDockWidget(QtCore.Qt.TopDockWidgetArea, palette.toolWindow())
+        else:
+            self.tabifyDockWidget(self.palettes[0].toolWindow(),
+                                  palette.toolWindow())
+        palette.toolWindow().close()
+        
+    def closeDockedPalettes(self):
+        for p in self.palettes:
+            if (p.toolWindow().isVisible() and 
+                not p.toolWindow().isFloating()):
+                        p.toolWindow().close()
+            
+    def closeEvent(self, event):
+        if not QtCore.QCoreApplication.closingDown():
+            self.closeDockedPalettes()
+            self.hide()
+            event.ignore()
+
+    def showEvent(self, event):
+        for p in self.palettes:
+            if (not p.toolWindow().isVisible() and 
+                not p.toolWindow().isFloating() and p.get_pin_status()):
+                p.set_visible(True)
