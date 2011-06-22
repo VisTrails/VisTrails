@@ -411,14 +411,15 @@ class QVistrailView(QtGui.QWidget):
         if self.tab_to_stack_idx.has_key(tab_idx):
             stack_index = self.tab_to_stack_idx[tab_idx]
             view = self.stack.widget(stack_index)
+            pip_name = self.controller.get_pipeline_name()
+            vt_name = self.get_name()
             self.remove_view_by_index(tab_idx)
             view.setParent(None)
             view.setWindowFlags(QtCore.Qt.Window)
-            view.set_title("%s from %s"%(self.controller.get_pipeline_name(),
-                                         self.get_name()))
+            view.set_title("%s from %s"%(pip_name,vt_name))
             self.detached_views.append(view)
             view.adjustSize()
-            view.move(self.rect().center()-view.rect().center())
+            view.move(self.rect().center())
             view.show()
         else:
             print "Error detach_view: ", tab_idx, self.tab_to_stack_idx
@@ -428,6 +429,10 @@ class QVistrailView(QtGui.QWidget):
             return self.tabs.count() > 1 and self.tab_to_view[index].detachable
         return False
     
+    def closeDetachedViews(self):
+        for view in self.detached_views:
+            view.close()
+            
     def updateTabsTooTip(self):
         for i in range(self.tabs.count()):
             if self.isTabDetachable(i):
@@ -440,7 +445,8 @@ class QVistrailView(QtGui.QWidget):
             self.detach_view(index)
             
     def view_title_changed(self, view):
-        if self.stack.currentWidget() == view:
+        if (self.window() == QtGui.QApplication.activeWindow() and
+            self.stack.currentWidget() == view):
             self.tabs.setTabText(self.tabs.currentIndex(), view.windowTitle())
 
     def update_indexes(self, rm_tab_idx, rm_stack_idx):
@@ -473,7 +479,10 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.removeTab(index)
         del self.tab_to_view[index]
         if stack_idx >= 0:
-            self.stack.removeWidget(self.stack.widget(stack_idx))
+            view = self.stack.widget(stack_idx)
+            self.disconnect(view, QtCore.SIGNAL("windowTitleChanged"),
+                     self.view_title_changed)
+            self.stack.removeWidget(view)
         self.update_indexes(index, stack_idx)
         if self.tabs.count() == 1:
             self.tabs.setTabsClosable(False)

@@ -956,6 +956,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 return False
         elif res == 2:
             return False
+        current_view.closeDetachedViews()
         current_view.controller.close_vistrail(locator)
         current_view.controller.cleanup()
         self.remove_view(current_view)
