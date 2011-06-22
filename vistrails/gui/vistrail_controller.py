@@ -821,9 +821,12 @@ class VistrailController(QtCore.QObject, BaseController):
             debug.critical('Unexpected Exception\n%s' % str(e), 
                            traceback.format_exc())
         
-        if not self._current_terse_graph or \
-                new_version not in self._current_terse_graph.vertices:
-            self.recompute_terse_graph()
+        # FIXME: this code breaks undo/redo, and seems to be ok with normal
+        # pipeline manipulations so I am leaving it commented out for now
+
+        # if not self._current_terse_graph or \
+        #         new_version not in self._current_terse_graph.vertices:
+        #     self.recompute_terse_graph()
 
         self.emit(QtCore.SIGNAL('versionWasChanged'), self.current_version)
 

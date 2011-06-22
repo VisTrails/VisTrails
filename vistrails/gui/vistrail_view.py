@@ -160,10 +160,6 @@ class QVistrailView(QtGui.QWidget):
         
         # self.closeEventHandler = None
 
-        # # the redo stack stores the undone action ids 
-        # # (undo is automatic with us, through the version tree)
-        # self.redo_stack = []
-
         # # Keep the state of the execution button and menu items for the view
         # self.execQueryEnabled = False
         # self.execDiffEnabled = False
@@ -716,6 +712,7 @@ class QVistrailView(QtGui.QWidget):
                 # view.set_to_current()
                 # self.tabs.setCurrentWidget(view.parent())
                 window.qactions['pipeline'].trigger()
+            self.version_view.redo_stack = []
         if view and not isinstance(view, QDiffView):
             view.set_title(self.controller.get_pipeline_name())
         _app.notify("version_changed", version_id)
@@ -892,6 +889,105 @@ class QVistrailView(QtGui.QWidget):
         if hasattr(view, 'publish_to_paper'):
             view.publish_to_paper()
         
+
+    ##########################################################################
+    # Undo/redo
+        
+    def set_pipeline_selection(self, old_action, new_action, optype):
+        # need to check if anything on module changed or
+        # any connections changed
+        module_types = set(['module', 'group', 'abstraction'])
+        module_child_types = set(['function', 'parameter', 'location', 
+                                  'portSpec', 'annotation'])
+        conn_types = set(['connection'])
+        conn_child_types = set(['port'])
+
+        view = self.stack.currentWidget()
+        if not isinstance(view, QPipelineView):
+            return 
+        
+        pipeline_scene = view.scene()    
+
+        if old_action is None:
+            old_action_id = 0
+        else:
+            old_action_id = old_action.id
+        if new_action is None:
+            new_action_id = 0
+        else:
+            new_action_id = new_action.id
+        action = self.controller.vistrail.general_action_chain(old_action_id,
+                                                               new_action_id)
+
+        def module_change():
+            module_ids = set()
+            function_ids = set()
+            for op in action.operations:
+                if op.what in module_types and \
+                        (op.vtType == 'change' or op.vtType == 'add'):
+                    module_ids.add(op.objectId)
+                elif op.what in module_child_types and \
+                        (op.vtType == 'change' or op.vtType == 'add' or
+                         op.vtType == 'delete'):
+                    if op.what == 'parameter':
+                        function_ids.add(op.parentObjId)
+                    else:
+                        module_ids.add(op.parentObjId)
+            if len(function_ids) > 0:
+                for m_id, module in \
+                        self.controller.current_pipeline.modules.iteritems():
+                    to_discard = set()
+                    for f_id in function_ids:
+                        if module.has_function_with_real_id(f_id):
+                            module_ids.add(m_id)
+                            to_discard.add(f_id)
+                    function_ids -= to_discard
+
+            for id in module_ids:
+                if id in pipeline_scene.modules:
+                    pipeline_scene.modules[id].setSelected(True)
+
+        def connection_change():
+            conn_ids = set()
+            for op in action.operations:
+                if op.what in conn_types and \
+                        (op.vtType == 'change' or op.vtType == 'add'):
+                    conn_ids.add(op.objectId)
+                elif op.what in conn_child_types and \
+                        (op.vtType == 'change' or op.vtType == 'add' or 
+                         op.vtType == 'delete'):
+                    conn_ids.add(op.parentObjId)
+            for id in conn_ids:
+                if id in pipeline_scene.connections:
+                    pipeline_scene.connections[id].setSelected(True)
+                    
+        module_change()
+        connection_change()
+        
+    def undo(self):
+        """Performs one undo step, moving up the version tree."""
+        action_map = self.controller.vistrail.actionMap
+        old_action = action_map.get(self.controller.current_version, None)
+        self.version_view.redo_stack.append(self.controller.current_version)
+        self.controller.show_parent_version()
+        new_action = action_map.get(self.controller.current_version, None)
+        self.set_pipeline_selection(old_action, new_action, 'undo')
+        return self.controller.current_version
+        
+    def redo(self):
+        """Performs one redo step if possible, moving down the version tree."""
+        action_map = self.controller.vistrail.actionMap
+        old_action = action_map.get(self.controller.current_version, None)
+        if not self.version_view.can_redo(None):
+            critical("Redo on an empty redo stack. Ignoring.")
+            return
+        next_version = self.version_view.redo_stack[-1]
+        self.version_view.redo_stack = self.version_view.redo_stack[:-1]
+        self.controller.show_child_version(next_version)
+        new_action = action_map[self.controller.current_version]
+        self.set_pipeline_selection(old_action, new_action, 'redo')
+        return next_version
+
 
     # def updateCursorState(self, mode):
     #     """ updateCursorState(mode: Int) -> None 
@@ -1202,99 +1298,6 @@ class QVistrailView(QtGui.QWidget):
     #     This will ask if user wants to save changes """
     #     self.pipelineTab.checkModuleConfigPanel()
          
-    # ##########################################################################
-    # # Undo/redo
-        
-    # def set_pipeline_selection(self, old_action, new_action, optype):
-    #     # need to check if anything on module changed or
-    #     # any connections changed
-    #     module_types = set(['module', 'group', 'abstraction'])
-    #     module_child_types = set(['function', 'parameter', 'location', 
-    #                               'portSpec', 'annotation'])
-    #     conn_types = set(['connection'])
-    #     conn_child_types = set(['port'])
-
-    #     pipeline_scene = self.pipelineTab.pipelineView.scene()
-
-    #     if old_action is None:
-    #         old_action_id = 0
-    #     else:
-    #         old_action_id = old_action.id
-    #     if new_action is None:
-    #         new_action_id = 0
-    #     else:
-    #         new_action_id = new_action.id
-    #     action = self.controller.vistrail.general_action_chain(old_action_id,
-    #                                                            new_action_id)
-
-    #     def module_change():
-    #         module_ids = set()
-    #         function_ids = set()
-    #         for op in action.operations:
-    #             if op.what in module_types and \
-    #                     (op.vtType == 'change' or op.vtType == 'add'):
-    #                 module_ids.add(op.objectId)
-    #             elif op.what in module_child_types and \
-    #                     (op.vtType == 'change' or op.vtType == 'add' or
-    #                      op.vtType == 'delete'):
-    #                 if op.what == 'parameter':
-    #                     function_ids.add(op.parentObjId)
-    #                 else:
-    #                     module_ids.add(op.parentObjId)
-    #         if len(function_ids) > 0:
-    #             for m_id, module in \
-    #                     self.controller.current_pipeline.modules.iteritems():
-    #                 to_discard = set()
-    #                 for f_id in function_ids:
-    #                     if module.has_function_with_real_id(f_id):
-    #                         module_ids.add(m_id)
-    #                         to_discard.add(f_id)
-    #                 function_ids -= to_discard
-
-    #         for id in module_ids:
-    #             if id in pipeline_scene.modules:
-    #                 pipeline_scene.modules[id].setSelected(True)
-
-    #     def connection_change():
-    #         conn_ids = set()
-    #         for op in action.operations:
-    #             if op.what in conn_types and \
-    #                     (op.vtType == 'change' or op.vtType == 'add'):
-    #                 conn_ids.add(op.objectId)
-    #             elif op.what in conn_child_types and \
-    #                     (op.vtType == 'change' or op.vtType == 'add' or 
-    #                      op.vtType == 'delete'):
-    #                 conn_ids.add(op.parentObjId)
-    #         for id in conn_ids:
-    #             if id in pipeline_scene.connections:
-    #                 pipeline_scene.connections[id].setSelected(True)
-                    
-    #     module_change()
-    #     connection_change()
-        
-    # def undo(self):
-    #     """Performs one undo step, moving up the version tree."""
-    #     action_map = self.controller.vistrail.actionMap
-    #     old_action = action_map.get(self.controller.current_version, None)
-    #     self.redo_stack.append(self.controller.current_version)
-    #     self.controller.show_parent_version()
-    #     new_action = action_map.get(self.controller.current_version, None)
-    #     self.set_pipeline_selection(old_action, new_action, 'undo')
-    #     return self.controller.current_version
-        
-    # def redo(self):
-    #     """Performs one redo step if possible, moving down the version tree."""
-    #     action_map = self.controller.vistrail.actionMap
-    #     old_action = action_map.get(self.controller.current_version, None)
-    #     if not self.can_redo():
-    #         critical("Redo on an empty redo stack. Ignoring.")
-    #         return
-    #     next_version = self.redo_stack[-1]
-    #     self.redo_stack = self.redo_stack[:-1]
-    #     self.controller.show_child_version(next_version)
-    #     new_action = action_map[self.controller.current_version]
-    #     self.set_pipeline_selection(old_action, new_action, 'redo')
-    #     return next_version
 
     # def can_redo(self):
     #     return len(self.redo_stack) <> 0

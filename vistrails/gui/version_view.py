@@ -1078,6 +1078,10 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
 
+        # the redo stack stores the undone action ids 
+        # (undo is automatic with us, through the version tree)
+        self.redo_stack = []
+
     def set_default_layout(self):
         from gui.collection.workspace import QWorkspaceWindow
         from gui.version_prop import QVersionProp
@@ -1090,7 +1094,9 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.action_links = \
             {
              'publishWeb' : ('version_changed', self.check_publish_db),
-             'publishPaper': ('version_changed', self.check_publish)
+             'publishPaper': ('version_changed', self.check_publish),
+             'redo': ('version_changed', self.can_redo),
+             'undo': ('version_changed', self.can_undo),
             }
         
     def set_action_defaults(self):
@@ -1107,6 +1113,12 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     
     def check_publish(self, versionId):
         return versionId > 0 
+
+    def can_redo(self, versionId):
+        return len(self.redo_stack) > 0
+
+    def can_undo(self, versionId):
+        return versionId > 0
     
     def publish_to_web(self):
         from gui.publishing import QVersionEmbed
