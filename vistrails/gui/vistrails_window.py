@@ -72,71 +72,49 @@ from gui.vistrail_variables import QVistrailVariables
 from db.services.io import SaveBundle
 import db.services.vistrail
 
-
-class QVistrailsWindow(QtGui.QMainWindow):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        global _app
+class QVistrailViewWindow(QtGui.QMainWindow):
+    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
-
-        self.current_view = None
-        self.windows = {}
-        self.notifications = {}
-        self.view_notifications = {}
-        self.view_notifications[-1] = {}
-        self.action_links = {}
-        self.dbDefault = False
-
-        # FIXME not the best way to assign the global
-        _app = self
-
-        self.stack = QtGui.QStackedWidget()
-        self.vistrail_to_widget = {}
-        self.setCentralWidget(self.stack)
-        self.setDocumentMode(True)
-        
         # This keeps track of the menu items for each package
         self._package_menu_items = {}
+
+        self.setDocumentMode(True)
+        self.view = view
+
+        if self.view is not None:
+            self.setCentralWidget(view)
+            self.view.setVisible(True)
+            self.setWindowTitle(self.view.get_name())
         
-        self.init_palettes()
-        self.create_menus()
-        self.setup_recent_vistrails()
+        self.create_actions_and_toolbar()
+
+    def create_actions_and_toolbar(self):
+        self.create_actions()
         self.init_toolbar()
 
-        self._focus_owner = None
-        self.connect(QtGui.QApplication.clipboard(),
-                     QtCore.SIGNAL('dataChanged()'),
-                     self.clipboard_changed)
-        self.connect(QtGui.QApplication.instance(), 
-                     QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
-                     self.applicationFocusChanged)
-
-    def create_view(self, vistrail, locator,  abstraction_files=None, 
-                                    thumbnail_files=None, mashups=None):
-        from gui.collection.workspace import QWorkspaceWindow
-        view = QVistrailView(vistrail, locator, abstraction_files,
-                             thumbnail_files, mashups)
-        self.vistrail_to_widget[view.get_name()] = view
-        index = self.stack.addWidget(view)
-        self.stack.setCurrentIndex(index)
-        self.view_notifications[view] = {}
-        for notification_id, method in view.get_notifications().iteritems():
-            self.register_notification(notification_id, method, True, view)
-
-        QWorkspaceWindow.instance().add_vt_window(view)
-
-        return view
-
-    def remove_view(self, view):
-        from gui.collection.workspace import QWorkspaceWindow
-        if not self.windows.has_key(view):
-            if self.view_notifications.has_key(view):
-                del self.view_notifications[view]
-            self.stack.removeWidget(view)
+    def close_vistrail(self):
+        global _app
+        return _app.close_vistrail(self.view)
+        
+    def closeEvent(self, event):
+        if not self.close_vistrail():
+            event.ignore()
         else:
-            window = self.windows[view]
-            window.close()
-        QWorkspaceWindow.instance().remove_vt_window(view)
+            self.emit(QtCore.SIGNAL("window_closed"), self.view)
+            event.accept()
+        
+    def get_current_controller(self):
+        return self.view.get_controller()
 
+    def get_current_view(self):
+        return self.view
+    
+    def get_current_tab(self):
+        return self.view.get_current_tab()
+
+    def get_current_scene(self):
+        return self.get_current_tab().scene()
+        
     def init_toolbar(self):
         def create_spacer():
             spacer = QtGui.QWidget()
@@ -147,29 +125,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             sep = QtGui.QWidget()
             sep.setMinimumWidth(50)
             return sep
-        # have a toolbar
-        # self.create_pass_actions()
-        # self.toolbar = QtGui.QToolBar(self)
-        # history_action = QtGui.QAction("History", self)
-        # history_action.method = self.history_selected
-        # history_action.un_method = self.history_unselected
-        # query_action = QtGui.QAction("Search", self)
-        # query_action.method = self.query_selected
-        # query_action.un_method = self.query_unselected
-        # explore_action = QtGui.QAction("Explore", self)
-        # explore_action.method = self.explore_selected
-        # explore_action.un_method = self.explore_unselected
-        # toolbar_actions = [history_action, query_action, explore_action]
-        # self.action_group = QtGui.QActionGroup(self)
-        # for action in toolbar_actions:
-        #     action.setCheckable(True)
-        #     self.action_group.addAction(action)
-        # self.connect(self.action_group, QtCore.SIGNAL("triggered(QAction *)"), 
-        #              self.action_triggered)
-        # self.toolbar.addAction(history_action)
-        # self.toolbar.addAction(query_action)
-        # self.toolbar.addAction(explore_action)
-        # self.addToolBar(self.toolbar)
+
         self.selected_mode = None
         self.toolbar = QtGui.QToolBar(self)
         
@@ -202,6 +158,612 @@ class QVistrailsWindow(QtGui.QMainWindow):
         self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.addToolBar(self.toolbar)
         self.setUnifiedTitleAndToolBarOnMac(True)
+
+    def set_title(self, title):
+        self.setWindowTitle(title)
+        
+    def get_name(self):
+        return self.windowTitle()
+
+    def set_name(self):
+        if self.view:
+            self.set_title(self.view.get_name())
+        else:
+            self.set_title('(empty)')
+
+    def build_packages_menu_from_main_app(self):
+        global _app
+        if len(self._package_menu_items) == 0:
+            self.qmenus['packages'].menuAction().setEnabled(True)
+            
+        for (pkg_id, d) in _app._package_menu_items.iteritems():
+            self._package_menu_items[pkg_id] = {}
+            for pkg_name,items in d['items']:
+                pkg_menu = self.qmenus['packages'].addMenu(str(pkg_name))
+                self._package_menu_items[pkg_id]['menu'] = pkg_menu
+                self._package_menu_items[pkg_id]['items'] = (pkg_name, items)
+                for item in items:
+                    (name, callback) = item
+                    action = QtGui.QAction(name, self,
+                                           triggered=callback)
+                    pkg_menu.addAction(action)
+
+    def create_actions(self):
+        """ createActions() -> None 
+
+        Construct all menu/toolbar actions for window.
+
+        """
+        global _app
+
+        # format of each item in the list is:
+        # item: reference, title, options
+        # where options is either a list of subitems or
+        # a dictionary of options to be set for an action
+        # Also, "---" denotes a separator
+
+        is_main_window = False
+        if self == _app:
+            is_main_window = True
+
+        global _global_menubar
+
+        all_palette_actions =  _app.create_palette_actions()
+        tools_actions = []
+        palette_actions = []
+        for a,p in all_palette_actions:
+            if p.toolWindow().window() == _app.palette_window:
+                tools_actions.append(a)
+            else:
+                palette_actions.append(a)
+        
+        # palettes = []
+        # palette_actions = []
+
+        actions = [("file", "&File",
+                    [('newVistrail', "&New",
+                      {'icon': CurrentTheme.NEW_VISTRAIL_ICON,
+                       'shortcut': QtGui.QKeySequence.New,
+                       'statusTip': 'Create a new vistrail',
+                       'callback': _app.new_vistrail}),
+                     ('openFile', "&Open",
+                      {'icon': CurrentTheme.OPEN_VISTRAIL_ICON,
+                       'shortcut': QtGui.QKeySequence.Open,
+                       'statusTip': 'Open an existing vistrail from a file',
+                       'callback': _app.open_vistrail_default}),
+                     ("openRecent", "Open Recent", 
+                      []),
+                     ('saveFile', "&Save",
+                      {'icon': CurrentTheme.SAVE_VISTRAIL_ICON,
+                       'shortcut': QtGui.QKeySequence.Save,
+                       'statusTip': "Save the current vistrail to a file",
+                       'enabled': False,
+                       'callback': \
+                           _app.pass_through_locator(self.get_current_view,
+                                                     'save_vistrail')}),
+                     ('saveFileAs', "Save as...",
+                      {'shortcut': QtGui.QKeySequence.SaveAs,
+                       'statusTip': "Save the current vistrail to a " \
+                           "different file location",
+                       'enabled': False,
+                       'callback': \
+                           _app.pass_through_locator(self.get_current_view,
+                                                     'save_vistrail_as')}),
+                     ('closeVistrail', "Close",
+                      {'shortcut': QtGui.QKeySequence.Close,
+                       'statusTip': "Close the current vistrail",
+                       'enabled': True,
+                       'callback': _app.close_vistrail}),
+                     "---",
+                     ("import", "Import",
+                      [('importFile', "From DB...",
+                        {'icon': CurrentTheme.OPEN_VISTRAIL_DB_ICON,
+                         'statusTip': "Import an existing vistrail " \
+                             "from a database",
+                         'callback': \
+                             _app.import_vistrail_default}),
+                       "---",
+                       ('importWorkflow', "Workflow...",
+                        {'statusTip': "Import a workflow from an XML file",
+                         'enabled': True,
+                         'callback': _app.import_workflow_default})]),
+                     ("export", "Export",
+                      [('exportFile', "To DB...",
+                        {'statusTip': "Export the current vistrail to a " \
+                             "database",
+                         'enabled': False,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'export_vistrail', 
+                                                       reverse=True)}),
+                       ('exportStable', "To Stable Version...",
+                        {'statusTip': "Save vistrail as XML according to " \
+                             "the older (stable) schema",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'export_stable')}),
+                       "---",
+                       ('savePDF', "PDF...",
+                        {'statusTip': "Save the current view to a PDF file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_tab,
+                                                       'save_pdf')}),
+                       "---",
+                       ('saveWorkflow', "Workflow To XML...",
+                        {'statusTip': "Save the current workflow to a file",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_workflow',
+                                                       FileLocator())}),
+                       ('exportWorkflow', "Workflow to DB...",
+                        {'statusTip': "Save the current workflow to a database",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_workflow',
+                                                       DBLocator)}),
+                       "---",
+                       ('saveOpm', "OPM XML...",
+                        {'statusTip': "Save proveannce according to the " \
+                             "Open Provenance Model in XML",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_opm')}),
+                       ('saveLog', "Log to XML...",
+                        {'statusTip': "Save the execution log to a file",
+                         'enabled': False,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_log',
+                                                       FileLocator())}),
+                       ('exportLog', "Log to DB...",
+                        {'statusTip': "Save the execution log to a database",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_log',
+                                                       DBLocator)}),
+                       "---",
+                       ('saveRegistry', "Registry to XML...",
+                        {'statusTip': "Save the current registry to a file",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_registry',
+                                                       FileLocator())}),
+                       ('exportRegistry', "Registry to DB...",
+                        {'statusTip': "Save the current registry to a database",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_registry',
+                                                       DBLocator)})]),
+                     "---",
+                     ('quitVistrails', "Quit",
+                      {'shortcut': QtGui.QKeySequence.Quit,
+                       'statusTip': "Exit VisTrails",
+                       'callback': _app.quit})]),
+                   ("edit", "&Edit",
+                    [("undo", "Undo",
+                      {'statusTip': "Undo the previous action",
+                       'shortcut': QtGui.QKeySequence.Undo,
+                       'enabled': False}),
+                     ("redo", "Redo",
+                      {'statusTip': "Redo an undone action",
+                       'shortcut': QtGui.QKeySequence.Redo,
+                       'enabled': False}),
+                     "---",
+                     ("copy", "Copy",
+                      {'statusTip': "Copy the selected modules in the " \
+                           "current pipeline view",
+                       'shortcut': QtGui.QKeySequence.Copy,
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'copySelection')}),
+                     ("paste", "Paste",
+                      {'statusTip': "Paste modules from the clipboard into " \
+                           "the current pipeline view",
+                       'shortcut': QtGui.QKeySequence.Paste,
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'pasteFromClipboard')}),
+                     ("selectAll", "Select All",
+                      {'statusTip': "Select all modules in the current " \
+                           "pipeline view",
+                       'enabled': True,
+                       'shortcut': QtGui.QKeySequence.SelectAll,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'selectAll')}),
+                     "---",
+                     ("controlFlowAssist", "Control Flow Assistant",
+                      {'statusTip': "Create a loop over the selected modules"}),
+                     ("merge", "Merge with...", 
+                      []),
+                     "---",
+                     ("editPreferences", "Preferences...",
+                      {'statusTip': "Edit system preferences",
+                       'enabled': True,
+                       'shortcut': QtGui.QKeySequence.Preferences,
+                       'callback': _app.showPreferences}),
+                     ]),
+                   ("run", "&Workflow",
+                    [("execute", "Execute",
+                      {'icon': CurrentTheme.EXECUTE_PIPELINE_ICON,
+                       'shortcut': 'Ctrl+Return',
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_view,
+                                                     'execute')}),
+                     ("flushCache", "Erase Cache Contents", 
+                      {'enabled': True,
+                       'callback': _app.flush_cache}),
+                     "---",
+                     ("group", "Group",
+                      {'statusTip': "Group the selected modules in the " \
+                           "current pipeline view",
+                       'shortcut': 'Ctrl+G',
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'group')}),
+                     ("ungroup", "Ungroup",
+                      {'statusTip': "Ungroup the selected groups in the " \
+                           "current pipeline view",
+                       'shortcut': 'Ctrl+Shift+G',
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'ungroup')}),
+                     ("showGroup", "Show Pipeline",
+                      {'statusTip': "Show the underlying pipeline for the " \
+                           "selected group in the current pipeline view",
+                       'enabled': False,
+                       'callback': _app.show_group}),
+                     "---",
+                     ("makeAbstraction", "Create Subworkflow",
+                      {'statusTip': "Create a subworkflow from the selected " \
+                           "modules",
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'makeAbstraction')}),
+                     ("convertToAbstraction", "Convert to Subworkflow",
+                      {'statusTip': "Convert selected group to a subworkflow",
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'convertToAbstraction')}),
+                     ("editAbstraction", "Edit Subworkflow",
+                      {'statusTip': "Edit a subworkflow",
+                       'enabled': False,
+                       'callback': _app.edit_abstraction}),
+                     ("importAbstraction", "Import Subworkflow",
+                      {'statusTip': "Import subworkflow from a vistrail to " \
+                           "local subworkflows",
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'importAbstraction')}),
+                     ("exportAbstraction", "Export Subworkflow",
+                      {'statusTip': "Export subworkflow from local " \
+                           "subworkflows for use in a package",
+                       'enabled': False,
+                       'callback': _app.pass_through(_app.get_current_scene,
+                                                     'exportAbstraction')}),
+                     "---",
+                     ("configureModule", "Configure Module...",
+                      {'shortcut': "Ctrl+E",
+                       'enabled': False,
+                       'callback': _app.configure_module}),
+                     ("documentModule", "Module Documentation...",
+                      {'enabled': False,
+                       'callback': _app.show_documentation})]),
+                     # ("executeDiff", "Show Version Difference",
+                     #  {'enabled': False}),
+                     # ("executeQuery", "Perform Query",
+                     #  {'enabled': False}),
+                     # ("executeExploration", "Perform Parameter Exploration",
+                     #  {'enabled': False})]),
+                   ("vistrail", "Vis&trail",
+                    [("tag", "Tag...",
+                      {'statusTip': "Tag the current pipeline",
+                       'shortcut': "Ctrl+Shift+T",
+                       'enabled': True,
+                       'callback': _app.add_tag}),
+                     "---",
+                     ("expandBranch", "Expand Branch",
+                      {'statusTip': "Expand all versions in the tree below " \
+                           "the current version",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through(self.get_current_controller,
+                                             'expand_all_versions_below')}),
+                     ("collapseBranch", "Collapse Branch",
+                      {'statusTip': "Collapse all expanded versions of the " \
+                           "tree",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through(self.get_current_controller,
+                                             'collapse_all_versions_below')}),
+                     ("collapseAll", "Collapse All",
+                      {'statusTip': "Collapse all expanded branches of the " \
+                           "tree",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through(self.get_current_controller,
+                                             'collapse_all_versions')}),
+                     ("hideBranch", "Hide Branch",
+                      {'statusTip': "Hide all versions in the tre including " \
+                           "and below the current version",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through(self.get_current_controller,
+                                             'hide_versions_below')}),
+                     ("showAll", "Show All",
+                      {'enabled': True,
+                       'statusTip': "Show all hidden versions",
+                       'callback': \
+                           _app.pass_through(self.get_current_controller,
+                                             'show_all_versions')})]),
+                   ("view", "&Views",
+                    [("newView", "New Pipeline View",
+                      {'shortcut': QtGui.QKeySequence.AddTab,
+                       'enabled': True,
+                       'statusTip': "Create a new pipeline view",
+                       'callback': _app.pass_through(self.get_current_view,
+                                                     'add_pipeline_view')}),
+                     ("newDiff", "New Visual Difference",
+                      {'enabled': True,
+                       'statusTip': "Create a new visual difference for two" \
+                           "pipelines",
+                       'callback': _app.new_diff}),
+                     "---",
+                     ("zoomToFit", "Zoom To Fit",
+                      {'enabled': True,
+                       'shortcut': "Ctrl+R",
+                       'statusTip': "Fit current view to window",
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'zoomToFit')}),
+                     ("zoomIn", "Zoom In",
+                      {'enabled': True,
+                       'shortcut': QtGui.QKeySequence.ZoomIn,
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'zoomIn')}),
+                     ("zoomOut", "Zoom Out",
+                      {'enabled': True,
+                       'shortcut': QtGui.QKeySequence.ZoomOut,
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'zoomOut')}),
+                     "---",
+                     ("pipeline", "Pipeline",
+                      {'icon': CurrentTheme.PIPELINE_ICON,
+                       'checkable': True,
+                       'checked': True,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'pipeline_change')}),
+                     ("history", "History",
+                      {'icon': CurrentTheme.HISTORY_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'history_change')}),
+                     ("search", "Search",
+                      {'icon': CurrentTheme.QUERY_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'search_change')}),
+                     ("explore", "Explore",
+                      {'icon': CurrentTheme.EXPLORE_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'explore_change')}),
+                     ("provenance", "Provenance",
+                      {'icon': CurrentTheme.PROVENANCE_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'provenance_change')}),
+                    ("mashup", "Mashup",
+                      {'icon': CurrentTheme.MASHUP_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'enabled': False,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'mashup_change')}),
+                     "---"] +
+                    palette_actions + 
+                    ["---"] + 
+                    tools_actions + 
+                    ["---", 
+                     ("dockPalettes", "Dock Palettes", 
+                      {'enabled': True,
+                       'statusTip': "Dock palettes on active window",
+                       'callback': _app.dock_palettes})]),
+                    # [("workspace", "Workspaces",
+                    #   {'checkable': True,
+                    #    'checked': False}),
+                    #  ("provenanceBrowser", "Provenance Browser",
+                    #   {'checkable': True,
+                    #    'checked': False}),
+                    #  ("shell", "Console",
+                    #   {'icon': CurrentTheme.CONSOLE_MODE_ICON,
+                    #    'checkable': True,
+                    #    'checked': False}),
+                    #  ("debug", "Debugger",
+                    #   {'checkable': True,
+                    #    'checked': False}),
+                    #  ("messages", "Messages",
+                    #   {'checkable': True,
+                    #    'checked': False}),
+                    #  ("pipView", "Picture-in-Picture",
+                    #   {'checkable': True,
+                    #    'checked': False}),
+                    #  ("properties", "Properties",
+                    #   {'checkable': True,
+                    #    'checked': True}),
+                    #  ("propertiesOverlay", "Properties Overlay",
+                    #   {'checkable': True,
+                    #    'checked': False}),
+                    #  ("moduleConfigView", "Module Configuration",
+                    #   {'checkable': True,
+                    #    'checked': False}),
+                    #  ("moduleDocumentation", "Module Documentation",
+                    #   {'checkable': True,
+                    #    'checked': False})]),
+                   ("publish", "Publish",
+                    [("publishPaper", "To Paper...", 
+                      {'enabled': True,
+                       'statusTip': \
+                           "Embed workflow and results into a paper",
+                        'callback': _app.pass_through(self.get_current_view,
+                                                      'publish_to_paper')}),
+                     ("publishWeb", "To Wiki...",
+                      {'enabled': True,
+                       'statusTip': "Embed workflow in wiki",
+                       'callback' : _app.pass_through(self.get_current_view,
+                                                      'publish_to_web')}),
+                     ("publishCrowdLabs", "To crowdLabs...",
+                      {'enabled': True,
+                       'statusTip': "Publish workflows on crowdlabs.org",
+                       'callback': _app.publish_to_crowdlabs})]),
+                    ("packages", "Packages", 
+                      []),
+                    ("window", "Window", 
+                      []),
+                   ("help", "Help",
+                    [("help", "About VisTrails...", 
+                      {'callback': _app.showAboutMessage}),
+                     ("checkUpdate", "Check for Updates", 
+                      {'callback': _app.showUpdatesMessage})])]
+
+
+        qactions = {}
+        qmenus = {}
+        def process_list(action_list, parent):
+            for data in action_list:
+                if data == "---":
+                    if parent is not None:
+                        parent.addSeparator()
+                    continue
+                name, title, options = data
+                if type(options) == list:
+                    # menu
+                    if parent is not None:
+                        qmenu = parent.addMenu(title)
+                    qmenus[name] = qmenu
+                    process_list(options, qmenu)
+                else:
+                    qaction = QtGui.QAction(title, self)
+                    callback = None
+                    if 'callback' in options:
+                        callback = options['callback']
+                        del options['callback']
+                    for option, value in options.iteritems():
+                        method = getattr(qaction, 'set%s' % \
+                                             option[0].capitalize() + \
+                                             option[1:])
+                        method(value)
+                    qactions[name] = qaction
+                    if parent is not None:
+                        parent.addAction(qaction)
+                    if callback is not None:
+                        if 'checkable' in options and \
+                                options['checkable'] is True:
+                            self.connect(qaction, 
+                                         QtCore.SIGNAL("toggled(bool)"),
+                                         callback)
+                        else:
+                            self.connect(qaction, QtCore.SIGNAL("triggered()"),
+                                         callback)
+                        
+
+            self.qactions = qactions
+            self.qmenus = qmenus
+
+        if is_main_window and core.system.systemType in ['Darwin']:
+            menu_bar = QtGui.QMenuBar()
+            _global_menubar = menu_bar
+        else:
+            menu_bar = self.menuBar()
+        print 'menu_bar:', menu_bar
+        process_list(actions, menu_bar)
+        print 'done processing list'
+        
+        if is_main_window:
+            for action_tuple, palette in all_palette_actions:
+                palette.set_action(self.qactions[action_tuple[0]])
+            _app.connect_package_manager_signals()
+        else:
+            self.build_packages_menu_from_main_app()
+
+        # view_menu = self.qmenus["view"]
+        # for action_name, action in self.create_palette_actions():
+        #     self.qactions[action_name] = action
+        #     view_menu.addAction(action)
+
+class QVistrailsWindow(QVistrailViewWindow):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+        global _app
+        _app = self
+
+        QVistrailViewWindow.__init__(self, None, parent, f)
+
+        self.stack = QtGui.QStackedWidget()
+        self.vistrail_to_widget = {}
+        self.setCentralWidget(self.stack)        
+
+        self._focus_owner = None
+        self.connect(QtGui.QApplication.clipboard(),
+                     QtCore.SIGNAL('dataChanged()'),
+                     self.clipboard_changed)
+        self.connect(QtGui.QApplication.instance(), 
+                     QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
+                     self.applicationFocusChanged)
+
+    def create_actions_and_toolbar(self):
+        self.current_view = None
+        self.windows = {}
+        self.notifications = {}
+        self.view_notifications = {}
+        self.view_notifications[-1] = {}
+        self.action_links = {}
+        self.dbDefault = False
+
+        self.init_palettes()
+        self.create_menus()
+        self.setup_recent_vistrails()
+        self.init_toolbar()
+
+    def create_view(self, vistrail, locator,  abstraction_files=None, 
+                                    thumbnail_files=None, mashups=None):
+        from gui.collection.workspace import QWorkspaceWindow
+        view = QVistrailView(vistrail, locator, abstraction_files,
+                             thumbnail_files, mashups)
+        self.vistrail_to_widget[view.get_name()] = view
+        index = self.stack.addWidget(view)
+        self.stack.setCurrentIndex(index)
+        self.view_notifications[view] = {}
+        for notification_id, method in view.get_notifications().iteritems():
+            self.register_notification(notification_id, method, True, view)
+
+        QWorkspaceWindow.instance().add_vt_window(view)
+
+        return view
+
+    def remove_view(self, view):
+        from gui.collection.workspace import QWorkspaceWindow
+        if view not in self.windows:
+            if view in self.view_notifications:
+                del self.view_notifications[view]
+            self.stack.removeWidget(view)
+        else:
+            window = self.windows[view]
+            window.close()
+        QWorkspaceWindow.instance().remove_vt_window(view)
 
     def view_triggered(self, action):
         print "VIEW_TRIGGERED", action
@@ -456,7 +1018,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                                 view=None):
         if link_view:
             notifications = {}
-            if self.view_notifications.has_key(view):
+            if view in self.view_notifications:
                 notifications = self.view_notifications[view]
                 #print '>>> LOCAL remove notification', notification_id, view
             
@@ -485,7 +1047,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
                     traceback.print_exc()
         notifications = {}
         # do local notifications
-        if self.view_notifications.has_key(self.current_view):
+        if self.current_view in self.view_notifications:
             notifications = self.view_notifications[self.current_view]
             print 'local notification ', notification_id, self.current_view
                 
@@ -532,9 +1094,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
                 else:
                     getattr(qaction, method)(value)
             
-    def get_name(self):
-        return self.windowTitle()
-
     def set_name(self):
         widget = self.stack.currentWidget()
         if widget:
@@ -572,9 +1131,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
     def sizeHint(self):
         return QtCore.QSize(1280, 768)
 
-    def set_title(self, title):
-        self.setWindowTitle(title)
-                         
     def create_first_vistrail(self):
         print 'calling create_first_vistrail'
         if not self.dbDefault and untitled_locator().has_temporaries():
@@ -586,7 +1142,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
 
     def change_view(self, view):
         print 'changing view', id(view), view
-        if not self.windows.has_key(view):
+        if view not in self.windows:
             if self.stack.currentWidget() != view:
                 self.stack.setCurrentWidget(view)
                 view.reset_tab_state()
@@ -594,7 +1150,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             
 
     def detach_view(self, view):
-        if not self.windows.has_key(view):
+        if view not in self.windows:
             index = self.stack.indexOf(view)
             self.stack.removeWidget(view)
             window = QVistrailViewWindow(view, parent=None)
@@ -608,7 +1164,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
             self.view_changed(view)
             
     def window_closed(self, view):
-        if self.windows.has_key(view):
+        if view in self.windows:
             del self.windows[view]
             
     def view_changed(self, new_view):
@@ -621,7 +1177,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         
         if new_view is not None:
             window = None
-            if self.windows.has_key(new_view):
+            if new_view in self.windows:
                 window = self.windows[new_view]
             if window is None:
                 if self.current_view.has_changes():
@@ -1048,7 +1604,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         return method
 
     def create_menus(self):
-        self.createActions()
+        self.create_actions()
         # self.fileMenu = _menu_bar.addMenu('&File')
         # self.newVistrailAction = QtGui.QAction('&New', self)
         # self.newVistrailAction.setShortcut('Ctrl+N')
@@ -1074,510 +1630,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
             palette_actions.append((palette.get_action_tuple(), palette))
         palette_actions.sort()
         return palette_actions
-
-    def createActions(self):
-        """ createActions() -> None
-        Construct all menu/toolbar actions for builder window
-
-        """
-        # format of each item in the list is:
-        # item: reference, title, options
-        # where options is either a list of subitems or
-        # a dictionary of options to be set for an action
-        # Also, "---" denotes a separator
-
-        global _global_menubar
-
-        all_palette_actions =  self.create_palette_actions()
-        tools_actions = []
-        palette_actions = []
-        for a,p in all_palette_actions:
-            if p.toolWindow().window() == self.palette_window:
-                tools_actions.append(a)
-            else:
-                palette_actions.append(a)
-        
-        # palettes = []
-        # palette_actions = []
-
-        actions = [("file", "&File",
-                    [('newVistrail', "&New",
-                      {'icon': CurrentTheme.NEW_VISTRAIL_ICON,
-                       'shortcut': QtGui.QKeySequence.New,
-                       'statusTip': 'Create a new vistrail',
-                       'callback': self.new_vistrail}),
-                     ('openFile', "&Open",
-                      {'icon': CurrentTheme.OPEN_VISTRAIL_ICON,
-                       'shortcut': QtGui.QKeySequence.Open,
-                       'statusTip': 'Open an existing vistrail from a file',
-                       'callback': self.open_vistrail_default}),
-                     ("openRecent", "Open Recent", 
-                      []),
-                     ('saveFile', "&Save",
-                      {'icon': CurrentTheme.SAVE_VISTRAIL_ICON,
-                       'shortcut': QtGui.QKeySequence.Save,
-                       'statusTip': "Save the current vistrail to a file",
-                       'enabled': False,
-                       'callback': \
-                           self.pass_through_locator(self.get_current_view,
-                                                     'save_vistrail')}),
-                     ('saveFileAs', "Save as...",
-                      {'shortcut': QtGui.QKeySequence.SaveAs,
-                       'statusTip': "Save the current vistrail to a " \
-                           "different file location",
-                       'enabled': False,
-                       'callback': \
-                           self.pass_through_locator(self.get_current_view,
-                                                     'save_vistrail_as')}),
-                     ('closeVistrail', "Close",
-                      {'shortcut': QtGui.QKeySequence.Close,
-                       'statusTip': "Close the current vistrail",
-                       'enabled': True,
-                       'callback': self.close_vistrail}),
-                     "---",
-                     ("import", "Import",
-                      [('importFile', "From DB...",
-                        {'icon': CurrentTheme.OPEN_VISTRAIL_DB_ICON,
-                         'statusTip': "Import an existing vistrail " \
-                             "from a database",
-                         'callback': \
-                             self.import_vistrail_default}),
-                       "---",
-                       ('importWorkflow', "Workflow...",
-                        {'statusTip': "Import a workflow from an XML file",
-                         'enabled': True,
-                         'callback': self.import_workflow_default})]),
-                     ("export", "Export",
-                      [('exportFile', "To DB...",
-                        {'statusTip': "Export the current vistrail to a " \
-                             "database",
-                         'enabled': False,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'export_vistrail', 
-                                                       reverse=True)}),
-                       ('exportStable', "To Stable Version...",
-                        {'statusTip': "Save vistrail as XML according to " \
-                             "the older (stable) schema",
-                         'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'export_stable')}),
-                       "---",
-                       ('savePDF', "PDF...",
-                        {'statusTip': "Save the current view to a PDF file",
-                         'enabled': True,
-                         'callback': self.pass_through(self.get_current_tab,
-                                                       'save_pdf')}),
-                       "---",
-                       ('saveWorkflow', "Workflow To XML...",
-                        {'statusTip': "Save the current workflow to a file",
-                         'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'save_workflow',
-                                                       FileLocator())}),
-                       ('exportWorkflow', "Workflow to DB...",
-                        {'statusTip': "Save the current workflow to a database",
-                         'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'save_workflow',
-                                                       DBLocator)}),
-                       "---",
-                       ('saveOpm', "OPM XML...",
-                        {'statusTip': "Save proveannce according to the " \
-                             "Open Provenance Model in XML",
-                         'enabled': True,
-                         'callback': self.pass_through(self.get_current_view,
-                                                       'save_opm')}),
-                       ('saveLog', "Log to XML...",
-                        {'statusTip': "Save the execution log to a file",
-                         'enabled': False,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'save_log',
-                                                       FileLocator())}),
-                       ('exportLog', "Log to DB...",
-                        {'statusTip': "Save the execution log to a database",
-                         'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'save_log',
-                                                       DBLocator)}),
-                       "---",
-                       ('saveRegistry', "Registry to XML...",
-                        {'statusTip': "Save the current registry to a file",
-                         'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'save_registry',
-                                                       FileLocator())}),
-                       ('exportRegistry', "Registry to DB...",
-                        {'statusTip': "Save the current registry to a database",
-                         'enabled': True,
-                         'callback': \
-                             self.pass_through_locator(self.get_current_view,
-                                                       'save_registry',
-                                                       DBLocator)})]),
-                     "---",
-                     ('quitVistrails', "Quit",
-                      {'shortcut': QtGui.QKeySequence.Quit,
-                       'statusTip': "Exit VisTrails",
-                       'callback': self.quit})]),
-                   ("edit", "&Edit",
-                    [("undo", "Undo",
-                      {'statusTip': "Undo the previous action",
-                       'shortcut': QtGui.QKeySequence.Undo,
-                       'enabled': False}),
-                     ("redo", "Redo",
-                      {'statusTip': "Redo an undone action",
-                       'shortcut': QtGui.QKeySequence.Redo,
-                       'enabled': False}),
-                     "---",
-                     ("copy", "Copy",
-                      {'statusTip': "Copy the selected modules in the " \
-                           "current pipeline view",
-                       'shortcut': QtGui.QKeySequence.Copy,
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'copySelection')}),
-                     ("paste", "Paste",
-                      {'statusTip': "Paste modules from the clipboard into " \
-                           "the current pipeline view",
-                       'shortcut': QtGui.QKeySequence.Paste,
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'pasteFromClipboard')}),
-                     ("selectAll", "Select All",
-                      {'statusTip': "Select all modules in the current " \
-                           "pipeline view",
-                       'enabled': True,
-                       'shortcut': QtGui.QKeySequence.SelectAll,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'selectAll')}),
-                     "---",
-                     ("controlFlowAssist", "Control Flow Assistant",
-                      {'statusTip': "Create a loop over the selected modules"}),
-                     ("merge", "Merge with...", 
-                      []),
-                     "---",
-                     ("editPreferences", "Preferences...",
-                      {'statusTip': "Edit system preferences",
-                       'enabled': True,
-                       'shortcut': QtGui.QKeySequence.Preferences,
-                       'callback': self.showPreferences}),
-                     ]),
-                   ("run", "&Workflow",
-                    [("execute", "Execute",
-                      {'icon': CurrentTheme.EXECUTE_PIPELINE_ICON,
-                       'shortcut': 'Ctrl+Return',
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_view,
-                                                     'execute')}),
-                     ("flushCache", "Erase Cache Contents", 
-                      {'enabled': True,
-                       'callback': self.flush_cache}),
-                     "---",
-                     ("group", "Group",
-                      {'statusTip': "Group the selected modules in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+G',
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'group')}),
-                     ("ungroup", "Ungroup",
-                      {'statusTip': "Ungroup the selected groups in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+Shift+G',
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'ungroup')}),
-                     ("showGroup", "Show Pipeline",
-                      {'statusTip': "Show the underlying pipeline for the " \
-                           "selected group in the current pipeline view",
-                       'enabled': False,
-                       'callback': self.show_group}),
-                     "---",
-                     ("makeAbstraction", "Create Subworkflow",
-                      {'statusTip': "Create a subworkflow from the selected " \
-                           "modules",
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'makeAbstraction')}),
-                     ("convertToAbstraction", "Convert to Subworkflow",
-                      {'statusTip': "Convert selected group to a subworkflow",
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'convertToAbstraction')}),
-                     ("editAbstraction", "Edit Subworkflow",
-                      {'statusTip': "Edit a subworkflow",
-                       'enabled': False,
-                       'callback': self.edit_abstraction}),
-                     ("importAbstraction", "Import Subworkflow",
-                      {'statusTip': "Import subworkflow from a vistrail to " \
-                           "local subworkflows",
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'importAbstraction')}),
-                     ("exportAbstraction", "Export Subworkflow",
-                      {'statusTip': "Export subworkflow from local " \
-                           "subworkflows for use in a package",
-                       'enabled': False,
-                       'callback': self.pass_through(self.get_current_scene,
-                                                     'exportAbstraction')}),
-                     "---",
-                     ("configureModule", "Configure Module...",
-                      {'shortcut': "Ctrl+E",
-                       'enabled': False,
-                       'callback': self.configure_module}),
-                     ("documentModule", "Module Documentation...",
-                      {'enabled': False,
-                       'callback': self.show_documentation})]),
-                     # ("executeDiff", "Show Version Difference",
-                     #  {'enabled': False}),
-                     # ("executeQuery", "Perform Query",
-                     #  {'enabled': False}),
-                     # ("executeExploration", "Perform Parameter Exploration",
-                     #  {'enabled': False})]),
-                   ("vistrail", "Vis&trail",
-                    [("tag", "Tag...",
-                      {'statusTip': "Tag the current pipeline",
-                       'shortcut': "Ctrl+Shift+T",
-                       'enabled': True,
-                       'callback': self.add_tag}),
-                     "---",
-                     ("expandBranch", "Expand Branch",
-                      {'statusTip': "Expand all versions in the tree below " \
-                           "the current version",
-                       'enabled': True,
-                       'callback': \
-                           self.pass_through(self.get_current_controller,
-                                             'expand_all_versions_below')}),
-                     ("collapseBranch", "Collapse Branch",
-                      {'statusTip': "Collapse all expanded versions of the " \
-                           "tree",
-                       'enabled': True,
-                       'callback': \
-                           self.pass_through(self.get_current_controller,
-                                             'collapse_all_versions_below')}),
-                     ("collapseAll", "Collapse All",
-                      {'statusTip': "Collapse all expanded branches of the " \
-                           "tree",
-                       'enabled': True,
-                       'callback': \
-                           self.pass_through(self.get_current_controller,
-                                             'collapse_all_versions')}),
-                     ("hideBranch", "Hide Branch",
-                      {'statusTip': "Hide all versions in the tre including " \
-                           "and below the current version",
-                       'enabled': True,
-                       'callback': \
-                           self.pass_through(self.get_current_controller,
-                                             'hide_versions_below')}),
-                     ("showAll", "Show All",
-                      {'enabled': True,
-                       'statusTip': "Show all hidden versions",
-                       'callback': \
-                           self.pass_through(self.get_current_controller,
-                                             'show_all_versions')})]),
-                   ("view", "&Views",
-                    [("newView", "New Pipeline View",
-                      {'shortcut': QtGui.QKeySequence.AddTab,
-                       'enabled': True,
-                       'statusTip': "Create a new pipeline view",
-                       'callback': self.pass_through(self.get_current_view,
-                                                     'add_pipeline_view')}),
-                     ("newDiff", "New Visual Difference",
-                      {'enabled': True,
-                       'statusTip': "Create a new visual difference for two" \
-                           "pipelines",
-                       'callback': self.new_diff}),
-                     "---",
-                     ("zoomToFit", "Zoom To Fit",
-                      {'enabled': True,
-                       'shortcut': "Ctrl+R",
-                       'statusTip': "Fit current view to window",
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'zoomToFit')}),
-                     ("zoomIn", "Zoom In",
-                      {'enabled': True,
-                       'shortcut': QtGui.QKeySequence.ZoomIn,
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'zoomIn')}),
-                     ("zoomOut", "Zoom Out",
-                      {'enabled': True,
-                       'shortcut': QtGui.QKeySequence.ZoomOut,
-                       'callback': self.pass_through(self.get_current_tab,
-                                                     'zoomOut')}),
-                     "---",
-                     ("pipeline", "Pipeline",
-                      {'icon': CurrentTheme.PIPELINE_ICON,
-                       'checkable': True,
-                       'checked': True,
-                       'callback': \
-                           self.pass_through_bool(self.get_current_view,
-                                                  'pipeline_change')}),
-                     ("history", "History",
-                      {'icon': CurrentTheme.HISTORY_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           self.pass_through_bool(self.get_current_view,
-                                                  'history_change')}),
-                     ("search", "Search",
-                      {'icon': CurrentTheme.QUERY_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           self.pass_through_bool(self.get_current_view,
-                                                  'search_change')}),
-                     ("explore", "Explore",
-                      {'icon': CurrentTheme.EXPLORE_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           self.pass_through_bool(self.get_current_view,
-                                                  'explore_change')}),
-                     ("provenance", "Provenance",
-                      {'icon': CurrentTheme.PROVENANCE_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           self.pass_through_bool(self.get_current_view,
-                                                  'provenance_change')}),
-                    ("mashup", "Mashup",
-                      {'icon': CurrentTheme.MASHUP_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'enabled': False,
-                       'callback': \
-                           self.pass_through_bool(self.get_current_view,
-                                                  'mashup_change')}),
-                     "---"] +
-                     [("tools", "Tools", tools_actions)] + palette_actions + ["---", 
-                       ("dockPalettes", "Dock Palettes", 
-                        {'enabled': True,
-                         'statusTip': "Dock palettes on active window",
-                         'callback': self.dock_palettes})]),
-                    # [("workspace", "Workspaces",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("provenanceBrowser", "Provenance Browser",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("shell", "Console",
-                    #   {'icon': CurrentTheme.CONSOLE_MODE_ICON,
-                    #    'checkable': True,
-                    #    'checked': False}),
-                    #  ("debug", "Debugger",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("messages", "Messages",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("pipView", "Picture-in-Picture",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("properties", "Properties",
-                    #   {'checkable': True,
-                    #    'checked': True}),
-                    #  ("propertiesOverlay", "Properties Overlay",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("moduleConfigView", "Module Configuration",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("moduleDocumentation", "Module Documentation",
-                    #   {'checkable': True,
-                    #    'checked': False})]),
-                   ("publish", "Publish",
-                    [("publishPaper", "To Paper...", 
-                      {'enabled': True,
-                       'statusTip': \
-                           "Embed workflow and results into a paper",
-                        'callback': self.pass_through(self.get_current_view,
-                                                      'publish_to_paper')}),
-                     ("publishWeb", "To Wiki...",
-                      {'enabled': True,
-                       'statusTip': "Embed workflow in wiki",
-                       'callback' : self.pass_through(self.get_current_view,
-                                                      'publish_to_web')}),
-                     ("publishCrowdLabs", "To crowdLabs...",
-                      {'enabled': True,
-                       'statusTip': "Publish workflows on crowdlabs.org",
-                       'callback': self.publish_to_crowdlabs})]),
-                    ("packages", "Packages", 
-                      []),
-                    ("window", "Window", 
-                      []),
-                   ("help", "Help",
-                    [("help", "About VisTrails...", 
-                      {'callback': self.showAboutMessage}),
-                     ("checkUpdate", "Check for Updates", 
-                      {'callback': self.showUpdatesMessage})])]
-
-
-        qactions = {}
-        qmenus = {}
-        def process_list(action_list, parent):
-            for data in action_list:
-                if data == "---":
-                    if parent is not None:
-                        parent.addSeparator()
-                    continue
-                name, title, options = data
-                if type(options) == list:
-                    # menu
-                    if parent is not None:
-                        qmenu = parent.addMenu(title)
-                    qmenus[name] = qmenu
-                    process_list(options, qmenu)
-                else:
-                    qaction = QtGui.QAction(title, self)
-                    callback = None
-                    if 'callback' in options:
-                        callback = options['callback']
-                        del options['callback']
-                    for option, value in options.iteritems():
-                        method = getattr(qaction, 'set%s' % \
-                                             option[0].capitalize() + \
-                                             option[1:])
-                        method(value)
-                    qactions[name] = qaction
-                    if parent is not None:
-                        parent.addAction(qaction)
-                    if callback is not None:
-                        if 'checkable' in options and \
-                                options['checkable'] is True:
-                            self.connect(qaction, 
-                                         QtCore.SIGNAL("toggled(bool)"),
-                                         callback)
-                        else:
-                            self.connect(qaction, QtCore.SIGNAL("triggered()"),
-                                         callback)
-                        
-
-            self.qactions = qactions
-            self.qmenus = qmenus
-
-        if core.system.systemType in ['Darwin']:
-            menu_bar = QtGui.QMenuBar()
-            _global_menubar = menu_bar
-        else:
-            menu_bar = self.menuBar()
-        print 'menu_bar:', menu_bar
-        process_list(actions, menu_bar)
-        print 'done processing list'
-
-        for action_tuple, palette in all_palette_actions:
-            palette.set_action(self.qactions[action_tuple[0]])
-
-        self.connect_package_manager_signals()
-        # view_menu = self.qmenus["view"]
-        # for action_name, action in self.create_palette_actions():
-        #     self.qactions[action_name] = action
-        #     view_menu.addAction(action)
 
     def connect_package_manager_signals(self):
         """ connect_package_manager_signals()->None
@@ -1605,7 +1657,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         # we don't support a menu hierarchy yet, only a flat list
         # this can be added later
         def update_menu(d, packagesMenu):
-            if not d.has_key(pkg_id):
+            if pkg_id not in d:
                 pkg_menu = packagesMenu.addMenu(str(pkg_name))
                 d[pkg_id] = {}
                 d[pkg_id]['menu'] = pkg_menu
@@ -1630,7 +1682,7 @@ class QVistrailsWindow(QtGui.QMainWindow):
         """remove_package_menu_items(pkg_id: str)-> None
         removes all menu entries from the Packages Menu created by pkg_id """
         def update_menu(items, menu):
-            if items.has_key(pkg_id):
+            if pkg_id in items:
                 pkg_menu = items[pkg_id]['menu']
                 del items[pkg_id]
                 pkg_menu.clear()
@@ -2057,112 +2109,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
                         not p.toolWindow().isFloating() and not p.get_pin_status()):
                         p.toolWindow().close()
                       
-    def createMenu(self):
-        """ createMenu() -> None
-        Initialize menu bar of builder window
-
-        """
-        self.fileMenu = self.menuBar().addMenu('&File')
-        self.fileMenu.addAction(self.newVistrailAction)
-        self.fileMenu.addAction(self.openFileAction)
-        self.openRecentMenu = self.fileMenu.addMenu('Open Recent')
-        
-        self.update_recent_vistrail_menu()
-            
-        self.fileMenu.addAction(self.saveFileAction)
-        self.fileMenu.addAction(self.saveFileAsAction)
-        self.fileMenu.addAction(self.closeVistrailAction)
-        self.fileMenu.addSeparator()
-        self.importMenu = self.fileMenu.addMenu('Import')
-        self.importMenu.addAction(self.importFileAction)
-        self.importMenu.addSeparator()
-        self.importMenu.addAction(self.importWorkflowAction)
-        self.exportMenu = self.fileMenu.addMenu('Export')
-        self.exportMenu.addAction(self.exportFileAction)
-        self.exportMenu.addAction(self.exportStableAction)
-        self.exportMenu.addSeparator()
-        self.exportMenu.addAction(self.savePDFAction)
-        self.exportMenu.addSeparator()
-        self.exportMenu.addAction(self.saveWorkflowAction)
-        self.exportMenu.addAction(self.exportWorkflowAction)
-        self.exportMenu.addSeparator()
-        self.exportMenu.addAction(self.saveOpmAction)
-        self.exportMenu.addAction(self.saveLogAction)
-        self.exportMenu.addAction(self.exportLogAction)
-        self.exportMenu.addSeparator()
-        self.exportMenu.addAction(self.saveRegistryAction)
-        self.exportMenu.addAction(self.exportRegistryAction)
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.quitVistrailsAction)
-
-        self.editMenu = self.menuBar().addMenu('&Edit')
-        self.editMenu.addAction(self.undoAction)
-        self.editMenu.addAction(self.redoAction)
-        self.editMenu.addSeparator()
-        self.editMenu.addAction(self.copyAction)
-        self.editMenu.addAction(self.pasteAction)
-        self.editMenu.addAction(self.selectAllAction)
-        self.editMenu.addSeparator()
-        self.editMenu.addAction(self.groupAction)
-        self.editMenu.addAction(self.ungroupAction)
-        self.editMenu.addAction(self.showGroupAction)
-        self.editMenu.addAction(self.makeAbstractionAction)
-        self.editMenu.addAction(self.convertToAbstractionAction)
-        self.editMenu.addAction(self.editAbstractionAction)
-        self.editMenu.addAction(self.importAbstractionAction)
-        self.editMenu.addAction(self.exportAbstractionAction)
-        self.editMenu.addSeparator()
-        self.editMenu.addAction(self.controlFlowAssistAction)
-        self.editMenu.addSeparator()
-        self.editMenu.addAction(self.repositoryOptions)
-        self.mergeMenu = self.editMenu.addMenu('Merge with')
-        self.mergeMenu.menuAction().setEnabled(False)
-        self.mergeMenu.menuAction().setStatusTip('Merge another VisTrail into the current VisTrail')
-        self.editMenu.addAction(self.repositoryOptions)
-        self.editMenu.addSeparator()        
-        self.editMenu.addAction(self.editPreferencesAction)
-
-        self.viewMenu = self.menuBar().addMenu('&View')
-        self.viewMenu.addAction(self.workspaceAction)
-        self.viewMenu.addAction(self.shellAction)
-        self.viewMenu.addAction(self.debugAction)
-        self.viewMenu.addAction(self.provenanceBrowserAction)
-        self.viewMenu.addAction(self.messagesAction)
-        self.viewMenu.addSeparator()
-        self.viewMenu.addAction(self.expandBranchAction)
-        self.viewMenu.addAction(self.collapseBranchAction)
-        self.viewMenu.addAction(self.collapseAllAction)
-        #self.viewMenu.addSeparator()
-        self.viewMenu.addAction(self.hideBranchAction)
-        self.viewMenu.addAction(self.showAllAction)
-        self.viewMenu.addSeparator()
-        self.viewMenu.addAction(self.pipViewAction)
-        self.viewMenu.addAction(
-            self.modulePalette.toolWindow().toggleViewAction())
-        self.viewMenu.addAction(self.methodsViewAction)
-        self.viewMenu.addAction(self.setMethodsViewAction)
-        self.viewMenu.addAction(self.moduleConfigViewAction)
-        self.viewMenu.addAction(self.propertiesViewAction)
-        self.viewMenu.addAction(self.propertiesOverlayAction)
-
-        self.runMenu = self.menuBar().addMenu('&Run')
-        self.runMenu.addAction(self.executeCurrentWorkflowAction)
-        self.runMenu.addAction(self.executeDiffAction)
-        self.runMenu.addAction(self.executeQueryAction)
-        self.runMenu.addAction(self.executeExplorationAction)
-        self.runMenu.addSeparator()
-        self.runMenu.addAction(self.flushCacheAction)
-
-        self.vistrailMenu = self.menuBar().addMenu('Vis&trail')
-        self.vistrailMenu.menuAction().setEnabled(False)
-
-        self.packagesMenu = self.menuBar().addMenu('Packages')
-        self.packagesMenu.menuAction().setEnabled(False)
-
-        self.helpMenu = self.menuBar().addMenu('Help')
-        self.helpMenu.addAction(self.helpAction)
-        self.helpMenu.addAction(self.checkUpdateAction)
-        
     def applicationFocusChanged(self, old, current):
         if current is not None:
             owner = current.window()
@@ -2185,550 +2131,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
 _app = None
 _global_menubar = None
     
-class QVistrailViewWindow(QtGui.QMainWindow):
-    def __init__(self, view, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtGui.QMainWindow.__init__(self, parent, f)
-        self.view = view
-        self.setDocumentMode(True)
-        self.setCentralWidget(view)
-        
-        # This keeps track of the menu items for each package
-        self._package_menu_items = {}
-        
-        self.create_actions()
-        self.init_toolbar()
-        self.view.setVisible(True)
-        self.setWindowTitle(self.view.get_name())
-        
-    def close_vistrail(self):
-        return _app.close_vistrail(self.view)
-        
-    def closeEvent(self, event):
-        if not self.close_vistrail():
-            event.ignore()
-        else:
-            self.emit(QtCore.SIGNAL("window_closed"), self.view)
-            event.accept()
-        
-    def create_actions(self):
-
-        all_palette_actions =  _app.create_palette_actions()
-        tools_actions = []
-        palette_actions = []
-        for a,p in all_palette_actions:
-            if p.toolWindow().window() == _app.palette_window:
-                tools_actions.append(a)
-            else:
-                palette_actions.append(a)
-        
-        actions = [("file", "&File",
-                    [('newVistrail', "&New",
-                      {'icon': CurrentTheme.NEW_VISTRAIL_ICON,
-                       'shortcut': QtGui.QKeySequence.New,
-                       'statusTip': 'Create a new vistrail',
-                       'callback': _app.new_vistrail}),
-                     ('openFile', "&Open",
-                      {'icon': CurrentTheme.OPEN_VISTRAIL_ICON,
-                       'shortcut': QtGui.QKeySequence.Open,
-                       'statusTip': 'Open an existing vistrail from a file',
-                       'callback': _app.open_vistrail_default}),
-                     ("openRecent", "Open Recent", 
-                      []),
-                     ('saveFile', "&Save",
-                      {'icon': CurrentTheme.SAVE_VISTRAIL_ICON,
-                       'shortcut': QtGui.QKeySequence.Save,
-                       'statusTip': "Save the current vistrail to a file",
-                       'enabled': False,
-                       'callback': \
-                           _app.pass_through_locator(self.get_current_view,
-                                                     'save_vistrail')}),
-                     ('saveFileAs', "Save as...",
-                      {'shortcut': QtGui.QKeySequence.SaveAs,
-                       'statusTip': "Save the current vistrail to a " \
-                           "different file location",
-                       'enabled': False,
-                       'callback': \
-                           _app.pass_through_locator(self.get_current_view,
-                                                     'save_vistrail_as')}),
-                     ('closeVistrail', "Close",
-                      {'shortcut': QtGui.QKeySequence.Close,
-                       'statusTip': "Close the current vistrail",
-                       'enabled': True,
-                       'callback': _app.close_vistrail}),
-                     "---",
-                     ("import", "Import",
-                      [('importFile', "From DB...",
-                        {'icon': CurrentTheme.OPEN_VISTRAIL_DB_ICON,
-                         'statusTip': "Import an existing vistrail " \
-                             "from a database",
-                         'callback': \
-                             _app.import_vistrail_default}),
-                       "---",
-                       ('importWorkflow', "Workflow...",
-                        {'statusTip': "Import a workflow from an XML file",
-                         'enabled': True,
-                         'callback': _app.import_workflow_default})]),
-                     ("export", "Export",
-                      [('exportFile', "To DB...",
-                        {'statusTip': "Export the current vistrail to a " \
-                             "database",
-                         'enabled': False,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'export_vistrail', 
-                                                       reverse=True)}),
-                       ('exportStable', "To Stable Version...",
-                        {'statusTip': "Save vistrail as XML according to " \
-                             "the older (stable) schema",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'export_stable')}),
-                       "---",
-                       ('savePDF', "PDF...",
-                        {'statusTip': "Save the current view to a PDF file",
-                         'enabled': True,
-                         'callback': _app.pass_through(self.get_current_tab,
-                                                       'save_pdf')}),
-                       "---",
-                       ('saveWorkflow', "Workflow To XML...",
-                        {'statusTip': "Save the current workflow to a file",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'save_workflow',
-                                                       FileLocator())}),
-                       ('exportWorkflow', "Workflow to DB...",
-                        {'statusTip': "Save the current workflow to a database",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'save_workflow',
-                                                       DBLocator)}),
-                       "---",
-                       ('saveOpm', "OPM XML...",
-                        {'statusTip': "Save proveannce according to the " \
-                             "Open Provenance Model in XML",
-                         'enabled': True,
-                         'callback': _app.pass_through(self.get_current_view,
-                                                       'save_opm')}),
-                       ('saveLog', "Log to XML...",
-                        {'statusTip': "Save the execution log to a file",
-                         'enabled': False,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'save_log',
-                                                       FileLocator())}),
-                       ('exportLog', "Log to DB...",
-                        {'statusTip': "Save the execution log to a database",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'save_log',
-                                                       DBLocator)}),
-                       "---",
-                       ('saveRegistry', "Registry to XML...",
-                        {'statusTip': "Save the current registry to a file",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'save_registry',
-                                                       FileLocator())}),
-                       ('exportRegistry', "Registry to DB...",
-                        {'statusTip': "Save the current registry to a database",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'save_registry',
-                                                       DBLocator)})]),
-                     "---",
-                     ('quitVistrails', "Quit",
-                      {'shortcut': QtGui.QKeySequence.Quit,
-                       'statusTip': "Exit VisTrails",
-                       'callback': _app.quit})]),
-                   ("edit", "&Edit",
-                    [("undo", "Undo",
-                      {'statusTip': "Undo the previous action",
-                       'shortcut': QtGui.QKeySequence.Undo,
-                       'enabled': False}),
-                     ("redo", "Redo",
-                      {'statusTip': "Redo an undone action",
-                       'shortcut': QtGui.QKeySequence.Redo,
-                       'enabled': False}),
-                     "---",
-                     ("copy", "Copy",
-                      {'statusTip': "Copy the selected modules in the " \
-                           "current pipeline view",
-                       'shortcut': QtGui.QKeySequence.Copy,
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'copySelection')}),
-                     ("paste", "Paste",
-                      {'statusTip': "Paste modules from the clipboard into " \
-                           "the current pipeline view",
-                       'shortcut': QtGui.QKeySequence.Paste,
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_tab,
-                                                     'pasteFromClipboard')}),
-                     ("selectAll", "Select All",
-                      {'statusTip': "Select all modules in the current " \
-                           "pipeline view",
-                       'enabled': True,
-                       'shortcut': QtGui.QKeySequence.SelectAll,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'selectAll')}),
-                     "---",
-                     ("controlFlowAssist", "Control Flow Assistant",
-                      {'statusTip': "Create a loop over the selected modules"}),
-                     ("merge", "Merge with...", 
-                      []),
-                     "---",
-                     ("editPreferences", "Preferences...",
-                      {'statusTip': "Edit system preferences",
-                       'enabled': True,
-                       'shortcut': QtGui.QKeySequence.Preferences,
-                       'callback': _app.showPreferences}),
-                     ]),
-                   ("run", "&Workflow",
-                    [("execute", "Execute",
-                      {'icon': CurrentTheme.EXECUTE_PIPELINE_ICON,
-                       'shortcut': 'Ctrl+Return',
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_view,
-                                                     'execute')}),
-                     ("flushCache", "Erase Cache Contents", 
-                      {'enabled': True,
-                       'callback': _app.flush_cache}),
-                     "---",
-                     ("group", "Group",
-                      {'statusTip': "Group the selected modules in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+G',
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'group')}),
-                     ("ungroup", "Ungroup",
-                      {'statusTip': "Ungroup the selected groups in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+Shift+G',
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'ungroup')}),
-                     ("showGroup", "Show Pipeline",
-                      {'statusTip': "Show the underlying pipeline for the " \
-                           "selected group in the current pipeline view",
-                       'enabled': False,
-                       'callback': _app.show_group}),
-                     "---",
-                     ("makeAbstraction", "Create Subworkflow",
-                      {'statusTip': "Create a subworkflow from the selected " \
-                           "modules",
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'makeAbstraction')}),
-                     ("convertToAbstraction", "Convert to Subworkflow",
-                      {'statusTip': "Convert selected group to a subworkflow",
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'convertToAbstraction')}),
-                     ("editAbstraction", "Edit Subworkflow",
-                      {'statusTip': "Edit a subworkflow",
-                       'enabled': False,
-                       'callback': _app.edit_abstraction}),
-                     ("importAbstraction", "Import Subworkflow",
-                      {'statusTip': "Import subworkflow from a vistrail to " \
-                           "local subworkflows",
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'importAbstraction')}),
-                     ("exportAbstraction", "Export Subworkflow",
-                      {'statusTip': "Export subworkflow from local " \
-                           "subworkflows for use in a package",
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'exportAbstraction')}),
-                     "---",
-                     ("configureModule", "Configure Module...",
-                      {'shortcut': "Ctrl+E",
-                       'enabled': False,
-                       'callback': _app.configure_module}),
-                     ("documentModule", "Module Documentation...",
-                      {'enabled': False,
-                       'callback': _app.show_documentation})]),
-                   ("vistrail", "Vis&trail",
-                    [("tag", "Tag...",
-                      {'statusTip': "Tag the current pipeline",
-                       'shortcut': "Ctrl+Shift+T",
-                       'enabled': True,
-                       'callback': _app.add_tag}),
-                     "---",
-                     ("expandBranch", "Expand Branch",
-                      {'statusTip': "Expand all versions in the tree below " \
-                           "the current version",
-                       'enabled': True,
-                       'callback': \
-                           _app.pass_through(self.get_current_controller,
-                                             'expand_all_versions_below')}),
-                     ("collapseBranch", "Collapse Branch",
-                      {'statusTip': "Collapse all expanded versions of the " \
-                           "tree",
-                       'enabled': True,
-                       'callback': \
-                           _app.pass_through(self.get_current_controller,
-                                             'collapse_all_versions_below')}),
-                     ("collapseAll", "Collapse All",
-                      {'statusTip': "Collapse all expanded branches of the " \
-                           "tree",
-                       'enabled': True,
-                       'callback': \
-                           _app.pass_through(self.get_current_controller,
-                                             'collapse_all_versions')}),
-                     ("hideBranch", "Hide Branch",
-                      {'statusTip': "Hide all versions in the tre including " \
-                           "and below the current version",
-                       'enabled': True,
-                       'callback': \
-                           _app.pass_through(self.get_current_controller,
-                                             'hide_versions_below')}),
-                     ("showAll", "Show All",
-                      {'enabled': True,
-                       'statusTip': "Show all hidden versions",
-                       'callback': \
-                           _app.pass_through(self.get_current_controller,
-                                             'show_all_versions')})]),
-                   ("view", "&Views",
-                    [("newView", "New Pipeline View",
-                      {'shortcut': QtGui.QKeySequence.AddTab,
-                       'enabled': True,
-                       'statusTip': "Create a new pipeline view",
-                       'callback': _app.pass_through(self.get_current_view,
-                                                     'add_pipeline_view')}),
-                     ("newDiff", "New Visual Difference",
-                      {'enabled': True,
-                       'statusTip': "Create a new visual difference for two" \
-                           "pipelines",
-                       'callback': _app.new_diff}),
-                     "---",
-                     ("zoomToFit", "Zoom To Fit",
-                      {'enabled': True,
-                       'shortcut': "Ctrl+R",
-                       'statusTip': "Fit current view to window",
-                       'callback': _app.pass_through(self.get_current_tab,
-                                                     'zoomToFit')}),
-                     ("zoomIn", "Zoom In",
-                      {'enabled': True,
-                       'shortcut': QtGui.QKeySequence.ZoomIn,
-                       'callback': _app.pass_through(self.get_current_tab,
-                                                     'zoomIn')}),
-                     ("zoomOut", "Zoom Out",
-                      {'enabled': True,
-                       'shortcut': QtGui.QKeySequence.ZoomOut,
-                       'callback': _app.pass_through(self.get_current_tab,
-                                                     'zoomOut')}),
-                     "---",
-                     ("pipeline", "Pipeline",
-                      {'icon': CurrentTheme.PIPELINE_ICON,
-                       'checkable': True,
-                       'checked': True,
-                       'callback': \
-                           _app.pass_through_bool(self.get_current_view,
-                                                  'pipeline_change')}),
-                     ("history", "History",
-                      {'icon': CurrentTheme.HISTORY_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           _app.pass_through_bool(self.get_current_view,
-                                                  'history_change')}),
-                     ("search", "Search",
-                      {'icon': CurrentTheme.QUERY_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           _app.pass_through_bool(self.get_current_view,
-                                                  'search_change')}),
-                     ("explore", "Explore",
-                      {'icon': CurrentTheme.EXPLORE_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           _app.pass_through_bool(self.get_current_view,
-                                                  'explore_change')}),
-                     ("provenance", "Provenance",
-                      {'icon': CurrentTheme.PROVENANCE_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'callback': \
-                           _app.pass_through_bool(self.get_current_view,
-                                                  'provenance_change')}),
-                    ("mashup", "Mashup",
-                      {'icon': CurrentTheme.MASHUP_ICON,
-                       'checkable': True,
-                       'checked': False,
-                       'enabled': False,
-                       'callback': \
-                           _app.pass_through_bool(self.get_current_view,
-                                                  'mashup_change')}),
-                     "---"] + [("tools", "Tools", tools_actions)] +  palette_actions + ["---", 
-                       ("dockPalettes", "Dock Palettes", 
-                        {'enabled': True,
-                         'statusTip': "Dock palettes on active window",
-                         'callback': _app.dock_palettes})]),
-                   ("publish", "Publish",
-                    [("publishPaper", "To Paper...", 
-                      {'enabled': True,
-                       'statusTip': \
-                           "Embed workflow and results into a paper",
-                        'callback': _app.pass_through(self.get_current_view,
-                                                      'publish_to_paper')}),
-                     ("publishWeb", "To Wiki...",
-                      {'enabled': True,
-                       'statusTip': "Embed workflow in wiki",
-                       'callback' : _app.pass_through(self.get_current_view,
-                                                      'publish_to_web')}),
-                     ("publishCrowdLabs", "To crowdLabs...",
-                      {'enabled': True,
-                       'statusTip': "Publish workflows on crowdlabs.org",
-                       'callback': _app.publish_to_crowdlabs})]),
-                   ("packages", "Packages", 
-                      []),
-                   ("window", "Window", 
-                      []),
-                   ("help", "Help",
-                    [("help", "About VisTrails...", 
-                      {'callback': _app.showAboutMessage}),
-                     ("checkUpdate", "Check for Updates", 
-                      {'callback': _app.showUpdatesMessage})])]
-
-
-        qactions = {}
-        qmenus = {}
-        def process_list(action_list, parent):
-            for data in action_list:
-                if data == "---":
-                    if parent is not None:
-                        parent.addSeparator()
-                    continue
-                name, title, options = data
-                if type(options) == list:
-                    # menu
-                    if parent is not None:
-                        qmenu = parent.addMenu(title)
-                    qmenus[name] = qmenu
-                    process_list(options, qmenu)
-                else:
-                    qaction = QtGui.QAction(title, self)
-                    callback = None
-                    if 'callback' in options:
-                        callback = options['callback']
-                        del options['callback']
-                    for option, value in options.iteritems():
-                        method = getattr(qaction, 'set%s' % \
-                                             option[0].capitalize() + \
-                                             option[1:])
-                        method(value)
-                    qactions[name] = qaction
-                    if parent is not None:
-                        parent.addAction(qaction)
-                    if callback is not None:
-                        if 'checkable' in options and \
-                                options['checkable'] is True:
-                            self.connect(qaction, 
-                                         QtCore.SIGNAL("toggled(bool)"),
-                                         callback)
-                        else:
-                            self.connect(qaction, QtCore.SIGNAL("triggered()"),
-                                         callback)
-                        
-
-            self.qactions = qactions
-            self.qmenus = qmenus
-
-        menu_bar = self.menuBar()
-        print 'menu_bar:', menu_bar
-        process_list(actions, menu_bar)
-        print 'done processing list'
-            
-        self.build_packages_menu_from_main_app()
-        
-    def get_current_controller(self):
-        return self.view.get_controller()
-
-    def get_current_view(self):
-        return self.view
-    
-    def get_current_tab(self):
-        return self.view.get_current_tab()
-
-    def get_current_scene(self):
-        return self.get_current_tab().scene()
-
-    def init_toolbar(self):
-        def create_spacer():
-            spacer = QtGui.QWidget()
-            spacer.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
-                                  QtGui.QSizePolicy.Preferred)
-            return spacer
-        def create_separator():
-            sep = QtGui.QWidget()
-            sep.setMinimumWidth(50)
-            return sep
-        
-        self.selected_mode = None
-        self.toolbar = QtGui.QToolBar(self)
-        
-        #left side
-        for action in [self.qactions[n] 
-                       for n in ['newVistrail', 'openFile', 'saveFile']]:
-            self.toolbar.addAction(action)
-        
-        self.toolbar.addWidget(create_spacer())
-        self.view_action_group = QtGui.QActionGroup(self)
-        for action in [self.qactions[n] 
-                       for n in ['pipeline', 'history', 
-                                 'search', 'explore', 'provenance', 'mashup']]:
-            self.toolbar.addAction(action)
-            self.view_action_group.addAction(action)
-            
-        self.toolbar.addWidget(create_separator())
-        for action in [self.qactions[n] 
-                       for n in ['execute']]:
-            self.toolbar.addAction(action)
-            
-        
-        self.toolbar.addWidget(create_spacer())
-        self.toolbar.addWidget(create_spacer())
-        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-        self.addToolBar(self.toolbar)
-        self.setUnifiedTitleAndToolBarOnMac(True)
-        
-    def build_packages_menu_from_main_app(self):
-        if len(self._package_menu_items) == 0:
-            self.qmenus['packages'].menuAction().setEnabled(True)
-            
-        for (pkg_id, d) in _app._package_menu_items.iteritems():
-            self._package_menu_items[pkg_id] = {}
-            for pkg_name,items in d['items']:
-                pkg_menu = self.qmenus['packages'].addMenu(str(pkg_name))
-                self._package_menu_items[pkg_id]['menu'] = pkg_menu
-                self._package_menu_items[pkg_id]['items'] = (pkg_name, items)
-                for item in items:
-                    (name, callback) = item
-                    action = QtGui.QAction(name,self,
-                                           triggered=callback)
-                    pkg_menu.addAction(action)
-        
-    def set_title(self, title):
-        self.setWindowTitle(title)
-        
-    def get_name(self):
-        return self.windowTitle()
-
-    def set_name(self):
-        if self.view:
-            self.set_title(self.view.get_name())
-        else:
-            self.set_title('(empty)')
             
 class QPaletteMainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
