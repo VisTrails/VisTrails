@@ -650,6 +650,7 @@ class QVistrailView(QtGui.QWidget):
 
     def create_query_view(self):
         view = self.create_view(QQueryView, False)
+        self.notifications['query_changed'] = view.query_changed
         return view
 
     def create_diff_view(self):

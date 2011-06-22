@@ -84,7 +84,15 @@ class QueryController(object):
             if self.refine:
                 self.recompute_terse_graph()
             self.invalidate_version_tree(True)
-                
+            
+            result_entities = []
+            entity = self.search.getResultEntity(self.vistrail,
+                                                 versions_to_check)
+            if entity is not None:
+                result_entities.append(entity)
+
+            from gui.vistrails_window import _app
+            _app.notify("search_changed", result_entities)
 
         # if self.search != search or self.search_str != text:
         #     self.search = search
@@ -121,6 +129,10 @@ class QueryController(object):
         self.query_view.pipeline_view.scene().setupScene(
             self.query_view.pipeline_view.controller.current_pipeline)
         self.query_view.set_display_view(self.query_view.VISUAL_SEARCH_VIEW)
+        self.query_view.query_box.searchBox.clearSearch()
+
+        from gui.vistrails_window import _app
+        _app.notify("search_changed", None)
 
     def invalidate_version_tree(self, *args, **kwargs):
         self.query_view.set_display_view(self.query_view.VERSION_RESULT_VIEW)
@@ -358,3 +370,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         from gui.vistrails_window import _app
         self.p_controller.current_pipeline.ensure_connection_specs()
         _app.notify('query_pipeline_changed', self.p_controller.current_pipeline)
+
+    def query_changed(self, query=None):
+        if query is None:
+            self.query_controller.reset_search()
+        # FIXME add support for changing the query to something specific

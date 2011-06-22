@@ -58,4 +58,24 @@ class CombinedSearch(VisualQuery):
                 len(self.queryPipeline.modules) > 0:
             return VisualQuery.matchModule(self, version_id, module)
         return True
+    
+    def getResultEntity(self, vistrail, versions_to_check):
+        from core.collection.vistrail import VistrailEntity
 
+        locators = []
+        vistrail_entity = None
+        for version in versions_to_check:
+            if version in vistrail.actionMap:
+                action = vistrail.actionMap[version]
+                if self.match(vistrail, action):
+                    # have a match, get vistrail entity
+                    if vistrail_entity is None:
+                        vistrail_entity = VistrailEntity()
+                        # don't want to add all workflows, executions
+                        vistrail_entity.set_vistrail(vistrail)
+                    vistrail_entity.add_workflow_entity(version)
+                    # FIXME this is not done at the low level but in
+                    # Collection class, probably should be reworked
+                    vistrail_entity.wf_entity_map[version].parent = \
+                        vistrail_entity
+        return vistrail_entity

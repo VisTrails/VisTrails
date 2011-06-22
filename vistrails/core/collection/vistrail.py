@@ -48,6 +48,7 @@ class VistrailEntity(Entity):
     def __init__(self, vistrail=None):
         Entity.__init__(self)
         self.id = None
+        self.wf_entity_map = {}
         self.update(vistrail)
 
     @staticmethod
@@ -83,46 +84,60 @@ class VistrailEntity(Entity):
         # entity.url = self.url + '?workflow_id=%s' % action.id
         return entity
 
-    def update(self, vistrail):
+    def set_vistrail(self, vistrail):
         self.vistrail = vistrail
-        if self.vistrail is not None:
-            wf_entity_map = {}
-            latestVersion = self.vistrail.actionMap[self.vistrail.get_latest_version()]
-            firstVersion = self.vistrail.actionMap[1] \
-                if 1 in self.vistrail.actionMap else latestVersion
+        latestVersion = \
+            self.vistrail.actionMap[self.vistrail.get_latest_version()]
+        firstVersion = self.vistrail.actionMap[1] \
+            if 1 in self.vistrail.actionMap else latestVersion
 
+        self.name = self.vistrail.locator.short_name
+        if not self.name or self.name == 'None':
+            self.name = self.vistrail.db_name
+        self.user = latestVersion.user
+        self.mod_time = latestVersion.date
+        self.create_time = firstVersion.date
+        self.size = len(self.vistrail.actionMap)
+        self.description = ""
+        self.url = self.vistrail.locator.to_url()
+        self.was_updated = True        
 
-            self.name = self.vistrail.locator.short_name
-            if not self.name or self.name == 'None':
-                self.name = self.vistrail.db_name
-            self.user = latestVersion.user
-            self.mod_time = latestVersion.date
-            self.create_time = firstVersion.date
-            self.size = len(self.vistrail.actionMap)
-            self.description = ""
-            self.url = self.vistrail.locator.to_url()
-            self.was_updated = True
+    def add_workflow_entity(self, version_id):
+        if version_id not in self.vistrail.actionMap:
+            return
+        action = self.vistrail.actionMap[version_id]
+        workflow = self.vistrail.getPipeline(version_id)
+        tag = self.vistrail.get_action_annotation(version_id, "__tag__")
+        if tag:
+            workflow.name = tag.value
+        # if workflow already exists, we want to update it...
+        # spin through self.children and look for matching
+        # workflow entity?
+        # self.children.append(WorkflowEntity(workflow))
+        self.wf_entity_map[version_id] = \
+            self.create_workflow_entity(workflow, action)
 
-            for id, tag in self.vistrail.get_tagMap().iteritems():
-                if id not in self.vistrail.actionMap:
-                    continue
-                action = self.vistrail.actionMap[id]
-                workflow = self.vistrail.getPipeline(id)
-                tag = self.vistrail.get_action_annotation(id, "__tag__")
-                if tag:
-                    workflow.name = tag.value
-                # if workflow already exists, we want to update it...
-                # spin through self.children and look for matching
-                # workflow entity?
-                # self.children.append(WorkflowEntity(workflow))
-                wf_entity_map[id] = \
-                    self.create_workflow_entity(workflow, action)
+        # get thumbnail
+        thumbnail = self.vistrail.get_thumbnail(version_id)
+        if thumbnail is not None:
+            cache = ThumbnailCache.getInstance()
+            path = cache.get_abs_name_entry(thumbnail)
+            if path:
+                entity = ThumbnailEntity(path)
+                self.wf_entity_map[action.id].children.append(entity)
+
+    def update(self, vistrail):
+        if vistrail is not None:
+            self.set_vistrail(vistrail)
+
+            for version_id, tag in self.vistrail.get_tagMap().iteritems():
+                self.add_workflow_entity(version_id)
 
             log = vistrail.get_log()
             if log is not None:
                 for wf_exec in log.workflow_execs:
                     version_id = wf_exec.parent_version
-                    if version_id not in wf_entity_map:
+                    if version_id not in self.wf_entity_map:
 
                         # FIXME add new workflow entity for this version
                         if version_id not in self.vistrail.actionMap:
@@ -132,9 +147,9 @@ class VistrailEntity(Entity):
                         wf_entity = \
                             self.create_workflow_entity(workflow, action)
 
-                        wf_entity_map[version_id] = wf_entity
+                        self.wf_entity_map[version_id] = wf_entity
                     else:
-                        wf_entity = wf_entity_map[version_id]
+                        wf_entity = self.wf_entity_map[version_id]
                     entity = WorkflowExecEntity(wf_exec)
 
                     scheme, rest = self.url.split('://', 1)
@@ -150,21 +165,22 @@ class VistrailEntity(Entity):
                     entity.url = urlparse.urlunsplit(url_tuple)
                     wf_entity.children.append(entity)
 
-            for action in self.vistrail.actionMap.itervalues():
-                thumbnail = self.vistrail.get_thumbnail(action.id)
-                if thumbnail is not None:
-                    cache = ThumbnailCache.getInstance()
-                    path = cache.get_abs_name_entry(thumbnail)
-                    if not path:
-                        continue
-                    entity = ThumbnailEntity(path)
+            # moved this code to add_workflow_entity
+            # for action in self.vistrail.actionMap.itervalues():
+            #     thumbnail = self.vistrail.get_thumbnail(action.id)
+            #     if thumbnail is not None:
+            #         cache = ThumbnailCache.getInstance()
+            #         path = cache.get_abs_name_entry(thumbnail)
+            #         if not path:
+            #             continue
+            #         entity = ThumbnailEntity(path)
 
-                    if action.id in wf_entity_map:
-                        wf_entity_map[action.id].children.append(entity)
-                    else:
-                        # there is a thumbnail but the action is not important
-                        #print "No such action:", action.id                    
-                        pass
+            #         if action.id in self.wf_entity_map:
+            #             self.wf_entity_map[action.id].children.append(entity)
+            #         else:
+            #             # there is a thumbnail but the action is not important
+            #             #print "No such action:", action.id                    
+            #             pass
 
 #     # returns string
 #     def get_name(self):

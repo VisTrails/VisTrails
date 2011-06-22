@@ -466,7 +466,37 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
 #                     self.update_workspace_list)
         self.setLayout(layout)
 #        self.update_workspace_list()
+
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        self.searchAction = QtGui.QAction("Search", self.toolWindow().toolbar,
+                                          triggered=self.gotoSearch)
+        self.searchAction.searchMode = False
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.searchAction)
+
+    def gotoSearch(self):
+        if self.searchAction.searchMode:
+            self.open_list.hide_search_results()
+            self.searchAction.searchMode = False
+            self.searchAction.setText("Search")
+
+            from gui.vistrails_window import _app
+            _app.notify('query_changed', None)
+        else:
+            from gui.vistrails_window import _app
+            _app.qactions['search'].trigger()
  
+    def updateSearchResults(self, result_list=None):
+        if result_list is None:
+            self.gotoSearch()
+        elif not self.searchAction.searchMode:
+            self.open_list.show_search_results()
+            self.searchAction.searchMode = True
+            self.searchAction.setText("Clear Search")
+        self.open_list.update_search_results(result_list)
+
     def update_workspace_list(self):
         """ Updates workspace list and highlights currentWorkspace
             Keeps 'Recent files' on top
@@ -636,13 +666,13 @@ class QVistrailList(QtGui.QTreeWidget):
         self.delegate = QModuleTreeWidgetItemDelegate(self, self)
         self.setItemDelegate(self.delegate)
 
-        self.openFilesWidget = QtGui.QTreeWidgetItem(['Open Files'])
-        self.addTopLevelItem(self.openFilesWidget)
+        self.openFilesItem = QtGui.QTreeWidgetItem(['Open Files'])
+        self.addTopLevelItem(self.openFilesItem)
 
         self.setup_recent_files()
 
-        self.openFilesWidget.setExpanded(True)
-        self.recentFilesWidget.setExpanded(True)
+        self.openFilesItem.setExpanded(True)
+        self.recentFilesItem.setExpanded(True)
 
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
@@ -662,13 +692,32 @@ class QVistrailList(QtGui.QTreeWidget):
                      self.onItemPressed)
 
     def setup_recent_files(self):
-        self.recentFilesWidget = QtGui.QTreeWidgetItem(['Recent Files'])
-        self.addTopLevelItem(self.recentFilesWidget)
+        self.recentFilesItem = QtGui.QTreeWidgetItem(['Recent Files'])
+        self.addTopLevelItem(self.recentFilesItem)
         recent_entities = self.collection.workspaces['Default']
         for entity in recent_entities:
-            self.recentFilesWidget.addChild(QVistrailListItem(entity))
+            self.recentFilesItem.addChild(QVistrailListItem(entity))
             
-        
+    def show_search_results(self):
+        self.searchResultsItem = QtGui.QTreeWidgetItem(['Search Results'])
+        self.addTopLevelItem(self.searchResultsItem)
+        self.openFilesItem.setHidden(True)
+        self.recentFilesItem.setHidden(True)
+
+    def hide_search_results(self):
+        self.takeTopLevelItem(self.indexOfTopLevelItem(self.searchResultsItem))
+        self.openFilesItem.setHidden(False)
+        self.recentFilesItem.setHidden(False)
+
+    def update_search_results(self, result_list=None):
+        self.searchResultsItem.takeChildren()
+        if result_list is not None:
+            for entity in result_list:
+                item = QVistrailListItem(entity)
+                self.searchResultsItem.addChild(item)
+                item.setExpanded(True)
+            self.searchResultsItem.setExpanded(True)
+
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
         Expand/Collapse top-level item when the mouse is pressed
@@ -763,17 +812,17 @@ class QVistrailList(QtGui.QTreeWidget):
             entity = self.collection.fromUrl(locator.to_url())
         item = None
         # first look for item in recent list
-        for i in xrange(self.recentFilesWidget.childCount()):
-            recent = self.recentFilesWidget.child(i)
+        for i in xrange(self.recentFilesItem.childCount()):
+            recent = self.recentFilesItem.child(i)
             if entity and recent and recent.entity and \
                 recent.entity.url == entity.url:
                 self.setSelected(None)
-                index = self.recentFilesWidget.indexOfChild(recent)
-                item = self.recentFilesWidget.takeChild(index)
+                index = self.recentFilesItem.indexOfChild(recent)
+                item = self.recentFilesItem.takeChild(index)
                 item.window = vistrail_window
         if not item:
             item = QVistrailListItem(entity, vistrail_window)
-        self.openFilesWidget.addChild(item)
+        self.openFilesItem.addChild(item)
         self.items[id(vistrail_window)] = item
         self.setSelected(vistrail_window)
 
@@ -782,11 +831,11 @@ class QVistrailList(QtGui.QTreeWidget):
         item = self.items[id(vistrail_window)]
         del self.items[id(vistrail_window)]
         delattr(item, 'window')
-        index = self.openFilesWidget.indexOfChild(item)
-        item = self.openFilesWidget.takeChild(index)
+        index = self.openFilesItem.indexOfChild(item)
+        item = self.openFilesItem.takeChild(index)
         if item.entity:
             if vistrail_window.controller.locator.to_url() == item.entity.url:
-                self.recentFilesWidget.addChild(item)
+                self.recentFilesItem.addChild(item)
                 item.setText(0, item.entity.name)
             else:
                 # locator have changed
@@ -796,7 +845,7 @@ class QVistrailList(QtGui.QTreeWidget):
                     entity = self.collection.fromUrl(locator.to_url())
                 if entity:
                     item = QVistrailListItem(entity)
-                    self.recentFilesWidget.addChild(item)
+                    self.recentFilesItem.addChild(item)
                     item.setText(0, entity.name)
                     
                 
@@ -805,8 +854,8 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSelected(vistrail_window)
 
     def setSelected(self, view):
-        for i in xrange(self.openFilesWidget.childCount()):
-            item = self.openFilesWidget.child(i)
+        for i in xrange(self.openFilesItem.childCount()):
+            item = self.openFilesItem.child(i)
             font = item.font(0)
             window = item.window if hasattr(item, 'window') else None
             font.setBold(view == item.window if window and view else False)
@@ -835,13 +884,13 @@ class QVistrailList(QtGui.QTreeWidget):
             items = self.selectedItems()
             if len(items) == 1:
                 item = items[0]
-                if item.parent() == self.openFilesWidget:
+                if item.parent() == self.openFilesItem:
                     # close current vistrail
                     from gui.vistrails_window import _app
                     _app.close_vistrail()
-                elif item.parent() == self.recentFilesWidget:
+                elif item.parent() == self.recentFilesItem:
                     # remove from recent list
-                    self.recentFilesWidget.removeChild(item)
+                    self.recentFilesItem.removeChild(item)
                     self.collection.del_from_workspace(item.entity)
                     self.collection.commit()
         else:
@@ -849,7 +898,7 @@ class QVistrailList(QtGui.QTreeWidget):
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
-        if item and self.openFilesWidget.indexOfChild(item) != -1:
+        if item and self.openFilesItem.indexOfChild(item) != -1:
             menu = QtGui.QMenu(self)
             act = QtGui.QAction("Open in New Window", self,
                                 triggered=item.open_in_new_window)

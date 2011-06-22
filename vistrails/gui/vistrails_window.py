@@ -264,7 +264,8 @@ class QVistrailsWindow(QtGui.QMainWindow):
         
         self.palette_layout = \
             [(self.UPPER_LEFT_DOCK_AREA,
-              [(QWorkspaceWindow,True)]),
+              [((QWorkspaceWindow,True),
+                (('search_changed', 'updateSearchResults'),))]),
              (self.LOWER_LEFT_DOCK_AREA,
               [(QModulePalette, True),
                ((QParamExplorePalette, False),
