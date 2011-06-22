@@ -410,6 +410,13 @@ class QDiffView(QPipelineView):
                      QtCore.SIGNAL('versionWasChanged'),
                      self.version_changed)
 
+    def set_default_layout(self):
+        from gui.module_palette import QModulePalette
+        self.layout = \
+            {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
+             QtCore.Qt.RightDockWidgetArea: QDiffProperties,
+             }
+        
     def version_changed(self):
         pass
 

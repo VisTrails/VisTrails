@@ -1088,7 +1088,6 @@ class QVistrailsWindow(QtGui.QMainWindow):
         global _global_menubar
 
         all_palette_actions =  self.create_palette_actions()
-        print all_palette_actions
         tools_actions = []
         palette_actions = []
         for a,p in all_palette_actions:

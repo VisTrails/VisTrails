@@ -531,32 +531,11 @@ class QVistrailView(QtGui.QWidget):
             #print "\n!!set_action_links of ", self.current_tab 
             _app.set_action_links(self.current_tab.action_links, self.current_tab,
                                   self)
-#            print "\n!! _app.notifications: "
-#            for (k, v) in _app.notifications.iteritems():
-#                print "   ", k, "  (%s) "%len(v)
-#                for m in v: 
-#                    print "     ", m
-#            print "\n!! palette layout: ", self.current_tab.layout
 
-            for dock_loc, palette_klass in self.current_tab.layout.iteritems():
-                palette_instance = palette_klass.instance()
-                window = palette_instance.toolWindow().parentWidget()
-                if window:
-                    current_loc = window.dockWidgetArea(palette_instance.toolWindow())
-                else:
-                    current_loc = QtCore.Qt.NoDockWidgetArea
-                print ">> P:", palette_instance.__class__.__name__, current_loc, \
-                        dock_loc
-                
-                if current_loc == dock_loc:
-                    # palette_instance.get_action().trigger()
-                    palette_instance.set_visible(True)
-                    #print ">> doing show", palette_instance.toolWindow().isVisible() 
-            
-            #for p in _app.palettes:
-#                print p.__class__.__name__, p.toolWindow().isVisible()        
         else:
             print "tabs the same. do nothing"
+        self.showCurrentViewPalettes()
+        
         if self.isTabDetachable(self.tabs.currentIndex()):
             self.tabs.setTabToolTip(self.tabs.currentIndex(),
                                     "Double-click to detach it")
@@ -564,6 +543,21 @@ class QVistrailView(QtGui.QWidget):
             self.tabs.setTabToolTip(self.tabs.currentIndex(),
                                     "")
 
+    def showCurrentViewPalettes(self):
+        for dock_loc, palette_klass in self.current_tab.layout.iteritems():
+            palette_instance = palette_klass.instance()
+            window = palette_instance.toolWindow().parentWidget()
+            if window:
+                current_loc = window.dockWidgetArea(palette_instance.toolWindow())
+            else:
+                current_loc = QtCore.Qt.NoDockWidgetArea
+            print ">> P:", palette_instance.__class__.__name__, current_loc, \
+                    dock_loc
+            
+            if current_loc == dock_loc:
+                # palette_instance.get_action().trigger()
+                palette_instance.set_visible(True)
+                    
     def tab_changed(self, index):
         print 'raw tab_changed', index
         if index < 0 or self.controller is None:
@@ -693,6 +687,7 @@ class QVistrailView(QtGui.QWidget):
     def version_selected(self, version_id, by_click, do_validate=True,
                          from_root=False, double_click=False):
         from gui.vistrails_window import _app
+        from gui.vis_diff import QDiffView
         if hasattr(self.window(), 'qactions'):
             window = self.window()
         else:
@@ -712,7 +707,7 @@ class QVistrailView(QtGui.QWidget):
                 # view.set_to_current()
                 # self.tabs.setCurrentWidget(view.parent())
                 window.qactions['pipeline'].trigger()
-        if view:
+        if view and not isinstance(view, QDiffView):
             view.set_title(self.controller.get_pipeline_name())
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
@@ -723,6 +718,7 @@ class QVistrailView(QtGui.QWidget):
         view.set_diff(version_a,version_b)
         self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
+        self.view_changed()
 
     def save_vistrail(self, locator_class, force_choose_locator=False):
         """
