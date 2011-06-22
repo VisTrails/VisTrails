@@ -43,7 +43,9 @@ from gui.vistrail_controller import VistrailController
 from gui.vistrails_palette import QVistrailsPaletteInterface
 from core import system, debug
 import core.db.io
+
 import copy
+from itertools import chain
 
 ################################################################################
 
@@ -248,14 +250,13 @@ class QLegendWindow(QtGui.QWidget):
         self.legendParam = QtGui.QLabel("Parameter Changes", self)
         self.gridLayout.addWidget(self.legendParam,3,1)
 
-        self.legendMatchedBox = \
-            QLegendBox(CurrentTheme.VISUAL_DIFF_MATCH_BRUSH,
-                       CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
-                       self)
-        self.gridLayout.addWidget(self.legendMatchedBox, 4, 0)
-        self.legendMatched = QtGui.QLabel("Matched", self)
-        self.gridLayout.addWidget(self.legendMatched, 4, 1)
-
+        # self.legendMatchedBox = \
+        #     QLegendBox(CurrentTheme.VISUAL_DIFF_MATCH_BRUSH,
+        #                CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
+        #                self)
+        # self.gridLayout.addWidget(self.legendMatchedBox, 4, 0)
+        # self.legendMatched = QtGui.QLabel("Matched", self)
+        # self.gridLayout.addWidget(self.legendMatched, 4, 1)
 
         self.adjustSize()
         
@@ -484,16 +485,16 @@ class QDiffView(QPipelineView):
         sum1_y = 0.0
         sum2_x = 0.0
         sum2_y = 0.0
-        for (m1id, m2id) in v1Andv2:
-            item = scene.addModule(p1.modules[m1id],
-                                   CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
-            item.controller = self.controller
-            p_both.add_module(copy.copy(p1.modules[m1id]))
-            sum1_x += p1.modules[m1id].location.x
-            sum1_y += p1.modules[m1id].location.y
-            sum2_x += p2.modules[m2id].location.x
-            sum2_y += p2.modules[m2id].location.y
-        for (m1id, m2id) in heuristicMatch:
+        for (m1id, m2id) in chain(v1Andv2, heuristicMatch):
+        #     item = scene.addModule(p1.modules[m1id],
+        #                            CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
+        #     item.controller = self.controller
+        #     p_both.add_module(copy.copy(p1.modules[m1id]))
+        #     sum1_x += p1.modules[m1id].location.x
+        #     sum1_y += p1.modules[m1id].location.y
+        #     sum2_x += p2.modules[m2id].location.x
+        #     sum2_y += p2.modules[m2id].location.y
+        # for (m1id, m2id) in heuristicMatch:
             m1 = p1.modules[m1id]
             m2 = p2.modules[m2id]
 
@@ -529,7 +530,9 @@ class QDiffView(QPipelineView):
                     m1.add_port_spec(var_port_spec)
 
             item = scene.addModule(p1.modules[m1id],
-                                   CurrentTheme.VISUAL_DIFF_MATCH_BRUSH)
+                                   CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
+            # item = scene.addModule(p1.modules[m1id],
+            #                        CurrentTheme.VISUAL_DIFF_MATCH_BRUSH)
             item.controller = self.controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
