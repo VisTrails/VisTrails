@@ -12,7 +12,7 @@ Using the Control Flow Assistant (CFA)
 In order to simplify the process of creating a control flow loop that uses the Map module, VisTrails has a Control Flow Assistant (CFA).
 To use the CFA, you must:
 
-1) Enable all ports (in the Module Configuration) that you wish to use as inputs or outputs.
+1) Enable all ports (in the Module Information panel) that you wish to use as inputs or outputs.
 2) Select the modules in the workflow that will form the basis of your mapped input-output loop.
 3) Go to 'Edit->Control Flow Assistant' to launch the CFA using the selected modules.
 4) Select the input ports that you wish to loop over using List modules as input.
@@ -67,14 +67,38 @@ One useful purpose for the CFA is to provide a version-based approach to paramet
    4) Set the List 'value' parameter to: [1.0, 2.0, 3.0, 4.0, 5.0]
    5) Set the PythonCalc 'op' parameter to: '*'
    6) Set the PythonCalc 'value2' parameter to: 2.0
-   7) With the PythonCalc module selected, go to 'Edit->Control Flow Assistant':
+   7) With the PythonCalc module selected, go to 'Edit->Control Flow Assistant' (see Figure :ref:`Example 1.1 <fig-assistant>`):
+
       a) Click on the input port 'value1' and ensure it is highlighted
       b) Click on the output port 'value' and ensure it is highlighted
-      c) Click 'OK' to close the window and build the loop structure as a Group module
+      c) Click 'OK' to close the window and build the loop structure as a Group module (see Figure :ref:`Example 1.2 <fig-select>`)
    8) Connect the 'List' module's output port 'value' to the 'Group' module's input port 'value1'.
-   9) Connect the 'Group' module's output port 'Result' to the 'StandardOutput' module's input port 'value'
-   10) Click on 'Run->Execute Current Workflow'
+   9) Connect the 'Group' module's output port 'Result' to the 'StandardOutput' module's input port 'value' (see Figure :ref:`Example 1.3 <fig-pipeline>`)
+   10) Execute the current workflow.
    11) In your Standard Output console, you should see a List containing the computation for each element in the input list: [2.0, 4.0, 6.0, 8.0, 10.0]
+
+.. _fig-assistant:
+
+.. figure:: figures/cfassistant/assistant.png
+   :align: center
+   :width: 90%
+
+   Example 1.1 - Running the Control Flow Assistant
+
+.. _fig-select:
+
+.. figure:: figures/cfassistant/port_select.png
+   :align: center
+   :width: 70%
+
+   Example 1.2 - Selecting relevant ports.
+
+.. _fig-pipeline:
+
+.. figure:: figures/cfassistant/pipeline.png
+   :align: center
+
+   Example 1.3 - The connected pipeline.
 
 .. topic:: Try it Now!
 
@@ -83,13 +107,37 @@ One useful purpose for the CFA is to provide a version-based approach to paramet
    1) Go to 'File->Open', explore to the VisTrails examples folder, and open 'spx.vt'
    2) Open the History view and select the version tagged as 'decimate'.
    3) Open the Pipeline view.
-   4) Open the module configuration for the 'vtkContourFilter' module and enable the 'SetValue' input port.
+   4) Select the 'vtkContourFilter' module and enable the 'SetValue' input port by clicking to the left of 'SetValue' in the Module Information panel (see Figure :ref:`Example 2.1 <fig-cfassistant-enable-port>`).
    5) Click on 'Edit->Select All'.
    6) With all modules selected, go to 'Edit->Control Flow Assistant':
+
       a) Click on the 'vtkContourFilter' module's input port 'SetValue' and ensure it is highlighted
-      b) Click on the 'VTKCell' module's output port 'self' and ensure it is highlighted
+      b) Click on the 'VTKCell' module's output port 'self' and ensure it is highlighted (see Figure :ref:`Example 2.2 <fig-cfassistant-enable-port>`)
       c) Click 'OK' to close the window and build the loop structure as a Group module
    7) Select the newly created 'Group' module, and set the 'SetValue' parameter to: [(0, 0.5), (0, 0.75), (0, 1.0)]
-   8) Click on 'Run->Execute Current Workflow'
-   9) In your VisTrails Spreadsheet, you should see three visualizations, one for each set of input parameters to the 'SetValue' port of 'vtkContourFilter'.
+   8) Execute the current workflow.
+   9) In your VisTrails Spreadsheet, you should see three visualizations, one for each set of input parameters to the 'SetValue' port of 'vtkContourFilter'. See Figure :ref:`Example 2.3 <fig-cfassistant-results>`.
+
+.. _fig-cfassistant-enable-port:
+
+.. figure:: figures/cfassistant/enable_port.png
+   :align: center
+
+   Example 2.1 - Enabling a port for use with the control flow assistant.
+
+.. _fig-cfassistant-select:
+
+.. figure:: figures/cfassistant/port_select2.png
+   :align: center
+   :width: 70%
+
+   Example 2.2 - Selecting relevant ports.
+
+.. _fig-cfassistant-results:
+
+.. figure:: figures/cfassistant/results.png
+   :align: center
+   :width: 90%
+
+   Example 2.3 - The spreadsheet results using the list: [(0, 0.5), (0, 0.75), (0, 1.0)] as input to the contour filter via the control flow assistant.
 

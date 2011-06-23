@@ -23,7 +23,7 @@ Before explaining either approach, however, let's first set up the vistrail that
 
    We will now create our "target" workflow.  Switch to the ``Pipeline`` view and add a new module, ``vtkSmoothPolyDataFilter`` between the ``vtkContourFilter`` and ``vtkDataSetMapper`` modules. Your modified pipeline should resemble the one shown in Figure :ref:`fig-analogy_setupa`.
 
-   Next, let's adjust some of the parameters for the new module. Select the ``vtkSmoothPolyDataFilter`` module. In the ``Methods`` panel, drag the ``SetNumberOfIterations`` method and the ``SetRelaxationFactor`` method to the ``Set Methods`` panel. In the text box for ``SetNumberOfIterations``, type 20 and in the text box for ``SetRelaxationFactor``, type 0.5. Now, execute this workflow, and compare the two results in the Spreadsheet.
+   Next, let's adjust some of the parameters for the new module. Select the ``vtkSmoothPolyDataFilter`` module. In the ``Module Information`` panel, select ``SetNumberOfIterations`` and type 20 in the input box. Then, select ``SetRelaxationFactor`` enter 0.5. Now, execute this workflow, and compare the two results in the Spreadsheet.
 
    Return to the ``History`` view, and give your new version a meaningful tag such as ``smoothed`` (Figure :ref:`fig-analogy_setupb`). Finally, select the ``Fran Cut`` version and execute it too. Your spreadsheet should now resemble the one shown in Figure :ref:`fig-analogy_spreadsheet1`.
 

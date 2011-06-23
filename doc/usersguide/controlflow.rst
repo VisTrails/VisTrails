@@ -7,8 +7,7 @@ Control Flow in VisTrails
 Scientific workflows usually follow a dataflow model, but, in some cases,
 control structures, including loops and conditionals, are necessary to
 accomplish certain tasks. |vistrails| provides the ``Control Flow``
-package to support these and other structures.
-
+package to support these and other structures.  To create your own ``Control Flow`` modules, please refer to the Developer's Guide (:ref:`chap-controlflowdev`).  Or, if you would like to use the Control Flow Assistant, to simplify the process described in this chapter, please refer to :ref:`chap-controlflow-assistant`.
 
 The Map operator
 ================
@@ -21,7 +20,7 @@ module provides simple looping as it can be used to iterate through a list
 of inputs.
 
 In order to use the ``Map`` module, a ``ListOfElements``
-type representing a list of data structure is also provided. Two additional
+type representing a list of data structures is also provided. Two additional
 modules help users combine elements of lists: ``Dot`` combines the
 elements of two lists like the dot product (the first element of the first list
 is combined with the first of the second one, the second element of the first
@@ -288,7 +287,7 @@ port is chosen, the result of this port will not be returned in a list. If
 Let's do now a simple example to show how exactly this module works. This example is
 from the bioinformatics domain, and takes a string as the input; if it's a structure
 identifier, a web service from the European Bioinformatics Institute, or simply EBI
-(http://www.ebi.ac.uk/), a centre of researchs in bioinformatics,
+(http://www.ebi.ac.uk/), a centre of research in bioinformatics,
 is used to get the structure in the PDB format, a standard representation for
 macromolecular structure, and then, the ``VTK`` package is used to show the protein in
 the |vistrails| Spreadsheet; otherwise, the input is assumed to be invalid, and a message
@@ -441,7 +440,7 @@ Your workflow must correspond to the one shown in Figure :ref:`fig-controlflow-i
 
    The final workflow, using the ``Group`` structure
 
-Note that this implementation follows exactly the initial especification of the workflow. If the input
+Note that this implementation follows exactly the initial specification of the workflow. If the input
 is a structure identifier (``Is_ID`` returns ``True``), ``Generate_Visualization``
 will be executed; otherwise (``Is_ID`` returns ``False``), ``Not_ID``
 and ``RichTextCell`` will create an error message in the |vistrails| Spreadsheet.
@@ -449,7 +448,7 @@ and ``RichTextCell`` will create an error message in the |vistrails| Spreadsheet
 For the workflow execution, set the parameter "value" of the
 ``Workflow_Input`` module to *PDB:3BG0*. This entry is an ID from a
 protein; so, the condition will be ``True``, and the ``Generate_Visualization``
-group will be executed, generating the visualization show in
+group will be executed, generating the visualization shown in
 Figure :ref:`fig-controlflow-if_spreadsheet_true`.
 
 .. _fig-controlflow-if_spreadsheet_true:
