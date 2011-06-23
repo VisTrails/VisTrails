@@ -759,9 +759,9 @@ class QVistrailList(QtGui.QTreeWidget):
     def item_selected(self, widget_item, column):
         """ opens or displays the selected item if possible """
         if hasattr(widget_item, 'entity'):
-           entity = widget_item.entity
+            entity = widget_item.entity
         elif type(widget_item) == QVistrailListLatestItem:
-           entity = widget_item.parent().entity
+            entity = widget_item.parent().entity
         else:
             # no valid item selected
             return
@@ -809,29 +809,52 @@ class QVistrailList(QtGui.QTreeWidget):
     def dropEvent( self, event):
         event.accept()
         destination = self.itemAt(event.pos())
-        if not destination or type(destination) != QVistrailListItem:
+        if not destination:
             return
         if type(event.source())==QVistrailList:
             data = event.mimeData()
             if hasattr(data, 'items'):
                 assert len(data.items) == 1
                 source = data.items[0]
-                if not source or type(source) != QVistrailListItem or source == destination:
+                if not source or source == destination:
                     return
-                if source.window.controller.changed or destination.window.controller.changed:
-                    text = ('Both Vistrails need to be saved before they can be merged.')
-                    QtGui.QMessageBox.information(None, 'Cannot perform merge',
-                                      text, '&OK')
-                    return
-                res = QtGui.QMessageBox.question(None, 'Merge the histories of these 2 vistrails into a new vistrail?',
-                                  source.window.get_name() + '\n' + destination.window.get_name(),
-                                  buttons=QtGui.QMessageBox.Yes,
-                                  defaultButton=QtGui.QMessageBox.No)
-                if res == QtGui.QMessageBox.Yes:
-                    from gui.vistrails_window import _app
-                    _app.merge_vistrails(destination.window.controller, source.window.controller)
+                if hasattr(source, 'window') and hasattr(destination, 'window'):
+                    # both are vistrails
+                    self.merge_vistrails(source, destination)
+                elif source.parent() and hasattr(source.parent(), 'window') and \
+                    destination.parent() and \
+                    hasattr(destination.parent(), 'window') and \
+                    source.parent().window == destination.parent().window:
+                    # both are workflows from the same vistrail
+                    self.visual_diff(source, destination)
 
+    def merge_vistrails(self, source, destination):
+        if source.window.controller.changed or destination.window.controller.changed:
+            text = ('Both Vistrails need to be saved before they can be merged.')
+            QtGui.QMessageBox.information(None, 'Cannot perform merge',
+                              text, '&OK')
+            return
+        res = QtGui.QMessageBox.question(None, 'Merge the histories of these 2 vistrails into a new vistrail?',
+                          source.window.get_name() + '\n' + destination.window.get_name(),
+                          buttons=QtGui.QMessageBox.Yes,
+                          defaultButton=QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+            from gui.vistrails_window import _app
+            _app.merge_vistrails(destination.window.controller, source.window.controller)
 
+    def visual_diff(self, source, destination):
+        if hasattr(source, 'entity'):
+            v1 = source.entity.locator().kwargs.get('version_node', None)
+        else:
+            vistrail = source.parent().window.controller.vistrail
+            v1 = vistrail.get_latest_version()
+        if hasattr(destination, 'entity'):
+            v2 = destination.entity.locator().kwargs.get('version_node', None)
+        else:
+            vistrail = destination.parent().window.controller.vistrail
+            v2 = vistrail.get_latest_version()
+        source.parent().window.diff_requested(v1, v2)
+        
     def add_vt_window(self, vistrail_window):
         entity = None
         locator = vistrail_window.controller.locator
