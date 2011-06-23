@@ -185,7 +185,7 @@ class QVerticalWidget(QPromptWidget):
         
         """
         QPromptWidget.__init__(self, parent)
-        self.setPromptText("Drag constants here to create variables")
+        self.setPromptText("Drag a constant from the Modules panel to create a variable")
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(5)

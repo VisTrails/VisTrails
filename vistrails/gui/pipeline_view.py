@@ -250,7 +250,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.scene().update()
             self.scene().noUpdate = False
         # Update the version view node to fit text properly
-        version_item = self.controller.vistrail_view.versionTab.versionView.scene().versions[self.controller.current_version]
+        version_item = self.controller.vistrail_view.version_view.scene().versions[self.controller.current_version]
         version_item.updateWidthFromLabel()
         # Update the tooltip for this version
         try:
