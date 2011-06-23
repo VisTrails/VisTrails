@@ -34,6 +34,7 @@
 from PyQt4 import QtGui
 from PyQt4.QtCore import QString
 from core.thumbnails import ThumbnailCache
+from core import debug
 import xml.sax.saxutils
 import urlparse
 
@@ -106,8 +107,15 @@ class VistrailEntity(Entity):
         if version_id not in self.vistrail.actionMap:
             return
         action = self.vistrail.actionMap[version_id]
-        workflow = self.vistrail.getPipeline(version_id)
         tag = self.vistrail.get_action_annotation(version_id, "__tag__")
+        try:
+            workflow = self.vistrail.getPipeline(version_id)
+        except:
+            import traceback
+            debug.critical("Failed to construct pipeline '%s'" % 
+                               (tag.value if tag else version_id),
+                           traceback.format_exc())
+            workflow = self.vistrail.getPipeline(0)
         if tag:
             workflow.name = tag.value
         # if workflow already exists, we want to update it...
@@ -130,9 +138,8 @@ class VistrailEntity(Entity):
         if vistrail is not None:
             self.set_vistrail(vistrail)
 
-            for version_id, tag in self.vistrail.get_tagMap().iteritems():
+            for version_id in self.vistrail.get_tagMap():
                 self.add_workflow_entity(version_id)
-
             log = vistrail.get_log()
             if log is not None:
                 for wf_exec in log.workflow_execs:
@@ -143,7 +150,16 @@ class VistrailEntity(Entity):
                         if version_id not in self.vistrail.actionMap:
                             continue
                         action = self.vistrail.actionMap[version_id]
-                        workflow = self.vistrail.getPipeline(version_id)
+                        try:
+                            workflow = self.vistrail.getPipeline(version_id)
+                        except:
+                            import traceback
+                            tag = self.vistrail.get_action_annotation(
+                                                     version_id, "__tag__")
+                            debug.critical("Failed to construct pipeline '%s'" %
+                                             (tag.value if tag else version_id),
+                                           traceback.format_exc())
+                            workflow = self.vistrail.getPipeline(0)
                         wf_entity = \
                             self.create_workflow_entity(workflow, action)
 
@@ -164,7 +180,7 @@ class VistrailEntity(Entity):
                                  url_tuple[4])
                     entity.url = urlparse.urlunsplit(url_tuple)
                     wf_entity.children.append(entity)
-
+                      
             # moved this code to add_workflow_entity
             # for action in self.vistrail.actionMap.itervalues():
             #     thumbnail = self.vistrail.get_thumbnail(action.id)
