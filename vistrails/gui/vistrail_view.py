@@ -718,10 +718,18 @@ class QVistrailView(QtGui.QWidget):
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
-    def diff_requested(self, version_a, version_b):
+    def diff_requested(self, version_a, version_b, vistrail_b=None):
+        """diff_requested(self, id, id, Vistrail) -> None
+        
+        Request a diff between two versions.  If vistrail_b is
+        specified, the second version will be derived from that
+        vistrail instead of the common vistrail controlled by this
+        view.
+        """
+
         view = self.create_diff_view()
         view.set_controller(self.controller)
-        view.set_diff(version_a,version_b)
+        view.set_diff(version_a, version_b, vistrail_b)
         self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
         self.view_changed()

@@ -821,11 +821,11 @@ class QVistrailList(QtGui.QTreeWidget):
                 if hasattr(source, 'window') and hasattr(destination, 'window'):
                     # both are vistrails
                     self.merge_vistrails(source, destination)
-                elif source.parent() and hasattr(source.parent(), 'window') and \
-                    destination.parent() and \
-                    hasattr(destination.parent(), 'window') and \
-                    source.parent().window == destination.parent().window:
-                    # both are workflows from the same vistrail
+                elif (source.parent() and 
+                      hasattr(source.parent(), 'window') and 
+                      destination.parent() and 
+                      hasattr(destination.parent(), 'window')):
+                    # workflows can be from diff vistrails
                     self.visual_diff(source, destination)
 
     def merge_vistrails(self, source, destination):
@@ -843,17 +843,22 @@ class QVistrailList(QtGui.QTreeWidget):
             _app.merge_vistrails(destination.window.controller, source.window.controller)
 
     def visual_diff(self, source, destination):
+        vistrail_1 = source.parent().window.controller.vistrail
+        vistrail_2 = destination.parent().window.controller.vistrail
         if hasattr(source, 'entity'):
             v1 = source.entity.locator().kwargs.get('version_node', None)
         else:
-            vistrail = source.parent().window.controller.vistrail
-            v1 = vistrail.get_latest_version()
+            v1 = vistrail_1.get_latest_version()
         if hasattr(destination, 'entity'):
             v2 = destination.entity.locator().kwargs.get('version_node', None)
         else:
-            vistrail = destination.parent().window.controller.vistrail
-            v2 = vistrail.get_latest_version()
-        source.parent().window.diff_requested(v1, v2)
+            v2 = vistrail_2.get_latest_version()
+        
+        # if we don't have the same vistrail, pass the second vistrail
+        if id(vistrail_1) == id(vistrail_2):
+            source.parent().window.diff_requested(v1, v2)
+        else:
+            source.parent().window.diff_requested(v1, v2, vistrail_2)
         
     def add_vt_window(self, vistrail_window):
         entity = None

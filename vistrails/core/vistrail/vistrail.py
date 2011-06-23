@@ -442,7 +442,8 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return core.db.io.get_workflow_diff_with_connections(self, v1, v2)
+        return core.db.io.get_workflow_diff_with_connections((self, v1), 
+                                                             (self, v2))
         
     def get_pipeline_diff(self, v1, v2):
         """ get_pipeline_diff(v1: int, v2: int) -> tuple        
@@ -467,7 +468,7 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return core.db.io.get_workflow_diff(self, v1, v2)               
+        return core.db.io.get_workflow_diff((self, v1), (self, v2))
                         
     def getFirstCommonVersion(self, v1, v2):
         """ Returns the first version that it is common to both v1 and v2 

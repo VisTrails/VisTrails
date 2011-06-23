@@ -305,18 +305,29 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
     def set_diff(self):
         if not hasattr(self.controller, 'current_diff'):
             return
-        (v1, v2) = self.controller.current_diff_versions
+        ((vistrail_a, version_a), (vistrail_b, version_b)) = \
+            self.controller.current_diff_versions
         (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
             self.controller.current_diff
 
-        vistrail = self.controller.vistrail
         # Set up the version name correctly
-        v1_name = vistrail.getVersionName(v1)
+        v1_name = vistrail_a.getVersionName(version_a)
         if not v1_name:
-            v1_name = 'Version %d' % v1
-        v2_name = vistrail.getVersionName(v2)        
+            v1_name = 'Version %d' % version_a
+        v2_name = vistrail_b.getVersionName(version_b)
         if not v2_name:
-            v2_name = 'Version %d' % v2
+            v2_name = 'Version %d' % version_b
+
+        # Add vistrail name if necessary
+        if id(vistrail_a) != id(vistrail_b):
+            if vistrail_a.locator is not None:
+                v1_name = "%s : %s" % (vistrail_a.locator.short_name, v1_name)
+            else:
+                v1_name = "Vistrail A : %s" % v1_name
+            if vistrail_b.locator is not None:
+                v2_name = "%s : %s" % (vistrail_b.locator.short_name, v2_name)
+            else:
+                v2_name = "Vistrail B : %s" % v2_name
         
         self.legend.set_names(v1_name, v2_name)
         self.params.set_names(v1_name, v2_name)
@@ -425,13 +436,22 @@ class QDiffView(QPipelineView):
         self.controller = controller
         self.scene().controller = controller
 
-    def set_diff(self, version_a, version_b):
+    def set_diff(self, version_a, version_b, vistrail_b=None):
         # Interprete the diff result
-        self.diff_versions = (version_a, version_b)
-        self.diff = \
-            self.controller.vistrail.get_pipeline_diff(version_a, version_b)
+        vistrail_a = self.controller.vistrail
+        if vistrail_b is None:
+            vistrail_b = self.controller.vistrail
+        self.diff_versions = ((vistrail_a, version_a), 
+                              (vistrail_b, version_b))
+        self.diff = core.db.io.get_workflow_diff(*self.diff_versions)
+            # self.controller.vistrail.get_pipeline_diff(version_a, version_b)
         (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
             self.diff
+        # print "  $$$ v1Andv2:", v1Andv2
+        # print "  $$$ heuristicMatch:", heuristicMatch
+        # print "  $$$ v1Only", v1Only
+        # print "  $$$ v2Only", v2Only
+        # print "  $$$ paramChanged", paramChanged
         p1.validate(False)
         p2.validate(False)
         p_both = Pipeline()
