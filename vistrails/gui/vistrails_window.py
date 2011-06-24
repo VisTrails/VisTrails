@@ -68,7 +68,7 @@ from gui.utils import build_custom_window
 from gui.vistrail_view import QVistrailView
 from gui import merge_gui
 from gui.vistrail_variables import QVistrailVariables
-
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from db.services.io import SaveBundle
 import db.services.vistrail
 
@@ -724,6 +724,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.setCentralWidget(self.stack)        
 
         self._focus_owner = None
+        self._previous_view = None
+        
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
@@ -1525,7 +1527,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.remove_view(current_view)
         if current_view == self._first_view:
             self._first_view = None
-        elif not self.stack.count():
+        elif not self.stack.count() and QtCore.QCoreApplication.closingDown():
             self.create_first_vistrail()
         return True
 
@@ -2119,22 +2121,26 @@ class QVistrailsWindow(QVistrailViewWindow):
     def applicationFocusChanged(self, old, current):
         if current is not None:
             owner = current.window()
-            if owner != self._focus_owner:
-                self._focus_owner = owner
-                if (self.isAncestorOf(current) or 
-                    current.window() in self.windows.values()):
-                    view = self.get_current_view()
-                    if view:
+            if (self.isAncestorOf(current) or 
+                owner in self.windows.values()):
+                view = self.get_current_view()
+                if view and (view == current or view.isAncestorOf(current)):
+                    if owner != self._focus_owner:
+                        self._previous_view = view.get_current_tab()
+                        self._focus_owner = owner
                         self.change_view(view)
                         view.reset_tab_view_to_current()
                         self.update_window_menu()
-                elif isinstance(current, BaseView):
-                    view = current.get_vistrail_view()
-                    if view:
-                        self.change_view(view)
-                        view.set_to_current(current)
-                        self.update_window_menu()
-     
+            elif isinstance(current, BaseView):
+                view = current.get_vistrail_view()
+                if view and owner != self._focus_owner:
+                    self._previous_view = view.get_current_tab()
+                    self._focus_owner = owner
+                    self.change_view(view)
+                    view.set_to_current(current)
+                    self.update_window_menu()
+        else:
+            self._focus_owner = None
 _app = None
 _global_menubar = None
     

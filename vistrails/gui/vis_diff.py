@@ -436,6 +436,38 @@ class QDiffView(QPipelineView):
         self.controller = controller
         self.scene().controller = controller
 
+    def get_long_title(self):
+        return self.long_title
+    
+    def set_diff_version_names(self):
+        ((vistrail_a, version_a), (vistrail_b, version_b)) = self.diff_versions
+        
+        # Set up the version name correctly
+        v1_name = vistrail_a.getVersionName(version_a)
+        if not v1_name:
+            v1_name = 'Version %d' % version_a
+        v2_name = vistrail_b.getVersionName(version_b)
+        if not v2_name:
+            v2_name = 'Version %d' % version_b
+
+        # Add vistrail name if necessary
+        if id(vistrail_a) != id(vistrail_b):
+            if vistrail_a.locator is not None:
+                v1_name = "%s : %s" % (vistrail_a.locator.short_name, v1_name)
+            else:
+                v1_name = "Vistrail A : %s" % v1_name
+            if vistrail_b.locator is not None:
+                v2_name = "%s : %s" % (vistrail_b.locator.short_name, v2_name)
+            else:
+                v2_name = "Vistrail B : %s" % v2_name
+            title = "Diff: %s x %s"%(v1_name, v2_name)
+        else:
+            title = "Diff: %s x %s from %s" % (v1_name, v2_name,
+                                               self.vistrail_view.get_name())
+        self.v1_name = v1_name
+        self.v2_name = v2_name
+        self.set_long_title(title)
+        
     def set_diff(self, version_a, version_b, vistrail_b=None):
         # Interprete the diff result
         vistrail_a = self.controller.vistrail
@@ -443,6 +475,7 @@ class QDiffView(QPipelineView):
             vistrail_b = self.controller.vistrail
         self.diff_versions = ((vistrail_a, version_a), 
                               (vistrail_b, version_b))
+        self.set_diff_version_names()
         self.diff = core.db.io.get_workflow_diff(*self.diff_versions)
             # self.controller.vistrail.get_pipeline_diff(version_a, version_b)
         (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \

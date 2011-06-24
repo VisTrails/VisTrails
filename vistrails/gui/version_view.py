@@ -861,7 +861,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             self.edges[(efrom, new_version)] = edge
             del self.edges[(efrom, old_version)]
 
-    def setupScene(self, controller):
+    def setupScene(self, controller, select_node=True):
         """ setupScene(controller: VistrailController) -> None
         Construct the scene to view a version tree
         
@@ -923,7 +923,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 versionShape.setupVersion(node, action, tag, description)
             else:
                 self.addVersion(node, action, tag, description)
-            self.versions[v].setSelected(v == controller.current_version)
+            if select_node:
+                self.versions[v].setSelected(v == controller.current_version)
 
         self.emit_selection = True
         self.selectionChanged()
@@ -1192,7 +1193,11 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         An action was performed on the current vistrail
         
         """
-        self.scene().setupScene(self.controller)
+        from gui.vistrails_window import _app
+        select_node = True
+        if _app._previous_view and _app._previous_view.window() != self.window():
+            select_node = False
+        self.scene().setupScene(self.controller, select_node)
         if self.controller and self.controller.reset_version_view:
             self.scene().fitToAllViews()
         if self.controller:

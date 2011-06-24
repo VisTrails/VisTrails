@@ -196,8 +196,12 @@ class QVistrailView(QtGui.QWidget):
         self.setWindowTitle(title)
 
     def reset_version_view(self):
+        from gui.vistrails_window import _app
         if self.version_view is not None:
-            self.version_view.scene().setupScene(self.controller)
+            select_node = True
+            if _app._previous_view and _app._previous_view in self.detached_views:
+                select_node = False
+            self.version_view.scene().setupScene(self.controller, select_node)
 
     def reset_tab_state(self):
         try:
@@ -407,12 +411,14 @@ class QVistrailView(QtGui.QWidget):
         if self.tab_to_stack_idx.has_key(tab_idx):
             stack_index = self.tab_to_stack_idx[tab_idx]
             view = self.stack.widget(stack_index)
-            pip_name = self.controller.get_pipeline_name()
-            vt_name = self.get_name()
+            title = view.get_long_title()
             self.remove_view_by_index(tab_idx)
             view.setParent(None)
             view.setWindowFlags(QtCore.Qt.Window)
-            view.set_title("%s from %s"%(pip_name,vt_name))
+            view.set_title(title)
+            view.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            self.connect(view, QtCore.SIGNAL("viewWasClosed"),
+                         self.detachedViewWasClosed)
             self.detached_views.append(view)
             view.adjustSize()
             view.move(self.rect().center())
@@ -427,8 +433,12 @@ class QVistrailView(QtGui.QWidget):
     
     def closeDetachedViews(self):
         for view in self.detached_views:
-            view.close()
+            if view:
+                view.close()
             
+    def detachedViewWasClosed(self, view):
+        self.detached_views.remove(view)
+        
     def updateTabsTooTip(self):
         for i in range(self.tabs.count()):
             if self.isTabDetachable(i):
@@ -505,10 +515,15 @@ class QVistrailView(QtGui.QWidget):
         self.tab_changed(index)
 
     def get_current_tab(self):
-        widget = self.stack.currentWidget()
-        if type(widget) == QQueryView:
-            widget = widget.get_current_view()
-        return widget
+        if self.window().isActiveWindow():
+            widget = self.stack.currentWidget()
+            if type(widget) == QQueryView:
+                widget = widget.get_current_view()
+            return widget
+        else:
+            window = QtGui.QApplication.activeWindow()
+            if window in self.detached_views:
+                return window
     
     def get_tab(self, stack_idx):
         widget = self.stack.widget(stack_idx)
@@ -698,9 +713,13 @@ class QVistrailView(QtGui.QWidget):
         else:
             window = _app
         print 'got version selected:', version_id
-        view = self.stack.widget(
-            self.tab_to_stack_idx[self.tabs.currentIndex()])
-
+        if _app._focus_owner in self.detached_views:
+            view = _app._focus_owner
+        elif _app._previous_view in self.detached_views:
+            view = _app._previous_view
+        else:
+            view = self.stack.widget(
+                            self.tab_to_stack_idx[self.tabs.currentIndex()])
         if view and by_click:
             self.controller.change_selected_version(version_id, by_click, 
                                                     do_validate, from_root)
@@ -714,7 +733,10 @@ class QVistrailView(QtGui.QWidget):
                 window.qactions['pipeline'].trigger()
             self.version_view.redo_stack = []
         if view and not isinstance(view, QDiffView):
-            view.set_title(self.controller.get_pipeline_name())
+            if view not in self.detached_views:
+                view.set_title(self.controller.get_pipeline_name())
+            else:
+                view.set_title(view.get_long_title())
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 

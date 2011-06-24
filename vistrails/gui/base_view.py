@@ -70,6 +70,12 @@ class BaseView(object):
     def get_title(self):
         return self.title
 
+    def set_long_title(self, title):
+        self.long_title = title
+        
+    def get_long_title(self):
+        return self.title
+    
     def get_index(self):
         return self.index
 
@@ -95,3 +101,7 @@ class BaseView(object):
         if event.type() == QtCore.QEvent.WindowTitleChange:
             self.emit(QtCore.SIGNAL("windowTitleChanged"), self)
         QtGui.QWidget.changeEvent(self, event)
+
+    def closeEvent(self, event):
+        self.emit(QtCore.SIGNAL("viewWasClosed"), self)
+        event.accept()
