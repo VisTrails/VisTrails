@@ -290,7 +290,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         role = self.msg_box.buttonRole(button)
         if role == self.msg_box.RejectRole:
             self.itemQueue = []
-            self.show()
+            self.set_visible(True)
             self.list.setCurrentItem(self.currentItem)
             self.list.scrollToItem(self.currentItem)
         elif role == self.msg_box.DestructiveRole:
