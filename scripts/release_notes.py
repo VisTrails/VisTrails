@@ -32,9 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+"""This will write text of a release notes file based on commit messages and trac
+tickets. Use the configuration section below to tune the start and end commits.
+The text will be written to the standard output.
+"""
+
 import xmlrpclib
 import git
 import getpass
+import os
 import sys
 import re
 import tempfile
@@ -42,13 +48,14 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "48e477f4c1d9" # hash of version used on last release notes
+commit_start = "af4a69ad566a" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
-branch = "master" # git branch to be used
-release_name = "1.6" 
+branch = "v2.0" # git branch to be used
+release_name = "2.0-alpha" 
 clonepath = None # set this to the complete path of a vistrails clone to be used
                  # if None, the remote repository will be cloned to a temporary
                  # folder and removed at the end of the script
+#clonepath = '/Users/emanuele/temp/vistrails_test'
 cloneremote = 'git://vistrails.sci.utah.edu/vistrails.git'
 #### end configuration #####
 
@@ -75,21 +82,19 @@ def clone_vistrails_git_repository(path_to):
     global cloneremote
     cmdlist = ['git', 'clone', cloneremote,
                path_to]
-    cmdline = subprocess.list2cmdline(cmdlist)
     print "Cloning vistrails from:"
     print "  %s to"%cloneremote
     print "  %s"%path_to
     print "Be patient. This may take a while."
-    process = subprocess.Popen(cmdline, shell=True,
+    process = subprocess.Popen(cmdlist, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
                                close_fds=True)
-    result = None
-    while result == None:
-        result = process.poll()
-    print "repository is cloned."
-    return result
+    process.wait()
+    if process.returncode == 0:
+        print "repository is cloned."
+    return process.returncode
 
 ################################################################################
 
@@ -108,11 +113,13 @@ def init_repo():
             shutil.rmtree(clonepath)
             sys.exit(1)
     if ok:
+        init_branch(clonepath,branch)
         repo = git.Repo(clonepath)
         return repo
     else:
         print "ERROR: git clone failed."
         sys.exit(1)
+
 ################################################################################
 
 def cleanup_repo():
@@ -122,11 +129,31 @@ def cleanup_repo():
         
 ################################################################################
 
+def init_branch(path_to, branch):
+    cmdlist = ['git', 'checkout', "%s"%branch]
+    print "Checking out %s branch..."%branch
+    current_dir = os.getcwd()
+    os.chdir(path_to)
+    process = subprocess.Popen(cmdlist, shell=False,
+                               stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               close_fds=True)
+    process.wait()
+    print process.stdout.readlines()
+    if process.returncode == 0:
+        print "Branch %s was checked out."%branch
+    os.chdir(current_dir)    
+    return process.returncode
+
+################################################################################
+
 def checkout_branch(repo, branch):
     repobranch = getattr(repo.heads, branch)
     repobranch.checkout()
 
 ##############################################################################
+
 def build_release_notes(repo, branch):
     global username
     global password
@@ -278,8 +305,9 @@ def build_release_notes(repo, branch):
         for c in changes[r]:
             print "  - %s... "%c[0:100]
 
-repo = init_repo()
-build_release_notes(repo, branch)
-cleanup_repo()
+if __name__ == "__main__":
+    repo = init_repo()
+    build_release_notes(repo, branch)
+    cleanup_repo()
 
 
