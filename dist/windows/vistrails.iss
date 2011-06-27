@@ -132,14 +132,15 @@ Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 ;Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
 ;Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
-;Source: C:\WINDOWS\system32\Python26.dll; DestDir: {app}\vistrails
-;Source: C:\WINDOWS\system32\Python26.dll; DestDir: {app}\vistrails\Python26
+Source: C:\WINDOWS\system32\Python27.dll; DestDir: {app}\vistrails
+Source: C:\WINDOWS\system32\Python27.dll; DestDir: {app}\vistrails\Python27
 Source: I:\emanuele\src\vtk\vtk-5.6.1\build\bin\Release\*.dll; DestDir: {app}\vistrails
+Source: I:\emanuele\src\vtk\vtk-5.6.1\build\bin\Release\*.pyd; DestDir: {app}\vistrails
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-;Source: Input\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: Input\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
@@ -213,6 +214,7 @@ Name: {app}\vistrails\zlib1.dll; Type: files
 Name: {app}\vistrails\python24.dll; Type: files
 Name: {app}\vistrails\Python24; Type: filesandordirs
 Name: {app}\vistrails\Python25; Type: filesandordirs
+Name: {app}\vistrails\Python26; Type: filesandordirs
 Name: {app}\vistrails\vtk; Type: filesandordirs
 Name: {app}\vistrails\*.pyd; Type: files
 Name: {app}\vistrails\dgnlib.dll; Type: files
