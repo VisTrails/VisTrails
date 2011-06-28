@@ -38,8 +38,8 @@ import glob
 import os
 from datetime import datetime
 from time import strptime
-from core import debug
 from core.thumbnails import ThumbnailCache
+from core import debug
 from core.collection import Collection
 from core.collection.search import SearchCompiler, SearchParseError
 from core.db.locator import FileLocator
@@ -314,8 +314,10 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
         self.entity = entity
         if type == '1':
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
+            self.tag_to_item = {}
         elif type == '2':
             self.setIcon(0, CurrentTheme.PIPELINE_ICON)
+            self.executionList = []
         elif type == '3':
             self.setIcon(0, CurrentTheme.EXECUTE_PIPELINE_ICON)
 
@@ -323,9 +325,10 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             
         for child in entity.children:
             l = child.save()
-            # handle thumbnails
             if l[1] == 4:
-                cache = ThumbnailCache.getInstance() #.get_directory()
+                # is a thumbnail
+                # add to parent workflow item
+                cache = ThumbnailCache.getInstance()
                 path = cache.get_abs_name_entry(l[2])
                 if path:
                     pixmap = QtGui.QPixmap(path)
@@ -333,7 +336,22 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
                     tooltip += """<br/><img border=0 src='%(path)s'/>
                         """ % {'path':path}
                 continue
-            elif not child.name.startswith('Version #'):
+            if l[1] == 2:
+                # is a pipeline
+                # only show tagged items
+                if not child.name.startswith('Version #'):
+                    childItem = klass(child)
+                    self.addChild(childItem)
+                    # keep list of tagged workflows
+                    self.tag_to_item[child.name] = childItem
+            elif l[1] == 3:
+                # is an execution
+                childItem = klass(child)
+                # hidden by default
+                self.executionList.append(childItem)
+                self.addChild(childItem)
+                childItem.setHidden(True)
+            else:
                 self.addChild(klass(child))
         if entity.description:
             tooltip += '<br/>%s' % entity.description
@@ -472,6 +490,35 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.addButtonsToToolbar()
 
     def addButtonsToToolbar(self):
+        # button for toggling executions
+        self.execAction = QtGui.QAction(CurrentTheme.EXECUTE_PIPELINE_ICON,
+                                        "Show/hide workflow executions",
+                                        None,
+                                        triggered=self.showWorkflowExecutions)
+        self.execAction.setCheckable(True)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.execAction)
+        # buttons for toggling list/tree views of workflows
+        self.listAction = QtGui.QAction(CurrentTheme.LIST_VIEW_ICON,
+                                        "View workflows in a list",
+                                        None,
+                                        triggered=self.viewAsList)
+        self.listAction.setCheckable(True)
+        self.listAction.setChecked(True)
+        self.treeAction = QtGui.QAction(CurrentTheme.TREE_VIEW_ICON,
+                                            "View workflows in a tree",
+                                            None,
+                                            triggered=self.viewAsTree)
+        self.treeAction.setCheckable(True)
+        self.workflowDisplayGroup = QtGui.QActionGroup(self)
+        self.workflowDisplayGroup.setExclusive(True)
+        self.workflowDisplayGroup.addAction(self.listAction)
+        self.workflowDisplayGroup.addAction(self.treeAction)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.listAction)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.treeAction)
+        # buttons for going to the search view to search all vistrails
         self.searchAction = QtGui.QAction("Search", self.toolWindow().toolbar,
                                           triggered=self.gotoSearch)
         self.searchAction.searchMode = False
@@ -498,6 +545,24 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
             self.searchAction.searchMode = True
             self.searchAction.setText("Clear Search")
         self.open_list.update_search_results(result_list)
+
+    def showWorkflowExecutions(self, state):
+        """ toggle show executions on/off """
+        self.open_list.hideExecutions(not state)
+
+    def viewAsList(self):
+        """ Order workflow items as a flat list """
+        self.open_list.isTreeView = False
+        for i in xrange(self.open_list.openFilesItem.childCount()):
+            item = self.open_list.openFilesItem.child(i)
+            self.open_list.make_list(item)
+
+    def viewAsTree(self):
+        """ Order workflow items as a history tree """
+        self.open_list.isTreeView = True
+        for i in xrange(self.open_list.openFilesItem.childCount()):
+            item = self.open_list.openFilesItem.child(i)
+            self.open_list.make_tree(item)
 
     def update_workspace_list(self):
         """ Updates workspace list and highlights currentWorkspace
@@ -690,6 +755,9 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setExpandsOnDoubleClick(False)
         self.setRootIsDecorated(False)
 
+        self.isTreeView = False
+        self.executionsHidden = True
+
         self.collection = Collection.getInstance()
         self.items = {}
 
@@ -720,6 +788,7 @@ class QVistrailList(QtGui.QTreeWidget):
         self.connect(self,
                      QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
                      self.onItemPressed)
+        self.updateHideExecutions()
 
     def setup_closed_files(self):
         self.closedFilesItem = QtGui.QTreeWidgetItem(['My Vistrails'])
@@ -818,13 +887,14 @@ class QVistrailList(QtGui.QTreeWidget):
                 source = data.items[0]
                 if not source or source == destination:
                     return
+
                 if hasattr(source, 'window') and hasattr(destination, 'window'):
                     # both are vistrails
                     self.merge_vistrails(source, destination)
-                elif (source.parent() and 
-                      hasattr(source.parent(), 'window') and 
-                      destination.parent() and 
-                      hasattr(destination.parent(), 'window')):
+                elif (type(source) == QVistrailListLatestItem or
+                      hasattr(source, 'executionList')) and \
+                     (type(destination) == QVistrailListLatestItem or
+                      hasattr(destination, 'executionList')):
                     # workflows can be from diff vistrails
                     self.visual_diff(source, destination)
 
@@ -843,8 +913,14 @@ class QVistrailList(QtGui.QTreeWidget):
             _app.merge_vistrails(destination.window.controller, source.window.controller)
 
     def visual_diff(self, source, destination):
-        vistrail_1 = source.parent().window.controller.vistrail
-        vistrail_2 = destination.parent().window.controller.vistrail
+        source_parent = source.parent()
+        while not hasattr(source_parent, 'window'):
+            source_parent = source_parent.parent()
+        destination_parent = destination.parent()
+        while not hasattr(destination_parent, 'window'):
+            destination_parent = destination_parent.parent()
+        vistrail_1 = source_parent.window.controller.vistrail
+        vistrail_2 = destination_parent.window.controller.vistrail
         if hasattr(source, 'entity'):
             v1 = source.entity.locator().kwargs.get('version_node', None)
         else:
@@ -856,18 +932,81 @@ class QVistrailList(QtGui.QTreeWidget):
         
         # if we don't have the same vistrail, pass the second vistrail
         if id(vistrail_1) == id(vistrail_2):
-            source.parent().window.diff_requested(v1, v2)
+            source_parent.window.diff_requested(v1, v2)
         else:
-            source.parent().window.diff_requested(v1, v2, vistrail_2)
+            source_parent.window.diff_requested(v1, v2, vistrail_2)
+            
+    def hideExecutions(self, hidden):
+        self.executionsHidden = hidden
+        self.updateHideExecutions()
         
+    def updateHideExecutions(self):            
+        for i in xrange(self.openFilesItem.childCount()):
+            vt = self.openFilesItem.child(i)
+            if not hasattr(vt, 'tag_to_item'):
+                continue
+            for item in vt.tag_to_item.itervalues():
+                if not hasattr(item, 'executionList'):
+                    continue
+                for exec_item in item.executionList:
+                    exec_item.setHidden(self.executionsHidden)
+        for i in xrange(self.closedFilesItem.childCount()):
+            vt = self.closedFilesItem.child(i)
+            if not hasattr(vt, 'tag_to_item'):
+                continue
+            for item in vt.tag_to_item.itervalues():
+                if not hasattr(item, 'executionList'):
+                    continue
+                for exec_item in item.executionList:
+                    exec_item.setHidden(self.executionsHidden)
+
+    def make_list(self, item):
+        """ construct a list from the tagged workflows in a loaded vistrail
+        """
+        if not hasattr(item, 'tag_to_item'):
+            return
+        for tag, wf in item.tag_to_item.iteritems():
+            index = wf.parent().indexOfChild(wf)
+            wf = wf.parent().takeChild(index)
+            item.addChild(wf)
+        self.updateHideExecutions()
+
+
+    def make_tree(self, item):
+        """ construct a tree from the tagged workflows in a loaded vistrail
+        """
+        am = item.window.controller.vistrail.actionMap
+        tm = item.window.controller.vistrail.get_tagMap()
+        vm = dict((v,k) for k, v in tm.iteritems())
+        # loop through tagged workflows and add to parent workflow
+        if not hasattr(item, 'tag_to_item'):
+            return
+        for tag, wf in item.tag_to_item.iteritems():
+            if tag not in vm:
+                continue
+            # find parent
+            version = vm[tag]
+            action = am[version]
+            while action.parent in am:
+                action = am[action.parent]
+                if action.timestep in tm:
+                    break
+            if action.timestep not in tm or action.timestep == version:
+                continue
+            parent_tag = tm[action.timestep]
+            if parent_tag in item.tag_to_item:
+                parent_wf = item.tag_to_item[parent_tag]
+                index = wf.parent().indexOfChild(wf)
+                wf = wf.parent().takeChild(index)
+                parent_wf.addChild(wf)
+        self.updateHideExecutions()
+
     def add_vt_window(self, vistrail_window):
-        entity = None
         locator = vistrail_window.controller.locator
         entity = None
         if locator:
             entity = self.collection.fromUrl(locator.to_url())
-        item = None
-        # first look for item in recent list
+        # remove item from recent list
         for i in xrange(self.closedFilesItem.childCount()):
             recent = self.closedFilesItem.child(i)
             if entity and recent and recent.entity and \
@@ -875,14 +1014,14 @@ class QVistrailList(QtGui.QTreeWidget):
                 self.setSelected(None)
                 index = self.closedFilesItem.indexOfChild(recent)
                 item = self.closedFilesItem.takeChild(index)
-                item.window = vistrail_window
-        if not item:
-            item = QVistrailListItem(entity, vistrail_window)
+        item = QVistrailListItem(entity, vistrail_window)
+        self.make_tree(item) if self.isTreeView else self.make_list(item)
         item.current_item = QVistrailListLatestItem()
         item.addChild(item.current_item)
         self.openFilesItem.addChild(item)
         self.items[id(vistrail_window)] = item
         self.setSelected(vistrail_window)
+        self.updateHideExecutions()
 
     def remove_vt_window(self, vistrail_window):
         self.setSelected(None)
@@ -892,20 +1031,17 @@ class QVistrailList(QtGui.QTreeWidget):
         index = self.openFilesItem.indexOfChild(item)
         item = self.openFilesItem.takeChild(index)
         item.removeChild(item.current_item)
-        if item.entity:
-            if vistrail_window.controller.locator.to_url() == item.entity.url:
-                self.closedFilesItem.addChild(item)
-                item.setText(0, item.entity.name)
-            else:
-                # locator have changed
-                locator = vistrail_window.controller.locator
-                entity = None
-                if locator:
-                    entity = self.collection.fromUrl(locator.to_url())
-                if entity:
-                    item = QVistrailListItem(entity)
-                    self.closedFilesItem.addChild(item)
-                    item.setText(0, entity.name)
+        locator = vistrail_window.controller.locator
+        # entity may have changed
+        entity = None
+        if locator:
+            entity = self.collection.fromUrl(locator.to_url())
+        if entity:
+            item = QVistrailListItem(entity)
+            self.make_tree(item) if self.isTreeView else self.make_list(item)
+            self.closedFilesItem.addChild(item)
+            item.setText(0, entity.name)
+        self.updateHideExecutions()
 
     def change_vt_window(self, vistrail_window):
         self.setSelected(vistrail_window)

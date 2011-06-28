@@ -507,6 +507,15 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/collapse_all.png')
         
+        # Icons for tree/list view buttons in the Workspace
+        self.LIST_VIEW_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/list_view.png')
+        
+        self.TREE_VIEW_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/tree_view.png')
+
         # Toolbar icons for views
         self.PIPELINE_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
