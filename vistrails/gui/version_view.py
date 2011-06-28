@@ -1133,7 +1133,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     def publish_to_paper(self):
         from gui.publishing import QLatexAssistant
         latex_palette = QLatexAssistant.instance()
-        latex_palette.toolWindow().raise_()
+        latex_palette.set_visible(True)
         
     def selectModules(self):
         """ selectModules() -> None

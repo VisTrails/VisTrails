@@ -2592,7 +2592,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def publish_to_paper(self):
         from gui.publishing import QLatexAssistant
         latex_palette = QLatexAssistant.instance()
-        latex_palette.toolWindow().raise_()
+        latex_palette.set_visible(True)
 
     def check_publish_db(self, pipeline):
         loc = self.controller.locator

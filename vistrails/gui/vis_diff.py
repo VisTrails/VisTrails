@@ -407,7 +407,21 @@ class QDiffView(QPipelineView):
         self.diff = None
         self.diff_versions = None
         self.controller = None
+        self.setReadOnlyMode(True)
         
+    def set_action_links(self):
+        self.action_links = \
+            {'copy': ('module_changed', self.has_selected_modules),
+             'showGroup': ('module_changed', self.has_selected_group),
+             'configureModule': ('module_changed', self.has_selected_module),
+             'documentModule': ('module_changed', self.has_selected_module),
+             }
+            
+    def set_action_defaults(self):
+        self.action_defaults = \
+            {'execute' : [('setEnabled', False, False)],
+             }
+            
     def set_to_current(self):
         # change to normal controller hacks
         print "AAAAA doing set_to_current"
