@@ -640,6 +640,8 @@ def open_vistrail_bundle_from_zip_xml(filename):
                       root == os.path.join(vt_save_dir,'thumbs')):
                     thumbnail_file = os.path.join(root, fname)
                     thumbnail_files.append(thumbnail_file)
+                elif root == os.path.join(vt_save_dir,'mashups'):
+                    pass
                 else:
                     unknown_files.append(os.path.join(root, fname))
     except OSError, e:
