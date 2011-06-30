@@ -51,12 +51,17 @@ import copy
 # etc
 
 def clamp(v, mn, mx, eps=0.0):
-    mn += eps
-    mx -= eps
-    if v < mn: return mn
-    if v > mx: return mx
+    mne = mn + eps
+    mxe = mx - eps
+    if v < mne: return mn
+    if v > mxe: return mx
     return v
+# Because of a Qt bug see 
+# http://bugreports.qt.nokia.com/browse/QTBUG-17985
+# We cannot set the scene from 0 to 1. In this case we will set it
+# 4000 x 4000 with GLOBAL_SCALE. When the bug is fixed, just set it to 1.0
 
+GLOBAL_SCALE = 4000.0
 ##############################################################################
 # Transfer Function object
 
@@ -206,7 +211,7 @@ class TransferFunction(object):
 class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
 
     selection_pens = { True: QtGui.QPen(QtGui.QBrush(
-        QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),0.012),
+        QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),GLOBAL_SCALE * 0.012),
                        False: QtGui.QPen() }
 
     def __init__(self, scalar, opacity, color, parent=None):
@@ -226,9 +231,12 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
 
         self._sx = 1.0
         self._sy = 1.0
+        # fixed scale
+        self._fsx = GLOBAL_SCALE
+        self._fsy  = GLOBAL_SCALE
         self._left_line = None
         self._right_line = None
-        self._point = QtCore.QPointF(scalar, opacity)
+        self._point = QtCore.QPointF(scalar * self._fsx, opacity * self._fsy)
         self.refresh()
 
         self.setToolTip("Double-click to change color\n"
@@ -243,15 +251,16 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
             self.remove_self()
 
     def refresh(self):
-        dx = 0.025 / self._sx
-        dy = 0.025 / self._sy
+        dx = self._fsx * 0.025 / self._sx
+        dy = self._fsy * 0.025/ self._sy
         # this is the setup
         self.setBrush(QtGui.QBrush(self._color))
         self.setRect(-dx,
                      -dy,
                      2 * dx, 2 * dy)
-        self.setPos(self._scalar,
-                    self._opacity)
+        self.setPos(self._fsx * self._scalar,
+                    self._fsy * self._opacity)
+        self.update()
 
     def update_scale(self, sx, sy):
         self._sx = sx
@@ -264,13 +273,13 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         if change == QtGui.QGraphicsItem.ItemPositionChange:
             # moves point
             pt = value.toPointF()
-            pt.setY(clamp(pt.y(), 0.0, 1.0))
-            self._opacity = pt.y()
+            pt.setY(clamp(pt.y(), 0.0, 1.0 * self._fsy) )
+            self._opacity = pt.y() / self._fsy
             self._point.setY(pt.y())
             if not self._left_line:
                 pt.setX(0.0)
             elif not self._right_line:
-                pt.setX(1.0)
+                pt.setX(1.0 * self._fsx)
             else:
                 assert self._left_line._point_right == self
                 assert self._right_line._point_left == self
@@ -279,7 +288,7 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
                               self._right_line._point_right._point.x(),
                               1e-6))
                 self._point.setX(pt.x())
-                self._scalar = pt.x()
+                self._scalar = pt.x() / self._fsx
             if self._left_line:
                 self._left_line.refresh()
             if self._right_line:
@@ -322,6 +331,7 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
             self._right_line.refresh()
         self.refresh()
         self.scene()._tf_poly.setup()
+        QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
@@ -329,6 +339,17 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
             self.remove_self()
         else:
             QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
+        
+    def paint(self, painter, option, widget=None):
+        """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
+                  widget: QWidget) -> None
+        Peform painting of the point without the ugly default dashed-line black
+        square
+        
+        """
+        painter.setBrush(self.brush())
+        painter.setPen(self.pen())
+        painter.drawEllipse(self.rect())
         
     def add_self_to_transfer_function(self, tf):
         tf.add_point(self._scalar,
@@ -353,11 +374,11 @@ class TransferFunctionPolygon(QtGui.QGraphicsPolygonItem):
         g = QtGui.QLinearGradient()
         g.setStart(0.0, 0.5)
         g.setFinalStop(1.0, 0.5)
+        g.setCoordinateMode(QtGui.QGradient.ObjectBoundingMode)
         p = QtGui.QPen()
         p.setStyle(QtCore.Qt.NoPen)
         pts = [QtCore.QPointF(pt.x(), 0)]
         self.setPen(p)
-        
         while 1:
             c = QtGui.QColor(pt._color)
             c.setAlphaF(pt._opacity)
@@ -385,6 +406,10 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         self.setup(1.0, 1.0)
         self._sx = 1.0
         self._sy = 1.0
+        # fixed scale
+        self._fsx = GLOBAL_SCALE
+        self._fsy  = GLOBAL_SCALE
+        self.setToolTip('')
         
     def setup(self, sx, sy):
         d = self._point_right._point - self._point_left._point
@@ -392,7 +417,7 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         l = math.sqrt(d.x() * d.x() + d.y() * d.y())
         if l != 0.0:
             d_normal /= l
-            d_normal *= 0.010
+            d_normal *= GLOBAL_SCALE * 0.010
             d_normal.setX(d_normal.x() / sx)
             d_normal.setY(d_normal.y() / sy)
         ps = [self._point_left._point + d_normal,
@@ -403,8 +428,9 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         self.setZValue(1.5)
         # Gradient for filling
         g = QtGui.QLinearGradient()
-        g.setStart(self._point_left._point)
-        g.setFinalStop(self._point_right._point)
+        g.setCoordinateMode(QtGui.QGradient.ObjectBoundingMode)
+        g.setStart(self._point_left._scalar, self._point_left._opacity)
+        g.setFinalStop(self._point_right._scalar, self._point_right._opacity)
         g.setColorAt(0.0, self._point_left._color)
         g.setColorAt(1.0, self._point_right._color)
         self.setBrush(QtGui.QBrush(g))
@@ -441,7 +467,7 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         new_c = (u * c_right.redF() + (1-u) * c_left.redF(),
                  u * c_right.greenF() + (1-u) * c_left.greenF(),
                  u * c_right.blueF() + (1-u) * c_left.blueF())
-        new_point = TransferFunctionPoint(p.x(), p.y(), new_c)
+        new_point = TransferFunctionPoint(p.x()/ self._fsx, p.y()/self._fsy, new_c)
         new_line = TransferFunctionLine(new_point, self._point_right)
         new_point._left_line = self
         self._point_right = new_point
@@ -473,6 +499,7 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
         self._tf_poly = poly
         self.addItem(poly)
         self.create_tf_items(tf)
+        self._tf_poly.setup()
         #current scale
         self._sx = 1.0
         self._sy = 1.0    
@@ -480,16 +507,16 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
         line_color = QtGui.QColor(200, 200, 200)
         pen = QtGui.QPen(line_color)
         ps = [QtCore.QPointF(0.0, 0.0),
-              QtCore.QPointF(1.0, 0.0),
-              QtCore.QPointF(1.0, 1.0),
-              QtCore.QPointF(0.0, 1.0)]
+              QtCore.QPointF(GLOBAL_SCALE, 0.0),
+              QtCore.QPointF(GLOBAL_SCALE, GLOBAL_SCALE),
+              QtCore.QPointF(0.0, GLOBAL_SCALE)]
         outline = QtGui.QPolygonF(ps)
         self.addPolygon(outline, pen)
 
         for i in xrange(51):
-            u = float(i) / 50.0
-            self.addLine(QtCore.QLineF(u, 0.0, u, 1.0), pen)
-            self.addLine(QtCore.QLineF(0.0, u, 1.0, u), pen)
+            u = GLOBAL_SCALE * float(i) / 50.0
+            self.addLine(QtCore.QLineF(u, 0.0, u, GLOBAL_SCALE), pen)
+            self.addLine(QtCore.QLineF(0.0, u, GLOBAL_SCALE, u), pen)
 
     def reset_transfer_function(self, tf):
         self.create_tf_items(tf)
@@ -570,8 +597,9 @@ class TransferFunctionView(QtGui.QGraphicsView):
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         
     def resizeEvent(self, event):
-        self.setMatrix(QtGui.QMatrix(event.size().width() / (10.0/9), 0,
-                                     0, -event.size().height() / (10.0/9), 0, 0))
+        self.resetMatrix()
+        self.setMatrix(QtGui.QMatrix(event.size().width() / (GLOBAL_SCALE *10.0/9) , 0,
+                                     0, -event.size().height() / (GLOBAL_SCALE*10.0/9), 0, 0))
         self.scene().update_scale(event.size().width()/(2000.0/9), event.size().height()/(2000.0/9))
         
     def focusOutEvent(self, event):
@@ -597,11 +625,12 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
         self._view = TransferFunctionView(self)
         self._view.setScene(self._scene)
         self._view.setMinimumSize(200,200)
+        self._view.setMaximumHeight(280)
         self._view.show()
         self._view.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                  QtGui.QSizePolicy.Expanding)
-        self._view.setMatrix(QtGui.QMatrix(180, 0, 0, -180, 0, 0))
-        self.setMinimumSize(200,200)
+        self._view.setMatrix(QtGui.QMatrix(1, 0, 0, -1, 0, 0))
+        self.setMinimumSize(260,240)
         caption = QtGui.QLabel("Double-click on the line to add a point")
         font = QtGui.QFont('Arial', 11)
         font.setItalic(True)
