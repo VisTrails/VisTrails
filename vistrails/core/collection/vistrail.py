@@ -35,6 +35,7 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import QString
 from core.thumbnails import ThumbnailCache
 from core import debug
+import core.system
 import xml.sax.saxutils
 import urlparse
 
@@ -87,18 +88,24 @@ class VistrailEntity(Entity):
 
     def set_vistrail(self, vistrail):
         self.vistrail = vistrail
-        latestVersion = \
-            self.vistrail.actionMap[self.vistrail.get_latest_version()]
-        firstVersion = self.vistrail.actionMap[1] \
-            if 1 in self.vistrail.actionMap else latestVersion
 
         self.name = self.vistrail.locator.short_name
         if not self.name or self.name == 'None':
             self.name = self.vistrail.db_name
-        self.user = latestVersion.user
-        self.mod_time = latestVersion.date
-        self.create_time = firstVersion.date
         self.size = len(self.vistrail.actionMap)
+        if self.size:
+            latestVersion = self.vistrail.actionMap[
+                                self.vistrail.get_latest_version()]
+            self.user = latestVersion.user
+            self.mod_time = latestVersion.date
+            firstVersion = self.vistrail.actionMap[1] \
+                if 1 in self.vistrail.actionMap else latestVersion
+            self.create_time = firstVersion.date
+        else:
+            # empty vistrail
+            self.user = core.system.current_user()
+            self.mod_time = core.system.current_time()
+            self.create_time = core.system.current_time()
         self.description = ""
         self.url = self.vistrail.locator.to_url()
         self.was_updated = True        
