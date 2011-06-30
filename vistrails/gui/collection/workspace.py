@@ -1026,6 +1026,8 @@ class QVistrailList(QtGui.QTreeWidget):
         self.updateHideExecutions()
 
     def remove_vt_window(self, vistrail_window):
+        if id(vistrail_window) not in self.items:
+            return
         self.setSelected(None)
         item = self.items[id(vistrail_window)]
         del self.items[id(vistrail_window)]
@@ -1084,7 +1086,10 @@ class QVistrailList(QtGui.QTreeWidget):
                 if item.parent() == self.openFilesItem:
                     # close current vistrail
                     from gui.vistrails_window import _app
-                    _app.close_vistrail()
+                    if hasattr(item, 'window'):
+                        _app.close_vistrail(item.window)
+                    else:
+                        _app.close_vistrail()
                 elif item.parent() == self.closedFilesItem:
                     # remove from closed list
                     self.closedFilesItem.removeChild(item)
