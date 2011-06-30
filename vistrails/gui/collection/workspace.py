@@ -975,6 +975,8 @@ class QVistrailList(QtGui.QTreeWidget):
     def make_tree(self, item):
         """ construct a tree from the tagged workflows in a loaded vistrail
         """
+        if not hasattr(item, 'window'):
+            return
         am = item.window.controller.vistrail.actionMap
         tm = item.window.controller.vistrail.get_tagMap()
         vm = dict((v,k) for k, v in tm.iteritems())
