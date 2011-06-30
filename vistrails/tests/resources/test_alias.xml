@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <!--###############################################################################
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
@@ -31,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
--->
+-->  
   <visTrail version="0.3.0">
     <action date="22 Feb 2007 16:47:32" parent="0" time="1" user="manu" what="addModule">
       <notes>
