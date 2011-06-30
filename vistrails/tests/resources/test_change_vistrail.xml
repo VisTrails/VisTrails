@@ -1,64 +1,386 @@
-<?xml version="1.0" ?>
-<!--###############################################################################
-##
-## Copyright (C) 2006-2011, University of Utah. 
-## All rights reserved.
-## Contact: vistrails@sci.utah.edu
-##
-## This file is part of VisTrails.
-##
-## "Redistribution and use in source and binary forms, with or without 
-## modification, are permitted provided that the following conditions are met:
-##
-##  - Redistributions of source code must retain the above copyright notice, 
-##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
-##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
-##    this software without specific prior written permission.
-##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-##
-###############################################################################
--->
-<vistrail dbHost="" dbName="" dbPort="" id="" name="" version="0.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
-  <action date="2007-07-16 15:56:55" id="1" prevId="0" user="cscheid">
+<vistrail id="" name="" version="1.0.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2007-07-16 15:56:55" id="1" prevId="0" session="" user="cscheid">
     <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="0" name="TestChangeVistrail"/>
+      <module cache="1" id="0" name="TestChangeVistrail" namespace="" package="edu.utah.sci.vistrails.console_mode_test" version="" />
     </add>
     <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
-      <location id="0" x="-12.0" y="36.0"/>
+      <location id="0" x="-12.0" y="36.0" />
     </add>
   </action>
-  <action date="2007-07-16 15:57:04" id="2" prevId="1" user="cscheid">
+  <action date="2007-07-16 15:57:04" id="2" prevId="1" session="" user="cscheid">
     <add id="2" objectId="0" parentObjId="0" parentObjType="module" what="function">
-      <function id="0" name="foo" pos="0"/>
+      <function id="0" name="foo" pos="0" />
     </add>
     <add id="3" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
-      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="Integer" val=""/>
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="Integer" val="" />
     </add>
   </action>
-  <action date="2007-07-16 15:57:05" id="3" prevId="2" user="cscheid">
+  <action date="2007-07-16 15:57:05" id="3" prevId="2" session="" user="cscheid">
     <change id="4" newObjId="1" oldObjId="0" parentObjId="0" parentObjType="function" what="parameter">
-      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="Integer" val="10"/>
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="Integer" val="10" />
     </change>
   </action>
-  <action date="2007-07-19 16:38:29" id="4" prevId="3" user="cscheid">
-    <delete id="5" objectId="1" parentObjId="0" parentObjType="function" what="parameter"/>
-    <delete id="6" objectId="0" parentObjId="0" parentObjType="module" what="function"/>
+  <action date="2007-07-19 16:38:29" id="4" prevId="3" session="" user="cscheid">
+    <delete id="5" objectId="1" parentObjId="0" parentObjType="function" what="parameter" />
+    <delete id="6" objectId="0" parentObjId="0" parentObjType="module" what="function" />
   </action>
-  <tag name="v1" time="3"/>
-  <tag name="v2" time="4"/>
+  <action date="2011-06-30 15:14:47" id="5" prevId="3" session="0" user="emanuele">
+    <change id="7" newObjId="2" oldObjId="1" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:14:47" id="6" prevId="4" session="1" user="emanuele">
+    <annotation id="2" key="__description__" value="Upgrade" />
+    <delete id="8" objectId="0" parentObjId="0" parentObjType="module" what="location" />
+    <delete id="9" objectId="0" parentObjId="" parentObjType="" what="module" />
+    <add id="10" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="TestChangeVistrail" namespace="" package="edu.utah.sci.vistrails.console_mode_test" version="0.9.0" />
+    </add>
+    <add id="11" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="-12.0" y="36.0" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:14:47" id="7" prevId="6" session="1" user="emanuele">
+    <add id="12" objectId="1" parentObjId="1" parentObjType="module" what="function">
+      <function id="1" name="foo" pos="0" />
+    </add>
+    <add id="13" objectId="3" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:30:25" id="8" prevId="3" session="2" user="emanuele">
+    <annotation id="4" key="__description__" value="Upgrade" />
+    <delete id="14" objectId="0" parentObjId="0" parentObjType="module" what="location" />
+    <delete id="15" objectId="1" parentObjId="0" parentObjType="function" what="parameter" />
+    <delete id="16" objectId="0" parentObjId="0" parentObjType="module" what="function" />
+    <delete id="17" objectId="0" parentObjId="" parentObjType="" what="module" />
+    <add id="18" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="TestChangeVistrail" namespace="" package="edu.utah.sci.vistrails.console_mode_test" version="0.9.0" />
+    </add>
+    <add id="19" objectId="2" parentObjId="2" parentObjType="module" what="function">
+      <function id="2" name="foo" pos="0" />
+    </add>
+    <add id="20" objectId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="10" />
+    </add>
+    <add id="21" objectId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="2" x="-12.0" y="36.0" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:30:25" id="9" prevId="8" session="2" user="emanuele">
+    <change id="22" newObjId="5" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:30:25" id="10" prevId="6" session="3" user="emanuele">
+    <add id="23" objectId="3" parentObjId="1" parentObjType="module" what="function">
+      <function id="3" name="foo" pos="0" />
+    </add>
+    <add id="24" objectId="6" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:30:47" id="11" prevId="8" session="4" user="emanuele">
+    <change id="25" newObjId="7" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:30:47" id="12" prevId="6" session="5" user="emanuele">
+    <add id="26" objectId="4" parentObjId="1" parentObjType="module" what="function">
+      <function id="4" name="foo" pos="0" />
+    </add>
+    <add id="27" objectId="8" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:32:51" id="13" prevId="8" session="6" user="emanuele">
+    <change id="28" newObjId="9" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:32:51" id="14" prevId="6" session="7" user="emanuele">
+    <add id="29" objectId="5" parentObjId="1" parentObjType="module" what="function">
+      <function id="5" name="foo" pos="0" />
+    </add>
+    <add id="30" objectId="10" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:35:57" id="15" prevId="8" session="8" user="emanuele">
+    <change id="31" newObjId="11" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:35:57" id="16" prevId="6" session="9" user="emanuele">
+    <add id="32" objectId="6" parentObjId="1" parentObjType="module" what="function">
+      <function id="6" name="foo" pos="0" />
+    </add>
+    <add id="33" objectId="12" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:41:37" id="17" prevId="8" session="10" user="emanuele">
+    <change id="34" newObjId="13" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:41:37" id="18" prevId="6" session="11" user="emanuele">
+    <add id="35" objectId="7" parentObjId="1" parentObjType="module" what="function">
+      <function id="7" name="foo" pos="0" />
+    </add>
+    <add id="36" objectId="14" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:45:44" id="19" prevId="8" session="12" user="emanuele">
+    <change id="37" newObjId="15" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:45:44" id="20" prevId="6" session="13" user="emanuele">
+    <add id="38" objectId="8" parentObjId="1" parentObjType="module" what="function">
+      <function id="8" name="foo" pos="0" />
+    </add>
+    <add id="39" objectId="16" parentObjId="8" parentObjType="function" what="parameter">
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:47:49" id="21" prevId="8" session="14" user="emanuele">
+    <change id="40" newObjId="17" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:47:49" id="22" prevId="6" session="15" user="emanuele">
+    <add id="41" objectId="9" parentObjId="1" parentObjType="module" what="function">
+      <function id="9" name="foo" pos="0" />
+    </add>
+    <add id="42" objectId="18" parentObjId="9" parentObjType="function" what="parameter">
+      <parameter alias="" id="18" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 15:56:24" id="23" prevId="8" session="16" user="emanuele">
+    <change id="43" newObjId="19" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="19" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 15:56:24" id="24" prevId="6" session="17" user="emanuele">
+    <add id="44" objectId="10" parentObjId="1" parentObjType="module" what="function">
+      <function id="10" name="foo" pos="0" />
+    </add>
+    <add id="45" objectId="20" parentObjId="10" parentObjType="function" what="parameter">
+      <parameter alias="" id="20" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 16:01:31" id="25" prevId="8" session="18" user="emanuele">
+    <change id="46" newObjId="21" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="21" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 16:01:31" id="26" prevId="6" session="19" user="emanuele">
+    <add id="47" objectId="11" parentObjId="1" parentObjType="module" what="function">
+      <function id="11" name="foo" pos="0" />
+    </add>
+    <add id="48" objectId="22" parentObjId="11" parentObjType="function" what="parameter">
+      <parameter alias="" id="22" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 16:02:57" id="27" prevId="8" session="20" user="emanuele">
+    <change id="49" newObjId="23" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="23" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 16:02:57" id="28" prevId="6" session="21" user="emanuele">
+    <add id="50" objectId="12" parentObjId="1" parentObjType="module" what="function">
+      <function id="12" name="foo" pos="0" />
+    </add>
+    <add id="51" objectId="24" parentObjId="12" parentObjType="function" what="parameter">
+      <parameter alias="" id="24" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 16:04:06" id="29" prevId="8" session="22" user="emanuele">
+    <change id="52" newObjId="25" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="25" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 16:04:06" id="30" prevId="6" session="23" user="emanuele">
+    <add id="53" objectId="13" parentObjId="1" parentObjType="module" what="function">
+      <function id="13" name="foo" pos="0" />
+    </add>
+    <add id="54" objectId="26" parentObjId="13" parentObjType="function" what="parameter">
+      <parameter alias="" id="26" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 16:23:24" id="31" prevId="8" session="24" user="emanuele">
+    <change id="55" newObjId="27" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="27" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 16:23:24" id="32" prevId="6" session="25" user="emanuele">
+    <add id="56" objectId="14" parentObjId="1" parentObjType="module" what="function">
+      <function id="14" name="foo" pos="0" />
+    </add>
+    <add id="57" objectId="28" parentObjId="14" parentObjType="function" what="parameter">
+      <parameter alias="" id="28" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 16:29:05" id="33" prevId="8" session="26" user="emanuele">
+    <change id="58" newObjId="29" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="29" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 16:29:05" id="34" prevId="6" session="27" user="emanuele">
+    <add id="59" objectId="15" parentObjId="1" parentObjType="module" what="function">
+      <function id="15" name="foo" pos="0" />
+    </add>
+    <add id="60" objectId="30" parentObjId="15" parentObjType="function" what="parameter">
+      <parameter alias="" id="30" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 16:46:53" id="35" prevId="8" session="28" user="emanuele">
+    <change id="61" newObjId="31" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="31" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 16:46:53" id="36" prevId="6" session="29" user="emanuele">
+    <add id="62" objectId="16" parentObjId="1" parentObjType="module" what="function">
+      <function id="16" name="foo" pos="0" />
+    </add>
+    <add id="63" objectId="32" parentObjId="16" parentObjType="function" what="parameter">
+      <parameter alias="" id="32" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 16:57:25" id="37" prevId="8" session="30" user="emanuele">
+    <change id="64" newObjId="33" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="33" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 16:57:25" id="38" prevId="6" session="31" user="emanuele">
+    <add id="65" objectId="17" parentObjId="1" parentObjType="module" what="function">
+      <function id="17" name="foo" pos="0" />
+    </add>
+    <add id="66" objectId="34" parentObjId="17" parentObjType="function" what="parameter">
+      <parameter alias="" id="34" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:07:47" id="39" prevId="8" session="32" user="emanuele">
+    <change id="67" newObjId="35" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="35" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:07:47" id="40" prevId="6" session="33" user="emanuele">
+    <add id="68" objectId="18" parentObjId="1" parentObjType="module" what="function">
+      <function id="18" name="foo" pos="0" />
+    </add>
+    <add id="69" objectId="36" parentObjId="18" parentObjType="function" what="parameter">
+      <parameter alias="" id="36" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:09:48" id="41" prevId="8" session="34" user="emanuele">
+    <change id="70" newObjId="37" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="37" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:09:48" id="42" prevId="6" session="35" user="emanuele">
+    <add id="71" objectId="19" parentObjId="1" parentObjType="module" what="function">
+      <function id="19" name="foo" pos="0" />
+    </add>
+    <add id="72" objectId="38" parentObjId="19" parentObjType="function" what="parameter">
+      <parameter alias="" id="38" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:13:14" id="43" prevId="8" session="36" user="emanuele">
+    <change id="73" newObjId="39" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="39" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:13:15" id="44" prevId="6" session="37" user="emanuele">
+    <add id="74" objectId="20" parentObjId="1" parentObjType="module" what="function">
+      <function id="20" name="foo" pos="0" />
+    </add>
+    <add id="75" objectId="40" parentObjId="20" parentObjType="function" what="parameter">
+      <parameter alias="" id="40" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:21:57" id="45" prevId="8" session="38" user="emanuele">
+    <change id="76" newObjId="41" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="41" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:21:57" id="46" prevId="6" session="39" user="emanuele">
+    <add id="77" objectId="21" parentObjId="1" parentObjType="module" what="function">
+      <function id="21" name="foo" pos="0" />
+    </add>
+    <add id="78" objectId="42" parentObjId="21" parentObjType="function" what="parameter">
+      <parameter alias="" id="42" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:23:07" id="47" prevId="8" session="40" user="emanuele">
+    <change id="79" newObjId="43" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="43" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:23:08" id="48" prevId="6" session="41" user="emanuele">
+    <add id="80" objectId="22" parentObjId="1" parentObjType="module" what="function">
+      <function id="22" name="foo" pos="0" />
+    </add>
+    <add id="81" objectId="44" parentObjId="22" parentObjType="function" what="parameter">
+      <parameter alias="" id="44" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:25:56" id="49" prevId="8" session="42" user="emanuele">
+    <change id="82" newObjId="45" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="45" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:25:57" id="50" prevId="6" session="43" user="emanuele">
+    <add id="83" objectId="23" parentObjId="1" parentObjType="module" what="function">
+      <function id="23" name="foo" pos="0" />
+    </add>
+    <add id="84" objectId="46" parentObjId="23" parentObjType="function" what="parameter">
+      <parameter alias="" id="46" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:29:30" id="51" prevId="8" session="44" user="emanuele">
+    <change id="85" newObjId="47" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="47" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:29:30" id="52" prevId="6" session="45" user="emanuele">
+    <add id="86" objectId="24" parentObjId="1" parentObjType="module" what="function">
+      <function id="24" name="foo" pos="0" />
+    </add>
+    <add id="87" objectId="48" parentObjId="24" parentObjType="function" what="parameter">
+      <parameter alias="" id="48" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:30:46" id="53" prevId="8" session="46" user="emanuele">
+    <change id="88" newObjId="49" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="49" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:30:46" id="54" prevId="6" session="47" user="emanuele">
+    <add id="89" objectId="25" parentObjId="1" parentObjType="module" what="function">
+      <function id="25" name="foo" pos="0" />
+    </add>
+    <add id="90" objectId="50" parentObjId="25" parentObjType="function" what="parameter">
+      <parameter alias="" id="50" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <action date="2011-06-30 17:31:14" id="55" prevId="8" session="48" user="emanuele">
+    <change id="91" newObjId="51" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="51" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="11" />
+    </change>
+  </action>
+  <action date="2011-06-30 17:31:14" id="56" prevId="6" session="49" user="emanuele">
+    <add id="92" objectId="26" parentObjId="1" parentObjType="module" what="function">
+      <function id="26" name="foo" pos="0" />
+    </add>
+    <add id="93" objectId="52" parentObjId="26" parentObjType="function" what="parameter">
+      <parameter alias="" id="52" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="1" />
+    </add>
+  </action>
+  <actionAnnotation actionId="3" date="" id="0" key="__tag__" user="" value="v1" />
+  <actionAnnotation actionId="4" date="" id="1" key="__tag__" user="" value="v2" />
+  <actionAnnotation actionId="4" date="2011-06-30 15:14:47" id="3" key="__upgrade__" user="emanuele" value="6" />
+  <actionAnnotation actionId="3" date="2011-06-30 15:30:25" id="5" key="__upgrade__" user="emanuele" value="8" />
 </vistrail>

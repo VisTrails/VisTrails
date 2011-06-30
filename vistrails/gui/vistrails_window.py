@@ -252,7 +252,7 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                      ('closeVistrail', "Close",
                       {'shortcut': QtGui.QKeySequence.Close,
                        'statusTip': "Close the current vistrail",
-                       'enabled': True,
+                       'enabled': False,
                        'callback': _app.close_vistrail}),
                      "---",
                      ("import", "Import",
@@ -1151,7 +1151,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def change_view(self, view):
         print 'changing view', id(view), view
-        if view not in self.windows:
+        if view and view not in self.windows:
             if self.stack.currentWidget() != view:
                 self.stack.setCurrentWidget(view)
                 view.reset_tab_state()
@@ -1361,7 +1361,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             from gui.collection.workspace import QWorkspaceWindow
             QWorkspaceWindow.instance().remove_vt_window(view)
             QWorkspaceWindow.instance().add_vt_window(view)
-
+            return view
         except Exception, e:
             import traceback
             debug.critical('Failed to index vistrail', traceback.print_exc())
@@ -1488,10 +1488,10 @@ class QVistrailsWindow(QVistrailViewWindow):
                               True)
         self.qactions['pipeline'].trigger()
     
-    def close_vistrail(self, current_view = None):
+    def close_vistrail(self, current_view=None, quiet=False):
         if not current_view:
             current_view = self.get_current_view()
-        if current_view.has_changes():
+        if not quiet and current_view.has_changes():
             window = current_view.window()
             text = current_view.controller.name
             if text=='':
@@ -1527,8 +1527,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.remove_view(current_view)
         if current_view == self._first_view:
             self._first_view = None
-        elif not self.stack.count() and QtCore.QCoreApplication.closingDown():
-            self.create_first_vistrail()
+        elif not self.stack.count() and not QtCore.QCoreApplication.closingDown():
+                self.create_first_vistrail()
+        view = self.get_current_view()
+        self.change_view(view)
         return True
 
     def close_all_vistrails(self):
@@ -1895,7 +1897,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             action = QtGui.QAction("Main Window", self, 
                                    triggered=self.activateWindow)
             action.setCheckable(True)
-            if self.current_view.window() == self:
+            if self.current_view == None or self.current_view.window() == self:
                 action.setChecked(True)
             windowMenu.addAction(action)
             for view, w in self.windows.iteritems():

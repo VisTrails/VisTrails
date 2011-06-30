@@ -237,6 +237,9 @@ class TestVisTrailsGUI(unittest.TestCase):
             pass
 
     def setUp(self):
+        # we need to call twice because VisTrails will create a new vistrail
+        # by default if we are not closing the first vistrail.
+        self._close_all()
         self._close_all()
 
     def tearDown(self):

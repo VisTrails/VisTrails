@@ -1695,9 +1695,10 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
             os.remove(filename)
 
     def test_create_functions(self):
-        controller = VistrailController(Vistrail(), False)
+        controller = VistrailController(auto_save=False)
+        controller.current_pipeline_view = DummyView().scene()
+        controller.set_vistrail(Vistrail(), None)
         controller.change_selected_version(0L)
-        controller.current_pipeline_view = DummyView()
         module = controller.add_module(0.0,0.0, 'edu.utah.sci.vistrails.basic', 
                                        'ConcatenateString')
         functions = [('str1', ['foo'], -1, True),
@@ -1730,10 +1731,10 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()
         controller = VistrailController(auto_save=False)
+        controller.current_pipeline_view = DummyView().scene()
         controller.set_vistrail(v,locator)
         controller.change_selected_version(9L)
         self.assertNotEqual(controller.current_pipeline, None)
-        controller.current_pipeline_view = DummyView()
         
         module_ids = [1, 2, 3]
         connection_ids = [1, 2, 3]

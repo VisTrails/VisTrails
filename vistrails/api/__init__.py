@@ -113,7 +113,10 @@ def get_current_vistrail_view():
     Returns the currently selected vistrail view.
 
     """
-    return _app.builderWindow.get_current_view()
+    view = _app.builderWindow.get_current_view()
+    if view is None:
+        raise NoVistrail
+    return view    
 
 def close_current_vistrail(quiet=False):
     _app.builderWindow.close_vistrail(get_current_vistrail_view())
@@ -128,6 +131,8 @@ def get_module_registry():
 def add_module(x, y, identifier, name, namespace, controller=None):
     if controller is None:
         controller = get_current_controller()
+    if controller.current_version==-1:
+        controller.change_selected_version(0)
     result = controller.add_module(x, y, identifier, name, namespace)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
     result = controller.current_pipeline.modules[result.id]
@@ -137,6 +142,8 @@ def add_module_from_descriptor(descriptor, x=0.0, y=0.0,
                                internal_version=-1, controller=None):
     if controller is None:
         controller = get_current_controller()
+    if controller.current_version==-1:
+        controller.change_selected_version(0)
     result = controller.add_module_from_descriptor(descriptor, x, y, 
                                                    internal_version)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
@@ -283,13 +290,16 @@ def open_vistrail_from_file(filename):
     from core.db.locator import FileLocator
 
     f = FileLocator(filename)
-    
-    manager = get_builder_window().viewManager
-    view = manager.open_vistrail(f)
+    view = get_builder_window().open_vistrail(f)
     return view
 
 def close_vistrail(view, quiet=True):
-    get_builder_window().viewManager.closeVistrail(view, quiet=quiet)
+    """close_vistrail(view: QVistrailView, quiet:bool)-> None
+    Closes vistrail in view. If quiet is True it will discard changes
+    automatically.
+    
+    """
+    get_builder_window().close_vistrail(view, quiet=quiet)
 
 def new_vistrail():
     # Returns VistrailView - remember to be consistent about it..
@@ -330,10 +340,11 @@ class TestAPI(gui.utils.TestVisTrailsGUI):
         assert not _app.builderWindow.qactions['closeVistrail'].isEnabled()
         assert not _app.builderWindow.qactions['saveFile'].isEnabled()
         assert not _app.builderWindow.qactions['saveFileAs'].isEnabled()
-        new_vistrail()
+        view = new_vistrail()
         assert _app.builderWindow.qactions['newVistrail'].isEnabled()
         assert _app.builderWindow.qactions['closeVistrail'].isEnabled()
-        assert _app.builderWindow.qactions['saveFile'].isEnabled()
+        self.assertEqual(_app.builderWindow.qactions['saveFile'].isEnabled(),
+                         view.has_changes())
         assert _app.builderWindow.qactions['saveFileAs'].isEnabled()
 
     
