@@ -324,7 +324,9 @@ class Collection(object):
                 self.add_to_workspace(entity, p)
             return entity
         else:
-            debug.critical("Locator is not valid!")
+            # probably an unsaved vistrail
+            pass
+#            debug.critical("Locator is not valid!")
 
 def main():
     from db.services.locator import BaseLocator
