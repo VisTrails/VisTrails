@@ -1364,7 +1364,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return view
         except Exception, e:
             import traceback
-            debug.critical('Failed to index vistrail', traceback.print_exc())
+            debug.critical('Failed to index vistrail', traceback.format_exc())
 
 
     def open_vistrail_from_locator(self, locator_class):

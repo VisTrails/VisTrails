@@ -147,7 +147,12 @@ class VistrailEntity(Entity):
 
             for version_id in self.vistrail.get_tagMap():
                 self.add_workflow_entity(version_id)
-            log = vistrail.get_log()
+            try:
+                log = vistrail.get_log()
+            except:
+                import traceback
+                debug.critical("Failed to read log", traceback.format_exc())
+                
             if log is not None:
                 for wf_exec in log.workflow_execs:
                     version_id = wf_exec.parent_version
