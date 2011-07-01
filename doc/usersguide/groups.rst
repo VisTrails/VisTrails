@@ -22,7 +22,7 @@ An example may clarify how this works.
 
 .. topic:: Try it now!
 
-   Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`fig-groupinga`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`fig-groupingb`. Since the label "Group" isn't very descriptive, you can change this by selecting the ``Group`` module, and entering a name in the ``Name`` box of the ``Module Information`` panel.  Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`fig-groupingc`).
+   Open "vtk_book_3rd_p189.vt".  Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`fig-groupinga`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`fig-groupingb`. Since the label "Group" isn't very descriptive, you can change this by selecting the ``Group`` module, and entering a name in the ``Name`` box of the ``Module Information`` panel.  Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`fig-groupingc`).
 
 .. _fig-groupinga:
 
@@ -52,7 +52,8 @@ Just as any number of modules may be clustered into a group, any number of group
 
 Further, the contents of the groups or combinations of groups are revealed through the ``Show Pipeline`` option.  First select the ``group`` module in the pipeline and then select ``Show Pipeline`` from the ``Workflow`` menu.  The group's contents will be shown in a separate window.  If there is a group within a group, selecting the interior ``group`` module and then selecting ``Show Pipeline`` will show the additional contents. 
  
-In addition to viewing the group's contents, any group may be also un-grouped; that is, restored to its individual modules. This is done by selecting the group module in the pipeline, and then choosing the ``Edit`` :math:`\rightarrow` ``Ungroup`` menu option or by pressing 'Ctrl-Shift-G'.  Combinations of groups may be ungrouped in any order.
+In addition to viewing the group's contents, any group may be also un-grouped; that is, restored to its individual modules. This is done by selecting the group module in the pipeline, and then choosing the ``Edit`` :math:`\rightarrow` ``Ungroup`` menu option or by pressing 'Ctrl-Shift-G'.  A group's pipeline may not be used to ungroup interior groups, however.  Groups may only be ungrouped from the pipeline view, and not from the windows that are created when selecting ``Show Pipeline``.  Thus, an interior group may only be ungrouped after the group to which is belongs is ungrouped.
+# Combinations of groups may be ungrouped in any order.
 
 .. _sec-grouping-subworkflows:
 
