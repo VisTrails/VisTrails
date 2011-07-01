@@ -827,9 +827,11 @@ class QVistrailList(QtGui.QTreeWidget):
             
     def item_selected(self, widget_item, column):
         """ opens or displays the selected item if possible """
-        if hasattr(widget_item, 'entity'):
+        if hasattr(widget_item, 'entity') and widget_item.entity is not None:
             entity = widget_item.entity
-        elif type(widget_item) == QVistrailListLatestItem:
+        elif type(widget_item) == QVistrailListLatestItem and \
+             hasattr(widget_item.parent(), 'entity') and \
+             widget_item.parent().entity is not None:
             entity = widget_item.parent().entity
         else:
             # no valid item selected

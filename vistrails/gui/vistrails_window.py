@@ -1233,6 +1233,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         # if self.single_document_mode and self.currentView():
         #     if not self.closeVistrail():
         #         return None
+        self._first_view = None
         if recover_files and untitled_locator().has_temporaries():
             locator = copy.copy(untitled_locator())
         else:
@@ -1271,6 +1272,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         vistrails from locator has been opened. If not, it will return None.
         
         """
+        if locator is None:
+            return None
         for i in xrange(self.stack.count()):
             view = self.stack.widget(i)
             if view.controller.vistrail.locator == locator:
