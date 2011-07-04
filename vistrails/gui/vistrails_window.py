@@ -1080,6 +1080,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             return do_check_and_set
         for action, (notification_id, check) in action_links.iteritems():
             window = obj.window()
+            if isinstance(window, BaseView):
+                window = window.vistrail_view.window()
             qaction = window.qactions[action]
             method = get_method(qaction, check)
             notification = (notification_id, method, True, view)
@@ -1094,6 +1096,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         
     def set_action_defaults(self, obj):
         window = obj.window()
+        if isinstance(window, BaseView):
+            window = window.vistrail_view.window()
         qactions = window.qactions
         for action, mlist in obj.action_defaults.iteritems():
             qaction = qactions[action]
@@ -2126,6 +2130,9 @@ class QVistrailsWindow(QVistrailViewWindow):
     def applicationFocusChanged(self, old, current):
         if current is not None:
             owner = current.window()
+#            print "\n\n\n >>>>>> applicationfocuschanged"
+#            print "focus_owner: ", self._focus_owner, " previous_view ", self._previous_view
+#            print "owner: ", owner, " current: ", current
             if (self.isAncestorOf(current) or 
                 owner in self.windows.values()):
                 view = self.get_current_view()
@@ -2134,14 +2141,17 @@ class QVistrailsWindow(QVistrailViewWindow):
                         self._previous_view = view.get_current_tab()
                         self._focus_owner = owner
                         self.change_view(view)
+                        view.view_changed()
                         view.reset_tab_view_to_current()
                         self.update_window_menu()
             elif isinstance(current, BaseView):
                 view = current.get_vistrail_view()
+#                print "view: ", view
                 if view and owner != self._focus_owner:
                     self._previous_view = view.get_current_tab()
                     self._focus_owner = owner
                     self.change_view(view)
+                    view.view_changed()
                     view.set_to_current(current)
                     self.update_window_menu()
         else:

@@ -515,16 +515,17 @@ class QVistrailView(QtGui.QWidget):
         self.tab_changed(index)
 
     def get_current_tab(self):
-        if self.window().isActiveWindow():
+        window = QtGui.QApplication.activeWindow()
+        if window in self.detached_views:
+            return window    
+        else:
+            #if none of the detached views is active we will assume that the
+            #window containing this vistrail has focus
             widget = self.stack.currentWidget()
             if type(widget) == QQueryView:
                 widget = widget.get_current_view()
             return widget
-        else:
-            window = QtGui.QApplication.activeWindow()
-            if window in self.detached_views:
-                return window
-    
+        
     def get_tab(self, stack_idx):
         widget = self.stack.widget(stack_idx)
         if type(widget) == QQueryView:
@@ -534,7 +535,8 @@ class QVistrailView(QtGui.QWidget):
     def view_changed(self):
         from gui.vistrails_window import _app
         _app.closeNotPinPalettes()
-        view = self.stack.currentWidget()
+        #view = self.stack.currentWidget()
+        view = self.get_current_tab()
         print "changing tab from: ",self.current_tab, " to ", view
         print self.tab_to_stack_idx
         if view != self.current_tab:
@@ -555,16 +557,17 @@ class QVistrailView(QtGui.QWidget):
         else:
             print "tabs the same. do nothing"
         self.showCurrentViewPalettes()
-        
-        if self.isTabDetachable(self.tabs.currentIndex()):
-            self.tabs.setTabToolTip(self.tabs.currentIndex(),
-                                    "Double-click to detach it")
-        else:
-            self.tabs.setTabToolTip(self.tabs.currentIndex(),
-                                    "")
+        if self.window().isActiveWindow():
+            if self.isTabDetachable(self.tabs.currentIndex()):
+                self.tabs.setTabToolTip(self.tabs.currentIndex(),
+                                        "Double-click to detach it")
+            else:
+                self.tabs.setTabToolTip(self.tabs.currentIndex(),
+                                        "")
 
     def showCurrentViewPalettes(self):
-        for dock_loc, palette_klass in self.current_tab.layout.iteritems():
+        current_tab = self.get_current_tab()
+        for dock_loc, palette_klass in current_tab.layout.iteritems():
             palette_instance = palette_klass.instance()
             window = palette_instance.toolWindow().parentWidget()
             if window:
