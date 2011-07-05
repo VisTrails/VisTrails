@@ -437,6 +437,8 @@ class QVistrailView(QtGui.QWidget):
                 view.close()
             
     def detachedViewWasClosed(self, view):
+        if self.controller.current_pipeline_view.parent() == view:
+            self.controller.current_pipeline_view = None
         self.detached_views.remove(view)
         
     def updateTabsTooTip(self):
