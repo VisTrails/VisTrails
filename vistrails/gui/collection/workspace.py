@@ -847,13 +847,20 @@ class QVistrailList(QtGui.QTreeWidget):
         args = {}
         args['version'] = locator.kwargs.get('version_node', None) or \
                           locator.kwargs.get('version_tag', None)
+
+        vistrail_widget = widget_item
+        vistrail_entity = entity
         if args['version']:
-            locator = entity.parent.locator()
+            vistrail_widget = widget_item.parent()
+            vistrail_entity = entity.parent
+            locator = vistrail_entity.locator()
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
         if workflow_exec:
             args['workflow_exec'] = workflow_exec
-            locator = entity.parent.parent.locator()
+            vistrail_widget = widget_item.parent().parent()
+            vistrail_entity = entity.parent.parent
+            locator = vistrail_entity.locator()
             locator.update_from_gui(self)
             # set vistrail name
             #locator._name = widget_item.entity.parent.parent.name
@@ -863,6 +870,11 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail = widget_item.parent().window.controller.vistrail
             args['version'] = vistrail.get_latest_version()
         locator.update_from_gui(self)
+        if not locator.is_valid():
+            debug.critical("File not found: '%s'. Entry will be deleted." % locator.to_url())
+            vistrail_widget.parent().removeChild(vistrail_widget)
+            self.collection.delete_entity(vistrail_entity)
+            self.collection.commit()
         open_vistrail(locator, **args)
         widget_item.setSelected(True)
 
