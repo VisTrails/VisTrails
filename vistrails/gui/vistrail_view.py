@@ -647,6 +647,7 @@ class QVistrailView(QtGui.QWidget):
                      self.gen_module_selected(view))
         view.set_controller(self.controller)
         view.set_to_current()
+        self.notifications['module_done_configure'] = view.done_configure
         #self.switch_to_tab(view.tab_idx)
         return view
     
