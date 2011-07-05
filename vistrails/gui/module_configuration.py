@@ -139,7 +139,9 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.hasChanges = False
     
     def configureDone(self):
+        from gui.vistrails_window import _app
         self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)  
+        _app.notify('module_done_configure', self.module.id)
         
     def stateChanged(self):
         self.hasChanges = self.confWidget.widget.state_changed
