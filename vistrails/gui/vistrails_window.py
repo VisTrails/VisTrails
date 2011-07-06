@@ -725,7 +725,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         self._focus_owner = None
         self._previous_view = None
-        
+        self._is_quitting = False
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
@@ -1534,7 +1534,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.remove_view(current_view)
         if current_view == self._first_view:
             self._first_view = None
-        elif not self.stack.count() and not QtCore.QCoreApplication.closingDown():
+        elif not self.stack.count() and not self._is_quitting:
                 self.create_first_vistrail()
         view = self.get_current_view()
         self.change_view(view)
@@ -1562,11 +1562,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             e.ignore()
 
     def quit(self):
+        self._is_quitting = True
         if self.close_all_vistrails():
             QtCore.QCoreApplication.quit()
             # In case the quit() failed (when Qt doesn't have the main
             # event loop), we have to return True still
             return True
+        self._is_quitting = False
         return False
 
     def link_registry(self):

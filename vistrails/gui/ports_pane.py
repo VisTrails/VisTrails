@@ -311,6 +311,12 @@ class PortsList(QtGui.QTreeWidget):
         Setup this tree widget to show functions of module
         
         """
+        # this is strange but if you try to clear the widget when the focus is 
+        # in one of the items (after setting a parameter for example), 
+        # VisTrails crashes on a Mac (Emanuele) This is probably a Qt bug
+        w =  QtGui.QApplication.focusWidget()
+        if self.isAncestorOf(w):
+            w.clearFocus()
         self.clear()
         self.module = module
         self.port_spec_items = {}
