@@ -2717,6 +2717,9 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
                 show_info('No Modules Selected', 
                           'You must select at least one module to use the '
                           'Control Flow Assistant.')
+                
+    def done_configure(self, mid):
+        self.scene().perform_configure_done_actions(mid)
 
 ################################################################################
 # Testing
