@@ -297,10 +297,20 @@ class QWorkspaceWidget(QCollectionWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
+class QWorkflowsItem(QtGui.QTreeWidgetItem):
+    def __init__(self, parent=None):
+        QtGui.QTreeWidgetItem.__init__(self, parent, ['Workflows'])
+
+class QMashupsItem(QtGui.QTreeWidgetItem):
+    def __init__(self, parent=None):
+        QtGui.QTreeWidgetItem.__init__(self, parent, ['Mashups'])
+
 class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
         if not entity:
             QtGui.QTreeWidgetItem.__init__(self, parent)
+            self.workflowsItem = QWorkflowsItem()
+            self.addChild(self.workflowsItem)
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
             return
         l = list(str(x) for x in entity.save())
@@ -313,6 +323,12 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
         klass = self.__class__
         self.entity = entity
         if type == '1':
+            # vistrail - create Workflows item
+            self.workflowsItem = QWorkflowsItem()
+            self.addChild(self.workflowsItem)
+            self.mashupsItem = QMashupsItem()
+            self.addChild(self.mashupsItem)
+#            self.mashupsItem.setHidden(True)
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
             self.tag_to_item = {}
         elif type == '2':
@@ -339,9 +355,11 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             if l[1] == 2:
                 # is a pipeline
                 # only show tagged items
+                # Add to 'Workflows' item
+
                 if not child.name.startswith('Version #'):
                     childItem = klass(child)
-                    self.addChild(childItem)
+                    self.workflowsItem.addChild(childItem)
                     # keep list of tagged workflows
                     self.tag_to_item[child.name] = childItem
             elif l[1] == 3:
@@ -830,9 +848,9 @@ class QVistrailList(QtGui.QTreeWidget):
         if hasattr(widget_item, 'entity') and widget_item.entity is not None:
             entity = widget_item.entity
         elif type(widget_item) == QVistrailListLatestItem and \
-             hasattr(widget_item.parent(), 'entity') and \
-             widget_item.parent().entity is not None:
-            entity = widget_item.parent().entity
+             hasattr(widget_item.parent().parent(), 'entity') and \
+             widget_item.parent().parent().entity is not None:
+            entity = widget_item.parent().parent().entity
         else:
             # no valid item selected
             return
@@ -867,7 +885,7 @@ class QVistrailList(QtGui.QTreeWidget):
             
         if type(widget_item) == QVistrailListLatestItem:
             # find the latest item (max action id)
-            vistrail = widget_item.parent().window.controller.vistrail
+            vistrail = widget_item.parent().parent().window.controller.vistrail
             args['version'] = vistrail.get_latest_version()
         locator.update_from_gui(self)
         if not locator.is_valid():
@@ -982,7 +1000,7 @@ class QVistrailList(QtGui.QTreeWidget):
         for tag, wf in item.tag_to_item.iteritems():
             index = wf.parent().indexOfChild(wf)
             wf = wf.parent().takeChild(index)
-            item.addChild(wf)
+            item.workflowsItem.addChild(wf)
         self.updateHideExecutions()
 
 
@@ -1033,7 +1051,7 @@ class QVistrailList(QtGui.QTreeWidget):
         item = QVistrailListItem(entity, vistrail_window)
         self.make_tree(item) if self.isTreeView else self.make_list(item)
         item.current_item = QVistrailListLatestItem()
-        item.addChild(item.current_item)
+        item.workflowsItem.addChild(item.current_item)
         self.openFilesItem.addChild(item)
         self.items[id(vistrail_window)] = item
         self.setSelected(vistrail_window)
@@ -1048,7 +1066,7 @@ class QVistrailList(QtGui.QTreeWidget):
         delattr(item, 'window')
         index = self.openFilesItem.indexOfChild(item)
         item = self.openFilesItem.takeChild(index)
-        item.removeChild(item.current_item)
+        item.current_item.parent().removeChild(item.current_item)
         locator = vistrail_window.controller.locator
         # entity may have changed
         entity = None
