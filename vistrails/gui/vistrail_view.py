@@ -697,6 +697,7 @@ class QVistrailView(QtGui.QWidget):
         view = self.create_view(QMashupView, False)
         view.set_controller(self.controller)
         self.notifications['alias_changed'] = view.aliasChanged
+        self.notifications['version_changed'] = view.versionChanged
         return view
     
     def gen_module_selected(self, view):

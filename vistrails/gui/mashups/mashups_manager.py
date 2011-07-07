@@ -33,7 +33,7 @@
 ###############################################################################
 import copy
 import uuid
-
+from PyQt4 import QtCore, QtGui
 from gui.vistrail_controller import VistrailController
 from core.vistrail.controller import VistrailController as BaseVistrailController
 from gui.mashups.controller import MashupController
@@ -69,7 +69,64 @@ class MashupsManager(object):
          MashupsManager.getMashuptrailforVersionInVistrailController(vt_controller,
                                                                      version)
         if mashuptrail is None:
+            (p_mashuptrail, p_version) = \
+                     MashupsManager.findClosestParentMashuptrail(vt_controller, 
+                                                                 version)
             id_scope = IdScope(1L)
+            if p_mashuptrail is not None:
+                version_name = vt_controller.get_pipeline_name(p_version)
+                (res, mshpv) = MashupsManager.showFoundMashupsDialog(p_mashuptrail, 
+                                                            version_name)
+                if res in ['Copy', 'Move']:
+                    pipeline = newvt_controller.vistrail.getPipeline(version)
+                    if res == 'Copy':
+                        # we will copy the mashup from the parent trail and 
+                        # validate it to the current pipeline before adding
+                        # to the current mashup trail
+                        mashuptrail = Mashuptrail(self.getNewMashuptrailId(), 
+                                                  version, id_scope)
+                        p_mashup = p_mashuptrail.getMashup(mshpv)
+                        mashup = p_mashup.doCopy()
+                        mashup.id_scope = id_scope
+                        mashup.validateForPipeline(pipeline)
+                        currVersion = mashuptrail.addVersion(
+                                      parent_id=mashuptrail.getLatestVersion(),
+                                      mashup=mashup, 
+                                      user=core.system.current_user(),
+                                      date=core.system.current_time())
+                        mashuptrail.currentVersion = currVersion
+                        mashuptrail.updateIdScope()
+                        p_tag = p_mashuptrail.getTagForActionId(mshpv)
+                        if p_tag == '':
+                            tag = "<latest>"
+                        tag = "Copy from %s"%p_tag
+                        MashupsManager.addMashuptrailtoVistrailController(vt_controller,
+                                                                          mashuptrail)    
+                        
+                    elif res == 'Move':
+                        # we will move the parent trail and validate all mashups
+                        # for the current pipeline to make sure they will be 
+                        # executable for the current version
+
+                        mashuptrail = p_mashuptrail
+                        currVersion = mashuptrail.getLatestVersion()
+                        mashuptrail.currentVersion = currVersion
+                        mashuptrail.validateMashupsForPipeline(version, pipeline)
+                        tag = None
+                        
+                    mashuptrail.vtVersion = version
+                    mshpController = MashupController(vt_controller, 
+                                                      newvt_controller, 
+                                                      version, mashuptrail)
+                    mshpController.setCurrentVersion(mashuptrail.currentVersion)
+                    # this is to make sure the pipeline displayed in the mashup
+                    # view is consistent with the list of aliases in the central
+                    # panel
+                    mshpController.updatePipelineAliasesFromCurrentMashup()
+                    if tag is not None:
+                        mshpController.updateCurrentTag(tag)
+                    return mshpController
+                
             mashuptrail = Mashuptrail(self.getNewMashuptrailId(), version, 
                                       id_scope)
             pipeline = newvt_controller.vistrail.getPipeline(version)
@@ -128,14 +185,133 @@ class MashupsManager(object):
     
     @staticmethod
     def getMashuptrailforVersionInVistrailController(controller, version):
-        print version, controller
+        #print version, controller
         res = None
         if hasattr(controller, "_mashups"):
             for mashuptrail in controller._mashups:
-                print mashuptrail.vtVersion
+                #print mashuptrail.vtVersion
                 if mashuptrail.vtVersion == version:
                     return mashuptrail
         return res
+    
+    @staticmethod
+    def findClosestParentMashuptrail(vt_controller, version):
+        res = None
+        mashuptrails = {}
+        if hasattr(vt_controller, "_mashups"):
+            for mashuptrail in vt_controller._mashups:
+                #print mashuptrail.vtVersion
+                mashuptrails[mashuptrail.vtVersion] = mashuptrail
+        action_map = vt_controller.vistrail.actionMap
+        if version > 0 and len(mashuptrails) > 0:
+            v = action_map[version].parent
+            while True:
+                if v in mashuptrails or v <= 0:
+                    if v in mashuptrails:
+                        res = mashuptrails[v]
+                    else:
+                        res = None
+                    return (res, v)
+                v = action_map[v].parent
+        return (res, -1)
+    
+    @staticmethod
+    def showFoundMashupsDialog(mashup_trail, version_name, parent=None):
+        class FoundMashupDialog(QtGui.QDialog):
+            
+            def __init__(self, mashup_trail, version_name, parent=None):
+                QtGui.QDialog.__init__(self, parent)
+                self.setWindowTitle('VisTrails - Mashup')
+                dlgLayout = QtGui.QVBoxLayout()
+                str_label = "VisTrails found mashup(s) already created in parent %s."
+                label = QtGui.QLabel(str_label%str(version_name))
+                label.setWordWrap(True)
+                gb = QtGui.QGroupBox("What would you like to do?")
+                gblayout = QtGui.QVBoxLayout()
+                
+                self.btnNew = QtGui.QRadioButton("Create new mashup (starting from current pipeline's aliases)")
+                self.btnNew.setChecked(True)
+                self.btnCopy = QtGui.QRadioButton("Copy selected mashup (aliases will be merged)")
+                self.btnMove = QtGui.QRadioButton("Move all mashups to current pipeline")
+                self.mashupsList = QtGui.QListWidget()
+                self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+                self.mashupsList.setMaximumSize(100, 120)
+                self.mashupsList.setEnabled(False)
+                self.setMashupsList(mashup_trail)
+                
+                hlayout = QtGui.QHBoxLayout()
+                hlayout.setMargin(5)
+                hlayout.setSpacing(5)
+                hlayout.addWidget(self.mashupsList)
+                hlayout.addStretch()
+                
+                gblayout.addWidget(self.btnNew)
+                gblayout.addWidget(self.btnMove)
+                gblayout.addWidget(self.btnCopy)
+                gblayout.addLayout(hlayout)
+                
+                gb.setLayout(gblayout)
+                btnOk = QtGui.QPushButton("OK")
+                btnLayout = QtGui.QHBoxLayout()
+                btnLayout.addStretch()
+                btnLayout.addWidget(btnOk)
+                btnLayout.addStretch()
+                self.btnPressed = 0
+                self.mashup_version = -1
+                
+                dlgLayout.addWidget(label)
+                dlgLayout.addWidget(gb)
+                dlgLayout.addLayout(btnLayout)
+                self.setLayout(dlgLayout)
+                self.connect(self.btnCopy, QtCore.SIGNAL("toggled(bool)"),
+                             self.mashupsList.setEnabled)
+                self.connect(btnOk, QtCore.SIGNAL("clicked()"), 
+                             self.btnOkPressed)      
+                
+            def btnOkPressed(self):
+                if self.btnNew.isChecked():
+                    self.btnPressed = 'New'
+                elif self.btnMove.isChecked():
+                    self.btnPressed = 'Move'
+                elif self.btnCopy.isChecked():
+                    self.btnPressed = 'Copy'
+                    self.mashup_version = self.getMashupVersion()
+                self.accept()
+                
+            def setMashupsList(self, mshptrail):
+                from gui.mashups.mashups_inspector import QMashupListPanelItem
+                self.mashupsList.clear()
+                tagMap = mshptrail.getTagMap()
+                tags = tagMap.keys()
+                latestversion = mshptrail.getLatestVersion()
+                item_selected = False
+                if not mshptrail.hasTagForActionId(latestversion):
+                    item = QMashupListPanelItem("<latest>",
+                                                latestversion,
+                                                self.mashupsList)
+                    item.setSelected(True)
+                    item_selected = True
+                if len(tags) > 0:
+                    tags.sort()
+                    i = 0
+                    for tag in tags:
+                        item = QMashupListPanelItem(str(tag),
+                                                    tagMap[tag],
+                                                    self.mashupsList)
+                        if i == 0 and not item_selected:
+                            item.setSelected(True)
+                        i+=1
+                        
+            def getMashupVersion(self):
+                items = self.mashupsList.selectedItems()
+                if len(items) == 1:
+                    return items[0].version
+            
+        dialog = FoundMashupDialog(mashup_trail, version_name, parent)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            return (dialog.btnPressed,dialog.mashup_version) 
+        else:
+            return ('New', -1)                
     
     @staticmethod
     def addMashuptrailtoVistrailController(controller, mashuptrail):

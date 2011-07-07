@@ -33,6 +33,7 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from core.data_structures.bijectivedict import Bidict
 from gui.base_view import BaseView
 from gui.mashups.mashup_app import QMashupAppMainWindow
 from gui.mashups.mashups_manager import MashupsManager
@@ -54,7 +55,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         #Setting up a toolbar
         self.createToolBar()
         self.tab_to_stack_idx = {}
-        self.button_to_tab_idx = {}
+        self.button_to_tab_idx = Bidict()
         widget = QtGui.QWidget(self)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
@@ -99,20 +100,20 @@ class QMashupView(QtGui.QMainWindow, BaseView):
          This will set vistrail controller"""
         if controller == self.controller:
             return
-        if self.controller is not None:
-            self.disconnect(self.controller,
-                             QtCore.SIGNAL('versionWasChanged'),
-                             self.versionChanged)
+#        if self.controller is not None:
+#            self.disconnect(self.controller,
+#                             QtCore.SIGNAL('versionWasChanged'),
+#                             self.versionChanged)
         self.controller = controller
-        if self.controller:
-            self.connect(self.controller,
-                         QtCore.SIGNAL('versionWasChanged'),
-                         self.versionChanged)
+#        if self.controller:
+#            self.connect(self.controller,
+#                         QtCore.SIGNAL('versionWasChanged'),
+#                         self.versionChanged)
         print "      *** mashup view set vtController: ", controller
         
-    def versionChanged(self):
+    def versionChanged(self, version):
         window = self.window()
-        self.vtversion = self.controller.current_version
+        self.vtversion = version
         if self.vtversion > -1:
             window.qactions['mashup'].setEnabled(True)
         else:
@@ -129,6 +130,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                     self.disconnect(self.mshpController.vtController,
                                     QtCore.SIGNAL('vistrailChanged()'),
                                     self.mshpControllerVistrailChanged)
+            self.controller.flush_delayed_actions()
+            self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,
                                                                  self.vtversion)
             #self.pipelineTab.set_controller(self.mshpController.vtController)
@@ -181,6 +184,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         previewApp = self.manager.createMashupApp(self.controller,
                                                   self.mshpController.mshptrail,
                                                   version)
+        previewApp.appWasClosed.connect(self.previewTabWasClosed)
         #QMashupAppMainWindow(parent=self, 
         #                                  controller=self.mshpController,
         #                                  version=version)
@@ -215,7 +219,19 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             self.stack.removeWidget(self.stack.widget(stack_idx))
         del self.button_to_tab_idx[closeButton]
         self.updateIndexes(tab_idx, stack_idx)
-            
+    
+    def previewTabWasClosed(self, previewApp):
+        previewTab = previewApp.parent()
+        tab_idx = previewTab.get_tab_idx()
+        stack_idx = self.tab_to_stack_idx[tab_idx]
+        if previewTab == self.stack.widget(stack_idx):
+            #this means the quit button was pressed 
+            closeButton = self.button_to_tab_idx.inverse[tab_idx]
+            self.tabBar.removeTab(tab_idx)
+            self.stack.removeWidget(self.stack.widget(stack_idx))
+            del self.button_to_tab_idx[closeButton]
+            self.updateIndexes(tab_idx, stack_idx)
+        
     def updateIndexes(self, rm_tab_idx, rm_stack_idx):
         for (b,tab_idx) in self.button_to_tab_idx.iteritems():
             if tab_idx > rm_tab_idx:
@@ -242,16 +258,6 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             self.stack.setCurrentIndex(self.tab_to_stack_idx[index])
         except KeyError:
             pass
-#    def updatePreviewTab(self):
-#        if self.previewTab:
-#            self.stack.removeWidget(self.previewTab)
-#            self.tabBar.removeTab(1)
-#            self.previewTab = None
-#        self.createPreviewTab()
-#        
-#    def checkAndUpdatePreview(self):
-#        if self.previewTab:
-#            self.updatePreviewTab()
             
     def previewTriggered(self):
         self.createPreviewTab(self.mshpController.currentVersion)

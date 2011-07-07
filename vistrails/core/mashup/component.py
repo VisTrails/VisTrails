@@ -41,7 +41,7 @@ ElementTree = get_elementtree_library()
 class Component(XMLObject):
     def __init__(self, id, vttype, param_id, parent_vttype, parent_id, mid, 
                  type, value, p_pos, pos, strvaluelist, minVal="0",
-                 maxVal="1", stepSize="1", parent=None, seq=False, widget="text"):
+                 maxVal="1", stepSize="1", parent='', seq=False, widget="text"):
     
         """Component() 
         widget can be: text, slider, combobox, numericstepper, checkbox
@@ -102,6 +102,9 @@ class Component(XMLObject):
                 id_remap[('component', self.id)] = new_id
             cp.id = new_id
         return cp
+    
+    ##########################################################################
+    # Serialization / Unserialization
     
     def toXml(self, node=None):
         """toXml(node: ElementTree.Element) -> ElementTree.Element
@@ -191,4 +194,131 @@ class Component(XMLObject):
                               widget=widget)
         return component
 
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        """ __str__() -> str - Returns a string representation of itself """
+        
+        return ("(Component id='%s' vttype='%s' vtid='%s' vtparent_type='%s' \
+vtparent_id='%s' vtmid='%s' vtpos='%s' type='%s' pos='%s' val='%s' minVal='%s' \
+maxVal='%s' stepSize='%s' strvaluelist='%s' parent='%s' seq='%s' widget='%s')@%X" %
+                    (self.id,
+                     self.vttype,
+                     self.vtid,
+                     self.vtparent_type,
+                     self.vtparent_id,
+                     self.vtmid,
+                     self.vtpos,
+                     self.type,
+                     self.pos,
+                     self.val,
+                     self.minVal,
+                     self.maxVal,
+                     self.stepSize,
+                     self.strvaluelist,
+                     self.parent,
+                     self.seq,
+                     self.widget,
+                     id(self)))
+
+    def __eq__(self, other):
+        """ __eq__(other: Component) -> boolean
+        Returns True if self and other have the same attributes. Used by == 
+        operator. 
+        
+        """
+        if type(self) != type(other):
+            return False
+        if self.vttype != other.vttype:
+            return False
+        if self.vtid != other.vtid:
+            return False
+        if self.vtparent_type != other.vtparent_type:
+            return False
+        if self.vtparent_id != other.vtparent_id:
+            return False
+        if self.vtmid != other.vtmid:
+            return False
+        if self.vtpos != other.vtpos:
+            return False
+        if self.type != other.type:
+            return False
+        if self.pos != other.pos:
+            return False
+        if self.val != other.val:
+            return False
+        if self.minVal != other.minVal:
+            return False
+        if self.maxVal != other.maxVal:
+            return False
+        if self.stepSize != other.stepSize:
+            return False
+        if self.strvaluelist != other.strvaluelist:
+            return False
+        if self.parent != other.parent:
+            return False
+        if self.seq != other.seq:
+            return False
+        if self.widget != other.widget:
+            return False
+        return True
+
+    def __ne__(self, other):
+        """ __ne__(other: Component) -> boolean
+        Returns True if self and other don't have the same attributes. 
+        Used by !=  operator. 
+        
+        """
+        return not self.__eq__(other)
+    
 ################################################################################
+
+import unittest
+from db.domain import IdScope
+import copy
+
+class TestComponent(unittest.TestCase):
+    def create_component(self, id_scope=IdScope()):
+        c = Component(id=id_scope.getNewId('component'),
+                          vttype='parameter', param_id=15L, 
+                          parent_vttype='function', parent_id=3L, mid=4L,
+                          type='String', value='test', p_pos=0, pos=1, 
+                          strvaluelist='test1,test2', widget="text")
+        return c
+    
+    def test_copy(self):
+        id_scope = IdScope()
+        c1 = self.create_component(id_scope)
+        c2 = copy.copy(c1)
+        self.assertEqual(c1, c2)
+        self.assertEqual(c1.id, c2.id)
+        c3 = c2.doCopy(True, id_scope, {})
+        self.assertEqual(c1,c3)
+        self.assertNotEqual(c1.id, c3.id)
+        
+    def test_serialization(self):
+        c1 = self.create_component()
+        node = c1.toXml()
+        c2 = Component.fromXml(node)
+        self.assertEqual(c1,c2)
+        self.assertEqual(c1.id, c2.id)
+        
+    def test_valuelist(self):
+        c1 = self.create_component()
+        c1.strvaluelist = "1,2,3"
+        self.assertEqual(['1','2','3'], c1.valueList)
+        c1.valueList = ['1','2','3']
+        self.assertEqual(c1.strvaluelist,"1,2,3")
+        
+        #testing values with , after serialization
+        c1.valueList = ['a,b,c', '123', ',as']
+        c2 = Component.fromXml(c1.toXml())
+        self.assertEqual(c1.strvaluelist, c2.strvaluelist)
+        self.assertEqual(c1.valueList, c2.valueList)
+        self.assertEqual(c2.valueList, ['a,b,c', '123', ',as'])
+        
+    def test_str(self):
+        c1 = self.create_component()
+        str(c1)
+        

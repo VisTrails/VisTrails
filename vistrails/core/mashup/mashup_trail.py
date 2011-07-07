@@ -46,7 +46,7 @@ from db.domain import IdScope
 
 class Action(XMLObject):
     
-    def __init__(self, id, parent_id, user=None, mashup=None, date=None):
+    def __init__(self, id, parent_id, user='', mashup=None, date=None):
         self.id = id
         self.parent_id = parent_id
         self.user = user
@@ -65,6 +65,25 @@ class Action(XMLObject):
             self._date = newDate
     date = property(_getDate, _setDate)
         
+    def __copy__(self):
+        return Action.doCopy(self)
+    
+    def doCopy(self, new_ids=False, id_scope=None, id_remap=None):
+        """doCopy() -> Action 
+        returns a clone of itself"""
+        cp = Action(id=self.id, parent_id=self.parent_id, user=self.user,
+                    mashup=None,date=self._date)
+        cp.mashup = self.mashup.doCopy(new_ids,id_scope,id_remap)
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId('action')
+            if 'action' in id_scope.remap:
+                id_remap[(id_scope.remap['action'], self.id)] = new_id
+            else:
+                id_remap[('action', self.id)] = new_id
+            cp.id = new_id
+        return cp
+    
     def toXml(self, node=None):
         """toXml(node: ElementTree.Element) -> ElementTree.Element
            writes itself to xml
@@ -101,6 +120,39 @@ class Action(XMLObject):
             mashup = Mashup.fromXml(child)
         return Action(id=id, parent_id=parent_id, mashup=mashup, user=user,
                       date=date)
+        
+    ##########################################################################
+    # Operators
+    
+    def __str__(self):
+        """ __str__() -> str - Returns a string representation of itself """
+        
+        msg = "<<type='%s' id='%s' parent_id='%s' date='%s' user='%s'>>"
+        return msg % (type(self),
+                      self.id,
+                      self.parent_id,
+                      self._date,
+                      self.user)
+        
+    def __eq__(self, other):
+        """ __eq__(other: Alias) -> boolean
+        Returns True if self and other have the same attributes. Used by == 
+        operator. 
+        
+        """
+        if type(self) != type(other):
+            return False
+        if self.mashup != other.mashup:
+            return False
+        return True
+
+    def __ne__(self, other):
+        """ __ne__(other: Component) -> boolean
+        Returns True if self and other don't have the same attributes. 
+        Used by !=  operator. 
+        
+        """
+        return not self.__eq__(other)
 
 ################################################################################
 
@@ -125,6 +177,24 @@ class ActionAnnotation(XMLObject):
             self._date = newDate
     date = property(_getDate, _setDate)
         
+    def __copy__(self):
+        return ActionAnnotation.doCopy(self)
+    
+    def doCopy(self, new_ids=False, id_scope=None, id_remap=None):
+        """doCopy() -> Action 
+        returns a clone of itself"""
+        cp = ActionAnnotation(id=self.id, action_id=self.action_id, key=self.key,
+                              value=self.value, user=self.user, date=self._date)
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId('actionAnnotation')
+            if 'actionAnnotation' in id_scope.remap:
+                id_remap[(id_scope.remap['actionAnnotation'], self.id)] = new_id
+            else:
+                id_remap[('actionAnnotation', self.id)] = new_id
+            cp.id = new_id
+        return cp
+    
     def toXml(self, node=None):
         """toXml(node: ElementTree.Element) -> ElementTree.Element
            writes itself to xml
@@ -162,6 +232,38 @@ class ActionAnnotation(XMLObject):
         date = Action.convert_from_str(data, 'datetime')
         return ActionAnnotation(id=id, action_id=action_id, key=key, value=value,
                       user=user, date=date)
+    
+    ##########################################################################
+    # Operators
+    
+    def __str__(self):
+        """__str__() -> str - Returns a string representation of an
+        ActionAnnotation object.
+
+        """
+        rep = ("<actionAnnotation id=%s action_id=%s key=%s value=%s "
+               "date=%s user=%s</annotation>")
+        return  rep % (str(self.id), str(self.action_id), str(self.key), 
+                       str(self.value), str(self.date), str(self.user))
+
+    def __eq__(self, other):
+        """ __eq__(other: ActionAnnotation) -> boolean
+        Returns True if self and other have the same attributes. Used by == 
+        operator. 
+        
+        """
+        if type(self) != type(other):
+            return False
+        if self.key != other.key:
+            return False
+        if self.value != other.value:
+            return False
+        if self.action_id != other.action_id:
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
         
 ################################################################################
     
@@ -178,15 +280,38 @@ class Mashuptrail(XMLObject):
         self.vtVersion = vt_version
         self.version = ""
         
-        
     def addVersion(self, parent_id, mashup, user, date):
         id = self.getLatestVersion() + 1
-        
+        mashup.id_scope = self.id_scope
         action = Action(id=id, parent_id=parent_id, mashup=mashup,
                         user=user, date=date)
         self.actions.append(action)
         self.actionMap[action.id] = action
         return action.id
+    
+    def __copy__(self):
+        return Mashuptrail.doCopy(self)
+    
+    def doCopy(self, new_ids=False, id_scope=None, id_remap=None):
+        """doCopy() -> Mashuptrail 
+        returns a clone of itself"""
+        cp = Mashuptrail(id=self.id, vt_version=self.vtVersion)
+        
+        
+        cp.actions = []
+        cp.actionMap = {}
+        for action in self.actions:
+            this_action = action.doCopy(new_ids,id_scope,id_remap)
+            cp.actions.append(this_action)
+            cp.actionMap[this_action.id] = this_action
+        cp.annotations = []
+        for annotation in self.annotations:
+            cp.annotations.append(annotation.doCopy(new_ids, id_scope, id_remap))
+        cp.currentVersion = self.currentVersion
+        cp.version = self.version
+        
+        cp.updateIdScope()
+        return cp
     
     def getLatestVersion(self):
         try:
@@ -200,6 +325,17 @@ class Mashuptrail(XMLObject):
             return self.actionMap[version].mashup
         else:
             return None
+        
+    def validateMashupsForPipeline(self, version, pipeline):
+        """validateMashupsForPipeline(version:long, pipeline:Pipeline)->None
+        This will make sure that the aliases present in all mashups are 
+        consistent with the current pipeline. 
+        
+        """
+        for action in self.actions:
+            action.mashup.id_scope = self.id_scope
+            action.mashup.validateForPipeline(pipeline)
+            action.mashup.version = version
     
     ####################################################################
     ## Tag manipulation
@@ -327,3 +463,80 @@ class Mashuptrail(XMLObject):
                 self.id_scope.updateBeginId('component', alias.component.id+1)
         for annotation in self.annotations:
             self.id_scope.updateBeginId('actionAnnotation', annotation.id+1)
+           
+################################################################################
+            
+import unittest
+from db.domain import IdScope
+import copy
+
+class TestAction(unittest.TestCase):
+    def create_action(self, id_scope=IdScope()):
+        from core.mashup.component import Component
+        from core.mashup.alias import Alias
+        c1 = Component(id=id_scope.getNewId('component'),
+                          vttype='parameter', param_id=15L, 
+                          parent_vttype='function', parent_id=3L, mid=4L,
+                          type='String', value='test', p_pos=0, pos=1, 
+                          strvaluelist='test1,test2', widget="text")
+        a1 = Alias(id=id_scope.getNewId('alias'), name='alias1', component=c1)
+        
+        m = Mashup(id=id_scope.getNewId('mashup'), name='mashup1', vtid='empty.vt', 
+                   version=15L, alias_list=[a1])
+        action = Action(id=id_scope.getNewId('action'),
+                        parent_id=0L,
+                        date=datetime(2007,11,18),
+                        mashup=m)
+        return action
+    
+    def test_copy(self):
+        id_scope = IdScope()
+        a1 = self.create_action(id_scope)
+        a2 = copy.copy(a1)
+        self.assertEquals(a1, a2)
+        self.assertEquals(a1.id, a2.id)
+        a3 = a1.doCopy(True, id_scope, {})
+        self.assertEquals(a1, a3)
+        self.assertNotEquals(a1.id, a3.id)
+
+    def test_serialization(self):
+        a1 = self.create_action()
+        node = a1.toXml()
+        a2 = Action.fromXml(node)
+        self.assertEquals(a1, a2)
+        self.assertEquals(a1.id, a2.id)
+        
+    def test_str(self):
+        a1 = self.create_action()
+        str(a1)
+        
+class TestActionAnnotation(unittest.TestCase):
+    def create_annotation(self, id_scope=IdScope()):
+
+        annotation = \
+            ActionAnnotation(id=id_scope.getNewId('actionAnnotation'),
+                             key='akey', action_id=1L,
+                             value='some value', user='test')
+        return annotation
+
+    def test_copy(self):
+        id_scope = IdScope()
+        a1 = self.create_annotation(id_scope)
+        a2 = copy.copy(a1)
+        self.assertEquals(a1, a2)
+        self.assertEquals(a1.id, a2.id)
+        a3 = a1.doCopy(True, id_scope, {})
+        self.assertEquals(a1, a3)
+        self.assertNotEquals(a1.id, a3.id)
+
+    def test_serialization(self):
+        a1 = self.create_annotation()
+        node = a1.toXml()
+        a2 = ActionAnnotation.fromXml(node)
+        self.assertEquals(a1, a2)
+        self.assertEquals(a1.id, a2.id)
+
+    def test_str(self):
+        a1 = self.create_annotation()
+        str(a1)
+
