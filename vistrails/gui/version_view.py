@@ -1098,6 +1098,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
              'publishPaper': ('version_changed', self.check_publish),
              'redo': ('version_changed', self.can_redo),
              'undo': ('version_changed', self.can_undo),
+             'execute': ('pipeline_changed', self.can_execute)
             }
         
     def set_action_defaults(self):
@@ -1121,6 +1122,14 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     def can_undo(self, versionId):
         return versionId > 0
     
+    def can_execute(self, pipeline):
+        return pipeline is not None and len(pipeline.modules) > 0
+    
+    def execute(self):
+        self.controller.execute_current_workflow()
+        from gui.vistrails_window import _app
+        _app.notify('execution_updated')
+        
     def publish_to_web(self):
         from gui.publishing import QVersionEmbed
         from gui.vistrails_window import _app
