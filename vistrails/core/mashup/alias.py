@@ -51,7 +51,18 @@ class Alias(XMLObject):
         returns a clone of itself"""
         cp = Alias(id=self.id, name=self.name)
         cp.component = self.component.doCopy(new_ids, id_scope, id_remap)
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId('alias')
+            if 'alias' in id_scope.remap:
+                id_remap[(id_scope.remap['alias'], self.id)] = new_id
+            else:
+                id_remap[('alias', self.id)] = new_id
+            cp.id = new_id
         return cp
+    
+    ##########################################################################
+    # Serialization / Unserialization
         
     def toXml(self, node=None):
         """toXml(node: ElementTree.Element) -> ElementTree.Element
@@ -83,5 +94,74 @@ class Alias(XMLObject):
                 component = Component.fromXml(child)
         alias = Alias(id,name,component)
         return alias
+    
+    ##########################################################################
+    # Operators
+    
+    def __str__(self):
+        """ __str__() -> str - Returns a string representation of itself """
+        
+        return ("(Alias id='%s' name='%s' component=%s)@%X" %
+                    (self.id,
+                     self.name,
+                     self.component,
+                     id(self)))
+
+    def __eq__(self, other):
+        """ __eq__(other: Alias) -> boolean
+        Returns True if self and other have the same attributes. Used by == 
+        operator. 
+        
+        """
+        if type(self) != type(other):
+            return False
+        if self.name != other.name:
+            return False
+        if self.component != other.component:
+            return False
+        return True
+
+    def __ne__(self, other):
+        """ __ne__(other: Component) -> boolean
+        Returns True if self and other don't have the same attributes. 
+        Used by !=  operator. 
+        
+        """
+        return not self.__eq__(other)
 
 ################################################################################
+
+import unittest
+from db.domain import IdScope
+import copy
+
+class TestAlias(unittest.TestCase):
+    def create_alias(self, id_scope=IdScope()):
+        c1 = Component(id=id_scope.getNewId('component'),
+                          vttype='parameter', param_id=15L, 
+                          parent_vttype='function', parent_id=3L, mid=4L,
+                          type='String', value='test', p_pos=0, pos=1, 
+                          strvaluelist='test1,test2', widget="text")
+        a1 = Alias(id=id_scope.getNewId('alias'), name='alias1', component=c1)
+        return a1
+    
+    def test_copy(self):
+        id_scope = IdScope()
+        a1 = self.create_alias(id_scope)
+        a2 = copy.copy(a1)
+        self.assertEqual(a1,a2)
+        self.assertEqual(a1.id, a2.id)
+        a3 = a2.doCopy(True, id_scope, {})
+        self.assertEqual(a1,a3)
+        self.assertNotEqual(a1.id, a3.id)
+        
+    def test_serialization(self):
+        a1 = self.create_alias()
+        node = a1.toXml()
+        a2 = Alias.fromXml(node)
+        self.assertEqual(a1, a2)
+        self.assertEqual(a1.id, a2.id)
+        
+    def test_str(self):
+        a1 = self.create_alias()
+        str(a1)

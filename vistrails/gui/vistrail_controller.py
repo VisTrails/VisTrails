@@ -1285,10 +1285,11 @@ class VistrailController(QtCore.QObject, BaseController):
         self.set_changed(True)
         self.invalidate_version_tree(False)
 
-    def get_pipeline_name(self):
+    def get_pipeline_name(self, version=None):
         tag_map = self.vistrail.get_tagMap()
         action_map = self.vistrail.actionMap
-        version = self.current_version
+        if version == None:
+            version = self.current_version
         count = 0
         while True:
             if version in tag_map or version <= 0:

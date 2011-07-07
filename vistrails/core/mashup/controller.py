@@ -117,7 +117,7 @@ class MashupController(object):
         self.vtController.change_selected_version(self.vtVersion)
     
     def getVistrailWorkflowTag(self):
-        return self.vtController.vistrail.getVersionName(self.vtVersion)
+        return self.vtController.get_pipeline_name(self.vtVersion)[9:]
     
     def reorderAliases(self, new_order):
         if self.currentMashup:
@@ -190,6 +190,13 @@ class MashupController(object):
         return self.createMashupVersion(new_aliases, quiet=False)
         
     def updateAliasesFromPipeline(self, pipeline):
+        """updateAliasesFromPipeline(self, pipeline) -> long
+        This will generate a new mashup by updating the aliases of the current 
+        mashup according to the aliases in a pipeline. This assumes that the 
+        mashup's current aliases are different from pipeline aliases by at most 
+        one change (eg., an alias rename, an alias addition, an alias removal)
+        
+        """
         pip_aliases = pipeline.aliases.keys()
         mashup_aliases = [a.name for a in self.currentMashup.alias_list]
         new_aliases = []
