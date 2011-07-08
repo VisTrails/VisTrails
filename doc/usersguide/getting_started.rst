@@ -213,7 +213,7 @@ The following table gives the view that is visible in each palette for each of t
 *-------------*---------------------*--------------------*
 |             | Lower Left Palette  | Right Palette      |
 *-------------*---------------------*--------------------*
-| Pipeline    | Modules             | Module Informaion  |
+| Pipeline    | Modules             | Module Information |
 *-------------*---------------------*--------------------*
 | History     | Modules             | Properties         |
 *-------------*---------------------*--------------------*
@@ -229,9 +229,11 @@ Notice that the ``Workspace``, ``Diff Properties``, and ``Vistrail Variables`` v
 The Center Widget
 ^^^^^^^^^^^^^^^^^
 
-The center widget is somewhat larger than the side panels as it is intended to be the main workspace.  It displays the following views: ``Pipeline``, ``History``, ``Search``- Query, ``Search`` - Results, Visual Diff results, ``Explore``, ``Provenance``, and ``Mashup``.  By default, one view is shown.  To open an additional view, type CTRL-t to create a new tab.  The new tab starts out in the ``Pipeline`` view, but you are free to change it to any of the other views.  Note that the tabs from only one vistrail are displayed at a time.  When you switch to a different vistrail, the other vistrails set of open tabs are displayed.
+The center widget is somewhat larger than the side panels as it is intended to be the main workspace.  It displays the following views: ``Pipeline``, ``History``, ``Search``- Query, ``Search`` - Results, Visual Diff results, ``Explore``, ``Provenance``, and ``Mashup``.  By default, one view is shown.  To open an additional view, type CTRL-t to create a new tab.  The new tab starts out in the ``Pipeline`` view, but you are free to change it to any of the other views.  Note that the tabs from only one vistrail are displayed at a time.  When you switch to a different vistrail, the other vistrail's set of open tabs are displayed.
 
 If you would like to see views from more than one vistrail at a time, you may do this by right-clicking on the vistrail (listed in ``Current Vistrails`` of the ``Workspace`` view), and selecting the option to open in a new window.  The side palettes will stay with the original window, but can be moved to the current window by selecting ``Dock Palettes`` from the ``Views`` menu.
+
+If you would like to see more than one view from the same vistrail, double-click the title of the view to detach it.  It is not possible to reattach the view, so once you are finished with the detached view, you may close it.  
 
 .. _sec-start-file:
 
