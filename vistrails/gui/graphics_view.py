@@ -626,8 +626,21 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """
         return QtCore.QSize(512, 512)
 
-    def saveToPDF(self, filename):
-        self.scene().saveToPDF(filename)
+    def save_pdf(self, filename=None):
+        if filename is None:
+            fileName = QtGui.QFileDialog.getSaveFileName(self.window(),
+                "Save PDF...",
+                core.system.vistrails_file_directory(),
+                "PDF files (*.pdf)",
+                None)
+
+            if fileName.isEmpty():
+                return None
+            f = str(fileName)
+        else:
+            f = str(filename)
+            
+        self.scene().saveToPDF(f)
 
     # Workaround for border aliasing on OSX
     # However, it breaks things on Linux, because it
