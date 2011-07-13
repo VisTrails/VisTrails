@@ -2276,24 +2276,8 @@ mutual connections."""
         """ open_configure_window(int) -> None
         Open the modal configuration window for module with given id
         """
-        if self.controller:
-            # registry = get_module_registry()
-            # module = self.controller.current_pipeline.modules[id]            
-            # getter = registry.get_configuration_widget
-            # widgetType = getter(module.package, module.name, module.namespace)
-            # if not widgetType:
-            #     widgetType = DefaultModuleConfigurationWidget            
-            # widget = widgetType(module, self.controller)
-            # widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            # #if connections will be removed as a result of the configuration
-            # # we need to be able to get them when calling
-            # # self.recreate_module()
-            # self.modules[id]._old_connection_ids = \
-            #                  self.modules[id].dependingConnectionItems()
-            # self.connect(widget, QtCore.SIGNAL("doneConfigure"),
-            #              self.perform_configure_done_actions)
-            # widget.show()
-            self.emit(QtCore.SIGNAL("showConfigureWindow"))
+        from gui.vistrails_window import _app
+        _app.configure_module()
             
     def perform_configure_done_actions(self, module_id):
         if self.controller:
@@ -2305,15 +2289,8 @@ mutual connections."""
         """ open_documentation_window(int) -> None
         Opens the modal module documentation window for module with given id
         """
-        if self.controller:
-            registry = get_module_registry()
-            module = self.controller.current_pipeline.modules[id]
-            descriptor = registry.get_descriptor_by_name(module.package,
-                                                         module.name,
-                                                         module.namespace)
-            widget = QModuleDocumentation(descriptor, None)
-            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            widget.exec_()
+        from gui.vistrails_window import _app
+        _app.show_documentation()
 
     def toggle_breakpoint(self, id):
         """ toggle_breakpoint(int) -> None
