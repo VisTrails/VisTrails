@@ -322,18 +322,24 @@ class VistrailController(object):
             self.set_changed(True)
             self.current_version = action.db_id
             self.recompute_terse_graph()
+            
+    def create_module_from_descriptor(self, *args, **kwargs):
+        return self.create_module_from_descriptor_static(self.id_scope,
+                                                         *args, **kwargs)
 
-    def create_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
-                                      internal_version=-1):
+    @staticmethod
+    def create_module_from_descriptor_static(id_scope, descriptor, 
+                                             x=0.0, y=0.0, 
+                                             internal_version=-1):
         reg = core.modules.module_registry.get_module_registry()
         package = reg.get_package_by_name(descriptor.identifier)
-        loc_id = self.id_scope.getNewId(Location.vtType)
+        loc_id = id_scope.getNewId(Location.vtType)
         location = Location(id=loc_id,
                             x=x, 
                             y=y,
                             )
         if internal_version > -1:
-            abstraction_id = self.id_scope.getNewId(Abstraction.vtType)
+            abstraction_id = id_scope.getNewId(Abstraction.vtType)
             module = Abstraction(id=abstraction_id,
                                  name=descriptor.name,
                                  package=descriptor.identifier,
@@ -344,7 +350,7 @@ class VistrailController(object):
                                  )
         elif descriptor.identifier == basic_pkg and \
                 descriptor.name == 'Group':
-            group_id = self.id_scope.getNewId(Group.vtType)
+            group_id = id_scope.getNewId(Group.vtType)
             module = Group(id=group_id,
                            name=descriptor.name,
                            package=descriptor.identifier,
@@ -353,7 +359,7 @@ class VistrailController(object):
                            location=location,
                            )
         else:
-            module_id = self.id_scope.getNewId(Module.vtType)
+            module_id = id_scope.getNewId(Module.vtType)
             module = Module(id=module_id,
                             name=descriptor.name,
                             package=descriptor.identifier,
@@ -364,11 +370,16 @@ class VistrailController(object):
         module.is_valid = True
         return module
 
-    def create_module(self, identifier, name, namespace='', x=0.0, y=0.0,
-                      internal_version=-1):
+    def create_module(self, *args, **kwargs):
+        return self.create_module_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_module_static(id_scope, identifier, name, namespace='', 
+                             x=0.0, y=0.0, internal_version=-1):
         reg = core.modules.module_registry.get_module_registry()
         d = reg.get_descriptor_by_name(identifier, name, namespace)
-        return self.create_module_from_descriptor(d, x, y, internal_version)
+        static_call = VistrailController.create_module_from_descriptor_static
+        return static_call(id_scope, d, x, y, internal_version)
 
     def create_connection_from_ids(self, output_id, output_port_spec,
                                        input_id, input_port_spec):
@@ -377,8 +388,12 @@ class VistrailController(object):
         return self.create_connection(output_module, output_port_spec, 
                                       input_module, input_port_spec)
 
-    def create_connection(self, output_module, output_port_spec,
-                          input_module, input_port_spec):     
+    def create_connection(self, *args, **kwargs):
+        return self.create_connection_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_connection_static(id_scope, output_module, output_port_spec,
+                                 input_module, input_port_spec):     
         if type(output_port_spec) == type(""):
             output_port_spec = \
                 output_module.get_port_spec(output_port_spec, 'output')
@@ -389,23 +404,27 @@ class VistrailController(object):
             raise VistrailsInternalError("output port spec is None")
         if input_port_spec is None:
             raise VistrailsInternalError("input port spec is None")
-        output_port_id = self.id_scope.getNewId(Port.vtType)
+        output_port_id = id_scope.getNewId(Port.vtType)
         output_port = Port(id=output_port_id,
                            spec=output_port_spec,
                            moduleId=output_module.id,
                            moduleName=output_module.name)
-        input_port_id = self.id_scope.getNewId(Port.vtType)
+        input_port_id = id_scope.getNewId(Port.vtType)
         input_port = Port(id=input_port_id,
                            spec=input_port_spec,
                            moduleId=input_module.id,
                            moduleName=input_module.name)
-        conn_id = self.id_scope.getNewId(Connection.vtType)
+        conn_id = id_scope.getNewId(Connection.vtType)
         connection = Connection(id=conn_id,
                                 ports=[input_port, output_port])
         return connection
 
-    def create_param(self, port_spec, pos, value, alias=''):
-        param_id = self.id_scope.getNewId(ModuleParam.vtType)
+    def create_param(self, *args, **kwargs):
+        return self.create_param_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_param_static(id_scope, port_spec, pos, value, alias=''):
+        param_id = id_scope.getNewId(ModuleParam.vtType)
         descriptor = port_spec.descriptors()[pos]
         param_type = descriptor.sigstring
         # FIXME add/remove description
@@ -419,7 +438,11 @@ class VistrailController(object):
                                 )
         return new_param
 
-    def create_params(self, port_spec, values, aliases=[]):
+    def create_params(self, *args, **kwargs):
+        return self.create_params_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_params_static(id_scope, port_spec, values, aliases=[]):
         params = []
         for i in xrange(len(port_spec.descriptors())):
             if i < len(values):
@@ -430,27 +453,38 @@ class VistrailController(object):
                 alias = str(aliases[i])
             else:
                 alias = ''
-            param = self.create_param(port_spec, i, value, alias)
+            param = VistrailController.create_param_static(id_scope, port_spec,
+                                                           i, value, alias)
             params.append(param)
         return params
 
-    def create_function(self, module, function_name, param_values=[], 
-                        aliases=[]):
+    def create_function(self, *args, **kwargs):
+        return self.create_function_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_function_static(id_scope, module, function_name, 
+                               param_values=[], aliases=[]):
         port_spec = module.get_port_spec(function_name, 'input')
         if len(param_values) <= 0 and port_spec.defaults is not None:
             param_values = port_spec.defaults
 
-        f_id = self.id_scope.getNewId(ModuleFunction.vtType)
+        f_id = id_scope.getNewId(ModuleFunction.vtType)
         new_function = ModuleFunction(id=f_id,
                                       pos=module.getNumFunctions(),
                                       name=function_name,
                                       )
         new_function.is_valid = True
-        new_params = self.create_params(port_spec, param_values, aliases)
+        new_params = \
+            VistrailController.create_params_static(id_scope, port_spec, 
+                                                    param_values, aliases)
         new_function.add_parameters(new_params)        
         return new_function
 
-    def create_functions(self, module, functions):
+    def create_functions(self, *args, **kwargs):
+        return self.create_functions_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_functions_static(id_scope, module, functions):
         """create_functions(module: Module,
                             functions: [function_name: str,
                                         param_values: [str]]) 
@@ -458,13 +492,18 @@ class VistrailController(object):
         
         """
         new_functions = []
+        static_call = VistrailController.create_function_static
         for f in functions:
-            new_functions.append(self.create_function(module, *f))
+            new_functions.append(static_call(id_scope, module, *f))
         return new_functions
+
+    def create_port_spec(self, *args, **kwargs):
+        self.create_port_spec_static(self.id_scope, *args, **kwargs)
     
-    def create_port_spec(self, module, port_type, port_name, port_sigstring,
-                         port_sort_key=-1):
-        p_id = self.id_scope.getNewId(PortSpec.vtType)
+    @staticmethod
+    def create_port_spec_static(id_scope, module, port_type, port_name, 
+                                port_sigstring, port_sort_key=-1):
+        p_id = id_scope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
                              type=port_type,
                              name=port_name,
