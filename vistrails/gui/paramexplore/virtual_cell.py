@@ -102,6 +102,11 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
     of sheetCount x rowCount x colCount cells
 
     """
+
+    # at this point, we know that we have the spreadsheet loaded
+    from packages.spreadsheet.spreadsheet_execute import \
+        assignPipelineCellLocations
+
     registry = get_module_registry()
     (vRCount, vCCount, cells) = config
     modifiedPipelines = []
@@ -112,87 +117,18 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
         sheet = (pId / (colCount*rowCount)) % sheetCount
 
         decodedCells = decodeConfiguration(root_pipeline, cells)
+        # still need to go through each separately
         for (id_list, vRow, vCol) in decodedCells:
-            pipeline = root_pipeline
-            # find at which depth we need to be working
-            try:                
-                id_iter = iter(id_list)
-                m = pipeline.modules[id_iter.next()]
-                for mId in id_iter:
-                    pipeline = m.pipeline
-                    m = pipeline.modules[mId]
-            except TypeError:
-                mId = id_list
- 
-            # Walk through all connection and remove all
-            # CellLocation connected to this spreadsheet cell
-            action_list = []
-            conns_to_delete = []
-            for (cId,c) in pipeline.connections.iteritems():
-                if (c.destinationId==mId and 
-                    pipeline.modules[c.sourceId].name=="CellLocation"):
-                    conns_to_delete.append(c.id)
-            for c_id in conns_to_delete:
-                pipeline.delete_connection(c_id)
-
-            # a hack to first get the id_scope to the local pipeline scope
-            # then make them negative by hacking the getNewId method
-            # all of this is reset at the end of this block
-            old_scope = controller.id_scope
-            controller.id_scope = pipeline.tmp_id
-            orig_getNewId = pipeline.tmp_id.__class__.getNewId
-            def getNewId(self, objType):
-                return -orig_getNewId(self, objType)
-            pipeline.tmp_id.__class__.getNewId = getNewId
-
-            # Add a sheet reference with a specific name
-            sheetReference = \
-                controller.create_module("edu.utah.sci.vistrails.spreadsheet", 
-                                         "SheetReference")
-            sheetNameFunction = \
-                controller.create_function(sheetReference, "SheetName", 
-                                           ["%s %d" % (sheetPrefix, sheet)])
-            minRowFunction = controller.create_function(sheetReference, 
-                                                        "MinRowCount",
-                                                        [str(rowCount*vRCount)])
-            minColFunction = controller.create_function(sheetReference,
-                                                        "MinColumnCount",
-                                                        [str(colCount*vCCount)])
-            
-            sheetReference.add_function(sheetNameFunction)
-            sheetReference.add_function(minRowFunction)
-            sheetReference.add_function(minColFunction)
-            
-            # Add a cell location module with a specific row and column
-            cellLocation = \
-                controller.create_module("edu.utah.sci.vistrails.spreadsheet",
-                                         "CellLocation")
-            rowFunction = controller.create_function(cellLocation,
-                                                     "Row", 
-                                                     [str(row*vRCount+vRow+1)])
-            colFunction = controller.create_function(cellLocation,
-                                                     "Column",
-                                                     [str(col*vCCount+vCol+1)])
-
-            cellLocation.add_function(rowFunction)
-            cellLocation.add_function(colFunction)
-
-            # Then connect the SheetReference to the CellLocation
-            sheet_conn = \
-                controller.create_connection(sheetReference, "self",
-                                             cellLocation, "SheetReference")
-            
-            # Then connect the CellLocation to the spreadsheet cell
-            cell_module = pipeline.get_module_by_id(mId)
-            cell_conn = controller.create_connection(cellLocation, "self",
-                                                     cell_module, "Location")
-
-            pipeline.add_module(sheetReference)
-            pipeline.add_module(cellLocation)
-            pipeline.add_connection(sheet_conn)
-            pipeline.add_connection(cell_conn)
-            pipeline.tmp_id.__class__.getNewId = orig_getNewId
-            controller.id_scope = old_scope
+            sheet_name = "%s %d" % (sheetPrefix, sheet)
+            min_row_count = rowCount * vRCount
+            min_col_count = colCount * vCCount
+            real_row = row*vRCount+vRow+1
+            real_col = col*vCCount+vCol+1
+            root_pipeline = \
+                assignPipelineCellLocations(root_pipeline, sheet_name,
+                                            real_row, real_col,
+                                            [id_list], min_row_count,
+                                            min_col_count)
 
         modifiedPipelines.append(root_pipeline)
     return modifiedPipelines
