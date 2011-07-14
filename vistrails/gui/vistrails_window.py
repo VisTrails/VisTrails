@@ -932,7 +932,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         from gui.collection.vis_log import QLogDetails
         from gui.mashups.mashups_inspector import QMashupsInspector
         from gui.mashups.alias_parameter_view import QAliasParameterView
-        from gui.publishing import QLatexAssistant as QVersionEmbed
+        from gui.publishing import QLatexAssistant, QVersionEmbed
         self.palettes = []
         self.palette_window = None
         
@@ -985,8 +985,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
                (QExplorerWindow, True),
+               ((QLatexAssistant, True),
+                (('controller_changed', 'set_controller'),)),
                ((QVersionEmbed, True),
-                (('controller_changed', 'set_controller'),))])]
+                (('controller_changed', 'set_controller'),
+                 ('version_changed', 'updateVersion')))])]
         
         left_added = None
         self.palette_window = QPaletteMainWindow()

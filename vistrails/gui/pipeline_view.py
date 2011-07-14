@@ -2559,18 +2559,16 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         
     def publish_to_web(self):
         from gui.publishing import QVersionEmbed
-        from gui.vistrails_window import _app
-        panel = QVersionEmbed(_app)
-        panel.set_controller(self.controller)
-        panel.updateVersion(self.controller.current_version)
+        panel = QVersionEmbed.instance()
         panel.switchType('Wiki')
-        panel.show()
+        panel.set_visible(True)
         
     def publish_to_paper(self):
-        from gui.publishing import QLatexAssistant
-        latex_palette = QLatexAssistant.instance()
-        latex_palette.set_visible(True)
-
+        from gui.publishing import QVersionEmbed
+        panel = QVersionEmbed.instance()
+        panel.switchType('Latex')
+        panel.set_visible(True)
+        
     def check_publish_db(self, pipeline):
         loc = self.controller.locator
         result = False

@@ -446,7 +446,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QWidget.__init__(self, parent, 
                                f | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
-        self.setWindowTitle('Publish')
+        self.setWindowTitle('Publish Workflow')
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.versionNumber = None
         self.versionTag = ''
@@ -653,12 +653,12 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         options['execute'] = self.chbExecute.isChecked()
         options['showspreadsheetonly'] = self.chbSpreadsheet.isChecked()
         
-        if self.cbtype.currentText() == "Wiki":
+        if str(self.cbtype.currentText()) == "Wiki":
             text = self.buildWikiTag(options)
-        elif self.cbtype.currentText() == "Latex":
+        elif str(self.cbtype.currentText()) == "Latex":
             options['getvtl'] = self.chbLatexVTL.isChecked()
             text = self.buildLatexCommand(options)
-        elif self.cbtype.currentText() == "Shared Memory":
+        elif str(self.cbtype.currentText()) == "Shared Memory":
             text = self.pptag
         self.embededt.setPlainText(text)
             
@@ -688,7 +688,10 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         if text == 'Wiki':
             index = 0
         elif text == "Latex":
-            index = 1
+            if self.cbtype.count() > 1:
+                index = 1
+            else:
+                index = 0
         else:
             index = 2
         self.cbtype.setCurrentIndex(index)
