@@ -96,7 +96,7 @@ class QVistrailView(QtGui.QWidget):
         self.tab_state = {}
         self.tab_to_view = {}
         #self.button_to_tab_idx = Bidict()
-        self.detached_views = []
+        self.detached_views = {}
 
         # Initialize the vistrail controller
         self.controller = VistrailController(vistrail)
@@ -408,21 +408,20 @@ class QVistrailView(QtGui.QWidget):
         return view
 
     def detach_view(self, tab_idx):
+        from gui.vistrails_window import QBaseViewWindow
         if self.tab_to_stack_idx.has_key(tab_idx):
             stack_index = self.tab_to_stack_idx[tab_idx]
             view = self.stack.widget(stack_index)
             title = view.get_long_title()
             self.remove_view_by_index(tab_idx)
-            view.setParent(None)
-            view.setWindowFlags(QtCore.Qt.Window)
+            window = QBaseViewWindow(view=view, parent=None)
             view.set_title(title)
-            view.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            self.connect(view, QtCore.SIGNAL("viewWasClosed"),
+            window.setWindowTitle(title)
+            self.connect(window, QtCore.SIGNAL("viewWasClosed"),
                          self.detachedViewWasClosed)
-            self.detached_views.append(view)
-            view.adjustSize()
-            view.move(self.rect().center())
-            view.show()
+            self.detached_views[view] = window
+            window.move(self.rect().center())
+            window.show()
         else:
             print "Error detach_view: ", tab_idx, self.tab_to_stack_idx
     
@@ -432,14 +431,15 @@ class QVistrailView(QtGui.QWidget):
         return False
     
     def closeDetachedViews(self):
-        for view in self.detached_views:
-            if view:
-                view.close()
+        windows = self.detached_views.values()
+        for w in windows:
+            if w:
+                w.close()
             
     def detachedViewWasClosed(self, view):
         if self.controller.current_pipeline_view.parent() == view:
             self.controller.current_pipeline_view = None
-        self.detached_views.remove(view)
+        del self.detached_views[view]
         
     def updateTabsTooTip(self):
         for i in range(self.tabs.count()):
@@ -518,8 +518,8 @@ class QVistrailView(QtGui.QWidget):
 
     def get_current_tab(self):
         window = QtGui.QApplication.activeWindow()
-        if window in self.detached_views:
-            return window    
+        if window in self.detached_views.values():
+            return window.view   
         else:
             #if none of the detached views is active we will assume that the
             #window containing this vistrail has focus
@@ -720,8 +720,8 @@ class QVistrailView(QtGui.QWidget):
         else:
             window = _app
         print 'got version selected:', version_id
-        if _app._focus_owner in self.detached_views:
-            view = _app._focus_owner
+        if _app._focus_owner in self.detached_views.values():
+            view = _app._focus_owner.view
         elif _app._previous_view in self.detached_views:
             view = _app._previous_view
         else:
@@ -742,8 +742,10 @@ class QVistrailView(QtGui.QWidget):
         if view and not isinstance(view, QDiffView):
             if view not in self.detached_views:
                 view.set_title(self.controller.get_pipeline_name())
+                view.window().setWindowTitle(self.controller.get_pipeline_name())
             else:
                 view.set_title(view.get_long_title())
+                view.window().setWindowTitle(view.get_long_title())
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 

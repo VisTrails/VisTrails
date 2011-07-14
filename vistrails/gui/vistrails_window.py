@@ -72,12 +72,272 @@ from gui.vistrails_palette import QVistrailsPaletteInterface
 from db.services.io import SaveBundle
 import db.services.vistrail
 
-class QVistrailViewWindow(QtGui.QMainWindow):
+class QBaseViewWindow(QtGui.QMainWindow):
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
-        # This keeps track of the menu items for each package
-        self._package_menu_items = {}
+       
+        self.view = view
 
+        if self.view is not None:
+            self.setCentralWidget(view)
+            self.view.setVisible(True)
+        
+        self.create_actions_and_toolbar()
+        
+    def create_actions_and_toolbar(self):
+        self.create_actions()
+        self.init_toolbar()
+        
+    def closeEvent(self, event):
+        self.emit(QtCore.SIGNAL("viewWasClosed"), self.view)
+        event.accept()
+    
+    def init_toolbar(self):
+        pass
+    
+    def get_current_view(self):
+        return self.view.vistrail_view
+    
+    def get_current_tab(self):
+        return self.view
+    
+    def get_current_scene(self):
+        return self.get_current_tab().scene()
+    
+    def get_current_controller(self):
+        return self.view.vistrail_view.get_controller()
+    
+    def process_list(self, action_list, parent, qactions, qmenus):
+        for data in action_list:
+            if data == "---":
+                if parent is not None:
+                    parent.addSeparator()
+                continue
+            name, title, options = data
+            if type(options) == list:
+                # menu
+                if parent is not None:
+                    qmenu = parent.addMenu(title)
+                qmenus[name] = qmenu
+                self.process_list(options, qmenu, qactions, qmenus)
+            else:
+                qaction = QtGui.QAction(title, self)
+                callback = None
+                if 'callback' in options:
+                    callback = options['callback']
+                    del options['callback']
+                for option, value in options.iteritems():
+                    method = getattr(qaction, 'set%s' % \
+                                         option[0].capitalize() + \
+                                         option[1:])
+                    method(value)
+                qactions[name] = qaction
+                if parent is not None:
+                    parent.addAction(qaction)
+                if callback is not None:
+                    if 'checkable' in options and \
+                            options['checkable'] is True:
+                        self.connect(qaction, 
+                                     QtCore.SIGNAL("toggled(bool)"),
+                                     callback)
+                    else:
+                        self.connect(qaction, QtCore.SIGNAL("triggered()"),
+                                     callback)
+        
+    def init_action_list(self):
+        global _app
+        
+        self._actions = [("file", "&File",
+                   [("export", "Export",
+                      [('savePDF', "PDF...",
+                        {'statusTip': "Save the current view to a PDF file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_tab,
+                                                       'save_pdf')}),
+                       "---",
+                       ('saveWorkflow', "Workflow To XML...",
+                        {'statusTip': "Save the current workflow to a file",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_workflow',
+                                                       FileLocator())}),
+                       ('exportWorkflow', "Workflow to DB...",
+                        {'statusTip': "Save the current workflow to a database",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'save_workflow',
+                                                       DBLocator)})]),
+                       "---",
+                       ('close', "Close",
+                        {'shortcut': QtGui.QKeySequence.Close,
+                        'statusTip': "Close the current window",
+                         'enabled': True,
+                         'callback': self.close})]),
+                   ("edit", "&Edit",
+                    [("undo", "Undo",
+                      {'statusTip': "Undo the previous action",
+                       'shortcut': QtGui.QKeySequence.Undo,
+                       'callback': _app.pass_through(self.get_current_view,
+                                                     'undo'),
+                       'enabled': False}),
+                     ("redo", "Redo",
+                      {'statusTip': "Redo an undone action",
+                       'shortcut': QtGui.QKeySequence.Redo,
+                       'callback': _app.pass_through(self.get_current_view,
+                                                     'redo'),
+                       'enabled': False}),
+                     "---",
+                     ("copy", "Copy",
+                      {'statusTip': "Copy the selected modules in the " \
+                           "current pipeline view",
+                       'shortcut': QtGui.QKeySequence.Copy,
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'copySelection')}),
+                     ("paste", "Paste",
+                      {'statusTip': "Paste modules from the clipboard into " \
+                           "the current pipeline view",
+                       'shortcut': QtGui.QKeySequence.Paste,
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'pasteFromClipboard')}),
+                     ("selectAll", "Select All",
+                      {'statusTip': "Select all modules in the current " \
+                           "pipeline view",
+                       'enabled': True,
+                       'shortcut': QtGui.QKeySequence.SelectAll,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'selectAll')}),
+                     "---",
+                     ("controlFlowAssist", "Control Flow Assistant",
+                      {'callback': _app.pass_through(self.get_current_tab,
+                                                     'run_control_flow_assist'),
+                       'statusTip': "Create a loop over the selected modules",
+                       })]),
+                   ("run", "&Workflow",
+                    [("execute", "Execute",
+                      {'icon': CurrentTheme.EXECUTE_PIPELINE_ICON,
+                       'shortcut': 'Ctrl+Return',
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_view,
+                                                     'execute')}),
+                     ("flushCache", "Erase Cache Contents", 
+                      {'enabled': True,
+                       'callback': _app.flush_cache}),
+                     "---",
+                     ("group", "Group",
+                      {'statusTip': "Group the selected modules in the " \
+                           "current pipeline view",
+                       'shortcut': 'Ctrl+G',
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'group')}),
+                     ("ungroup", "Ungroup",
+                      {'statusTip': "Ungroup the selected groups in the " \
+                           "current pipeline view",
+                       'shortcut': 'Ctrl+Shift+G',
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'ungroup')}),
+                     ("showGroup", "Show Pipeline",
+                      {'statusTip': "Show the underlying pipeline for the " \
+                           "selected group in the current pipeline view",
+                       'enabled': False,
+                       'callback': _app.show_group}),
+                     "---",
+                     ("makeAbstraction", "Create Subworkflow",
+                      {'statusTip': "Create a subworkflow from the selected " \
+                           "modules",
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'makeAbstraction')}),
+                     ("convertToAbstraction", "Convert to Subworkflow",
+                      {'statusTip': "Convert selected group to a subworkflow",
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'convertToAbstraction')}),
+                     ("editAbstraction", "Edit Subworkflow",
+                      {'statusTip': "Edit a subworkflow",
+                       'enabled': False,
+                       'callback': _app.edit_abstraction}),
+                     ("importAbstraction", "Import Subworkflow",
+                      {'statusTip': "Import subworkflow from a vistrail to " \
+                           "local subworkflows",
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'importAbstraction')}),
+                     ("exportAbstraction", "Export Subworkflow",
+                      {'statusTip': "Export subworkflow from local " \
+                           "subworkflows for use in a package",
+                       'enabled': False,
+                       'callback': _app.pass_through(_app.get_current_scene,
+                                                     'exportAbstraction')}),
+                     "---",
+                     ("configureModule", "Configure Module...",
+                      {'shortcut': "Ctrl+E",
+                       'enabled': False,
+                       'callback': _app.configure_module}),
+                     ("documentModule", "Module Documentation...",
+                      {'enabled': False,
+                       'callback': _app.show_documentation})]),
+                   ("view", "&Views",
+                    [("zoomToFit", "Zoom To Fit",
+                      {'enabled': True,
+                       'shortcut': "Ctrl+R",
+                       'statusTip': "Fit current view to window",
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'zoomToFit')}),
+                     ("zoomIn", "Zoom In",
+                      {'enabled': True,
+                       'shortcut': QtGui.QKeySequence.ZoomIn,
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'zoomIn')}),
+                     ("zoomOut", "Zoom Out",
+                      {'enabled': True,
+                       'shortcut': QtGui.QKeySequence.ZoomOut,
+                       'callback': _app.pass_through(self.get_current_tab,
+                                                     'zoomOut')})]),
+                   ("publish", "Publish",
+                    [("publishPaper", "To Paper...", 
+                      {'enabled': True,
+                       'statusTip': \
+                           "Embed workflow and results into a paper",
+                        'callback': _app.pass_through(self.get_current_view,
+                                                      'publish_to_paper')}),
+                     ("publishWeb", "To Wiki...",
+                      {'enabled': True,
+                       'statusTip': "Embed workflow in wiki",
+                       'callback' : _app.pass_through(self.get_current_view,
+                                                      'publish_to_web')}),
+                     ("publishCrowdLabs", "To crowdLabs...",
+                      {'enabled': True,
+                       'statusTip': "Publish workflows on crowdlabs.org",
+                       'callback': _app.publish_to_crowdlabs})]),
+                    ("window", "Window", 
+                      []),
+                   ("help", "Help",
+                    [("help", "About VisTrails...", 
+                      {'callback': _app.showAboutMessage}),
+                     ("checkUpdate", "Check for Updates", 
+                      {'callback': _app.showUpdatesMessage})])]
+                    
+    def create_actions(self):
+        self.init_action_list()
+
+        self.qactions = {}
+        self.qmenus = {}
+
+        menu_bar = self.menuBar()
+        print 'menu_bar:', menu_bar
+        self.process_list(self._actions, menu_bar, self.qactions, self.qmenus)
+        print 'done processing list'
+        
+class QVistrailViewWindow(QBaseViewWindow):
+    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
+        QBaseViewWindow.__init__(self, view, parent, f)
+        
         self.setDocumentMode(True)
         self.view = view
 
@@ -85,12 +345,6 @@ class QVistrailViewWindow(QtGui.QMainWindow):
             self.setCentralWidget(view)
             self.view.setVisible(True)
             self.setWindowTitle(self.view.get_name())
-        
-        self.create_actions_and_toolbar()
-
-    def create_actions_and_toolbar(self):
-        self.create_actions()
-        self.init_toolbar()
 
     def close_vistrail(self):
         global _app
@@ -188,39 +442,27 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                                            triggered=callback)
                     pkg_menu.addAction(action)
 
-    def create_actions(self):
-        """ createActions() -> None 
-
-        Construct all menu/toolbar actions for window.
-
-        """
+    def init_action_list(self):
         global _app
-
-        # format of each item in the list is:
-        # item: reference, title, options
-        # where options is either a list of subitems or
-        # a dictionary of options to be set for an action
-        # Also, "---" denotes a separator
-
-        is_main_window = False
-        if self == _app:
-            is_main_window = True
-
-        global _global_menubar
-
-        all_palette_actions =  _app.create_palette_actions()
+        # This keeps track of the menu items for each package
+        self._package_menu_items = {}
+        
+        self.all_palette_actions =  _app.create_palette_actions()
         tools_actions = []
         palette_actions = []
-        for a,p in all_palette_actions:
+        for a,p in self.all_palette_actions:
             if p.toolWindow().window() == _app.palette_window:
                 tools_actions.append(a)
             else:
                 palette_actions.append(a)
         
-        # palettes = []
-        # palette_actions = []
-
-        actions = [("file", "&File",
+        QBaseViewWindow.init_action_list(self)
+        #FIXME: 
+        #The menus that are different from the base class' menus are being 
+        # replaced in place. It would be much cleaner to create a function 
+        # to add/replace a menu item of a menu.
+        
+        self._actions[0] = ("file", "&File",
                     [('newVistrail', "&New",
                       {'icon': CurrentTheme.NEW_VISTRAIL_ICON,
                        'shortcut': QtGui.QKeySequence.New,
@@ -344,8 +586,9 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                      ('quitVistrails', "Quit",
                       {'shortcut': QtGui.QKeySequence.Quit,
                        'statusTip': "Exit VisTrails",
-                       'callback': _app.quit})]),
-                   ("edit", "&Edit",
+                       'callback': _app.quit})])
+        
+        self._actions[1] = ("edit", "&Edit",
                     [("undo", "Undo",
                       {'statusTip': "Undo the previous action",
                        'shortcut': QtGui.QKeySequence.Undo,
@@ -394,80 +637,8 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                        'enabled': True,
                        'shortcut': QtGui.QKeySequence.Preferences,
                        'callback': _app.showPreferences}),
-                     ]),
-                   ("run", "&Workflow",
-                    [("execute", "Execute",
-                      {'icon': CurrentTheme.EXECUTE_PIPELINE_ICON,
-                       'shortcut': 'Ctrl+Return',
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_view,
-                                                     'execute')}),
-                     ("flushCache", "Erase Cache Contents", 
-                      {'enabled': True,
-                       'callback': _app.flush_cache}),
-                     "---",
-                     ("group", "Group",
-                      {'statusTip': "Group the selected modules in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+G',
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'group')}),
-                     ("ungroup", "Ungroup",
-                      {'statusTip': "Ungroup the selected groups in the " \
-                           "current pipeline view",
-                       'shortcut': 'Ctrl+Shift+G',
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'ungroup')}),
-                     ("showGroup", "Show Pipeline",
-                      {'statusTip': "Show the underlying pipeline for the " \
-                           "selected group in the current pipeline view",
-                       'enabled': False,
-                       'callback': _app.show_group}),
-                     "---",
-                     ("makeAbstraction", "Create Subworkflow",
-                      {'statusTip': "Create a subworkflow from the selected " \
-                           "modules",
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'makeAbstraction')}),
-                     ("convertToAbstraction", "Convert to Subworkflow",
-                      {'statusTip': "Convert selected group to a subworkflow",
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'convertToAbstraction')}),
-                     ("editAbstraction", "Edit Subworkflow",
-                      {'statusTip': "Edit a subworkflow",
-                       'enabled': False,
-                       'callback': _app.edit_abstraction}),
-                     ("importAbstraction", "Import Subworkflow",
-                      {'statusTip': "Import subworkflow from a vistrail to " \
-                           "local subworkflows",
-                       'enabled': False,
-                       'callback': _app.pass_through(self.get_current_scene,
-                                                     'importAbstraction')}),
-                     ("exportAbstraction", "Export Subworkflow",
-                      {'statusTip': "Export subworkflow from local " \
-                           "subworkflows for use in a package",
-                       'enabled': False,
-                       'callback': _app.pass_through(_app.get_current_scene,
-                                                     'exportAbstraction')}),
-                     "---",
-                     ("configureModule", "Configure Module...",
-                      {'shortcut': "Ctrl+E",
-                       'enabled': False,
-                       'callback': _app.configure_module}),
-                     ("documentModule", "Module Documentation...",
-                      {'enabled': False,
-                       'callback': _app.show_documentation})]),
-                     # ("executeDiff", "Show Version Difference",
-                     #  {'enabled': False}),
-                     # ("executeQuery", "Perform Query",
-                     #  {'enabled': False}),
-                     # ("executeExploration", "Perform Parameter Exploration",
-                     #  {'enabled': False})]),
-                   ("vistrail", "Vis&trail",
+                     ])
+        self._actions.insert(3, ("vistrail", "Vis&trail",
                     [("tag", "Tag...",
                       {'statusTip': "Tag the current pipeline",
                        'shortcut': "Ctrl+Shift+T",
@@ -507,8 +678,9 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                        'statusTip': "Show all hidden versions",
                        'callback': \
                            _app.pass_through(self.get_current_controller,
-                                             'show_all_versions')})]),
-                   ("view", "&Views",
+                                             'show_all_versions')})]))
+        
+        self._actions[4] = ("view", "&Views",
                     [("newView", "New Pipeline View",
                       {'shortcut': QtGui.QKeySequence.AddTab,
                        'enabled': True,
@@ -589,119 +761,49 @@ class QVistrailViewWindow(QtGui.QMainWindow):
                      ("dockPalettes", "Dock Palettes", 
                       {'enabled': True,
                        'statusTip': "Dock palettes on active window",
-                       'callback': _app.dock_palettes})]),
-                    # [("workspace", "Workspaces",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("provenanceBrowser", "Provenance Browser",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("shell", "Console",
-                    #   {'icon': CurrentTheme.CONSOLE_MODE_ICON,
-                    #    'checkable': True,
-                    #    'checked': False}),
-                    #  ("debug", "Debugger",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("messages", "Messages",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("pipView", "Picture-in-Picture",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("properties", "Properties",
-                    #   {'checkable': True,
-                    #    'checked': True}),
-                    #  ("propertiesOverlay", "Properties Overlay",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("moduleConfigView", "Module Configuration",
-                    #   {'checkable': True,
-                    #    'checked': False}),
-                    #  ("moduleDocumentation", "Module Documentation",
-                    #   {'checkable': True,
-                    #    'checked': False})]),
-                   ("publish", "Publish",
-                    [("publishPaper", "To Paper...", 
-                      {'enabled': True,
-                       'statusTip': \
-                           "Embed workflow and results into a paper",
-                        'callback': _app.pass_through(self.get_current_view,
-                                                      'publish_to_paper')}),
-                     ("publishWeb", "To Wiki...",
-                      {'enabled': True,
-                       'statusTip': "Embed workflow in wiki",
-                       'callback' : _app.pass_through(self.get_current_view,
-                                                      'publish_to_web')}),
-                     ("publishCrowdLabs", "To crowdLabs...",
-                      {'enabled': True,
-                       'statusTip': "Publish workflows on crowdlabs.org",
-                       'callback': _app.publish_to_crowdlabs})]),
-                    ("packages", "Packages", 
-                      []),
-                    ("window", "Window", 
-                      []),
-                   ("help", "Help",
-                    [("help", "About VisTrails...", 
-                      {'callback': _app.showAboutMessage}),
-                     ("checkUpdate", "Check for Updates", 
-                      {'callback': _app.showUpdatesMessage})])]
+                       'callback': _app.dock_palettes})])
+        self._actions.insert(6, ("packages", "Packages", 
+                                     []))
+    
+    def create_actions(self):
+        """ createActions() -> None 
 
+        Construct all menu/toolbar actions for window.
 
-        qactions = {}
-        qmenus = {}
-        def process_list(action_list, parent):
-            for data in action_list:
-                if data == "---":
-                    if parent is not None:
-                        parent.addSeparator()
-                    continue
-                name, title, options = data
-                if type(options) == list:
-                    # menu
-                    if parent is not None:
-                        qmenu = parent.addMenu(title)
-                    qmenus[name] = qmenu
-                    process_list(options, qmenu)
-                else:
-                    qaction = QtGui.QAction(title, self)
-                    callback = None
-                    if 'callback' in options:
-                        callback = options['callback']
-                        del options['callback']
-                    for option, value in options.iteritems():
-                        method = getattr(qaction, 'set%s' % \
-                                             option[0].capitalize() + \
-                                             option[1:])
-                        method(value)
-                    qactions[name] = qaction
-                    if parent is not None:
-                        parent.addAction(qaction)
-                    if callback is not None:
-                        if 'checkable' in options and \
-                                options['checkable'] is True:
-                            self.connect(qaction, 
-                                         QtCore.SIGNAL("toggled(bool)"),
-                                         callback)
-                        else:
-                            self.connect(qaction, QtCore.SIGNAL("triggered()"),
-                                         callback)
-                        
+        """
+        global _app
 
-            self.qactions = qactions
-            self.qmenus = qmenus
+        # format of each item in the list is:
+        # item: reference, title, options
+        # where options is either a list of subitems or
+        # a dictionary of options to be set for an action
+        # Also, "---" denotes a separator
 
-        if is_main_window and core.system.systemType in ['Darwin']:
-            menu_bar = QtGui.QMenuBar()
-            _global_menubar = menu_bar
-        else:
-            menu_bar = self.menuBar()
+        is_main_window = False
+        if self == _app:
+            is_main_window = True
+
+        #global _global_menubar
+        
+        # palettes = []
+        # palette_actions = []
+
+        self.init_action_list()
+
+        self.qactions = {}
+        self.qmenus = {}
+
+        #if is_main_window and core.system.systemType in ['Darwin']:
+            # menu_bar = QtGui.QMenuBar()
+            #_global_menubar = menu_bar
+        #else:
+        menu_bar = self.menuBar()
         print 'menu_bar:', menu_bar
-        process_list(actions, menu_bar)
+        self.process_list(self._actions, menu_bar, self.qactions, self.qmenus)
         print 'done processing list'
         
         if is_main_window:
-            for action_tuple, palette in all_palette_actions:
+            for action_tuple, palette in self.all_palette_actions:
                 palette.set_action(self.qactions[action_tuple[0]])
             _app.connect_package_manager_signals()
         else:
@@ -736,6 +838,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def create_actions_and_toolbar(self):
         self.current_view = None
         self.windows = {}
+        self.base_view_windows = {}
         self.notifications = {}
         self.view_notifications = {}
         self.view_notifications[-1] = {}
@@ -1155,12 +1258,14 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def change_view(self, view):
         print 'changing view', id(view), view
-        if view and view not in self.windows:
-            if self.stack.currentWidget() != view:
-                self.stack.setCurrentWidget(view)
-                view.reset_tab_state()
-        self.view_changed(view)
-            
+        if type(view) == QVistrailView or view is None:
+            if view and view not in self.windows:
+                if self.stack.currentWidget() != view:
+                    self.stack.setCurrentWidget(view)
+                    view.reset_tab_state()
+            self.view_changed(view)
+        else:
+            debug.warning("change_view() got a wrong view type:'%s'"%view)            
 
     def detach_view(self, view):
         if view not in self.windows:
@@ -1496,9 +1601,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.qactions['pipeline'].trigger()
     
     def close_vistrail(self, current_view=None, quiet=False):
+        locator = None
         if not current_view:
             current_view = self.get_current_view()
-        if not quiet and current_view.has_changes():
+        if current_view:
+            locator = current_view.controller.locator
+        if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
             text = current_view.controller.name
             if text=='':
@@ -1517,7 +1625,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 2)
         else:
             res = 1
-        locator = current_view.controller.locator
+        
         if res == 0:
             if locator is None:
                 class_ = FileLocator()
@@ -1528,14 +1636,15 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return False
         elif res == 2:
             return False
-        current_view.closeDetachedViews()
-        current_view.controller.close_vistrail(locator)
-        current_view.controller.cleanup()
-        self.remove_view(current_view)
+        if current_view is not None:
+            current_view.closeDetachedViews()
+            current_view.controller.close_vistrail(locator)
+            current_view.controller.cleanup()
+            self.remove_view(current_view)
         if current_view == self._first_view:
             self._first_view = None
         elif not self.stack.count() and not self._is_quitting:
-                self.create_first_vistrail()
+            self.create_first_vistrail()
         view = self.get_current_view()
         self.change_view(view)
         return True
@@ -1583,8 +1692,17 @@ class QVistrailsWindow(QVistrailViewWindow):
             for view, w in self.windows.iteritems():
                 if w == window:
                     return view
-            else:
+            if isinstance(window, QBaseViewWindow):
+                return window.view.vistrail_view
+            elif (window == self.palette_window or 
+                  window in self.palette_window.windows):
                 return self.stack.currentWidget()
+            elif window is None:
+                return self.stack.currentWidget()
+            else:
+                debug.warning(
+                        "[wrong type of view] get_current_view() -> %s"%window)
+            return None
         
     def get_current_controller(self):
         return self.get_current_view().get_controller()
@@ -1901,26 +2019,72 @@ class QVistrailsWindow(QVistrailViewWindow):
             update_menu(w.qmenus['openRecent'])
             
     def update_window_menu(self):
-        def update_menu(windowMenu):
-            windowMenu.clear()
+        def compute_action_items():
+            actions = []
             action = QtGui.QAction("Main Window", self, 
                                    triggered=self.activateWindow)
             action.setCheckable(True)
-            if self.current_view == None or self.current_view.window() == self:
+            
+            base_view_windows = {}
+            if current_view == None or QtGui.QApplication.activeWindow() == self:
                 action.setChecked(True)
-            windowMenu.addAction(action)
-            for view, w in self.windows.iteritems():
-                action = QtGui.QAction(view.get_name(),
-                                       self,
-                                       triggered=w.activateWindow)
-                action.setCheckable(True)
-                if view == self.current_view:
-                    action.setChecked(True)
-                windowMenu.addAction(action)
+            actions.append(action)
+            if current_view and current_view.window() == self:
+                for i in range(self.stack.count()):
+                    view = self.stack.widget(i)
+                    for dview, dw in current_view.detached_views.iteritems():
+                        base_view_windows[dview] = dw
+            if len(self.windows) > 0:
+                windowactions = []
+                for view, w in self.windows.iteritems():
+                    action = QtGui.QAction(view.get_name(),
+                                           self,
+                                           triggered=w.activateWindow)
+                    action.setCheckable(True)
+                    if w == QtGui.QApplication.activeWindow():
+                        action.setChecked(True)
+                    windowactions.append(action)
+                    for dview, dw in view.detached_views.iteritems():
+                        base_view_windows[dview] = dw
+                actions.append(windowactions)
+            if len(base_view_windows) > 0:
+                base_view_actions = []
+                for view, w in base_view_windows.iteritems():
+                    action = QtGui.QAction(w.windowTitle(),
+                                           self,
+                                           triggered=w.activateWindow)
+                    action.setCheckable(True)
+                    if w == QtGui.QApplication.activeWindow():
+                        action.setChecked(True)
+                    base_view_actions.append(action)
+                actions.append(base_view_actions)
+            return actions
+        
+        def update_menu(windowMenu):
+            actions = compute_action_items()
+            windowMenu.clear()
+            if len(actions) > 0:
+                windowMenu.addAction(actions[0])
+                if len(actions) > 1:
+                    windowMenu.addSeparator()
+                    for action in actions[1]:
+                        windowMenu.addAction(action)
+                if len(actions) > 2:
+                    windowMenu.addSeparator()
+                    for action in actions[2]:
+                        windowMenu.addAction(action)
 
+        current_view = self.get_current_view()
         update_menu(self.qmenus['window'])
-        for w in self.windows.values():
+        if current_view and current_view.window() == self:
+            for i in range(self.stack.count()):
+                view = self.stack.widget(i)
+                for dw in view.detached_views.values():
+                    update_menu(dw.qmenus['window'])
+        for v, w in self.windows.iteritems():
             update_menu(w.qmenus['window'])
+            for dw in v.detached_views.values():
+                update_menu(dw.qmenus['window'])
             
     def update_merge_menu(self):
         #check if we have enough actions
@@ -2000,22 +2164,18 @@ class QVistrailsWindow(QVistrailViewWindow):
             def __init__(self, pip):
                 self.current_pipeline = pip
                 self.search = None
-        active_window = VistrailsApplication.activeWindow()
-        central_widget = active_window.centralWidget()
-        if central_widget.metaObject().className() == "QPipelineView":
-            current_scene = central_widget.scene()
-        else:
-            current_scene = self.get_current_tab().scene()
+        #FIXME: this should be delegated to QVistrailView
+        current_scene = self.get_current_scene()
         selected_module_ids = current_scene.get_selected_module_ids()
         if len(selected_module_ids) > 0:
             for m_id in selected_module_ids:
                 module = current_scene.current_pipeline.modules[m_id]
                 if module.is_group() or module.is_abstraction():
-                    pipelineMainWindow = QtGui.QMainWindow(self)
                     pipelineView = QPipelineView()
                     controller = DummyController(module.pipeline)
                     pipelineView.controller = controller
-                    pipelineMainWindow.setCentralWidget(pipelineView)
+                    pipelineMainWindow = QBaseViewWindow(pipelineView)
+                    #pipelineMainWindow.setCentralWidget(pipelineView)
                     pipelineView.scene().controller = \
                         controller
                     controller.current_pipeline_view = \
@@ -2146,8 +2306,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                         view.view_changed()
                         view.reset_tab_view_to_current()
                         self.update_window_menu()
-            elif isinstance(current, BaseView):
-                view = current.get_vistrail_view()
+            elif isinstance(owner, QBaseViewWindow):
+                view = owner.view.get_vistrail_view()
 #                print "view: ", view
                 if view and owner != self._focus_owner:
                     self._previous_view = view.get_current_tab()
@@ -2159,13 +2319,14 @@ class QVistrailsWindow(QVistrailViewWindow):
         else:
             self._focus_owner = None
 _app = None
-_global_menubar = None
+#_global_menubar = None
     
             
 class QPaletteMainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
         self.palettes = []
+        self.windows = []
         
     def addPalette(self, palette):
         if palette not in self.palettes:
@@ -2194,3 +2355,4 @@ class QPaletteMainWindow(QtGui.QMainWindow):
             if (not p.toolWindow().isVisible() and 
                 not p.toolWindow().isFloating() and p.get_pin_status()):
                 p.set_visible(True)
+    
