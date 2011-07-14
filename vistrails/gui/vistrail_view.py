@@ -453,8 +453,7 @@ class QVistrailView(QtGui.QWidget):
             self.detach_view(index)
             
     def view_title_changed(self, view):
-        if (self.window() == QtGui.QApplication.activeWindow() and
-            self.stack.currentWidget() == view):
+        if self.stack.currentWidget() == view:
             self.tabs.setTabText(self.tabs.currentIndex(), view.windowTitle())
 
     def update_indexes(self, rm_tab_idx, rm_stack_idx):
@@ -742,7 +741,6 @@ class QVistrailView(QtGui.QWidget):
         if view and not isinstance(view, QDiffView):
             if view not in self.detached_views:
                 view.set_title(self.controller.get_pipeline_name())
-                view.window().setWindowTitle(self.controller.get_pipeline_name())
             else:
                 view.set_title(view.get_long_title())
                 view.window().setWindowTitle(view.get_long_title())

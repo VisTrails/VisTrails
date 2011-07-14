@@ -498,7 +498,7 @@ class VistrailController(object):
         return new_functions
 
     def create_port_spec(self, *args, **kwargs):
-        self.create_port_spec_static(self.id_scope, *args, **kwargs)
+        return self.create_port_spec_static(self.id_scope, *args, **kwargs)
     
     @staticmethod
     def create_port_spec_static(id_scope, module, port_type, port_name, 
