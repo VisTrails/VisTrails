@@ -63,9 +63,8 @@ class SourceEditor(QtGui.QTextEdit):
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
         QtGui.QTextEdit.focusOutEvent(self, event)
-        
-class SourceConfigurationWidget(PortTableConfigurationWidget):
-
+    
+class SourceWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, editor_class=None,
                  has_inputs=True, has_outputs=True, parent=None,
                  encode=True, portName='source'):
@@ -83,29 +82,8 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         self.sourceEncode = encode
         self.createPortTable(has_inputs, has_outputs)
         self.setupEditor()
-        self.createButtons()
-        #connect signals
-        if has_inputs:
-            self.connect(self.inputPortTable, QtCore.SIGNAL("contentsChanged"),
-                         self.updateState)
-        if has_outputs:
-            self.connect(self.outputPortTable, QtCore.SIGNAL("contentsChanged"),
-                         self.updateState)
-        self.connect(self.codeEditor, QtCore.SIGNAL("textChanged()"),
-                     self.updateState)
         self.adjustSize()
-        self.setMouseTracking(True)
-        self.mouseOver = False
         
-    def sizeHint(self):
-        return QtCore.QSize(512, 512)
-    
-    def enterEvent(self, event):
-        self.mouseOver = True
-        
-    def leaveEvent(self, event):
-        self.mouseOver = False
-            
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = PortTable(self)
@@ -126,15 +104,7 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
             self.inputPortTable.fixGeometry()
         if has_outputs:
             self.outputPortTable.fixGeometry()
-
-    def findSourceFunction(self):
-        fid = -1
-        for i in xrange(self.module.getNumFunctions()):
-            if self.module.functions[i].name==self.sourcePortName:
-                fid = i
-                break
-        return fid
-
+            
     def initializeCode(self):
         self.codeEditor.clear()
         fid = self.findSourceFunction()
@@ -150,6 +120,14 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
             self.codeEditor.setModified(False)
         self.codeEditor.setFocus()
         
+    def findSourceFunction(self):
+        fid = -1
+        for i in xrange(self.module.getNumFunctions()):
+            if self.module.functions[i].name==self.sourcePortName:
+                fid = i
+                break
+        return fid
+    
     def setupEditor(self):
         self.initializeCode()
         self.layout().addWidget(self.codeEditor, 1)
@@ -173,7 +151,10 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
             y = cursor.columnNumber()
             
         self.cursorLabel.setText('Line: %d / Col: %d' % (x+1, y+1))
-
+    
+    def sizeHint(self):
+        return QtCore.QSize(512, 512)
+    
     def performPortConnection(self, operation):
         operation(self.inputPortTable.horizontalHeader(),
                   QtCore.SIGNAL('sectionResized(int,int,int)'),
@@ -189,7 +170,145 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
         if self.outputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
         self.performPortConnection(self.connect)
+    
+    def activate(self):
+        self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
+            
+class SourceViewerWidget(SourceWidget):
+    def __init__(self, module, controller, editor_class=None,
+                 has_inputs=True, has_outputs=True, parent=None,
+                 encode=True, portName='source'):
+        SourceWidget.__init__(self, module, controller, editor_class,
+                              has_inputs, has_outputs, parent, encode, 
+                              portName)
+        self.codeEditor.setReadOnly(True)
+        self.createCloseButton()
+        self.setWindowTitle('%s Configuration (Read-Only)' % module.name)
+        self.setWindowFlags(QtCore.Qt.Window)
+        self.adjustSize()
+        
+    def createPortTable(self, has_inputs=True, has_outputs=True):
+        if has_inputs:
+            self.inputPortTable = QtGui.QTableWidget(1, 2, self)
+            labels = QtCore.QStringList() << "Input Port Name" << "Type"
+            self.inputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+            self.inputPortTable.horizontalHeader().setMovable(False)
+            self.inputPortTable.horizontalHeader().setStretchLastSection(True)
+            self.inputPortTable.setHorizontalHeaderLabels(labels)
+            self.initializePorts(self.inputPortTable, 
+                                 self.module.input_port_specs)
+            self.layout().addWidget(self.inputPortTable)
+        if has_outputs:
+            self.outputPortTable = QtGui.QTableWidget(1, 2, self)
+            labels = QtCore.QStringList() << "Output Port Name" << "Type"
+            self.outputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+            self.outputPortTable.horizontalHeader().setMovable(False)
+            self.outputPortTable.horizontalHeader().setStretchLastSection(True)
+            
+            self.outputPortTable.setHorizontalHeaderLabels(labels)
+            self.initializePorts(self.outputPortTable, 
+                                 self.module.output_port_specs, True)
+            self.layout().addWidget(self.outputPortTable)
+        if has_inputs and has_outputs:
+            self.performPortConnection(self.connect)
+            
+        if has_inputs:
+            self.fixTableGeometry(self.inputPortTable)
+        if has_outputs:
+            self.fixTableGeometry(self.outputPortTable)
+            
+    def initializePorts(self, table, port_specs, reverse_order=False):
+        if reverse_order:
+            port_specs_iter = reversed(port_specs)
+        else:
+            port_specs_iter = port_specs
+        for p in port_specs_iter:
+            row = table.rowCount()-1
+            sigstring = p.sigstring[1:-1]
+            siglist = sigstring.split(':')
+            short_name = "%s (%s)" % (siglist[1], siglist[0])
+            item = QtGui.QTableWidgetItem(p.name)
+            item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
+            table.setItem(row, 0, item)
+            item = QtGui.QTableWidgetItem(short_name)
+            item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
+            table.setItem(row, 1, item)
+            table.setRowCount(table.rowCount()+1)
+        
+    def fixTableGeometry(self, table):
+        rect = table.visualRect(table.model().index(table.rowCount()-1,
+                                                    table.columnCount()-1))
+        table.setFixedHeight(table.horizontalHeader().height()+
+                             rect.y()+rect.height()+1)
+    def createCloseButton(self):
+        hboxlayout = QtGui.QHBoxLayout()
+        self.closeButton = QtGui.QPushButton("Close")
+        self.connect(self.closeButton, QtCore.SIGNAL("clicked()"),
+                     self.closeWidget)
+        hboxlayout.addStretch()
+        hboxlayout.addWidget(self.closeButton)
+        hboxlayout.addStretch()
+        self.layout().addLayout(hboxlayout) 
+        
+    def closeWidget(self):
+        self.emit(QtCore.SIGNAL("widgetClosed"))
+        self.close()
+        
+class SourceConfigurationWidget(SourceWidget):
 
+    def __init__(self, module, controller, editor_class=None,
+                 has_inputs=True, has_outputs=True, parent=None,
+                 encode=True, portName='source'):
+        SourceWidget.__init__(self, module, controller, editor_class,
+                              has_inputs, has_outputs, parent, encode, 
+                              portName)
+        self.detached_windows = []
+        self.createDetachButton()
+        self.createButtons()
+        #connect signals
+        if has_inputs:
+            self.connect(self.inputPortTable, QtCore.SIGNAL("contentsChanged"),
+                         self.updateState)
+        if has_outputs:
+            self.connect(self.outputPortTable, QtCore.SIGNAL("contentsChanged"),
+                         self.updateState)
+        self.connect(self.codeEditor, QtCore.SIGNAL("textChanged()"),
+                     self.updateState)
+        self.adjustSize()
+        self.setMouseTracking(True)
+        self.mouseOver = False
+    
+    def enterEvent(self, event):
+        self.mouseOver = True
+        
+    def leaveEvent(self, event):
+        self.mouseOver = False
+          
+    def createDetachButton(self):
+        hboxlayout = QtGui.QHBoxLayout()
+        self.detachButton = QtGui.QPushButton("Show read-only window")
+        self.connect(self.detachButton, QtCore.SIGNAL("clicked()"),
+                     self.detachReadOnlyWindow)
+        hboxlayout.addStretch()
+        hboxlayout.addWidget(self.detachButton)
+        self.layout().addLayout(hboxlayout) 
+         
+    def detachReadOnlyWindow(self):
+        from gui.vistrails_window import _app
+        widget = SourceViewerWidget(self.module, self.controller,
+                                           type(self.codeEditor), 
+                                           self.has_inputs, self.has_outputs,
+                                           None, self.sourceEncode, 
+                                           self.sourcePortName)
+        window = QtGui.QMainWindow()
+        window.setCentralWidget(widget)
+        window.setWindowTitle(widget.windowTitle())
+        self.connect(widget, QtCore.SIGNAL("widgetClosed"),
+                    window.close)
+        widget.setVisible(True)
+        _app.palette_window.windows.append(window)
+        window.show()
+        
     def updateVistrail(self):
         """updateVistrail() -> None
         Update vistrail to contain changes to the python source
@@ -262,7 +381,4 @@ class SourceConfigurationWidget(PortTableConfigurationWidget):
     def focusOutEvent(self, event):
         if not self.mouseOver:
             self.askToSaveChanges()
-        QtGui.QWidget.focusOutEvent(self, event)
-        
-    def activate(self):
-        self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
+        QtGui.QWidget.focusOutEvent(self, event)  

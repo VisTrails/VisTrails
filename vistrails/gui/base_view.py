@@ -101,7 +101,3 @@ class BaseView(object):
         if event.type() == QtCore.QEvent.WindowTitleChange:
             self.emit(QtCore.SIGNAL("windowTitleChanged"), self)
         QtGui.QWidget.changeEvent(self, event)
-
-    def closeEvent(self, event):
-        self.emit(QtCore.SIGNAL("viewWasClosed"), self)
-        event.accept()
