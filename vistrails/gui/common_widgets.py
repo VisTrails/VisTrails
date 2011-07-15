@@ -71,15 +71,18 @@ class QToolWindow(QtGui.QDockWidget):
              
     def createToolBar(self):
         self.toolbar = QtGui.QToolBar(self.mwindow)
-        self.pinButton = QtGui.QRadioButton(self.toolbar, 
-                                            toggled=self.pinStatusChanged)
+        self.pinButton = QtGui.QAction(CurrentTheme.UNPINNED_PALETTE_ICON,
+                                       "", self.toolbar,checkable=True,
+                                       checked=False,
+                                       toggled=self.pinStatusChanged)
         
         self.pinButton.setToolTip("Pin this on the Tab Bar")
         spacer = QtGui.QWidget()
         spacer.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
                              QtGui.QSizePolicy.Preferred)
         self.toolbar.addWidget(spacer)
-        self.pinAction = self.toolbar.addWidget(self.pinButton)
+        self.toolbar.addAction(self.pinButton)
+        self.pinAction = self.pinButton
         self.toolbar.setFloatable(False)
         self.toolbar.setMovable(False)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
@@ -94,10 +97,20 @@ class QToolWindow(QtGui.QDockWidget):
         
     def pinStatusChanged(self, pinStatus):
         self.pinStatus = pinStatus
+        self.updateButtonIcon(pinStatus)
         
+    def updateButtonIcon(self, on):
+        if on:
+            self.pinButton.setIcon(CurrentTheme.PINNED_PALETTE_ICON)
+            self.pinButton.setToolTip("Unpin this from the the Tab Bar")
+        else:
+            self.pinButton.setIcon(CurrentTheme.UNPINNED_PALETTE_ICON)
+            self.pinButton.setToolTip("Pin this on the Tab Bar")
+            
     def setPinStatus(self, pinStatus):
         self.pinStatus = pinStatus
         self.pinButton.setChecked(pinStatus)
+        self.updateButtonIcon(pinStatus)
         
     def monitorWindowTitle(self, widget):
         """ monitorWindowTitle(widget: QWidget) -> None        

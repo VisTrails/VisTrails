@@ -562,6 +562,13 @@ class DefaultTheme(object):
                                      '/gui/resources/images/detach_on.png',
                                      mode=QtGui.QIcon.Active)
 
+        #toolbutton icon for pin/unpin palette
+        self.PINNED_PALETTE_ICON = QtGui.QIcon(
+                                core.system.vistrails_root_directory() +
+                                '/gui/resources/images/pinned.png')
+        self.UNPINNED_PALETTE_ICON = QtGui.QIcon(
+                                core.system.vistrails_root_directory() +
+                                '/gui/resources/images/unpinned.png')
         # Parameter Exploration Pixmaps
         self.EXPLORE_COLUMN_PIXMAP = QtGui.QPixmap(
             core.system.vistrails_root_directory() +
