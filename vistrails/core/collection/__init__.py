@@ -40,6 +40,7 @@ from vistrail import VistrailEntity
 from workflow import WorkflowEntity
 from workflow_exec import WorkflowExecEntity
 from thumbnail import ThumbnailEntity
+from mashup import MashupEntity
 
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
 from core.db.io import load_vistrail
@@ -59,7 +60,8 @@ schema = ["create table entity(id integer primary key, type integer, "
 class Collection(object):
     entity_types = dict((x.type_id, x)
                         for x in [VistrailEntity, WorkflowEntity, 
-                                  WorkflowExecEntity, ThumbnailEntity])
+                                  WorkflowExecEntity, ThumbnailEntity,
+                                  MashupEntity])
     def __init__(self, database=None):
         if database is None:
             self.database = ':memory:'

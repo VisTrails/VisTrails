@@ -43,6 +43,7 @@ from entity import Entity
 from workflow import WorkflowEntity
 from workflow_exec import WorkflowExecEntity
 from thumbnail import ThumbnailEntity
+from mashup import MashupEntity
 
 class VistrailEntity(Entity):
     type_id = 1
@@ -51,6 +52,7 @@ class VistrailEntity(Entity):
         Entity.__init__(self)
         self.id = None
         self.wf_entity_map = {}
+        self.mshp_entity_map = {}
         self.update(vistrail)
 
     @staticmethod
@@ -80,6 +82,34 @@ class VistrailEntity(Entity):
             query_str = 'workflow=%s' % action.id
         else:
             query_str += '&workflow=%s' % action.id
+        url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
+                     url_tuple[4])
+        entity.url = urlparse.urlunsplit(url_tuple)
+        # entity.url = self.url + '?workflow_id=%s' % action.id
+        return entity
+    
+    def create_mashup_entity(self, trail_id, mashup, action):
+        entity = MashupEntity(mashup)
+        self.children.append(entity)
+        vt_version = mashup.version
+        if self.vistrail.has_notes(vt_version):
+            notes = xml.sax.saxutils.unescape(self.vistrail.get_notes(vt_version))
+            fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
+            plain_notes = str(fragment.toPlainText())
+            entity.description = plain_notes
+        else:
+            entity.description = ''
+        entity.user = action.user
+        entity.mod_time = action.date
+        entity.create_time = action.date
+        scheme, rest = self.url.split('://', 1)
+        url = 'http://' + rest
+        url_tuple = urlparse.urlsplit(url)
+        query_str = url_tuple[3]
+        if query_str == '':
+            query_str = 'mashuptrail=%s&mashup=%s' %(trail_id, action.id)
+        else:
+            query_str += '&mashuptrail=%s&mashup=%s' %(trail_id, action.id)
         url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
                      url_tuple[4])
         entity.url = urlparse.urlunsplit(url_tuple)
@@ -141,12 +171,44 @@ class VistrailEntity(Entity):
                 entity = ThumbnailEntity(path)
                 self.wf_entity_map[action.id].children.append(entity)
 
+    def add_mashup_entities_from_mashuptrail(self, mashuptrail):
+        tagMap = mashuptrail.getTagMap()
+        tags = tagMap.keys()
+        if len(tags) > 0:
+            tags.sort()
+            for tag in tags:
+                version_id = tagMap[tag]
+                action = mashuptrail.actionMap[version_id]
+                mashup = mashuptrail.getMashup(version_id)
+                mashup.name = tag
+                #make sure we identify a mashup by its version
+                mashup.id = action.id
+                entity_key = (mashuptrail.id,version_id)
+                self.mshp_entity_map[entity_key] = \
+                   self.create_mashup_entity(mashuptrail.id, mashup, action)
+                   
+                # get thumbnail for the workflow it points
+                thumb_version = mashuptrail.vtVersion
+                thumbnail = self.vistrail.get_thumbnail(thumb_version)
+                if thumbnail is not None:
+                    cache = ThumbnailCache.getInstance()
+                    path = cache.get_abs_name_entry(thumbnail)
+                    if path:
+                        entity = ThumbnailEntity(path)
+                        mshp_entity = self.mshp_entity_map[entity_key]
+                        mshp_entity.children.append(entity)
+                        
     def update(self, vistrail):
         if vistrail is not None:
             self.set_vistrail(vistrail)
 
             for version_id in self.vistrail.get_tagMap():
                 self.add_workflow_entity(version_id)
+            
+            #mashups
+            for mashuptrail in self.vistrail.mashups:
+                self.add_mashup_entities_from_mashuptrail(mashuptrail)
+                
             try:
                 log = vistrail.get_log()
             except:

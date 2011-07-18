@@ -35,7 +35,6 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from core.data_structures.bijectivedict import Bidict
 from gui.base_view import BaseView
-from gui.mashups.mashup_app import QMashupAppMainWindow
 from gui.mashups.mashups_manager import MashupsManager
 from gui.mashups.alias_list import QAliasListPanel
 from gui.utils import show_question, YES_BUTTON, NO_BUTTON, CANCEL_BUTTON
@@ -185,9 +184,6 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                                                   self.mshpController.mshptrail,
                                                   version)
         previewApp.appWasClosed.connect(self.previewTabWasClosed)
-        #QMashupAppMainWindow(parent=self, 
-        #                                  controller=self.mshpController,
-        #                                  version=version)
         
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)

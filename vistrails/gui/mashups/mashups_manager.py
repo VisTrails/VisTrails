@@ -88,6 +88,7 @@ class MashupsManager(object):
                         p_mashup = p_mashuptrail.getMashup(mshpv)
                         mashup = p_mashup.doCopy()
                         mashup.id_scope = id_scope
+                        mashup.version = version
                         mashup.validateForPipeline(pipeline)
                         currVersion = mashuptrail.addVersion(
                                       parent_id=mashuptrail.getLatestVersion(),
@@ -321,6 +322,7 @@ class MashupsManager(object):
     @staticmethod
     def createMashupApp(vtcontroller, mashuptrail, version):
         from gui.mashups.mashup_app import QMashupAppMainWindow
+        vistrail_view = vtcontroller.vistrail_view
         vtVersion = mashuptrail.vtVersion
         view = DummyView()
         view.scene().current_pipeline = vtcontroller.vistrail.getPipeline(vtVersion)
@@ -331,7 +333,8 @@ class MashupsManager(object):
                                           new_vtcontroller, 
                                           vtVersion, mashuptrail)
         mshpController.setCurrentVersion(version)
-        app = QMashupAppMainWindow(parent=None, 
+        app = QMashupAppMainWindow(parent=None,
+                                   vistrail_view=vistrail_view, 
                                    controller=mshpController,
                                    version=version)
         return app

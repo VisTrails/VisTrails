@@ -918,7 +918,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             description = vistrail.get_description(v)
 
             # if the version gui object already exists...
-            if self.versions.has_key(v):
+            if v in self.versions:
                 versionShape = self.versions[v]
                 versionShape.setupVersion(node, action, tag, description)
             else:
@@ -1236,6 +1236,6 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         if self.controller:
             self.versionProp.updateVersion(self.controller.current_version)
 
-        
-
+    def select_current_version(self):
+        self.scene().setupScene(self.controller)
 ################################################################################

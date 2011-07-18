@@ -46,7 +46,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
     #signals
     appWasClosed = pyqtSignal(QtGui.QMainWindow)
     
-    def __init__(self, parent=None, dumpcells=False, controller=None, version=-1):
+    def __init__(self, parent=None, vistrail_view=None, dumpcells=False, 
+                 controller=None, version=-1):
         """ QMashupAppMainWindow()
         Initialize an app window from a mashup.
 
@@ -65,6 +66,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.setCentralWidget(centralWidget)
         #self.resize(100,100)
         self.dumpcells = dumpcells
+        self.view = vistrail_view
         if controller:
             self.controller = controller
             self.mshptrail = controller.mshptrail

@@ -41,6 +41,7 @@ from time import strptime
 from core.thumbnails import ThumbnailCache
 from core import debug
 from core.collection import Collection
+from core.collection import MashupEntity
 from core.collection.search import SearchCompiler, SearchParseError
 from core.db.locator import FileLocator
 from gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
@@ -323,7 +324,7 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
         klass = self.__class__
         self.entity = entity
         if type == '1':
-            # vistrail - create Workflows item
+            # vistrail - create Workflows and Mashups item
             self.workflowsItem = QWorkflowsItem()
             self.addChild(self.workflowsItem)
             self.mashupsItem = QMashupsItem()
@@ -331,6 +332,7 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
 #            self.mashupsItem.setHidden(True)
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
             self.tag_to_item = {}
+            self.mshp_to_item = {}
         elif type == '2':
             self.setIcon(0, CurrentTheme.PIPELINE_ICON)
             self.executionList = []
@@ -369,6 +371,13 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
                 self.executionList.append(childItem)
                 self.addChild(childItem)
                 childItem.setHidden(True)
+            elif l[1] == 5:
+                # is a mashup
+                if not child.name.startswith('Version #'):
+                    childItem = klass(child)
+                    self.mashupsItem.addChild(childItem)
+                    # keep list of tagged workflows
+                    self.mshp_to_item[child.name] = childItem
             else:
                 self.addChild(klass(child))
         if entity.description:
@@ -855,6 +864,12 @@ class QVistrailList(QtGui.QTreeWidget):
             # no valid item selected
             return
             
+        if isinstance(entity, MashupEntity):
+            # I am assuming that double-clicking a mashup, the user wants to
+            # run the mashup
+            self.open_mashup(entity)
+            return
+        
         locator = entity.locator()
         import gui.application
 #        if not locator.is_valid():
@@ -862,6 +877,7 @@ class QVistrailList(QtGui.QTreeWidget):
 #            return
         app = gui.application.VistrailsApplication
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
+        set_current_locator = app.builderWindow.set_current_locator
         args = {}
         args['version'] = locator.kwargs.get('version_node', None) or \
                           locator.kwargs.get('version_tag', None)
@@ -894,8 +910,17 @@ class QVistrailList(QtGui.QTreeWidget):
             self.collection.delete_entity(vistrail_entity)
             self.collection.commit()
         open_vistrail(locator, **args)
+        set_current_locator(locator)
         widget_item.setSelected(True)
 
+    def open_mashup(self, entity):
+        """open_mashup(entity:MashupEntity) -> None
+        It will ask the Vistrail view to execute the mashup
+        """
+        from gui.vistrails_window import _app
+        view = _app.get_current_view()
+        view.open_mashup(entity.mashup)
+        
     def mimeData(self, itemList):
         """ mimeData(itemList) -> None        
         Setup the mime data to contain itemList because Qt 4.2.2
@@ -995,12 +1020,16 @@ class QVistrailList(QtGui.QTreeWidget):
     def make_list(self, item):
         """ construct a list from the tagged workflows in a loaded vistrail
         """
-        if not hasattr(item, 'tag_to_item'):
+        if not (hasattr(item, 'tag_to_item') or hasattr(item, 'mshp_to_item')): 
             return
         for tag, wf in item.tag_to_item.iteritems():
             index = wf.parent().indexOfChild(wf)
             wf = wf.parent().takeChild(index)
             item.workflowsItem.addChild(wf)
+        for tag, mshp in item.mshp_to_item.iteritems():
+            index = mshp.parent().indexOfChild(mshp)
+            mshp = mshp.parent().takeChild(index)
+            item.mashupsItem.addChild(mshp)
         self.updateHideExecutions()
 
 

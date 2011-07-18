@@ -283,6 +283,8 @@ class Mashuptrail(XMLObject):
     def addVersion(self, parent_id, mashup, user, date):
         id = self.getLatestVersion() + 1
         mashup.id_scope = self.id_scope
+        mashup.id = id
+        mashup.version = self.vtVersion
         action = Action(id=id, parent_id=parent_id, mashup=mashup,
                         user=user, date=date)
         self.actions.append(action)

@@ -784,6 +784,9 @@ class QVersionMashups(QtGui.QWidget):
         action = self.sender()
         version, ok = action.data().toInt()
         print "mashupSelected ", version
+        self.openMashup(version)
+
+    def openMashup(self, version):
         from gui.mashups.mashups_manager import MashupsManager
         item_key = (self.mtrail.id, version)
         if self.apps.has_key(item_key):
@@ -797,7 +800,9 @@ class QVersionMashups(QtGui.QWidget):
         app.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         app.appWasClosed.connect(self.appWasClosed)
         self.apps[item_key] = app
-
+        app.activateWindow()
+        app.raise_()
+                
     def appWasClosed(self, app):
         for (k, a) in self.apps.iteritems():
             if a == app:

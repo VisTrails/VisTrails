@@ -69,6 +69,7 @@ from gui.vistrail_view import QVistrailView
 from gui import merge_gui
 from gui.vistrail_variables import QVistrailVariables
 from gui.vistrails_palette import QVistrailsPaletteInterface
+from gui.mashups.mashup_app import QMashupAppMainWindow
 from db.services.io import SaveBundle
 import db.services.vistrail
 
@@ -1458,7 +1459,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             view.controller.vistrail.abstractions = \
                 view.controller.find_abstractions(view.controller.vistrail, 
                                                   True)
-
+            view.controller.vistrail.mashups = view.controller._mashups
             collection = Collection.getInstance()
             url = locator.to_url()
             # create index if not exist
@@ -1700,6 +1701,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             elif (window == self.palette_window or 
                   window in self.palette_window.windows):
                 return self.stack.currentWidget()
+            elif isinstance(window, QMashupAppMainWindow):
+                return window.view
             elif window is None:
                 return self.stack.currentWidget()
             else:

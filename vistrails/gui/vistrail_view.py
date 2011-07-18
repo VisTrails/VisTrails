@@ -805,6 +805,7 @@ class QVistrailView(QtGui.QWidget):
             self.controller.vistrail.abstractions = \
                 self.controller.find_abstractions(self.controller.vistrail, 
                                                   True)
+            self.controller.vistrail.mashups = self.controller._mashups
 
             collection = Collection.getInstance()
             url = locator.to_url()
@@ -927,6 +928,22 @@ class QVistrailView(QtGui.QWidget):
             view.publish_to_paper()
         
 
+    def open_mashup(self, mashup):
+        """open_mashup(mashup: Mashup) -> None
+        It will switch to version view, select the corresponding node 
+        and run the mashup """
+        from gui.version_prop import QVersionProp
+        #first we will show the hisotry view and select the version that has
+        #this mashup
+        vt_version = mashup.version
+        window = self.window()
+        window.qactions['history'].trigger()
+        self.version_selected(vt_version, by_click=True)
+        self.version_view.select_current_version()
+        #then we will execute the mashup
+        version_prop = QVersionProp.instance()
+        version_prop.versionMashups.openMashup(mashup.id)
+        
     ##########################################################################
     # Undo/redo
         
