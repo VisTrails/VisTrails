@@ -863,21 +863,15 @@ class QVistrailList(QtGui.QTreeWidget):
         else:
             # no valid item selected
             return
-            
-        if isinstance(entity, MashupEntity):
-            # I am assuming that double-clicking a mashup, the user wants to
-            # run the mashup
-            self.open_mashup(entity)
-            return
-        
+                    
         locator = entity.locator()
-        import gui.application
+        from gui.vistrails_window import _app
 #        if not locator.is_valid():
 #            debug.critical("Locator is not valid:" % locator.to_url())
 #            return
-        app = gui.application.VistrailsApplication
-        open_vistrail = app.builderWindow.open_vistrail_without_prompt
-        set_current_locator = app.builderWindow.set_current_locator
+        
+        open_vistrail = _app.open_vistrail_without_prompt
+        set_current_locator = _app.set_current_locator
         args = {}
         args['version'] = locator.kwargs.get('version_node', None) or \
                           locator.kwargs.get('version_tag', None)
@@ -909,8 +903,18 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail_widget.parent().removeChild(vistrail_widget)
             self.collection.delete_entity(vistrail_entity)
             self.collection.commit()
+        
+        view = _app.ensureVistrail(locator)
         open_vistrail(locator, **args)
-        set_current_locator(locator)
+        if view is None:
+            set_current_locator(locator)
+        if view and isinstance(entity, MashupEntity):
+            # I am assuming that double-clicking a mashup, the user wants to
+            # run the mashup
+            # if it is doubele-clicked without the vistrail being open we 
+            #should open the vistrail
+            self.open_mashup(entity)
+    
         widget_item.setSelected(True)
 
     def open_mashup(self, entity):
