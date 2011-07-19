@@ -745,12 +745,19 @@ class QVistrailListItem(QBrowserWidgetItem):
         self.treeWidget().item_selected(self, 0)
 
     def open_workflow_in_new_tab(self):
-        self.parent().window.add_pipeline_view()
+        self.parent().parent().window.add_pipeline_view()
         self.open_workflow()
 
     def open_workflow_in_new_window(self):
         self.open_workflow_in_new_tab()
-        self.parent().window.detach_view(self.parent().window.tabs.currentIndex())
+        self.parent().parent().window.detach_view(
+                              self.parent().parent().window.tabs.currentIndex())
+        
+    def open_mashup(self):
+        self.treeWidget().open_mashup(self.entity)
+        
+    def edit_mashup(self):
+        self.treeWidget().edit_mashup(self.entity)
 
 class QVistrailListLatestItem(QtGui.QTreeWidgetItem):
     def __init__(self):
@@ -762,12 +769,13 @@ class QVistrailListLatestItem(QtGui.QTreeWidgetItem):
         self.treeWidget().item_selected(self, 0)
 
     def open_workflow_in_new_tab(self):
-        self.parent().window.add_pipeline_view()
+        self.parent().parent().window.add_pipeline_view()
         self.open_workflow()
 
     def open_workflow_in_new_window(self):
         self.open_workflow_in_new_tab()
-        self.parent().window.detach_view(self.parent().window.tabs.currentIndex())
+        self.parent().parent().window.detach_view(
+                                self.parent().parent().window.tabs.currentIndex())
 
 class QVistrailList(QtGui.QTreeWidget):
     def __init__(self, parent=None):
@@ -924,6 +932,14 @@ class QVistrailList(QtGui.QTreeWidget):
         from gui.vistrails_window import _app
         view = _app.get_current_view()
         view.open_mashup(entity.mashup)
+        
+    def edit_mashup(self, entity):
+        """open_mashup(entity:MashupEntity) -> None
+        It will ask the Vistrail view to execute the mashup
+        """
+        from gui.vistrails_window import _app
+        view = _app.get_current_view()
+        view.edit_mashup(entity.mashup)
         
     def mimeData(self, itemList):
         """ mimeData(itemList) -> None        
@@ -1173,23 +1189,40 @@ class QVistrailList(QtGui.QTreeWidget):
             act.setStatusTip("Open specified vistrail file in another window")
             menu.addAction(act)
             menu.exec_(event.globalPos())
-        elif item and self.openFilesItem.indexOfChild(item.parent()) != -1:
-            # item is workflow
-            menu = QtGui.QMenu(self)
-            act = QtGui.QAction("Open", self,
-                                triggered=item.open_workflow)
-            act.setStatusTip("Open specified workflow in this window")
-            menu.addAction(act)
-            act = QtGui.QAction("Open in new Tab", self,
-                                triggered=item.open_workflow_in_new_tab)
-            act.setStatusTip("Open specified workflow in a new tab")
-            menu.addAction(act)
-            act = QtGui.QAction("Open in new Window", self,
-                                triggered=item.open_workflow_in_new_window)
-            act.setStatusTip("Open specified workflow in a new window")
-            menu.addAction(act)
-            menu.exec_(event.globalPos())
-            
+        elif item and (isinstance(item, QVistrailListItem) or 
+                       isinstance(item, QVistrailListLatestItem)):
+            vtparent = item.parent().parent()
+            if (self.openFilesItem.indexOfChild(vtparent) != -1 and
+                isinstance(item.parent(),QWorkflowsItem)):
+                # item is workflow
+                menu = QtGui.QMenu(self)
+                act = QtGui.QAction("Open", self,
+                                    triggered=item.open_workflow)
+                act.setStatusTip("Open specified workflow in this window")
+                menu.addAction(act)
+                act = QtGui.QAction("Open in new Tab", self,
+                                    triggered=item.open_workflow_in_new_tab)
+                act.setStatusTip("Open specified workflow in a new tab")
+                menu.addAction(act)
+                act = QtGui.QAction("Open in new Window", self,
+                                    triggered=item.open_workflow_in_new_window)
+                act.setStatusTip("Open specified workflow in a new window")
+                menu.addAction(act)
+                menu.exec_(event.globalPos())
+            elif (self.openFilesItem.indexOfChild(vtparent) != -1 and
+                  isinstance(item.parent(),QMashupsItem)):  
+                # item is mashup
+                menu = QtGui.QMenu(self)
+                act = QtGui.QAction("Edit", self,
+                                    triggered=item.edit_mashup)
+                act.setStatusTip("Edit the mashup")
+                menu.addAction(act)
+                act = QtGui.QAction("Execute", self,
+                                    triggered=item.open_mashup)
+                act.setStatusTip("Execute the mashup")
+                menu.addAction(act)
+                menu.exec_(event.globalPos())
+
 if __name__ == '__main__':
     import sys
     sys.path.append('/vistrails/src/query/vistrails')

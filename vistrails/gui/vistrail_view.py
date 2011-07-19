@@ -439,6 +439,9 @@ class QVistrailView(QtGui.QWidget):
     def detachedViewWasClosed(self, view):
         if self.controller.current_pipeline_view.parent() == view:
             self.controller.current_pipeline_view = None
+            self.activateWindow()
+            self.view_changed()
+            self.reset_tab_view_to_current()
         del self.detached_views[view]
         
     def updateTabsTooTip(self):
@@ -926,7 +929,6 @@ class QVistrailView(QtGui.QWidget):
         view = self.get_current_tab()
         if hasattr(view, 'publish_to_paper'):
             view.publish_to_paper()
-        
 
     def open_mashup(self, mashup):
         """open_mashup(mashup: Mashup) -> None
@@ -943,6 +945,20 @@ class QVistrailView(QtGui.QWidget):
         #then we will execute the mashup
         version_prop = QVersionProp.instance()
         version_prop.versionMashups.openMashup(mashup.id)
+        
+    def edit_mashup(self, mashup):
+        """edit_mashup(mashup: Mashup) -> None
+        It will select the corresponding node, switch to mashup view, 
+        and select mashup """
+        from gui.mashups.mashups_inspector import QMashupsInspector
+        vt_version = mashup.version
+        window = self.window()
+        window.qactions['history'].trigger()
+        self.version_selected(vt_version, by_click=True)
+        self.version_view.select_current_version()
+        window.qactions['mashup'].trigger()
+        inspector = QMashupsInspector.instance()
+        inspector.mashupsList.selectMashup(mashup.name)
         
     ##########################################################################
     # Undo/redo
