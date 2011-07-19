@@ -263,7 +263,6 @@ class SourceConfigurationWidget(SourceWidget):
                               has_inputs, has_outputs, parent, encode, 
                               portName)
         self.detached_windows = []
-        self.createDetachButton()
         self.createButtons()
         #connect signals
         if has_inputs:
@@ -283,16 +282,34 @@ class SourceConfigurationWidget(SourceWidget):
         
     def leaveEvent(self, event):
         self.mouseOver = False
-          
-    def createDetachButton(self):
-        hboxlayout = QtGui.QHBoxLayout()
+         
+    def createButtons(self):
+        """ createButtons() -> None
+        Create and connect signals to Save & Reset button
+        
+        """
+        self.buttonLayout = QtGui.QHBoxLayout()
+        self.buttonLayout.setMargin(5)
         self.detachButton = QtGui.QPushButton("Show read-only window")
+        self.buttonLayout.addWidget(self.detachButton)
+        self.buttonLayout.addStretch()
+        self.saveButton = QtGui.QPushButton('&Save', self)
+        self.saveButton.setFixedWidth(100)
+        self.saveButton.setEnabled(False)
+        self.buttonLayout.addWidget(self.saveButton)
+        self.resetButton = QtGui.QPushButton('&Reset', self)
+        self.resetButton.setFixedWidth(100)
+        self.resetButton.setEnabled(False)
+        self.buttonLayout.addSpacing(10)
+        self.buttonLayout.addWidget(self.resetButton)
+        self.layout().addLayout(self.buttonLayout)
         self.connect(self.detachButton, QtCore.SIGNAL("clicked()"),
                      self.detachReadOnlyWindow)
-        hboxlayout.addStretch()
-        hboxlayout.addWidget(self.detachButton)
-        self.layout().addLayout(hboxlayout) 
-         
+        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.saveTriggered)
+        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.resetTriggered)        
+        
     def detachReadOnlyWindow(self):
         from gui.vistrails_window import _app
         widget = SourceViewerWidget(self.module, self.controller,
