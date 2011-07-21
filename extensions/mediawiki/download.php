@@ -39,7 +39,7 @@ require_once 'config.php';
 if (array_key_exists('getvt', $_GET)) {
 	
     $port = '3306';
-    $host = 'vistrails.sci.utah.edu';
+    $host = 'vistrails.org';
     $dbname = $_GET["db"];
     $vtid = $_GET["getvt"];
     $version = $_GET["version"];

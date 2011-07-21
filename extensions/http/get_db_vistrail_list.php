@@ -33,10 +33,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-// This file will connect to VisTrails Sercer and return a page containing the 
+// This file will connect to VisTrails Server and return a page containing the 
 // list of vistrails available on the database
 // The url should follow this format:
-// run_vistrails.php?host=vistrails.sci.utah.edu&db=vistrails
+// run_vistrails.php?host=vistrails.org&db=vistrails
 // host and db are optional and you can set the default values below
 // if the port is different from the dafault you can also pass the new value on
 // the url

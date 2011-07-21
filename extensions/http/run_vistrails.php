@@ -36,7 +36,7 @@
 // This file will execute vistrails and return a page containing the images
 // generated.
 // The url should follow this format:
-// run_vistrails.php?host=vistrails.sci.utah.edu&db=vistrails&vt=8&version=598
+// run_vistrails.php?host=vistrails.org&db=vistrails&vt=8&version=598
 // host and dbname are optional and you can set the default values below
 // if the port is different from the dafault you can also pass the new value on
 // the url
@@ -44,13 +44,10 @@
 require_once 'functions.php';
 require_once 'config.php';
 
-// This is where vistrails XML-RPC is running
-$USE_VISTRAILS_XML_RPC_SERVER = True;
-
 $SUPPORTED_IMAGE_FILES = array("png", "jpg", "gif");
 
 // set variables with default values
-$host = 'vistrails.sci.utah.edu';
+$host = 'vistrails.org';
 $port = '3306';
 $dbname = 'vistrails';
 $vtid = '';
@@ -109,16 +106,21 @@ if(($vtid != '' and $version != '') or
     if (strcasecmp($force_build,'True') == 0)
         $build_always_bool = True;
     if (strcasecmp($showtree,'True') == 0){
-        if ($pdf_bool == True)
+        $filename = md5($host . '_'. $dbname .'_' . $port .'_' .$vtid);
+        if ($pdf_bool == True){
             $func = "get_vt_graph_pdf";
-        else
+            $filename = 'vistrails/'.$filename . ".pdf";
+        } else {
             $func = "get_vt_graph_png";
+            $filename = 'vistrails/'.$filename . ".png";
+        }
         $request = xmlrpc_encode_request($func, array($host,
                                                       $port,
                                                       $dbname,
-                                                      $vtid));
+                                                      $vtid,
+                                                      $USE_VISTRAILS_XML_RPC_SERVER));
         $response = do_call($VT_HOST,$VT_PORT,$request);
-        $result = clean_up($response);
+        $result = clean_up($response, $filename);
         if ($pdf_bool == True)
             $res = '<a href="' . $URL_TO_GRAPHS . $result .
                             '">' . $result . '</a>';
@@ -128,17 +130,28 @@ if(($vtid != '' and $version != '') or
         echo $res;
     }
     elseif (strcasecmp($showworkflow,'True') == 0){
-        if ($pdf_bool == True)
+        $filename = md5($host . '_'. $dbname .'_' . $port .'_' .$vtid . '_' . $version);
+        if ($pdf_bool == True){
              $func = "get_wf_graph_pdf";
-        else
+             $filename = 'workflows/'.$filename . ".pdf";
+        } else {
              $func = "get_wf_graph_png";
-        $request = xmlrpc_encode_request($func, array($host,
-                                                      $port,
-                                                      $dbname,
-                                                      $vtid,
-                                                      $version));
-        $response = do_call($VT_HOST,$VT_PORT,$request);
-        $result = clean_up($response);
+             $filename = 'workflows/'.$filename . ".png";
+        }
+        $fullpath = $PATH_TO_GRAPHS. $filename;
+        $cached = file_exists($fullpath);
+        if($USE_LOCAL_VISTRAILS_SERVER or 
+           (!$cached or strcasecmp($force_build,'True') == 0)) {
+            $request = xmlrpc_encode_request($func, array($host,
+                                                          $port,
+                                                          $dbname,
+                                                          $vtid,
+                                                          $version));
+            $response = do_call($VT_HOST,$VT_PORT,$request);
+            $result = clean_up($response, $filename);
+        } else {
+            $result = $filename;
+        }
         if ($pdf_bool == True)
             $res = '<a href="' . $URL_TO_GRAPHS . $result .
                             '">' . $result . '</a>';
@@ -163,9 +176,10 @@ if(($vtid != '' and $version != '') or
             $request = xmlrpc_encode_request('run_from_db',
                                          array($host, $port, $dbname, $vtid,
                                                     $destdir, $version, $pdf_bool,
-                                                    '', $build_always_bool));
+                                                    '', $build_always_bool, '',
+                                                    $USE_LOCAL_VISTRAILS_SERVER));
             $response = do_call($VT_HOST,$VT_PORT,$request);
-            $result = clean_up($response);
+            $result = multiple_clean_up($response, $destdir);
             //echo $result;
         }
        $files = scandir($destdir);
@@ -210,13 +224,46 @@ function get_version_from_response($xmlstring){
     }
 }
 
-function clean_up($xmlstring){
+function clean_up($xmlstring, $filename=""){
+    global $PATH_TO_GRAPHS, $USE_LOCAL_VISTRAILS_SERVER;
     try{
         $node = @new SimpleXMLElement($xmlstring);
-
-        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        if ($USE_LOCAL_VISTRAILS_SERVER)
+            return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        else{
+            $contents = $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->base64[0];
+            $fileHandle = fopen($PATH_TO_GRAPHS. $filename, 'wb') or die("can't open file");
+            fputs($fileHandle, base64_decode($contents));
+            fclose($fileHandle);
+            return $filename;
+        }
+                  
     } catch(Exception $e) {
         echo "bad xml";
     }
 }
+
+function multiple_clean_up($xmlstring, $destdir=""){
+    global $USE_LOCAL_VISTRAILS_SERVER;
+    try{
+        $node = @new SimpleXMLElement($xmlstring);
+        //var_dump($node);
+        if ($USE_LOCAL_VISTRAILS_SERVER)
+            return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        else{
+            $contents = $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->struct[0];
+            foreach ($contents as $value){                                                                                                                  
+                $image_name = (string) $value->name[0];                                               
+                $image_contents = (string) $value->value[0]->base64[0];                               
+                $fileHandle = fopen($destdir.'/'. $image_name, 'wb') or die("can't open file");       
+                fputs($fileHandle, base64_decode($image_contents));                                   
+                fclose($fileHandle);                                                                  
+             }                                                                                       
+             return $destdir;                                                                        
+        }                                                                                                                                                                                    
+  } catch(Exception $e) {                                                                     
+    echo "bad xml";                                                                           
+  }                                       
+}
+
 ?>

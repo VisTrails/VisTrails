@@ -36,7 +36,7 @@
 // This file will connect to VisTrails XML RPC Server and return a workflow
 // in XML format 
 // The url should follow this format:
-// get_wf_xml.php?host=vistrails.sci.utah.edu&db=vistrails&vt=8&version=598
+// get_wf_xml.php?host=vistrails.org&db=vistrails&vt=8&version=598
 // host and dbname are optional and you can set the default values below
 // if the port is different from the dafault you can also pass the new value on
 // the url
@@ -46,7 +46,7 @@ require_once 'functions.php';
 require_once 'config.php';
 
 // set variables with default values
-$host = 'vistrails.sci.utah.edu';
+$host = 'vistrails.org';
 $port = '3306';
 $dbname = 'vistrails';
 $vtid = '';
