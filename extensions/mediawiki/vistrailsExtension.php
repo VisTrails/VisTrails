@@ -39,11 +39,8 @@ $wgExtensionFunctions[] = 'registerVistrailTag';
 $wgExtensionCredits['parserhook'][] = array(
     'name' => 'VistrailTag',
     'author' => 'VT',
-    'url' => 'http://vistrails.sci.utah.edu/',
+    'url' => 'http://www.vistrails.org/',
 );
-
-// This is where vistrails XML-RPC is running
-$USE_VISTRAILS_XML_RPC_SERVER = True;
 
 $resp_result = '';
 function registerVistrailTag() {
@@ -117,11 +114,15 @@ function printVistrailTag($input,$params) {
                   "&showspreadsheetonly=" . $showspreadsheetonly .
                   "&embedWorkflow=" . $embedWorkflow . "&includeFullTree=" .
                   $includeFullTree . "&forceDB=" . $forceDB;
-
+        
     if (strcasecmp($showTree,'True') == 0){
-        $request = xmlrpc_encode_request("get_vt_graph_png", array($host, $port, $dbname, $vtid));
+        $filename = md5($host . '_'. $dbname .'_' . $port .'_' .$vtid);
+        $filename = 'vistrails/'.$filename . ".png";
+        //this request is cached only on the server side
+        $request = xmlrpc_encode_request("get_vt_graph_png", array($host, $port, 
+                                  $dbname, $vtid, $USE_LOCAL_VISTRAILS_SERVER));
         $response = do_call($VT_HOST,$VT_PORT,$request);
-        $result = clean_up($response);
+        $result = clean_up($response, $filename);
 
         list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
         if ($width > 400)
@@ -134,10 +135,20 @@ function printVistrailTag($input,$params) {
     }
 
     elseif (strcasecmp($showWorkflow,'True') == 0){
-        $request = xmlrpc_encode_request("get_wf_graph_png", array($host, $port, $dbname, $vtid, $version));
-        $response = do_call($VT_HOST,$VT_PORT,$request);
-        $result = clean_up($response);
-
+        $filename = md5($host . '_'. $dbname .'_' . $port .'_' .$vtid . '_' . $version);
+        $filename = 'workflows/'.$filename . ".png";
+        $fullpath = $PATH_TO_GRAPHS. $filename;
+        $cached = file_exists($fullpath);
+        if($USE_LOCAL_VISTRAILS_SERVER or 
+           (!$cached or strcasecmp($force_build,'True') == 0)) {
+            $request = xmlrpc_encode_request("get_wf_graph_png", array($host, 
+                                         $port, $dbname, $vtid, $version, $vtid, 
+                                         $USE_LOCAL_VISTRAILS_SERVER));
+            $response = do_call($VT_HOST,$VT_PORT,$request);
+            $result = clean_up($response, $filename);
+        } else {
+            $result = $filename;
+        }
         list($width, $height, $type, $attr) = getimagesize($PATH_TO_GRAPHS . $result);
         if ($width > 400)
            $width = 400;
@@ -175,9 +186,10 @@ function printVistrailTag($input,$params) {
                 $request = xmlrpc_encode_request('run_from_db',
                                                  array($host, $port, $dbname, $vtid,
                                                        $destdir, $version, False, '',
-                                                       $build_always_bool));
+                                                       $build_always_bool, '',
+                                                       $USE_LOCAL_VISTRAILS_SERVER));
                 $response = do_call($VT_HOST,$VT_PORT,$request);
-                $result = clean_up($response);
+                $result = multiple_clean_up($response, $destdir);
             }
         }
     }
@@ -213,13 +225,45 @@ function get_version_from_response($xmlstring){
     }
 }
 
-function clean_up($xmlstring){
+function clean_up($xmlstring, $filename=""){
+    global $PATH_TO_GRAPHS, $USE_LOCAL_VISTRAILS_SERVER;
     try{
         $node = @new SimpleXMLElement($xmlstring);
-
-        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        if ($USE_LOCAL_VISTRAILS_SERVER)
+            return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        else{
+            $contents = $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->base64[0];
+            $fileHandle = fopen($PATH_TO_GRAPHS. $filename, 'wb') or die("can't open file");
+            fputs($fileHandle, base64_decode($contents));
+            fclose($fileHandle);
+            return $filename;
+        }
+                  
     } catch(Exception $e) {
         echo "bad xml";
     }
+}
+
+function multiple_clean_up($xmlstring, $destdir=""){
+    global $USE_LOCAL_VISTRAILS_SERVER;
+    try{
+        $node = @new SimpleXMLElement($xmlstring);
+        //var_dump($node);
+        if ($USE_LOCAL_VISTRAILS_SERVER)
+            return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        else{
+            $contents = $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->struct[0];
+            foreach ($contents as $value){                                                                                                                  
+                $image_name = (string) $value->name[0];                                               
+                $image_contents = (string) $value->value[0]->base64[0];                               
+                $fileHandle = fopen($destdir.'/'. $image_name, 'wb') or die("can't open file");       
+                fputs($fileHandle, base64_decode($image_contents));                                   
+                fclose($fileHandle);                                                                  
+             }                                                                                       
+             return $destdir;                                                                        
+        }                                                                                                                                                                                    
+  } catch(Exception $e) {                                                                     
+    echo "bad xml";                                                                           
+  }                                       
 }
 ?>
