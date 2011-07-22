@@ -653,8 +653,9 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             item.setSelected(False)
         self.setSelected(True)
         self.scene().emit_selection = True
-        self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
-                          self.id, True, False, True)
+        self.scene().emit(
+            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+            self.id, True, False, True, False)
             
     def construct_from_root(self):
         self.scene().emit_selection = False
@@ -662,8 +663,9 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             item.setSelected(False)
         self.setSelected(True)
         self.scene().emit_selection = True
-        self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool)'),
-                          self.id, True, True, True)
+        self.scene().emit(
+            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+            self.id, True, True, True, False)
 
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
