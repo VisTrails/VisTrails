@@ -32,7 +32,7 @@
 ##
 ###############################################################################
 
-from PyQt4.QtCore import QObject
+#from PyQt4.QtCore import QObject
 import copy
 
 from core.modules.module_registry import get_module_registry

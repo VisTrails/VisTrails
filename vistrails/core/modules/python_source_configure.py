@@ -45,7 +45,8 @@ import sys
 import urllib
 import core.bundles
 
-class PythonHighlighter(QtGui.QSyntaxHighlighter):
+class PythonHighlighter():
+#class PythonHighlighter(QtGui.QSyntaxHighlighter):
     def __init__( self, document ):
         QtGui.QSyntaxHighlighter.__init__( self, document )
         self.rules = []
@@ -240,7 +241,8 @@ def NewPythonEditor(parent):
 
     return _PythonEditor(parent)
 
-class OldPythonEditor(QtGui.QTextEdit):
+class OldPythonEditor():
+#class OldPythonEditor(QtGui.QTextEdit):
 
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)

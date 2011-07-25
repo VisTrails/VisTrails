@@ -38,16 +38,17 @@ API in the classes.
 """
 
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import QStringEdit
+#from gui.common_widgets import QStringEdit
 from core.modules.module_registry import get_module_registry
 from gui.theme import CurrentTheme
-from core.modules.python_source_configure import PythonEditor
+#from core.modules.python_source_configure import PythonEditor
 from gui.utils import show_warning
 from core.utils import all
 
 ##############################################################################
 
-class QParameterEditor(QtGui.QWidget):
+class QParameterEditor():
+#class QParameterEditor(QtGui.QWidget):
     """
     QParameterEditor specifies the method used for interpolating
     parameter values. It suppports Linear Interpolation, List and
@@ -124,7 +125,8 @@ class QParameterEditor(QtGui.QWidget):
             type_idx = types.index(type)
             self.selector._actions[type_idx].trigger()
 
-class QParameterEditorSelector(QtGui.QToolButton):
+class QParameterEditorSelector():
+#class QParameterEditorSelector(QtGui.QToolButton):
     """
     QParameterEditorSelector is a button with a down arrow allowing
     users to select which type of interpolator he/she wants to use
@@ -193,7 +195,8 @@ class IntegerLinearInterpolator(BaseLinearInterpolator):
     def __init__(self, mn, mx, steps):
         BaseLinearInterpolator.__init__(self, int, mn, mx, steps)
 
-class QIntegerLineEdit(QtGui.QLineEdit):
+class QIntegerLineEdit():
+#class QIntegerLineEdit(QtGui.QLineEdit):
     def __init__(self, param_info, parent=None):
         QtGui.QLineEdit.__init__(self, param_info.value, parent)
         self.setValidator(QtGui.QIntValidator(self))
@@ -203,8 +206,9 @@ class QIntegerLineEdit(QtGui.QLineEdit):
 class FloatLinearInterpolator(BaseLinearInterpolator):
     def __init__(self, mn, mx, steps):
         BaseLinearInterpolator.__init__(self, float, mn, mx, steps)
-    
-class QFloatLineEdit(QtGui.QLineEdit):
+
+class QFloatLineEdit():    
+#class QFloatLineEdit(QtGui.QLineEdit):
     def __init__(self, param_info, parent=None):
         QtGui.QLineEdit.__init__(self, param_info.value, parent)
         self.setValidator(QtGui.QDoubleValidator(self))
@@ -214,7 +218,8 @@ class QFloatLineEdit(QtGui.QLineEdit):
 ##############################################################################
 
 def make_interpolator(widget_class, interpolator_class, name):
-    class InterpolationEditor(QtGui.QWidget):
+    class InterpolationEditor():
+    #class InterpolationEditor(QtGui.QWidget):
         """
         QLinearInterpolationEditor is the actual widget allowing users to
         edit his/her linear interpolation parameters.
@@ -259,7 +264,8 @@ def make_interpolator(widget_class, interpolator_class, name):
 
 ##############################################################################
 
-class QListInterpolationEditor(QtGui.QWidget):
+class QListInterpolationEditor():
+#class QListInterpolationEditor(QtGui.QWidget):
     """
     QListInterpolationEditor is the actual widget allowing users to
     enter a list of values for interpolation
@@ -379,7 +385,8 @@ class QListInterpolationEditor(QtGui.QWidget):
 
 ##############################################################################
 
-class QListEditDialog(QtGui.QDialog):
+class QListEditDialog():
+#class QListEditDialog(QtGui.QDialog):
     """
     QListEditDialog provides an interface for user to edit a list of
     values and export to a string
@@ -514,7 +521,8 @@ class QListEditDialog(QtGui.QDialog):
 
 ##############################################################################
 
-class QListEditItemDelegate(QtGui.QItemDelegate):
+class QListEditItemDelegate():
+#class QListEditItemDelegate(QtGui.QItemDelegate):
     """
     QListEditItemDelegate sets up the editor for the QListEditDialog
     table
@@ -572,7 +580,8 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
 
 ##############################################################################
 
-class QUserFunctionEditor(QtGui.QFrame):
+class QUserFunctionEditor():
+#class QUserFunctionEditor(QtGui.QFrame):
     """
     QUserFunctionEditor shows user-defined interpolation function
     
@@ -716,7 +725,8 @@ class QUserFunctionEditor(QtGui.QFrame):
 
 ##############################################################################
 
-class QUserFunctionDialog(QtGui.QDialog):
+class QUserFunctionDialog():
+#class QUserFunctionDialog(QtGui.QDialog):
     """
     QUserFunctionDialog provides an interface for user to edit a
     python function

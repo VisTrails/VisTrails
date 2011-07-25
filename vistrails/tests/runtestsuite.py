@@ -43,7 +43,7 @@ any unit tests, as a crude measure of code coverage.
 """
 
 import os
-import sys
+import sys, traceback
 import unittest
 import os.path
 import optparse
@@ -60,6 +60,9 @@ if not _this_dir:
 else:
     root_directory = os.path.join(_this_dir,  '..')
 sys.path.append(root_directory)
+sys.path.append('C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/vistrails')
+sys.path.append('C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/')
+
 
 import tests
 
@@ -142,11 +145,11 @@ if len(args) > 0:
 sys.argv = sys.argv[:1]
 
 # creates the app so that testing can happen
-import gui.application
+#import gui.application
 
 # We need the windows so we can test events, etc.
-gui.application.start_application({'interactiveMode': True,
-                                   'nologger': True})
+#gui.application.start_application({'interactiveMode': True,
+#                                   'nologger': True})
 
 print "Test Suite for VisTrails"
 
@@ -185,16 +188,28 @@ for (p, subdirs, files) in os.walk(root_directory):
         module = module.replace('\\','.')
         if module.endswith('__init__'):
             module = module[:-9]
+        print 'module ' + module
+        s = open('successimport.log', 'a')
+        f = open('failedimport.log', 'a') 
+        err = open('errorimport.log', 'a')   
         try:
-            if '.' in module:
+            if module.startswith('api') or module.startswith('core'):
                 m = __import__(module, globals(), locals(), ['foo'])
-            else:
-                m = __import__(module)
+                s.write(module + "\n")
+            #else:
+            #    m = __import__(module)
         except tests.NotModule:
             if verbose >= 1:
                 print "Skipping %s, not an importable module" % filename
         except:
+            f.write(module + "\n")
             print msg, "ERROR: Could not import module!"
+            err.write("-------------------------------------------- \n")
+            err.write(module + "\n")
+            err.write("\n")
+            traceback.print_exc(file=err)
+            err.write("-------------------------------------------- \n")
+            err.write("\n")
             continue
 
         test_cases = get_test_cases(m)
@@ -206,8 +221,9 @@ for (p, subdirs, files) in os.walk(root_directory):
             print msg, "WARNING: %s has no tests!" % filename
         elif verbose >= 2:
             print msg, "Ok: %s test cases." % len(test_cases)
-
+print 'pikachu'
 unittest.TextTestRunner().run(main_test_suite)
+print 'pikachu2'
 if test_examples:
     import core.db.io
     import core.db.locator
@@ -251,9 +267,13 @@ if test_examples:
         else:
             print "  Ok."
     print "-----------------------------------------------------------------"
+    print 'pikachu'
     if errors:
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
+s.close()
+f.close()
+err.close()
 gui.application.VistrailsApplication.finishSession()
 gui.application.stop_application()

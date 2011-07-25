@@ -55,18 +55,19 @@ from core.utils import VistrailsInternalError, InstanceObject, \
 global _package_manager
 _package_manager = None
 
-class PackageManager(QtCore.QObject):
+class PackageManager():
+#class PackageManager(QtCore.QObject):
     # add_package_menu_signal is emitted with a tuple containing the package
     # identifier, package name and the menu item
-    add_package_menu_signal = QtCore.SIGNAL("add_package_menu")
+    # / add_package_menu_signal = QtCore.SIGNAL("add_package_menu")
     # remove_package_menu_signal is emitted with the package identifier
-    remove_package_menu_signal = QtCore.SIGNAL("remove_package_menu")
+    # / remove_package_menu_signal = QtCore.SIGNAL("remove_package_menu")
     # package_error_message_signal is emitted with the package identifier,
     # package name and the error message
-    package_error_message_signal = QtCore.SIGNAL("package_error_message_signal")
+    # / package_error_message_signal = QtCore.SIGNAL("package_error_message_signal")
     # reloading_package_signal is emitted when a package reload has disabled
     # the packages, but has not yet enabled them
-    reloading_package_signal = QtCore.SIGNAL("reloading_package_signal")
+    # / reloading_package_signal = QtCore.SIGNAL("reloading_package_signal")
 
     class DependencyCycle(Exception):
         def __init__(self, p1, p2):
@@ -421,10 +422,10 @@ Returns true if given package identifier is present."""
 
         # Queue the re-enabling of the packages so event loop can free
         # any QObjects whose deleteLater() method is invoked
-        self.emit(self.reloading_package_signal,
-                  package_codepath,
-                  reverse_deps,
-                  prefix_dictionary)
+        #self.emit(self.reloading_package_signal,
+        #          package_codepath,
+        #          reverse_deps,
+        #          prefix_dictionary)
 
     def reload_package_enable(self, reverse_deps, prefix_dictionary):
         # for all reverse dependencies, enable them
@@ -548,18 +549,20 @@ Returns true if given package identifier is present."""
         be added to the builder window """
         items = pkg.menu_items()
         if items:
-            self.emit(self.add_package_menu_signal,
-                      pkg.identifier,
-                      pkg.name,
-                      items)
+            i = 1
+            #self.emit(self.add_package_menu_signal,
+            #          pkg.identifier,
+            #          pkg.name,
+            #          items)
 
     def remove_menu_items(self, pkg):
         """remove_menu_items(pkg: Package) -> None
         Send a signal with the pkg identifier. The builder window should
         catch this signal and remove the package menu items"""
         if pkg.menu_items():
-            self.emit(self.remove_package_menu_signal,
-                      pkg.identifier)
+            i = 1
+            #self.emit(self.remove_package_menu_signal,
+            #          pkg.identifier)
 
     def show_error_message(self, pkg, msg):
         """show_error_message(pkg: Package, msg: str) -> None
@@ -569,10 +572,10 @@ Returns true if given package identifier is present."""
         debug.critical("Package %s (%s) says: %s"%(pkg.name,
                                                    pkg.identifier,
                                                    msg))
-        self.emit(self.package_error_message_signal,
-                  pkg.identifier,
-                  pkg.name,
-                  msg)
+        #self.emit(self.package_error_message_signal,
+        #          pkg.identifier,
+        #          pkg.name,
+        #          msg)
 
     def enabled_package_list(self):
         """package_list() -> returns list of all enabled packages."""

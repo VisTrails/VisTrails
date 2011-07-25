@@ -51,7 +51,7 @@ import core.requirements
 
 systemType = platform.system()
 
-if systemType in ['Windows', 'Microsoft']:
+if systemType in ['Java', 'JAVA', 'Windows', 'Microsoft']:
     from core.system.windows import guess_total_memory, temporary_directory, \
         list2cmdline, \
         home_directory, remote_copy_program, remote_shell_program, \
@@ -323,7 +323,10 @@ def current_machine():
     return socket.getfqdn()
 
 def current_architecture():
-    bit_string = platform.architecture()[0]
+    try:
+        bit_string = platform.architecture()[0]
+    except:
+        bit_string = 'byt'
     if bit_string.endswith('bit'):
         return int(bit_string[:-3])
     else:

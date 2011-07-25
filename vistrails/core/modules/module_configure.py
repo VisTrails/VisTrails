@@ -34,9 +34,10 @@
 from PyQt4 import QtCore, QtGui
 from core.utils import VistrailsInternalError
 from core.vistrail.port import PortEndPoint
-from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
+#from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
-class StandardModuleConfigurationWidget(QtGui.QWidget):
+class StandardModuleConfigurationWidget():
+#class StandardModuleConfigurationWidget(QtGui.QWidget):
 
     def __init__(self, module, controller, parent=None):
         QtGui.QWidget.__init__(self, parent)

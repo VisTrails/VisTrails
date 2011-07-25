@@ -34,7 +34,7 @@
 # We need to remove QtGui and QtCore refernce by storing all of our
 # notes in plain text, not html, should be fix later
 from PyQt4 import QtGui
-from PyQt4.QtCore import QString
+#from PyQt4.QtCore import QString
 import core.utils
 import re
 import time

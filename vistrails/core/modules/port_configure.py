@@ -35,7 +35,8 @@ from PyQt4 import QtCore, QtGui
 from core.utils import any
 import core.modules.resources.colorconfig_rc
 
-class StandardPortConfigureContainer(QtGui.QDialog):
+class StandardPortConfigureContainer():
+#class StandardPortConfigureContainer(QtGui.QDialog):
 
     def __init__(self, configureWidget, params, parent=None):
         QtGui.QDialog.__init__(self, parent)
@@ -46,7 +47,8 @@ class StandardPortConfigureContainer(QtGui.QDialog):
         self.layout().setSpacing(0)
         self.layout().addWidget(configureWidget)
 
-class ColorWheel(QtGui.QWidget):
+class ColorWheel():
+#class ColorWheel(QtGui.QWidget):
     colorWheelImage = None
     colorWheelPixmap = None
 
@@ -89,8 +91,9 @@ class ColorWheel(QtGui.QWidget):
             color = self.getColor(event.x(), event.y())
             self.emit(QtCore.SIGNAL('colorChanged'), color)
             self.dragging = True            
-    
-class ColorIndicator(QtGui.QFrame):
+
+class ColorIndicator():    
+#class ColorIndicator(QtGui.QFrame):
 
     def __init__(self, parent=None):
         QtGui.QFrame.__init__(self, parent)
@@ -107,7 +110,8 @@ class ColorIndicator(QtGui.QFrame):
     def sizeHint(self):
         return QtCore.QSize(24,24)
 
-class ColorConfigurationWidget(QtGui.QWidget):
+class ColorConfigurationWidget():
+#class ColorConfigurationWidget(QtGui.QWidget):
 
     def __init__(self, module, portName, parent=None):
         QtGui.QWidget.__init__(self, parent)

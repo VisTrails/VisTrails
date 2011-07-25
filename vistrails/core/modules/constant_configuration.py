@@ -54,9 +54,10 @@ class ConstantWidgetMixin(object):
             if self.parent() and hasattr(self.parent(), 'updateMethod'):
                 self.parent().updateMethod()
             self._last_contents = newContents
-            self.emit(QtCore.SIGNAL('contentsChanged'), (self,newContents))    
+            #self.emit(QtCore.SIGNAL('contentsChanged'), (self,newContents))    
 
-class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
+class StandardConstantWidget(ConstantWidgetMixin):
+#class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
     """
     StandardConstantWidget is a basic widget to be used
     to edit int/float/string values in VisTrails.
@@ -82,7 +83,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         to 'int', 'float', and 'string'
 
         """
-        QtGui.QLineEdit.__init__(self, parent)
+        #QtGui.QLineEdit.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         # assert param.namespace == None
         # assert param.identifier == 'edu.utah.sci.vistrails.basic'
@@ -91,7 +92,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         self.setText(contents)
         self._contentType = contentType
         self.connect(self,
-                     QtCore.SIGNAL('returnPressed()'),
+                     #QtCore.SIGNAL('returnPressed()'),
                      self.update_parent)
 
     def contents(self):
@@ -132,10 +133,12 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
                 self.setText(base)
                 
     def sizeHint(self):
-        metrics = QtGui.QFontMetrics(self.font())
+        #metrics = QtGui.QFontMetrics(self.font())
+        metrics = 1
         width = min(metrics.width(self.text())+10,70)
-        return QtCore.QSize(width, 
-                            metrics.height()+6)
+        return 1
+        #return QtCore.QSize(width, 
+        #                    metrics.height()+6)
     
     def minimumSizeHint(self):
         return self.sizeHint()
@@ -149,20 +152,21 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
 
         """
         self._contents = str(self.text())
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QLineEdit.focusInEvent(self, event)
+        #if self.parent():
+        #    QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        #QtGui.QLineEdit.focusInEvent(self, event)
 
     def focusOutEvent(self, event):
         self.update_parent()
-        QtGui.QLineEdit.focusOutEvent(self, event)
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        #QtGui.QLineEdit.focusOutEvent(self, event)
+        #if self.parent():
+        #    QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
 ###############################################################################
 # File Constant Widgets
 
-class PathChooserToolButton(QtGui.QToolButton):
+class PathChooserToolButton():
+#class PathChooserToolButton(QtGui.QToolButton):
     """
     PathChooserToolButton is a toolbar button that opens a browser for
     paths.  The lineEdit is updated with the pathname that is selected.
@@ -210,7 +214,8 @@ class PathChooserToolButton(QtGui.QToolButton):
         path = self.openChooser()
         self.setPath(path)
 
-class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
+class PathChooserWidget(ConstantWidgetMixin):
+#class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
     """
     PathChooserWidget is a widget containing a line edit and a button that
     opens a browser for paths. The lineEdit is updated with the pathname that is
@@ -320,10 +325,11 @@ class OutputPathChooserWidget(PathChooserWidget):
     def create_browse_button(self):
         return OutputPathChooserToolButton(self, self.line_edit)
 
-class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
+class BooleanWidget(ConstantWidgetMixin):
+#class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
 
     _values = ['True', 'False']
-    _states = [QtCore.Qt.Checked, QtCore.Qt.Unchecked]
+    #_states = [QtCore.Qt.Checked, QtCore.Qt.Unchecked]
 
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
@@ -358,7 +364,8 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
 ###############################################################################
 # Constant Color widgets
 
-class ColorChooserButton(QtGui.QFrame):
+class ColorChooserButton():
+#class ColorChooserButton(QtGui.QFrame):
     def __init__(self, parent=None):
         QtGui.QFrame.__init__(self, parent)
         self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
@@ -403,7 +410,8 @@ class ColorChooserButton(QtGui.QFrame):
             self.setColor(self.qcolor)
 
 
-class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
+class ColorWidget(ConstantWidgetMixin):
+#class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
                     parent: QWidget)

@@ -43,7 +43,8 @@ from core.vistrail.module_param import ModuleParam
 from gui.theme import CurrentTheme
 import urllib
 
-class SourceEditor(QtGui.QTextEdit):
+class SourceEditor():
+#class SourceEditor(QtGui.QTextEdit):
 
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)

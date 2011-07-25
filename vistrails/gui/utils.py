@@ -41,6 +41,7 @@ import gui.theme
 from core.system import systemType
 ################################################################################
 
+"""
 OK_BUTTON              = QtGui.QMessageBox.Ok
 OPEN_BUTTON            = QtGui.QMessageBox.Open
 SAVE_BUTTON            = QtGui.QMessageBox.Save
@@ -79,7 +80,7 @@ _buttons_captions_dict = { OK_BUTTON   : "Ok",
                            RETRY_BUTTON : "Retry",
                            IGNORE_BUTTON : "Ignore",
                            NOBUTTON_BUTTON : ""}
-
+"""
 
 def show_warning(title, message):
     """ show_warning(title: str, message: str) -> None
@@ -103,8 +104,8 @@ def show_info(title, message):
 
 def show_question(title,
                   message,
-                  buttons = [OK_BUTTON],
-                  default = NOBUTTON_BUTTON):
+                  buttons = None,
+                  default = None):
     """ show_question(title: str,
                       message: str,
                       buttons: list of buttons (defined above),
@@ -126,7 +127,7 @@ def show_question(title,
         return show_custom(title,message,None,buttons)
 
 def build_custom_window(title, message, icon=None,
-                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1,
+                buttons = [None], default=None, escape=-1,
                 modal=True, parent=None):
     """ show_custom(title: str,
                     message: str,
@@ -176,7 +177,7 @@ def build_custom_window(title, message, icon=None,
     return msgBox
 
 def show_custom(title, message, icon=None,
-                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1):
+                buttons = [None], default=None, escape=-1):
     """ show_custom(title: str,
                     message: str,
                     icon: QPixmap,

@@ -44,11 +44,12 @@ from core.utils import VistrailsInternalError
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry
 from core.utils import PortAlreadyExists
-from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
+#from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
 ############################################################################
 
-class PortTable(QtGui.QTableWidget):
+class PortTable():
+#class PortTable(QtGui.QTableWidget):
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self,1,2,parent)
         self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
@@ -134,8 +135,9 @@ class PortTable(QtGui.QTableWidget):
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
         QtGui.QTableWidget.focusOutEvent(self, event)
-        
-class PortTableItemDelegate(QtGui.QItemDelegate):
+
+class PortTableItemDelegate():        
+#class PortTableItemDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         registry = get_module_registry()

@@ -36,14 +36,17 @@ import copy
 import sys
 sys.path.append('/vistrails/src/trunk/vistrails')
 import db.services.io
-from db.versions.v1_0_0.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
-    DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
-    DBOpmArtifactIdCause, DBOpmArtifactIdEffect, DBOpmRole, DBOpmAccountId, \
-    DBOpmAccount, DBOpmAccounts, DBOpmGraph, DBOpmArtifacts, \
-    DBOpmDependencies, DBOpmProcesses, DBOpmProcessValue, DBOpmArtifactValue, \
-    IdScope, DBGroupExec, DBLoopExec, DBModuleExec, DBOpmOverlaps, DBPort, \
-    DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy, DBFunction, \
+from db.versions.v1_0_0.domain import DBOpmProcess, \
+    DBOpmGraph, \
+    IdScope, DBGroupExec, DBLoopExec, DBModuleExec, DBPort, \
+    DBConnection, DBGroup, DBPortSpec, DBFunction, \
     DBParameter
+from db.versions.v1_0_0.domain.auto_gen2 import DBOpmArtifact, DBOpmUsed, \
+     DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
+     DBOpmArtifactIdCause, DBOpmArtifactIdEffect, DBOpmRole, DBOpmAccountId, \
+     DBOpmAccount, DBOpmAccounts, DBOpmArtifacts, DBOpmDependencies, \
+     DBOpmProcesses, DBOpmProcessValue, DBOpmArtifactValue, DBOpmOverlaps, \
+     DBOpmWasTriggeredBy
 from db.services.vistrail import materializeWorkflow
 from db.versions.v1_0_0.persistence import DAOList
 

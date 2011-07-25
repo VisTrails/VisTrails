@@ -37,7 +37,6 @@ from core.utils import expression
 from core.utils import trace_method
 from core import debug
 import copy
-import parser
 
 ##############################################################################
 
