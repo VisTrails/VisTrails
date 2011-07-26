@@ -522,7 +522,6 @@ parameters from other instances")
         """     
         if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
-        self.builderWindow.create_first_vistrail()
         # self.builderWindow.modulePalette.updateFromModuleRegistry()
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()
@@ -538,6 +537,7 @@ parameters from other instances")
             self.builderWindow.raise_()
         else:
             self.builderWindow.hide()
+        self.builderWindow.create_first_vistrail()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
