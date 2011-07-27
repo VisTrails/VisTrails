@@ -986,8 +986,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
                (QExplorerWindow, True),
-               ((QLatexAssistant, True),
-                (('controller_changed', 'set_controller'),)),
+#               ((QLatexAssistant, True),
+#                (('controller_changed', 'set_controller'),)),
                ((QVersionEmbed, True),
                 (('controller_changed', 'set_controller'),
                  ('version_changed', 'updateVersion')))])]
