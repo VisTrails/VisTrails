@@ -438,7 +438,6 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.scene().clearSelection()
         self.parentItem().setSelected(True)
         self.contextMenuEvent(event)
-        event.ignore()
         
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
