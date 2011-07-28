@@ -39,7 +39,9 @@ import copy
 from itertools import izip
 import weakref
 
-from db.domain import DBModule
+import sys
+sys.path.append("../../db/domain")
+from auto_gen import DBModule
 from core.data_structures.point import Point
 from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location

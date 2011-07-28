@@ -828,7 +828,6 @@ class DBModuleDescriptor(object):
     def getPrimaryKey(self):
         return self._db_id
 
-
 class DBPortSpec(object):
 
     vtType = 'portSpec'
@@ -6707,6 +6706,117 @@ class DBAction(object):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
+class DBOther(object):
+
+    vtType = 'other'
+
+    def __init__(self, id=None, key=None, value=None):
+        self._db_id = id
+        self._db_key = key
+        self._db_value = value
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBOther.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBOther(id=self._db_id,
+                     key=self._db_key,
+                     value=self._db_value)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBOther()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'key' in class_dict:
+            res = class_dict['key'](old_obj, trans_dict)
+            new_obj.db_key = res
+        elif hasattr(old_obj, 'db_key') and old_obj.db_key is not None:
+            new_obj.db_key = old_obj.db_key
+        if 'value' in class_dict:
+            res = class_dict['value'](old_obj, trans_dict)
+            new_obj.db_value = res
+        elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
+            new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_key(self):
+        return self._db_key
+    def __set_db_key(self, key):
+        self._db_key = key
+        self.is_dirty = True
+    db_key = property(__get_db_key, __set_db_key)
+    def db_add_key(self, key):
+        self._db_key = key
+    def db_change_key(self, key):
+        self._db_key = key
+    def db_delete_key(self, key):
+        self._db_key = None
+    
+    def __get_db_value(self):
+        return self._db_value
+    def __set_db_value(self, value):
+        self._db_value = value
+        self.is_dirty = True
+    db_value = property(__get_db_value, __set_db_value)
+    def db_add_value(self, value):
+        self._db_value = value
+    def db_change_value(self, value):
+        self._db_value = value
+    def db_delete_value(self, value):
+        self._db_value = None
     
     def getPrimaryKey(self):
         return self._db_id

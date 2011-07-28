@@ -35,7 +35,9 @@
 """
 
 import copy
-from db.domain import DBConnection
+import sys
+sys.path.append("../../db/domain")
+from auto_gen import DBConnection
 import core.modules.module_registry
 from core.modules.vistrails_module import ModuleConnector
 from core.utils import VistrailsInternalError
@@ -176,8 +178,8 @@ class Connection(DBConnection):
     ##########################################################################
     # Properties
 
-    id = DBConnection.db_id
-    ports = DBConnection.db_ports
+    id = 0# DBConnection.db_id
+    ports = 1# DBConnection.db_ports
     
     def add_port(self, port):
         self.db_add_port(port)
@@ -327,7 +329,9 @@ class Connection(DBConnection):
 # Testing
 
 import unittest
-from db.domain import IdScope
+import sys
+sys.path.append("../../db/domain")
+from id_scope import IdScope
 
 class TestConnection(unittest.TestCase):
 

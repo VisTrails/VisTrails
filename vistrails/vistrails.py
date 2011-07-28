@@ -35,7 +35,7 @@
 
 if __name__ == '__main__':
     import core.requirements
-    core.requirements.check_pyqt4()
+    #core.requirements.check_pyqt4()
 
     from PyQt4 import QtGui
     import gui.application

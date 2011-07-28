@@ -36,7 +36,9 @@
     * ModuleFunction
 """
 
-from db.domain import DBFunction
+import sys
+sys.path.append("../../db/domain")
+from auto_gen import DBFunction
 from core.utils import enum, VistrailsInternalError, all, eprint
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.port_spec import PortSpec
@@ -100,10 +102,10 @@ class ModuleFunction(DBFunction):
     ##########################################################################
     # Properties
 
-    id = DBFunction.db_pos
-    pos = DBFunction.db_pos
-    real_id = DBFunction.db_id
-    name = DBFunction.db_name   
+    id = 0 # DBFunction.db_pos
+    pos = 0 # DBFunction.db_pos
+    real_id = 0 #= DBFunction.db_id
+    name = 0 #DBFunction.db_name   
 
     def _get_sigstring(self):
         return '(' + ','.join(p.typeStr for p in self.params) + ')'
@@ -229,7 +231,9 @@ class ModuleFunction(DBFunction):
 import unittest
 import copy
 from core.vistrail.module_param import ModuleParam
-from db.domain import IdScope
+import sys
+sys.path.append("../../db/domain")
+from id_scope import IdScope
 
 #TODO add more meaningful tests
 

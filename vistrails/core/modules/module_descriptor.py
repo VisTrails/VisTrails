@@ -38,7 +38,9 @@ from core.utils import VistrailsInternalError
 from core.vistrail.port_spec import PortSpec, PortEndPoint
 import core.debug
 import core.modules.module_registry
-from db.domain import DBModuleDescriptor
+import sys
+sys.path.append("../../db/domain")
+from auto_gen import DBModuleDescriptor
 
 # this is used by add_port to signal a repeated port. Should never
 # happen, but it does. Probably means a bug on the dynamic modules
@@ -199,7 +201,7 @@ class ModuleDescriptor(DBModuleDescriptor):
     identifier = DBModuleDescriptor.db_package
     package = DBModuleDescriptor.db_package
     namespace = DBModuleDescriptor.db_namespace
-    package_version = DBModuleDescriptor.db_package_version
+    package_version = 1 #DBModuleDescriptor._db_package_version
     version = DBModuleDescriptor.db_version
     base_descriptor_id = DBModuleDescriptor.db_base_descriptor_id
     port_specs_list = DBModuleDescriptor.db_portSpecs

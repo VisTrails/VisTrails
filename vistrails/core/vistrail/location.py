@@ -33,7 +33,9 @@
 ###############################################################################
 
 from core.data_structures.point import Point
-from db.domain import DBLocation
+import sys
+sys.path.append("../../db/domain")
+from auto_gen import DBLocation
 
 class Location(DBLocation, Point):
 
@@ -139,7 +141,9 @@ class Location(DBLocation, Point):
 import unittest
 import copy
 import random
-from db.domain import IdScope
+import sys
+sys.path.append("../../db/domain")
+from id_scope import IdScope
 
 class TestLocation(unittest.TestCase):
 

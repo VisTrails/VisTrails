@@ -35,7 +35,9 @@
     * Port
 
  """
-from db.domain import DBPort
+import sys
+sys.path.append("../../db/domain") 
+from auto_gen import DBPort
 from core.utils import VistrailsInternalError, all
 from core.vistrail.port_spec import PortSpec, PortEndPoint
 import core.modules.vistrails_module
@@ -133,11 +135,11 @@ class Port(DBPort):
     ##########################################################################
     # Properties
     
-    id = DBPort.db_id
-    moduleId = DBPort.db_moduleId
-    moduleName = DBPort.db_moduleName
-    name = DBPort.db_name
-    type = DBPort.db_type
+    id = 1 #DBPort.db_id
+    moduleId = 1 #DBPort.db_moduleId
+    moduleName = "uh" #DBPort.db_moduleName
+    name = "uhuh" #DBPort.db_name
+    type = "a" #DBPort.db_type
 
     def _get_endPoint(self):
         if self.db_type in PortSpec.end_point_map:
@@ -238,7 +240,9 @@ class Port(DBPort):
 ###############################################################################
 
 import unittest
-from db.domain import IdScope
+import sys
+sys.path.append("../../db/domain")
+from id_scope import IdScope
 
 if __name__ == '__main__':
     import core.modules.basic_modules

@@ -32,7 +32,9 @@
 ##
 ###############################################################################
 
-from db.domain import DBPluginData
+import sys
+sys.path.append("../../db/domain")
+from auto_gen import DBPluginData
 
 class PluginData(DBPluginData):
 
@@ -62,8 +64,8 @@ class PluginData(DBPluginData):
     ##########################################################################
     # Properties
 
-    id = DBPluginData.db_id
-    data = DBPluginData.db_data
+    id = 0# DBPluginData.db_id
+    data = 0# DBPluginData.db_data
 
     ##########################################################################
     # Operators
@@ -79,7 +81,9 @@ class PluginData(DBPluginData):
 import unittest
 import copy
 import random
-from db.domain import IdScope
+import sys
+sys.path.append("../../db/domain")
+from id_scope import IdScope
 
 class TestPluginData(unittest.TestCase):
 

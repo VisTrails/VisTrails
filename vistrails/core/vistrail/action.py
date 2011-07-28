@@ -37,7 +37,9 @@ from time import strptime
 
 from core.vistrail.annotation import Annotation
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from db.domain import DBAction
+import sys
+sys.path.append("../../db/domain/")
+from auto_gen import DBAction
 from itertools import izip
 
 class Action(DBAction):

@@ -68,7 +68,6 @@ from db.services.io import SaveBundle
 from core.thumbnails import ThumbnailCache
 import gui.debug
 
-
 ################################################################################
 
 class QBuilderWindow(QtGui.QMainWindow):
