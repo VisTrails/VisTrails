@@ -1433,8 +1433,11 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.reset_toolbar_for_view(view)
             self.qactions['history'].trigger()
             view.version_view.zoomToFit()
-            if version:
-                view.version_selected(version, True, double_click=True)
+            if version is None:
+                view.controller.select_latest_version()
+                version = view.controller.current_version
+                view.version_view.vistrailChanged()
+            view.version_selected(version, True, double_click=True)
             view.controller.set_changed(False)
             # self.window_changed(window)
             # result = self.set_vistrail_view(vistrail, locator, 
