@@ -1056,8 +1056,12 @@ class ModuleRegistry(DBRegistry):
             base_descriptor = self.get_descriptor(baseClass)
 
         if module in self._module_key_map:
-            raise DuplicateModule(self.get_descriptor(module), identifier,
-                                  name, namespace)
+            # This is really obsolete as having two descriptors
+            # pointing to the same module isn't a big deal except to
+            # get_descriptor which shouldn't be used often
+            if identifier != 'local.abstractions':
+                raise DuplicateModule(self.get_descriptor(module), identifier,
+                                      name, namespace)
         elif self.has_descriptor_with_name(identifier, name, namespace,
                                            package_version, version):
             raise DuplicateIdentifier(identifier, name, namespace,
