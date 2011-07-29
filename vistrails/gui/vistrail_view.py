@@ -821,6 +821,8 @@ class QVistrailView(QtGui.QWidget):
             debug.critical('Failed to index vistrail', traceback.print_exc())
 
         from gui.vistrails_window import _app
+        # update recent files menu items
+        _app.set_current_locator(locator)
         _app.view_changed(self)
         # reload workspace entry
         from gui.collection.workspace import QWorkspaceWindow
