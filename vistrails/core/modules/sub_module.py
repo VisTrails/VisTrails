@@ -36,6 +36,7 @@
 
 from itertools import izip
 import random
+import uuid
 try:
     import hashlib
     sha_hash = hashlib.sha1
@@ -254,6 +255,14 @@ def get_cur_abs_annotation_key(vistrail):
         return '__abstraction_uuid__'
     return '__abstraction_uuid_%d__' % (annotation_add - 1)
     
+def save_abstraction(vistrail, fname):
+    from core.db.io import save_vistrail_to_xml
+
+    # check if vistrail is changed before calling this!
+    new_namespace = str(uuid.uuid1())
+    annotation_key = get_next_abs_annotation_key(vistrail)
+    vistrail.set_annotation(annotation_key, new_namespace)
+    save_vistrail_to_xml(vistrail, fname)
 
 def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
                     pipeline=None):

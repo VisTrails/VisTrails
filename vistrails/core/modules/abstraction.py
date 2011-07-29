@@ -40,9 +40,8 @@ from core import debug
 from core.configuration import get_vistrails_configuration
 from core.modules.vistrails_module import Module, ModuleError
 from core.modules.sub_module import read_vistrail, new_abstraction, \
-    get_abstraction_dependencies
+    get_abstraction_dependencies, save_abstraction
 import core.modules.module_registry
-from core.db.io import save_vistrail_to_xml
 from core.system import vistrails_version
 from core.utils import InvalidPipeline
 
@@ -107,7 +106,7 @@ def initialize(*args, **kwargs):
                             controller.handle_invalid_pipeline(e, long(module_version), 
                                                                abs_vistrail, False, True)
                         del controller
-                        save_vistrail_to_xml(abs_vistrail, abs_fname)
+                        save_abstraction(abs_vistrail, abs_fname)
                         abstraction = new_abstraction(abs_name, abs_vistrail, abs_fname,
                                                       new_version, new_pipeline)
                     except Exception, _e:

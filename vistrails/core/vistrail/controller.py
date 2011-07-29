@@ -57,7 +57,7 @@ from core.modules.module_registry import ModuleRegistryException, \
 from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail, \
     get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
-    get_next_abs_annotation_key
+    get_next_abs_annotation_key, save_abstraction
 from core.packagemanager import PackageManager, get_package_manager
 import core.packagerepository
 from core.thumbnails import ThumbnailCache
@@ -1047,7 +1047,6 @@ class VistrailController(object):
         reg = core.modules.module_registry.get_module_registry()
         if namespace is None:
             namespace = get_cur_abs_namespace(abs_vistrail)
-        all_namespaces = get_all_abs_namespaces(abs_vistrail)
 
         if module_version is None:
             module_version = -1L
@@ -1062,14 +1061,16 @@ class VistrailController(object):
             vistrail_id_scope = self.id_scope
             self.id_scope = abs_vistrail.idScope
             (new_version, new_pipeline) = \
-                self.handle_invalid_pipeline(e, long(module_version), 
-                                             abs_vistrail, False)
-            core.db.io.save_vistrail_to_xml(abs_vistrail, abs_fname)
+                self.handle_invalid_pipeline(e, long(module_version), \
+                                                 abs_vistrail, False)
+            save_abstraction(abs_vistrail, abs_fname)
             self.set_changed(True)
             self.id_scope = vistrail_id_scope
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                           new_version, new_pipeline)
             module_version = str(new_version)
+
+        all_namespaces = get_all_abs_namespaces(abs_vistrail)
 
         old_desc = None
         if is_global:
@@ -1157,7 +1158,7 @@ class VistrailController(object):
                                                     module_version, 
                                                     is_global, avail_fnames)
             if desc.version != module_version:
-                print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version
+                print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
         else:
             if upgrade_version is not None:
                 print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
@@ -2539,8 +2540,7 @@ class VistrailController(object):
                         found = False
                         for (i_abs, i_namespaces) in \
                                 included_abstractions[abs_name]:
-                            if not (i_namespaces <= namespaces):
-                                print 'added old', i_namespaces
+                            if not (i_namespaces < namespaces):
                                 new_list.append((i_abs, i_namespaces))
                             if i_namespaces >= namespaces:
                                 found = True
@@ -2563,13 +2563,7 @@ class VistrailController(object):
                             tempfile.mkdtemp(prefix='vt_abs')
                     abs_fname = os.path.join(abs_save_dir, 
                                              abstraction.name + '.xml')
-                    new_namespace = str(uuid.uuid1())
-                    annotation_key = \
-                        get_next_abs_annotation_key(abstraction.vistrail)
-                    abstraction.vistrail.set_annotation(annotation_key, 
-                                                        new_namespace)
-                    core.db.io.save_vistrail_to_xml(abstraction.vistrail, 
-                                                    abs_fname)
+                    save_abstraction(abstraction.vistrail, abs_fname)
                 namespace = get_cur_abs_namespace(abstraction.vistrail)
                 abs_unique_name = make_abstraction_path_unique(abs_fname,
                                                                namespace)
