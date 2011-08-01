@@ -218,7 +218,7 @@ class Service:
         """
         self.address = address
         self.signature = toSignature(self.address)
-        self.wsdlHash = '0'
+        self.wsdlHash = '-1'
         self.modules = []
         self.package = None
         debug.log("Installing Web Service from WSDL: %s"% address)
@@ -245,6 +245,9 @@ class Service:
             debug.critical("Could not load WSDL: %s" % address,
                            str(e) + '\n' + str(traceback.format_exc()))
             self.service = None
+            if self.wsdlHash == '-1':
+                # create empty package
+                self.createFailedPackage()
         
     def makeDictType(self, obj):
         """ Create recursive dict from SUDS object
@@ -290,6 +293,32 @@ class Service:
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,
                                        'abstract':True})
+
+    def createFailedPackage(self):
+        """ Failed package is created so that the user can remove
+        it manually using package submenu """
+        reg = core.modules.module_registry.get_module_registry()
+
+        # create a document hash integer from the cached sax tree
+        # "name" is what suds use as the cache key
+        name = '%s-%s' % (abs(hash(self.address)), "wsdl")
+        self.wsdlHash = '0'
+
+        package_id = reg.idScope.getNewId(Package.vtType)
+        package = Package(id=package_id,
+                          codepath=__file__,
+                          load_configuration=False,
+                          name="SUDS#" + self.address,
+                          identifier=self.signature,
+                          version=self.wsdlHash,
+                          )
+        self.package = package
+        reg.add_package(package)
+        self.module = new_module(Module, str(self.signature))
+        reg.add_module(self.module, **{'package':self.signature,
+                                       'package_version':self.wsdlHash,
+                                       'abstract':True})
+        self.service = -1
 
     def setTypes(self):
         """ Return dict containing all exposed types in the service
