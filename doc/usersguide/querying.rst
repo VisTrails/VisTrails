@@ -25,14 +25,6 @@ Query By Example
 .. index::
    pair: queries; by example
 
-.. _fig-querying-query:
-
-.. figure:: figures/querying/query.png
-   :width: 3in
-   :align: center
-
-   Example pipeline in ``Search`` mode.
-
 One of the problems faced when trying to query a collection of
 workflows is the fact that structure is important.  Suppose that you
 want to find only workflows where two modules are used in sequence.
@@ -50,8 +42,27 @@ the window, connections are added by clicking and dragging from a port
 on one module to a corresponding port on another module.
 Figure :ref:`fig-querying-query` shows an example pipeline that has been built in the query builder.
 
+.. _fig-querying-query:
+
+.. figure:: figures/querying/query.png
+   :width: 3in
+   :align: center
+
+   Example pipeline in ``Search`` mode.
+
 .. %TODO what are the next few sentences actually trying to say?
 .. %, and parameters can be edited on the right-side of the window.  One major difference between the ``Pipeline`` view and the ``Search`` view is that you can use comparison operations in parameter values.  For example, instead of searching for a pipeline that contains a Float with a value of ``4.5``, you can search for a pipeline that contains a Float with a value ``'< 4.5'`` or ``'> 4.5'``.
+
+After constructing a pipeline, click the ``Execute`` button
+to begin the query.  This button will be available as long as the
+query window is not empty.  Executing the query will bring you back to
+the ``History`` view where the matching versions are
+displayed.  Section :ref:`sec-querying-results` provides information on
+interacting with query results.
+
+.. topic:: Try it now!
+
+   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-results`).
 
 .. _fig-querying-results:
 
@@ -70,17 +81,6 @@ Figure :ref:`fig-querying-query` shows an example pipeline that has been built i
    :align: center
 
    The results in the ``Pipeline`` view.
-
-After constructing a pipeline, click the ``Execute`` button
-to begin the query.  This button will be available as long as the
-query window is not empty.  Executing the query will bring you back to
-the ``History`` view where the matching versions are
-displayed.  Section :ref:`sec-querying-results` provides information on
-interacting with query results.
-
-.. topic:: Try it now!
-
-   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-results`).
 
 Note that Query by Example provides the capability to iteratively
 refine searches by adding more criteria.  For example, if you were

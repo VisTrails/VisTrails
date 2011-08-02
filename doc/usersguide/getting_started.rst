@@ -25,7 +25,7 @@ that requires you to install and compile |vistrails| and all of its
 dependencies. Of the two types of installations, the binary version is
 much easier, and we encourage first-time users to use this option
 whenever possible.  Precompiled binaries are currently available for
-Microsoft Windows (XP and Vista) and Mac OS X (10.4.x or higher).  To
+Microsoft Windows (XP and Vista) and Mac OS X (10.5.x or higher).  To
 obtain either a binary or source copy of |vistrails|, please see our
 website: http://www.vistrails.org.
 
@@ -132,9 +132,8 @@ The Vistrails Builder Window
 
 After everything has loaded, you will see the |vistrails| Builder window as
 shown in Figure :ref:`fig-start-builder`. If you have enabled the
-|vistrails| Spreadsheet, you will also see a second window like that in
-Figure :ref:`fig-start-spreadsheet`.  (Note that the spreadsheet is
-enabled by default.)
+|vistrails| Spreadsheet (Packages -> VisTrails Spreadsheet -> Show Spreadsheet), you will also see a second window like that in
+Figure :ref:`fig-start-spreadsheet`.  Note that if the spreadsheet window is not visible, it will open upon execution of a workflow that uses it.
 
 .. _fig-start-builder:
 
@@ -156,6 +155,7 @@ The VisTrails Toolbar
 .. _fig-start-toolbar:
 
 .. figure:: /figures/getting_started/toolbar.png  
+   :width: 100%
    
    |vistrails| Toolbar
 
@@ -171,9 +171,10 @@ The |vistrails| toolbar both allows you to execute the current workflow or funct
 
 **Explore** This option allows you to select one or more parameter(s) for which a set of values is created.  The workflow is then executed once for each value in the set and displayed in the spreadsheet for comparison purposes.  See Chapter :ref:`chap-paramexploration`.
 
-**Provenance** The ``Provenance`` mode shows the user a given VisTrail's execution history.  When a particular execution is selected, its pipeline view with modules colored according to its associated execution result is shown.  See Chapter :ref:`chap-provenance_browser`.
+**Provenance** The ``Provenance`` mode shows the user a given vistrail's execution history.  When a particular execution is selected, its pipeline view with modules colored according to its associated execution result is shown.  See Chapter :ref:`chap-provenance_browser`.
 
-**Mashup** :ref:`chap-mashups`
+**Mashup** The ``Mashup`` mode allows you to create a small application that allows you to explore different values for a selected set of parameters.  See Chapter :ref:`chap-mashups`
+for more information.
 
 **Execute** ``Execute`` will either execute the current pipeline when the ``Pipeline``, ``History``, or ``Provenance`` views are selected, or perform the search or exploration when in ``Search`` or ``Exploration`` mode.  This button is disabled for ``Mashup`` mode, or when there is not a current workflow to execute.
 
@@ -187,15 +188,15 @@ Palettes and Associated Views
 
 **Palettes**
 
-As you can see, the builder window has a center widget with a palette on each side.  There are a number of views (listed in the 4th group of the views menu) that when made visible, will be opened in these palettes.  In this section, we will first discuss how the views are arranged within these palettes, and then briefly describe where each view is used. 
+As you can see, the builder window has a center widget with a palette on each side.  There are a number of views (listed in the 4th group of the views menu) that when made visible, will be opened in these palettes.  In this section, we will discuss how the views are arranged. 
 
-First, notice that when VisTrails first launches the builder window, both palettes contain two views.  The left palette is split so both views are visible, whereas the right palette uses tabs to display one view at a time.        By default, additional views will be shown in the right, and lower left panels when they are made visible.  To make a view visible, either switch to a mode that requires it, or select it from the views menu.  For example, the ``Mashup`` mode will add the ``Mashup Pipeline`` and ``Mashups Inspector`` views to the panels.  When the mode is changed from ``Mashup``, they will be removed (hidden).  
+Notice that when VisTrails first launches the builder window, both palettes contain two views.  The left palette is split so both views are visible, whereas the right palette uses tabs to display one view at a time.        By default, additional views will be shown in the right, and lower left panels when they are made visible.  To make a view visible, either switch to a mode that requires it, or select it from the views menu.  For example, the ``Mashup`` mode will add the ``Mashup Pipeline`` and ``Mashups Inspector`` views to the panels.  When the mode is changed from ``Mashup``, these two views will be removed (hidden).  
 
 **Buttons**
 
 Notice that there is a button with a dot icon in the upper right corner of each view (see Figure :ref:`Buttons <fig-panel-buttons>`).  This is the pin button.  If you don't want a view to disappear when you change modes, make sure it is pinned.  When the dot in the center of this button is gone, it is unpinned and the view is likely to disappear when you change modes.
 
-The other two buttons, the one with the 'X' and the one with the rectangular outlines (see Figure :ref:`Buttons <fig-panel-buttons>`), will either close the view, or undock the view, depending on which one you push.  To undock the view, you may also click on the view's title bar and pull it out of the palette.  The view can then either remain in its own window, or can be docked by placing it in either palette.
+The other two buttons, the one with the 'X' and the one with the rectangular outlines (see Figure :ref:`Buttons <fig-panel-buttons>`), will either close the view, or undock the view, depending on which one you push.  Alternatively, you may undock a view by clicking on the view's title bar and pulling it out of the palette.  The view can then either remain in its own window, or can be docked by placing it in either palette.
 
 .. _fig-panel-buttons:
 
@@ -208,32 +209,32 @@ The other two buttons, the one with the 'X' and the one with the rectangular out
 .. index::
    pair: view;location
 
-The following table gives the view that is visible in each palette for each of the main views.  
+The following table gives the view that is visible in each palette for each of the main views/modes:
 
-*-------------*---------------------*--------------------*
-|             | Lower Left Palette  | Right Palette      |
-*-------------*---------------------*--------------------*
-| Pipeline    | Modules             | Module Information |
-*-------------*---------------------*--------------------*
-| History     | Modules             | Properties         |
-*-------------*---------------------*--------------------*
-| Explore     | Explore Properties  | Set Methods        |
-*-------------*---------------------*--------------------*
-| Provenance  | Modules             | Log Details        |
-*-------------*---------------------*--------------------*
-| Mashup      | Mashups Inspector   | Mashup Pipeline    |
-*-------------*---------------------*--------------------*
++-------------++---------------------+--------------------+
+|             || Lower Left Palette  | Right Palette      |
++=============++=====================+====================+
+| Pipeline    || Modules             | Module Information |
++-------------++---------------------+--------------------+
+| History     || Modules             | Properties         |
++-------------++---------------------+--------------------+
+| Explore     || Explore Properties  | Set Methods        |
++-------------++---------------------+--------------------+
+| Provenance  || Modules             | Log Details        |
++-------------++---------------------+--------------------+
+| Mashup      || Mashups Inspector   | Mashup Pipeline    |
++-------------++---------------------+--------------------+
 
 Notice that the ``Workspace``, ``Diff Properties``, and ``Vistrail Variables`` views are not in the table.  That is because, the ``Workspace`` view is always visible, the ``Diff Properties`` view opens in the right palette when a visual diff is performed in the ``History`` view, and the ``Vistrail Variables`` view is opened from the ``Views`` menu.  Note: with the ``Vistrail Variables`` view especially, if you don't want it to disappear, you should make sure it is pinned.
 
 The Center Widget
 ^^^^^^^^^^^^^^^^^
 
-The center widget is somewhat larger than the side panels as it is intended to be the main workspace.  It displays the following views: ``Pipeline``, ``History``, ``Search``- Query, ``Search`` - Results, Visual Diff results, ``Explore``, ``Provenance``, and ``Mashup``.  By default, one view is shown.  To open an additional view, type CTRL-t to create a new tab.  The new tab starts out in the ``Pipeline`` view, but you are free to change it to any of the other views.  Note that the tabs from only one vistrail are displayed at a time.  When you switch to a different vistrail, the other vistrail's set of open tabs are displayed.
+The center widget is somewhat larger than the side panels as it is intended to be the main workspace.  It displays the following views: ``Pipeline``, ``History``, ``Search``- query and results, ``Visual Diff`` results, ``Explore``, ``Provenance``, and ``Mashup``.  By default, one view is shown.  To open an additional view, type CTRL-t to create a new tab.  The new tab starts out in the ``Pipeline`` view, but you are free to change it to any of the other views.  Note that the tabs from only one vistrail are displayed at a time.  When you switch to a different vistrail, the other vistrail's set of open tabs are displayed.
 
 If you would like to see views from more than one vistrail at a time, you may do this by right-clicking on the vistrail (listed in ``Current Vistrails`` of the ``Workspace`` view), and selecting the option to open in a new window.  The side palettes will stay with the original window, but can be moved to the current window by selecting ``Dock Palettes`` from the ``Views`` menu.
 
-If you would like to see more than one view from the same vistrail, double-click the title of the view to detach it.  It is not possible to reattach the view, so once you are finished with the detached view, you may close it.  
+If you would like to see multiple views from the same vistrail, double-click the title of the view to detach it.  It is not possible to reattach the view, so once you are finished with the detached view, you may close it.  If you would like the view to be reattached, you should close it and open it again in a new tab.
 
 .. _sec-start-file:
 
@@ -249,19 +250,14 @@ To open a |vistrails| file, or *vistrail*, you can either click the
 ``Open`` button in the toolbar or select ``Open`` from the ``File``
 menu. This brings up a standard file dialog where you can select a
 vistrail to open.  Vistrails are identified by the ``.vt`` file
-extension. Opening a vistrail adds a tab to the builder window, where
-each tab represents a different vistrail.  Clicking a tab switches the
-current vistrail. Vistrails can also be
-stored in a database, enabling a central repository for workflows.
-See Chapter :ref:`chap-database` for more details about this feature.
+extension. Alternatively, if the vistrail is listed under `My Vistrails` in the ``Workspace Panel``, double clicking its name will open it.  When a vistrail is opened, it is listed in the ``Workspace`` (upper left panel) under `Current Vistrails`.  Since only one open vistrail is displayed at a time, the ``Workspace`` allows you to select which one to display.  Vistrails can also be stored in a database, enabling a central repository for workflows. See Chapter :ref:`chap-database` for more details about this feature.
 
 .. index::
    pair: close; vistrail
    pair: save; vistrail
 
 To close a vistrail, you can either choose the
-``Close`` option from the ``File`` menu or click
-the red 'X' button on the upper right side of the builder window.  If
+``Close`` option from the ``File`` menu or type Ctrl-w.  If
 the vistrail has not been saved, you will be asked if you wish to save
 your work. To save a vistrail, there is both a
 button and a menu item in the ``File`` menu.  If you would
@@ -286,7 +282,7 @@ details of computations and dependencies into a graph consisting of
 computational *modules* and *connections* between these
 modules.
 
-The ``Pipeline`` button on the |vistrails| toolbar accesses VisTrail's
+The ``Pipeline`` button on the |vistrails| toolbar accesses VisTrails'
 interface for building workflows. Similar to many existing workflow
 systems, it allows you to interactively create workflows using an
 extensible library of modules and a connection protocol that helps you

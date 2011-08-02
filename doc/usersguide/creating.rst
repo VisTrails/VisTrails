@@ -77,6 +77,10 @@ modules is performed by pressing the 'Delete' key.  The modules
 and connections can also be copied and pasted using the
 ``Edit`` menu, or with 'Ctrl-C' and 'Ctrl-V', respectively.
 
+.. topic:: Try it now!
+
+   Let's replace the ``vtkQuadric`` module in our example with a ``vtkCylinder`` module instead. To do this, first type "vtkCylinder" into the search box of the ``Module`` container.  As the letters are typed, the list filters the available modules to match the query.  Select this module and drag the text onto an empty space in the canvas.  (See Figure :ref:`fig-add_and_delete_modulea`.  Then, select the ``vtkQuadric`` module in the canvas and press the 'Delete' key.  This removes the module along with any connections it has (see Figure :ref:`fig-add_and_delete_moduleb`).
+
 .. _fig-add_and_delete_modulea:
 
 .. figure:: /figures/creating/add_cylinder.png
@@ -100,10 +104,6 @@ and connections can also be copied and pasted using the
    :align: center
 
    The connection replaced.
-
-.. topic:: Try it now!
-
-   Let's replace the ``vtkQuadric`` module in our example with a ``vtkCylinder`` module instead. To do this, first type "vtkCylinder" into the search box of the ``Module`` container.  As the letters are typed, the list filters the available modules to match the query.  Select this module and drag the text onto an empty space in the canvas.  (See Figure :ref:`fig-add_and_delete_modulea`.  Then, select the ``vtkQuadric`` module in the canvas and press the 'Delete' key.  This removes the module along with any connections it has (see Figure :ref:`fig-add_and_delete_moduleb`).
 
 Connecting Modules
 ==================
@@ -144,6 +144,10 @@ The parameters for a module can be accessed in the
 Builder window.  When a module on the canvas is selected, the corresponding
 module information is displayed.  The ``Inputs``, ``Outputs``, and ``Annotations`` tabs can be selected to set parameters within the respective categories.  To set a parameter, simply click on its name to reveal its input box and enter the desired value.  Notice that a ``-`` and ``+`` button appears to the left of the input box.  The ``-`` button removes the corresponding input box and the ``+`` button adds one.  This allows you to experiment with different values, but only the values in the last box are used in the final result.  
 
+.. topic:: Try it now!
+
+   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  Select ``SetRadius``, enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
+
 .. _fig-parameter_changes:
 
 .. figure:: figures/creating/change_parameter_interface1.png
@@ -170,9 +174,6 @@ module information is displayed.  The ``Inputs``, ``Outputs``, and ``Annotations
 
    The results of the changes are displayed on execution.
 
-.. topic:: Try it now!
-
-   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  Select ``SetRadius``, enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
 
 Configuring Module Labels
 =========================
