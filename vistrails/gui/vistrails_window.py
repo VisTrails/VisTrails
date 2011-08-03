@@ -2251,6 +2251,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
         view.controller.set_changed(True)
         self.view_changed(view)
+        self.reset_toolbar_for_view(view)
         self.qactions['history'].trigger()
         view.version_view.scene().fitToView(view.version_view, True)
 
