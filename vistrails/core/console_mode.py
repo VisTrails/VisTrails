@@ -303,10 +303,10 @@ class TestConsoleMode(unittest.TestCase):
     def test_change_parameter(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() + 
                                  '/tests/resources/test_change_vistrail.xml')
-        result = run([(locator, "v1")])
+        result = run([(locator, "v1")], update_vistrail=False)
         self.assertEqual(len(result), 0)
 
-        result = run([(locator, "v2")])
+        result = run([(locator, "v2")], update_vistrail=False)
         self.assertEquals(len(result), 0)
 
     def test_ticket_73(self):
