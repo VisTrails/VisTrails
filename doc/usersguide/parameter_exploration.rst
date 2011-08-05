@@ -165,9 +165,9 @@ In our next example, we demonstrate how multiple parameter values can be explore
 
 .. topic:: Try it now!
 
-   In the "terminator.vt" example vistrail, make sure you're working with the "Isosurface" version of the workflow, then go to the ``Pipeline`` view. Add the module ``vtkImageResample`` to the pipeline, and insert it between ``vtkStructuredPointsReader`` and ``vtkContourFilter``, connecting the output of the reader to input of the resampler and the output of the resampler to the input of the contour filter as shown in Figure :ref:`fig-paramexp-vtk_image_resample`.  Finally, select the ``vtkImageResample`` module and add the ``SetAxisMagnificationFactor`` method with parameter values 0 and :math:`0.2`.  See Chapter :ref:`chap-creating` for reminders on how to accomplish these tasks.
+   In the "terminator.vt" example vistrail, make sure you're working with the "Isosurface" version of the workflow, then go to the ``Pipeline`` view. Add the module ``vtkImageResample`` to the pipeline, and insert it between ``vtkStructuredPointsReader`` and ``vtkContourFilter``, connecting the output of the reader to input of the resampler and the output of the resampler to the input of the contour filter as shown in Figure :ref:`fig-paramexp-vtk_image_resample`.  Finally, select the ``vtkImageResample`` module and set the ``SetAxisMagnificationFactor`` to 0 and 0.2.  See Chapter :ref:`chap-creating` for reminders on how to accomplish these tasks.
 
-   After modifying the workflow, switch back to the ``Exploration`` view. Inside the ``Set Methods`` panel, select the ``SetValue`` method from the ``vtkContourFilter`` module, and drag it to the center canvas.  Also select the ``SetAxisMagnificationFactor`` method from the ``vtkImageResample`` module and drag it to the canvas as well. Set the values as in the previous example, but set the range of the "Float" parameter of "SetAxisMagnificationFactor" to start at :math:`0.2` and end at :math:`1.0`.  Also, set the magnification factor to vary over the 'y' direction.  Finally, set the exploration to generate 16 results, four in the 'x' direction, and four in the 'y' direction.  Your exploration setup should match Figure :ref:`fig-fig6_9`, and after executing, you should see a result that resembles Figure :ref:`fig-fig6_10`.  Notice that the isosurface changes from left to right while the images have less artifacts as the magnification factor approaches :math:`1.0` from top to bottom.
+   After modifying the workflow, switch back to the ``Exploration`` view. Inside the ``Set Methods`` panel, select the ``SetValue`` method from the ``vtkContourFilter`` module, and drag it to the center canvas.  Also select the ``SetAxisMagnificationFactor`` method from the ``vtkImageResample`` module and drag it to the canvas. Set the values as in the previous example, and set the range of the "Float" parameter of "SetAxisMagnificationFactor" to start at 0.2 and end at 1.0.  Also, set the magnification factor to vary over the 'y' direction.  Finally, set the exploration to generate 16 results, four in the 'x' direction, and four in the 'y' direction.  Your exploration setup should match Figure :ref:`fig-fig6_9`, and after executing, you should see a result that resembles Figure :ref:`fig-fig6_10`.  Notice that the isosurface changes from left to right while the images have less artifacts as the magnification factor approaches 1.0 from top to bottom.
 
 .. _fig-paramexp-vtk_image_resample:
 
@@ -218,8 +218,6 @@ Our third example shows how to create an animation by exploring parameter values
    :width: 50%
 
    One frame from the resulting animation
-
-   Animations with parameter exploration
 
 Alternatives to Linear Interpolation
 ====================================
@@ -274,10 +272,10 @@ specified direction.
    :align: center
    :width: 2.0in
 
-   The right panels of the Parameter Exploration window.  The numbered red circles distinguish duplicate modules, and the cells in (c) determine the layout for spreadsheet results.
+   The panels of the Parameter Exploration window.  ``Set Methods`` (Top) will appear in the right panel and the others will be on the left.  The numbered red circles in the ``Annotated Pipeline`` (Middle) distinguish duplicate modules, and the cells in the ``Spreadsheet Virtual Cell`` (Bottom) determine the layout for spreadsheet results.
 
 In both the ``Set Methods`` and ``Annotated Pipeline`` panels, you may see numbered red circles.  See Figure :ref:`fig-paramexp-virtual_cell` for an example of what this looks like.
-These circles appear when there is more than module of a given type in
+These circles appear when there is more than one module of a given type in
 a workflow.  For each type satisfying this criteria, the instances are
 numbered and displayed so that you can identify which part of the
 pipeline a module in the ``Set Methods`` panel corresponds

@@ -25,7 +25,7 @@ the evolution of their workflows.
 
 The Spreadsheet package is installed with |vistrails| by default, and
 it can display a variety of data ranging from VTK renderings to
-webpages without additional configuration.
+webpages without additional configuration.  To view the spreadsheet if it is hidden, select ``Packages`` :math:`\rightarrow` ``Spreadsheet`` :math:`\rightarrow` ``Show Spreadsheet.``
 
 ..  %% TODO add this sentence back in once the Custom Cell chapter is complete!
 ..  %In addition to the included types of viewers, users can create and register additional viewers using customized cell widgets (see Chapter :ref:`chap-custom_cells`).

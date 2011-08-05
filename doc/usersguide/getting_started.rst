@@ -132,7 +132,7 @@ The Vistrails Builder Window
 
 After everything has loaded, you will see the |vistrails| Builder window as
 shown in Figure :ref:`fig-start-builder`. If you have enabled the
-|vistrails| Spreadsheet (Packages -> VisTrails Spreadsheet -> Show Spreadsheet), you will also see a second window like that in
+|vistrails| Spreadsheet (Packages :math:`\rightarrow` VisTrails Spreadsheet :math:`\rightarrow` Show Spreadsheet), you will also see a second window like that in
 Figure :ref:`fig-start-spreadsheet`.  Note that if the spreadsheet window is not visible, it will open upon execution of a workflow that uses it.
 
 .. _fig-start-builder:
@@ -363,7 +363,7 @@ When a workflow is executed, the module color is determined as follows:
 
    If a workflow reads a file using the basic module File, VisTrails does check whether the file was modified since the last run. It does so by keeping a signature that is based on the modification time of the file. And if the file was modified, the File module and all downstream modules (the ones which depend on File) will be executed.
 
-   If you do not want VisTrails to cache executions, you can turn off caching: go to Menu Edit -> Preferences and in the General Configuration tab, change Cache execution results to Never.
+   If you do not want VisTrails to cache executions, you can turn off caching: go to Menu Edit :math:`\rightarrow` Preferences and in the General Configuration tab, change Cache execution results to Never.
 
    If you would like your input and output data to be versioned, you can use the Persistence package.
 

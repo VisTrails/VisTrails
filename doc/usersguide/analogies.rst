@@ -19,7 +19,7 @@ Before explaining either approach, however, let's first set up the vistrail that
 
 .. topic:: Try it now!
 
-   Open the "vtk\_http.vt" vistrail, located in the examples directory of the |vistrails| distribution. Go to the ``History`` view, and select the version labeled ``tetra mesh contour``. This will be our "source" workflow. Execute this workflow, and take a look at the resultant visualization in the Spreadsheet.
+   Open the "vtk\_http.vt" vistrail, located in the examples directory of the |vistrails| distribution. If the ``tetra mesh contour`` version is not selected, go to the ``History`` view and select it. This will be our "source" workflow. Execute this workflow, and take a look at the resultant visualization in the Spreadsheet.
 
    We will now create our "target" workflow.  Switch to the ``Pipeline`` view and add a new module, ``vtkSmoothPolyDataFilter`` between the ``vtkContourFilter`` and ``vtkDataSetMapper`` modules. Your modified pipeline should resemble the one shown in Figure :ref:`fig-analogy_setupa`.
 
