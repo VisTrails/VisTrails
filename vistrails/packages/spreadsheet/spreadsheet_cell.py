@@ -1085,10 +1085,14 @@ class QCellManipulator(QtGui.QFrame):
                 info = info[0]
                 view = builderWindow.ensureVistrail(info['locator'])
                 if view:
-                    view.version_selected(info['version'], True, double_click=False)
+                    view.version_selected(info['version'], True)
+                    view.version_view.select_current_version()
                     builderWindow.view_changed(view)
                     w = view.window()
+                    # this has no effect
                     w.qactions['history'].trigger()
+                    # so we need to use this one
+                    view.history_selected()
                     view.activateWindow()
 
 ################################################################################
