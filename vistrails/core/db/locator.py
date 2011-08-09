@@ -171,12 +171,12 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
-    def update_from_gui(self, parent_widget, klass=None):
-        from core.vistrail.vistrail import Vistrail
-        if klass is None:
-            klass = Vistrail
-        import gui.extras.core.db.locator as db_gui
-        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
+#    def update_from_gui(self, parent_widget, klass=None):
+#        from core.vistrail.vistrail import Vistrail
+#        if klass is None:
+#            klass = Vistrail
+#        import gui.extras.core.db.locator as db_gui
+#        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
 
 class DBLocator(_DBLocator, CoreLocator):
     

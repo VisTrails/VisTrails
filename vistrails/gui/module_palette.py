@@ -445,9 +445,10 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         menu.exec_(event.globalPos())
 
     def view_documentation(self):
-        widget = QModuleDocumentation(self.descriptor, None)
-        widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        widget.exec_()
+        from vistrails_window import _app
+        _app.show_documentation()
+        widget = QModuleDocumentation.instance()
+        widget.update_descriptor(self.descriptor)
 
     def set_descriptor(self, descriptor):
         self.descriptor = descriptor

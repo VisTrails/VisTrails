@@ -301,6 +301,38 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         params_group.setLayout(g_layout)
         layout.addWidget(params_group)
         self.setLayout(layout)
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        # Add the create analogy action
+        self.createAnalogyAction = QtGui.QAction(
+            CurrentTheme.VISUAL_DIFF_CREATE_ANALOGY_ICON,
+            'Create analogy', None, triggered=self.createAnalogy)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.createAnalogyAction)
+
+    def createAnalogy(self):
+        if not hasattr(self.controller, 'current_diff'):
+            return
+        ((vistrail_a, version_a), (vistrail_b, version_b)) = \
+            self.controller.current_diff_versions
+        # analogy only works on single vistrail
+        if not vistrail_a == vistrail_b:
+            return
+
+
+        default = 'from %s to %s' % (self.v1_name, self.v2_name)
+        (result, ok) = QtGui.QInputDialog.getText(None, "Enter Analogy Name",
+                                                  "Name of analogy:",
+                                                  QtGui.QLineEdit.Normal,
+                                                  default)
+        if not ok:
+            return
+        result = str(result)
+        try:
+            self.controller.add_analogy(result, version_a, version_b)
+        except:
+            debug.critical("Analogy name already exists")
 
     def set_diff(self):
         if not hasattr(self.controller, 'current_diff'):
@@ -328,6 +360,8 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
                 v2_name = "%s : %s" % (vistrail_b.locator.short_name, v2_name)
             else:
                 v2_name = "Vistrail B : %s" % v2_name
+
+        self.v1_name, self.v2_name = v1_name, v2_name
         
         self.legend.set_names(v1_name, v2_name)
         self.params.set_names(v1_name, v2_name)
