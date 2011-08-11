@@ -89,11 +89,26 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.file_pool = module_utils.FilePool()
         self.echoMode = False
         self.echoCellEvents = []
+
+        if hasattr(self.visApp, 'builderWindow'):
+            self.quitAction = QtGui.QAction('&Quit VisTrails', self)
+            self.addAction(self.quitAction)
+            self.quitAction.setShortcut('Ctrl+Q')
+            self.connect(self.quitAction,
+                         QtCore.SIGNAL('triggered()'),
+                         self.quitActionTriggered)
+
         # if the spreadsheet has one row and 2 columns
         # this will cause the spreadsheet to have each cell
         # 550 x 450 size in the server
         #self.resize(1156, 599)
 
+    def quitActionTriggered(self):
+        if self.visApp and hasattr(self.visApp, 'builderWindow') and \
+           self.visApp.builderWindow.isVisible():
+            self.visApp.builderWindow.quit()
+
+    
     def cleanup(self):
         if self.visApp!=None:
             self.visApp.removeEventFilter(self)
