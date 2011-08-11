@@ -1706,12 +1706,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return self.stack.currentWidget()
             elif isinstance(window, QMashupAppMainWindow):
                 return window.view
-            elif window is None:
-                return self.stack.currentWidget()
+            elif self.windows:
+                for view in self.windows:
+                    return view
             else:
-                debug.warning(
-                        "[wrong type of view] get_current_view() -> %s"%window)
-            return None
+                return self.stack.currentWidget()
         
     def get_current_controller(self):
         return self.get_current_view().get_controller()
