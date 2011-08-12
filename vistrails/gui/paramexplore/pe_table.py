@@ -100,6 +100,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
+                self.setFocus()
                 for item in data.items:
                     self.table.addParameter(item.parameter)
             vsb = self.verticalScrollBar()

@@ -826,6 +826,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.vistrail_to_widget = {}
         self.setCentralWidget(self.stack)        
 
+        self._previous_vt_view = None
         self._focus_owner = None
         self._previous_view = None
         self._is_quitting = False
@@ -1692,6 +1693,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         QModulePalette.instance().link_registry()
        
     def get_current_view(self):
+        from packages.spreadsheet.spreadsheet_window import SpreadsheetWindow
         if self.isActiveWindow():
             return self.stack.currentWidget()
         else:
@@ -1706,10 +1708,19 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return self.stack.currentWidget()
             elif isinstance(window, QMashupAppMainWindow):
                 return window.view
-            elif self.windows:
-                for view in self.windows:
-                    return view
+            elif (window is None or isinstance(window,SpreadsheetWindow)
+                  or isinstance(window, QtGui.QMessageBox)
+                  or isinstance(window, QtGui.QMenu)):
+                if self.current_view is not None:
+                    return self.current_view
+                else:
+                    return self._previous_vt_view
             else:
+                #please do not remove this warning. It is necessary to know
+                #what type of window is causing the get_current_view to return
+                # a wrong value -- Emanuele.
+                debug.warning(
+                        "[invalid view] get_current_view() -> %s"%window)
                 return self.stack.currentWidget()
         
     def get_current_controller(self):
@@ -2302,13 +2313,16 @@ class QVistrailsWindow(QVistrailViewWindow):
         if current is not None:
             owner = current.window()
 #            print "\n\n\n >>>>>> applicationfocuschanged"
-#            print "focus_owner: ", self._focus_owner, " previous_view ", self._previous_view
+#            print "focus_owner: ", self._focus_owner," previous_vt_view ", self._previous_vt_view, " previous_view ", self._previous_view
 #            print "owner: ", owner, " current: ", current
             if (self.isAncestorOf(current) or 
                 owner in self.windows.values()):
                 view = self.get_current_view()
+#                print "view: ", view
                 if view and (view == current or view.isAncestorOf(current)):
-                    if owner != self._focus_owner:
+                    if (owner != self._focus_owner and 
+                        view != self._previous_vt_view):
+                        self._previous_vt_view = view
                         self._previous_view = view.get_current_tab()
                         self._focus_owner = owner
                         self.change_view(view)
@@ -2318,7 +2332,9 @@ class QVistrailsWindow(QVistrailViewWindow):
             elif isinstance(owner, QBaseViewWindow):
                 view = owner.view.get_vistrail_view()
 #                print "view: ", view
-                if view and owner != self._focus_owner:
+                if (view and owner != self._focus_owner and 
+                        view != self._previous_vt_view):
+                    self._previous_vt_view = view
                     self._previous_view = view.get_current_tab()
                     self._focus_owner = owner
                     self.change_view(view)
