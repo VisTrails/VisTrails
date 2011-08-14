@@ -140,10 +140,10 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def checkBoxFromPort(self, port, input_=False):
         checkBox = QtGui.QCheckBox(port.name)
         if input_:
-            pep = PortEndPoint.Destination
+            port_visible = port.name in self.module.visible_input_ports
         else:
-            pep = PortEndPoint.Source
-        if not port.optional or (pep, port.name) in self.module.portVisible:
+            port_visible = port.name in self.module.visible_output_ports
+        if not port.optional or port_visible:
             checkBox.setCheckState(QtCore.Qt.Checked)
         else:
             checkBox.setCheckState(QtCore.Qt.Unchecked)
@@ -191,20 +191,18 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         
     def saveTriggered(self, checked = False):
         for port in self.inputPorts:
-            entry = (PortEndPoint.Destination, port.name)
             if (port.optional and
                 self.inputDict[port.name].checkState()==QtCore.Qt.Checked):
-                self.module.portVisible.add(entry)
+                self.module.visible_input_ports.add(port.name)
             else:
-                self.module.portVisible.discard(entry)
+                self.module.visible_input_ports.discard(port.name)
             
         for port in self.outputPorts:
-            entry = (PortEndPoint.Source, port.name)
             if (port.optional and
                 self.outputDict[port.name].checkState()==QtCore.Qt.Checked):
-                self.module.portVisible.add(entry)
+                self.module.visible_output_ports.add(port.name)
             else:
-                self.module.portVisible.discard(entry)
+                self.module.visible_output_ports.discard(port.name)
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False

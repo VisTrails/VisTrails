@@ -1105,8 +1105,14 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         
     def set_action_defaults(self):
         self.action_defaults = \
-            {'execute' : [('setEnabled', False, False)],
+            {'execute' : [('setEnabled', True, self.set_action_execute_default)],
              }
+    
+    def set_action_execute_default(self):
+        if self.controller:
+            if self.controller.current_pipeline:
+                return len(self.controller.current_pipeline.modules) > 0
+        return False
     
     def check_publish_db(self, versionId):
         loc = self.controller.locator
