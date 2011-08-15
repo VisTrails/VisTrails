@@ -106,7 +106,7 @@ Interacting with the Spreadsheet
 .. index:: 
    pair: spreadsheet; modes
 
-Currently, there are two operating modes in the Spreadsheet: Interactive Mode and Editing Mode.  Interactive Mode allows users to view and interact with the spreadsheet cells, while Editing Mode provides operations for manipulating cells.  The modes can be toggled via the ``View`` menu or their corresponding keyboard shortcuts ('Ctrl-Shift-I') and 'Ctrl-Shift-E').
+Currently, there are two operating modes in the Spreadsheet: Interactive Mode and Editing Mode.  Interactive Mode allows users to view and interact with the spreadsheet cells, while Editing Mode provides operations for manipulating cells.  The modes can be toggled via the ``View`` menu or their corresponding keyboard shortcuts ('Ctrl-Shift-I') and ('Ctrl-Shift-E').
 
 Interactive Mode
 ^^^^^^^^^^^^^^^^
@@ -132,8 +132,11 @@ In a sheet, a cell can be both *active* and *selected*.  There can only be one a
 Depending on the cell type, additional controls may appear in the
 toolbar when a cell is activated. These controls affect only the
 active cell, and change for different cell types. As shown by
-Figure :ref:`Different states of a spreadsheet cell \(d\) <fig-cell_states>`, a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds controls for resizing, flipping, and rotating the image in the active
-cell.
+Figure :ref:`Different states of a spreadsheet cell \(d\) <fig-cell_states>`, a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds controls for resizing, flipping, and rotating the image in the active cell.
+
+.. topic:: Note:
+
+   Pressing 'r' will center the image in the cell.
 
 Arranging Cells
 ^^^^^^^^^^^^^^^

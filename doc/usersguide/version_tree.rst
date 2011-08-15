@@ -134,7 +134,7 @@ While selecting versions in the ``History`` view and using the ``Pipeline`` view
 
 .. index::
    single: legend
-   pair:: parameters; differences
+   pair: parameters; differences
 
 In the new tab, the difference is displayed in a manner that is very similar to the pipeline view, but modules and connections are colored based on similarity.  Dark gray indicates those modules and connections that are shared between the two versions; orange and blue show modules and connections that exist in one workflow and not the other; and light gray modules are those where parameters between the two versions differ.  The Legend, which is displayed in the ``Diff Properties`` panel on the right, will remind you of these color correspondences.  If the ``Diff Properties`` panel is not visible on the right, you may enable it by selecting ``Diff Properties`` under the ``View`` menu.  This panel also shows the differences in parameters for light gray colored modules that are selected.
 
