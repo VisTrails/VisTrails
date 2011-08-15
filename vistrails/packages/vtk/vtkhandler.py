@@ -236,7 +236,10 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         if fid!=-1:
             f = self.module.functions[fid]
             self.codeEditor.setPlainText(urllib.unquote(f.params[0].strValue))
-        self.codeEditor.document().setModified(False)
+        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+            self.codeEditor.document().setModified(False)
+        else:
+            self.codeEditor.setModified(False)
         self.layout().addWidget(self.codeEditor, 1)
         
     def createButtonLayout(self):
