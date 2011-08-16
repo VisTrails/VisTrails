@@ -2654,7 +2654,7 @@ class VistrailController(object):
                      type(self.locator) == core.db.locator.ZIPFileLocator ):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
-                        del self._loaded_abstrations[filename]
+                        del self._loaded_abstractions[filename]
                     self.load_abstraction(filename, True)
                     
                     # reg = core.modules.module_registry.get_module_registry()
