@@ -79,7 +79,7 @@ Sending Output to the Spreadsheet
 
 Users may send results to the spreadsheet by using a spreadsheet cell.  Upon inspecting the VisTrails Spreadsheet package (in the list of packages, to the left of the pipeline builder), one can see there are built-in cells for different kinds of data, e.g., RichTextCell to display HTML and plain text.
 
-By default, an unoccupied cell on the active sheet will be chosen to display the result. However, you can specify in the pipeline exactly where a spreadsheet cell will be placed by using CellLocation and SheetReference. CellLocation specifies the location (row and column) of a cell when connecting to a spreadsheet cell (VTKCell, ImageViewerCell, ...). Similarly, a SheetReference module (when connecting to a CellLocation) will specify which sheet the cell will be put on given its name, minimum row size and minimum column size. There is an example of this in examples/vtk.xml (select the version below Double Renderer).
+By default, an unoccupied cell on the active sheet will be chosen to display the result. However, you can specify in the pipeline exactly where a spreadsheet cell will be placed by using CellLocation and SheetReference. CellLocation specifies the location (row and column) of a cell when connecting to a spreadsheet cell (VTKCell, ImageViewerCell, ...). Similarly, a SheetReference module (when connecting to a CellLocation) will specify which sheet the cell will be put on given its name, minimum row size and minimum column size. There is an example of this in examples/vtk.vt (select the Cell Location version).
 
 Advanced Cell Options
 ^^^^^^^^^^^^^^^^^^^^^
