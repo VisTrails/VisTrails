@@ -724,8 +724,9 @@ parameters from other instances")
                 mac_attribute = QtCore.Qt.WA_MacBrushedMetal
             if(event.type() == create_event and 
                issubclass(type(o),QtGui.QWidget) and
-               type(o) != QtGui.QSplashScreen):
-                o.setAttribute(mac_attribute)
+               type(o) != QtGui.QSplashScreen and 
+               not (o.windowFlags() & QtCore.Qt.Popup)):
+                    o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
             self.input = [str(event.file())]
             self.process_interactive_input()
