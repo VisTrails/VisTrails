@@ -48,6 +48,7 @@ from gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
 from gui.vistrails_palette import QVistrailsPaletteInterface
 from gui.theme import CurrentTheme
 from gui.module_palette import QModuleTreeWidgetItemDelegate
+from gui.vis_diff import QDiffView
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
@@ -913,6 +914,8 @@ class QVistrailList(QtGui.QTreeWidget):
             self.collection.commit()
         
         view = _app.ensureVistrail(locator)
+        if view:
+            self.ensureNotDiffView()
         open_vistrail(locator, **args)
         if view is None:
             set_current_locator(locator)
@@ -925,10 +928,19 @@ class QVistrailList(QtGui.QTreeWidget):
     
         widget_item.setSelected(True)
 
+    def ensureNotDiffView(self):
+        """ If current tab is a diff, create a new tab """
+        from gui.vistrails_window import _app
+        view = _app.get_current_view()
+        tab = view.get_current_tab()
+        if type(tab) == QDiffView:
+            view.add_pipeline_view()
+
     def open_mashup(self, entity):
         """open_mashup(entity:MashupEntity) -> None
         It will ask the Vistrail view to execute the mashup
         """
+        self.ensureNotDiffView()
         from gui.vistrails_window import _app
         view = _app.get_current_view()
         view.open_mashup(entity.mashup)

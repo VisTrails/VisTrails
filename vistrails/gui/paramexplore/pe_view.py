@@ -71,13 +71,13 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
             }
 
     def set_action_defaults(self):
-        self.action_defaults = \
+        self.action_defaults.update(
             { 'execute': [('setEnabled', True, self.set_execute_action),
                           ('setIcon', False, CurrentTheme.EXECUTE_EXPLORE_ICON),
                           ('setToolTip', False, 'Execute the parameter exploration')],
               'publishWeb': [('setEnabled', False, False)],
               'publishPaper': [('setEnabled', False, False)],
-            }
+            })
             
     def set_execute_action(self):
         if self.controller and self.controller.vistrail:
