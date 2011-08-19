@@ -51,7 +51,8 @@ class QAliasSliderWidget(QtGui.QWidget):
         self.value.setRange(int(alias.component.minVal), 
                             int(alias.component.maxVal))
         self.value.setSingleStep(int(alias.component.stepSize))
-
+        self.value.setContents(self.alias.component.val)
+        
         self.connect(self.value,
                      QtCore.SIGNAL("contentsChanged"),
                      self.contents_changed)
@@ -121,12 +122,14 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
             self.value.setRange(int(alias.component.minVal), 
                                 int(alias.component.maxVal))
             self.value.setSingleStep(int(alias.component.stepSize))
+            self.value.setContents(self.alias.component.val)            
         elif self.alias.component.type == "Float":
             self.value = QNumericStepperFloatWidget(param=vtparam,
                                                     parent=self)
             self.value.setRange(float(alias.component.minVal), 
                                 float(alias.component.maxVal))
             self.value.setSingleStep(float(alias.component.stepSize))
+            self.value.setContents(self.alias.component.val)
 
         self.connect(self.value,
                      QtCore.SIGNAL("contentsChanged"),
