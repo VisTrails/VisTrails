@@ -236,7 +236,7 @@ class QDropDownWidget(QtGui.QWidget):
         self.setLayout(hbox)    
         
     def createMenu(self):
-        self.menu = QtGui.QMenu(self)
+        self.menu = QMenuValue(self)
         self.menu.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                 QtGui.QSizePolicy.Maximum)
         mbox = QtGui.QVBoxLayout()
@@ -249,10 +249,10 @@ class QDropDownWidget(QtGui.QWidget):
             hbox = QtGui.QHBoxLayout()
             rb = QMenuRadioButton()
             rb.setChecked(False)
-            vw = self.createAliasWidget(val=v, parent=self)
-            vw.setFocusProxy(rb)
+            vw = self.createMenuAliasWidget(val=v, parent=self)
             vw.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                 QtGui.QSizePolicy.Maximum)
+            vw.setReadOnly(True)
             
             self.menu_widgets[rb] = vw
             hbox.addWidget(rb)
@@ -262,6 +262,9 @@ class QDropDownWidget(QtGui.QWidget):
             self.connect(rb,
                          QtCore.SIGNAL("clicked(bool)"),
                          self.menu.hide)
+            self.connect(vw,
+                         QtCore.SIGNAL("clicked(bool)"),
+                         rb.setChecked)
         self.menu.setLayout(mbox)
         self.dropdownbtn.setMenu(self.menu)
         
@@ -301,7 +304,11 @@ class QDropDownWidget(QtGui.QWidget):
         if val:
             self.vtparam.strValue = val
         return widget_type(self.vtparam, parent)
-            
+    
+    def createMenuAliasWidget(self, val=None, parent=None):
+        widget = self.createAliasWidget(val)
+        return QMenuValueItem(widget, parent)
+    
     def value_selected(self):
         #print "value_selected", self.menu.pos()
         for rb, vw in self.menu_widgets.iteritems():
@@ -323,3 +330,31 @@ class QMenuRadioButton(QtGui.QRadioButton):
         self.setChecked(True)
         #self.emit(QtCore.SIGNAL("clicked(bool)"), True)
         QtGui.QRadioButton.focusInEvent(self, event)
+        
+class QMenuValue(QtGui.QMenu):    
+    def mousePressEvent(self, e):
+        vw = self.childAt(e.pos())
+        while vw is not None and not isinstance(vw, QMenuValueItem):
+            vw = vw.parent()
+        if vw is not None:
+            vw.emit(QtCore.SIGNAL("clicked(bool)"), True)
+        QtGui.QMenu.mousePressEvent(self, e)
+        
+class QMenuValueItem(QtGui.QWidget):
+    def __init__(self, widget, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.widget = widget
+        vlayout = QtGui.QVBoxLayout()
+        vlayout.setMargin(0)
+        vlayout.setSpacing(0)
+        vlayout.addWidget(self.widget)
+        self.setLayout(vlayout)
+        
+    def setReadOnly(self, on):
+        self.setEnabled(not on)
+        
+    def contents(self):
+        return self.widget.contents()
+    
+    def mousePressEvent(self, e):
+        self.emit(QtCore.SIGNAL("clicked(bool)"), True)
