@@ -942,7 +942,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.palette_layout = \
             [(self.UPPER_LEFT_DOCK_AREA,
               [((QWorkspaceWindow,True),
-                (('search_changed', 'updateSearchResults'),))]),
+                (('search_changed', 'updateSearchResults'),
+                 ('state_changed', 'state_changed')))]),
              (self.LOWER_LEFT_DOCK_AREA,
               [(QModulePalette, True),
                ((QParamExplorePalette, False),
@@ -1667,6 +1668,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         return True
 
     def close_all_vistrails(self):
+        self.current_view = None
         while self.stack.count() > 0 and not \
               (self.stack.count() == 1 and self._first_view):
             if not self.close_vistrail():

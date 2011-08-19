@@ -119,7 +119,8 @@ class VistrailEntity(Entity):
     def set_vistrail(self, vistrail):
         self.vistrail = vistrail
 
-        self.name = self.vistrail.locator.short_name
+        self.name = self.vistrail.locator.short_name \
+            if self.vistrail.locator else 'untitled'
         if not self.name or self.name == 'None':
             self.name = self.vistrail.db_name
         self.size = len(self.vistrail.actionMap)
@@ -137,7 +138,8 @@ class VistrailEntity(Entity):
             self.mod_time = core.system.current_time()
             self.create_time = core.system.current_time()
         self.description = ""
-        self.url = self.vistrail.locator.to_url()
+        self.url = self.vistrail.locator.to_url() \
+            if self.vistrail.locator else 'file://untitled'
         self.was_updated = True        
 
     def add_workflow_entity(self, version_id):
@@ -206,8 +208,9 @@ class VistrailEntity(Entity):
                 self.add_workflow_entity(version_id)
             
             #mashups
-            for mashuptrail in self.vistrail.mashups:
-                self.add_mashup_entities_from_mashuptrail(mashuptrail)
+            if hasattr(self.vistrail, 'mashups'):
+                for mashuptrail in self.vistrail.mashups:
+                    self.add_mashup_entities_from_mashuptrail(mashuptrail)
                 
             try:
                 log = vistrail.get_log()

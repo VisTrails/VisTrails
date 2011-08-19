@@ -1229,6 +1229,7 @@ class QVistrailView(QtGui.QWidget):
         """ stateChanged() -> None
         Handles 'stateChanged' signal from VistrailController """
         from gui.vistrails_window import _app
+        _app.notify("state_changed", self)
         _app.state_changed(self)
         
 
