@@ -452,9 +452,14 @@ class QDiffView(QPipelineView):
              }
             
     def set_action_defaults(self):
-        self.action_defaults = \
-            {'execute' : [('setEnabled', False, False)],
-             }
+        self.action_defaults.update(
+            {'execute'    : [('setEnabled', False, False)],
+             'history'    : [('setEnabled', False, False)],
+             'search'     : [('setEnabled', False, False)],
+             'explore'    : [('setEnabled', False, False)],
+             'provenance' : [('setEnabled', False, False)],
+             'mashup'     : [('setEnabled', False, False)]
+             })
             
     def set_to_current(self):
         # change to normal controller hacks

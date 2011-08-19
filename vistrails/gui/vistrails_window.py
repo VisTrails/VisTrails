@@ -830,6 +830,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._focus_owner = None
         self._previous_view = None
         self._is_quitting = False
+        self._first_view = True
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
@@ -1254,6 +1255,8 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def create_first_vistrail(self):
         print 'calling create_first_vistrail'
+        if self.get_current_view():
+            return
         if not self.dbDefault and untitled_locator().has_temporaries():
             if not FileLocator().prompt_autosave(self):
                 untitled_locator().clean_temporaries()
@@ -1370,7 +1373,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         # Close first vistrail of no change was made
         if not self._first_view:
             return
-        vt = self._first_view.controller.vistrail
+        if self._first_view is True:
+            view = self.get_current_view()
+            if not view:
+                return
+            vt = view.controller.vistrail
+        else:
+            vt = self._first_view.controller.vistrail
         if vt.get_version_count() == 0:
             print "closing first vistrail"
             self.close_vistrail(self._first_view)
