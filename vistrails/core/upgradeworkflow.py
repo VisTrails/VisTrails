@@ -128,11 +128,10 @@ class UpgradeWorkflowHandler(object):
         pkg = pm.get_package_by_identifier(mpkg)
         desired_version = ''
         d = None
-        if invalid_module.is_abstraction() and \
-                reg.has_abs_upgrade(invalid_module.descriptor_info):
-                # this should be for package abstractions that were
-                # out of date and were upgraded to local abstractions
-                return reg.get_abs_upgrade(invalid_module.descriptor_info)
+        # don't check for abstraction/subworkflow since the old module
+        # could be a subworkflow
+        if reg.has_abs_upgrade(*invalid_module.descriptor_info):
+            return reg.get_abs_upgrade(*invalid_module.descriptor_info)
 
         try:
             try:
@@ -422,7 +421,9 @@ class UpgradeWorkflowHandler(object):
                        annotation_remap={}):
         old_module = pipeline.modules[module_id]
         internal_version = -1
-        if old_module.is_abstraction():
+        # try to determine whether new module is an abstraction
+        if (hasattr(new_descriptor, "vistrail") and 
+            hasattr(new_descriptor, "internal_version")):
             internal_version = new_descriptor.version
         new_module = \
             controller.create_module_from_descriptor(new_descriptor,
@@ -499,15 +500,37 @@ class UpgradeWorkflowHandler(object):
                     # do upgrade
                     
                     if new_module_type is None:
-                        new_module_desc = \
-                            reg.get_descriptor_by_name(old_module.package, 
-                                                       old_module.name, 
-                                                       old_module.namespace)
+                        try:
+                            new_module_desc = \
+                                reg.get_descriptor_by_name(old_module.package, 
+                                                           old_module.name, 
+                                                           old_module.namespace)
+                        except MissingModule, e:
+                            # if the replacement is an abstraction,
+                            # and it has been upgraded, we use that
+                            if reg.has_abs_upgrade(old_module.package,
+                                                   old_module.name,
+                                                   old_module.namespace):
+                                new_module_desc = \
+                                    reg.get_abs_upgrade(old_module.package,
+                                                        old_module.name,
+                                                        old_module.namespace)
+                            else:
+                                raise e
                     elif type(new_module_type) == type(""):
                         d_tuple = \
-                            reg.expand_descriptor_string(new_module_type,
-                                                         old_module.package)
-                        new_module_desc = reg.get_descriptor_by_name(*d_tuple)
+                            reg.expand_descriptor_string(new_module_type, \
+                                                             old_module.package)
+                        try:
+                            new_module_desc = \
+                                reg.get_descriptor_by_name(*d_tuple)
+                        except MissingModule, e:
+                            # if the replacement is an abstraction,
+                            # and it has been upgraded, we use that
+                            if reg.has_abs_upgrade(*d_tuple):
+                                new_module_desc = reg.get_abs_upgrade(*d_tuple)
+                            else:
+                                raise e
                     else: # we have a klass for get_descriptor
                         new_module_desc = reg.get_descriptor(new_module_type)
                    

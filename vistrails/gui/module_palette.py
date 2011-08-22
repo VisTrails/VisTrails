@@ -199,11 +199,15 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
             else:
                 package_item = self.packages[package_identifier]()
 
-            if descriptor.namespace_hidden or not descriptor.namespace:
+            if descriptor.ghost_namespace is not None:
+                namespace = descriptor.ghost_namespace
+            else:
+                namespace = descriptor.namespace
+            if descriptor.namespace_hidden or not namespace:
                 parent_item = package_item
             else:
                 parent_item = \
-                    package_item.get_namespace(descriptor.namespace.split('|'))
+                    package_item.get_namespace(namespace.split('|'))
 
             item = QModuleTreeWidgetItem(descriptor, parent_item,
                                          QtCore.QStringList(descriptor.name))

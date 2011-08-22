@@ -141,6 +141,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             # rather than 'local.abstractions'
             self.ghost_identifier = ''
             self.ghost_package_version = ''
+            self.ghost_namespace = None
         else:
             # FIXME this will break things, I think
             self.children = copy.copy(other.children)
@@ -160,6 +161,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._namespace_hidden = other._namespace_hidden
             self.ghost_identifier = other.ghost_identifier
             self.ghost_package_version = other.ghost_package_version
+            self.ghost_namespace = other.ghost_namespace
         self.port_specs = self.db_portSpecs_name_index
         if self.version is None:
             self.version = ''
