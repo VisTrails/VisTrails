@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -1669,9 +1669,9 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def close_all_vistrails(self):
         self.current_view = None
-        while self.stack.count() > 0 and not \
-              (self.stack.count() == 1 and self._first_view):
-            if not self.close_vistrail():
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if not self.close_vistrail(view):
                 return False
         while len(self.windows) > 0:
             window = self.windows.values()[0]
@@ -1724,15 +1724,19 @@ class QVistrailsWindow(QVistrailViewWindow):
                   or isinstance(window, QtGui.QMenu)):
                 if self.current_view is not None:
                     return self.current_view
-                else:
+                elif self._previous_vt_view is not None:
                     return self._previous_vt_view
-            else:
-                #please do not remove this warning. It is necessary to know
-                #what type of window is causing the get_current_view to return
-                # a wrong value -- Emanuele.
-                debug.warning(
-                        "[invalid view] get_current_view() -> %s"%window)
-                return self.stack.currentWidget()
+                else:
+                    if self.stack.count() > 0:
+                        return self.stack.currentWidget()
+                    else:
+                        if self.windows.count() > 0:
+                            return self.windows.iterkeys().next()
+            #please do not remove this warning. It is necessary to know
+            #what type of window is causing the get_current_view to return
+            # a wrong value -- Emanuele.
+            debug.warning("[invalid view] get_current_view() -> %s"%window)
+            return self.stack.currentWidget()
         
     def get_current_controller(self):
         return self.get_current_view().get_controller()
