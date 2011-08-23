@@ -223,6 +223,8 @@ class Collection(object):
             self.workspaces[workspace] = []
 
     def add_to_workspace(self, entity, workspace=None):
+        if not entity:
+            return
         if not workspace:
             workspace = self.currentWorkspace
         self.add_workspace(workspace)
