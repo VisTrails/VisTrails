@@ -6,7 +6,7 @@ py_bsd_3_license = """##########################################################
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -41,7 +41,7 @@ php_bsd_3_license = """/////////////////////////////////////////////////////////
 //
 // Copyright (C) 2006-2011, University of Utah. 
 // All rights reserved.
-// Contact: vistrails@sci.utah.edu
+// Contact: contact@vistrails.org
 //
 // This file is part of VisTrails.
 //
@@ -74,7 +74,7 @@ sql_bsd_3_license = """--#######################################################
 --
 -- Copyright (C) 2006-2011, University of Utah. 
 -- All rights reserved.
--- Contact: vistrails@sci.utah.edu
+-- Contact: contact@vistrails.org
 --
 -- This file is part of VisTrails.
 --
@@ -118,7 +118,7 @@ py_old_license = """############################################################
 ##
 ## If you are unsure which license is appropriate for your use (for
 ## instance, you are interested in developing a commercial derivative
-## of VisTrails), please contact us at vistrails@sci.utah.edu.
+## of VisTrails), please contact us at contact@vistrails.org.
 ##
 ## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
@@ -140,7 +140,7 @@ sql_old_license = """--#########################################################
 --
 -- If you are unsure which license is appropriate for your use (for
 -- instance, you are interested in developing a commercial derivative
--- of VisTrails), please contact us at vistrails@sci.utah.edu.
+-- of VisTrails), please contact us at contact@vistrails.org.
 --
 -- This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 -- WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
@@ -161,7 +161,7 @@ xml_old_license = """<!--#######################################################
 ##
 ## If you are unsure which license is appropriate for your use (for
 ## instance, you are interested in developing a commercial derivative
-## of VisTrails), please contact us at vistrails@sci.utah.edu.
+## of VisTrails), please contact us at contact@vistrails.org.
 ##
 ## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
@@ -183,7 +183,7 @@ php_old_license = """///////////////////////////////////////////////////////////
 //
 // If you are unsure which license is appropriate for your use (for
 // instance, you are interested in developing a commercial derivative
-// of VisTrails), please contact us at vistrails@sci.utah.edu.
+// of VisTrails), please contact us at contact@vistrails.org.
 //
 // This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 // WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
