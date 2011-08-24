@@ -195,3 +195,5 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         from gui.vistrails_window import _app
         _app.show_documentation()
         
+    def update_entry_klass(self, entry_klass):
+        self.input_ports_list.set_entry_klass(entry_klass)

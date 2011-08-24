@@ -60,6 +60,9 @@ from gui.vis_diff import QDiffView
 from gui.paramexplore.param_view import QParameterView
 from gui.vistrail_controller import VistrailController
 from gui.mashups.mashup_view import QMashupView
+from gui.ports_pane import ParameterEntry
+from gui.query_view import QueryEntry
+
 ################################################################################
 
 class QVistrailView(QtGui.QWidget):
@@ -577,6 +580,14 @@ class QVistrailView(QtGui.QWidget):
         else:
             print "tabs the same. do nothing"
         self.showCurrentViewPalettes()
+        real_view = self.stack.currentWidget()
+        if isinstance(real_view, QQueryView):
+            _app.notify("controller_changed", real_view.p_controller)
+            _app.notify("entry_klass_changed", QueryEntry)
+        else:
+            _app.notify("entry_klass_changed", ParameterEntry)
+            _app.notify("controller_changed", self.controller)
+
         if self.window().isActiveWindow():
             if self.isTabDetachable(self.tabs.currentIndex()):
                 self.tabs.setTabToolTip(self.tabs.currentIndex(),
@@ -658,7 +669,11 @@ class QVistrailView(QtGui.QWidget):
             view.set_to_current()
             print "view changed!", self.controller, \
                 self.controller.current_version
-            _app.notify("controller_changed", self.controller)
+            real_view = self.stack.currentWidget()
+            if isinstance(real_view, QQueryView):
+                _app.notify("controller_changed", real_view.p_controller)
+            else:
+                _app.notify("controller_changed", self.controller)
             self.reset_version_view()
             
     def create_pipeline_view(self):
@@ -688,6 +703,9 @@ class QVistrailView(QtGui.QWidget):
 
     def create_query_view(self):
         view = self.create_view(QQueryView, False)
+        self.connect(view.pipeline_view.scene(), 
+                     QtCore.SIGNAL('moduleSelected'),
+                     self.gen_module_selected(view.pipeline_view))
         self.notifications['query_changed'] = view.query_changed
         return view
 

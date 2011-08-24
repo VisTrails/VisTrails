@@ -426,7 +426,8 @@ class VistrailController(object):
         return self.create_param_static(self.id_scope, *args, **kwargs)
 
     @staticmethod
-    def create_param_static(id_scope, port_spec, pos, value, alias=''):
+    def create_param_static(id_scope, port_spec, pos, value, alias='', 
+                            query_method=None):
         param_id = id_scope.getNewId(ModuleParam.vtType)
         descriptor = port_spec.descriptors()[pos]
         param_type = descriptor.sigstring
@@ -439,13 +440,17 @@ class VistrailController(object):
                                 val=value,
                                 type=param_type,
                                 )
+
+        # FIXME probably should put this in the ModuleParam constructor
+        new_param.queryMethod = query_method
         return new_param
 
     def create_params(self, *args, **kwargs):
         return self.create_params_static(self.id_scope, *args, **kwargs)
 
     @staticmethod
-    def create_params_static(id_scope, port_spec, values, aliases=[]):
+    def create_params_static(id_scope, port_spec, values, aliases=[], 
+                             query_methods=[]):
         params = []
         for i in xrange(len(port_spec.descriptors())):
             if i < len(values):
@@ -456,8 +461,13 @@ class VistrailController(object):
                 alias = str(aliases[i])
             else:
                 alias = ''
+            if i < len(query_methods):
+                query_method = query_methods[i]
+            else:
+                query_method = None
             param = VistrailController.create_param_static(id_scope, port_spec,
-                                                           i, value, alias)
+                                                           i, value, alias,
+                                                           query_method)
             params.append(param)
         return params
 
@@ -466,7 +476,7 @@ class VistrailController(object):
 
     @staticmethod
     def create_function_static(id_scope, module, function_name, 
-                               param_values=[], aliases=[]):
+                               param_values=[], aliases=[], query_methods=[]):
         port_spec = module.get_port_spec(function_name, 'input')
         if len(param_values) <= 0 and port_spec.defaults is not None:
             param_values = port_spec.defaults
@@ -479,7 +489,8 @@ class VistrailController(object):
         new_function.is_valid = True
         new_params = \
             VistrailController.create_params_static(id_scope, port_spec, 
-                                                    param_values, aliases)
+                                                    param_values, aliases,
+                                                    query_methods)
         new_function.add_parameters(new_params)        
         return new_function
 
@@ -586,7 +597,8 @@ class VistrailController(object):
         return op_list
 
     def update_function_ops(self, module, function_name, param_values=[],
-                            old_id=-1L, should_replace=True, aliases=[]):
+                            old_id=-1L, should_replace=True, aliases=[],
+                            query_methods=[]):
         """NOTE: aliases will be removed in the future!"""
         op_list = []
         port_spec = module.get_port_spec(function_name, 'input')
@@ -602,19 +614,27 @@ class VistrailController(object):
             function = module.function_idx[old_id]
             for i, new_param_value in enumerate(param_values):
                 old_param = function.params[i]
-                if (len(aliases) > i and old_param.alias != aliases[i]) or \
-                        (old_param.strValue != new_param_value):
+                if ((len(aliases) > i and old_param.alias != aliases[i]) or
+                    (len(query_methods) > i and 
+                     old_param.queryMethod != query_methods[i]) or
+                    (old_param.strValue != new_param_value)):
                     if len(aliases) > i:
                         alias = aliases[i]
                     else:
                         alias = ''
+                    if len(query_methods) > i:
+                        query_method = query_methods[i]
+                    else:
+                        query_method = None
                     new_param = self.create_param(port_spec, i, 
-                                                  new_param_value, alias)
+                                                  new_param_value, alias,
+                                                  query_method)
                     op_list.append(('change', old_param, new_param,
                                     function.vtType, function.real_id))
         else:
             new_function = self.create_function(module, function_name,
-                                                param_values, aliases)
+                                                param_values, aliases,
+                                                query_methods)
             op_list.append(('add', new_function,
                             module.vtType, module.id))        
         return op_list

@@ -389,9 +389,10 @@ class VistrailController(QtCore.QObject, BaseController):
 
     @vt_action
     def update_function(self, module, function_name, param_values, old_id=-1L,
-                        aliases=[]):
+                        aliases=[], query_methods=[]):
         op_list = self.update_function_ops(module, function_name, param_values,
-                                           old_id, aliases=aliases)
+                                           old_id, aliases=aliases,
+                                           query_methods=query_methods)
         action = core.db.action.create_action(op_list)
         return action
 

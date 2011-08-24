@@ -122,6 +122,7 @@ class Parameter(object):
         self.namespace = None if not desc.namespace else desc.namespace
         self.strValue = ''
         self.alias = ''
+        self.queryMethod = None
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
@@ -134,7 +135,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         self.port_spec = port_spec
         self.function = function
 
-    def get_widget(self):
+    def build_widget(self, widget_accessor, with_alias=True):
         reg = get_module_registry()
 
         # widget = QtGui.QDockWidget()
@@ -200,15 +201,18 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             #     ps_label = str(port_spec.labels[i])
             # label = QHoverAliasLabel(p.alias, p.type, ps_label)
 
-            widget_class = desc.module.get_widget_class()
+            widget_class = getattr(desc.module, widget_accessor)()
             if param is not None:
                 obj = param
             else:
                 obj = Parameter(desc)
-            label = AliasLabel(obj.alias, obj.type)
+            if with_alias:
+                label = AliasLabel(obj.alias, obj.type)
+                self.my_labels.append(label)
+            else:
+                label = QtGui.QLabel(obj.type)
             param_widget = widget_class(obj, self.group_box)
             self.my_widgets.append(param_widget)
-            self.my_labels.append(label)
             layout.addWidget(label, i, 0)
             layout.addWidget(param_widget, i, 1)
 
@@ -230,6 +234,9 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         h_layout.addWidget(self.group_box)
         widget.setLayout(h_layout)
         return widget
+
+    def get_widget(self):
+        return self.build_widget('get_widget_class', True)
 
 class PortItem(QtGui.QTreeWidgetItem):
     null_icon = QtGui.QIcon()
@@ -305,6 +312,11 @@ class PortsList(QtGui.QTreeWidget):
                      self.item_clicked)
         self.module = None
         self.port_spec_items = {}
+        self.entry_klass = ParameterEntry
+
+    def set_entry_klass(self, entry_klass):
+        self.entry_klass = entry_klass
+        self.update_module(self.module)
 
     def update_module(self, module):
         """ update_module(module: Module) -> None        
@@ -351,7 +363,7 @@ class PortsList(QtGui.QTreeWidget):
                         debug.critical("function '%s' not valid", function.name)
                         continue
                     port_spec, item = self.port_spec_items[function.name]
-                    subitem = ParameterEntry(port_spec, function)
+                    subitem = self.entry_klass(port_spec, function)
                     self.function_map[function.real_id] = subitem
                     item.addChild(subitem)
                     subitem.setFirstColumnSpanned(True)
@@ -440,7 +452,7 @@ class PortsList(QtGui.QTreeWidget):
             elif item.childCount() > 0:
                 item.setExpanded(True)
             elif item.childCount() == 0 and item.is_constant():
-                subitem = ParameterEntry(item.port_spec)
+                subitem = self.entry_klass(item.port_spec)
                 item.addChild(subitem)
                 subitem.setFirstColumnSpanned(True)
                 self.setItemWidget(subitem, 0, subitem.get_widget())
@@ -453,14 +465,19 @@ class PortsList(QtGui.QTreeWidget):
         print 'updateMethod called', port_name
         if self.controller:
             _, item = self.port_spec_items[port_name]
-            # FIXME solve issue with labels
+            str_values = []
+            query_methods = []
+            for w in widgets:
+                str_values.append(str(w.contents()))
+                if hasattr(w, 'query_method'):
+                    query_methods.append(w.query_method())
             self.controller.update_function(self.module,
                                             port_name,
-                                            [str(w.contents())
-                                             for w in widgets],
+                                            str_values,
                                             real_id,
                                             [str(label.alias)
-                                             for label in labels])
+                                             for label in labels],
+                                            query_methods)
 
             # FIXME need to get the function set on the item somehow
             # HACK for now
@@ -481,7 +498,7 @@ class PortsList(QtGui.QTreeWidget):
 
     def add_method(self, port_name):
         port_spec, item = self.port_spec_items[port_name]
-        subitem = ParameterEntry(port_spec)
+        subitem = self.entry_klass(port_spec)
         item.addChild(subitem)
         subitem.setFirstColumnSpanned(True)
         self.setItemWidget(subitem, 0, subitem.get_widget())

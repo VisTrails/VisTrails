@@ -46,6 +46,8 @@ from core.modules.tuple_configuration import TupleConfigurationWidget, \
     UntupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
     PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget, OutputPathChooserWidget
+from core.modules.query_configuration import StandardQueryWidget, \
+    StringQueryWidget, NumericQueryWidget
 from core.system import vistrails_version
 from core.utils import InstanceObject
 from core import debug
@@ -57,6 +59,7 @@ from PyQt4 import QtGui
 
 import core.system
 from itertools import izip
+import re
 import os
 import os.path
 import shutil
@@ -134,10 +137,23 @@ class Constant(Module):
     def get_widget_class():
         return StandardConstantWidget
 
+    @staticmethod
+    def get_query_widget_class():
+        return StandardQueryWidget
+
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        if query_method == '==':
+            return (value_a == value_b)
+        elif query_method == '!=':
+            return (value_a != value_b)
+        return False
+
 def new_constant(name, py_conversion, default_value, validation,
                  widget_type=StandardConstantWidget,
                  str_conversion=None, base_class=Constant,
-                 compute=None):
+                 compute=None, query_widget_type=StandardQueryWidget,
+                 query_compute=None):
     """new_constant(name: str, 
                     py_conversion: callable,
                     default_value: python_type,
@@ -145,7 +161,9 @@ def new_constant(name, py_conversion, default_value, validation,
                     widget_type: QWidget type,
                     str_conversion: callable,
                     base_class: class,
-                    compute: callable) -> Module
+                    compute: callable,
+                    query_widget_type: QWidget type,
+                    query_compute: static callable) -> Module
 
     new_constant dynamically creates a new Module derived from
     Constant with given py_conversion and str_conversion functions, a
@@ -164,16 +182,23 @@ def new_constant(name, py_conversion, default_value, validation,
     def get_widget_class():
         return widget_type
 
+    @staticmethod
+    def get_query_widget_class():
+        return query_widget_type
+
     d = {'__init__': create_init(base_class),
          'validate': validation,
          'translate_to_python': py_conversion,
          'get_widget_class': get_widget_class,
+         'get_query_widget_class': get_query_widget_class,
          'default_value': default_value,
          }
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
     if compute is not None:
         d['compute'] = compute
+    if query_compute is not None:
+        d['query_compute'] = query_compute
 
     m = new_module(base_class, name, d)
     m._input_ports = [('value', m)]
@@ -195,15 +220,51 @@ def int_conv(x):
     else:
         return int(x)
 
+@staticmethod
+def numeric_compare(value_a, value_b, query_method):
+    if query_method == '==':
+        return (value_a == value_b)
+    elif query_method == '<':
+        return (value_a < value_b)
+    elif query_method == '>':
+        return (value_a > value_b)
+    elif query_method == '<=':
+        return (value_a <= value_b)
+    elif query_method == '>=':
+        return (value_a >= value_b)
+
+@staticmethod
+def string_compare(value_a, value_b, query_method):
+    print "string_compare: ", value_a, value_b, query_method
+    if query_method == '*[]*':
+        print "*[]*", value_a in value_b
+        return (value_a in value_b)
+    elif query_method == '==':
+        return (value_a == value_b)
+    elif query_method == '=~':
+        try:
+            m = re.match(value_b, value_a)
+            if m is not None:
+                return (m.end() ==len(value_a))
+        except:
+            pass
+    return False
+
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
                        False, staticmethod(lambda x: type(x) == bool),
                        BooleanWidget)
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
-                       staticmethod(lambda x: type(x) == float))
+                       staticmethod(lambda x: type(x) == float),
+                       query_widget_type=NumericQueryWidget,
+                       query_compute=numeric_compare)
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
-                       staticmethod(lambda x: type(x) == int))
+                       staticmethod(lambda x: type(x) == int),
+                       query_widget_type=NumericQueryWidget,
+                       query_compute=numeric_compare)
 String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: type(x) == str))
+                       staticmethod(lambda x: type(x) == str),
+                       query_widget_type=StringQueryWidget,
+                       query_compute=string_compare)
 
 Float.parameter_exploration_widgets   = [
     make_interpolator(QFloatLineEdit,
