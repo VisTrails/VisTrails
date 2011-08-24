@@ -50,9 +50,11 @@ An example may clarify how this works.
 
 Just as any number of modules may be clustered into a group, any number of groups may be combined with other groups or modules to form still larger groups. This is done in the same way as described above.  
 
-Further, the contents of the groups or combinations of groups are revealed through the ``Show Pipeline`` option.  First select the ``group`` module in the pipeline and then select ``Show Pipeline`` from the ``Workflow`` menu.  The group's contents will be shown in a separate window.  If there is a group within a group, selecting the interior ``group`` module and then selecting ``Show Pipeline`` will show the additional contents. 
+Further, the contents of the groups or combinations of groups are revealed through the ``Show Pipeline`` option.  First select the ``group`` module in the pipeline and then select ``Show Pipeline`` from the ``Workflow`` menu.  The group's contents will be shown in a new tab.  If there is a group within a group, selecting the interior ``group`` module and then selecting ``Show Pipeline`` will show the interior group's pipeline in an additional tab. 
  
-In addition to viewing the group's contents, any group may be also un-grouped; that is, restored to its individual modules. This is done by selecting the group module in the pipeline, and then choosing the ``Edit`` :math:`\rightarrow` ``Ungroup`` menu option or by pressing 'Ctrl-Shift-G'.  A group's pipeline may not be used to ungroup interior groups, however.  Groups may only be ungrouped from the pipeline view, and not from the windows that are created when selecting ``Show Pipeline``.  Thus, an interior group may only be ungrouped after the group to which is belongs is ungrouped.
+In addition to viewing the group's contents, any group may be also un-grouped; that is, restored to its individual modules. This is done by selecting the group module in the pipeline, and then choosing the ``Edit`` :math:`\rightarrow` ``Ungroup`` menu option or by pressing 'Ctrl-Shift-G'.  A group's pipeline may not be used to ungroup interior groups, however.  The tabs opened by the ``Show Pipeline`` command are read only.
+
+.. Groups may only be ungrouped from the pipeline view, and not from the windows that are created when selecting ``Show Pipeline``.  Thus, an interior group may only be ungrouped after the group to which is belongs is ungrouped.
 
 .. Combinations of groups may be ungrouped in any order.
 

@@ -63,6 +63,9 @@ Before explaining either approach, however, let's first set up the vistrail that
 Using the Visual Diff Window
 ============================
 
+.. index:: 
+   pair: analogy; visual diff
+
 By creating an analogy, you're telling |vistrails| to analyze and store the differences between the "source" and "target" versions of a workflow.  Then when you apply that analogy to another (perhaps completely different) version of the workflow, |vistrails| attempts to make similar types of changes to this other workflow.
 
 One way to create an analogy is to run a ``Visual Diff`` between the "source" and "target" workflows. Recall from Chapter :ref:`chap-version_tree` that to perform a ``Visual Diff`` between two versions of a workflow, you need to drag the icon for one version atop the icon for the other. However, in the case of analogies, the sequence is important. In order for the analogy to work correctly, the icon for the *source* version of the workflow must be dragged atop the icon for the *target* version (not vice versa).
