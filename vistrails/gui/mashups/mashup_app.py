@@ -122,9 +122,11 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                                    QtGui.QSizePolicy.Preferred)
         buttonLayout = QtGui.QGridLayout()
         buttonWidget.setLayout(buttonLayout)
-        buttonLayout.setMargin(0)
+        buttonLayout.setMargin(5)
         self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update", self.centralWidget())
         self.cb_auto_update.setChecked(False)
+        self.cb_keep_camera = QtGui.QCheckBox("Keep camera position", self.centralWidget())
+        self.cb_keep_camera.setChecked(True)
         self.connect(self.cb_auto_update,
                      QtCore.SIGNAL("stateChanged(int)"),
                      self.auto_update_changed)
@@ -140,9 +142,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                          QtCore.SIGNAL('clicked(bool)'),
                          self.close)
         buttonLayout.setColumnStretch(0, 1)
-        buttonLayout.addWidget(self.cb_auto_update, 0, 1, 1, 2, QtCore.Qt.AlignLeft)    
-        buttonLayout.addWidget(self.updateButton, 1, 1, QtCore.Qt.AlignRight)
-        buttonLayout.addWidget(self.quitButton, 1, 2, QtCore.Qt.AlignRight)
+        buttonLayout.addWidget(self.cb_auto_update, 0, 1, QtCore.Qt.AlignLeft)    
+        buttonLayout.addWidget(self.cb_keep_camera, 0, 2, 1, 2, QtCore.Qt.AlignLeft) 
+        buttonLayout.addWidget(self.updateButton, 1, 2, QtCore.Qt.AlignRight)
+        buttonLayout.addWidget(self.quitButton, 1, 3, QtCore.Qt.AlignRight)
         self.connect(self.updateButton,
                      QtCore.SIGNAL('clicked(bool)'),
                      self.updateCells)
@@ -189,7 +192,8 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells), errors)
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []
-            if hasattr(self.cellWidgets[i],"getRendererList"):
+            if (hasattr(self.cellWidgets[i],"getRendererList") and 
+                self.cb_keep_camera.isChecked()):
                 for ren in self.cellWidgets[i].getRendererList():
                     camera.append(ren.GetActiveCamera())
                 self.cellWidgets[i].updateContents(cellEvents[i].inputPorts, camera)
