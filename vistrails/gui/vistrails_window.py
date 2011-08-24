@@ -246,7 +246,8 @@ class QBaseViewWindow(QtGui.QMainWindow):
                       {'statusTip': "Show the underlying pipeline for the " \
                            "selected group in the current pipeline view",
                        'enabled': False,
-                       'callback': _app.show_group}),
+                       'callback': _app.pass_through(self.get_current_view, 
+                                                     'show_group')}),
                      "---",
                      ("makeAbstraction", "Create Subworkflow",
                       {'statusTip': "Create a subworkflow from the selected " \
@@ -2189,33 +2190,33 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
 
-    def show_group(self):
-        class DummyController(object):
-            def __init__(self, pip):
-                self.current_pipeline = pip
-                self.search = None
-        #FIXME: this should be delegated to QVistrailView
-        current_scene = self.get_current_scene()
-        selected_module_ids = current_scene.get_selected_module_ids()
-        if len(selected_module_ids) > 0:
-            for m_id in selected_module_ids:
-                module = current_scene.current_pipeline.modules[m_id]
-                if module.is_group() or module.is_abstraction():
-                    pipelineView = QPipelineView()
-                    controller = DummyController(module.pipeline)
-                    pipelineView.controller = controller
-                    pipelineMainWindow = QBaseViewWindow(pipelineView)
-                    #pipelineMainWindow.setCentralWidget(pipelineView)
-                    pipelineView.scene().controller = \
-                        controller
-                    controller.current_pipeline_view = \
-                        pipelineView.scene()
-                    module.pipeline.ensure_connection_specs()
-                    pipelineView.scene().setupScene(module.pipeline)
-                    pipelineView.scene().current_pipeline = module.pipeline
-                    pipelineView.scene().fitToView(pipelineView, True)
-                    pipelineView.show()
-                    pipelineMainWindow.show()
+#    def show_group(self):
+#        class DummyController(object):
+#            def __init__(self, pip):
+#                self.current_pipeline = pip
+#                self.search = None
+#        #FIXME: this should be delegated to QVistrailView
+#        current_scene = self.get_current_scene()
+#        selected_module_ids = current_scene.get_selected_module_ids()
+#        if len(selected_module_ids) > 0:
+#            for m_id in selected_module_ids:
+#                module = current_scene.current_pipeline.modules[m_id]
+#                if module.is_group() or module.is_abstraction():
+#                    pipelineView = QPipelineView()
+#                    controller = DummyController(module.pipeline)
+#                    pipelineView.controller = controller
+#                   pipelineMainWindow = QBaseViewWindow(pipelineView)
+#                    #pipelineMainWindow.setCentralWidget(pipelineView)
+#                    pipelineView.scene().controller = \
+#                        controller
+#                    controller.current_pipeline_view = \
+#                        pipelineView.scene()
+#                    module.pipeline.ensure_connection_specs()
+#                    pipelineView.scene().setupScene(module.pipeline)
+#                    pipelineView.scene().current_pipeline = module.pipeline
+#                    pipelineView.scene().fitToView(pipelineView, True)
+#                    pipelineView.show()
+#                    pipelineMainWindow.show()
 
     def openAbstraction(self, filename):
         locator = XMLFileLocator(filename)
