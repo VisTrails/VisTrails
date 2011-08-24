@@ -36,6 +36,8 @@ from PyQt4 import QtCore, QtGui
 from core.utils import any, expression
 from core import system
 
+from constant_configuration import StandardConstantWidget, ColorWidget
+
 ############################################################################
 
 class QueryWidgetMixin(object):
@@ -43,6 +45,11 @@ class QueryWidgetMixin(object):
     def __init__(self, contents=None, query_method=None):
         self._last_contents = contents
         self._last_query_method = query_method
+
+    # updateMethod intercepts calls from a child widget like the
+    # contents_widget
+    def updateMethod(self):
+        self.update_parent()
 
     def update_parent(self):
         new_contents = self.contents()
@@ -55,20 +62,10 @@ class QueryWidgetMixin(object):
             self._last_query_method = new_query_method
             self.emit(QtCore.SIGNAL('contentsChanged'), (self,new_contents))
 
-class QUpdateLineEdit(QtGui.QLineEdit):
-    def __init__(self, *args, **kwargs):
-        QtGui.QLineEdit.__init__(self, *args, **kwargs)
-    
-    def focusOutEvent(self, event):
-        QtGui.QLineEdit.focusOutEvent(self, event)
-        self.parent().update_parent()
-
-class StandardQueryWidget(QtGui.QWidget, QueryWidgetMixin):
-    def __init__(self, param, parent=None):
+class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
+    def __init__(self, contents_klass, query_methods, param, parent=None):
         QtGui.QWidget.__init__(self, parent)
         QueryWidgetMixin.__init__(self, param.strValue, param.queryMethod)
-
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         contents = param.strValue
         queryMethod = param.queryMethod
@@ -77,46 +74,43 @@ class StandardQueryWidget(QtGui.QWidget, QueryWidgetMixin):
         self.op_button = QtGui.QToolButton()
         self.op_button.setPopupMode(QtGui.QToolButton.InstantPopup)
         self.op_button.setArrowType(QtCore.Qt.NoArrow)
-        actions = self.get_op_actions()
         action_group = QtGui.QActionGroup(self.op_button)
-        for action in actions:
+        actions = []
+        checked_exists = False
+        for method in query_methods:
+            action = QtGui.QAction(method, self)
             action.setCheckable(True)
             action_group.addAction(action)
+            if method == queryMethod:
+                action.setChecked(True)
+                checked_exists = True
+            actions.append(action)
+        if not checked_exists:
+            actions[0].setChecked(True)
+            self._last_query_method = str(actions[0].text())
+            
         menu = QtGui.QMenu(self.op_button)
-        actions = action_group.actions()
         menu.addActions(actions)
         self.op_button.setMenu(menu)
-        if queryMethod is not None:
-            for action in actions:
-                if str(action.text()) == queryMethod:
-                    action.setChecked(True)
-                    break
-        else:
-            actions[0].setChecked(True)
         self.op_button.setText(action_group.checkedAction().text())
 
-        self.line_edit = QUpdateLineEdit()
-        self.line_edit.setText(contents)
-        layout.setMargin(5)
-        layout.setSpacing(5)
+        self.contents_widget = contents_klass(param)
+        self.contents_widget.setContents(contents)
+
+        layout.setMargin(0)
+        layout.setSpacing(0)
         layout.addWidget(self.op_button)
-        layout.addWidget(self.line_edit)
+        layout.addWidget(self.contents_widget)
         self.setLayout(layout)
 
-        self.connect(self.line_edit, QtCore.SIGNAL('returnPressed()'),
-                     self.update_parent)
         self.connect(self.op_button, QtCore.SIGNAL('triggered(QAction*)'),
                      self.update_action)
 
-    def get_op_actions(self):
-        return [QtGui.QAction("==", self),
-                QtGui.QAction("!=", self)]
-
     def contents(self):
-        return self.line_edit.text()
+        return self.contents_widget.contents()
 
     def setContents(self, strValue, silent=True):
-        self.line_edit.setText(strValue)
+        self.contents_widget.setContents(strValue)
         if not silent:
             self.update_parent()
 
@@ -129,22 +123,24 @@ class StandardQueryWidget(QtGui.QWidget, QueryWidgetMixin):
             if action.isChecked():
                 return str(action.text())
 
+class StandardQueryWidget(BaseQueryWidget):
+    def __init__(self, param, parent=None):
+        BaseQueryWidget.__init__(self, StandardConstantWidget, ["==", "!="],
+                                 param, parent)
+
 class StringQueryWidget(StandardQueryWidget):
     def __init__(self, param, parent=None):
-        StandardQueryWidget.__init__(self, param, parent)
+        BaseQueryWidget.__init__(self, StandardConstantWidget, 
+                                 ["*[]*", "==", "=~"],
+                                 param, parent)
     
-    def get_op_actions(self):
-        return [QtGui.QAction("*[]*", self),
-                QtGui.QAction("==", self),
-                QtGui.QAction("=~", self)]
-
 class NumericQueryWidget(StandardQueryWidget):
     def __init__(self, param, parent=None):
-        StandardQueryWidget.__init__(self, param, parent)
+        BaseQueryWidget.__init__(self, StandardConstantWidget,
+                                 ["==", "<", ">", "<=", ">="], 
+                                 param, parent)
     
-    def get_op_actions(self):
-        return [QtGui.QAction("==", self),
-                QtGui.QAction("<", self),
-                QtGui.QAction(">", self),
-                QtGui.QAction("<=", self),
-                QtGui.QAction(">=", self)]
+class ColorQueryWidget(StandardQueryWidget):
+    def __init__(self, param, parent=None):
+        BaseQueryWidget.__init__(self, ColorWidget, ["2.3", "5", "10", "50"],
+                                 param, parent)

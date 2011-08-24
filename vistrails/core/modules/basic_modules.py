@@ -47,7 +47,7 @@ from core.modules.tuple_configuration import TupleConfigurationWidget, \
 from core.modules.constant_configuration import StandardConstantWidget, \
     PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget, OutputPathChooserWidget
 from core.modules.query_configuration import StandardQueryWidget, \
-    StringQueryWidget, NumericQueryWidget
+    StringQueryWidget, NumericQueryWidget, ColorQueryWidget, BaseQueryWidget
 from core.system import vistrails_version
 from core.utils import InstanceObject
 from core import debug
@@ -137,13 +137,18 @@ class Constant(Module):
     def get_widget_class():
         return StandardConstantWidget
 
-    @staticmethod
-    def get_query_widget_class():
-        return StandardQueryWidget
+    @classmethod
+    def get_query_widget_class(klass):
+        class DefaultQueryWidget(BaseQueryWidget):
+            def __init__(self, param, parent=None):
+                BaseQueryWidget.__init__(self, klass.get_widget_class(), 
+                                         ["==", "!="],
+                                         param, parent)
+        return DefaultQueryWidget
 
     @staticmethod
     def query_compute(value_a, value_b, query_method):
-        if query_method == '==':
+        if query_method == '==' or query_method is None:
             return (value_a == value_b)
         elif query_method == '!=':
             return (value_a != value_b)
@@ -152,7 +157,7 @@ class Constant(Module):
 def new_constant(name, py_conversion, default_value, validation,
                  widget_type=StandardConstantWidget,
                  str_conversion=None, base_class=Constant,
-                 compute=None, query_widget_type=StandardQueryWidget,
+                 compute=None, query_widget_type=None,
                  query_compute=None):
     """new_constant(name: str, 
                     py_conversion: callable,
@@ -190,7 +195,6 @@ def new_constant(name, py_conversion, default_value, validation,
          'validate': validation,
          'translate_to_python': py_conversion,
          'get_widget_class': get_widget_class,
-         'get_query_widget_class': get_query_widget_class,
          'default_value': default_value,
          }
     if str_conversion is not None:
@@ -199,6 +203,8 @@ def new_constant(name, py_conversion, default_value, validation,
         d['compute'] = compute
     if query_compute is not None:
         d['query_compute'] = query_compute
+    if query_widget_type is not None:
+        d['get_query_widget_class'] = get_query_widget_class
 
     m = new_module(base_class, name, d)
     m._input_ports = [('value', m)]
@@ -222,7 +228,7 @@ def int_conv(x):
 
 @staticmethod
 def numeric_compare(value_a, value_b, query_method):
-    if query_method == '==':
+    if query_method == '==' or query_method is None:
         return (value_a == value_b)
     elif query_method == '<':
         return (value_a < value_b)
@@ -236,7 +242,7 @@ def numeric_compare(value_a, value_b, query_method):
 @staticmethod
 def string_compare(value_a, value_b, query_method):
     print "string_compare: ", value_a, value_b, query_method
-    if query_method == '*[]*':
+    if query_method == '*[]*' or query_method is None:
         print "*[]*", value_a in value_b
         return (value_a in value_b)
     elif query_method == '==':
@@ -575,6 +581,81 @@ class Color(Constant):
     def get_widget_class():
         return ColorWidget
         
+    @staticmethod
+    def get_query_widget_class():
+        return ColorQueryWidget
+
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        # SOURCE: http://www.easyrgb.com/index.php?X=MATH
+        def rgb_to_xyz(r, g, b):
+            # r,g,b \in [0,1]
+
+            if r > 0.04045: 
+                r = ( ( r + 0.055 ) / 1.055 ) ** 2.4
+            else:
+                r = r / 12.92
+            if g > 0.04045:
+                g = ( ( g + 0.055 ) / 1.055 ) ** 2.4
+            else:
+                g = g / 12.92
+            if b > 0.04045: 
+                b = ( ( b + 0.055 ) / 1.055 ) ** 2.4
+            else:
+                b = b / 12.92
+
+            r *= 100
+            g *= 100
+            b *= 100
+
+            # Observer. = 2 deg, Illuminant = D65
+            x = r * 0.4124 + g * 0.3576 + b * 0.1805
+            y = r * 0.2126 + g * 0.7152 + b * 0.0722
+            z = r * 0.0193 + g * 0.1192 + b * 0.9505
+            return (x,y,z)
+
+        def xyz_to_cielab(x,y,z):
+            # Observer= 2 deg, Illuminant= D65
+            ref_x, ref_y, ref_z = (95.047, 100.000, 108.883)
+            x /= ref_x
+            y /= ref_y
+            z /= ref_z
+
+            if x > 0.008856:
+                x = x ** ( 1/3.0 )
+            else:                    
+                x = ( 7.787 * x ) + ( 16 / 116.0 )
+            if y > 0.008856:
+                y = y ** ( 1/3.0 )
+            else:
+                y = ( 7.787 * y ) + ( 16 / 116.0 )
+            if z > 0.008856: 
+                z = z ** ( 1/3.0 )
+            else:
+                z = ( 7.787 * z ) + ( 16 / 116.0 )
+
+            L = ( 116 * y ) - 16
+            a = 500 * ( x - y )
+            b = 200 * ( y - z )
+            return (L, a, b)
+
+        def rgb_to_cielab(r,g,b):
+            return xyz_to_cielab(*rgb_to_xyz(r,g,b))
+        
+        value_a_rgb = (float(a) for a in value_a.split(','))
+        value_b_rgb = (float(b) for b in value_b.split(','))
+        value_a_lab = rgb_to_cielab(*value_a_rgb)
+        value_b_lab = rgb_to_cielab(*value_b_rgb)
+        
+        # cie76 difference
+        diff = sum((v_1 - v_2) ** 2 
+                   for v_1, v_2 in izip(value_a_lab, value_b_lab)) ** (0.5)
+
+        # print "CIE 76 DIFFERENCE:", diff
+        if query_method is None:
+            query_method = '2.3'
+        return diff < float(query_method)
+
 class BaseColorInterpolator(object):
 
     def __init__(self, ifunc, begin, end, size):
