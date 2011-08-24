@@ -228,6 +228,8 @@ def int_conv(x):
 
 @staticmethod
 def numeric_compare(value_a, value_b, query_method):
+    value_a = float(value_a)
+    value_b = float(value_b)
     if query_method == '==' or query_method is None:
         return (value_a == value_b)
     elif query_method == '<':
@@ -241,10 +243,8 @@ def numeric_compare(value_a, value_b, query_method):
 
 @staticmethod
 def string_compare(value_a, value_b, query_method):
-    print "string_compare: ", value_a, value_b, query_method
     if query_method == '*[]*' or query_method is None:
-        print "*[]*", value_a in value_b
-        return (value_a in value_b)
+        return (value_b in value_a)
     elif query_method == '==':
         return (value_a == value_b)
     elif query_method == '=~':
