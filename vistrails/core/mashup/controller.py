@@ -57,8 +57,10 @@ class MashupController(object):
         
     def setCurrentVersion(self, version):
         self.currentVersion = version
+        self.vtPipeline = self.vtController.vistrail.getPipeline(self.vtVersion)
         if version > -1:
             self.currentMashup = self.mshptrail.getMashup(version)
+            self.updatePipelineAliasesFromCurrentMashup()
             
     def getVistrailParam(self, alias):
         if self.vtPipeline:

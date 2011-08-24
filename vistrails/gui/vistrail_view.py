@@ -698,6 +698,7 @@ class QVistrailView(QtGui.QWidget):
         from gui.vistrails_window import _app
         view = self.create_view(QMashupView, False)
         view.set_controller(self.controller)
+        self.notifications['controller_changed'] = view.controllerChanged
         self.notifications['alias_changed'] = view.aliasChanged
         self.notifications['version_changed'] = view.versionChanged
         return view
