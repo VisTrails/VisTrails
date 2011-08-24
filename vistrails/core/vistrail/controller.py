@@ -341,7 +341,11 @@ class VistrailController(object):
                             y=y,
                             )
         if internal_version > -1:
-            namespace = get_cur_abs_namespace(descriptor.module.vistrail)
+            # only get the current namespace if this is a local subworkflow
+            if package == abstraction_pkg:
+                namespace = get_cur_abs_namespace(descriptor.module.vistrail)
+            else:
+                namespace = descriptor.namespace
             abstraction_id = id_scope.getNewId(Abstraction.vtType)
             module = Abstraction(id=abstraction_id,
                                  name=descriptor.name,
