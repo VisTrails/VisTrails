@@ -397,6 +397,7 @@ class QVistrailView(QtGui.QWidget):
                     newPipelineView.scene().setupScene(module.pipeline)
                     newPipelineView.scene().current_pipeline = module.pipeline
                     newPipelineView.scene().fitToView(newPipelineView, True)
+                    newPipelineView.setReadOnlyMode(True)
             
     def create_view(self, klass, add_tab=True):
         view = klass(self)
