@@ -118,9 +118,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         print "      *** mashup view versionChanged ", self.vtversion
         
     def controllerChanged(self, controller):
+        from gui.vistrails_window import _app
         self.set_controller(controller)
         self.versionChanged(self.controller.current_version)
-        self.updateView()
+        if _app.get_current_tab() == self:
+            self.updateView()
         
     def updateView(self):
         from gui.vistrails_window import _app
