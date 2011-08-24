@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -279,23 +279,21 @@ Please type a unique name. """ % new_alias)
     @pyqtSlot(int)
     def toggle_dw_combobox(self, index):
         if index == 0:
-            self.dw_minval_label.setVisible(False)
-            self.dw_minval_edit.setVisible(False)
-            self.dw_maxval_label.setVisible(False)
-            self.dw_maxval_edit.setVisible(False)
-            self.dw_stepsize_label.setVisible(False)
-            self.dw_stepsize_edit.setVisible(False)
+            self.show_dw_contents(False)
         elif index in [1,2]:
-            self.dw_minval_label.setVisible(True)
-            self.dw_minval_edit.setVisible(True)
-            self.dw_maxval_label.setVisible(True)
-            self.dw_maxval_edit.setVisible(True)
-            self.dw_stepsize_label.setVisible(True)
-            self.dw_stepsize_edit.setVisible(True)
+            self.show_dw_contents(True)
         if self.alias:
             self.alias.component.widget = str(self.dw_combobox.currentText())
             self.aliasChanged.emit(self.alias)
             
+    def show_dw_contents(self, on=True):
+        self.dw_minval_label.setVisible(on)
+        self.dw_minval_edit.setVisible(on)
+        self.dw_maxval_label.setVisible(on)
+        self.dw_maxval_edit.setVisible(on)
+        self.dw_stepsize_label.setVisible(on)
+        self.dw_stepsize_edit.setVisible(on)
+        
     def updateContents(self, alias=None, controller=None):
         self.alias = copy.copy(alias)
         self.controller = controller
@@ -306,11 +304,16 @@ Please type a unique name. """ % new_alias)
             self.dw_combobox.setCurrentIndex(self.dw_combobox.findText(QtCore.QString(self.alias.component.widget)))
             self.order_spinbox.setRange(0,self.table.topLevelItemCount()-1)
             self.order_spinbox.setValue(self.alias.component.pos)
-        
+                
             self.dw_minval_edit.setText(self.alias.component.minVal)
             self.dw_maxval_edit.setText(self.alias.component.maxVal)
             self.dw_stepsize_edit.setText(self.alias.component.stepSize)
-            
+                
+            if self.dw_combobox.currentIndex() == 0:
+                self.show_dw_contents(False)
+            else:
+                self.show_dw_contents(True)
+                
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
                 self.disconnect(self.dv_widget,

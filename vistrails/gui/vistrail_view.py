@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -382,7 +382,23 @@ class QVistrailView(QtGui.QWidget):
         else:
             self.mashup_unselected()
         self.view_changed()
-        
+    
+    def show_group(self):
+        pipelineView = self.controller.current_pipeline_view
+        items = pipelineView.get_selected_item_ids(True)
+        if items is not None:
+            for m_id in items[0]:
+                module = pipelineView.current_pipeline.modules[m_id]
+                if module.is_group() or module.is_abstraction():
+                    newPipelineView = self.add_pipeline_view()
+                    newPipelineView.controller.current_pipeline_view = \
+                        newPipelineView.scene()
+                    module.pipeline.ensure_connection_specs()
+                    newPipelineView.scene().setupScene(module.pipeline)
+                    newPipelineView.scene().current_pipeline = module.pipeline
+                    newPipelineView.scene().fitToView(newPipelineView, True)
+                    newPipelineView.setReadOnlyMode(True)
+            
     def create_view(self, klass, add_tab=True):
         view = klass(self)
         view.set_vistrail_view(self)
@@ -698,6 +714,7 @@ class QVistrailView(QtGui.QWidget):
         from gui.vistrails_window import _app
         view = self.create_view(QMashupView, False)
         view.set_controller(self.controller)
+        self.notifications['controller_changed'] = view.controllerChanged
         self.notifications['alias_changed'] = view.aliasChanged
         self.notifications['version_changed'] = view.versionChanged
         return view

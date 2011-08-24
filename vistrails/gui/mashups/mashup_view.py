@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -116,6 +116,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         else:
             window.qactions['mashup'].setEnabled(False)
         print "      *** mashup view versionChanged ", self.vtversion
+        
+    def controllerChanged(self, controller):
+        self.set_controller(controller)
+        self.versionChanged(self.controller.current_version)
+        self.updateView()
         
     def updateView(self):
         from gui.vistrails_window import _app
@@ -288,12 +293,14 @@ Click on No to create a new tag.""" %pname,
         self.mshpController.updateAliasesFromPipeline(pipeline)
         
     def mshpVersionChanged(self, versionId):
+        from gui.vistrails_window import _app
         print "*** mshpVersionChanged ", versionId
         self.aliasPanel.updateVersion(versionId)
         if not self.mshpController.versionHasTag(versionId):
             self.saveAction.setEnabled(True)
         else:
             self.saveAction.setEnabled(False)
+        _app.notify('mshpversion_changed', versionId)
             
     def mshpStateChanged(self):
         for idx in range(self.stack.count()):

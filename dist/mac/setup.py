@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -48,7 +48,7 @@ plist = dict(
     CFBundleShortVersionString=VERSION,
     CFBundleGetInfoString=' '.join(['VisTrails', VERSION]),
     CFBundleExecutable='vistrails',
-    CFBundleIdentifier='edu.utah.sci.vistrails',
+    CFBundleIdentifier='org.vistrails',
 )
 
 sys.path.append('../../vistrails')

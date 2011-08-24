@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -469,6 +469,31 @@ class Package(DBPackage):
             package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
             return package._init_module.handle_missing_module(*args, **kwargs)
         return self._init_module.handle_missing_module(*args, **kwargs)
+
+    def add_abs_upgrade(self, new_desc, name, namespace, module_version):
+        key = (name, namespace)
+        if key not in self._abs_pkg_upgrades:
+            self._abs_pkg_upgrades[key] = {}
+        self._abs_pkg_upgrades[key][module_version] = new_desc
+
+    def has_abs_upgrade(self, name, namespace='', module_version=''):
+        key = (name, namespace)
+        if key not in self._abs_pkg_upgrades:
+            return False
+        if module_version and module_version not in self._abs_pkg_upgrades[key]:
+            return False
+        return True
+        
+    def get_abs_upgrade(self, name, namespace='', module_version=''):
+        key = (name, namespace)
+        if key in self._abs_pkg_upgrades:
+            if module_version:
+                if module_version in self._abs_pkg_upgrades[key]:
+                    return self._abs_pkg_upgrades[key][module_version]
+            else:
+                latest_version = max(self._abs_pkg_upgrades[key].iterkeys())
+                return self._abs_pkg_upgrades[key][latest_version]
+        return None
 
     def has_contextMenuName(self):
         # redirect webservices to SUDSWebServices

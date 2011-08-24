@@ -36,6 +36,7 @@ Learning VisTrails By Example
    spreadsheet
    analogies
    parameter_exploration
+   provenance
    mashups
    
 

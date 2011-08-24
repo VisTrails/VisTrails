@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -246,7 +246,8 @@ class QBaseViewWindow(QtGui.QMainWindow):
                       {'statusTip': "Show the underlying pipeline for the " \
                            "selected group in the current pipeline view",
                        'enabled': False,
-                       'callback': _app.show_group}),
+                       'callback': _app.pass_through(self.get_current_view, 
+                                                     'show_group')}),
                      "---",
                      ("makeAbstraction", "Create Subworkflow",
                       {'statusTip': "Create a subworkflow from the selected " \
@@ -1669,9 +1670,9 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def close_all_vistrails(self):
         self.current_view = None
-        while self.stack.count() > 0 and not \
-              (self.stack.count() == 1 and self._first_view):
-            if not self.close_vistrail():
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if not self.close_vistrail(view):
                 return False
         while len(self.windows) > 0:
             window = self.windows.values()[0]
@@ -1724,15 +1725,19 @@ class QVistrailsWindow(QVistrailViewWindow):
                   or isinstance(window, QtGui.QMenu)):
                 if self.current_view is not None:
                     return self.current_view
-                else:
+                elif self._previous_vt_view is not None:
                     return self._previous_vt_view
-            else:
-                #please do not remove this warning. It is necessary to know
-                #what type of window is causing the get_current_view to return
-                # a wrong value -- Emanuele.
-                debug.warning(
-                        "[invalid view] get_current_view() -> %s"%window)
-                return self.stack.currentWidget()
+                else:
+                    if self.stack.count() > 0:
+                        return self.stack.currentWidget()
+                    else:
+                        if self.windows.count() > 0:
+                            return self.windows.iterkeys().next()
+            #please do not remove this warning. It is necessary to know
+            #what type of window is causing the get_current_view to return
+            # a wrong value -- Emanuele.
+            debug.warning("[invalid view] get_current_view() -> %s"%window)
+            return self.stack.currentWidget()
         
     def get_current_controller(self):
         return self.get_current_view().get_controller()
@@ -2189,33 +2194,33 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
 
-    def show_group(self):
-        class DummyController(object):
-            def __init__(self, pip):
-                self.current_pipeline = pip
-                self.search = None
-        #FIXME: this should be delegated to QVistrailView
-        current_scene = self.get_current_scene()
-        selected_module_ids = current_scene.get_selected_module_ids()
-        if len(selected_module_ids) > 0:
-            for m_id in selected_module_ids:
-                module = current_scene.current_pipeline.modules[m_id]
-                if module.is_group() or module.is_abstraction():
-                    pipelineView = QPipelineView()
-                    controller = DummyController(module.pipeline)
-                    pipelineView.controller = controller
-                    pipelineMainWindow = QBaseViewWindow(pipelineView)
-                    #pipelineMainWindow.setCentralWidget(pipelineView)
-                    pipelineView.scene().controller = \
-                        controller
-                    controller.current_pipeline_view = \
-                        pipelineView.scene()
-                    module.pipeline.ensure_connection_specs()
-                    pipelineView.scene().setupScene(module.pipeline)
-                    pipelineView.scene().current_pipeline = module.pipeline
-                    pipelineView.scene().fitToView(pipelineView, True)
-                    pipelineView.show()
-                    pipelineMainWindow.show()
+#    def show_group(self):
+#        class DummyController(object):
+#            def __init__(self, pip):
+#                self.current_pipeline = pip
+#                self.search = None
+#        #FIXME: this should be delegated to QVistrailView
+#        current_scene = self.get_current_scene()
+#        selected_module_ids = current_scene.get_selected_module_ids()
+#        if len(selected_module_ids) > 0:
+#            for m_id in selected_module_ids:
+#                module = current_scene.current_pipeline.modules[m_id]
+#                if module.is_group() or module.is_abstraction():
+#                    pipelineView = QPipelineView()
+#                    controller = DummyController(module.pipeline)
+#                    pipelineView.controller = controller
+#                   pipelineMainWindow = QBaseViewWindow(pipelineView)
+#                    #pipelineMainWindow.setCentralWidget(pipelineView)
+#                    pipelineView.scene().controller = \
+#                        controller
+#                    controller.current_pipeline_view = \
+#                        pipelineView.scene()
+#                    module.pipeline.ensure_connection_specs()
+#                    pipelineView.scene().setupScene(module.pipeline)
+#                    pipelineView.scene().current_pipeline = module.pipeline
+#                    pipelineView.scene().fitToView(pipelineView, True)
+#                    pipelineView.show()
+#                    pipelineMainWindow.show()
 
     def openAbstraction(self, filename):
         locator = XMLFileLocator(filename)
