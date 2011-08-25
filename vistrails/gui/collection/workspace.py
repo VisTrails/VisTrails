@@ -1187,13 +1187,36 @@ class QVistrailList(QtGui.QTreeWidget):
                 index = self.closedFilesItem.indexOfChild(recent)
                 item = self.closedFilesItem.takeChild(index)
         item = QVistrailListItem(entity, vistrail_window)
-        self.make_tree(item) if self.isTreeView else self.make_list(item)
         item.current_item = QVistrailListLatestItem()
         item.workflowsItem.addChild(item.current_item)
-        self.openFilesItem.addChild(item)
+        if id(vistrail_window) in self.items:
+            # window already exist so reuse the current item 
+            old_item = self.items[id(vistrail_window)]
+            if hasattr(item, 'entity'):
+                old_item.entity = item.entity
+            old_item.window = item.window
+            old_item.current_item = item.current_item
+            old_item.workflowsItem = item.workflowsItem
+            old_item.mashupsItem = item.mashupsItem
+            old_item.tag_to_item = item.tag_to_item
+            old_item.mshp_to_item = item.mshp_to_item
+            old_item.setText(0, item.text(0))
+            while old_item.childCount():
+                child = old_item.child(0)
+                index = old_item.indexOfChild(child)
+                old_item.takeChild(index)
+            while item.childCount():
+                child = item.child(0)
+                index = item.indexOfChild(child)
+                child = item.takeChild(index)
+                old_item.addChild(child)
+            item = old_item
+        else:
+            self.items[id(vistrail_window)] = item
+            self.openFilesItem.addChild(item)
+        self.make_tree(item) if self.isTreeView else self.make_list(item)
         item.workflowsItem.setExpanded(True)
         item.mashupsItem.setExpanded(True)
-        self.items[id(vistrail_window)] = item
         self.setSelected(vistrail_window)
         self.updateHideExecutions()
 

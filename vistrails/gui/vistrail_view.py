@@ -860,7 +860,6 @@ class QVistrailView(QtGui.QWidget):
         _app.view_changed(self)
         # reload workspace entry
         from gui.collection.workspace import QWorkspaceWindow
-        QWorkspaceWindow.instance().remove_vt_window(self)
         QWorkspaceWindow.instance().add_vt_window(self)
         return locator
 
