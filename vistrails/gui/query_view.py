@@ -139,6 +139,7 @@ class QueryController(object):
             self.query_view.pipeline_view.controller.current_pipeline)
         self.query_view.set_display_view(self.query_view.VISUAL_SEARCH_VIEW)
         self.query_view.query_box.searchBox.clearSearch()
+        self.query_view.vistrailChanged()
 
         from gui.vistrails_window import _app
         _app.notify("search_changed", None)

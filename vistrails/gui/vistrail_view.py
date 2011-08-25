@@ -558,8 +558,8 @@ class QVistrailView(QtGui.QWidget):
     def view_changed(self):
         from gui.vistrails_window import _app
         _app.closeNotPinPalettes()
-        #view = self.stack.currentWidget()
-        view = self.get_current_tab()
+        view = self.stack.currentWidget()
+        # view = self.get_current_tab()
         print "changing tab from: ",self.current_tab, " to ", view
         print self.tab_to_stack_idx
         if view != self.current_tab:
@@ -580,9 +580,8 @@ class QVistrailView(QtGui.QWidget):
         else:
             print "tabs the same. do nothing"
         self.showCurrentViewPalettes()
-        real_view = self.stack.currentWidget()
-        if isinstance(real_view, QQueryView):
-            _app.notify("controller_changed", real_view.p_controller)
+        if isinstance(view, QQueryView):
+            _app.notify("controller_changed", view.p_controller)
             _app.notify("entry_klass_changed", QueryEntry)
         else:
             _app.notify("entry_klass_changed", ParameterEntry)
