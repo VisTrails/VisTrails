@@ -33,8 +33,9 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
-from core.modules.constant_configuration import ConstantWidgetMixin
-from core.modules.constant_configuration import StandardConstantWidget
+from gui.modules import get_widget_class
+from gui.modules.constant_configuration import ConstantWidgetMixin, \
+    StandardConstantWidget
 from core.modules.module_registry import get_module_registry
 
 class QAliasSliderWidget(QtGui.QWidget):
@@ -300,10 +301,7 @@ class QDropDownWidget(QtGui.QWidget):
         reg = get_module_registry()
         p_module = reg.get_module_by_name(idn, self.vtparam.type, 
                                           self.vtparam.namespace)
-        if p_module is not None:
-            widget_type = p_module.get_widget_class()
-        else:
-            widget_type = StandardConstantWidget
+        get_widget_class(p_module)
         if val:
             self.vtparam.strValue = val
         return widget_type(self.vtparam, parent)

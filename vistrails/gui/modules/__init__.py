@@ -32,12 +32,31 @@
 ##
 ###############################################################################
 
-# *** MOVED *** to gui.modules.port_configure
+from constant_configuration import StandardConstantWidget
+from query_configuration import BaseQueryWidget
 
-import traceback
-from core import debug
-debug.warning("The use of core.modules.port_configure is deprecated.  "
-              "Please use gui.modules.port_configure.",
-              ''.join(traceback.format_stack()))
+def get_widget_class(module_klass):
+    klass = module_klass.get_widget_class()
+    if klass is None:
+        return StandardConstantWidget
+    if type(klass) == tuple:
+        (path, klass_name) = klass
+        module = __import__(path, globals(), locals(), [klass_name])
+        return getattr(module, klass_name)
+    return klass
 
-from gui.modules.port_configure import *
+def get_query_widget_class(module_klass):
+    klass = module_klass.get_query_widget_class()
+    if klass is None:
+        class DefaultQueryWidget(BaseQueryWidget):
+            def __init__(self, param, parent=None):
+                BaseQueryWidget.__init__(self, get_widget_class(module_klass), 
+                                         ["==", "!="],
+                                         param, parent)
+        return DefaultQueryWidget
+    if type(klass) == tuple:
+        (path, klass_name) = klass
+        module = __import__(path, globals(), locals(), [klass_name])
+        return getattr(module, klass_name)
+    return klass
+

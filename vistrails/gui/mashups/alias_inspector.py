@@ -50,7 +50,8 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from core.mashup.alias import Alias
 from core.modules.module_registry import get_module_registry
-from core.modules.constant_configuration import StandardConstantWidget
+from gui.modules import get_widget_class
+from gui.modules.constant_configuration import StandardConstantWidget
 from gui.theme import CurrentTheme
 from gui.utils import show_warning
 ################################################################################
@@ -371,10 +372,7 @@ Please type a unique name. """ % new_alias)
             idn = p.identifier
         reg = get_module_registry()
         p_module = reg.get_module_by_name(idn, p.type, p.namespace)
-        if p_module is not None:
-            widget_type = p_module.get_widget_class()
-        else:
-            widget_type = StandardConstantWidget
+        widget_type = get_widget_class(p_module)
         p.strValue = alias.component.val
         return widget_type(p, parent)
     

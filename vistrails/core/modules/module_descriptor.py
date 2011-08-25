@@ -73,7 +73,10 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     self._is_abstract: whether module is abstract
     self._configuration_widget: reference to the Qt class that provides a
-      custom configuration widget for the class.
+      custom configuration widget for the class.  Note that this can
+      be a tuple (path, name) that will be loaded only when needed via
+      __import__ (! this is preferred !) or as a QWidget (deprecated)
+
     self._left_fringe and self._right_fringe: lists of 2D points that
       define a drawing style for modules in the GUI
     self._module_color: color of the module in the GUI
@@ -234,6 +237,10 @@ class ModuleDescriptor(DBModuleDescriptor):
         return self._is_abstract
 
     def set_configuration_widget(self, configuration_widget_type):
+        """set_configuration_widget(configuration_widget_type: 
+                                        (path, name) tuple or QWidget) -> None
+        
+        """
         self._configuration_widget = configuration_widget_type
 
     def configuration_widget(self):

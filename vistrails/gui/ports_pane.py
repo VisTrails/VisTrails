@@ -38,6 +38,7 @@ import os
 from core import debug
 from core.modules.module_registry import get_module_registry
 from core.system import vistrails_root_directory
+from gui.modules import get_widget_class
 from gui.common_widgets import QToolWindowInterface
 from gui.theme import CurrentTheme
 
@@ -201,7 +202,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             #     ps_label = str(port_spec.labels[i])
             # label = QHoverAliasLabel(p.alias, p.type, ps_label)
 
-            widget_class = getattr(desc.module, widget_accessor)()
+            widget_class = widget_accessor(desc.module)
             if param is not None:
                 obj = param
             else:
@@ -236,7 +237,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         return widget
 
     def get_widget(self):
-        return self.build_widget('get_widget_class', True)
+        return self.build_widget(get_widget_class, True)
 
 class PortItem(QtGui.QTreeWidgetItem):
     null_icon = QtGui.QIcon()

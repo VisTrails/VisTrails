@@ -42,6 +42,7 @@ from core.vistrail.vistrail import Vistrail
 
 from gui.base_view import BaseView
 from gui.common_widgets import QSearchBox
+from gui.modules import get_query_widget_class
 from gui.pipeline_view import QPipelineView
 from gui.ports_pane import ParameterEntry
 from gui.theme import CurrentTheme
@@ -408,4 +409,4 @@ class QueryEntry(ParameterEntry):
         ParameterEntry.__init__(self, port_spec, function, parent)
 
     def get_widget(self):
-        return self.build_widget('get_query_widget_class', False)
+        return self.build_widget(get_query_widget_class, False)

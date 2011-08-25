@@ -37,7 +37,7 @@ the user selects a module's "Edit Configuration"
 """
 from PyQt4 import QtCore, QtGui
 from core.modules.module_registry import get_module_registry
-from core.modules.module_configure import DefaultModuleConfigurationWidget
+from gui.modules.module_configure import DefaultModuleConfigurationWidget
 from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################

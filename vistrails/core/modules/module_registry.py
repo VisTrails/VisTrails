@@ -1709,8 +1709,12 @@ class ModuleRegistry(DBRegistry):
 
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
-        return descriptor.configuration_widget()
-        
+        klass = descriptor.configuration_widget()
+        if type(klass) == tuple:
+            (path, klass_name) = klass
+            module = __import__(path, globals(), locals(), [klass_name])
+            klass = getattr(module, klass_name)            
+        return klass
 
     def is_descriptor_subclass(self, sub, super):
         """is_descriptor_subclass(sub : ModuleDescriptor, 
