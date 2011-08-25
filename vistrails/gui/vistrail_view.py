@@ -705,6 +705,12 @@ class QVistrailView(QtGui.QWidget):
         self.connect(view.pipeline_view.scene(), 
                      QtCore.SIGNAL('moduleSelected'),
                      self.gen_module_selected(view.pipeline_view))
+        self.connect(view.version_result_view.scene(),
+                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+                     self.version_selected)
+        self.connect(view.version_result_view.scene(),
+                     QtCore.SIGNAL('diffRequested(int,int)'),
+                     self.diff_requested)
         self.notifications['query_changed'] = view.query_changed
         return view
 
