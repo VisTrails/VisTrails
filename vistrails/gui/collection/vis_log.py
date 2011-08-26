@@ -460,6 +460,13 @@ class QLogView(QPipelineView):
         """ Recursively finds pipeline through layers of groupExecs """
         if type(execution) == WorkflowExec:
             version = execution.parent_version
+            # change the current version to this as well
+            from gui.vistrails_window import _app
+            _app.get_current_view().version_selected(version, True)
+            self.controller.recompute_terse_graph()
+            _app.get_current_view().version_view.select_current_version()
+            _app.get_current_view().version_view.scene().setupScene(self.controller)
+
             return self.controller.vistrail.getPipeline(version)
         if type(execution) == GroupExec:
             parent = execution.item.wf_execution
