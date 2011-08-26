@@ -1109,6 +1109,13 @@ class VistrailController(object):
         hide_descriptor = not is_global or old_desc is not None
         for namespace in all_namespaces:
             # print '()()() adding abstraction', namespace
+            if reg.has_descriptor_with_name(abstraction_pkg, 
+                                            name, 
+                                            namespace,
+                                            abstraction_ver, 
+                                            str(module_version)):
+                # don't add something twice
+                continue
             new_desc = reg.auto_add_module((abstraction, 
                                             {'package': abstraction_pkg,
                                              'package_version': abstraction_ver,
