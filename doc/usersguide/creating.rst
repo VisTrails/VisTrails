@@ -259,6 +259,9 @@ These modules mostly consist of basic data types in Python and some
 manipulators for them.  In addition, file manipulation modules are
 provided to read files from disk and write files to disk.  
 
+PythonSource
+^^^^^^^^^^^^
+
 .. index:: PythonSource
 
 Because not every Python operation can be represented as a module, the
@@ -269,6 +272,10 @@ module is selected in the canvas, a configuration window is opened.
 This window allows you to specify custom input and output ports
 as well as directly enter Python source to be executed in the
 workflow.
+
+.. topic:: Note
+
+   Sometimes is it useful to view the source code that is contained in the ``PythonSource`` module when working with other modules.  Since the PythonSource configuration window will disappear when you select a new module, a ``Show read-only window`` button can be used to open a read-only window of the ``PythonSource's`` configuration, which will remain open until it is closed.
 
 .. topic:: Try it now!
 
@@ -291,5 +298,14 @@ workflow.
    :align: center
 
    The configuration window for ``PythonSource`` allows multiple input and output ports to be specified along with the Python code that is to be executed.
+
+**Accessing VTK objects in PythonSource** When using a ``PythonSource`` module, users will often rely on their knowledge of VTK to interact with VTK modules.  It is important to realize that a VTK module is really a wrapping of a VTK object.  The real VTK object is called vtkInstance, meaning the VTK object of a module called 'dataset' is called 'dataset.vtkInstance' (see figure :ref:`Accessing VTK Objects<fig-pythonsource-vtkinstance>`).
+
+.. _fig-pythonsource-vtkinstance:
+
+.. figure:: figures/creating/python_source_instance.png
+   :align: center
+
+   Accessing VTK Objects.  The VTK object of a VTK module, 'dataset', is accessed with 'dataset.vtkInstance'. 
 
 .. index:: builder
