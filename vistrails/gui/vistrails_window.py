@@ -1303,6 +1303,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.current_view = new_view
             if new_view is not None:
                 self.notify('controller_changed', new_view.get_controller())
+                if new_view.current_tab:
+                    self.set_action_defaults(new_view.current_tab)
         
         if new_view is not None:
             window = None
@@ -1310,7 +1312,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                 window = self.windows[new_view]
             if window is None:
                 if self.current_view.has_changes():
-                    print "current view has changes"
                     self.qactions['saveFile'].setEnabled(True)
                     # un-remember first view when it is changed
                     if self._first_view:

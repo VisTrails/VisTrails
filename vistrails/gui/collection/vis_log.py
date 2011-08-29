@@ -371,11 +371,11 @@ class QLogView(QPipelineView):
         self.action_links = { }
         
     def set_action_defaults(self):
-        self.action_defaults = \
+        self.action_defaults.update(
             {'execute' : [('setEnabled', False, False)],
              'publishWeb': [('setEnabled', False, False)],
              'publishPaper': [('setEnabled', False, False)],
-            }
+            })
 
     def notify_app(self, wf_execution, execution):
         # make sure it is only called once
