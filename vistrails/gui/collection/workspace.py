@@ -953,8 +953,6 @@ class QVistrailList(QtGui.QTreeWidget):
             # if it is doubele-clicked without the vistrail being open we 
             #should open the vistrail
             self.open_mashup(entity)
-    
-        widget_item.setSelected(True)
 
     def ensureNotDiffView(self):
         """ If current tab is a diff, create a new tab """
