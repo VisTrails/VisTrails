@@ -40,7 +40,7 @@ from core.db.io import load_vistrail
 from core.modules.module_registry import ModuleRegistryException
 from core.vistrail.vistrail import Vistrail
 
-from gui.application import VistrailsApplication
+from gui.application import get_vistrails_application
 from gui.theme import initializeCurrentTheme
 from gui.palette_container import PaletteContainer
 from gui.vistrails_window import QVistrailsWindow
@@ -60,7 +60,7 @@ class VisTrailsApp(QtGui.QMainWindow):
 
         self.init_palettes()
         self.create_menus()
-        self.connect(VistrailsApplication, 
+        self.connect(get_vistrails_application(), 
                      QtCore.SIGNAL('focusChanged(QWidget*, QWidget*)'),
                      self.window_changed)
 
@@ -155,7 +155,7 @@ class VisTrailsApp(QtGui.QMainWindow):
         # else:
         #     print "CURRENT WINDOW"
         
-        new_window = VistrailsApplication.activeWindow()
+        new_window = get_vistrails_application().activeWindow()
         if isinstance(new_window, QVistrailsWindow):
             if self.current_window != new_window:
                 # print "CURRENT WINDOW CHANGED"
@@ -355,8 +355,8 @@ _app = None
 _menu_bar = QtGui.QMenuBar()
         
 if __name__ == '__main__':
-    import core.requirements
-    core.requirements.check_pyqt4()
+    import gui.requirements
+    gui.requirements.check_pyqt4()
 
     from PyQt4 import QtGui
     import gui.application
@@ -365,17 +365,17 @@ if __name__ == '__main__':
     try:
         v = gui.application.start_application()
         if v != 0:
-            if gui.application.VistrailsApplication:
-                gui.application.VistrailsApplication.finishSession()
+            if gui.application.get_vistrails_application():
+                gui.application.get_vistrails_application().finishSession()
             sys.exit(v)
-        app = gui.application.VistrailsApplication()
+        app = gui.application.get_vistrails_application()()
     except SystemExit, e:
-        if gui.application.VistrailsApplication:
-            gui.application.VistrailsApplication.finishSession()
+        if gui.application.get_vistrails_application():
+            gui.application.get_vistrails_application().finishSession()
         sys.exit(e)
     except Exception, e:
-        if gui.application.VistrailsApplication:
-            gui.application.VistrailsApplication.finishSession()
+        if gui.application.get_vistrails_application():
+            gui.application.get_vistrails_application().finishSession()
         print "Uncaught exception on initialization: %s" % e
         import traceback
         traceback.print_exc()

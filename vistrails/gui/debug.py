@@ -38,7 +38,7 @@ import StringIO
 import api
 import cgi
 from core.configuration import get_vistrails_configuration
-from gui.application import VistrailsApplication
+from gui.application import get_vistrails_application
 from gui.common_widgets import QDockPushButton
 from gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -175,7 +175,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         items = self.list.selectedItems()
         if len(items)>0:
             text = str(items[0].data(32).toString())
-            api.VistrailsApplication.clipboard().setText(text)
+            get_vistrails_application().clipboard().setText(text)
 
     def copyAll(self):
         """ copy selected message to clipboard """
@@ -183,7 +183,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         for i in range(self.list.count()):
             texts.append(str(self.list.item(i).data(32).toString()))
         text = '\n'.join(texts)
-        api.VistrailsApplication.clipboard().setText(text)
+        get_vistrails_application().clipboard().setText(text)
 
     def showMessage(self, item, olditem):
         """ show item data in a messagebox """
@@ -326,7 +326,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
           getattr(get_vistrails_configuration(),'alwaysShowDebugPopup',False):
             self.raise_()
             self.activateWindow()
-            modal = VistrailsApplication.activeModalWidget()
+            modal = get_vistrails_application().activeModalWidget()
             if modal:
                 # need to beat modal window
                 self.showMessageBox(item)

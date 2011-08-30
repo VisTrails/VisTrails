@@ -36,9 +36,9 @@ view and a version tree for each opened Vistrail """
 
 from PyQt4 import QtCore, QtGui
 
+from core import debug
 from core.collection import Collection
 from core.db.locator import untitled_locator
-from core import debug
 from core.debug import critical
 from core.data_structures.bijectivedict import Bidict
 from core.system import vistrails_default_file_type
@@ -131,6 +131,12 @@ class QVistrailView(QtGui.QWidget):
         self.connect(self.controller,
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
+
+        from gui.vistrails_window import _app
+        _app.register_notification("reg_new_abstraction", 
+                                   self.controller.check_subworkflow_versions)
+        _app.register_notification("reg_deleted_abstraction",
+                                   self.controller.check_subworkflow_versions)
 
         # self.controller = VistrailController()
         # self.controller.vistrail_view = self

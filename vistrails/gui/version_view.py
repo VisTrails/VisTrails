@@ -47,7 +47,6 @@ QVersionTreeView
 from PyQt4 import QtCore, QtGui
 from core.system import systemType
 from core.thumbnails import ThumbnailCache
-from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from gui.base_view import BaseView
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,

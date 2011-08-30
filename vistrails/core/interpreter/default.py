@@ -39,8 +39,6 @@ cached_interpreter = core.interpreter.cached.CachedInterpreter
 noncached_interpreter = core.interpreter.noncached.Interpreter
 __default_interpreter = cached_interpreter
 
-from PyQt4 import QtCore
-
 ##############################################################################
 
 def set_cache_configuration(field, value):
