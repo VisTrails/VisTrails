@@ -1745,7 +1745,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         return self.get_current_view().get_controller()
 
     def get_current_tab(self):
-        return self.get_current_view().get_current_tab()
+        view = self.get_current_view()
+        if not view:
+            return None
+        return view.get_current_tab()
 
     def get_current_scene(self):
         return self.get_current_tab().scene()
@@ -2348,7 +2351,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                         view.reset_tab_view_to_current()
                         self.update_window_menu()
             elif isinstance(owner, QBaseViewWindow):
-                view = owner.view.get_vistrail_view()
+                view = owner.get_current_view()
 #                print "view: ", view
                 if (view and owner != self._focus_owner and 
                         view != self._previous_vt_view):
