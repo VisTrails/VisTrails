@@ -42,6 +42,7 @@ from core.thumbnails import ThumbnailCache
 from core import debug
 from core.collection import Collection
 from core.collection.vistrail import VistrailEntity
+from core.collection.workflow_exec import WorkflowExecEntity
 from core.collection import MashupEntity
 from core.collection.search import SearchCompiler, SearchParseError
 from core.db.locator import FileLocator
@@ -579,6 +580,9 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
             self.searchAction.setText("Clear Search")
         self.open_list.update_search_results(result_list)
 
+    def execution_updated(self):
+        self.open_list.execution_updated()
+       
     def showWorkflowExecutions(self, state):
         """ toggle show executions on/off """
         self.open_list.hideExecutions(not state)
@@ -894,19 +898,31 @@ class QVistrailList(QtGui.QTreeWidget):
             if vistrail_widget == widget_item:
                 # do nothing - view is already selected
                 return
+            is_execution = False
             if type(widget_item) == QVistrailListLatestItem:
                 version = view.controller.vistrail.get_latest_version()
             elif hasattr(widget_item, 'entity'):
-                version = widget_item.entity.name
+                if hasattr(widget_item, 'executionList'):
+                    version = widget_item.entity.name
+                else:
+                    is_execution = True
+                    version = widget_item.parent().entity.name
+            if not version:
+                # assume execution
+                version = str(widget_item.parent().text(0))
+            if type(version) == str:
+                try:
+                    version = view.controller.vistrail.get_version_number(version)
+                except:
+                    version = None
             if version:
-                if type(version) == str:
-                    try:
-                        version = view.controller.vistrail.get_version_number(version)
-                    except:
-                        version = None
-                if version:
-                    view.version_selected(version, True, double_click=True)
-                    _app.view_changed(view)
+                view.version_selected(version, True, double_click=True)
+                _app.view_changed(view)
+            if is_execution:
+                _app.qactions['provenance'].trigger()
+                workflow_exec = widget_item.entity.name
+                view.log_view.set_exec_by_id(workflow_exec) or \
+                 view.log_view.set_exec_by_date(workflow_exec)
             return
 
         args = {}
@@ -1170,6 +1186,35 @@ class QVistrailList(QtGui.QTreeWidget):
             item.mashupsItem.addChild(mshp)
             item.mshp_to_item[tag] = mshp
         self.make_tree(item) if self.isTreeView else self.make_list(item)
+
+    def execution_updated(self):
+        """ Add new executions to workflow """
+        # get view and item
+        from gui.vistrails_window import _app
+        view = _app.get_current_view()
+        if id(view) not in self.items:
+            return
+        item = self.items[id(view)]
+        if not hasattr(item, 'new_log'):
+            item.new_log = {}
+        # get executions
+        # find new execution
+        for e in view.controller.log.workflow_execs:
+            if e not in item.new_log:
+                item.new_log[e] = e
+                wf_id = e.parent_version
+                tagMap = view.controller.vistrail.get_tagMap()
+                if wf_id in tagMap:
+                    e.db_name = tagMap[wf_id]
+                    if e.db_name in item.tag_to_item:
+                        wf_item = item.tag_to_item[e.db_name]
+                        entity = WorkflowExecEntity(e)
+                        e_item = QVistrailListItem(entity)
+                        wf_item.addChild(e_item)
+                        wf_item.executionList.append(e_item)
+                        self.updateHideExecutions()
+
+
 
     def add_vt_window(self, vistrail_window):
         locator = vistrail_window.controller.locator

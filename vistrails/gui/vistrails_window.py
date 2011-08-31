@@ -944,6 +944,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             [(self.UPPER_LEFT_DOCK_AREA,
               [((QWorkspaceWindow,True),
                 (('search_changed', 'updateSearchResults'),
+                 ('execution_updated', 'execution_updated'),
                  ('state_changed', 'state_changed')))]),
              (self.LOWER_LEFT_DOCK_AREA,
               [(QModulePalette, True),
