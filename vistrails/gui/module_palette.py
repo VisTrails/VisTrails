@@ -439,13 +439,20 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     def contextMenuEvent(self, event, widget):
         if self.is_top_level():
             return
+        menu = QtGui.QMenu(widget)
         act = QtGui.QAction("View Documentation", widget)
         act.setStatusTip("View module documentation")
         QtCore.QObject.connect(act,
                                QtCore.SIGNAL("triggered()"),
                                self.view_documentation)
-        menu = QtGui.QMenu(widget)
         menu.addAction(act)
+        if self.descriptor.package == 'local.abstractions':
+            act = QtGui.QAction("Edit Subworkflow", widget)
+            act.setStatusTip("Edit this Subworkflow")
+            QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.edit_subworkflow)
+            menu.addAction(act)
         menu.exec_(event.globalPos())
 
     def view_documentation(self):
@@ -454,6 +461,11 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         widget = QModuleDocumentation.instance()
         widget.update_descriptor(self.descriptor)
 
+    def edit_subworkflow(self):
+        from vistrails_window import _app
+        filename = self.descriptor.module.vt_fname
+        _app.openAbstraction(filename)
+        
     def set_descriptor(self, descriptor):
         self.descriptor = descriptor
         if descriptor:
