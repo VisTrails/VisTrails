@@ -1069,9 +1069,9 @@ class VistrailController(object):
                                     namespace=None, module_version=None,
                                     is_global=True, avail_fnames=[]):
         reg = core.modules.module_registry.get_module_registry()
+        cur_namespace = get_cur_abs_namespace(abs_vistrail)
         if namespace is None:
-            namespace = get_cur_abs_namespace(abs_vistrail)
-
+            namespace = cur_namespace
         if module_version is None:
             module_version = -1L
 
@@ -1097,21 +1097,27 @@ class VistrailController(object):
         all_namespaces = get_all_abs_namespaces(abs_vistrail)
 
         old_desc = None
-        if is_global:
+        for ns in all_namespaces:
             try:
-                old_desc = reg.get_similar_descriptor(abstraction_pkg,
-                                                      name,
-                                                      namespace)
-                # print "found old_desc", old_desc.name, old_desc.version
+                desc = reg.get_similar_descriptor(abstraction_pkg,
+                                                  name,
+                                                  ns)
+                if not desc.is_hidden:
+                    old_desc = desc
+                    # print "found old_desc", old_desc.name, old_desc.version
+                    break
             except ModuleRegistryException, e:
                 pass
-
-        hide_descriptor = not is_global or old_desc is not None
-        for namespace in all_namespaces:
+            
+        global_hide = not is_global or old_desc is not None
+        newest_desc = None
+        requested_desc = None
+        for ns in all_namespaces:
+            hide_descriptor = (ns != cur_namespace) or global_hide
             # print '()()() adding abstraction', namespace
             if reg.has_descriptor_with_name(abstraction_pkg, 
                                             name, 
-                                            namespace,
+                                            ns,
                                             abstraction_ver, 
                                             str(module_version)):
                 # don't add something twice
@@ -1119,16 +1125,20 @@ class VistrailController(object):
             new_desc = reg.auto_add_module((abstraction, 
                                             {'package': abstraction_pkg,
                                              'package_version': abstraction_ver,
-                                             'namespace': namespace,
+                                             'namespace': ns,
                                              'version': str(module_version),
                                              'hide_namespace': True,
                                              'hide_descriptor': hide_descriptor,
                                              }))
+            if ns == cur_namespace:
+                newest_desc = new_desc
+            if ns == namespace:
+                requested_desc = new_desc
             reg.auto_add_ports(abstraction)
         if old_desc is not None:
             # print '$$$ calling update_module'
-            reg.update_module(old_desc, new_desc)
-        return new_desc
+            reg.update_module(old_desc, newest_desc)
+        return requested_desc
 
 #         package = reg.get_package_by_name(abstraction_pkg)
 #         for desc in package.descriptor_versions.itervalues():
@@ -2686,7 +2696,11 @@ class VistrailController(object):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
                         del self._loaded_abstractions[filename]
-                    self.load_abstraction(filename, True)
+                    # we don't know if the subworkflow should be shown
+                    # if it doesn't currently exist, we don't want to add it
+                    # if it does, we will replace it via upgrade module
+                    # so it is not global
+                    self.load_abstraction(filename, False)
                     
                     # reg = core.modules.module_registry.get_module_registry()
                     # for desc in reg.get_package_by_name('local.abstractions').descriptor_list:
