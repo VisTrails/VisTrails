@@ -862,7 +862,8 @@ class QVistrailView(QtGui.QWidget):
 
         from gui.vistrails_window import _app
         # update recent files menu items
-        _app.set_current_locator(locator)
+        if not self.is_abstraction:
+            _app.set_current_locator(locator)
         _app.view_changed(self)
         # reload workspace entry
         from gui.collection.workspace import QWorkspaceWindow

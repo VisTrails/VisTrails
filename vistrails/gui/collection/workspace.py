@@ -961,7 +961,7 @@ class QVistrailList(QtGui.QTreeWidget):
         if view:
             self.ensureNotDiffView()
         open_vistrail(locator, **args)
-        if view is None:
+        if view is None and not view.is_abstraction:
             set_current_locator(locator)
         if view and isinstance(entity, MashupEntity):
             # I am assuming that double-clicking a mashup, the user wants to
@@ -1278,7 +1278,7 @@ class QVistrailList(QtGui.QTreeWidget):
         entity = None
         if locator:
             entity = self.collection.fromUrl(locator.to_url())
-        if entity:
+        if entity and not vistrail_window.is_abstraction:
             item = QVistrailListItem(entity)
             self.make_tree(item) if self.isTreeView else self.make_list(item)
             self.closedFilesItem.addChild(item)

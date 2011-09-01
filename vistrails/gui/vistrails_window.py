@@ -1444,6 +1444,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             # sent to the controller.
             view = self.create_view(vistrail, locator, abstraction_files, 
                                     thumbnail_files, mashups)
+            view.is_abstraction = is_abstraction
             self.view_changed(view)
             self.reset_toolbar_for_view(view)
             self.qactions['history'].trigger()
@@ -1489,7 +1490,8 @@ class QVistrailsWindow(QVistrailViewWindow):
 #            else:
             entity = collection.updateVistrail(url, view.controller.vistrail)
             # add to relevant workspace categories
-            collection.add_to_workspace(entity)
+            if not is_abstraction:
+                collection.add_to_workspace(entity)
             collection.commit()
             # update workspace (view creation used the old entities)
             from gui.collection.workspace import QWorkspaceWindow
