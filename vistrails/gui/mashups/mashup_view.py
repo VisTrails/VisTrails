@@ -151,9 +151,9 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             _app.notify('mshpcontroller_changed', self.mshpController)
     
     def createActions(self):
-        self.saveAction = QtGui.QAction("Keep", self,
+        self.saveAction = QtGui.QAction("Tag", self,
                                         triggered=self.saveTriggered)
-        self.saveAction.setToolTip("Keep current mashup")
+        self.saveAction.setToolTip("Tag current mashup")
         self.saveAction.setEnabled(False)
         self.previewAction = QtGui.QAction("Preview",  self,
                                            triggered=self.previewTriggered,
