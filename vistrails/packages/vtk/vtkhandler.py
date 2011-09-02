@@ -36,9 +36,9 @@ from PyQt4 import QtCore, QtGui
 from core.modules.basic_modules import String
 from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_registry import get_module_registry
-from core.modules.module_configure import StandardModuleConfigurationWidget
-from core.modules.python_source_configure import PythonEditor
 from core.vistrail.module_function import ModuleFunction, ModuleParam
+from gui.modules.module_configure import StandardModuleConfigurationWidget
+from gui.modules.python_source_configure import PythonEditor
 import urllib
 
 ################################################################################
