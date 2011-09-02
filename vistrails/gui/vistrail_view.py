@@ -836,7 +836,7 @@ class QVistrailView(QtGui.QWidget):
         try:
             self.controller.write_vistrail(locator)
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            debug.critical('Failed to save vistrail: %s' % str(e))
             raise
             return False
         # update collection

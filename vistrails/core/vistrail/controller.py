@@ -781,6 +781,99 @@ class VistrailController(object):
     def get_downstream_neighbors(pipeline, module):
         return VistrailController.get_neighbors(pipeline, module, False)
 
+    def check_subpipeline_port_names(self):
+        def create_name(base_name, names):
+            if base_name in names:
+                port_name = base_name + '_' + str(names[base_name])
+                names[base_name] += 1
+            else:
+                port_name = base_name
+                names[base_name] = 2
+            return port_name
+
+        in_names = {}
+        out_names = {}
+        in_cur_names = []
+        out_cur_names = []
+        in_process_list = []
+        out_process_list = []
+        pipeline = self.current_pipeline
+        for m in pipeline.module_list:
+            if m.package == basic_pkg and (m.name == 'InputPort' or
+                                           m.name == 'OutputPort'):
+                if m.name == 'InputPort':
+                    neighbors = self.get_downstream_neighbors(pipeline, m)
+                    names = in_names
+                    cur_names = in_cur_names
+                    process_list = in_process_list
+                elif m.name == 'OutputPort':
+                    neighbors = self.get_upstream_neighbors(pipeline, m)
+                    names = out_names
+                    cur_names = out_cur_names
+                    
+                if len(neighbors) < 1:
+                    # print "not adding, no neighbors"
+                    # don't add it!
+                    continue
+
+                name_function = None
+                base_name = None
+                for function in m.functions:
+                    if function.name == 'name':
+                        name_function = function
+                        if len(function.params) > 0:
+                            base_name = function.params[0].strValue
+                if base_name is not None:
+                    cur_names.append(base_name)
+                else:
+                    base_name = neighbors[0][1]
+                    if base_name == 'self':
+                        base_name = neighbors[0][0].name
+                    process_list.append((m, base_name))
+
+        op_list = []
+        for (port_type, names, cur_names, process_list) in \
+                [("input", in_names, in_cur_names, in_process_list), \
+                     ("output", out_names, out_cur_names, out_process_list)]:
+            cur_names.sort()
+            last_name = None
+            for name in cur_names:
+                if name == last_name:
+                    msg = 'Cannot assign the name "%s" to more ' \
+                        'than one %s port' % (name, port_type)
+                    raise Exception(msg)
+                last_name = name
+                idx = name.rfind("_")
+                if idx < 0:
+                    names[name] = 2
+                else:
+                    base_name = None
+                    try:
+                        val = int(name[idx+1:])
+                        base_name = name[:idx]
+                    except ValueError:
+                        pass
+                    if base_name is not None and base_name in names:
+                        cur_val = names[base_name]
+                        if val >= cur_val:
+                            names[base_name] = val + 1
+                    else:
+                        names[name] = 2
+
+            for (m, base_name) in process_list:
+                port_name = create_name(base_name, names)
+                # FIXME use update_function when it is moved to
+                # core (see core_no_gui branch)
+                ops = self.update_function_ops(m, 'name', 
+                                               [port_name])
+                op_list.extend(ops)
+        self.flush_delayed_actions()
+        action = core.db.action.create_action(op_list)
+        if action is not None:
+            self.add_new_action(action)
+            self.perform_action(action)
+        return action
+
     def create_subpipeline(self, full_pipeline, module_ids, connection_ids, 
                            id_remap, id_scope=None):
         if not id_scope:
@@ -2620,6 +2713,8 @@ class VistrailController(object):
             abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
             is_abstraction = self.vistrail.is_abstraction
             if is_abstraction and self.changed:
+                # first update any names if necessary
+                self.check_subpipeline_port_names()
                 new_namespace = str(uuid.uuid1())
                 annotation_key = get_next_abs_annotation_key(self.vistrail)
                 self.vistrail.set_annotation(annotation_key, new_namespace)
