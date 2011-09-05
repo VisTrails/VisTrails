@@ -260,7 +260,7 @@ class MashupController(object):
         
     def updatePipelineAliasesFromCurrentMashup(self):
         self.resetVistrailPipeline()
-        self.vtPipeline = self.vtController.current_pipeline
+        self.vtPipeline = copy.copy(self.vtController.current_pipeline)
         #first we clear all aliases in pipeline
         to_remove = self.vtPipeline.aliases.values()
         for (type, oId, parentType, parentId, mid) in to_remove:
