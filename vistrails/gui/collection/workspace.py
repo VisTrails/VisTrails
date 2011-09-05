@@ -51,6 +51,7 @@ from gui.vistrails_palette import QVistrailsPaletteInterface
 from gui.theme import CurrentTheme
 from gui.module_palette import QModuleTreeWidgetItemDelegate
 from gui.vis_diff import QDiffView
+from core.collection.entity import Entity
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
@@ -840,6 +841,11 @@ class QVistrailList(QtGui.QTreeWidget):
         self.addTopLevelItem(self.closedFilesItem)
         closed_entities = self.collection.workspaces['Default']
         for entity in closed_entities:
+            if entity.url.startswith('file://'):
+                if not entity.locator().is_valid():
+                    self.collection.del_from_workspace(entity)
+                    self.collection.delete_entity(entity)
+                    continue
             self.closedFilesItem.addChild(QVistrailListItem(entity))
             
     def show_search_results(self):
@@ -961,7 +967,7 @@ class QVistrailList(QtGui.QTreeWidget):
         if view:
             self.ensureNotDiffView()
         open_vistrail(locator, **args)
-        if view is None and not view.is_abstraction:
+        if view is None or not view.is_abstraction:
             set_current_locator(locator)
         if view and isinstance(entity, MashupEntity):
             # I am assuming that double-clicking a mashup, the user wants to
