@@ -405,6 +405,8 @@ after self.init()"""
                         if locator._vtag != '':
                             version = locator._vtag
                     execute = self.temp_configuration.executeWorkflows
+                    if not self.temp_configuration.showSpreadsheetOnly:
+                        self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
                                                                     version,
                                                                     execute)
@@ -515,6 +517,14 @@ parameters from other instances")
             return r
         return True
 
+    def showBuilderWindow(self):
+        # in some systems (Linux and Tiger) we need to make both calls
+        # so builderWindow is activated
+        self.setActiveWindow(self.builderWindow)
+        self.builderWindow.activateWindow()
+        self.builderWindow.show()
+        self.builderWindow.raise_()
+    
     def interactiveMode(self):
         """ interactiveMode() -> None
         Instantiate the GUI for interactive mode
@@ -527,14 +537,8 @@ parameters from other instances")
         self.builderWindow.link_registry()
         
         self.process_interactive_input()
-
         if not self.temp_configuration.showSpreadsheetOnly:
-            # in some systems (Linux and Tiger) we need to make both calls
-            # so builderWindow is activated
-            self.setActiveWindow(self.builderWindow)
-            self.builderWindow.activateWindow()
-            self.builderWindow.show()
-            self.builderWindow.raise_()
+            self.showBuilderWindow()
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()

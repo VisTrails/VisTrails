@@ -643,9 +643,9 @@ class FileLocator(CoreLocator):
         data = node.get('forceDB',None)
         forceDB = convert_from_str(data,'bool')
         
-        #asking to show only the spreadsheet force the workflow to be executed
-        if showSpreadsheetOnly:
-            execute = True
+        #if execute is False, we will show the builder too
+        if showSpreadsheetOnly and not execute:
+            showSpreadsheetOnly = False
         try:
             version = int(version)
         except:
@@ -672,14 +672,29 @@ class FileLocator(CoreLocator):
                     ext = guess_extension_from_contents(vtcontent)
                     dirname = os.path.dirname(filename)
                     fname = os.path.join(dirname,"%s%s"%(base,ext))
-                i = 1
-                while os.path.exists(fname):
-                    newbase = "%s_%s%s" % (base, i, ext)
-                    fname = os.path.join(dirname,newbase)
-                    i+=1
-                f = open(fname,'wb')
-                f.write(vtcontent)
-                f.close()
+                create_file = True
+                if os.path.exists(fname): #file was extracted before
+                    create_file = False
+                    oldf = open(fname)
+                    oldcontents = oldf.read()
+                    if oldcontents != vtcontent:
+                        import gui.extras.core.db.locator as db_gui
+                        (overwrite, newname) = \
+                                 db_gui.ask_to_overwrite_file(None, 'vistrail')
+                        create_file = True
+                        if newname:
+                            fname = newname
+                        elif overwrite == False:
+                            i=1
+                            while os.path.exists(fname):
+                                newbase = "%s_%s%s" % (base, i, ext)
+                                fname = os.path.join(dirname,newbase)
+                                i+=1
+                        
+                if create_file:
+                    f = open(fname,'wb')
+                    f.write(vtcontent)
+                    f.close()
                 return FileLocator(fname, version_node=version, version_tag=tag)
         if host is not None:
             user = ""

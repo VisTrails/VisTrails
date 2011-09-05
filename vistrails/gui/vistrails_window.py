@@ -1738,6 +1738,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                     else:
                         if len(self.windows) > 0:
                             return self.windows.iterkeys().next()
+                        return self.stack.currentWidget()
             #please do not remove this warning. It is necessary to know
             #what type of window is causing the get_current_view to return
             # a wrong value -- Emanuele.
