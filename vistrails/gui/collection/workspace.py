@@ -1323,7 +1323,7 @@ class QVistrailList(QtGui.QTreeWidget):
                            vistrail.window)
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Delete:
+        if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             items = self.selectedItems()
             if len(items) == 1:
                 item = items[0]
@@ -1338,6 +1338,7 @@ class QVistrailList(QtGui.QTreeWidget):
                     # remove from closed list
                     self.closedFilesItem.removeChild(item)
                     self.collection.del_from_workspace(item.entity)
+                    self.collection.delete_entity(item.entity)
                     self.collection.commit()
         else:
             QtGui.QTreeWidget.keyPressEvent(self, event)
