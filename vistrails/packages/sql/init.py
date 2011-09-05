@@ -44,7 +44,7 @@ import urllib
 
 from core import debug
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from core.modules.source_configure import SourceConfigurationWidget
+from gui.modules.source_configure import SourceConfigurationWidget
 from core.upgradeworkflow import UpgradeWorkflowHandler
 from core.utils import PortAlreadyExists
 from gui.theme import CurrentTheme
