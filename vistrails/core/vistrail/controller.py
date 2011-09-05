@@ -2275,11 +2275,10 @@ class VistrailController(object):
                 except Exception, e:
                     # cannot get the package we need
                     continue
-                debug.warning('** Trying to fix errors in %s' % identifier)
-                for t in ['  ' + str(e) for e in err_list]:
-                    debug.warning(t)
+                details = '\n'.join(str(e) for e in err_list)
+                debug.log('Processing upgrades in package "%s"' %
+                          identifier, details)
                 if pkg.can_handle_all_errors():
-                    debug.warning('  handle_all_errors')
                     try:
                         actions = pkg.handle_all_errors(self, err_list, 
                                                         pipeline)
@@ -2395,9 +2394,10 @@ class VistrailController(object):
             return unhandled_exceptions
 
         left_exceptions = check_exceptions(root_exceptions)
-        for left in left_exceptions:
-            debug.critical('--> %s' % left)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
+            details = '\n'.join(str(e) for e in left_exceptions + \
+                                    new_exceptions)
+            debug.critical("Some exceptions could not be handled", details)
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
