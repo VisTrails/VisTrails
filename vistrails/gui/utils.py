@@ -229,18 +229,13 @@ class TestVisTrailsGUI(unittest.TestCase):
     def _close_all(self):
         import api
         # Close all open vistrails
-        try:
-            while 1:
-                v = api.get_current_vistrail_view()
-                api.close_vistrail(v)
-        except api.NoVistrail:
-            pass
+        api.close_all_vistrails()
 
     def setUp(self):
         # we need to call twice because VisTrails will create a new vistrail
         # by default if we are not closing the first vistrail.
         self._close_all()
         self._close_all()
-
+        
     def tearDown(self):
         self._close_all()

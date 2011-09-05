@@ -1673,11 +1673,11 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.change_view(view)
         return True
 
-    def close_all_vistrails(self):
+    def close_all_vistrails(self, quiet=False):
         self.current_view = None
         for i in xrange(self.stack.count()):
             view = self.stack.widget(i)
-            if not self.close_vistrail(view):
+            if not self.close_vistrail(view, quiet=quiet):
                 return False
         while len(self.windows) > 0:
             window = self.windows.values()[0]
