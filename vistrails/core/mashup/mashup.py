@@ -115,7 +115,7 @@ class Mashup(XMLObject):
     @staticmethod
     def fromXml(node):
         if node.tag != 'mashup':
-            print "node.tag != 'mashup'"
+            #print "node.tag != 'mashup'"
             return None
         #read attributes
         data = node.get('id', None)
@@ -250,8 +250,6 @@ layout='%s' geometry='%s' alias_list='%s')@%X" %
             return False
         for p,q in zip(self.alias_list, other.alias_list):
             if p != q:
-                print p
-                print q
                 return False
         return True
 
@@ -294,10 +292,8 @@ class TestMashup(unittest.TestCase):
         
     def test_serialization(self):
         m1 = self.create_mashup()
-        print m1
         node = m1.toXml()
         m2 = Mashup.fromXml(node)
-        print m2
         self.assertEqual(m1, m2)
         self.assertEqual(m1.id, m2.id)
         

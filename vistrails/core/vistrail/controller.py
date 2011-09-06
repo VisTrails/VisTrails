@@ -1286,18 +1286,18 @@ class VistrailController(object):
         desc = self.get_abstraction_desc(abstraction_pkg, abs_name, 
                                          abstraction_uuid, module_version)
         if desc is None:
-            print "adding version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to registry"
+            #print "adding version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to registry"
             desc = self.add_abstraction_to_registry(abs_vistrail, abs_fname, 
                                                     abs_name, None, 
                                                     module_version, 
                                                     is_global, avail_fnames)
-            if desc.version != module_version:
-                print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
-        else:
-            if upgrade_version is not None:
-                print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
-            else:
-                print "version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry"
+            #if desc.version != module_version:
+                #print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
+#        else:
+#            if upgrade_version is not None:
+#                print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
+#            else:
+#                print "version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry"
         return desc
     
     def unload_abstractions(self):
@@ -1447,7 +1447,7 @@ class VistrailController(object):
         # make sure that we don't get an obselete descriptor
         invalid_module._module_descriptor = None
         abs_fname = invalid_module.module_descriptor.module.vt_fname
-        print "&&& abs_fname", abs_fname
+        #print "&&& abs_fname", abs_fname
         (path, prefix, abs_name, abs_namespace, suffix) = \
             self.parse_abstraction_name(abs_fname, True)
         # abs_vistrail = invalid_module.vistrail
@@ -1456,7 +1456,7 @@ class VistrailController(object):
         lookup = {(abs_name, abs_namespace): abs_fname}
         descriptor_info = invalid_module.descriptor_info
         newest_version = str(abs_vistrail.get_latest_version())
-        print '&&& check_abstraction', abs_namespace, newest_version
+        #print '&&& check_abstraction', abs_namespace, newest_version
         d = self.check_abstraction((descriptor_info[0],
                                     descriptor_info[1],
                                     abs_namespace,
@@ -2844,7 +2844,7 @@ class VistrailController(object):
                                             self.vistrail.db_log_filename)
             else:
                 log = self.log
-            print log
+            #print log
             save_bundle = SaveBundle(log.vtType,log=log)
             locator.save_as(save_bundle)
 

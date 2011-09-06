@@ -157,7 +157,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.name_edit.setText(label)
             if not label and not versions_increasing(QtCore.QT_VERSION_STR, 
                                                      '4.7.0'):
-                print QtCore.QT_VERSION_STR, versions_increasing(QtCore.QT_VERSION_STR, '4.7.0')
+                #print QtCore.QT_VERSION_STR, versions_increasing(QtCore.QT_VERSION_STR, '4.7.0')
                 self.name_edit.setPlaceholderText(self.module.name)
 
             # self.name_edit.setEnabled(True)
@@ -174,11 +174,11 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             new_text = str(self.name_edit.text()).strip()
             if not new_text:
                 if old_text:
-                    print 'delete annotation'
+                    #print 'delete annotation'
                     self.controller.delete_annotation('__desc__', 
                                                       self.module.id)
             elif old_text != new_text:
-                print 'add annotation', old_text, new_text
+                #print 'add annotation', old_text, new_text
                 self.controller.add_annotation(('__desc__', new_text), 
                                                self.module.id)
                 

@@ -53,7 +53,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         """
         QtGui.QFrame.__init__(self, parent)
         QVistrailsPaletteInterface.__init__(self)
-        print "****** Inspector INIT"
+        #print "****** Inspector INIT"
         self.set_title("Mashups Inspector")
         self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -86,16 +86,16 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
                     
     def updateVistrailController(self, controller):
         self.controller = controller
-        print "         *** Mashup Inspector: controller changed ", controller
+        #print "         *** Mashup Inspector: controller changed ", controller
     
     def updateVistrailVersion(self, version):
         if self.controller:
             self.vt_version = version
                 
-        print "         *** Mashup Inspector: version changed ", version
+        #print "         *** Mashup Inspector: version changed ", version
     
     def updateMshpController(self, mshpController):
-        print "     **** updateMshpController", mshpController
+        #print "     **** updateMshpController", mshpController
         if (self.mshpController is not None and 
             self.mshpController != mshpController):
             self.mshpController.stateChanged.disconnect(self.stateChanged)
@@ -107,7 +107,8 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         self.mashupsList.updateController(mshpController)
         
     def updateMshpVersion(self, version):
-        print "updateMshpVersion", version
+        pass
+        #print "updateMshpVersion", version
         
     def stateChanged(self):
         versionId = self.mshpController.currentVersion
@@ -192,7 +193,7 @@ class QMashupProp(QtGui.QWidget):
     def updateController(self, mshpController):
         self.controller = mshpController
        
-        print "QMashupProp.updateController ", self.controller, self.controller.currentVersion
+        #print "QMashupProp.updateController ", self.controller, self.controller.currentVersion
         if self.controller and self.controller.currentVersion > -1:
             self.versionNumber = self.controller.currentVersion
             self.tagEdit.setText(self.controller.mshptrail.getTagForActionId(
@@ -218,7 +219,7 @@ class QMashupProp(QtGui.QWidget):
         if self.controller and self.versionNumber > -1:
             tagtext = self.controller.mshptrail.getTagForActionId(
                                     self.versionNumber)
-            print "updateVersion", versionNumber, tagtext
+            #print "updateVersion", versionNumber, tagtext
             self.tagEdit.setText(tagtext)
             action = self.controller.mshptrail.actionMap[self.versionNumber]
             self.userEdit.setText(action.user)
@@ -243,7 +244,7 @@ class QMashupProp(QtGui.QWidget):
             name = self.controller.mshptrail.getTagForActionId(self.versionNumber)
             currentText = str(self.tagEdit.text())
             if name != currentText:    
-                print "will update current tag", currentText
+                #print "will update current tag", currentText
                 self.controller.updateCurrentTag(currentText)
                 
                 

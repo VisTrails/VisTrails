@@ -275,7 +275,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.isUpdating = False
 
     def set_controller(self, controller):
-        print '@@@@ QLogDetails calling set_controller'
+        #print '@@@@ QLogDetails calling set_controller'
         self.controller = controller
         self.executionList.controller = self.controller
         if not hasattr(self.controller, 'loaded_workflow_execs'):
@@ -391,7 +391,7 @@ class QLogView(QPipelineView):
 
     def set_controller(self, controller):
         QPipelineView.set_controller(self, controller)
-        print "@@@ set_controller called", id(self.controller), len(self.controller.vistrail.actions)
+        #print "@@@ set_controller called", id(self.controller), len(self.controller.vistrail.actions)
         if not hasattr(self.controller, 'loaded_workflow_execs'):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
@@ -403,7 +403,7 @@ class QLogView(QPipelineView):
 
     def set_to_current(self):
         # change to normal controller hacks
-        print "AAAAA doing set_to_current"
+        #print "AAAAA doing set_to_current"
         if self.controller.current_pipeline_view is not None:
             self.disconnect(self.controller,
                             QtCore.SIGNAL('versionWasChanged'),
@@ -501,8 +501,8 @@ class QLogView(QPipelineView):
         # self.showExecution()
 
     def update_pipeline(self):
-        print "ACTIONS!"
-        print "#### controller", id(self.controller)
+        #print "ACTIONS!"
+        #print "#### controller", id(self.controller)
         scene = self.scene()
         scene.clearItems()
         self.pipeline.validate(False)

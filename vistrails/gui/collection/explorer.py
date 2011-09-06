@@ -447,7 +447,7 @@ class ExecutionSearchWidget(QtGui.QSplitter):
                      obj_type='vistrail',
                      workflow_exec=ts_start,
                      connection_id=config.get('id', None))
-        print "url:", locator.to_url()
+        #print "url:", locator.to_url()
         import gui.application
         app = gui.application.VistrailsApplication
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
@@ -723,13 +723,13 @@ class WorkflowSearchWidget(QtGui.QSplitter):
                      obj_id=v_id,
                      obj_type='vistrail',
                      connection_id=config.get('id', None))
-        print "url:", locator.to_url()
+        #print "url:", locator.to_url()
         import gui.application
         app = gui.application.VistrailsApplication
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
         args['version'] = version_name if version_name else v_version
-        print "args", args
+        #print "args", args
         open_vistrail(locator, **args)
 
 class QWorkflowItem(QtGui.QTreeWidgetItem):

@@ -799,7 +799,7 @@ parameters from other instances")
             #it's safe to eval as a list
             args = eval(msg)
             if type(args) == type([]):
-                print "args from another instance %s"%args
+                #print "args from another instance %s"%args
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()
                 interactive = self.temp_configuration.check('interactiveMode')

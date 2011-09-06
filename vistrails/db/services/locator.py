@@ -537,7 +537,7 @@ class DBLocator(BaseLocator):
     def hash(self):
         node = self.to_xml()
         xml_string = ElementTree.tostring(node)
-        print "hash", xml_string
+        #print "hash", xml_string
         return hashlib.sha224(xml_string).hexdigest()
     
     def is_valid(self):
@@ -573,7 +573,7 @@ class DBLocator(BaseLocator):
                   'db': self._db,
                   'user': self._user,
                   'passwd': self._passwd}
-        print "config:", config
+        #print "config:", config
         connection = io.open_db_connection(config)
             
         DBLocator.connections[self._conn_id] = connection
@@ -582,7 +582,7 @@ class DBLocator(BaseLocator):
 
     def load(self, type, tmp_dir=None):
         self._hash = self.hash()
-        print "LLoad Big|type", type
+        #print "LLoad Big|type", type
         if DBLocator.cache.has_key(self._hash):
             save_bundle = DBLocator.cache[self._hash]
             obj = save_bundle.get_primary_obj()
@@ -603,7 +603,7 @@ class DBLocator(BaseLocator):
         save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
         primary_obj = save_bundle.get_primary_obj()
         self._name = primary_obj.db_name
-        print "locator db name:", self._name
+        #print "locator db name:", self._name
         for obj in save_bundle.get_db_objs():
             obj.locator = self
         

@@ -283,7 +283,7 @@ def save_all_profiles():
     td = core.system.temporary_directory()
     for (name, method) in get_profiled_methods():
         fout = td + name + '.pyp'
-        print fout
+        #print fout
         method.profiler_object.dump_stats(fout)
 
 ##############################################################################

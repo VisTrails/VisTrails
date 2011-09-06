@@ -104,9 +104,9 @@ class QCollectionWidget(QtGui.QTreeWidget):
                                for i in xrange(item.childCount())])
 
     def item_selected(self, widget_item, column):
-        print 'item_selected'
+        #print 'item_selected'
         locator = widget_item.entity.locator()
-        print "locator", locator
+        #print "locator", locator
         import gui.application
 #        if not locator.is_valid():
 #            debug.critical("Locator is not valid:" % locator.to_url())
@@ -131,10 +131,10 @@ class QCollectionWidget(QtGui.QTreeWidget):
             #locator._name = widget_item.entity.parent.parent.name
             
         locator.update_from_gui(self)
-        print '*** opening'
-        print locator.to_url()
-        print locator.name
-        print '***'
+#        print '*** opening'
+#        print locator.to_url()
+#        print locator.name
+#        print '***'
         open_vistrail(locator, **args)
                                                        
     def contextMenuEvent(self, event):
@@ -1316,7 +1316,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 # parent node
                 return
             vistrail = vistrail.parent()
-        print "*** item clicked", id(vistrail.window)
+        #print "*** item clicked", id(vistrail.window)
 
         self.setSelected(vistrail.window)
         self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 

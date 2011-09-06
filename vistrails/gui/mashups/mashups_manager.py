@@ -151,7 +151,7 @@ class MashupsManager(object):
             if mshpController.currentVersion == 1L:
                 mshpController.updateCurrentTag("ROOT")
         else:
-            print "----> found mashuptrail ", mashuptrail.currentVersion
+            #print "----> found mashuptrail ", mashuptrail.currentVersion
             mshpController = MashupController(vt_controller, 
                                               newvt_controller, 
                                               version, mashuptrail)

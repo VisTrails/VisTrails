@@ -106,7 +106,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
 #            self.connect(self.controller,
 #                         QtCore.SIGNAL('versionWasChanged'),
 #                         self.versionChanged)
-        print "      *** mashup view set vtController: ", controller
+        #print "      *** mashup view set vtController: ", controller
         
     def versionChanged(self, version):
         window = self.window()
@@ -115,7 +115,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             window.qactions['mashup'].setEnabled(True)
         else:
             window.qactions['mashup'].setEnabled(False)
-        print "      *** mashup view versionChanged ", self.vtversion
+        #print "      *** mashup view versionChanged ", self.vtversion
         
     def controllerChanged(self, controller):
         from gui.vistrails_window import _app
@@ -290,13 +290,13 @@ Click on No to create a new tag.""" %pname,
                             tag_exists = False
         
     def mshpControllerVistrailChanged(self):
-        print "*** vistrailChanged mashup view ", self.mshpController.vtController.current_version
+        #print "*** vistrailChanged mashup view ", self.mshpController.vtController.current_version
         pipeline = self.mshpController.vtController.current_pipeline
         self.mshpController.updateAliasesFromPipeline(pipeline)
         
     def mshpVersionChanged(self, versionId):
         from gui.vistrails_window import _app
-        print "*** mshpVersionChanged ", versionId
+        #print "*** mshpVersionChanged ", versionId
         self.aliasPanel.updateVersion(versionId)
         if not self.mshpController.versionHasTag(versionId):
             self.saveAction.setEnabled(True)
@@ -313,7 +313,7 @@ Click on No to create a new tag.""" %pname,
                   "Preview: %s"%self.mshpController.getMashupName(view.version))
                 
     def aliasChanged(self, param):
-        print "mashupView aliasChanged", param
+        #print "mashupView aliasChanged", param
         self.mshpController.updateAliasFromParam(param)
         
 ###############################################################################

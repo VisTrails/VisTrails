@@ -332,9 +332,9 @@ class QBaseViewWindow(QtGui.QMainWindow):
         self.qmenus = {}
 
         menu_bar = self.menuBar()
-        print 'menu_bar:', menu_bar
+        #print 'menu_bar:', menu_bar
         self.process_list(self._actions, menu_bar, self.qactions, self.qmenus)
-        print 'done processing list'
+        #print 'done processing list'
         
 class QVistrailViewWindow(QBaseViewWindow):
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
@@ -800,9 +800,9 @@ class QVistrailViewWindow(QBaseViewWindow):
             #_global_menubar = menu_bar
         #else:
         menu_bar = self.menuBar()
-        print 'menu_bar:', menu_bar
+        #print 'menu_bar:', menu_bar
         self.process_list(self._actions, menu_bar, self.qactions, self.qmenus)
-        print 'done processing list'
+        #print 'done processing list'
         
         if is_main_window:
             for action_tuple, palette in self.all_palette_actions:
@@ -882,10 +882,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         QWorkspaceWindow.instance().remove_vt_window(view)
 
     def view_triggered(self, action):
-        print "VIEW_TRIGGERED", action
+        #print "VIEW_TRIGGERED", action
         if self.selected_mode == action:
             if action is not None:
-                print "SETTING CHECKED FALSE"
+                #print "SETTING CHECKED FALSE"
                 action.setChecked(False)
             self.selected_mode = None
         else:
@@ -1012,12 +1012,12 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if type(p_klass) == tuple:
                         notifications = visible
                         p_klass, visible = p_klass      
-                print "generating instance", p_klass
+                #print "generating instance", p_klass
                 palette = p_klass.instance()
-                print 'palette:', palette
+                #print 'palette:', palette
                 self.palettes.append(palette)
                 for n_tuple in notifications:
-                    print "n_tuple:", n_tuple
+                    #print "n_tuple:", n_tuple
                     if type(n_tuple) == tuple:
                         if len(n_tuple) > 1:
                             n_id, method_name = n_tuple
@@ -1114,8 +1114,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             notifications = self.notifications
         if notification_id not in notifications:
             notifications[notification_id] = set()
-        else:
-            print "already added notification", notification_id
+        #else:
+        #    print "already added notification", notification_id
 
     def register_notification(self, notification_id, method, link_view=False,
                               view=None):
@@ -1159,7 +1159,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def notify(self, notification_id, *args):
         # do global notifications
         if notification_id in self.notifications:
-            print 'global notification ', notification_id
+            #print 'global notification ', notification_id
             for m in self.notifications[notification_id]:
                 try:
                     #print "  m: ", m
@@ -1171,7 +1171,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         # do local notifications
         if self.current_view in self.view_notifications:
             notifications = self.view_notifications[self.current_view]
-            print 'local notification ', notification_id, self.current_view
+            #print 'local notification ', notification_id, self.current_view
                 
         if notification_id in notifications:
             for m in notifications[notification_id]:
@@ -1258,7 +1258,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         return QtCore.QSize(1280, 768)
 
     def create_first_vistrail(self):
-        print 'calling create_first_vistrail'
+        #print 'calling create_first_vistrail'
         if self.get_current_view():
             return
         if not self.dbDefault and untitled_locator().has_temporaries():
@@ -1269,7 +1269,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._first_view = self.get_current_view()
 
     def change_view(self, view):
-        print 'changing view', id(view), view
+        #print 'changing view', id(view), view
         if type(view) == QVistrailView or view is None:
             if view and view not in self.windows:
                 if self.stack.currentWidget() != view:
@@ -1386,7 +1386,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         else:
             vt = self._first_view.controller.vistrail
         if vt.get_version_count() == 0:
-            print "closing first vistrail"
+            #print "closing first vistrail"
             self.close_vistrail(self._first_view)
             self._first_view = None
         else:
@@ -1465,7 +1465,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         #                    str(e.__class__.__name__), str(e))
         except Exception, e:
             # debug.critical('An error has occurred', str(e))
-            print "An error has occurred", str(e)
+            #print "An error has occurred", str(e)
             raise
         # update collection
         try:

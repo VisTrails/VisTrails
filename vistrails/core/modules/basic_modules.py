@@ -294,8 +294,8 @@ class Path(Constant):
 
     @staticmethod
     def validate(v):
-        print 'validating', v
-        print 'isinstance', isinstance(v, Path)
+        #print 'validating', v
+        #print 'isinstance', isinstance(v, Path)
         return isinstance(v, Path)
 
     def get_name(self):
