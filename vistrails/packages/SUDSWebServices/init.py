@@ -690,14 +690,7 @@ def handle_missing_module(controller, module_id, pipeline):
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
     if wsdl in wsdlList:
-        debug.warning("'%s' is already loaded." % wsdl)
-        return True
-        debug.warning("'%s' is already loaded. Fetching latest version..." % wsdl)
-        # temporarily disable cache
-        tmp_cache = package_cache
-        package_cache = None
-        webServicesDict[wsdl] = Service(wsdl)
-        package_cache = tmp_cache
+        # it is already loaded
         return True
 
     service = Service(wsdl)
