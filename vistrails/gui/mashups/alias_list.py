@@ -115,7 +115,7 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
             self.aliasChanged.connect(self.controller.updateAlias)
 
     def updateVersion(self, versionId):    
-        print "AliasPanel.updateVersion "
+        #print "AliasPanel.updateVersion "
         if self.controller:
             if (self.controller.currentMashup.alias_list and
                 len(self.controller.currentMashup.alias_list) > 0):
@@ -198,9 +198,9 @@ class QAliasList(QtGui.QTreeWidget):
         Event handler for capturing when the contents in a cell changes
 
         """
-        print "cellChanged"
+        #print "cellChanged"
         item = self.item(row, col)
-        print item.alias
+        #print item.alias
         if col == 0:
             old_alias = item.alias.alias
             new_alias = str(item.text())
@@ -229,7 +229,7 @@ class QAliasList(QtGui.QTreeWidget):
             wdgt = self.cellWidget(row,col)
             if wdgt is not None:
                 item.alias.value = wdgt.contents()
-        print self.aliases
+        #print self.aliases
         self.aliasUpdated.emit(item.alias)
         
     def currentAliasChanged(self, current, previous):
@@ -259,7 +259,7 @@ class QAliasList(QtGui.QTreeWidget):
         return alias
      
     def populateFromMashup(self, mashupController):
-        print "populateFromMashup ", self , self.previousSelected    
+        #print "populateFromMashup ", self , self.previousSelected    
         if self.controller != mashupController:
             self.controller = mashupController
         self.itemSelectionChanged.disconnect(self.setPreviousSelected)

@@ -404,11 +404,11 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         matching = None
         for ((m1id, m2id), paramMatching) in paramChanged:
             if m1id == module.id:
-                print "found match"
+                #print "found match"
                 matching = paramMatching
                 break
 
-        print "matching:", matching
+        #print "matching:", matching
         # If the module has no parameter changed, just display nothing
         if not matching:          
             return
@@ -463,7 +463,7 @@ class QDiffView(QPipelineView):
             
     def set_to_current(self):
         # change to normal controller hacks
-        print "AAAAA doing set_to_current"
+        #print "AAAAA doing set_to_current"
         if self.controller.current_pipeline_view is not None:
             self.disconnect(self.controller,
                             QtCore.SIGNAL('versionWasChanged'),

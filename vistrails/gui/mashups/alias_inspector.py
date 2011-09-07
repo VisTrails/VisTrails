@@ -301,7 +301,7 @@ Please type a unique name. """ % new_alias)
         self.unplugSignals()
         if alias is not None and controller is not None:
             self.name_edit.setText(self.alias.name)
-            print "widget:", self.alias.component.widget
+            #print "widget:", self.alias.component.widget
             self.dw_combobox.setCurrentIndex(self.dw_combobox.findText(QtCore.QString(self.alias.component.widget)))
             self.order_spinbox.setRange(0,self.table.topLevelItemCount()-1)
             self.order_spinbox.setValue(self.alias.component.pos)
@@ -457,7 +457,7 @@ class QValuesListEditor(QtGui.QWidget):
         For example, this will break horribly if the user manually edits
         a list of strings with commas in them."""
 
-        print "values_were_edited"
+        #print "values_were_edited"
         new_text = self.listValues.text()
         t = str(new_text)
         if len(t) < 2:
@@ -483,7 +483,7 @@ class QValuesListEditor(QtGui.QWidget):
         dialog = QListEditDialog(self._alias, self.controller, None)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             values = dialog.getList()
-            print values
+            #print values
             self._alias.component.valueList = copy.copy(values)
             self._str_values = [str(v) for v in values]
             values2 = values
@@ -669,7 +669,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         self.editor = QAliasDetailsWidget.createAliasWidget(self.alias_item, 
                                                             self.controller, 
                                                             parent)
-        print "editor created"
+        #print "editor created"
         return self.editor
 
     def updateEditorGeometry(self, editor, option, index):
@@ -692,7 +692,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         self.editor = None
 
     def finishEditing(self):
-        print "finishEditing"
+        #print "finishEditing"
         if self.editor:
             self.emit(QtCore.SIGNAL('commitData(QWidget*)'), self.editor)
 

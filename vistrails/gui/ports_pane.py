@@ -196,7 +196,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
         for i, (desc, param) in enumerate(izip(self.port_spec.descriptors(), 
                                                params)):
-            print 'adding desc', desc.name
+            #print 'adding desc', desc.name
             # ps_label = ''
             # if port_spec.labels is not None and len(port_spec.labels) > i:
             #     ps_label = str(port_spec.labels[i])
@@ -463,7 +463,7 @@ class PortsList(QtGui.QTreeWidget):
         self.controller = controller
 
     def update_method(self, subitem, port_name, widgets, labels, real_id=-1):
-        print 'updateMethod called', port_name
+        #print 'updateMethod called', port_name
         if self.controller:
             _, item = self.port_spec_items[port_name]
             str_values = []
@@ -489,7 +489,7 @@ class PortsList(QtGui.QTreeWidget):
                                             
     def delete_method(self, subitem, port_name, real_id=None):
         if real_id is not None and self.controller:
-            print "got to delete"
+            #print "got to delete"
             self.controller.delete_function(real_id, self.module.id)
         _, item = self.port_spec_items[port_name]
         item.removeChild(subitem)

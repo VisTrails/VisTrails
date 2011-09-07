@@ -1525,7 +1525,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             # Capture only selected modules + or - self for selection signal
             selectedItems = [m for m in self.scene().selectedItems()
                              if isinstance(m, QGraphicsModuleItem)]
-            print "selectedItems", selectedItems
+            #print "selectedItems", selectedItems
             selectedId = -1
             if len(selectedItems)==1:
                 selectedId = selectedItems[0].id
@@ -2578,13 +2578,13 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     
     def has_selected_modules(self, module, only_one=False):
         module_ids_len = len(self.scene().get_selected_module_ids())
-        print '  module_ids_len:', module_ids_len
+        #print '  module_ids_len:', module_ids_len
         if only_one and module_ids_len != 1:
             return False
         return module_ids_len > 0
 
     def has_selected_module(self, module):
-        print 'calling has_selected_module'
+        #print 'calling has_selected_module'
         return self.has_selected_modules(module, True)
 
     def has_selected_groups(self, module, only_one=False):
@@ -2675,7 +2675,6 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.scene().setupScene(self.controller.current_pipeline)
 
     def run_control_flow_assist(self):
-        print 'got here'
         currentScene = self.scene()
         if currentScene.controller:
             selected_items = currentScene.get_selected_item_ids(True)

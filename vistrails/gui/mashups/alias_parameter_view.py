@@ -91,7 +91,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pipeline_view.scene().current_pipeline = self.mshpController.vtPipeline
         self.mshpController.vtController.current_pipeline = self.mshpController.vtPipeline
         
-        print "**** should update mashup pipeline view "
+        #print "**** should update mashup pipeline view "
         
         #self.pipeline_view.scene().setupScene(self.mshpController.vtPipeline)
         self.pipeline_view.scene().clear()
@@ -102,7 +102,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         #_app.notify('mashup_pipeline_view_set')
         
     def updateMshpVersion(self, version):
-        print "will update alias param view"
+        #print "will update alias param view"
         self.parameter_panel.set_pipeline(
                         self.mshpController.vtPipeline)
         self.pipeline_view.version_changed()
