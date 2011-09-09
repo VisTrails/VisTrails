@@ -256,6 +256,7 @@ class QAliasList(QtGui.QTreeWidget):
         return alias
      
     def populateFromMashup(self, mashupController):
+        #print "populateFromMashup ", self , self.previousSelected    
         if self.controller != mashupController:
             self.controller = mashupController
         self.itemSelectionChanged.disconnect(self.setPreviousSelected)

@@ -2675,7 +2675,6 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.scene().setupScene(self.controller.current_pipeline)
 
     def run_control_flow_assist(self):
-        #print 'got here'
         currentScene = self.scene()
         if currentScene.controller:
             selected_items = currentScene.get_selected_item_ids(True)
