@@ -26,7 +26,8 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0-alpha build 66794be43ba3 from v2.0 branch
+Release Name: v2.0-alpha build 6fc02caef9ff from v2.0 branch
+
 Enhancements: 
  - VisTrails now requires Python 2.7.*, Qt 4.7.*, sip 4.12.2 and PyQt4 4.8.4 to run 
  - Reworked VisTrails interface. Added Workspace palette where user's vistrails
@@ -42,8 +43,32 @@ Enhancements:
    parameters are shown in a single display. Thus, for module types without 
    special configuration widgets, there is no need for a separate configuration 
    window.
+ - Show parameters for invalid modules (7078566f7b89)
+ - Changed "Keep" button to "Tag" in the Mashups View (5ed3637c2d6f)
+ - Open subworkflow from module palette (c48a11df430f)
+ - Executions in provenance view are now given names based on the 
+   "tagname + n" naming scheme (31a4a94cf967)
+ - Update executions in workspace when they are created (8b7b85229c64)
+ - Make pipeline current when selected in provenance explorer (49e93f5f789d)
+ - Remove gui dependencies for core.modules widgets (1b8487908620)
+ - Improved default query support (b9fed84af41a)
+ - Added color difference support for queries (b9fed84af41a)
+ - Mashups: made keeping the camera across updates as an option (1642d3573f62)
+ - Add extensible query support (0df170d3335d) (5d776c28b7e2)
+ - Workspace now updates Workflows and Mashups as they are created (429ceb313408)
+ - Expand Workflows/Mashups items by default (429ceb313408)
+ - Ticket #479: Dropdown boxes have white text (677a0b750762)
+ - Added support for html and mediawiki extensions to access a 
+   remote vistrails server  (2eba04217a99)
+ - Displaying mashups in workspace. Double-clicking a mashup will show 
+   version tree, select corresponding version and execute the mashup. (3df2af8d8cb2)
+ - Added support for multiple PythonSource configuration windows. Read-only 
+   windows can be detached from the main module onfiguration window. (372c0143f6b6)
+ - Remove workspace entry when selected file has been deleted (8bdd77c78fe2)
+ - Workspace can show workflows in a tree view (c715b4a84a38)
  - Added a Control Flow Assistant (f05f014bc778)
- - Added Vistrail Variables support, so that modules deriving from Constant can be used to create re-usable variables (a83402e0c218)
+ - Added Vistrail Variables support, so that modules deriving from Constant can 
+   be used to create re-usable variables (a83402e0c218)
  - Added support for cross-vistrail diffs (c300063531e8)
  - Perform visual diff from workspace by dragging pipelines together (dd83c3f08cea)
  - Simplify visual diff and improve parameter changes display (65849c433682)
@@ -81,7 +106,129 @@ option to start paraview server when the package is initialized.  (9023c13aa76b)
  - Initial version of a GIS package that uses QGIS (4cd7cc6df8db)
 
 Bug fixes: 
- 
+ - Ticket #492: Upgrade error: signatures differ (5a70996965f8)
+ - Add upgrade for PythonSource to fix issue with 'self' port (5a70996965f8)
+ - Fixed messages during upgrades so that upgrade info is not flagged as 
+   a warning (8714561fed05)
+ - Mashups: creating aliases in mashup view was not updating the alias 
+   table (770f755d089d)
+ - Ticket #491: Opening a .vtl will always create a new file (3a25858be1ac)
+ - Opening vtl files: igonring showSpreadsheetOnly if execute is false (3a25858be1ac)
+ - Starting VisTrails by double-clicking a vistrail file was
+   not zooming the current pipeline view (3a25858be1ac)
+ - Can now delete from workspace using backspace key (d3f7af2868b0)
+ - Remove vistrail from workspace if removed from disk (044a841b97e9)
+ - view.is_abstraction logic fixed (044a841b97e9)
+ - sql package was not using new gui.modules.source_configure (1714703fb145)
+ - Updated VTK, Persistence and Matplolib packages to use 
+   gui.modules import (f953ce4d25e4)
+ - get_current_view bug caused double-clicking a vistrail to fail (00b264c0920b)
+ - Ticket #489: VisTrails 2.0 can't open .vtl files anymore (2d450422c25b)
+ - opening .vtl files fails (2d450422c25b)
+ - Ticket #460: Subworkflow port naming errors after editing (687becdff050)
+ - Fixed issue where subworkflow edits could result in one-to-many 
+   port mappings. (687becdff050)
+ - Fixed issues with multiple versions of subworkflows appearing in the 
+   module palette (186d5c06a788)
+ - Do not store subworkflows in "recent files" or "My Vistrails" (17aebdbd32fa)
+ - workspace.item_selected had invalid setSelected call (3effd7a1385b)
+ - Fixed 2 detach view bugs (3f5159f5b49f)
+ - Ticket #468: Diff tab should have all modes except pipeline 
+   disabled (4f691ba6ed23) (139ec1d18b22)
+ - Fixed an issue when loading a vistrail that references different versions 
+   of a subworkflow that share common ancestors (4b34089abb09)
+ - Ticket #486: query execution and parameter problems (323f12916d09) 
+   (0262b0410051) (d9fbb412a9b5)
+ - Added ability to open workflows from query results (323f12916d09)
+ - Ticket #484: subworkflow save causes window to change (bc100442dfe4)
+ - Fixed issues with executing queries (0262b0410051)
+ - Fixed issue where numeric comparisons were being done as 
+   string compares (d9fbb412a9b5)
+ - Fixed issue where substring queries were backward (d9fbb412a9b5)
+ - Fix an issue with copy/paste to query view (b9fed84af41a)
+ - Fix issue with package subworkflows and namespaces (87c7c61f1c9e)
+ - Ticket #476: numeric stepper has wrong default value, in some cases 
+   (1642d3573f62) (a08e8dc0f9c2)
+ - Ticket #485: Random Mashups Window (917b1d8b83c5)
+ - Allow return to original query in interface (0df170d3335d)
+ - Allow parameters to be set in queries (0df170d3335d)
+ - Allow return to original query in interface (5d776c28b7e2)
+ - Allow parameters to be set in queries (5d776c28b7e2)
+ - Ticket #478: Mashups updating issues (e5913008d81c)
+ - Mashups: Display Widget section was not updated when
+   switching aliases (e5913008d81c)
+ - Mashups: Mashup inspector was not updated when switching
+   vistrails using the workspace in Mashups View (e5913008d81c)
+ - Mashups: Mashup Pipeline Palette was not being updated when
+   switching mashups using the Mashup List Panel (e5913008d81c)
+ - Ticket #483: Index error when recovering a vistrail (8589b301ba13)
+ - Fixed issues with upgraded subworkflows (9c4dfcbef423)
+ - Ticket #475: Changing the background color fails in Mashup mode (31670c3e66f2)
+ - Ticket #477: opening mashup from workspace doesn't show exposed 
+   parameters (429ceb313408)
+ - Sometimes closing a vistrail while closing VisTrails fails (429ceb313408)
+ - Double clicking a vistrail in file browser fails because of 
+   _first_view bug (263f1947cf2c)
+ - vtkhandler did not handle new PythonEditor correctly (aa3511259f10)
+ - Ticket #443: ports are not added through Module Configuration 
+   and annoying confirmation (01ed7a6566b3)
+ - Ticket #473: Cannot execute from history view immediately after 
+   opening vistrail (e0ba2e97d058)
+ - Ticket #472: parameters in parameter exploration are reset if 
+   not executed (63c55f11f03d)
+ - Ticket #474: Error quitting when spreadsheet is visible (afe4512b1ca9) 
+   (107b24e904ea)
+ - Ticket #470: copy doesn't copy to the correct cell (c44347501d5a)
+ - Fixed issue with cell locations in spreadsheet editing mode (c44347501d5a)
+ - Ticket #471: visual diff window is missing the create analogy 
+   button (14a24ea42b15)
+ - Ticket #469: locate version in editing mode selects history but shows 
+   pipeline (080a2dc8b820)
+ - Opening xml vistrail from workspace showed open file dialog (069db5448e8e)
+ - Module documentation in module palette not working (647613ad637e)
+ - Ticket #467: A file is changed when test suit is run (37e0ab607139)
+ - Ticket #466: history mode selected and pipeline view shows up after 
+   merging 2 trees (e22fe0a4f8b0)
+ - Ticket #459: the explore tab draws upside down (542e2cda8845)
+ - Outdated inspector.annotated_modules value caused explorer tab to be 
+   drawn upside down on Mac (542e2cda8845)
+ - Ticket #446: subworkflow editing only good for one save (2ab6a92c2084)
+   (85b50d980ab1)
+ - Fixes to subworkflow upgrades and save as (2ab6a92c2084)
+ - Changes to subworkflow identification (85b50d980ab1)
+ - Ticket #465: Open Recent menu does not contain saved vistrails (a484b18b3eed)
+ - Update recent files list also when vistrail is saved (a484b18b3eed)
+ - Ticket #463: Current version not selected on open (154e9b2e8eaa)
+ - Select latest version when opening a vistrail (154e9b2e8eaa)
+ - Ticket #462: Ungrab mouse error after editing subworkflow (6aaa6bd2b526)
+ - Ticket #432: Problem with labeling groups (6aaa6bd2b526)
+ - Ticket #461: Initial history view for first vistrail is not zoomed to 
+   fit (b3d8909ac0ed)
+ - Fix zoom to fit for initial vistrail (b3d8909ac0ed)
+ - Ticket #434: Can't remove tags of versions that were 
+   upgraded (v2.0) (47636de1ec66)
+ - Fix issue where raw pipeline and construct from root were not 
+   working (47636de1ec66)
+ - Enabled Embed version by default when selecting Publish > To Paper (8bf5e737a2c2)
+ - Ticket #456: Cannot copy/paste in detached pipelines/vistrails (0cb6ef7650af)
+ - Fixed issues with spreadsheet editing for copies and analogies (d2d4bae51a6d)
+ - Enabled Edit Configuration and Show Documentation from a module's
+   context menu  (00dcb21d22a6)
+ - File > Export > PDF was not working  (fce8cc569c14)
+ - Ticket #455: Module Information Tab stretches unnaturally when package 
+   has a long name (2d07662227fd)
+ - module information stretches unnaturally (2d07662227fd)
+ - Ticket #457: PythonSource ports are not updated when configuration window 
+   is saved (f6e151300476)
+ - Ticket #456: Cannot copy/paste in detached pipelines/vistrails (f9470d9fa04a)
+ - Removed missing web service (028fc4e03c62)
+ - Fixed header placement in xml files that were causing tests to fail (4db41b9e2e75)
+ - Workspace fixes for saving empty vistrail and closing detached 
+   vistrail (1f798a7a0c84)
+ - Ticket #454: Can't interact with TransferFunction widget using 
+   Qt 4.7.* (ea7e21dc9e01)
+ - Ticket #453: Workspace indexing error in tree mode (f8b17ab82b9b)
+ - Skip workspace make_tree when no window exist (f8b17ab82b9b)
  - Ticket #450: Indexing failures need to be more graceful (f76532828242)
  - Better error handling when indexing workflow (f76532828242)
  - Ticket #452: Visual Diff Parameter Changes not detected (65849c433682)

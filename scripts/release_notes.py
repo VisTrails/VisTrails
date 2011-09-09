@@ -48,7 +48,7 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "af4a69ad566a" # hash of version used on last release notes
+commit_start = "6fc02caef9ff" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.0" # git branch to be used
 release_name = "2.0-alpha" 
@@ -56,7 +56,7 @@ clonepath = None # set this to the complete path of a vistrails clone to be used
                  # if None, the remote repository will be cloned to a temporary
                  # folder and removed at the end of the script
 #clonepath = '/Users/emanuele/temp/vistrails_test'
-cloneremote = 'git://vistrails.sci.utah.edu/vistrails.git'
+cloneremote = 'git://www.vistrails.org/vistrails.git'
 #### end configuration #####
 
 ## The script will ask for your Trac user and password
@@ -225,7 +225,7 @@ def build_release_notes(repo, branch):
         username = raw_input()
         password = getpass.getpass()
 
-    url = "https://%s:%s@vistrails.sci.utah.edu/login/xmlrpc"%(username,
+    url = "https://%s:%s@www.vistrails.org/login/xmlrpc"%(username,
                                                                password)
     server = xmlrpclib.ServerProxy(url)
     print "downloading tickets.",
