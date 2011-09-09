@@ -301,7 +301,7 @@ class QDropDownWidget(QtGui.QWidget):
         reg = get_module_registry()
         p_module = reg.get_module_by_name(idn, self.vtparam.type, 
                                           self.vtparam.namespace)
-        get_widget_class(p_module)
+        widget_type = get_widget_class(p_module)
         if val:
             self.vtparam.strValue = val
         return widget_type(self.vtparam, parent)
