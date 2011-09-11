@@ -501,13 +501,18 @@ class PortsList(QtGui.QTreeWidget):
                 str_values.append(str(w.contents()))
                 if hasattr(w, 'query_method'):
                     query_methods.append(w.query_method())
+            if real_id < 0:
+                should_replace = False
+            else:
+                should_replace = True
             self.controller.update_function(self.module,
                                             port_name,
                                             str_values,
                                             real_id,
                                             [str(label.alias)
                                              for label in labels],
-                                            query_methods)
+                                            query_methods,
+                                            should_replace)
 
             # FIXME need to get the function set on the item somehow
             # HACK for now
