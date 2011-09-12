@@ -474,6 +474,7 @@ class PortsList(QtGui.QTreeWidget):
                     visible_ports.add(item.port_spec.name)
                 else:
                     visible_ports.discard(item.port_spec.name)
+                self.controller.flush_delayed_actions()
                 self.controller.current_pipeline_view.recreate_module(
                     self.controller.current_pipeline, self.module.id)
         if col == 2:
