@@ -299,13 +299,13 @@ workflow.
 
    The configuration window for ``PythonSource`` allows multiple input and output ports to be specified along with the Python code that is to be executed.
 
-**Accessing VTK objects in PythonSource** When using a ``PythonSource`` module, users will often rely on their knowledge of VTK to interact with VTK modules.  It is important to realize that a VTK module is really a wrapping of a VTK object.  The real VTK object is called vtkInstance, meaning the VTK object of a module called 'dataset' is called 'dataset.vtkInstance' (see figure :ref:`Accessing VTK Objects<fig-pythonsource-vtkinstance>`).
+**Accessing vtkObjects in PythonSource** When using a ``PythonSource`` module, users will often rely on their knowledge of VTK to interact with VTK modules.  It is important to realize that a VTK module is really a wrapping of a vtkObject.  The real vtkObject is called vtkInstance, meaning the vtkObject of a module called 'dataset' is called 'dataset.vtkInstance' (see figure :ref:`Accessing vtkObjects<fig-pythonsource-vtkinstance>`).
 
 .. _fig-pythonsource-vtkinstance:
 
 .. figure:: figures/creating/python_source_instance.png
    :align: center
 
-   Accessing VTK Objects.  The VTK object of a VTK module, 'dataset', is accessed with 'dataset.vtkInstance'. 
+   Accessing vtkObjects.  The vtkObject of a VTK module, 'dataset', is accessed with 'dataset.vtkInstance'. 
 
 .. index:: builder
