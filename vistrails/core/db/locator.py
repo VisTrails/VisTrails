@@ -642,6 +642,10 @@ class FileLocator(CoreLocator):
         vtname = convert_from_str(data, 'str')
         data = node.get('forceDB',None)
         forceDB = convert_from_str(data,'bool')
+        data = node.get('mashuptrail', None)
+        mashuptrail = convert_from_str(data, 'str')
+        data = node.get('mashupVersion', None)
+        mashupVersion = convert_from_str(data, 'int')
         
         #if execute is False, we will show the builder too
         if showSpreadsheetOnly and not execute:
@@ -695,16 +699,23 @@ class FileLocator(CoreLocator):
                     f = open(fname,'wb')
                     f.write(vtcontent)
                     f.close()
-                return FileLocator(fname, version_node=version, version_tag=tag)
+                return FileLocator(fname, version_node=version, version_tag=tag,
+                                   mashuptrail=mashuptrail, 
+                                   mashupVersion=mashupVersion)
         if host is not None:
             user = ""
             passwd = ""
             
             return DBLocator(host, port, database,
-                             user, passwd, None, vt_id, 'vistrail',
-                             None, version, tag)
+                             user, passwd, None, obj_id=vt_id, 
+                             obj_type='vistrail',connection_id=None, 
+                             version_node=version, version_tag=tag,
+                             mashuptrail=mashuptrail, 
+                             mashupVersion=mashupVersion)
         elif vtname is not None:
-            return FileLocator(vtname, version, tag)
+            return FileLocator(vtname, version_node=version, versin_tag=tag,
+                               mashuptrail=mashuptrail, 
+                               mashupVersion=mashupVersion)
         
         
     ##########################################################################

@@ -153,11 +153,17 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, buttonDock)
         self.controlDocks["__buttons__"] = buttonDock
         
-        self.saveAllAct = QtGui.QAction("S&ave Combined", self, shortcut=QtGui.QKeySequence.SelectAll,
-                statusTip="Save combined images to disk", triggered=self.saveAllEvent)
-        self.saveAct = QtGui.QAction("&Save Each", self, shortcut=QtGui.QKeySequence.Save,
-                statusTip="Save separate images to disk", triggered=self.saveEventAction)
-        
+        self.saveAllAct = QtGui.QAction("S&ave Combined", self, 
+                                        shortcut=QtGui.QKeySequence.SelectAll,
+                                        statusTip="Save combined images to disk", 
+                                        triggered=self.saveAllEvent)
+        self.saveAct = QtGui.QAction("&Save Each", self, 
+                                     shortcut=QtGui.QKeySequence.Save,
+                                     statusTip="Save separate images to disk", 
+                                     triggered=self.saveEventAction)
+        self.showBuilderAct = QtGui.QAction("VisTrails Main Window", self,
+                                            statusTip="Show VisTrails Main Window",
+                                            triggered=self.showBuilderWindow)
         self.createMenus()
         self.lastExportPath = ''
                     
@@ -168,6 +174,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         
         self.viewMenu = self.menuBar().addMenu("&View")
         self.viewMenu.addAction(self.editingModeAct)
+        
+        self.windowMenu = self.menuBar().addMenu("&Window")
+        self.windowMenu.addAction(self.showBuilderAct)
         
     def runAndGetCellEvents(self, useDefaultValues=False):
         spreadsheetController.setEchoMode(True)        
@@ -362,6 +371,10 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells), errors)
             print errors
             return (False, errors)
         return (True, [])
+    
+    def showBuilderWindow(self):
+        from gui.vistrails_window import _app
+        _app.show()
             
 class QCustomDockWidget(QtGui.QDockWidget):
     def __init__(self, title, parent=None):

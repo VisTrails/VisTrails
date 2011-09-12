@@ -405,11 +405,18 @@ after self.init()"""
                         if locator._vtag != '':
                             version = locator._vtag
                     execute = self.temp_configuration.executeWorkflows
+                    mashuptrail = None
+                    mashupversion = None
+                    if hasattr(locator, '_mshptrail'):
+                        mashuptrail = locator._mshptrail
+                    if hasattr(locator, '_mshpversion'):
+                        mashupversion = locator._mshpversion
                     if not self.temp_configuration.showSpreadsheetOnly:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
-                                                                    version,
-                                                                    execute)
+                                                    version, execute,
+                                                    mashuptrail=mashuptrail, 
+                                                    mashupVersion=mashupversion)
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
                 

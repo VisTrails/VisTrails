@@ -64,6 +64,7 @@ from core.thumbnails import ThumbnailCache
 from core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
 from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
+from core.system import vistrails_default_file_type
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.action import Action
 from core.vistrail.annotation import Annotation
@@ -109,6 +110,8 @@ class VistrailController(object):
             vistrail.log = self.log
         self._current_pipeline = None
         self.locator = None
+        self.name = ''
+        self.file_name = ''
         self._current_version = -1
         self.changed = False
 
@@ -205,6 +208,19 @@ class VistrailController(object):
         if changed!=self.changed:
             self.changed = changed
         
+    def set_file_name(self, file_name):
+        """ set_file_name(file_name: str) -> None
+        Change the controller file name
+        
+        """
+        if file_name == None:
+            file_name = ''
+        if self.file_name!=file_name:
+            self.file_name = file_name
+            self.name = os.path.split(file_name)[1]
+            if self.name=='':
+                self.name = 'untitled%s'%vistrails_default_file_type()
+                
     def check_alias(self, name):
         """check_alias(alias) -> Boolean 
         Returns True if current pipeline has an alias named name """
@@ -1308,7 +1324,7 @@ class VistrailController(object):
             # delete_module over and over?)
             for namespace in get_all_abs_namespaces(abs_vistrail):
                 try:
-                    reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
+                    reg.delete_module(abstraction_pkg, abs_name, namespace)
                 except:
                     pass
         self._loaded_abstractions.clear()

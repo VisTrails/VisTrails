@@ -972,6 +972,13 @@ class QVistrailView(QtGui.QWidget):
         if hasattr(view, 'publish_to_paper'):
             view.publish_to_paper()
 
+    def open_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
+        for mashuptrail in self.controller._mashups:
+            if str(mashuptrail.id) == mashuptrail_id:
+                mashup = mashuptrail.getMashup(mashupVersion)
+                self.open_mashup(mashup)
+                break
+            
     def open_mashup(self, mashup):
         """open_mashup(mashup: Mashup) -> None
         It will switch to version view, select the corresponding node 

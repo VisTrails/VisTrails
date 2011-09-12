@@ -1525,7 +1525,8 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def open_vistrail_without_prompt(self, locator, version=None,
                                      execute_workflow=False, 
-                                     is_abstraction=False, workflow_exec=None):
+                                     is_abstraction=False, workflow_exec=None,
+                                     mashuptrail=None, mashupVersion=None):
         """open_vistrail_without_prompt(locator_class, version: int or str,
                                         execute_workflow: bool,
                                         is_abstraction: bool) -> None
@@ -1533,13 +1534,21 @@ class QVistrailsWindow(QVistrailViewWindow):
         If a version is given, the workflow is shown on the Pipeline View.
         If execute_workflow is True the workflow will be executed.
         If is_abstraction is True, the vistrail is flagged as abstraction
+        If mashuptrail is not None and mashupVersion is not None, the mashup 
+        will be executed.
+        
         """
         if not locator.is_valid():
             ok = locator.update_from_gui(self)
         else:
             ok = True
         if ok:
-            self.open_vistrail(locator, version, is_abstraction)
+            view = self.open_vistrail(locator, version, is_abstraction)
+            if mashuptrail is not None and mashupVersion is not None:
+                view.open_mashup_from_mashuptrail_id(mashuptrail, mashupVersion)
+            elif execute_workflow:
+                self.qactions['execute'].trigger()
+            
             # self.closeVistrailAction.setEnabled(True)
             # self.saveFileAsAction.setEnabled(True)
             # self.exportFileAction.setEnabled(True)
@@ -1550,8 +1559,6 @@ class QVistrailsWindow(QVistrailViewWindow):
             #     self.viewModeChanged(0)
             # else:
             #     self.viewModeChanged(1)
-            # if execute_workflow:
-            #     self.execute_current_pipeline()
             if workflow_exec:
                 self.qactions['provenance'].trigger()
                 self.current_view.log_view.set_exec_by_id(workflow_exec) or \

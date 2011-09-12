@@ -161,7 +161,8 @@ class XMLFileLocator(BaseLocator):
         self._name = filename
         self._vnode = kwargs.get('version_node', None)
         self._vtag = kwargs.get('version_tag', '')
-     
+        self._mshptrail = kwargs.get('mashuptrail', None)
+        self._mshpversion = kwargs.get('mashupVersion', None)
         config = core.configuration.get_vistrails_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
@@ -500,7 +501,9 @@ class DBLocator(BaseLocator):
         self._conn_id = self.kwargs.get('connection_id', None)
         self._vnode = self.kwargs.get('version_node', None)
         self._vtag = self.kwargs.get('version_tag', None)
-
+        self._mshptrail = self.kwargs.get('mashuptrail', None)
+        self._mshpversion = self.kwargs.get('mashupVersion', None)
+        
     def _get_host(self):
         return self._host
     host = property(_get_host)

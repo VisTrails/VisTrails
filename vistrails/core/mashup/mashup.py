@@ -167,7 +167,18 @@ class Mashup(XMLObject):
                     alias = Alias(aid, aname, component)
                     self.alias_list.append(alias)
                     pos += 1 
-                    
+                  
+    def remapPipelineObjects(self, id_remap):
+        for alias in self.alias_list:
+            try:
+                new_pid = id_remap[(alias.component.vtparent_type,
+                                    alias.component.vtparent_id)]
+                alias.component.vtparent_id = new_pid
+                new_id = id_remap[(alias.component.vttype,alias.component.vtid)]
+                alias.component.vtid = new_id
+            except:
+                pass
+            
     def validateForPipeline(self, pipeline):
         """validateForPipeline(pipeline) -> None
         This will make sure that the parameters in the alias list are present
