@@ -263,7 +263,7 @@ class Service:
             if e is not None:
                 p = self.makeDictType(e)
                 if p is not None and p != {}:
-                    d[o] = self.makeDictType(e)
+                    d[str(o)] = self.makeDictType(e)
         return d
             
     def createPackage(self):
@@ -457,12 +457,21 @@ class Service:
                     if obj.__class__.__name__ == 'UberClass':
                         # UberClass is a placeholder and its value is assumed
                         # to be the correct attribute value
-                        setattr(obj, part.name, obj.value)
+                        if len(self.wstype.parts) == 1:
+                            setattr(obj, part.name, obj.value)
+                        else:
+                            # update each attribute
+                            if hasattr(obj.value, part.name):
+                                setattr(obj, part.name, getattr(obj.value, part.name))
                     if self.hasInputFromPort(part.name):
                         p = self.getInputFromPort(part.name)
                         if hasattr(obj, part.name):
                             setattr(obj, part.name, p)
+                        else:
+                            # do it anyway - assume attribute missing in template
+                            setattr(obj, part.name, p)
                     if hasattr(obj, part.name):
+                        # 
                         res = getattr(obj, part.name)
                         self.setResult(part.name, res)
                 self.setResult(self.wstype.qname[0], obj)
@@ -527,19 +536,19 @@ It is a WSDL type with signature:
                 params = {}
                 mname = self.wsmethod.qname[0]
                 for name in self.wsmethod.inputs:
+                    name = str(name)
                     if self.hasInputFromPort(name):
                         params[name] = self.getInputFromPort(name)
                         if params[name].__class__.__name__ == 'UberClass':
                             params[name] = params[name].value
                         params[name] = self.service.makeDictType(params[name])
                 try:
-                    self.service.service.set_options(retxml = True)
+#                    print "params:", str(params)[:400]
+#                    self.service.service.set_options(retxml = True)
+#                    result = getattr(self.service.service.service, mname)(**params)
+#                    print "result:", str(result)[:400]
+#                    self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
-                    import api
-                    api.retxml = result
-                    self.service.service.set_options(retxml = False)
-                    result = getattr(self.service.service.service, mname)(**params)
-                    api.retxml = result
                 except Exception, e:
                     raise ModuleError(self, "Error invoking method %s: %s"%(name, str(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
@@ -594,8 +603,8 @@ Outputs:
                 elif ptype in self.typeClasses:
                     c = self.typeClasses[ptype]
                 else:
-                    debug.critical("Cannot find module for type: " + str(ptype))
-                    continue
+                    # use string as default
+                    c = wsdlTypesDict['string']
                 reg.add_input_port(M, p, c)
             for p, ptype in m.outputs.iteritems():
                 if ptype[1] in wsdlSchemas:
@@ -603,8 +612,8 @@ Outputs:
                 elif ptype in self.typeClasses:
                     c = self.typeClasses[ptype]
                 else:
-                    debug.critical("Cannot find module for type: %s %s %s" % (str(t.name), str(p), str(ptype)))
-                    continue
+                    # use string as default
+                    c = wsdlTypesDict['string']
                 reg.add_output_port(M, p, c)
 
 def load_from_signature(signature):
