@@ -53,9 +53,7 @@ from core.system import vistrails_root_directory, vistrails_version
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 import core.cache.hasher
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBRegistry
+from db.domain import DBRegistry
 
 ##############################################################################
 

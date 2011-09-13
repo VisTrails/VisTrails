@@ -33,11 +33,13 @@
 ###############################################################################
 
 from core.vistrail.controller import VistrailController as BaseController
+from javax.swing import JComponent
 
-class JVistrailController(BaseController):
+class JVistrailController(BaseController, JComponent):
     
     def __init__(self):
-        BaseController.__init__()
+        BaseController.__init__(self)
+        self.fileName  = ""
         
     def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
@@ -45,11 +47,11 @@ class JVistrailController(BaseController):
         
         """
         # self.vistrail = vistrail
-        BaseController.set_vistrail(self, vistrail, locator, abstractions,
+        super(JVistrailController, self).set_vistrail(vistrail, locator, abstractions,
                                     thumbnails)
         if locator != None:
-            self.set_file_name(locator.name)
+            self.fileName = locator.name
         else:
-            self.set_file_name('')
+            self.fileName = ''
         if locator and locator.has_temporaries():
             self.set_changed(True)

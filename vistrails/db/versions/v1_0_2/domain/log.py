@@ -32,7 +32,7 @@
 ##
 ###############################################################################
 
-from auto_gen import DBLog as _DBLog
+from auto_gen2 import DBLog as _DBLog
 from auto_gen import DBAbstraction, DBModule, DBGroup, DBLoopExec, \
     DBGroupExec, DBModuleExec
 from id_scope import IdScope

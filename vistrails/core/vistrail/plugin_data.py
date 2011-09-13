@@ -33,8 +33,7 @@
 ###############################################################################
 
 import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBPluginData
+from db.domain import DBPluginData
 
 class PluginData(DBPluginData):
 
@@ -81,9 +80,7 @@ class PluginData(DBPluginData):
 import unittest
 import copy
 import random
-import sys
-sys.path.append("../../db/domain")
-from id_scope import IdScope
+from db.domain import IdScope
 
 class TestPluginData(unittest.TestCase):
 

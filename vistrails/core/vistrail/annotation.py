@@ -33,8 +33,8 @@
 ###############################################################################
 
 import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBAnnotation
+print sys.path
+from db.domain import DBAnnotation
 
 class Annotation(DBAnnotation):
 

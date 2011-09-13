@@ -61,8 +61,9 @@ class BuilderFrame(JFrame):
                     # version number
                     if locator._vtag != '':
                         version = locator._vtag
+            self.currentLocator = locator                       
             self.open_vistrail_without_prompt(locator, version)
-            self.currentLocator = locator
+
     
     def open_vistrail_without_prompt(self, locator, version = None):
         viewComp = self.viewManager.open_vistrail(self.currentLocator, None, None)

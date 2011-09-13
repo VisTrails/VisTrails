@@ -36,9 +36,7 @@
     * ModuleFunction
 """
 
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBFunction
+from db.domain import DBFunction
 from core.utils import enum, VistrailsInternalError, all, eprint
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.port_spec import PortSpec
@@ -231,9 +229,7 @@ class ModuleFunction(DBFunction):
 import unittest
 import copy
 from core.vistrail.module_param import ModuleParam
-import sys
-sys.path.append("../../db/domain")
-from id_scope import IdScope
+from db.domain import IdScope
 
 #TODO add more meaningful tests
 

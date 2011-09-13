@@ -3874,11 +3874,6 @@ class DBActionAnnotation(object):
     def getPrimaryKey(self):
         return self._db_id
 
-class DBLog(object):
-
-    def __init_(self, id = None):
-        self.id = id
-
 class DBLoopExec(object):
 
     vtType = 'loop_exec'
@@ -4963,13 +4958,6 @@ class DBModuleExec(object):
     def getPrimaryKey(self):
         return self._db_id
 
-
-
-class DBMachine(object):
-
-    def __init_(self, id = None):
-        self.id = id
-
 class DBFunction(object):
 
     vtType = 'function'
@@ -5699,12 +5687,6 @@ class DBPluginData(object):
     
     def getPrimaryKey(self):
         return self._db_id
-
-
-class DBOpmGraph(object):
-
-    def __init_(self, id = None):
-        self.id = id
 
 class DBPort(object):
 

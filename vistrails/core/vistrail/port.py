@@ -35,9 +35,7 @@
     * Port
 
  """
-import sys
-sys.path.append("../../db/domain") 
-from auto_gen import DBPort
+from db.domain import DBPort
 from core.utils import VistrailsInternalError, all
 from core.vistrail.port_spec import PortSpec, PortEndPoint
 import core.modules.vistrails_module
@@ -127,10 +125,10 @@ class Port(DBPort):
     def convert(_port):
         if _port.__class__ == Port:
             return
-        _port.__class__ = Port
-        _port._spec = None
-        _port._descriptors = None
-        _port.set_defaults()
+        #_port.__class__ = Port.__class__
+        #_port._spec = None
+        #_port._descriptors = None
+        #_port.set_defaults()
 
     ##########################################################################
     # Properties
@@ -240,9 +238,7 @@ class Port(DBPort):
 ###############################################################################
 
 import unittest
-import sys
-sys.path.append("../../db/domain")
-from id_scope import IdScope
+from db.domain import IdScope
 
 if __name__ == '__main__':
     import core.modules.basic_modules

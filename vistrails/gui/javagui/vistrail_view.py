@@ -32,21 +32,32 @@
 ##
 ###############################################################################
 
-from gui.java import JController
+from vistrail_controller import JVistrailController
+
 from javax.swing import JPanel
 from java.awt import Graphics
+from core.data_structures.graph import Graph
+from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+from core.vistrail.pipeline import Pipeline
+from java.awt import Color
+import core.db.io
 
 class JVistrailView(JPanel):
     
-    def __init__(self):
-        self.controller = JController()
-        set_vistrail()
+    def __init__(self, vistrail, locator):
+        self.full_tree = True
+        self.refine = False
+        self.controller = JVistrailController()
+        self.idScope = self.controller.id_scope
+        self.set_vistrail(vistrail, locator)
+        self.setBackground(Color.GREEN)
+
     
     def set_vistrail(self, vistrail, locator, abstraction_files=None,
                           thumbnail_files=None, version=None):
         self.vistrail = vistrail
         self.locator = locator
-        self.controller.set_vistrail(vistrail, locator, abstractions, thumbnails)
+        self.controller.set_vistrail(vistrail, locator)
         self.set_graph()
         
     def set_graph(self):
@@ -55,11 +66,11 @@ class JVistrailView(JPanel):
         # create tersed tree                                                                        
         x = [(0,None)]
         tersedVersionTree = Graph()
-
         # cache actionMap and tagMap because they're properties, sort of slow                       
         am = self.vistrail.actionMap
         tm = self.vistrail.get_tagMap()
-        last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
+        last_n = self.vistrail.getLastActions(1)
+        #last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
         
         while 1:
             try:
@@ -113,11 +124,16 @@ class JVistrailView(JPanel):
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
+        self._current_graph_layout = VistrailsTreeLayoutLW()
         self._current_graph_layout.layout_from(self.vistrail,
-                                               self._current_terse_graph)
+                                               self._current_full_graph)
+        print self.vistrail.get_latest_version()
+        print core.db.io.get_workflow(self.vistrail, 13)
+        print self.controller.current_pipeline is None
         
-        def paint(self, graphics):
-            for node in self._current_graph_layout.nodes:
-                graphics.fillRect(node.p.x, node.p.y, node.width, node.height)
-            
-
+    def paintComponent(self, graphics):
+        if graphics is not None:
+            for node in self._current_graph_layout.nodes.iteritems():
+                print node[1].label
+                graphics.fillRect(int(node[1].p.x), int(node[1].p.y), int(node[1].width), int(node[1].height))
+                

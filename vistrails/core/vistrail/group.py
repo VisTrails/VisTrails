@@ -40,9 +40,7 @@ from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.port_spec import PortSpec, PortEndPoint
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBGroup
+from db.domain import DBGroup
 
 from core.utils import NoSummon, VistrailsInternalError, report_stack
 from core.modules.basic_modules import identifier as basic_pkg, \
@@ -297,9 +295,7 @@ class Group(DBGroup, Module):
 # Testing
 
 import unittest
-import sys
-sys.path.append("../../db/domain")
-from id_scope import IdScope
+from db.domain import IdScope
 
 class TestGroup(unittest.TestCase):
 

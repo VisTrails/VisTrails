@@ -33,9 +33,8 @@
 ###############################################################################
 
 import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBAdd, DBChange, DBDelete
-from auto_gen import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
+from db.domain import DBAdd, DBChange, DBDelete
+from db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
     DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \
     DBPortSpec
 
@@ -338,9 +337,7 @@ class DeleteOp(DBDelete):
 
 import unittest
 import copy
-import sys
-sys.path.append("../../db/domain")
-from id_scope import IdScope
+from db.domain import IdScope
 
 class TestOperation(unittest.TestCase):
     

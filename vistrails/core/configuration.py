@@ -318,11 +318,7 @@ def get_vistrails_configuration():
     use get_vistrails_persistent_configuration() instead.
     
     """
-    if hasattr(QtCore.QCoreApplication.instance(),
-               'temp_configuration'):
-        return QtCore.QCoreApplication.instance().temp_configuration
-    else:
-        return None
+    return None
 
 def get_vistrails_temp_configuration():
     """get_vistrails_temp_configuration() -> ConfigurationObject or None

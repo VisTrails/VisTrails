@@ -144,8 +144,9 @@ class Pipeline(DBWorkflow):
                                       fun.real_id,
                                       m_id)
         for connection in self.connection_list:
-            self.graph.add_edge(connection.source.moduleId,
-                                connection.destination.moduleId,
+
+            self.graph.add_edge(connection.source._db_moduleId,
+                                connection.destination._db_moduleId,
                                 connection.id)
             
     def __copy__(self):

@@ -42,9 +42,7 @@ from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBAbstraction
+from db.domain import DBAbstraction
 
 class Abstraction(DBAbstraction, Module):
 

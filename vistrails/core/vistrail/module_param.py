@@ -35,9 +35,7 @@
     * ModuleParam
 
  """
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBParameter
+from db.domain import DBParameter
 from core.utils import enum
 
 ################################################################################
@@ -307,9 +305,7 @@ class ModuleParam(DBParameter):
 
 import unittest
 import copy
-import sys
-sys.path.append("../../db/domain")
-from id_scope import IdScope
+from db.domain import IdScope
 
 class TestModuleParam(unittest.TestCase):
 

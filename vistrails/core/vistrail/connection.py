@@ -35,9 +35,7 @@
 """
 
 import copy
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBConnection
+from db.domain import DBConnection
 import core.modules.module_registry
 from core.modules.vistrails_module import ModuleConnector
 from core.utils import VistrailsInternalError
@@ -119,6 +117,9 @@ class Connection(DBConnection):
         cp = DBConnection.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Connection
         cp.makeConnection = moduleConnection(cp)
+        if isinstance(cp.ports, int):
+            tempPort = cp.ports
+            cp.ports = [tempPort]
         for port in cp.ports:
             Port.convert(port)
         return cp
@@ -131,6 +132,10 @@ class Connection(DBConnection):
         if _connection.__class__ == Connection:
             return
         _connection.__class__ = Connection
+
+        if isinstance(_connection.ports, int):
+            temp_ports = _connection.ports
+            _connection.ports = [temp_ports]
 
         for port in _connection.ports:
             Port.convert(port)
@@ -329,9 +334,7 @@ class Connection(DBConnection):
 # Testing
 
 import unittest
-import sys
-sys.path.append("../../db/domain")
-from id_scope import IdScope
+from db.domain import IdScope
 
 class TestConnection(unittest.TestCase):
 

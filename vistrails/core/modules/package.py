@@ -46,9 +46,7 @@ from core import debug
 from core.configuration import ConfigurationObject, get_vistrails_configuration
 from core.modules.module_descriptor import ModuleDescriptor
 
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBPackage
+from db.domain import DBPackage
 
 ##############################################################################
 

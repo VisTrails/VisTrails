@@ -34,17 +34,15 @@
 
 from core.db.io import load_vistrail
 from core.modules.module_registry import ModuleRegistryException
-from javagui.vistrail_view import JVistrailView
+from vistrail_view import JVistrailView
 
 from javax.swing import JComponent
 
 
 class JViewManager(JComponent):
     
-    def __init__(self, parent = None):
-        self.parent = parent
-        if parent:
-            self.parent.add(self)
+    def __init__(self):
+        pass
     
     def add_vistrail_view(self, view):
         viewComponent = view.controller
@@ -53,7 +51,7 @@ class JViewManager(JComponent):
     def open_vistrail(self, locator, version = None, is_abstraction=False):
         try:
             (vistrail, abstraction_files, thumbnail_files) = \
-                                        load_vistrail(locator, is_abstraction)
+                                        load_vistrail(locator, is_abstraction)                                                
             result = self.set_vistrail_view(vistrail, locator, 
                                             abstraction_files, thumbnail_files,
                                             version)
@@ -64,8 +62,8 @@ class JViewManager(JComponent):
             raise
     
     def set_vistrail_view(self, vistrail, locator, abstraction_files=None,
-                          thumbnail_files=None, version=None):
-        vistrailView = JVistrailView()
+                          thumbnail_files=None, version=None):   
+        vistrailView = JVistrailView(vistrail, locator)
         vistrailView.set_vistrail(vistrail, locator, abstraction_files,
                                   thumbnail_files)
         self.add_vistrail_view(vistrailView)

@@ -37,9 +37,7 @@ from itertools import izip
 
 from core.data_structures.bijectivedict import Bidict
 from core.utils import enum, VistrailsInternalError
-import sys
-sys.path.append("../../db/domain")
-from auto_gen import DBPortSpec
+from db.domain import DBPortSpec
 
 ################################################################################
 
@@ -465,7 +463,7 @@ class PortSpec(DBPortSpec):
 
 import unittest
 import copy
-from id_scope import IdScope
+from db.domain import IdScope
 
 class TestPortSpec(unittest.TestCase):
 
