@@ -464,8 +464,8 @@ class QVistrailView(QtGui.QWidget):
         if self.controller.current_pipeline_view.parent() == view:
             self.controller.current_pipeline_view = None
             self.activateWindow()
-            self.view_changed()
             self.reset_tab_view_to_current()
+            self.view_changed()
         del self.detached_views[view]
         
     def updateTabsTooTip(self):
@@ -554,6 +554,15 @@ class QVistrailView(QtGui.QWidget):
                 widget = widget.get_current_view()
             return widget
         
+    def get_current_outer_tab(self):
+        window = QtGui.QApplication.activeWindow()
+        if window in self.detached_views.values():
+            return window.view   
+        else:
+            #if none of the detached views is active we will assume that the
+            #window containing this vistrail has focus
+            return self.stack.currentWidget()
+        
     def get_tab(self, stack_idx):
         widget = self.stack.widget(stack_idx)
         if type(widget) == QQueryView:
@@ -563,8 +572,8 @@ class QVistrailView(QtGui.QWidget):
     def view_changed(self):
         from gui.vistrails_window import _app
         _app.closeNotPinPalettes()
-        view = self.stack.currentWidget()
-        # view = self.get_current_tab()
+        #view = self.stack.currentWidget()
+        view = self.get_current_outer_tab()
         #print "changing tab from: ",self.current_tab, " to ", view
         #print self.tab_to_stack_idx
         if view != self.current_tab:
