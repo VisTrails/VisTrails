@@ -863,8 +863,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         index = self.stack.addWidget(view)
         self.stack.setCurrentIndex(index)
         self.view_notifications[view] = {}
-        for notification_id, method in view.get_notifications().iteritems():
-            self.register_notification(notification_id, method, True, view)
+        for notification_id, method_list in \
+                view.get_notifications().iteritems():
+            for method in method_list:
+                self.register_notification(notification_id, method, True, view)
 
         QWorkspaceWindow.instance().add_vt_window(view)
 
