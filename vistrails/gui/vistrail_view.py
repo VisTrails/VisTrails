@@ -174,6 +174,11 @@ class QVistrailView(QtGui.QWidget):
     def get_notifications(self):
         return self.notifications
 
+    def set_notification(self, notification_id, method):
+        if notification_id not in self.notifications:
+            self.notifications[notification_id] = []
+        self.notifications[notification_id].append(method)
+
     def set_controller(self, controller):
         self.controller = controller
         self.controller.vistrail_view = self
@@ -681,7 +686,7 @@ class QVistrailView(QtGui.QWidget):
                      self.gen_module_selected(view))
         view.set_controller(self.controller)
         view.set_to_current()
-        self.notifications['module_done_configure'] = view.done_configure
+        self.set_notification('module_done_configure', view.done_configure)
         #self.switch_to_tab(view.tab_idx)
         return view
     
@@ -705,13 +710,14 @@ class QVistrailView(QtGui.QWidget):
         self.connect(view.pipeline_view.scene(), 
                      QtCore.SIGNAL('moduleSelected'),
                      self.gen_module_selected(view.pipeline_view))
-        self.connect(view.version_result_view.scene(),
-                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                     self.version_selected)
-        self.connect(view.version_result_view.scene(),
-                     QtCore.SIGNAL('diffRequested(int,int)'),
-                     self.diff_requested)
-        self.notifications['query_changed'] = view.query_changed
+        # self.connect(view.version_result_view.scene(),
+        #              QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+        #              self.version_selected)
+        # self.connect(view.version_result_view.scene(),
+        #              QtCore.SIGNAL('diffRequested(int,int)'),
+        #              self.diff_requested)
+        self.set_notification('query_changed', view.query_changed)
+        self.set_notification('version_changed', view.version_changed)
         return view
 
     def create_diff_view(self):
@@ -722,14 +728,14 @@ class QVistrailView(QtGui.QWidget):
 
     def create_pe_view(self):
         view = self.create_view(QParamExploreView, False)
-        self.notifications['controller_changed'] = view.set_controller
-        self.notifications['pipeline_changed'] = view.updatePipeline
+        self.set_notification('controller_changed', view.set_controller)
+        self.set_notification('pipeline_changed', view.updatePipeline)
         return view
 
     def create_log_view(self):
         from gui.vistrails_window import _app
         view = self.create_view(QLogView, False)
-        self.notifications['execution_changed'] = view.execution_changed
+        self.set_notification('execution_changed', view.execution_changed)
         return view
     
     def create_mashup_view(self):
@@ -737,9 +743,9 @@ class QVistrailView(QtGui.QWidget):
         from gui.vistrails_window import _app
         view = self.create_view(QMashupView, False)
         view.set_controller(self.controller)
-        self.notifications['controller_changed'] = view.controllerChanged
-        self.notifications['alias_changed'] = view.aliasChanged
-        self.notifications['version_changed'] = view.versionChanged
+        self.set_notification('controller_changed', view.controllerChanged)
+        self.set_notification('alias_changed', view.aliasChanged)
+        self.set_notification('version_changed', view.versionChanged)
         return view
     
     def gen_module_selected(self, view):

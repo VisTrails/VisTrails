@@ -554,6 +554,10 @@ class QSearchBox(QtGui.QWidget):
         hLayout.setSpacing(2)
         self.setLayout(hLayout)
 
+        self.searchEdit = QSearchEditBox(incremental, self)
+        #TODO: Add separator!
+        self.searchEdit.clearEditText()
+
         if refine:
             self.actionGroup = QtGui.QActionGroup(self)
             self.searchAction = QtGui.QAction('Search', self)
@@ -586,10 +590,6 @@ class QSearchBox(QtGui.QWidget):
             self.searchLabel.setMargin(4)
             hLayout.addWidget(self.searchLabel)
         
-        self.searchEdit = QSearchEditBox(incremental, self)
-        self.setFocusProxy(self.searchEdit)
-        #TODO: Add separator!
-        self.searchEdit.clearEditText()
         hLayout.addWidget(self.searchEdit)
 
         self.resetButton = QtGui.QToolButton(self)
