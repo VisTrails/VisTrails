@@ -1524,7 +1524,15 @@ class QVistrailsWindow(QVistrailViewWindow):
                     # version number
                     if locator._vtag != '':
                         version = locator._vtag
-            self.open_vistrail_without_prompt(locator, version)
+            mashuptrail = None
+            mashupversion = None
+            if hasattr(locator, '_mshptrail'):
+                mashuptrail = locator._mshptrail
+            if hasattr(locator, '_mshpversion'):
+                mashupversion = locator._mshpversion
+            self.open_vistrail_without_prompt(locator, version, 
+                                              mashuptrail=mashuptrail,
+                                              mashupVersion=mashupversion)
             self.set_current_locator(locator)
 
     def open_vistrail_without_prompt(self, locator, version=None,
