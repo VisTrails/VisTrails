@@ -45,10 +45,10 @@ def disable_lion_restore():
     minor = int(release[1])
     if major*100+minor<107: return
     import os
-    ssPath = os.path.expanduser('~/Library/Saved Application State/edu.utah.sci.vistrails.savedState')
+    ssPath = os.path.expanduser('~/Library/Saved Application State/org.vistrails.savedState')
     if os.path.exists(ssPath):
         os.system('rm -rf "%s"' % ssPath)
-    os.system('defaults write edu.utah.sci.vistrails NSQuitAlwaysKeepsWindows -bool false')
+    os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
 if __name__ == '__main__':
     disable_lion_restore()

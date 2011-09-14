@@ -1197,11 +1197,12 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = obj.window()
             if isinstance(window, BaseView):
                 window = window.vistrail_view.window()
-            qaction = window.qactions[action]
-            method = get_method(qaction, check)
-            notification = (notification_id, method, True, view)
-            self.register_notification(*notification)
-            link_list.append(notification)
+            if action in window.qactions:
+                qaction = window.qactions[action]
+                method = get_method(qaction, check)
+                notification = (notification_id, method, True, view)
+                self.register_notification(*notification)
+                link_list.append(notification)
         self.action_links[id(obj)] = link_list
     
     def unset_action_links(self, obj):
@@ -1215,12 +1216,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = window.vistrail_view.window()
         qactions = window.qactions
         for action, mlist in obj.action_defaults.iteritems():
-            qaction = qactions[action]
-            for (method, is_callback, value) in mlist:
-                if is_callback:
-                    getattr(qaction, method)(value())
-                else:
-                    getattr(qaction, method)(value)
+            if action in qactions:
+                qaction = qactions[action]
+                for (method, is_callback, value) in mlist:
+                    if is_callback:
+                        getattr(qaction, method)(value())
+                    else:
+                        getattr(qaction, method)(value)
             
     def set_name(self):
         widget = self.stack.currentWidget()
@@ -2354,27 +2356,26 @@ class QVistrailsWindow(QVistrailViewWindow):
                 view = self.get_current_view()
 #                print "view: ", view
                 if view and (view == current or view.isAncestorOf(current)):
-                    if (owner != self._focus_owner and 
-                        view != self._previous_vt_view):
+                    if owner != self._focus_owner:
                         self._previous_vt_view = view
-                        self._previous_view = view.get_current_tab()
                         self._focus_owner = owner
                         self.change_view(view)
-                        view.view_changed()
-                        view.reset_tab_view_to_current()
                         self.update_window_menu()
+                        self._previous_view = view.get_current_tab()
+                        view.reset_tab_view_to_current()
+                        view.view_changed()    
+                        
             elif isinstance(owner, QBaseViewWindow):
                 view = owner.get_current_view()
-#                print "view: ", view
-                if (view and owner != self._focus_owner and 
-                        view != self._previous_vt_view):
+                #print "view: ", view
+                if view and owner != self._focus_owner:
                     self._previous_vt_view = view
-                    self._previous_view = view.get_current_tab()
                     self._focus_owner = owner
                     self.change_view(view)
-                    view.view_changed()
-                    view.set_to_current(current)
                     self.update_window_menu()
+                    self._previous_view = view.get_current_tab()
+                    view.set_to_current(current)
+                    view.view_changed()
         else:
             self._focus_owner = None
 _app = None
