@@ -429,32 +429,25 @@ class PortsList(QtGui.QTreeWidget):
             # self.expandAll()
             # self.resizeColumnToContents(2) 
         # show invalid module attributes
-        if module and not module.is_valid:
-            if self.port_type == 'input':
-                for function in module.functions:
-                    if not function.is_valid:
-                        debug.critical("function '%s' not valid", function.name)
-                        continue
-                    if function.name in self.port_spec_items:
-                        port_spec, item = self.port_spec_items[function.name]
-                    else:
-                        port_spec = PortSpec(name=function.name, type='input', sigstring='(edu.utah.sci.vistrails.basic:String)')
-                        item = PortItem(port_spec,  False, False, False)
-                    self.addTopLevelItem(item)
-                    self.port_spec_items[port_spec.name] = (port_spec, item)
-                    function = function.__copy__()
-                    if len(function.parameters):
-                        value = ', '.join([p.strValue for p in function.parameters])
-                        parameter = function.parameters[0]
-                        parameter.typeStr = 'edu.utah.sci.vistrails.basic:String'
-                        parameter.strValue = value
-                        function.parameters = [parameter]   
-                    subitem = self.entry_klass(port_spec, function)
-                    self.function_map[function.real_id] = subitem
-                    item.addChild(subitem)
-                    subitem.setFirstColumnSpanned(True)
-                    self.setItemWidget(subitem, 0, subitem.get_widget())
-                    item.setExpanded(True)
+        if module and not module.is_valid and self.port_type == 'input':
+            for function in module.functions:
+                if function.name in self.port_spec_items:
+                    port_spec, item = self.port_spec_items[function.name]
+                else:
+                    sigstring = "(" + ",".join(
+                        ['edu.utah.sci.vistrails.basic:String'
+                         for i in xrange(len(function.parameters))]) + ")"
+                    port_spec = PortSpec(name=function.name, type='input',
+                                         sigstring=sigstring)
+                    item = PortItem(port_spec,  False, False, False)
+                self.addTopLevelItem(item)
+                self.port_spec_items[port_spec.name] = (port_spec, item)
+                subitem = self.entry_klass(port_spec, function)
+                self.function_map[function.real_id] = subitem
+                item.addChild(subitem)
+                subitem.setFirstColumnSpanned(True)
+                self.setItemWidget(subitem, 0, subitem.get_widget())
+                item.setExpanded(True)
 
     def item_clicked(self, item, col):
         if item.parent() is not None:
