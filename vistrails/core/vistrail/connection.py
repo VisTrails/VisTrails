@@ -195,7 +195,7 @@ class Connection(DBConnection):
         use sourceId property: c.sourceId 
 
         """
-        return self.source.moduleId
+        return self.source._db_moduleId
 
     def _set_sourceId(self, id):
         """ _set_sourceId(id : int) -> None 
@@ -214,7 +214,7 @@ class Connection(DBConnection):
         use sourceId property: c.destinationId 
 
         """
-        return self.destination.moduleId
+        return self.destination._db_moduleId
 
     def _set_destinationId(self, id):
         """ _set_destinationId(id : int) -> None 

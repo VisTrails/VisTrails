@@ -35,6 +35,8 @@
 from vistrail_controller import JVistrailController
 
 from javax.swing import JPanel
+from javax.swing import JLabel
+from java.awt import Font
 from java.awt import Graphics
 from core.data_structures.graph import Graph
 from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
@@ -125,15 +127,109 @@ class JVistrailView(JPanel):
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
         self._current_graph_layout = VistrailsTreeLayoutLW()
+        #self._current_graph_layout.layout_from(self.vistrail,
+        #                                       self._current_terse_graph)
+
+        self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail, 13)
+        
+        tersedPipelineGraph = Graph()
+        
+        for module in self.controller.current_pipeline._get_modules():
+            tersedPipelineGraph.add_vertex(module, module)
+        
+        edgeId = 0   
+        for connection in self.controller.current_pipeline.connections:
+            sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
+            targetId = self.controller.current_pipeline.connections[connection]._get_destinationId()
+            tersedPipelineGraph.add_edge(sourceId, targetId, edgeId)
+            edgeId = edgeId + 1
+        self.pipelineGraph = tersedPipelineGraph    
         self._current_graph_layout.layout_from(self.vistrail,
-                                               self._current_full_graph)
-        print self.vistrail.get_latest_version()
-        print core.db.io.get_workflow(self.vistrail, 13)
-        print self.controller.current_pipeline is None
+                                               self.pipelineGraph)
         
     def paintComponent(self, graphics):
+        font = Font("FontDialog", Font.PLAIN, 12)
+        fontRenderContext = graphics.getFontRenderContext()
+        
+        #draw the pipeline tree
+        nodesToDim = {}
+        if graphics is not None:
+            #drawing the nodes
+            for node in self._current_graph_layout.nodes.iteritems():
+                #Defining name of the module and coordinates
+                jLabel = JLabel(self.controller.current_pipeline.modules[node[1].id].name)
+                if jLabel is None or jLabel == "":
+                    jLabel = JLabel("TREE ROOT")
+                fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
+                xNode = int(node[1].p.x)
+                yNode = int(node[1].p.y)
+                #Checking for overlapping of nodes, if so correct it
+                overlapBoolean = True
+                while overlapBoolean:
+                    overlapBoolean = False
+                    for nodeId in nodesToDim:
+                        if nodesToDim[nodeId]["x"] == xNode and nodesToDim[nodeId]["y"] == yNode:
+                            xNode = xNode + 10 + nodesToDim[nodeId]["width"]
+                            overlapBoolean = True
+                graphics.drawRect(xNode, yNode,
+                                  int(fontRect.getWidth()), int(fontRect.getHeight()))
+                graphics.drawString(jLabel.getText(), xNode,
+                                    yNode + int(fontRect.getHeight()))
+                #storing the dimension of the nodes to easily draw edges
+                dim = {}
+                dim["x"] = xNode
+                dim["y"] = yNode
+                dim["height"] = int(fontRect.getHeight())
+                dim["width"] = int(fontRect.getWidth())
+                nodesToDim[node[1].id] = dim
+            #drawing edges    
+            for connection in self.controller.current_pipeline.connections:
+                sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
+                targetId = self.controller.current_pipeline.connections[connection]._get_destinationId()
+                xSource = nodesToDim[sourceId]["x"]
+                ySource = nodesToDim[sourceId]["y"]
+                xTarget = nodesToDim[targetId]["x"]
+                yTarget = nodesToDim[targetId]["y"]
+                sourceWidth = nodesToDim[sourceId]["width"]
+                sourceHeight = nodesToDim[sourceId]["width"]
+                targetWidth = nodesToDim[targetId]["width"]
+                targetHeight = nodesToDim[targetId]["width"]
+                graphics.drawLine(xSource + sourceWidth/2 ,
+                  ySource,
+                  xTarget +  targetWidth/2,
+                  yTarget)
+"""        #draw nodes for version tree
+        maxWidth = 0
+        maxHeight = 0
         if graphics is not None:
             for node in self._current_graph_layout.nodes.iteritems():
-                print node[1].label
-                graphics.fillRect(int(node[1].p.x), int(node[1].p.y), int(node[1].width), int(node[1].height))
-                
+                jLabel = JLabel(node[1].label)
+                if node[1].label is None or node[1].label == "":
+                    jLabel = JLabel("TREE ROOT")
+                fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
+                graphics.drawRect(int(node[1].p.x), int(node[1].p.y),
+                                  int(fontRect.getWidth()), int(fontRect.getHeight()))
+                graphics.drawString(jLabel.getText(), int(node[1].p.x),
+                                    int(node[1].p.y) + int(fontRect.getHeight()))
+                if maxWidth < int(fontRect.getWidth()):
+                    maxWidth = int(fontRect.getWidth())
+                if maxHeight < int(fontRect.getHeight()):
+                    maxHeight = int(fontRect.getHeight())
+        #draw edges for version tree
+            alreadyVisitedNode = []
+            for node in self._current_graph_layout.nodes.iteritems():
+                nodeId = node[1].id
+                for nodeBis in self._current_graph_layout.nodes.iteritems():
+                    nodeBisId = nodeBis[1].id
+                    if nodeBis in alreadyVisitedNode:
+                        pass
+                    else:
+                        if self._current_terse_graph.has_edge(nodeId, nodeBisId) or self._current_terse_graph.has_edge(nodeBisId, nodeId):
+                            jLabel = JLabel(node[1].label)
+                            fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
+                            graphics.drawLine(int(node[1].p.x) + maxWidth/2 ,
+                                              int(node[1].p.y) - maxHeight/2,
+                                              int(nodeBis[1].p.x) + maxWidth/2,
+                                              int(nodeBis[1].p.y) + maxHeight/2)
+                alreadyVisitedNode.append(nodeId)
+"""                            

@@ -78,7 +78,8 @@ class TreeLW:
 
     def changeParentOfNodeWithNoParent(self, parentNode, childNode):
         if childNode.parent != None:
-            raise Exception()
+            pass
+            #raise Exception()
 
         #
         parentNode.addChild(childNode)        

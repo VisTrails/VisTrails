@@ -915,12 +915,10 @@ class VistrailController(QtCore.QObject, BaseController):
                                    not self.vistrail.is_pruned(to)][0]
                 if not terse_graph.has_edge(p_id, p_child):
                     terse_graph.add_edge(p_id, p_child)
-
                 # Interpolate position
                 x = p_node.p.x - c_node.p.x
                 y = p_node.p.y - c_node.p.y
                 graph_layout.move_node(p_id, x*(1.0-step), y*(1.0-step))
-
         return (terse_graph, self._current_full_graph,
                 graph_layout)
 
