@@ -39,6 +39,7 @@ class Entity(object):
         self.children = []
         self.image_fnames = []
         self.was_updated = False
+        self.is_open = False
 
     def load(self, *args):
         (self.id, 

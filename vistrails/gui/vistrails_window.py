@@ -1409,7 +1409,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         for i in xrange(self.stack.count()):
             view = self.stack.widget(i)
             if view.controller.vistrail.locator == locator:
-                self.stack.setCurrentWidget(view)
+                self.change_view(view)
                 return view
         for (view, window) in self.windows.iteritems():
             if view.controller.vistrail.locator == locator:

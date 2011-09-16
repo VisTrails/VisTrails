@@ -805,6 +805,21 @@ class QVistrailView(QtGui.QWidget):
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
+    def query_version_selected(self, search=None, version_id=None):
+        if version_id is None:
+            self.query_view.set_result_level(
+                self.query_view.query_controller.LEVEL_VISTRAIL)
+            self.query_view.query_controller.set_search(search)
+        else:
+            self.query_view.set_result_level(
+                self.query_view.query_controller.LEVEL_WORKFLOW)
+            self.query_view.query_controller.set_search(search)
+            self.query_view.result_version_selected(version_id, True, 
+                                                    double_click=True)
+
+        window = self.window()
+        window.qactions['search'].trigger()
+        
     def diff_requested(self, version_a, version_b, vistrail_b=None):
         """diff_requested(self, id, id, Vistrail) -> None
         
