@@ -141,10 +141,10 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
     def set_default_layout(self):
         from gui.mashups.mashups_inspector import QMashupsInspector
         from gui.mashups.alias_parameter_view import QAliasParameterView
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
              QtCore.Qt.RightDockWidgetArea: QAliasParameterView,
-             }
+             })
             
     def set_action_links(self):
         self.action_links = \

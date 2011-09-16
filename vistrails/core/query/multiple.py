@@ -49,18 +49,14 @@ class MultipleSearch(Query):
         self.cur_vistrail = vistrail
 
     def run(self):
-        print "%%% CALLING RUN"
         for entity, versions_to_check in self.entities_to_check.iteritems():
             query = CombinedSearch(self.search_str, self.queryPipeline, 
                                    versions_to_check)
             query.run(entity.vistrail, '')
             self.queries[entity] = query
             self.queries_by_vistrail[entity.vistrail] = query
-            print "  %%% run vistrail", id(entity.vistrail)
-
 
     def match(self, vistrail, action):
-        print "%%% match vistrail", id(vistrail)
         self.setCurrentVistrail(vistrail)
         query = self.queries_by_vistrail[vistrail]
         return query.match(vistrail, action)
@@ -77,7 +73,6 @@ class MultipleSearch(Query):
                                                   versions_to_check)
             if result_entity is not None:
                 # needed for workspace results that are temporary...
-                print "SETTING RESULT WINDOW", id(entity._window)
                 result_entity._window = entity._window
                 result_entities.append(result_entity)
         return result_entities

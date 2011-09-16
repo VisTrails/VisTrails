@@ -542,7 +542,7 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setCurrentIndex(index)
         self.tab_changed(index)
 
-    def get_current_tab(self):
+    def get_current_tab(self, query_top_level=False):
         window = QtGui.QApplication.activeWindow()
         if window in self.detached_views.values():
             return window.view   
@@ -550,7 +550,7 @@ class QVistrailView(QtGui.QWidget):
             #if none of the detached views is active we will assume that the
             #window containing this vistrail has focus
             widget = self.stack.currentWidget()
-            if type(widget) == QQueryView:
+            if not query_top_level and type(widget) == QQueryView:
                 widget = widget.get_current_view()
             return widget
         
@@ -610,8 +610,8 @@ class QVistrailView(QtGui.QWidget):
                                         "")
 
     def showCurrentViewPalettes(self):
-        current_tab = self.get_current_tab()
-        for dock_loc, palette_klass in current_tab.layout.iteritems():
+        current_tab = self.get_current_tab(True)
+        for dock_loc, palette_klass in current_tab.palette_layout.iteritems():
             palette_instance = palette_klass.instance()
             window = palette_instance.toolWindow().parentWidget()
             if window:
