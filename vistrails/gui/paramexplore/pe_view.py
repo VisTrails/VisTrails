@@ -59,10 +59,10 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
     def set_default_layout(self):
         from gui.paramexplore.pe_palette import QParamExplorePalette
         from gui.paramexplore.param_view import QParameterView
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QParamExplorePalette,
              QtCore.Qt.RightDockWidgetArea: QParameterView,
-             }
+             })
             
     def set_action_links(self):
         self.action_links = \

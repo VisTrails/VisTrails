@@ -542,7 +542,7 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setCurrentIndex(index)
         self.tab_changed(index)
 
-    def get_current_tab(self):
+    def get_current_tab(self, query_top_level=False):
         window = QtGui.QApplication.activeWindow()
         if window in self.detached_views.values():
             return window.view   
@@ -550,7 +550,7 @@ class QVistrailView(QtGui.QWidget):
             #if none of the detached views is active we will assume that the
             #window containing this vistrail has focus
             widget = self.stack.currentWidget()
-            if type(widget) == QQueryView:
+            if not query_top_level and type(widget) == QQueryView:
                 widget = widget.get_current_view()
             return widget
         
@@ -610,8 +610,8 @@ class QVistrailView(QtGui.QWidget):
                                         "")
 
     def showCurrentViewPalettes(self):
-        current_tab = self.get_current_tab()
-        for dock_loc, palette_klass in current_tab.layout.iteritems():
+        current_tab = self.get_current_tab(True)
+        for dock_loc, palette_klass in current_tab.palette_layout.iteritems():
             palette_instance = palette_klass.instance()
             window = palette_instance.toolWindow().parentWidget()
             if window:
@@ -805,6 +805,21 @@ class QVistrailView(QtGui.QWidget):
         _app.notify("version_changed", version_id)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
+    def query_version_selected(self, search=None, version_id=None):
+        if version_id is None:
+            self.query_view.set_result_level(
+                self.query_view.query_controller.LEVEL_VISTRAIL)
+            self.query_view.query_controller.set_search(search)
+        else:
+            self.query_view.set_result_level(
+                self.query_view.query_controller.LEVEL_WORKFLOW)
+            self.query_view.query_controller.set_search(search)
+            self.query_view.result_version_selected(version_id, True, 
+                                                    double_click=True)
+
+        window = self.window()
+        window.qactions['search'].trigger()
+        
     def diff_requested(self, version_a, version_b, vistrail_b=None):
         """diff_requested(self, id, id, Vistrail) -> None
         

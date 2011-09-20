@@ -368,7 +368,7 @@ class QLogView(QPipelineView):
                      self.moduleSelected)
 
     def set_default_layout(self):
-        self.layout = {QtCore.Qt.RightDockWidgetArea: QLogDetails}
+        self.set_palette_layout({QtCore.Qt.RightDockWidgetArea: QLogDetails})
             
     def set_action_links(self):
         self.action_links = { }

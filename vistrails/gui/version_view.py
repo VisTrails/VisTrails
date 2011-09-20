@@ -1088,10 +1088,10 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     def set_default_layout(self):
         from gui.collection.workspace import QWorkspaceWindow
         from gui.version_prop import QVersionProp
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QWorkspaceWindow,
              QtCore.Qt.RightDockWidgetArea: QVersionProp,
-             }
+             })
             
     def set_action_links(self):
         self.action_links = \

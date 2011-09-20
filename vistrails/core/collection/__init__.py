@@ -34,6 +34,7 @@
 import glob
 import os
 import sqlite3
+from itertools import chain
 
 from entity import Entity
 from vistrail import VistrailEntity
@@ -70,6 +71,7 @@ class Collection(object):
 
         self.entities = {}
         self.deleted_entities = {}
+        self.temp_entities = {}
         self.workspaces = {}
         self.currentWorkspace = 'Default'
         self.listeners = [] # listens for entity creation removal
@@ -121,6 +123,11 @@ class Collection(object):
         cur.execute('delete from entity_children;')
         cur.execute('delete from workspaces;')
         cur.execute('delete from entity_workspace;')
+
+    def get_current_entities(self):
+        """NOTE: returns an iterator"""
+        return chain(self.entities.itervalues(), 
+                     self.temp_entities.itervalues())
 
     def load_entities(self):
         cur = self.conn.cursor()
@@ -192,6 +199,19 @@ class Collection(object):
             child.parent = entity
             self.add_entity(child)
         
+    def add_temp_entity(self, entity):
+        """Add an entity to memory only.  Used for vistrails that have
+        not been saved."""
+        self.max_id += 1
+        entity.id = self.max_id
+        self.temp_entities[entity.id] = entity
+        for child in entity.children:
+            child.parent = entity
+            self.add_temp_entity(child)
+
+    def is_temp_entity(self, entity):
+        return entity.id in self.temp_entities
+            
     def save_entity(self, entity):
         """ saves entities to disk """
         cur = self.conn.cursor()
@@ -212,9 +232,12 @@ class Collection(object):
 
     def delete_entity(self, entity):
         """ Delete entity from memory recursively """
-        self.deleted_entities[entity.id] = entity
-        if entity.id in self.entities:
-            del self.entities[entity.id]
+        if entity.id in self.temp_entities:
+            del self.temp_entities[entity.id]
+        else:
+            self.deleted_entities[entity.id] = entity
+            if entity.id in self.entities:
+                del self.entities[entity.id]
         for child in entity.children:
             self.delete_entity(child)
 
@@ -291,7 +314,7 @@ class Collection(object):
         for e in self.entities.itervalues():
             if e.url == url:
                 return e
-        return False
+        return None
 
     def urlExists(self, url):
         """ Check if entity with this url exist """

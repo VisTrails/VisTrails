@@ -2511,10 +2511,10 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def set_default_layout(self):
         from gui.module_palette import QModulePalette
         from gui.module_info import QModuleInfo
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
              QtCore.Qt.RightDockWidgetArea: QModuleInfo,
-             }
+             })
             
     def set_action_links(self):
         # FIXME execute should be tied to a pipleine_changed signal...

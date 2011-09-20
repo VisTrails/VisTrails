@@ -34,8 +34,11 @@
 
 from PyQt4 import QtCore, QtGui
 
+from core.collection import Collection
+from core.collection.vistrail import VistrailEntity
 from core.data_structures.bijectivedict import Bidict
 from core.query.combined import CombinedSearch
+from core.query.multiple import MultipleSearch
 from core.query.version import SearchCompiler, SearchParseError, TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.pipeline import Pipeline
@@ -61,6 +64,7 @@ class QueryController(object):
         self.search = None
         self.search_str = None
         self.search_pipeline = None
+        self.search_level = 3
         self.vt_controller = None
         self.level = QueryController.LEVEL_VISTRAIL
         self.workflow_version = None
@@ -71,6 +75,11 @@ class QueryController(object):
 
     def level_changed(self, level):
         self.query_view.set_result_level(level)
+        if level >= QueryController.LEVEL_VISTRAIL and \
+                self.query_view.query_box.backButton.isEnabled():
+            self.query_view.query_box.editButton.setEnabled(True)
+        else:
+            self.query_view.query_box.editButton.setEnabled(False)
         self.level = level
 
     def set_query_view(self, query_view=None):
@@ -79,7 +88,12 @@ class QueryController(object):
     def set_vistrail_controller(self, vt_controller):
         self.vt_controller = vt_controller
 
-    def set_search(self, search_str=None):
+    def set_search(self, search=None):
+        self.search = search
+        self.query_view.version_result_view.controller.search = search
+        self.query_view.workflow_result_view.controller.search = search
+        
+    def run_search(self, search_str=None):
         """ set_search(search_str: str) -> None
         Change the currrent version tree search statement
         
@@ -88,75 +102,60 @@ class QueryController(object):
             self.query_view.pipeline_view.scene().current_pipeline
         if search_str is None:
             search_str = self.query_view.query_box.getCurrentText()
-        if self.search_str != search_str or \
-                self.search_pipeline != search_pipeline or \
-                self.query_view.p_controller.changed:
+        self.query_view.update_controller()
+        if self.search is None or \
+                self.search.search_str != search_str or \
+                self.search.queryPipeline != search_pipeline or \
+                self.query_view.p_controller.changed or \
+                self.search_level > self.level:
             self.search_str = search_str
             self.search_pipeline = search_pipeline
+            self.search_level = self.level
             # reset changed here
             self.query_view.p_controller.set_changed(False)
             vt_controller = self.query_view.vt_controller
             current_vistrail = self.vt_controller.vistrail
 
-            def check_versions_in_vistrail(vistrail, versions_to_check):
-                self.search = CombinedSearch(search_str, search_pipeline,
-                                             versions_to_check)
-                self.search.run(vt_controller.vistrail, '')
-                result_entities = []
-                entity = \
-                    self.search.getResultEntity(vt_controller.vistrail,
-                                                versions_to_check)
-                if entity is not None:
-                    result_entities.append(entity)
-                return result_entities
-
+            def do_search(only_current_vistrail=False, 
+                          only_current_workflow=False):
+                entities_to_check = {}
+                open_col = Collection.getInstance()
+                
+                for entity in open_col.get_current_entities():
+                    if entity.type_id == VistrailEntity.type_id and \
+                            entity.is_open:
+                        controller = entity._window.controller
+                        if only_current_vistrail and \
+                                controller.vistrail != vt_controller.vistrail:
+                            continue
+                        if only_current_workflow:
+                            versions_to_check = controller.current_version
+                        else:
+                            graph = controller._current_terse_graph
+                            versions_to_check = set(graph.vertices.iterkeys())
+                        entities_to_check[entity] = versions_to_check
+                self.set_search(MultipleSearch(search_str, search_pipeline,
+                                               entities_to_check))
+                self.search.run()
+                return self.search.getResultEntities()
+                
             if self.level == QueryController.LEVEL_VISTRAIL:
-                versions_to_check = \
-                    set(vt_controller._current_terse_graph.vertices.iterkeys())
-                result_entities = check_versions_in_vistrail(current_vistrail,
-                                                             versions_to_check)
-                # if self.refine:
-                # self.recompute_terse_graph()
-                # self.invalidate_version_tree(True)
+                result_entities = do_search(True)                
                 self.show_vistrail_matches()
             elif self.level == QueryController.LEVEL_WORKFLOW:
-                # !!! Check all versions to allow easier switching
-                # between result modes !!!
-                # versions_to_check = set([vt_controller.current_version])
-                versions_to_check = \
-                    set(vt_controller._current_terse_graph.vertices.iterkeys())
-                self.workflow_version = vt_controller.current_version
-                result_entities = check_versions_in_vistrail(current_vistrail,
-                                                             versions_to_check)
+                self.search_level = QueryController.LEVEL_VISTRAIL
+                result_entities = do_search(True)
                 self.update_version_tree()
                 self.show_workflow_matches()
             elif self.level == QueryController.LEVEL_ALL:
-                # just check textual things for now
-                # disable search panel...
-                pass
+                result_entities = do_search()
+                self.show_global_matches()
 
             from gui.vistrails_window import _app
-            _app.notify("search_changed", result_entities)
+            _app.notify("search_changed", self.search, result_entities)
         else:
             self.query_view.set_to_result_mode()
             
-
-        # if self.search != search or self.search_str != text:
-        #     self.search = search
-        #     self.search_str = text
-        #     if self.search:
-        #         self.search.run(self.vistrail, '')
-        #         self.invalidate_version_tree(True)
-        #     if self.refine:
-        #         # need to recompute the graph because the refined items might
-        #         # have changed since last time
-        #         self.recompute_terse_graph()
-        #         self.invalidate_version_tree(True)
-        #     else:
-        #         self.invalidate_version_tree(False)
-            
-        #     # self.emit(QtCore.SIGNAL('searchChanged'))
-
     def set_refine(self, refine):
         """ set_refine(refine: bool) -> None
         Set the refine state to True or False
@@ -180,10 +179,21 @@ class QueryController(object):
         self.query_view.vistrailChanged()
 
         from gui.vistrails_window import _app
-        _app.notify("search_changed", None)
+        _app.notify("search_changed", None, None)
 
     def back_to_search(self):
         self.query_view.set_to_search_mode()
+
+    def goto_edit(self):
+        # get the version info and send it to open_vistrail call
+        if self.level == QueryController.LEVEL_VISTRAIL:
+            from gui.vistrails_window import _app
+            _app.qactions['history'].trigger()
+        elif self.level == QueryController.LEVEL_WORKFLOW:
+            from gui.vistrails_window import _app
+            version = self.query_view.vt_controller.current_version
+            self.query_view.controller.change_selected_version(version, True)
+            _app.qactions['pipeline'].trigger()
 
     def update_results(self):
         if self.workflow_version != \
@@ -197,24 +207,27 @@ class QueryController(object):
 
     def update_version_tree(self):
         result_view = self.query_view.version_result_view
-        result_view.controller.search = self.search
-        result_view.controller.search_str = self.search_str
         result_view.controller.invalidate_version_tree()
 
     def show_vistrail_matches(self, *args, **kwargs):
+        if self.level != QueryController.LEVEL_VISTRAIL:
+            self.set_level(QueryController.LEVEL_VISTRAIL)
         self.query_view.set_to_result_mode()
         result_view = self.query_view.version_result_view
-        result_view.controller.search = self.search
-        result_view.controller.search_str = self.search_str
         result_view.controller.invalidate_version_tree(*args, **kwargs)        
 
     def show_workflow_matches(self):
+        if self.level != QueryController.LEVEL_WORKFLOW:
+            self.set_level(QueryController.LEVEL_WORKFLOW)
         self.query_view.set_to_result_mode()
         result_view = self.query_view.workflow_result_view
-        result_view.controller.search = self.search
-        result_view.controller.search_str = self.search_str
         result_view.scene().setupScene(result_view.controller.current_pipeline)
         result_view.scene().fitToView(result_view, True)
+
+    def show_global_matches(self):
+        if self.level != QueryController.LEVEL_ALL:
+            self.set_level(QueryController.LEVEL_ALL)
+        self.query_view.set_to_result_mode()        
 
     # def invalidate_version_tree(self, *args, **kwargs):
     #     self.query_view.set_to_result_mode()
@@ -242,13 +255,15 @@ class QQueryPipelineView(QPipelineView):
         self.query_controller = controller
   
     def execute(self):
-        self.query_controller.set_search(None)
+        self.query_controller.run_search(None)
     
 class QQueryResultGlobalView(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
-        layout.addWidget(QtGui.QLabel("FIXME: Global Results"))
+        label = QtGui.QLabel("See Workspace Window")
+        label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(label, QtCore.Qt.AlignCenter)
         self.setLayout(layout)
         # self.setBackgroundBrush(CurrentTheme.QUERY_RESULT_BACKGROUND_BRUSH)
 
@@ -282,7 +297,7 @@ class QQueryBox(QtGui.QWidget):
         radio_layout.setSpacing(5)
         radio_layout.setAlignment(QtCore.Qt.AlignLeft)
         radio_layout.addWidget(QtGui.QLabel("Search:"))
-        searchAll = QtGui.QRadioButton("All Vistrails")
+        searchAll = QtGui.QRadioButton("Open Vistrails")
         searchCurrent = QtGui.QRadioButton("Current Vistrail")
         searchWorkflow = QtGui.QRadioButton("Current Workflow")
         self.level_group = QtGui.QButtonGroup()
@@ -298,9 +313,12 @@ class QQueryBox(QtGui.QWidget):
         radio_layout.addWidget(searchWorkflow)
         searchCurrent.setChecked(True)
         
+        self.editButton = QtGui.QPushButton("Edit")
+        self.editButton.setEnabled(False)
         self.backButton = QtGui.QPushButton("Back to Search")
         self.backButton.setEnabled(False)
         radio_layout.addStretch(1)
+        radio_layout.addWidget(self.editButton, 0, QtCore.Qt.AlignRight)
         radio_layout.addWidget(self.backButton, 0, QtCore.Qt.AlignRight)
         layout.addLayout(radio_layout)
         self.setLayout(layout)
@@ -313,6 +331,8 @@ class QQueryBox(QtGui.QWidget):
                      self.refineMode)
         self.connect(self.backButton, QtCore.SIGNAL('clicked()'),
                      self.backToSearch)
+        self.connect(self.editButton, QtCore.SIGNAL('clicked()'),
+                     self.doEdit)
         self.connect(self.level_group, 
                      QtCore.SIGNAL('buttonClicked(QAbstractButton*)'),
                      self.levelChanged)
@@ -332,6 +352,10 @@ class QQueryBox(QtGui.QWidget):
         if self.controller:
             self.controller.back_to_search()
 
+    def doEdit(self):
+        if self.controller:
+            self.controller.goto_edit()
+
     def levelChanged(self, button):
         self.controller.set_level(self.level_map.inverse[button])
 
@@ -345,7 +369,7 @@ class QQueryBox(QtGui.QWidget):
         """
         s = str(text)
         if self.controller:
-            self.controller.set_search(s)
+            self.controller.run_search(s)
             # try:
             #     search = CombinedSearch(s, 
             #     search = SearchCompiler(s).searchStmt
@@ -398,6 +422,11 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.workflow_result_view.set_controller(self.vt_controller)
         self.query_controller.set_vistrail_controller(controller)
 
+    def update_controller(self):
+        self.vt_controller.set_vistrail(self.controller.vistrail, None)
+        self.vt_controller.change_selected_version(
+            self.controller.current_version)
+
     def build_widget(self):
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
@@ -446,10 +475,10 @@ class QQueryView(QtGui.QWidget, BaseView):
     def set_default_layout(self):
         from gui.module_palette import QModulePalette
         from gui.module_info import QModuleInfo
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
              QtCore.Qt.RightDockWidgetArea: QModuleInfo,
-             }
+             })
             
     def set_action_links(self):
         self.action_links = \
@@ -473,6 +502,7 @@ class QQueryView(QtGui.QWidget, BaseView):
     def set_to_search_mode(self):
         self.set_display_view(QQueryView.VISUAL_SEARCH_VIEW)
         self.query_box.backButton.setEnabled(False)
+        self.query_box.editButton.setEnabled(False)
         self.set_reset_button(self.p_controller.current_pipeline)
 
         from gui.vistrails_window import _app
@@ -482,6 +512,8 @@ class QQueryView(QtGui.QWidget, BaseView):
     def set_to_result_mode(self):
         self.set_display_view(self.current_result_view)
         self.query_box.backButton.setEnabled(True)
+        if self.query_controller.level >= QueryController.LEVEL_VISTRAIL:
+            self.query_box.editButton.setEnabled(True)
         self.query_box.setManualResetEnabled(True)
 
         from gui.vistrails_window import _app
@@ -533,6 +565,8 @@ class QQueryView(QtGui.QWidget, BaseView):
     def result_version_selected(self, version_id, by_click, do_validate=True,
                                 from_root=False, double_click=False):
         if by_click:
+            self.query_controller.search.setCurrentVistrail(
+                self.vt_controller.vistrail)
             self.vt_controller.change_selected_version(version_id, by_click, 
                                                        do_validate, from_root)
             if double_click:
