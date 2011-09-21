@@ -35,6 +35,7 @@
 from core.db.io import load_vistrail
 from core.modules.module_registry import ModuleRegistryException
 from vistrail_view import JVistrailView
+from version_view import JVersionVistrailView
 
 from javax.swing import JComponent
 
@@ -48,23 +49,29 @@ class JViewManager(JComponent):
         viewComponent = view.controller
         self.add(viewComponent)
     
-    def open_vistrail(self, locator, version = None, is_abstraction=False):
+    def open_vistrail(self, locator, viewType = "pipeline", version = None, is_abstraction=False, builderFrame = None):
         try:
             (vistrail, abstraction_files, thumbnail_files) = \
                                         load_vistrail(locator, is_abstraction)                                                
-            result = self.set_vistrail_view(vistrail, locator, 
+            result = self.set_vistrail_view(vistrail, locator, viewType, 
                                             abstraction_files, thumbnail_files,
-                                            version)
+                                            version, builderFrame)
             return result
         except ModuleRegistryException:
             raise
         except Exception:
             raise
     
-    def set_vistrail_view(self, vistrail, locator, abstraction_files=None,
-                          thumbnail_files=None, version=None):   
-        vistrailView = JVistrailView(vistrail, locator)
-        vistrailView.set_vistrail(vistrail, locator, abstraction_files,
+    def set_vistrail_view(self, vistrail, locator, viewType = "pipeline" ,abstraction_files=None,
+                          thumbnail_files=None, version=None, builderFrame = None):
+        if (viewType == None or viewType == "pipeline"):   
+            vistrailView = JVistrailView(vistrail, locator, builderFrame)
+            vistrailView.set_vistrail(vistrail, locator, abstraction_files,
                                   thumbnail_files)
-        self.add_vistrail_view(vistrailView)
+            self.add_vistrail_view(vistrailView)
+        elif (viewType == "version"):
+            vistrailView = JVersionVistrailView(vistrail, locator, builderFrame)
+            vistrailView.set_vistrail(vistrail, locator, abstraction_files,
+                                  thumbnail_files)
+            self.add_vistrail_view(vistrailView)
         return vistrailView

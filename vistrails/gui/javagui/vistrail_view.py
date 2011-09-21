@@ -46,14 +46,14 @@ import core.db.io
 
 class JVistrailView(JPanel):
     
-    def __init__(self, vistrail, locator):
+    def __init__(self, vistrail, locator, builderFrame):
         self.full_tree = True
+        self.builderFrame = builderFrame
         self.refine = False
         self.controller = JVistrailController()
         self.idScope = self.controller.id_scope
+        self.current_version = self.builderFrame.currentVersion
         self.set_vistrail(vistrail, locator)
-        self.setBackground(Color.GREEN)
-
     
     def set_vistrail(self, vistrail, locator, abstraction_files=None,
                           thumbnail_files=None, version=None):
@@ -63,79 +63,16 @@ class JVistrailView(JPanel):
         self.set_graph()
         
     def set_graph(self):
-        """ Directly copied from the Qt branch"""
-        fullVersionTree = self.vistrail.tree.getVersionTree()
-        # create tersed tree                                                                        
-        x = [(0,None)]
-        tersedVersionTree = Graph()
-        # cache actionMap and tagMap because they're properties, sort of slow                       
-        am = self.vistrail.actionMap
-        tm = self.vistrail.get_tagMap()
-        last_n = self.vistrail.getLastActions(1)
-        #last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
-        
-        while 1:
-            try:
-                (current,parent)=x.pop()
-            except IndexError:
-                break
 
-            # mount childs list                                                                     
-            if current in am and self.vistrail.is_pruned(current):
-                children = []
-            else:
-                children = \
-                    [to for (to, _) in fullVersionTree.adjacency_list[current]
-                     if (to in am) and (not self.vistrail.is_pruned(to) or \
-                                            to == self.current_version)]
-
-            if (self.full_tree or
-                (current == 0) or  # is root                                                        
-                (current in tm) or # hasTag:                                                        
-                (len(children) <> 1) or # not oneChild:                                             
-                (current == self.current_version) or # isCurrentVersion                             
-                (am[current].expand) or  # forced expansion                                         
-                (current in last_n)): # show latest                                                 
-                # yes it will!                                                                      
-                # this needs to be here because if we are refining                                  
-                # version view receives the graph without the non                                   
-                # matching elements                                                                 
-                if( (not self.refine) or
-                    (self.refine and not self.search) or
-                    (current == 0) or
-                    (self.refine and self.search and
-                     self.search.match(self.vistrail,am[current]) or
-                     current == self.current_version)):
-                    # add vertex...                                                                 
-                    tersedVersionTree.add_vertex(current)
-
-                    # ...and the parent                                                             
-                    if parent is not None:
-                        tersedVersionTree.add_edge(parent,current,0)
-
-                    # update the parent info that will                                              
-                    # be used by the childs of this node                                            
-                    parentToChildren = current
-                else:
-                    parentToChildren = parent
-            else:
-                parentToChildren = parent
-
-            for child in reversed(children):
-                x.append((child, parentToChildren))
-
-        self._current_terse_graph = tersedVersionTree
-        self._current_full_graph = self.vistrail.tree.getVersionTree()
         self._current_graph_layout = VistrailsTreeLayoutLW()
-        #self._current_graph_layout.layout_from(self.vistrail,
-        #                                       self._current_terse_graph)
+        if (self.current_version == -1 or self.current_version > self.vistrail.get_latest_version()):
+            self.current_version = self.vistrail.get_latest_version()
+        self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail,
+                                                                   self.current_version)
 
-        self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail, 13)
-        
         tersedPipelineGraph = Graph()
-        
         for module in self.controller.current_pipeline._get_modules():
-            tersedPipelineGraph.add_vertex(module, module)
+            tersedPipelineGraph.add_vertex(module, self.controller.current_pipeline.modules[module])
         
         edgeId = 0   
         for connection in self.controller.current_pipeline.connections:
@@ -150,14 +87,18 @@ class JVistrailView(JPanel):
     def paintComponent(self, graphics):
         font = Font("FontDialog", Font.PLAIN, 12)
         fontRenderContext = graphics.getFontRenderContext()
-        
+
         #draw the pipeline tree
         nodesToDim = {}
         if graphics is not None:
             #drawing the nodes
             for node in self._current_graph_layout.nodes.iteritems():
                 #Defining name of the module and coordinates
-                jLabel = JLabel(self.controller.current_pipeline.modules[node[1].id].name)
+                try:
+                    jLabel = JLabel(self.controller.current_pipeline.modules[node[1].id].name)
+                except:
+                    print "except catch"
+                    jLabel = JLabel("ERROR NULNODE")
                 if jLabel is None or jLabel == "":
                     jLabel = JLabel("TREE ROOT")
                 fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
@@ -171,9 +112,10 @@ class JVistrailView(JPanel):
                         if nodesToDim[nodeId]["x"] == xNode and nodesToDim[nodeId]["y"] == yNode:
                             xNode = xNode + 10 + nodesToDim[nodeId]["width"]
                             overlapBoolean = True
-                graphics.drawRect(xNode, yNode,
+                if jLabel.getText() != "ERROR NULNODE":
+                    graphics.drawRect(xNode, yNode,
                                   int(fontRect.getWidth()), int(fontRect.getHeight()))
-                graphics.drawString(jLabel.getText(), xNode,
+                    graphics.drawString(jLabel.getText(), xNode,
                                     yNode + int(fontRect.getHeight()))
                 #storing the dimension of the nodes to easily draw edges
                 dim = {}
@@ -198,38 +140,7 @@ class JVistrailView(JPanel):
                   ySource,
                   xTarget +  targetWidth/2,
                   yTarget)
-"""        #draw nodes for version tree
-        maxWidth = 0
-        maxHeight = 0
-        if graphics is not None:
-            for node in self._current_graph_layout.nodes.iteritems():
-                jLabel = JLabel(node[1].label)
-                if node[1].label is None or node[1].label == "":
-                    jLabel = JLabel("TREE ROOT")
-                fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
-                graphics.drawRect(int(node[1].p.x), int(node[1].p.y),
-                                  int(fontRect.getWidth()), int(fontRect.getHeight()))
-                graphics.drawString(jLabel.getText(), int(node[1].p.x),
-                                    int(node[1].p.y) + int(fontRect.getHeight()))
-                if maxWidth < int(fontRect.getWidth()):
-                    maxWidth = int(fontRect.getWidth())
-                if maxHeight < int(fontRect.getHeight()):
-                    maxHeight = int(fontRect.getHeight())
-        #draw edges for version tree
-            alreadyVisitedNode = []
-            for node in self._current_graph_layout.nodes.iteritems():
-                nodeId = node[1].id
-                for nodeBis in self._current_graph_layout.nodes.iteritems():
-                    nodeBisId = nodeBis[1].id
-                    if nodeBis in alreadyVisitedNode:
-                        pass
-                    else:
-                        if self._current_terse_graph.has_edge(nodeId, nodeBisId) or self._current_terse_graph.has_edge(nodeBisId, nodeId):
-                            jLabel = JLabel(node[1].label)
-                            fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
-                            graphics.drawLine(int(node[1].p.x) + maxWidth/2 ,
-                                              int(node[1].p.y) - maxHeight/2,
-                                              int(nodeBis[1].p.x) + maxWidth/2,
-                                              int(nodeBis[1].p.y) + maxHeight/2)
-                alreadyVisitedNode.append(nodeId)
-"""                            
+
+
+
+                           

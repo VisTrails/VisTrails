@@ -32,7 +32,18 @@
 ##
 ###############################################################################
 
+from javax.swing import ImageIcon
+from javax.swing import JFileChooser
 from javax.swing import JFrame
+from javax.swing import JMenu
+from javax.swing import JMenuBar
+from javax.swing import JMenuItem
+from javax.swing import JToolBar
+from javax.swing import JButton
+from javax.swing import JPanel
+from javax.swing import SwingConstants
+from java.awt import BorderLayout
+
 from view_manager import JViewManager
 from core.db.locator import ZIPFileLocator
 
@@ -43,7 +54,15 @@ class BuilderFrame(JFrame):
         self.setTitle(self.title)
         self.filename = ""
         self.currentLocator = None
+        menuBar = JMenuBar()
+        fileMenu = JMenu("File")
+        self.openItem = JMenuItem("Open a file")
+        self.openItem.actionPerformed = self.openAction
+        fileMenu.add(self.openItem)
+        menuBar.add(fileMenu)
+        self.setJMenuBar(menuBar)
         self.viewManager = JViewManager()
+        self.currentVersion = "-1"
     
     def showFrame(self):
         self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
@@ -66,8 +85,54 @@ class BuilderFrame(JFrame):
 
     
     def open_vistrail_without_prompt(self, locator, version = None):
-        viewComp = self.viewManager.open_vistrail(self.currentLocator, None, None)
-        self.setContentPane(viewComp)
+        self.viewComp = self.viewManager.open_vistrail(self.currentLocator, None, None, False, self)
+        self.contentPanel = JPanel(BorderLayout())
+        self.contentPanel.add(self.viewComp, BorderLayout.CENTER)
+        toolBar = JToolBar()
+        pipelineIcon = ImageIcon("C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/vistrails/gui/resources/images/pipeline.png")
+        self.pipelineButton = JButton(pipelineIcon)
+        self.pipelineButton.actionPerformed= self.buttonClicked
+        self.pipelineButton.setToolTipText("Switch to pipeline view")
+        self.pipelineButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+        self.pipelineButton.setHorizontalTextPosition(SwingConstants.CENTER);
+        self.pipelineButton.setText("Pipeline")
+        historyIcon = ImageIcon("C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/vistrails/gui/resources/images/history.png")
+        self.historyButton = JButton(historyIcon)
+        self.historyButton.setToolTipText("Switch to version view")
+        self.historyButton.actionPerformed= self.buttonClicked
+        self.historyButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+        self.historyButton.setHorizontalTextPosition(SwingConstants.CENTER);
+        self.historyButton.setText("Version")
+        toolBar.add(self.pipelineButton)
+        toolBar.add(self.historyButton)
+        self.contentPanel.add(toolBar, BorderLayout.NORTH)
+        self.setContentPane(self.contentPanel)
+        
+    def buttonClicked(self, event):
+        if (event.getSource() == self.pipelineButton):
+            viewCompTemp = self.viewManager.open_vistrail(self.currentLocator, "pipeline", None, False, self)
+        elif (event.getSource() == self.historyButton):
+            viewCompTemp = self.viewManager.open_vistrail(self.currentLocator, "version", None, False, self)
+        self.getContentPane().remove(self.viewComp)
+        self.getContentPane().invalidate()
+        self.getContentPane().revalidate()
+        self.getContentPane().repaint()
+        self.viewComp = viewCompTemp
+        self.getContentPane().add(self.viewComp, BorderLayout.CENTER)
+        self.getContentPane().getComponent(1).invalidate()
+        self.getContentPane().getComponent(1).revalidate()
+        self.getContentPane().getComponent(1).repaint()
+        
+    def openAction(self, event):
+        fileChooser = JFileChooser()
+        returnedValue = fileChooser.showOpenDialog(self.openItem)
+        if (returnedValue == JFileChooser.APPROVE_OPTION):
+            file = fileChooser.getSelectedFile()
+            print file.getAbsolutePath()
+            self.open_vistrail(file.getAbsolutePath())
+            self.getContentPane().getComponent(1).invalidate()
+            self.getContentPane().getComponent(1).revalidate()
+            self.getContentPane().getComponent(1).repaint()
 
 frame = BuilderFrame()
 frame.open_vistrail("C:/Program Files/VisTrails/examples/basicstring.vt")
