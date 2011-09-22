@@ -259,6 +259,8 @@ These modules mostly consist of basic data types in Python and some
 manipulators for them.  In addition, file manipulation modules are
 provided to read files from disk and write files to disk.  
 
+.. _sec-pythonsource:
+
 PythonSource
 ^^^^^^^^^^^^
 

@@ -1,8 +1,8 @@
 .. _chap-example_guide:
 
-********************
-Examples and Modules
-********************
+********************************
+Module Descriptions and Examples
+********************************
 
 .. index:: VisTrails VTK modules
 
@@ -11,6 +11,8 @@ VisTrails VTK modules
 
 Although most VTK modules in VisTrails would be familiar to vtk users, or at least in the vtk documentation, there are a few modules that VisTrails introduces.  They are used as follows:
 
+* **PythonSource** - Although a PythonSource is in the Basic Modules list rather than VTK, it is mentioned here for convenience.  This module allows you write python statements to be executed as part of the workflow.  See Section :ref:`sec-pythonsource` for more information.
+
 * **VTKCell** - VTKCell is a VisTrails module that can display a vtkRenderWindow inside a cell.  Simply pass it a vtkRenderer and any additional optional inputs, and it will display the results in the spreadsheet.
 
 * **VTKRenderOffscreen** - Takes the output of a vtkRenderer and produces a PNG image of size width X height.  Default values of width and height are 512.  The output can then be written to a file using a FileSink.
@@ -18,6 +20,8 @@ Although most VTK modules in VisTrails would be familiar to vtk users, or at lea
 * **VTKViewCell** - This is similar to the VTKCell except that you pass it a vtkRenderView.
 
 * **vtkInspectors: vtkDataArrayInspector, vtkDataSetAttributesInspector, vtkDataSetInspector, vtkPolyDataInspector** - These inspectors were created to allow easy access to information that is not otherwise exposed by module ports, but would be accessible through vtk objects.  This information includes: normals, scalars, tensors, and vectors as well as statistical information such as bounds, center, length, max, min.  Looking at the output ports of these inspectors gives an idea of the information available.
+
+.. index:: vtkInteractionHandler
 
 * **vtkInteractionHandler** - The vtkInteractionHandler is used when a callback function is needed.  To setup this handler:
 
@@ -31,6 +35,8 @@ Although most VTK modules in VisTrails would be familiar to vtk users, or at lea
       * Add the contents of the function.
 
    There are a number of examples that use the vtkInteractionHandler.  If there is any confusion, comparing the callback/interaction handler portions of the .py and .vt files in the vtk_examples/GUI directory is helpful.
+
+   **Accessing vtkObjects in vtkInteractionHandler** VtkObjects passed to the vtkInteractionHandler are VisTrails modules.  The vtkObject within that module is called a vtkInstance and is accessed by calling myModule.vtkInstance.  See Section :ref:`sec-pythonsource` for more information.
 
 * **vtkScaledTransferFunction** - Allows you to add a transfer function through the use of an interactive widget.  See head.vt - volume rendering or terminator.vt for example usage.
 
