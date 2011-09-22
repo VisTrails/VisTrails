@@ -26,7 +26,7 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0-alpha build 6fc02caef9ff from v2.0 branch
+Release Name: v2.0-alpha build d5789e5a560b from v2.0 branch
 
 Enhancements: 
  - VisTrails now requires Python 2.7.*, Qt 4.7.*, sip 4.12.2 and PyQt4 4.8.4 to run 
@@ -43,6 +43,12 @@ Enhancements:
    parameters are shown in a single display. Thus, for module types without 
    special configuration widgets, there is no need for a separate configuration 
    window.
+ - CLTools - package for wrapping command line tools (3ac68958d3db)
+ - Expand search results to include all open vistrails (b2a069e38956)
+ - Opening exported mashups using Open menu will execute them automatically (48cefab0a019)
+ - Added support for exporting a mashup to a .vtl file. To export a mashup, just 
+   click the "Export" button in the mashups inspector. Double-clicking the .vtl 
+   file will execute the mashup in VisTrails (09203c1e12b8)
  - Show parameters for invalid modules (7078566f7b89)
  - Changed "Keep" button to "Tag" in the Mashups View (5ed3637c2d6f)
  - Open subworkflow from module palette (c48a11df430f)
@@ -106,6 +112,31 @@ option to start paraview server when the package is initialized.  (9023c13aa76b)
  - Initial version of a GIS package that uses QGIS (4cd7cc6df8db)
 
 Bug fixes: 
+ - VTK Package: Call to ResetCamera() in vtkRenderer was producing wrong 
+   results (d5789e5a560b)
+ - Ticket #499: Issue with BaseView.layout (9dc74870fde7)
+ - Fix issue where 'layout' was an overloaded field name (9dc74870fde7)
+ - Ticket #494: Tuple configuration is confusing and causes configuration errors (30bc134d5cdb)
+ - Ticket #498: Need to update code to show parameters for invalid modules (8da733c07199)
+ - Enable showing invalid function and show parameters in separate fields (8da733c07199)
+ - Updated version of suds python library on both Windows and Mac binary.
+ - Ticket #488: configuring webservices breaks vistrails (090a45a95f19)
+ - Ticket #456: Cannot copy/paste in detached pipelines/vistrails (970ec4ecfb42)
+ - Ignoring action updates when the view does not have the actions (970ec4ecfb42)
+ - Make provenance view read-only (9774b9e2928e)
+ - .vtl files marked to be executed when opening were not executed (09203c1e12b8)
+ - Ticket #496: Showing/hiding module ports resets module position (c073ff4bf200)
+ - Keep module position when changing visibility of ports (c073ff4bf200)
+ - Ticket #488: configuring webservices breaks vistrails (b8a935d8bbae)
+ - Ticket #495: vtkCellArray won't allow multiple points through 
+   InsertCellPoint (0dcbf136aeb8)
+ - Fixed issue with ports that may have multiple functions associated with 
+   them (e.g. in the vtk package) (0dcbf136aeb8)
+ - Ticket 481: Optional Output Ports collapse to non-Optional ones (7463f214023b)
+ - Fixed the issue of being unable to activate windows under Mac OS X 
+   Lion. (7463f214023b)
+ - Mashups: Fixed bug introduced when removing gui
+   dependencies for core.modules widgets (76a998022666)
  - Ticket #492: Upgrade error: signatures differ (5a70996965f8)
  - Add upgrade for PythonSource to fix issue with 'self' port (5a70996965f8)
  - Fixed messages during upgrades so that upgrade info is not flagged as 

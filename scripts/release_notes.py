@@ -48,7 +48,7 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "6fc02caef9ff" # hash of version used on last release notes
+commit_start = "d5789e5a560b" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.0" # git branch to be used
 release_name = "2.0-alpha" 
@@ -100,20 +100,24 @@ def clone_vistrails_git_repository(path_to):
 
 def init_repo():
     global clonepath, need_cleanup, branch
-    ok = True
+    ok = False
     if clonepath is None:
         clonepath = tempfile.mkdtemp(prefix="vtrel")
         try:
             if clone_vistrails_git_repository(clonepath) == 0:
                 ok = True
+                init_branch(clonepath,branch)
             need_cleanup = True
         except Exception, e:
             print "ERROR: Could not clone vistrails repository!"
             print str(e)
             shutil.rmtree(clonepath)
             sys.exit(1)
-    if ok:
+    else:
         init_branch(clonepath,branch)
+        pull_changes(clonepath)
+        ok = True
+    if ok:
         repo = git.Repo(clonepath)
         return repo
     else:
@@ -140,9 +144,32 @@ def init_branch(path_to, branch):
                                stderr=subprocess.STDOUT,
                                close_fds=True)
     process.wait()
-    print process.stdout.readlines()
+    lines = process.stdout.readlines()
+    for line in lines:
+        print "   ", line
     if process.returncode == 0:
         print "Branch %s was checked out."%branch
+    os.chdir(current_dir)    
+    return process.returncode
+
+################################################################################
+
+def pull_changes(path_to):
+    cmdlist = ['git', 'pull']
+    print "Pulling changes into the branch..."
+    current_dir = os.getcwd()
+    os.chdir(path_to)
+    process = subprocess.Popen(cmdlist, shell=False,
+                               stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               close_fds=True)
+    process.wait()
+    lines = process.stdout.readlines()
+    for line in lines:
+        print "   ", line
+    if process.returncode == 0:
+        print "Changes were pulled."
     os.chdir(current_dir)    
     return process.returncode
 
