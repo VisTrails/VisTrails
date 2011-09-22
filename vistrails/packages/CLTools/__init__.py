@@ -31,7 +31,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-name = "CLTools"
+""" This package provides a way to wrap command line tools into VisTrails modules
+"""
+
+name = 'CLTools'
 identifier = "edu.utah.sci.vistrails.cltools"
 version = "0.1.0"
-
