@@ -40,11 +40,9 @@ import subprocess
 import core.system
 import core.modules.module_registry
 from core import debug
-from core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, NotCacheable, new_module
+from core.modules.vistrails_module import Module, ModuleError, new_module
 from core.modules.basic_modules import File
 from core.modules.module_utils import FilePool
-from cStringIO import StringIO
 
 cl_tools = {}
 _file_pool = FilePool()
@@ -73,11 +71,11 @@ def add_tool(path):
     (tool_name, _) = os.path.splitext(tool_name)
 
     if tool_name in cl_tools:
-        core.debug.critical("CLTool already added: %s" % tool_name)
+        debug.critical("Package CLTools already added: '%s'" % tool_name)
     try:
         conf = json.load(open(path))
     except ValueError as exc:
-        core.debug.critical("Could not read CLTool %s" % path, str(exc))
+        debug.critical("Package CLTools could not parse '%s'" % path, str(exc))
         return
     
     def compute(self):
@@ -87,22 +85,28 @@ def add_tool(path):
         """
         # add all arguments as an unordered list
         args = [self.conf['command']]
-        stdin = None
-        stdout = None
-        setOutput = [] # (name, File) - read string from File and set as output for name
+        setOutput = [] # (name, File) - set File contents as output for name
         open_files = []
         kwargs = {}
         for type, name, klass, options in self.conf['args']:
-            if "flag" == type:
+            type = type.lower()
+            klass = klass.lower()
+            if "constant" == type:
                 args.append(name)
             elif "input" == type:
-                if not self.hasInputFromPort(name):
-                    continue
-                values = self.getInputFromPort(name)
-                if 'list' not in options:
-                    values = [values]
+                # handle multiple inputs
+                values = self.forceGetInputListFromPort(name)
+                if values and 'list' == klass:
+                    values = values[0]
+                    klass = options['type'].lower() \
+                      if 'type' in options else 'string'
                 for value in values:
-                    if "File" == klass:
+                    if 'flag' == klass:
+                        if value and 'value' in options:
+                            value = options['value']
+                        else:
+                            continue
+                    elif 'file' == klass:
                         value = str(value.name)
                     # check for flag and append file name
                     if 'flag' in options:
@@ -125,10 +129,11 @@ def add_tool(path):
                 else: # assume String - set to string value after execution
                     setOutput.append((name, file))
         if "stdin" in self.conf:
-            name, type = self.conf["stdin"]
+            name, type, options = self.conf["stdin"]
+            type = type.lower()
             if self.hasInputFromPort(name):
                 value = self.getInputFromPort(name)
-                if "File" == type:
+                if "file" == type:
                     f = open(value.name, 'rb')
                 else: # assume String - create temporary file
                     file = _file_pool.create_file(suffix='.cltoolsfile')
@@ -139,9 +144,10 @@ def add_tool(path):
                 open_files.append(f)
                 kwargs['stdin'] = f.fileno()
         if "stdout" in self.conf:
-            name, type = self.conf["stdout"]
+            name, type, options = self.conf["stdout"]
+            type = type.lower()
             file = _file_pool.create_file(suffix='.cltoolsfile')
-            if "File" == type:
+            if "file" == type:
                 self.setResult(name, file)
             else: # assume String - set to string value after execution
                 setOutput.append((name, file))
@@ -149,17 +155,23 @@ def add_tool(path):
             open_files.append(f)
             kwargs['stdout'] = f.fileno()
         if "stderr" in self.conf:
-            name, type = self.conf["stderr"]
+            name, type, options = self.conf["stderr"]
+            type = type.lower()
             file = _file_pool.create_file(suffix='.cltoolsfile')
-            if "File" == type:
+            if "file" == type:
                 self.setResult(name, file)
             else: # assume String - set to string value after execution
                 setOutput.append((name, file))
             f = open(file.name, 'wb')
             open_files.append(f)
             kwargs['stderr'] = f.fileno()
+
+        # On windows, builtin commands like cd/dir must use shell=True
+        if core.system.systemType in ['Windows', 'Microsoft'] and \
+                          args[0] in ['dir', 'cd']:
+            kwargs['shell'] = True   
             
-        print "calling", args
+        print "calling", args, kwargs
         retcode = subprocess.call(args, **kwargs)
         print "retcode:", retcode
 
@@ -183,51 +195,63 @@ def add_tool(path):
     reg.add_module(M)
 
     def to_vt_type(s):
-        # add recognized types here - default to String
-        if "File" == str(s):
-            return '(edu.utah.sci.vistrails.basic:File)'
-        return '(edu.utah.sci.vistrails.basic:String)'
-
+        # add recognized types here - default is String
+        return '(edu.utah.sci.vistrails.basic:%s)' % \
+          {'file':'File', 'flag':'Boolean', 'list':'List'
+          }.get(str(s).lower(), 'String')
     # add module ports
-    if "stdin" in conf:
-        name, type = conf["stdin"]
-        reg.add_input_port(M, name, to_vt_type(type))
-    if "stdout" in conf:
-        name, type = conf["stdout"]
-        reg.add_output_port(M, name, to_vt_type(type))
-    if "stderr" in conf:
-        name, type = conf["stderr"]
-        reg.add_output_port(M, name, to_vt_type(type))
+    if 'stdin' in conf:
+        name, type, options = conf['stdin']
+        optional = 'required' not in options
+        reg.add_input_port(M, name, to_vt_type(type), optional=optional)
+    if 'stdout' in conf:
+        name, type, options = conf['stdout']
+        optional = 'required' not in options
+        reg.add_output_port(M, name, to_vt_type(type), optional=optional)
+    if 'stderr' in conf:
+        name, type, options = conf['stderr']
+        optional = 'required' not in options
+        reg.add_output_port(M, name, to_vt_type(type), optional=optional)
     for type, name, klass, options in conf['args']:
-        if "input" == type:
-            klass = to_vt_type(klass)
-            if 'list' in options:
-                klass = '(edu.utah.sci.vistrails.basic:List)'
-            reg.add_input_port(M, name, klass)
-        elif "output" == type:
-            reg.add_output_port(M, name, to_vt_type(klass))
+        optional = 'required' not in options
+        if 'input' == type:
+            reg.add_input_port(M, name, to_vt_type(klass), optional=optional)
+        elif 'output' == type:
+            reg.add_output_port(M, name, to_vt_type(klass), optional=optional)
     cl_tools[tool_name] = M
 
 
 def initialize(*args, **keywords):
-    # make sure CLTools dir exist
-    location = os.path.join(core.system.default_dot_vistrails(),
+    if "CLTools" == name:
+        # this is the original package 
+        location = os.path.join(core.system.default_dot_vistrails(),
                                      "CLTools")
-    if not os.path.isdir(location):
-        try:
-            debug.log("Creating CLTools directory...")
-            os.mkdir(location)
-        except:
-            debug.critical(
-"""Could not create CLTools directory. Make sure
-'%s' does not exist and parent directory is writable""" % location)
-            sys.exit(1)
+        # make sure dir exist
+        if not os.path.isdir(location):
+            try:
+                debug.log("Creating CLTools directory...")
+                os.mkdir(location)
+            except:
+                debug.critical("""Could not create CLTools directory. Make
+ sure '%s' does not exist and parent directory is writable""" % location)
+                sys.exit(1)
+    else:
+        # this is a standalone package so modules are placed in this directory
+        location = os.path.dirname(__file__)
+    
 
     reg = core.modules.module_registry.get_module_registry()
     reg.add_module(CLTools, **{'hide_descriptor':True})
     for path in os.listdir(location):
         if path.endswith(SUFFIX):
-            add_tool(os.path.join(location, path))
+            try:
+                add_tool(os.path.join(location, path))
+            except Exception as exc:
+                import traceback
+                debug.critical("Package CLTools failed to create module "
+                   "from '%s': %s" % (os.path.join(location, path), str(exc)),
+                   traceback.format_exc())
+                
         
 def finalize():
     _file_pool.cleanup()
