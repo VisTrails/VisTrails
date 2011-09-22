@@ -99,6 +99,25 @@ click inside a selected node and type some meaningful text. The tag is created w
 
 Note that deleting all of the text in the tag field effectively deletes the tag. A second way to delete a tag is to click the 'X' button to the right of the text box. Removing a tag from a node may cause it to not be displayed in the default version tree view if it doesn't satisfy any of the other criteria for display.
 
+Upgrading Versions
+==================
+
+.. index::
+   pair: tags; upgrading
+
+As module packages are continuously updated, with new versions being released periodically, VisTrails is set up to automatically incorporate module upgrades into existing workflows before they are executed.  In other words, VisTrails upgrades the current vistrail's current version after the execute button is pressed, but prior to execution.  When this happens, a new version is created in the version tree and tagged 'Upgrade'.  You are then free to rename this version if desired.   
+
+After an upgrade, you will not be able to select the original version because the focus is passed to the upgraded version.  However, if you right-click on the original version and select 'Display raw pipeline', this version will keep the focus, which allows you to see its pipeline by pressing the ``Pipeline`` button on the toolbar.  See figure :ref:`Original Pipeline<fig-raw-pipeline>`.
+
+.. _fig-raw-pipeline:
+
+.. figure:: figures/version_tree/raw_pipeline.png
+   :align: center
+
+   Original Pipeline.  This figure shows how to view the original pipeline after an upgrade has occurred.
+
+Finally, although VisTrails tags the new version with 'Upgrade' by default, some users prefer the original version's name to be transferred to the upgraded version.  VisTrails will do this if you: select ``Preferences`` from the ``VisTrails`` menu, select the ``Expert Configuration`` tab, and change the ``migrateTags`` value to 'True'. 
+
 Adding Version Annotations
 ==========================
 

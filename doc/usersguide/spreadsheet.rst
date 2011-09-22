@@ -134,12 +134,12 @@ toolbar when a cell is activated. These controls affect only the
 active cell, and change for different cell types. As shown by
 Figure :ref:`Different states of a spreadsheet cell \(d\) <fig-cell_states>`, a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds controls for resizing, flipping, and rotating the image in the active cell.
 
-.. topic:: Note:
-
-   Pressing 'r' will center the image in the cell.
+The Camera
+++++++++++
+Spreadsheet cells that display VTK data typically are associated with a vtkRenderer, which is associated with a vtkCamera.  If the camera is not assigned in the workflow, a default one is created.  If the rendered geometry is not visible in the window, pressing 'r' will invoke the renderer's ResetCamera() command, which centers the geometry.  Also, pressing 'i' will initiate interactions with interactive vtk objects.
 
 Arranging Cells
-^^^^^^^^^^^^^^^
++++++++++++++++
 
 As described in Section :ref:`sec-spreadsheet-custom`, cells can be
 resized by either resizing rows, columns, or an individual cell.  In
@@ -149,7 +149,7 @@ See Section :ref:`sec-spreadsheet-editing` for instructions on moving a
 specific cell to a different location.
 
 Synchronizing Cells
-^^^^^^^^^^^^^^^^^^^
++++++++++++++++++++
 
 .. _fig-spreadsheet_sync:
 

@@ -38,6 +38,7 @@ Learning VisTrails By Example
    parameter_exploration
    provenance
    mashups
+   example_guide
    
 
 ############################################
