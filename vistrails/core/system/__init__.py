@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -336,12 +336,12 @@ def current_processor():
     return proc
 
 def short_about_string():
-    return """VisTrails version %s.%s -- vistrails@sci.utah.edu""" % \
+    return """VisTrails version %s.%s -- contact@vistrails.org""" % \
             (vistrails_version(), vistrails_revision())
 
 def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
-    return """VisTrails version %s.%s -- vistrails@sci.utah.edu
+    return """VisTrails version %s.%s -- contact@vistrails.org
 
 Copyright (c) 2006-2011 University of Utah. All rights reserved.
 http://www.vistrails.org
