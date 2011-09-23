@@ -52,7 +52,7 @@ from core.db.action import create_action
 from core.system import systemType
 from core.utils import profile
 from core.vistrail.annotation import Annotation
-from core.modules.module_configure import DefaultModuleConfigurationWidget
+from gui.modules.module_configure import DefaultModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 
@@ -60,6 +60,8 @@ from core.vistrail.port import PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 from core.interpreter.default import get_default_interpreter
+from gui.base_view import BaseView
+from gui.controlflow_assist import QControlFlowAssistDialog
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
@@ -248,7 +250,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.scene().update()
             self.scene().noUpdate = False
         # Update the version view node to fit text properly
-        version_item = self.controller.vistrail_view.versionTab.versionView.scene().versions[self.controller.current_version]
+        version_item = self.controller.vistrail_view.version_view.scene().versions[self.controller.current_version]
         version_item.updateWidthFromLabel()
         # Update the tooltip for this version
         try:
@@ -262,7 +264,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         Prepare for dragging a connection
         
         """
-        if self.controller and event.buttons() & QtCore.Qt.LeftButton:
+        if (self.controller and event.buttons() & QtCore.Qt.LeftButton
+            and not self.scene().read_only_mode):
             self.dragging = True
             self.setPen(CurrentTheme.PORT_SELECTED_PEN);
             event.accept()
@@ -280,14 +283,16 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             conn_info = (snapModuleId, self.connection.snapPort.port,
                          self.parentItem().id, self.port)
         conn = self.controller.add_connection(*conn_info)
-        self.scene().addConnection(conn)
-        self.scene().removeItem(self.connection)
+        scene = self.scene()
+        scene.addConnection(conn)
+        scene.removeItem(self.connection)
         self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
         self.connection = None
-        self.scene().reset_module_colors()
+        scene.reset_module_colors()
         # controller changed pipeline: update ids on scene
-        self.scene()._old_connection_ids = set(self.controller.current_pipeline.connections)
-        self.scene()._old_module_ids = set(self.controller.current_pipeline.modules)
+        scene._old_connection_ids = \
+            set(self.controller.current_pipeline.connections)
+        scene._old_module_ids = set(self.controller.current_pipeline.modules)
         
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -1096,7 +1101,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
         """
         if self.progress>0.0:
-            progressRect = self.paddedRect.adjusted(0, 0, (self.progress-1.0)*self.paddedRect.width(), 0)
+            width = (self.progress-1.0)*self.paddedRect.width()
+            progressRect = self.paddedRect.adjusted(0, 0, width, 0)
             
         if self._needs_state_updated:
             self.setPainterState()
@@ -1125,7 +1131,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         painter.setFont(self.labelFont)
         painter.drawText(self.labelRect, QtCore.Qt.AlignCenter, self.label)
         if self.module.is_abstraction() and not self.module.is_latest_version():
-                painter.drawText(self.abstRect, QtCore.Qt.AlignCenter, '!')
+            painter.drawText(self.abstRect, QtCore.Qt.AlignCenter, '!')
         if self.descRect:
             painter.setFont(self.descFont)
             painter.drawText(self.descRect, QtCore.Qt.AlignCenter,
@@ -1182,7 +1188,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 for p in module.destinationPorts():
                     if not p.optional:
                         inputPorts.append(p)
-                    elif (d, p.name) in module.portVisible:
+                    # elif (d, p.name) in module.portVisible:
+                    elif p.name in module.visible_input_ports:
                         visibleOptionalInputPorts.append(p)
                     else:
                         self.optionalInputPorts.append(p)
@@ -1192,7 +1199,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 for p in module.sourcePorts():
                     if not p.optional:
                         outputPorts.append(p)
-                    elif (s, p.name) in module.portVisible:
+                    # elif (s, p.name) in module.portVisible:
+                    elif p.name in module.visible_output_ports:
                         visibleOptionalOutputPorts.append(p)
                     else:
                         self.optionalOutputPorts.append(p)
@@ -1487,7 +1495,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # Do not allow lone connections to be selected with modules.
         # Also autoselect connections between selected modules.  Thus the
         # selection is always the subgraph
-        elif change==QtGui.QGraphicsItem.ItemSelectedChange:
+        elif change==QtGui.QGraphicsItem.ItemSelectedHasChanged:
             # Unselect any connections between modules that are not selected
             for item in self.scene().selectedItems():
                 if isinstance(item,QGraphicsConnectionItem):
@@ -1515,16 +1523,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                         item.useSelectionRules = False
                         item.setSelected(False)
             # Capture only selected modules + or - self for selection signal
-            selectedItems = []
+            selectedItems = [m for m in self.scene().selectedItems()
+                             if isinstance(m, QGraphicsModuleItem)]
+            #print "selectedItems", selectedItems
             selectedId = -1
-            if value.toBool():
-                selectedItems = [m for m in self.scene().selectedItems() 
-                                 if isinstance(m,QGraphicsModuleItem)]
-                selectedItems.append(self)
-            else:
-                selectedItems = [m for m in self.scene().selectedItems()
-                                 if (isinstance(m,QGraphicsModuleItem) and 
-                                     m != self)]
             if len(selectedItems)==1:
                 selectedId = selectedItems[0].id
             self.scene().emit(QtCore.SIGNAL('moduleSelected'),
@@ -1598,6 +1600,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_connection_ids = set()
         self._var_selected_port = None
         self.pipeline = None
+        self.read_only_mode = False
+        self.current_pipeline = None
+        self.current_version = -1
 
 #        menu = QtGui.QMenu()
 #        self._create_abstraction = QtGui.QAction("Create abstraction", self)
@@ -1906,7 +1911,8 @@ mutual connections."""
             (type(event.source())==QModuleTreeWidget or
              type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
-            if hasattr(data, 'items') or hasattr(data, 'variableData'):
+            if (hasattr(data, 'items') or hasattr(data, 'variableData')
+                and not self.read_only_mode):
                 event.accept()
                 return
         # Ignore if not accepted and returned by this point
@@ -1921,7 +1927,7 @@ mutual connections."""
             (type(event.source())==QModuleTreeWidget or
              type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
-            if hasattr(data, 'items'):
+            if hasattr(data, 'items') and not self.read_only_mode:
                 event.accept()
                 return
             elif hasattr(data, 'variableData'):
@@ -1991,7 +1997,7 @@ mutual connections."""
             (type(event.source())==QModuleTreeWidget or
              type(event.source())==QDragVariableLabel)):
             data = event.mimeData()
-            if hasattr(data, 'items'):
+            if hasattr(data, 'items') and not self.read_only_mode:
                 assert len(data.items) == 1
                 if self.controller.current_version==-1:
                     self.controller.change_selected_version(0)
@@ -2045,7 +2051,7 @@ mutual connections."""
                         self.addModule(var_module)
                     self.addConnection(var_connection)
                     # Update the version view node to fit text properly
-                    version_item = self.controller.vistrail_view.versionTab.versionView.scene().versions[self.controller.current_version]
+                    version_item = self.controller.vistrail_view.version_view.scene().versions[self.controller.current_version]
                     version_item.updateWidthFromLabel()
                     event.accept()
                     return
@@ -2116,28 +2122,18 @@ mutual connections."""
         """        
         if (self.controller and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
-            self.delete_selected_items()
-        elif (event.key()==QtCore.Qt.Key_C and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            self.copySelection()
-        elif (event.key()==QtCore.Qt.Key_A and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            self.selectAll()
-        elif (event.key()==QtCore.Qt.Key_E and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            selected_items = self.selectedItems()
-            module_id = -1
-            module_count = 0
-            for i in selected_items:
-                if isinstance(i,QGraphicsModuleItem):
-                    module_count+=1
-                    module_id = i.id
-            if module_count==1:
-                self.open_configure_window(module_id)
-
+            if not self.read_only_mode:
+                self.delete_selected_items()
         else:
             QInteractiveGraphicsScene.keyPressEvent(self, event)
             # super(QPipelineScene, self).keyPressEvent(event)
+
+    def get_selected_module_ids(self):
+        module_ids = []
+        for item in self.selectedItems():
+            if type(item) == QGraphicsModuleItem:
+                module_ids.append(item.module.id)
+        return module_ids
 
     def get_selected_item_ids(self, dangling=False):
         """get_selected_item_ids( self, dangling: bool) -> 
@@ -2224,12 +2220,12 @@ mutual connections."""
         Paste modules/connections from the clipboard into this pipeline view
         
         """
-        if self.controller:
+        if self.controller and not self.read_only_mode:
             if self.controller.current_version == -1:
                 self.controller.change_selected_version(0)
             cb = QtGui.QApplication.clipboard()        
-            text = str(cb.text())
-            if text=='': return
+            text = str(cb.text().toAscii())
+            if text=='' or not text.startswith("<workflow"): return
             ids = self.controller.paste_modules_and_connections(text, center)
             self.setupScene(self.controller.current_pipeline)
             self.reset_module_colors()
@@ -2280,24 +2276,8 @@ mutual connections."""
         """ open_configure_window(int) -> None
         Open the modal configuration window for module with given id
         """
-        if self.controller:
-#            registry = get_module_registry()
-#            module = self.controller.current_pipeline.modules[id]            
-#            getter = registry.get_configuration_widget
-#            widgetType = getter(module.package, module.name, module.namespace)
-#            if not widgetType:
-#                widgetType = DefaultModuleConfigurationWidget            
-#            widget = widgetType(module, self.controller, self.parent())
-#            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-#            #if connections will be removed as a result of the configuration
-#            # we need to be able to get them when calling
-#            # self.recreate_module()
-#            self.modules[id]._old_connection_ids = \
-#                             self.modules[id].dependingConnectionItems()
-#            self.connect(widget, QtCore.SIGNAL("doneConfigure"),
-#                         self.perform_configure_done_actions)
-#            widget.show()
-            self.emit(QtCore.SIGNAL("showConfigureWindow"))
+        from gui.vistrails_window import _app
+        _app.configure_module()
             
     def perform_configure_done_actions(self, module_id):
         if self.controller:
@@ -2309,15 +2289,8 @@ mutual connections."""
         """ open_documentation_window(int) -> None
         Opens the modal module documentation window for module with given id
         """
-        if self.controller:
-            registry = get_module_registry()
-            module = self.controller.current_pipeline.modules[id]
-            descriptor = registry.get_descriptor_by_name(module.package,
-                                                         module.name,
-                                                         module.namespace)
-            widget = QModuleDocumentation(descriptor, None)
-            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            widget.exec_()
+        from gui.vistrails_window import _app
+        _app.show_documentation()
 
     def toggle_breakpoint(self, id):
         """ toggle_breakpoint(int) -> None
@@ -2488,6 +2461,10 @@ mutual connections."""
             return True
         return False
 
+    def set_read_only_mode(self, on):
+        """set_read_only_mode(on: bool) -> None
+        This will prevent user to add/remove modules and connections."""
+        self.read_only_mode = on
 
 class QModuleStatusEvent(QtCore.QEvent):
     """
@@ -2511,7 +2488,7 @@ class QModuleStatusEvent(QtCore.QEvent):
         self.progress = progress
         self.errorTrace = errorTrace
             
-class QPipelineView(QInteractiveGraphicsView):
+class QPipelineView(QInteractiveGraphicsView, BaseView):
     """
     QPipelineView inherits from QInteractiveGraphicsView that will
     handle drawing of module, connection shapes and selecting
@@ -2525,15 +2502,122 @@ class QPipelineView(QInteractiveGraphicsView):
         
         """
         QInteractiveGraphicsView.__init__(self, parent)
-        self.setWindowTitle('Pipeline')
+        BaseView.__init__(self)
         self.setScene(QPipelineScene(self))
+        self.set_title('Pipeline')
+        self.controller = None
+        self.detachable = True
 
-    def keyPressEvent(self, event):
-        if (event.key()==QtCore.Qt.Key_V and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            self.pasteFromClipboard()
-        else:
-            QInteractiveGraphicsView.keyPressEvent(self, event)
+    def set_default_layout(self):
+        from gui.module_palette import QModulePalette
+        from gui.module_info import QModuleInfo
+        self.set_palette_layout(
+            {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
+             QtCore.Qt.RightDockWidgetArea: QModuleInfo,
+             })
+            
+    def set_action_links(self):
+        # FIXME execute should be tied to a pipleine_changed signal...
+        self.action_links = \
+            {'copy': ('module_changed', self.has_selected_modules),
+             'paste': ('clipboard_changed', self.clipboard_non_empty),
+             'group': ('module_changed', self.has_selected_modules),
+             'ungroup': ('module_changed', self.has_selected_groups),
+             'showGroup': ('module_changed', self.has_selected_group),
+             'makeAbstraction': ('module_changed', self.has_selected_modules),
+             'execute': ('pipeline_changed', self.pipeline_non_empty),
+             'configureModule': ('module_changed', self.has_selected_module),
+             'documentModule': ('module_changed', self.has_selected_module),
+             'makeAbstraction': ('module_changed', self.has_selected_modules),
+             'convertToAbstraction': ('module_changed', 
+                                      self.has_selected_group),
+             'editAbstraction': ('module_changed', self.has_selected_abs),
+             'importAbstraction': ('module_changed', self.has_selected_abs),
+             'exportAbstraction': ('module_changed', self.has_selected_abs),
+             'publishWeb' : ('pipeline_changed', self.check_publish_db),
+             'publishPaper' : ('pipeline_changed', self.pipeline_non_empty),
+             'controlFlowAssist': ('pipeline_changed', self.pipeline_non_empty),
+             }
+    
+    def set_action_defaults(self):
+        self.action_defaults.update(
+        { 'execute': [('setEnabled', True, self.set_execute_action),
+                      ('setIcon', False, CurrentTheme.EXECUTE_PIPELINE_ICON),
+                      ('setToolTip', False, 'Execute the current pipeline')],
+        })
+        
+    def set_execute_action(self):
+        if self.controller:
+            return self.pipeline_non_empty(self.controller.current_pipeline)
+        return False
+    
+    def execute(self):
+        # view.checkModuleConfigPanel()
+        self.controller.execute_current_workflow()
+        from gui.vistrails_window import _app
+        _app.notify('execution_updated')
+        
+    def publish_to_web(self):
+        from gui.publishing import QVersionEmbed
+        panel = QVersionEmbed.instance()
+        panel.switchType('Wiki')
+        panel.set_visible(True)
+        
+    def publish_to_paper(self):
+        from gui.publishing import QVersionEmbed
+        panel = QVersionEmbed.instance()
+        panel.switchType('Latex')
+        panel.set_visible(True)
+        
+    def check_publish_db(self, pipeline):
+        loc = self.controller.locator
+        result = False
+        if hasattr(loc,'host'):
+            result = True    
+        return result and self.pipeline_non_empty(pipeline)
+    
+    def has_selected_modules(self, module, only_one=False):
+        module_ids_len = len(self.scene().get_selected_module_ids())
+        #print '  module_ids_len:', module_ids_len
+        if only_one and module_ids_len != 1:
+            return False
+        return module_ids_len > 0
+
+    def has_selected_module(self, module):
+        #print 'calling has_selected_module'
+        return self.has_selected_modules(module, True)
+
+    def has_selected_groups(self, module, only_one=False):
+        module_ids = self.scene().get_selected_module_ids()
+        if len(module_ids) <= 0:
+            return False
+        if only_one and len(module_ids) != 1:
+            return False
+        for m_id in module_ids:
+            if not self.scene().current_pipeline.modules[m_id].is_group():
+                return False
+        return True
+
+    def has_selected_group(self, module):
+        return self.has_selected_groups(True)
+
+    def has_selected_abs(self, module):
+        module_ids = self.scene().get_selected_module_ids()
+        if len(module_ids) != 1:
+            return False
+        for m_id in module_ids:
+            if not self.scene().current_pipeline.modules[m_id].is_abstraction():
+                return False
+        return True        
+
+    def clipboard_non_empty(self):
+        clipboard = QtGui.QApplication.clipboard()
+        clipboard_text = clipboard.text()
+        return not clipboard_text.isEmpty() #and \
+        #    str(clipboard_text).startswith("<workflow")
+
+    def pipeline_non_empty(self, pipeline):
+        return pipeline is not None and len(pipeline.modules) > 0
 
     def pasteFromClipboard(self):
         center = self.mapToScene(self.width()/2.0, self.height()/2.0)
@@ -2543,6 +2627,73 @@ class QPipelineView(QInteractiveGraphicsView):
         QInteractiveGraphicsView.setQueryEnabled(self, on)
         if not self.scene().noUpdate and self.scene().controller:
             self.scene().setupScene(self.scene().controller.current_pipeline)
+            
+    def setReadOnlyMode(self, on):
+        self.scene().set_read_only_mode(on)
+
+    def set_title(self, title):
+        BaseView.set_title(self, title)
+        self.setWindowTitle(title)
+
+    def set_controller(self, controller):
+        oldController = self.controller
+        if oldController != controller:
+            if oldController != None:
+                # self.disconnect(oldController,
+                #                 QtCore.SIGNAL('versionWasChanged'),
+                #                 self.version_changed)
+                oldController.current_pipeline_view = None
+            self.controller = controller
+            self.scene().controller = controller
+            # self.connect(controller,
+            #              QtCore.SIGNAL('versionWasChanged'),
+            #              self.version_changed)
+            # self.module_info.set_controller(controller)
+            # self.moduleConfig.controller = controller
+            # controller.current_pipeline_view = self.scene()
+
+    def set_to_current(self):
+        if self.controller.current_pipeline_view is not None:
+            self.disconnect(self.controller,
+                            QtCore.SIGNAL('versionWasChanged'),
+                            self.controller.current_pipeline_view.parent().version_changed)
+        self.controller.current_pipeline_view = self.scene()
+        self.connect(self.controller,
+                     QtCore.SIGNAL('versionWasChanged'),
+                     self.version_changed)
+        
+    def get_long_title(self):
+        pip_name = self.controller.get_pipeline_name()
+        vt_name = self.controller.name
+        self.long_title = "%s from %s"%(pip_name,vt_name)
+        return self.long_title
+    
+    def get_controller(self):
+        return self.controller
+
+    def version_changed(self):
+        self.scene().setupScene(self.controller.current_pipeline)
+
+    def run_control_flow_assist(self):
+        currentScene = self.scene()
+        if currentScene.controller:
+            selected_items = currentScene.get_selected_item_ids(True)
+            if selected_items is None:
+                selected_items = ([],[])
+            selected_module_ids = selected_items[0]
+            selected_connection_ids = selected_items[1]
+            if len(selected_module_ids) > 0:
+                dialog = QControlFlowAssistDialog(self, selected_module_ids, 
+                                                  selected_connection_ids, 
+                                                  currentScene)
+                dialog.exec_()
+            else:
+                show_info('No Modules Selected', 
+                          'You must select at least one module to use the '
+                          'Control Flow Assistant.')
+                
+    def done_configure(self, mid):
+        self.scene().perform_configure_done_actions(mid)
 
 ################################################################################
 # Testing

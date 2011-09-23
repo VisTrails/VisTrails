@@ -30,7 +30,7 @@ As a running example in this chapter, we will make some changes to the
 
 .. topic:: Try it now!
 
-   Open the "vtk\_book\_3rd\_p189.vt" vistrail, either by selecting ``File`` :math:`\rightarrow` ``Open`` from the menu, or by clicking the ``Open`` button on the toolbar. After opening this vistrail, click on the ``Pipeline`` toolbar button to enter workflow editing mode.
+   Open the "vtk\_book\_3rd\_p189.vt" vistrail, either by selecting ``File`` :math:`\rightarrow` ``Open`` from the menu, or by clicking the ``Open`` button on the toolbar. After opening this vistrail, select the version labeled ``final``, then click on the ``Pipeline`` toolbar button to enter workflow editing mode.
 
 Adding and Deleting Modules
 ===========================
@@ -53,7 +53,7 @@ the ``Module`` container to the workflow canvas.
 .. _fig-pipeline_screenshot:
 
 .. figure:: /figures/creating/pipeline_screenshot_labeled.png
-   :width: 4 in
+   :width: 5 in
    :align: center
 
    The main |vistrails| Pipeline user interface. The major components are labeled.
@@ -76,6 +76,10 @@ a selected module using the left mouse button.  Deleting selected
 modules is performed by pressing the 'Delete' key.  The modules
 and connections can also be copied and pasted using the
 ``Edit`` menu, or with 'Ctrl-C' and 'Ctrl-V', respectively.
+
+.. topic:: Try it now!
+
+   Let's replace the ``vtkQuadric`` module in our example with a ``vtkCylinder`` module instead. To do this, first type "vtkCylinder" into the search box of the ``Module`` container.  As the letters are typed, the list filters the available modules to match the query.  Select this module and drag the text onto an empty space in the canvas.  (See Figure :ref:`fig-add_and_delete_modulea`.  Then, select the ``vtkQuadric`` module in the canvas and press the 'Delete' key.  This removes the module along with any connections it has (see Figure :ref:`fig-add_and_delete_moduleb`).
 
 .. _fig-add_and_delete_modulea:
 
@@ -100,10 +104,6 @@ and connections can also be copied and pasted using the
    :align: center
 
    The connection replaced.
-
-.. topic:: Try it now!
-
-   Let's replace the ``vtkQuadric`` module in our example with a ``vtkCylinder`` module instead. To do this, first type "vtkCylinder" into the search box of the ``Module`` container.  As the letters are typed, the list filters the available modules to match the query.  Select this module and drag the text onto an empty space in the canvas.  (See Figure :ref:`fig-add_and_delete_modulea`.  Then, select the ``vtkQuadric`` module in the canvas and press the 'Delete' key.  This removes the module along with any connections it has (see Figure :ref:`fig-add_and_delete_moduleb`).
 
 Connecting Modules
 ==================
@@ -140,25 +140,18 @@ Changing Module Parameters
    single: methods
 
 The parameters for a module can be accessed in the
-``Methods`` container located on the right side of the
-Builder window.  When a module is selected from the canvas, the corresponding
-methods are displayed.  As with the ``Modules`` container, a
-search box is provided to quickly find a desired method.  By default,
-the Builder only manages methods with "set parameters."  To check the
-set parameters, a ``Set Methods`` container is available
-below the ``Methods`` container.  Changing a parameter can
-be performed directly in the
-``Set Methods`` container.  To set a parameter for the first
-time, click on the corresponding method and drag it into the
-``Set Methods`` container, then enter the parameters directly
-into the text boxes.  To remove a method, simply select the
-method in the ``Set Methods`` container and press
-the 'Delete' key.
+``Module Information`` tab located on the right side of the
+Builder window.  When a module on the canvas is selected, the corresponding
+module information is displayed.  The ``Inputs``, ``Outputs``, and ``Annotations`` tabs can be selected to set parameters within the respective categories.  To set a parameter, simply click on its name to reveal its input box and enter the desired value.  Notice that a ``-`` and ``+`` button appears to the left of the input box.  The ``-`` button removes the corresponding input box and the ``+`` button adds one.  This allows you to experiment with different values, but only the values in the last box are used in the final result.  
+
+.. topic:: Try it now!
+
+   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  Select ``SetRadius``, enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
 
 .. _fig-parameter_changes:
 
 .. figure:: figures/creating/change_parameter_interface1.png
-   :height: 1.5in
+   :height: 2.5in
    :align: center
 
    The module methods interface is shown with a change of the ``SetRadius`` parameter to 1.0.
@@ -170,7 +163,7 @@ the 'Delete' key.
    The results of the changes are displayed on execution.
 
 .. figure:: figures/creating/change_parameter_interface2.png
-   :height: 1.5in
+   :height: 2.5in
    :align: center
 
    The module methods interface is shown with a change of the ``SetRadius`` parameter to 0.25.
@@ -181,17 +174,42 @@ the 'Delete' key.
 
    The results of the changes are displayed on execution.
 
-.. topic:: Try it now!
-
-   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  The methods are shown hierarchically in the ``Methods`` container.  Find the ``SetRadius`` method and select it, then drag the highlighted text from the ``Methods`` container into the ``Set Methods`` container below.  The result is a ``SetRadius`` box with a ``Float`` text input.  Enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
-
-Changing Module Labels
+Using Global Variables
 ======================
 
-.. index::
-  pair: modules; labels
+VisTrails supports the use of global variables, which allows the user to create a variable which can be used anywhere within the vistrail.  So, if you create a variable of type ``String``, you can assign that variable to any port of type ``String``.  This is done by opening the ``Vistrail Variables`` view, creating a variable, and then dragging it to the desired port.
 
-A new label can be assigned to a module by selecting the triangle in its top right corner to open a popup menu and selecting the ``Set Module Label...`` menu item. You will then be prompted to enter the new label.  The new label will be displayed in the prominent position and the original module name will be displayed below it in parenthesis.
+.. topic:: Try it now!
+
+   Open vtk_http.vt and go to the ``Pipeline`` view of the ``Fran Cut Smoothed`` version.  Select ``Views`` :math:`\rightarrow` ``Vistrail Variables``.  Select the ``String`` module from ``Basic Modules``, drag it over to the ``Vistrail Variables`` tab, and drop it (see Figure :ref:`Create a Variable <fig-global-create>`).  Name it 'Filename1' and assign it the following value: 'http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip'.  Click on ``String``, which is just below ``Filename1`` in the ``Vistrail Variables`` tab.  Drag it over and drop it in the port of the ``HTTPFile`` (as shown in Figure :ref:`Assign a Variable <fig-global-assign>`). The variable should be assigned and the port should be filled in with yellow.
+
+.. _fig-global-create:
+
+.. figure:: /figures/creating/globalcreate.png
+
+   Create a Variable - Drag the ``String`` module and drop it in the ``Vistrail Variables`` tab to create a global variable.
+
+.. _fig-global-assign:
+
+.. figure:: /figures/creating/globalassign.png
+
+   Assign a Variable - Drag the type from just below the Global Variables name on the ``Vistrail Variables`` tab.  Drop it on a port to set the variable.
+
+To delete a global variable, simply click on the 'X' button that appears to the right of its name.  This will remove the variable, but if any ports are assigned to it, they need to be disconnected.  You can do this by right-clicking on the port and selecting ``Disconnect Vistrail Variables`` (see Figure :ref:`Disconnect a Variable <fig-disconnect>`).
+
+.. _fig-disconnect:
+
+.. figure:: /figures/creating/disconnect.png
+
+   Disconnect a Variable - To disconnect a global variable, right click on the assigned port and select ``Disconnect Vistrail Variables``.
+
+Configuring Module Labels
+=========================
+
+.. index::
+   pair: modules; labels
+
+To give the module a custom name, enter it in the ``Module Information`` tab's ``Name`` box.  The modules name will be displayed with the original module name(type) displayed in parenthesis below it.
 
 Configuring Module Ports
 ========================
@@ -203,85 +221,30 @@ Configuring Module Ports
 
 For convenience, all the inputs and outputs of a module are not always
 shown in the canvas as ports.  The ports that are shown by default are
-defined using an option when defining the method signatures of a
-package.  To access the full list of ports, the module configuration
-window is used.  This is opened by selecting the triangle at the top
-right of a module to open a popup menu and selecting
-the ``Edit Configuration`` menu item,
-or alternatively by
-pressing 'Ctrl-E' when a module is selected. The window shows a
-list of input and output ports and allows you to toggle any
-additional ports to enable.  When the configuration is complete, the
-new ports will appear on a module with a circle icon instead of the
-normal square.  These new ports can then be used for connections in
-the same way as the others.
+defined with the method signatures of a package.  A full list of ports is available in the ``Module Configuraton`` window, which is accessed by clicking on the ``Configure`` button in the module information tab or pressing 'Ctrl-E' when a module is selected.  Alternatively, module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs of the ``Module Information`` tab (see Figure :ref:`Enabling <fig-enabling_ports>`).  When enabled, an eye icon will appear to the left of the port name.  New ports will appear on the module with a circle icon instead of a square to signify that they are not visible by default, but can be connected in the same way as the others.
 
-.. %TODO screenshot!
+.. _fig-enabling_ports:
+
+.. figure:: figures/creating/enabling_ports.png
+   :align: center
+
+Enabling the GetRadius port from the ``Module Information`` tab.
 
 .. _fig-module_configuration:
 
 .. figure:: figures/creating/standard_output_module.png
-   :height: 1.5in
+   :height: 1.3 in
    :align: center
 
    The ``vtkCylinder`` module is configured to show an additional ``GetRadius`` port, which is then connected to a ``StandardOutput`` module.
 
-.. figure:: figures/creating/module_configuration.png
-   :height: 1.5in
-   :align: center
 
-   The module configuration window allows the hidden ports to be displayed.
+
+.. %TODO module_configuration.png should be changed to reflect v2.0.  Caption: The module configuration window allows the hidden ports to be displayed.
 
 .. topic:: Try it now!
 
-   As an example of configuring a module port, select the ``vtkCylinder`` module in the canvas and press 'Ctrl-E'.  In the newly opened configuration window, check the box for the ``GetRadius`` port, then click ``OK`` to close the window.  A new circle port should appear on the module.  Next, add a new ``StandardOutput`` module from the basic modules and connect the output port for ``GetRadius`` to the input port of ``StandardOutput``.  Upon execution, the value 0.25 is now output to the console.  Figure :ref:`fig-module_configuration` shows the new workflow together with the module configuration window.
-
-.. _sec-creating-grouping:
-
-Grouping Modules
-================
-
-.. index::
-   pair: modules; grouping
-   pair: modules; ungrouping
-
-As the number of modules in a pipeline increases, the pipeline can grow quite large and cumbersome. This also makes the pipeline more difficult to understand and maintain.  With any large system, it can be helpful to cluster related pieces together and represent them as a single unit. This idea, called *encapsulation*, is commonly used in computer programming as a way of controlling complexity. |vistrails| likewise supports the grouping of multiple modules together so that they can be treated as a single module. This "group module" can be thought of as a monolithic entity that performs all the same functions as its individual parts, but shields its inner details from everyone else.  As such, a group module inherits all the input and output ports of the modules inside it, but only displays those ports that have connections to another module outside of the group. To borrow another term from programming languages, these visible ports might be considered the *public interface* of the group module.
-
-Multiple modules are grouped together by first selecting them, and then choosing the ``Group`` option from the ``Edit`` menu. Alternatively, you can use the keyboard shortcut 'Ctrl-G'.
-
-An example may clarify how this works.
-
-.. topic:: Try it now!
-
-   Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`fig-groupinga`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`fig-groupingb`. Since the label "Group" isn't very descriptive, you can change this by clicking on the triangle in the top right of the module, and selecting the ``Set Module Label`` menu option. Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`fig-groupingc`).
-
-.. _fig-groupinga:
-
-.. figure:: figures/creating/grouping1.png
-   :height: 2.6in
-   :align: center
-
-   Box selection of four modules.
-
-.. _fig-groupingb:
-
-.. figure:: figures/creating/grouping2.png
-   :height: 2.6in
-   :align: center
-
-   The modules represented as a single group module.
-
-.. _fig-groupingc:
-
-.. figure:: figures/creating/grouping4.png
-   :height: 2.6in
-   :align: center
-
-   Renaming the group.
-
-Just as any number of modules may be clustered into a group, any number of groups may be combined with other groups or modules to form still larger groups. This is done in the same way as described above.
-
-In addition, any group may be also un-grouped; that is, restored to its individual modules. This is done by selecting the group module in the pipeline, and then choosing the ``Edit`` :math:`\rightarrow` ``Ungroup`` menu option. Alternatively, you can use the keyboard shortcut 'Ctrl-Shift-G'.
+   As an example of configuring a module port, select the ``vtkCylinder`` module in the canvas, select ``Outputs`` from the ``Module Information`` tab, and click in the left margin next to GetRadius (see Figure :ref:`Enabling <fig-enabling_ports>`). A new circle port should appear on the module.  Next, add a new ``StandardOutput`` module from the basic modules and connect the output port for ``GetRadius`` to the input port of ``StandardOutput``.  Upon execution, the value 0.25 is now output to the console.  Figure :ref:`The vtkCylinder Module <fig-module_configuration>` shows the new workflow.
 
 Basic Modules
 =============
@@ -296,6 +259,11 @@ These modules mostly consist of basic data types in Python and some
 manipulators for them.  In addition, file manipulation modules are
 provided to read files from disk and write files to disk.  
 
+.. _sec-pythonsource:
+
+PythonSource
+^^^^^^^^^^^^
+
 .. index:: PythonSource
 
 Because not every Python operation can be represented as a module, the
@@ -306,6 +274,10 @@ module is selected in the canvas, a configuration window is opened.
 This window allows you to specify custom input and output ports
 as well as directly enter Python source to be executed in the
 workflow.
+
+.. topic:: Note
+
+   Sometimes is it useful to view the source code that is contained in the ``PythonSource`` module when working with other modules.  Since the PythonSource configuration window will disappear when you select a new module, a ``Show read-only window`` button can be used to open a read-only window of the ``PythonSource's`` configuration, which will remain open until it is closed.
 
 .. topic:: Try it now!
 
@@ -324,9 +296,18 @@ workflow.
    A ``PythonSource`` module can be used to directly insert scripts into the workflow.
 
 .. figure:: figures/creating/python_source_configuration.png
-   :height: 1.5in
+   :height: 2.5in
    :align: center
 
    The configuration window for ``PythonSource`` allows multiple input and output ports to be specified along with the Python code that is to be executed.
+
+**Accessing vtkObjects in PythonSource** When using a ``PythonSource`` module, users will often rely on their knowledge of VTK to interact with VTK modules.  It is important to realize that a VTK module is really a wrapping of a vtkObject.  The real vtkObject is called vtkInstance, meaning the vtkObject of a module called 'dataset' is called 'dataset.vtkInstance' (see figure :ref:`Accessing vtkObjects<fig-pythonsource-vtkinstance>`).
+
+.. _fig-pythonsource-vtkinstance:
+
+.. figure:: figures/creating/python_source_instance.png
+   :align: center
+
+   Accessing vtkObjects.  The vtkObject of a VTK module, 'dataset', is accessed with 'dataset.vtkInstance'. 
 
 .. index:: builder

@@ -1064,8 +1064,7 @@ class QCellManipulator(QtGui.QFrame):
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                viewManager = builderWindow.viewManager
-                view = viewManager.ensureVistrail(info['locator'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
                     controller = view.controller
                     controller.change_selected_version(info['version'])
@@ -1084,14 +1083,17 @@ class QCellManipulator(QtGui.QFrame):
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                viewManager = builderWindow.viewManager
-                view = viewManager.ensureVistrail(info['locator'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
-                    controller = view.controller
-                    controller.change_selected_version(info['version'])
-                    controller.invalidate_version_tree(False)
-                    builderWindow.show()
-                    builderWindow.raise_()
+                    view.version_selected(info['version'], True)
+                    view.version_view.select_current_version()
+                    builderWindow.view_changed(view)
+                    w = view.window()
+                    # this has no effect
+                    w.qactions['history'].trigger()
+                    # so we need to use this one
+                    view.history_selected()
+                    view.activateWindow()
 
 ################################################################################
 

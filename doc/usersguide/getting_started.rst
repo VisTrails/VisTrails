@@ -25,7 +25,7 @@ that requires you to install and compile |vistrails| and all of its
 dependencies. Of the two types of installations, the binary version is
 much easier, and we encourage first-time users to use this option
 whenever possible.  Precompiled binaries are currently available for
-Microsoft Windows (XP and Vista) and Mac OS X (10.4.x or higher).  To
+Microsoft Windows (XP and Vista) and Mac OS X (10.5.x or higher).  To
 obtain either a binary or source copy of |vistrails|, please see our
 website: http://www.vistrails.org.
 
@@ -58,7 +58,7 @@ To install |vistrails| on Mac OS X, download the installation bundle
 for Mac from the |vistrails| website:
 http://www.vistrails.org. The precompiled binary currently only
 supports Mac OS X 10.5.x or higher. The disk image should be mounted automatically
-(Figure :ref:`fig-start-mac_installation`). Once the disk image is mounted, drag the |vistrails| desktop icon to the Applications
+(Figure :ref:`fig-start-mac_installation`). Once the disk image is mounted, drag the |vistrails| folder to the Applications
 folder to install the software.
 
 .. _fig-start-mac_installation:
@@ -101,7 +101,7 @@ details.
 * Qt 4.4 or higher
 * PyQt4
 * SciPy
-* VTK (needed to run the examples in this book
+* VTK (needed to run the examples in this book)
 
 There may also be additional dependencies, depending on which optional
 features of |vistrails| you plan to use.
@@ -125,12 +125,15 @@ Depending on a number of factors, it can take a few seconds for the
 system to start up. As |vistrails| loads, you may see some messages
 that detail the packages being loaded and initialized. This is normal
 operation, but if the system fails to load, these messages will
-provide information that may help you understand why.  After
-everything has loaded, you will see the |vistrails| Builder window as
+provide information that may help you understand why.  
+
+The Vistrails Builder Window
+============================
+
+After everything has loaded, you will see the |vistrails| Builder window as
 shown in Figure :ref:`fig-start-builder`. If you have enabled the
-|vistrails| Spreadsheet, you will also see a second window like that in
-Figure :ref:`fig-start-spreadsheet`.  (Note that the spreadsheet is
-enabled by default.)
+|vistrails| Spreadsheet (Packages :math:`\rightarrow` VisTrails Spreadsheet :math:`\rightarrow` Show Spreadsheet), you will also see a second window like that in
+Figure :ref:`fig-start-spreadsheet`.  Note that if the spreadsheet window is not visible, it will open upon execution of a workflow that uses it.
 
 .. _fig-start-builder:
 
@@ -146,36 +149,92 @@ enabled by default.)
 
    |vistrails| Spreadsheet Window
 
+The VisTrails Toolbar
+^^^^^^^^^^^^^^^^^^^^^
+
 .. _fig-start-toolbar:
 
-.. figure:: /figures/getting_started/toolbar-left.png  
+.. figure:: /figures/getting_started/toolbar.png  
+   :width: 100%
    
-   (see Section :ref:`sec-start-file`)
-   
-.. figure:: /figures/getting_started/toolbar-center-left.png  
-
-   (see Section :ref:`sec-start-interact`)
-
-.. figure:: /figures/getting_started/toolbar-center-right.png  
-   
-   (see Chapters :ref:`chap-creating`, :ref:`chap-version_tree`, :ref:`chap-querying`, :ref:`chap-paramexploration`)
-
-.. figure:: /figures/getting_started/toolbar-right.png
-
-   (see Section :ref:`sec-start-interact`)
+   |vistrails| Toolbar
 
 .. index:: toolbar
 
-The |vistrails| toolbar serves to help you navigate
-the various modes and functions |vistrails| provides.  As illustrated
-by Figure :ref:`(see Section Manipulating VisTrails Files)<fig-start-toolbar>`, the left side of the toolbar
-contains standard file manipulation buttons, and the next section
-provides buttons for execution and undo/redo functionality.  The four
-buttons in the third section serve to switch between different modes
-to manipulate, query, and explore workflows.  The right-most buttons
-allow you to toggle between different ways of navigating around
-the current canvas.
+The |vistrails| toolbar both allows you to execute the current workflow or function, and switch between various modes.  A brief description of each member of the toolbar follows:
 
+**Pipeline** This view shows the current workflow.  See Chapter :ref:`chap-creating` for information about creating a workflow.
+
+**History** This view shows different versions of the workflow(s) as it has  progressed over time.  See Chapter :ref:`chap-version_tree`.
+
+**Search** Use this mode to search for modules or subpipeline within the current version, the current vistrail, or all vistrails.  See Chapter :ref:`chap-querying`.
+
+**Explore** This option allows you to select one or more parameter(s) for which a set of values is created.  The workflow is then executed once for each value in the set and displayed in the spreadsheet for comparison purposes.  See Chapter :ref:`chap-paramexploration`.
+
+**Provenance** The ``Provenance`` mode shows the user a given vistrail's execution history.  When a particular execution is selected, its pipeline view with modules colored according to its associated execution result is shown.  See Chapter :ref:`chap-provenance_browser`.
+
+**Mashup** The ``Mashup`` mode allows you to create a small application that allows you to explore different values for a selected set of parameters.  See Chapter :ref:`chap-mashups`
+for more information.
+
+**Execute** ``Execute`` will either execute the current pipeline when the ``Pipeline``, ``History``, or ``Provenance`` views are selected, or perform the search or exploration when in ``Search`` or ``Exploration`` mode.  This button is disabled for ``Mashup`` mode, or when there is not a current workflow to execute.
+
+The ``New``, ``Open``, and ``Save`` buttons will create, open, and save a vistrail, as expected.
+
+Palettes and Associated Views
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: 
+   pair: palette; views
+
+**Palettes**
+
+As you can see, the builder window has a center widget with a palette on each side.  There are a number of views (listed in the 4th group of the views menu) that when made visible, will be opened in these palettes.  In this section, we will discuss how the views are arranged. 
+
+Notice that when VisTrails first launches the builder window, both palettes contain two views.  The left palette is split so both views are visible, whereas the right palette uses tabs to display one view at a time.        By default, additional views will be shown in the right, and lower left panels when they are made visible.  To make a view visible, either switch to a mode that requires it, or select it from the views menu.  For example, the ``Mashup`` mode will add the ``Mashup Pipeline`` and ``Mashups Inspector`` views to the panels.  When the mode is changed from ``Mashup``, these two views will be removed (hidden).  
+
+**Buttons**
+
+Notice that there is a button with a dot icon in the upper right corner of each view (see Figure :ref:`Buttons <fig-panel-buttons>`).  This is the pin button.  If you don't want a view to disappear when you change modes, make sure it is pinned.  When the dot in the center of this button is gone, it is unpinned and the view is likely to disappear when you change modes.
+
+The other two buttons, the one with the 'X' and the one with the rectangular outlines (see Figure :ref:`Buttons <fig-panel-buttons>`), will either close the view, or undock the view, depending on which one you push.  Alternatively, you may undock a view by clicking on the view's title bar and pulling it out of the palette.  The view can then either remain in its own window, or can be docked by placing it in either palette.
+
+.. _fig-panel-buttons:
+
+.. figure:: /figures/getting_started/panel_buttons.png
+   
+   The Close, Detach, and Pin Buttons
+
+**View Locations**
+
+.. index::
+   pair: view;location
+
+The following table gives the view that is visible in each palette for each of the main views/modes:
+
++-------------++---------------------+--------------------+
+|             || Lower Left Palette  | Right Palette      |
++=============++=====================+====================+
+| Pipeline    || Modules             | Module Information |
++-------------++---------------------+--------------------+
+| History     || Modules             | Properties         |
++-------------++---------------------+--------------------+
+| Explore     || Explore Properties  | Set Methods        |
++-------------++---------------------+--------------------+
+| Provenance  || Modules             | Log Details        |
++-------------++---------------------+--------------------+
+| Mashup      || Mashups Inspector   | Mashup Pipeline    |
++-------------++---------------------+--------------------+
+
+Notice that the ``Workspace``, ``Diff Properties``, and ``Vistrail Variables`` views are not in the table.  That is because, the ``Workspace`` view is always visible, the ``Diff Properties`` view opens in the right palette when a visual diff is performed in the ``History`` view, and the ``Vistrail Variables`` view is opened from the ``Views`` menu.  Note: with the ``Vistrail Variables`` view especially, if you don't want it to disappear, you should make sure it is pinned.
+
+The Center Widget
+^^^^^^^^^^^^^^^^^
+
+The center widget is somewhat larger than the side panels as it is intended to be the main workspace.  It displays the following views: ``Pipeline``, ``History``, ``Search``- query and results, ``Visual Diff`` results, ``Explore``, ``Provenance``, and ``Mashup``.  By default, one view is shown.  To open an additional view, type CTRL-t to create a new tab.  The new tab starts out in the ``Pipeline`` view, but you are free to change it to any of the other views.  Note that the tabs from only one vistrail are displayed at a time.  When you switch to a different vistrail, the other vistrail's set of open tabs are displayed.
+
+If you would like to see views from more than one vistrail at a time, you may do this by right-clicking on the vistrail (listed in ``Current Vistrails`` of the ``Workspace`` view), and selecting the option to open in a new window.  The side palettes will stay with the original window, but can be moved to the current window by selecting ``Dock Palettes`` from the ``Views`` menu.
+
+If you would like to see multiple views from the same vistrail, double-click the title of the view to detach it.  It is not possible to reattach the view, so once you are finished with the detached view, you may close it.  If you would like the view to be reattached, you should close it and open it again in a new tab.
 
 .. _sec-start-file:
 
@@ -191,20 +250,15 @@ To open a |vistrails| file, or *vistrail*, you can either click the
 ``Open`` button in the toolbar or select ``Open`` from the ``File``
 menu. This brings up a standard file dialog where you can select a
 vistrail to open.  Vistrails are identified by the ``.vt`` file
-extension. Opening a vistrail adds a tab to the builder window, where
-each tab represents a different vistrail.  Clicking a tab switches the
-current vistrail. Vistrails can also be
-stored in a database, enabling a central repository for workflows.
-See Chapter :ref:`chap-database` for more details about this feature.
+extension. Alternatively, if the vistrail is listed under `My Vistrails` in the ``Workspace Panel``, double clicking its name will open it.  When a vistrail is opened, it is listed in the ``Workspace`` (upper left panel) under `Current Vistrails`.  Since only one open vistrail is displayed at a time, the ``Workspace`` allows you to select which one to display.  Vistrails can also be stored in a database, enabling a central repository for workflows. See Chapter :ref:`chap-database` for more details about this feature.
 
 .. index::
    pair: close; vistrail
    pair: save; vistrail
 
 To close a vistrail, you can either choose the
-``Close`` option from the ``File`` menu or click
-the red 'X' button on the upper right side of the builder window.  If
-the vistrail has not been saved, you will asked if you wish to save
+``Close`` option from the ``File`` menu or type Ctrl-w.  If
+the vistrail has not been saved, you will be asked if you wish to save
 your work. To save a vistrail, there is both a
 button and a menu item in the ``File`` menu.  If you would
 like to save the vistrail with a different name or in a different
@@ -228,7 +282,7 @@ details of computations and dependencies into a graph consisting of
 computational *modules* and *connections* between these
 modules.
 
-The ``Pipeline`` button on the |vistrails| toolbar accesses VisTrail's
+The ``Pipeline`` button on the |vistrails| toolbar accesses VisTrails'
 interface for building workflows. Similar to many existing workflow
 systems, it allows you to interactively create workflows using an
 extensible library of modules and a connection protocol that helps you
@@ -309,7 +363,7 @@ When a workflow is executed, the module color is determined as follows:
 
    If a workflow reads a file using the basic module File, VisTrails does check whether the file was modified since the last run. It does so by keeping a signature that is based on the modification time of the file. And if the file was modified, the File module and all downstream modules (the ones which depend on File) will be executed.
 
-   If you do not want VisTrails to cache executions, you can turn off caching: go to Menu Edit -> Preferences and in the General Configuration tab, change Cache execution results to Never.
+   If you do not want VisTrails to cache executions, you can turn off caching: go to Menu Edit :math:`\rightarrow` Preferences and in the General Configuration tab, change Cache execution results to Never.
 
    If you would like your input and output data to be versioned, you can use the Persistence package.
 
@@ -318,7 +372,7 @@ Additional Interactions
 
 .. index:: undo, redo
 
-The ``Undo`` and ``Redo`` buttons function in the standard way, but note that these
+From the ``Edit`` menu, ``Undo`` and ``Redo`` function in the standard way, but note that these
 actions are implicitly switching between different versions of a
 workflow.  Thus, you will notice that as you undo or redo a change to
 a workflow, the selected version in the version tree changes.
@@ -340,5 +394,5 @@ functionality, click and drag up to zoom out and drag down to zoom in.
 
 .. topic:: Note
 
-   Pressing Ctrl-R will recenter the window.  You may also zoom and pan in the window in the upper right corner of the main window (the picture-in-picture window).  To recenter this picture-in-picture (PIP) window, first click on it to bring it to focus, then press Ctrl-R (or Command-R on a Mac) to recenter.
+   Pressing Ctrl-R will recenter the window.
 

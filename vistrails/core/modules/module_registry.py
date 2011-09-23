@@ -39,6 +39,7 @@ import copy
 import os
 import tempfile
 import traceback
+import uuid
 
 from core.data_structures.graph import Graph
 from core import debug
@@ -425,14 +426,12 @@ class ModuleRegistry(DBRegistry):
             else:
                 self._default_package = None
                 self._current_package = None
-            self._abs_pkg_upgrades = {}
         else:
             self._constant_hasher_map = copy.copy(other._constant_hasher_map)
             self._current_package = \
                 self.packages[other._current_package.identifier]
             self._default_package = \
                 self.packages[other._default_package.identifier]
-            self._abs_pkg_upgrades = copy.copy(other._abs_pkg_upgrades)
 
     def setup_indices(self):
         self.descriptors_by_id = {}
@@ -556,13 +555,31 @@ class ModuleRegistry(DBRegistry):
         self.add_package(self._default_package)
         return self._default_package
 
-    def has_abs_upgrade(self, descriptor_info):
-        return descriptor_info in self._abs_pkg_upgrades
+    def has_abs_upgrade(self, identifier, name, namespace='', 
+                        package_version='', module_version=''):
 
-    def get_abs_upgrade(self, descriptor_info):
-        if self.has_abs_upgrade(descriptor_info):
-            return self._abs_pkg_upgrades[descriptor_info]
-        return None
+        # if this fails, we want to raise the exception
+        try:
+            package = self.get_package_by_name(identifier, package_version)
+        except MissingPackageVersion:
+            package = self.get_package_by_name(identifier)
+        return package.has_abs_upgrade(name, namespace, module_version)
+
+    def get_abs_upgrade(self, identifier, name, namespace='',
+                        package_version='', module_version=''):
+        try:
+            package = self.get_package_by_name(identifier, package_version)
+        except MissingPackageVersion:
+            package = self.get_package_by_name(identifier)
+        return package.get_abs_upgrade(name, namespace, module_version)
+
+    # def has_abs_upgrade(self, descriptor_info):
+    #     return descriptor_info in self._abs_pkg_upgrades
+
+    # def get_abs_upgrade(self, descriptor_info):
+    #     if self.has_abs_upgrade(descriptor_info):
+    #         return self._abs_pkg_upgrades[descriptor_info]
+    #     return None
 
     ##########################################################################
     # Per-module registry functions
@@ -591,13 +608,14 @@ class ModuleRegistry(DBRegistry):
 
     def get_package_by_name(self, identifier, package_version=''):
         package_version = package_version or ''
+        package_version_key = (identifier, package_version)
 #         if package_version is not None and package_version.strip() == "":
 #             package_version = None
         try:
             if not package_version:
                 return self.packages[identifier]
             else:
-                return self.package_versions[(identifier, package_version)]
+                return self.package_versions[package_version_key]
         except KeyError:
             if identifier not in self.packages:
                 raise MissingPackage(identifier)
@@ -933,6 +951,7 @@ class ModuleRegistry(DBRegistry):
           is_root=False,
           ghost_package=None,
           ghost_package_version=None,
+          ghost_namespace=None,
 
         Registers a new module with VisTrails. Receives the class
         itself and an optional name that will be the name of the
@@ -999,6 +1018,10 @@ class ModuleRegistry(DBRegistry):
         are loaded simultaneously, this will allow overriding of
         the package_version to associate with in the module palette.
 
+        If ghost_namespace is not None, the descriptor will be
+        displayed under the specified namespace instead of the
+        'namespace' attribute of the descriptor.
+
         Notice: in the future, more named parameters might be added to
         this method, and the order is not specified. Always call
         add_module with named parameters.
@@ -1032,6 +1055,7 @@ class ModuleRegistry(DBRegistry):
         is_root = fetch('is_root', False)
         ghost_identifier = fetch('ghost_package', None)
         ghost_package_version = fetch('ghost_package_version', None)
+        ghost_namespace = fetch('ghost_namespace', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError(
@@ -1056,8 +1080,12 @@ class ModuleRegistry(DBRegistry):
             base_descriptor = self.get_descriptor(baseClass)
 
         if module in self._module_key_map:
-            raise DuplicateModule(self.get_descriptor(module), identifier,
-                                  name, namespace)
+            # This is really obsolete as having two descriptors
+            # pointing to the same module isn't a big deal except to
+            # get_descriptor which shouldn't be used often
+            if identifier != 'local.abstractions':
+                raise DuplicateModule(self.get_descriptor(module), identifier,
+                                      name, namespace)
         elif self.has_descriptor_with_name(identifier, name, namespace,
                                            package_version, version):
             raise DuplicateIdentifier(identifier, name, namespace,
@@ -1104,6 +1132,8 @@ class ModuleRegistry(DBRegistry):
             descriptor.ghost_identifier = ghost_identifier
         if ghost_package_version:
             descriptor.ghost_package_version = ghost_package_version
+        if ghost_namespace:
+            descriptor.ghost_namespace = ghost_namespace
                  
         self.signals.emit_new_module(descriptor)
         if self.is_abstraction(descriptor):
@@ -1123,7 +1153,8 @@ class ModuleRegistry(DBRegistry):
             raise TypeError("Expected filename or (filename, kwargs)")
 
     def add_subworkflow(self, vt_fname, **kwargs):
-        from core.modules.sub_module import new_abstraction, read_vistrail
+        from core.modules.sub_module import new_abstraction, read_vistrail, \
+            get_next_abs_annotation_key
 
         # vt_fname is relative to the package path
         if 'package' in kwargs:
@@ -1178,6 +1209,13 @@ class ModuleRegistry(DBRegistry):
                                      package_version, str(version)))
             vt_save_dir = tempfile.mkdtemp(prefix='vt_upgrade_abs')
             vt_fname = os.path.join(vt_save_dir, os.path.basename(vt_fname))
+            
+            
+            # need to create new namespace for upgraded version
+            new_namespace = str(uuid.uuid1())
+            annotation_key = get_next_abs_annotation_key(vistrail)
+            vistrail.set_annotation(annotation_key, new_namespace)
+
             # FIXME: Should delete this upgrade file when vistrails is exited
             save_vistrail_to_xml(vistrail, vt_fname) 
             module = new_abstraction(name, vistrail, vt_fname, new_version, 
@@ -1185,9 +1223,15 @@ class ModuleRegistry(DBRegistry):
             # need to set identifier to local.abstractions and its version
             kwargs['package'] = abstraction_pkg
             kwargs['package_version'] = abstraction_ver
-            # Set ghost attributes so module palette shows it in package instead of 'My Subworkflows'
+            # only want to change the namespace on the new version
+            # (the one being added to local.abstractions)
+            kwargs['namespace'] = new_namespace
+
+            # Set ghost attributes so module palette shows it in
+            # package instead of 'My Subworkflows'
             kwargs['ghost_package'] = identifier
             kwargs['ghost_package_version'] = package_version
+            kwargs['ghost_namespace'] = namespace
             is_upgraded_abstraction = True
                                     
         module.internal_version = str(module.internal_version)
@@ -1200,8 +1244,15 @@ class ModuleRegistry(DBRegistry):
         if is_upgraded_abstraction:
             descriptor_info = (identifier, name, namespace,  
                                package_version, str(version))
-            self._abs_pkg_upgrades[descriptor_info] = descriptor
-            package._abs_pkg_upgrades[descriptor_info] = descriptor
+            # print 'adding to upgrades:', descriptor_info
+            # print '  ', descriptor.package, descriptor.name, descriptor.namespace, descriptor.version, descriptor.package_version
+            if identifier != abstraction_pkg:
+                info_exc = ModuleRegistryException(*descriptor_info)
+                debug.critical("Module %s in package %s is out-of-date.  "
+                               "Please check with the package developer for "
+                               "a new version." % (info_exc._module_name,
+                                                   info_exc._package_name))
+            package.add_abs_upgrade(descriptor, name, namespace, str(version))
             self.auto_add_ports(descriptor.module)
         return descriptor
 
@@ -1439,9 +1490,10 @@ class ModuleRegistry(DBRegistry):
             self.delete_module(*(sigstring.split(':',2)))
         
         # Remove upgraded package subworkflows from registry
-        for descriptor_info, descriptor in package._abs_pkg_upgrades.iteritems():
-            self.delete_module(descriptor.identifier, descriptor.name, descriptor.namespace)
-            del self._abs_pkg_upgrades[descriptor_info]
+        for key, version_dict in package._abs_pkg_upgrades.iteritems():
+            for version, descriptor in version_dict.iteritems():
+                self.delete_module(descriptor.identifier, descriptor.name, 
+                                   descriptor.namespace)
         package._abs_pkg_upgrades.clear()
         
         self.delete_package(package)
@@ -1657,8 +1709,12 @@ class ModuleRegistry(DBRegistry):
 
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
-        return descriptor.configuration_widget()
-        
+        klass = descriptor.configuration_widget()
+        if type(klass) == tuple:
+            (path, klass_name) = klass
+            module = __import__(path, globals(), locals(), [klass_name])
+            klass = getattr(module, klass_name)            
+        return klass
 
     def is_descriptor_subclass(self, sub, super):
         """is_descriptor_subclass(sub : ModuleDescriptor, 

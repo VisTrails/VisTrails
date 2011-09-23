@@ -41,18 +41,18 @@ QModuleTreeWidgetItem
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import (QSearchTreeWindow,
-                                QSearchTreeWidget,
-                                QToolWindowInterface)
+                                QSearchTreeWidget)
 from gui.module_documentation import QModuleDocumentation
+from gui.theme import CurrentTheme
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from core.modules.module_registry import get_module_registry
 from core.system import systemType
 from core.utils import VistrailsInternalError
-from core.packagemanager import get_package_manager
 import weakref
 
 ################################################################################
                 
-class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
+class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
     """
     QModulePalette just inherits from QSearchTreeWindow to have its
     own type of tree widget
@@ -60,8 +60,34 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     """
     def __init__(self, parent=None):
         QSearchTreeWindow.__init__(self, parent)
+        self.setContentsMargins(0,5,0,0)
         self.packages = {}
         self.namespaces = {}
+        self.addButtonsToToolBar()
+        
+    def addButtonsToToolBar(self):
+        self.expandAction = QtGui.QAction(CurrentTheme.EXPAND_ALL_ICON,
+                                           "Expand All", self.toolWindow().toolbar,
+                                           triggered=self.expandAll)
+        
+        self.collapseAction = QtGui.QAction(CurrentTheme.COLLAPSE_ALL_ICON,
+                                           "Collapse All", self.toolWindow().toolbar,
+                                           triggered=self.collapseAll)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.collapseAction)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.expandAction)
+        
+    def expandAll(self):
+        self.treeWidget.expandAll()
+    
+    def collapseAll(self):
+        self.treeWidget.collapseAll()
+
+    def link_registry(self):
+        self.updateFromModuleRegistry()
+        self.connect_registry_signals()
+        
 
     def connect_registry_signals(self):
         registry = get_module_registry()
@@ -173,11 +199,15 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
             else:
                 package_item = self.packages[package_identifier]()
 
-            if descriptor.namespace_hidden or not descriptor.namespace:
+            if descriptor.ghost_namespace is not None:
+                namespace = descriptor.ghost_namespace
+            else:
+                namespace = descriptor.namespace
+            if descriptor.namespace_hidden or not namespace:
                 parent_item = package_item
             else:
                 parent_item = \
-                    package_item.get_namespace(descriptor.namespace.split('|'))
+                    package_item.get_namespace(namespace.split('|'))
 
             item = QModuleTreeWidgetItem(descriptor, parent_item,
                                          QtCore.QStringList(descriptor.name))
@@ -202,6 +232,9 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.treeWidget.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.treeWidget.setSortingEnabled(True)
 #        self.treeWidget.expandAll()
+
+    def sizeHint(self):
+        return QtCore.QSize(256, 760)
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """
@@ -406,20 +439,33 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     def contextMenuEvent(self, event, widget):
         if self.is_top_level():
             return
+        menu = QtGui.QMenu(widget)
         act = QtGui.QAction("View Documentation", widget)
         act.setStatusTip("View module documentation")
         QtCore.QObject.connect(act,
                                QtCore.SIGNAL("triggered()"),
                                self.view_documentation)
-        menu = QtGui.QMenu(widget)
         menu.addAction(act)
+        if self.descriptor.package == 'local.abstractions':
+            act = QtGui.QAction("Edit Subworkflow", widget)
+            act.setStatusTip("Edit this Subworkflow")
+            QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.edit_subworkflow)
+            menu.addAction(act)
         menu.exec_(event.globalPos())
 
     def view_documentation(self):
-        widget = QModuleDocumentation(self.descriptor, None)
-        widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        widget.exec_()
+        from vistrails_window import _app
+        _app.show_documentation()
+        widget = QModuleDocumentation.instance()
+        widget.update_descriptor(self.descriptor)
 
+    def edit_subworkflow(self):
+        from vistrails_window import _app
+        filename = self.descriptor.module.vt_fname
+        _app.openAbstraction(filename)
+        
     def set_descriptor(self, descriptor):
         self.descriptor = descriptor
         if descriptor:

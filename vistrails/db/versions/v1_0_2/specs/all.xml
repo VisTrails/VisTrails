@@ -374,6 +374,10 @@
       <property ref="true" object="module">
 	<sql column="parent_id" type="int"/>
       </property>
+      
+      <property ref="true" object="workflow_exec">
+	<sql column="parent_id" type="int"/>
+      </property>
 
       <property ref="true" object="module_exec">
 	<sql column="parent_id" type="int"/>
@@ -2061,6 +2065,10 @@
       <sql column="log_id" type="int"/>
     </property>
 
+    <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+    
     <choice name="item_exec" type="list" mapping="one-to-many">
       <property name="module_exec" ref="true" object="module_exec">
 	<xml nodeType="xs:element"/>

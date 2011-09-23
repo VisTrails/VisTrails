@@ -31,7 +31,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 # MACOSX binary install stuff
 import os
 os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'

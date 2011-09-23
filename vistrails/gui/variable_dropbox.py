@@ -48,9 +48,10 @@ from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.modules import module_registry
 from core.modules.basic_modules import Constant
-from core.modules.constant_configuration import StandardConstantWidget, \
-    FileChooserToolButton
 from gui.common_widgets import QPromptWidget
+from gui.modules import get_widget_class
+from gui.modules.constant_configuration import StandardConstantWidget, \
+    FileChooserToolButton
 from gui.module_palette import QModuleTreeWidget
 from gui.theme import CurrentTheme
 from gui.utils import show_question, YES_BUTTON, NO_BUTTON
@@ -185,7 +186,7 @@ class QVerticalWidget(QPromptWidget):
         
         """
         QPromptWidget.__init__(self, parent)
-        self.setPromptText("Drag constants here to create variables")
+        self.setPromptText("Drag a constant from the Modules panel to create a variable")
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(5)
@@ -321,7 +322,7 @@ class QVariableInputForm(QtGui.QGroupBox):
         # Create widget for editing variable
         p = ModuleParam(type=descriptor.name, identifier=descriptor.identifier, namespace=descriptor.namespace)
         p.strValue = var_strValue
-        widget_type = descriptor.module.get_widget_class()
+        widget_type = get_widget_class(descriptor.module)
         self.widget = widget_type(p, self)
         self.label = QDragVariableLabel(p.type)
         self.layout().addWidget(self.label, 0, 0)

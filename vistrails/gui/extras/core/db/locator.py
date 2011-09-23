@@ -56,9 +56,9 @@ def get_load_db_locator_from_gui(parent, obj_type):
                      config['user'],
                      config['passwd'],
                      obj_name,
-                     obj_id,
-                     obj_type,
-                     config.get('id', None))
+                     obj_id=obj_id,
+                     obj_type=obj_type,
+                     connection_id=config.get('id', None))
 
 def get_save_db_locator_from_gui(parent, obj_type, locator=None):
     config, name = QOpenDBWindow.getSaveDBObject(obj_type)
@@ -70,9 +70,9 @@ def get_save_db_locator_from_gui(parent, obj_type, locator=None):
                      config['user'],
                      config['passwd'],
                      name,
-                     None,
-                     obj_type,
-                     config.get('id', None))
+                     obj_id=None,
+                     obj_type=obj_type,
+                     connection_id=config.get('id', None))
 
 ##############################################################################
 
@@ -204,3 +204,18 @@ def get_autosave_prompt(parent):
                                         QtGui.QMessageBox.Open,
                                         QtGui.QMessageBox.Ignore)
     return result == QtGui.QMessageBox.Open
+
+def ask_to_overwrite_file(parent=None, obj_type='vistrail'):
+    overwrite = True
+    fname = None
+    msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+                            "VisTrails",
+                            "File exists and contains changes. Overwrite?",
+                            (QtGui.QMessageBox.Yes | QtGui.QMessageBox.No),
+                            parent)
+    if msg.exec_() == QtGui.QMessageBox.No:
+        overwrite = False
+        locator = get_save_file_locator_from_gui(parent, obj_type)
+        if locator:
+            fname = locator._name
+    return (overwrite, fname)

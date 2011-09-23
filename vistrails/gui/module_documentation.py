@@ -38,38 +38,76 @@ QModuleDocumentation
 """
 
 from PyQt4 import QtCore, QtGui
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
-class QModuleDocumentation(QtGui.QDialog):
+class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
     """
     QModuleDocumentation is a dialog for showing module documentation. duh.
 
     """
-    def __init__(self, descriptor, parent=None):
+    def __init__(self, parent=None):
         """ 
-        QModuleAnnotation(descriptor: ModuleDescriptor, parent)
+        QModuleAnnotation(parent)
         -> None
 
         """
         QtGui.QDialog.__init__(self, parent)
-        self.descriptor = descriptor
-        self.setModal(True)
-        self.setWindowTitle('Documentation for "%s"' % descriptor.name)
+        # self.setModal(True)
+        self.setWindowTitle("Module Documentation")
         self.setLayout(QtGui.QVBoxLayout())
-        self.layout().addStrut(600)
-        self.layout().addWidget(QtGui.QLabel("Module name: %s" % descriptor.name))
-        package = descriptor.module_package()
-        self.layout().addWidget(QtGui.QLabel("Module package: %s" % package))
-        self.closeButton = QtGui.QPushButton('Ok', self)
+        # self.layout().addStrut()
+        self.name_label = QtGui.QLabel("")
+        self.layout().addWidget(self.name_label)
+        self.package_label = QtGui.QLabel("")
+        self.layout().addWidget(self.package_label)
+        # self.closeButton = QtGui.QPushButton('Ok', self)
         self.textEdit = QtGui.QTextEdit(self)
         self.layout().addWidget(self.textEdit, 1)
-        if descriptor.module.__doc__:
-            self.textEdit.setText(descriptor.module.__doc__)
-        else:
-            self.textEdit.setText("Documentation not available.")
         self.textEdit.setReadOnly(True)
         self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))
-        self.layout().addWidget(self.closeButton)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), self.close)
-        self.closeButton.setShortcut('Enter')
+        # self.layout().addWidget(self.closeButton)
+        # self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), 
+        #              self.close)
+        # self.closeButton.setShortcut('Enter')
+
+        self.update_descriptor()
+
+    def set_controller(self, controller):
+        scene = controller.current_pipeline_view
+        selected_ids = scene.get_selected_module_ids() 
+        modules = [controller.current_pipeline.modules[i] 
+                   for i in selected_ids]
+        if len(modules) == 1:
+            self.update_module(modules[0])
+        else:
+            self.update_module(None)
+
+    def update_module(self, module=None):
+        if module and module.module_descriptor:
+            self.update_descriptor(module.module_descriptor)
+        else:
+            self.update_descriptor(None)
+
+    def update_descriptor(self, descriptor=None):
+        self.descriptor = descriptor
+        if descriptor is None:
+            # self.setWindowTitle("Module Documentation")
+            self.name_label.setText("Module name:")
+            self.package_label.setText("Module package:")
+            self.textEdit.setText("")
+        else:
+            # self.setWindowTitle('%s Documentation' % descriptor.name)
+            self.name_label.setText("Module name: %s" % descriptor.name)
+            self.package_label.setText("Module package: %s" % \
+                                           descriptor.module_package())
+            if descriptor.module.__doc__:
+                self.textEdit.setText(descriptor.module.__doc__)
+            else:
+                self.textEdit.setText("Documentation not available.")
+
+    def activate(self):
+        if self.isVisible() == False:
+            self.show()
+        self.activateWindow()

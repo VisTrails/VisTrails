@@ -38,10 +38,10 @@ QParameterView
 from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
 from core.vistrail.module_param import ModuleParam
-from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
-     QToolWindowInterface
+from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
 from gui.paramexplore.virtual_cell import QVirtualCellWindow
 from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
+from gui.vistrails_palette import QVistrailsPaletteInterface
 import operator
 from core.utils import InstanceObject
 
@@ -62,7 +62,7 @@ class ParameterInfo(InstanceObject):
 ################################################################################
 
 
-class QParameterView(QSearchTreeWindow, QToolWindowInterface):
+class QParameterView(QSearchTreeWindow, QVistrailsPaletteInterface):
     """
     QParameterView is a special widget for displaying aliases and
     parameters inside a pipeline
@@ -75,6 +75,10 @@ class QParameterView(QSearchTreeWindow, QToolWindowInterface):
         """
         self.setWindowTitle('Set Methods')
         return QParameterTreeWidget(self)
+
+    def set_pipeline(self, pipeline):
+        self.pipeline = pipeline
+        self.treeWidget.updateFromPipeline(pipeline)
 
 class QParameterTreeWidget(QSearchTreeWidget):
     """

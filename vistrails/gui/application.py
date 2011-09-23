@@ -405,9 +405,18 @@ after self.init()"""
                         if locator._vtag != '':
                             version = locator._vtag
                     execute = self.temp_configuration.executeWorkflows
+                    mashuptrail = None
+                    mashupversion = None
+                    if hasattr(locator, '_mshptrail'):
+                        mashuptrail = locator._mshptrail
+                    if hasattr(locator, '_mshpversion'):
+                        mashupversion = locator._mshpversion
+                    if not self.temp_configuration.showSpreadsheetOnly:
+                        self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
-                                                                    version,
-                                                                    execute)
+                                                    version, execute,
+                                                    mashuptrail=mashuptrail, 
+                                                    mashupVersion=mashupversion)
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
                 
@@ -453,6 +462,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
         self._is_running = False
+        self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
         # code for single instance of the application
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
@@ -514,6 +524,14 @@ parameters from other instances")
             return r
         return True
 
+    def showBuilderWindow(self):
+        # in some systems (Linux and Tiger) we need to make both calls
+        # so builderWindow is activated
+        self.setActiveWindow(self.builderWindow)
+        self.builderWindow.activateWindow()
+        self.builderWindow.show()
+        self.builderWindow.raise_()
+    
     def interactiveMode(self):
         """ interactiveMode() -> None
         Instantiate the GUI for interactive mode
@@ -521,21 +539,16 @@ parameters from other instances")
         """     
         if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
-        self.builderWindow.create_first_vistrail()
-        self.builderWindow.modulePalette.updateFromModuleRegistry()
-        self.builderWindow.modulePalette.connect_registry_signals()
+        # self.builderWindow.modulePalette.updateFromModuleRegistry()
+        # self.builderWindow.modulePalette.connect_registry_signals()
+        self.builderWindow.link_registry()
         
         self.process_interactive_input()
-
         if not self.temp_configuration.showSpreadsheetOnly:
-            # in some systems (Linux and Tiger) we need to make both calls
-            # so builderWindow is activated
-            self.setActiveWindow(self.builderWindow)
-            self.builderWindow.activateWindow()
-            self.builderWindow.show()
-            self.builderWindow.raise_()
+            self.showBuilderWindow()
         else:
             self.builderWindow.hide()
+        self.builderWindow.create_first_vistrail()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -687,9 +700,11 @@ parameters from other instances")
 
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.
-        from gui.builder_window import QBuilderWindow
+        # from gui.builder_window import QBuilderWindow
+        from gui.vistrails_window import QVistrailsWindow
 
-        self.builderWindow = QBuilderWindow()
+        # self.builderWindow = QBuilderWindow()
+        self.builderWindow = QVistrailsWindow()
         if not self.temp_configuration.showSpreadsheetOnly:
             # self.builderWindow.show()
             # self.setActiveWindow(self.builderWindow)
@@ -720,8 +735,9 @@ parameters from other instances")
                 mac_attribute = QtCore.Qt.WA_MacBrushedMetal
             if(event.type() == create_event and 
                issubclass(type(o),QtGui.QWidget) and
-               type(o) != QtGui.QSplashScreen):
-                o.setAttribute(mac_attribute)
+               type(o) != QtGui.QSplashScreen and 
+               not (o.windowFlags() & QtCore.Qt.Popup)):
+                    o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
             self.input = [str(event.file())]
             self.process_interactive_input()
@@ -790,7 +806,7 @@ parameters from other instances")
             #it's safe to eval as a list
             args = eval(msg)
             if type(args) == type([]):
-                print "args from another instance %s"%args
+                #print "args from another instance %s"%args
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()
                 interactive = self.temp_configuration.check('interactiveMode')

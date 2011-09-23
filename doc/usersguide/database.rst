@@ -30,9 +30,9 @@ these files may change, |vistrails| will be able to import older versions.
 The current version of the XML schema can be found in the distribution
 at:
 
-``vistrails/db/versions/v0_9_1/schemas/xml/vistrail.xsd``
+``vistrails/db/versions/v1_0_2/schemas/xml/vistrail.xsd``
 
-where ``v0_9_1`` is the current version.
+where ``v1_0_2`` is the current version.
 
 Setup
 =====
@@ -56,9 +56,9 @@ institution-wide access, you should consult your system administrator
 to determine the correct configuration.  The database schema for 
 |vistrails| can be found in the distribution at:
 
-``vistrails/db/versions/v0_9_1/schemas/sql/vistrails.sql``
+``vistrails/db/versions/v1_0_2/schemas/sql/vistrails.sql``
 
-where ``v0_9_1`` is the current version.  This schema contains a
+where ``v1_0_2`` is the current version.  This schema contains a
 sequence of SQL commands that define the tables needed for storing
 vistrails.
 
@@ -78,7 +78,7 @@ Setting up |vistrails|
 
 If you are planning to use the database for most of your work,
 you can configure |vistrails| to open vistrails from the database by
-default.  To do so, select the ``Preferences`` option from the ``Edit`` menu. (On Mac OS X, the ``Preferences`` option is found under the ``VisTrails`` menu.) When the ``Preferences`` window opens, check the "Read/Write to database by default" box in the ``General Configuration`` tab.  You can switch the default back to a file-based interaction by unchecking this box.
+default.  To do so, select the ``Preferences`` option from the ``Edit`` menu. (On Mac OS X, the ``Preferences`` option is found under the ``VisTrails`` menu.) When the ``Preferences`` window opens, select the appropriate option from the "Read/Write to database by default" box in the ``General Configuration`` tab.
 
 .. _sec-database-open:
 

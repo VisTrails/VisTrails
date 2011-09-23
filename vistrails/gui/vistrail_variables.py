@@ -38,10 +38,11 @@ drop constants from the module palette
 from PyQt4 import QtCore, QtGui
 from gui.variable_dropbox import QVariableDropBox
 from gui.common_widgets import QToolWindowInterface
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
-class QVistrailVariables(QVariableDropBox, QToolWindowInterface):
+class QVistrailVariables(QVariableDropBox, QVistrailsPaletteInterface):
     """
     QVistrailVariables shows variables associated with a vistrail, and
     supports drag/drop actions of constant items from the module palette

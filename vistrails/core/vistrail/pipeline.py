@@ -147,6 +147,18 @@ class Pipeline(DBWorkflow):
             self.graph.add_edge(connection.source.moduleId,
                                 connection.destination.moduleId,
                                 connection.id)
+            c = connection
+            source_name = c.source.name
+            output_ports = self.modules[c.sourceId].connected_output_ports
+            if source_name not in output_ports:
+                output_ports[source_name] = 0
+            output_ports[source_name] += 1
+                
+            dest_name = c.destination.name
+            input_ports = self.modules[c.destinationId].connected_input_ports
+            if dest_name not in input_ports:
+                input_ports[dest_name] = 0
+            input_ports[dest_name] += 1
             
     def __copy__(self):
         """ __copy__() -> Pipeline - Returns a clone of itself """ 
@@ -301,7 +313,7 @@ class Pipeline(DBWorkflow):
         """
         modules = []
         for edge in self.graph.edges_to(moduleId):
-            if self.connections[edge[1]].ports[0].name == portName:
+            if self.connections[edge[1]].destination.name == portName:
                 modules.append(self.modules[edge[0]].id)
         return modules
 
@@ -312,7 +324,7 @@ class Pipeline(DBWorkflow):
         """
         modules = []
         for edge in self.graph.edges_from(moduleId):
-            if self.connections[edge[1]].ports[1].name == portName:
+            if self.connections[edge[1]].source.name == portName:
                 modules.append(self.modules[edge[0]].id)
         return modules
 
@@ -417,6 +429,18 @@ class Pipeline(DBWorkflow):
             self.graph.add_edge(c.sourceId, c.destinationId, c.id)
             self.ensure_connection_specs([c.id])
 
+            source_name = c.source.name
+            output_ports = self.modules[c.sourceId].connected_output_ports
+            if source_name not in output_ports:
+                output_ports[source_name] = 0
+            output_ports[source_name] += 1
+                
+            dest_name = c.destination.name
+            input_ports = self.modules[c.destinationId].connected_input_ports
+            if dest_name not in input_ports:
+                input_ports[dest_name] = 0
+            input_ports[dest_name] += 1
+
     def change_connection(self, old_id, c, *args):
         """change_connection(old_id: long, c: Connection) -> None
         Deletes connection identified by old_id and adds connection c
@@ -429,6 +453,14 @@ class Pipeline(DBWorkflow):
         if old_conn.source is not None and old_conn.destination is not None:
             self.graph.delete_edge(old_conn.sourceId, old_conn.destinationId,
                                    old_conn.id)
+            if self.graph.out_degree(old_conn.sourceId) < 1:
+                self.modules[old_conn.sourceId].connected_output_ports.discard(
+                    conn.source.name)
+            if self.graph.in_degree(old_conn.destinationId) < 1:
+                connected_input_ports = \
+                    self.modules[old_conn.destinationId].connected_input_ports
+                connected_input_ports.discard(conn.destination.name)
+
         if old_id in self._connection_signatures:
             del self._connection_signatures[old_id]
         self.db_change_object(old_id, c)        
@@ -436,6 +468,9 @@ class Pipeline(DBWorkflow):
             assert(c.sourceId != c.destinationId)
             self.graph.add_edge(c.sourceId, c.destinationId, c.id)
             self.ensure_connection_specs([c.id])
+            self.modules[c.sourceId].connected_output_ports.add(c.source.name)
+            self.modules[c.destinationId].connected_input_ports.add(
+                c.destination.name)
 
     def delete_connection(self, id, *args):
         """ delete_connection(id:int) -> None 
@@ -452,6 +487,16 @@ class Pipeline(DBWorkflow):
                 (conn.destinationId, conn.id) in \
                 self.graph.edges_from(conn.sourceId):
             self.graph.delete_edge(conn.sourceId, conn.destinationId, conn.id)
+
+            c = conn
+            source_name = c.source.name
+            output_ports = self.modules[c.sourceId].connected_output_ports
+            output_ports[source_name] -= 1
+                
+            dest_name = c.destination.name
+            input_ports = self.modules[c.destinationId].connected_input_ports
+            input_ports[dest_name] -= 1
+
         if id in self._connection_signatures:
             del self._connection_signatures[id]
         
@@ -492,13 +537,34 @@ class Pipeline(DBWorkflow):
             self.graph.add_edge(connection.sourceId, 
                                 connection.destinationId, 
                                 connection.id)
+            c = connection
+            source_name = c.source.name
+            output_ports = self.modules[c.sourceId].connected_output_ports
+            if source_name not in output_ports:
+                output_ports[source_name] = 0
+            output_ports[source_name] += 1
+                
+            dest_name = c.destination.name
+            input_ports = self.modules[c.destinationId].connected_input_ports
+            if dest_name not in input_ports:
+                input_ports[dest_name] = 0
+            input_ports[dest_name] += 1
 
     def delete_port(self, port_id, port_type, parent_type, parent_id):
-        connection = self.connections[parent_id]
-        if len(connection.ports) >= 2:
-            self.graph.delete_edge(connection.sourceId, 
-                                   connection.destinationId, 
-                                   connection.id)
+        conn = self.connections[parent_id]
+        if len(conn.ports) >= 2:
+            self.graph.delete_edge(conn.sourceId, 
+                                   conn.destinationId, 
+                                   conn.id)
+            c = conn
+            source_name = c.source.name
+            output_ports = self.modules[c.sourceId].connected_output_ports
+            output_ports[source_name] -= 1
+                
+            dest_name = c.destination.name
+            input_ports = self.modules[c.destinationId].connected_input_ports
+            input_ports[dest_name] -= 1
+            
         self.db_delete_object(port_id, Port.vtType, parent_type, parent_id)
 
     def change_port(self, old_port_id, port, parent_type, parent_id):

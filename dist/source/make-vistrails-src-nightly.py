@@ -33,7 +33,7 @@ from StringIO import StringIO
 ####################
 
 # URL of the git repository to export
-GIT_URL = "git@vistrails.sci.utah.edu:vistrails.git"
+GIT_URL = "git://www.vistrails.org/vistrails.git"
 
 # Global arguments for calls to the git command
 GIT_ARGS = ""

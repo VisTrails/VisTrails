@@ -34,6 +34,8 @@
 
 from core.log.module_exec import ModuleExec
 from core.log.group_exec import GroupExec
+from core.log.loop_exec import LoopExec
+from core.vistrail.annotation import Annotation
 from db.domain import DBWorkflowExec
 
 class WorkflowExec(DBWorkflowExec):
@@ -55,6 +57,8 @@ class WorkflowExec(DBWorkflowExec):
         if _wf_exec.__class__ == WorkflowExec:
             return
         _wf_exec.__class__ = WorkflowExec
+        for annotation in _wf_exec.annotations:
+            Annotation.convert(annotation)
         for item_exec in _wf_exec.item_execs:
             if item_exec.vtType == ModuleExec.vtType:
                 ModuleExec.convert(item_exec)
@@ -85,6 +89,14 @@ class WorkflowExec(DBWorkflowExec):
         return None
     duration = property(_get_duration)
 
+    def _get_annotations(self):
+        return self.db_annotations
+    def _set_annotations(self, annotations):
+        self.db_annotations = annotations
+    annotations = property(_get_annotations, _set_annotations)
+    def add_annotation(self, annotation):
+        self.db_add_annotation(annotation)
+        
     def _get_item_execs(self):
         return self.db_item_execs
     def _set_item_execs(self, item_execs):

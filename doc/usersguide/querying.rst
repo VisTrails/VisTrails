@@ -4,6 +4,8 @@
 Querying the Version Tree
 *************************
 
+.. role:: red
+
 .. index:: queries
 
 |vistrails| is designed for manipulating collections of workflows, and
@@ -25,14 +27,6 @@ Query By Example
 .. index::
    pair: queries; by example
 
-.. _fig-querying-query:
-
-.. figure:: figures/querying/query.png
-   :width: 3in
-   :align: center
-
-   Example pipeline in ``Query`` mode.
-
 One of the problems faced when trying to query a collection of
 workflows is the fact that structure is important.  Suppose that you
 want to find only workflows where two modules are used in sequence.
@@ -42,18 +36,48 @@ interface which mirrors the ``Pipeline`` view, allowing
 you to construct a (partial) workflow to serve as the search criteria.
 
 To use the Query by Example interface, click on the
-``Query`` button on the toolbar.  This view is extremely
+``Search`` button on the toolbar.  This view is extremely
 similar to the ``Pipeline`` view and pipelines can be built
 in a similar manner.  Just like the ``Pipeline`` view,
 modules are added by dragging them from the list on the left side of
 the window, connections are added by clicking and dragging from a port
-on one module to a corresponding port on another module.
-Figure :ref:`fig-querying-query` shows an example pipeline that has been built in the query builder.
+on one module to a corresponding port on another module.  Setting module parameters in this view will narrow the search to matching modules whose parameters fall within the specified range of values.  Figure :ref:`fig-querying-query` shows an example pipeline that has been built in the query builder.
+
+.. _fig-querying-query:
+
+.. figure:: figures/querying/query.png
+   :width: 3in
+   :align: center
+
+   Example pipeline in ``Search`` mode.
 
 .. %TODO what are the next few sentences actually trying to say?
-.. %, and parameters can be edited on the right-side of the window.  One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations in parameter values.  For example, instead of searching for a pipeline that contains a Float with a value of ``4.5``, you can search for a pipeline that contains a Float with a value ``'< 4.5'`` or ``'> 4.5'``.
+.. %, and parameters can be edited on the right-side of the window.  One major difference between the ``Pipeline`` view and the ``Search`` view is that you can use comparison operations in parameter values.  For example, instead of searching for a pipeline that contains a Float with a value of ``4.5``, you can search for a pipeline that contains a Float with a value ``'< 4.5'`` or ``'> 4.5'``.
 
-.. _fig-querying-results:
+.. index::
+   pair: queries; viewing results
+
+The next step is to decide whether to search the ``Current Vistrail``, ``Current Workflow``, or all ``Open Vistrails``.  The results of the first option are displayed on a version tree as well as in the ``Workspace`` panel.  Non-matching versions in the version tree will be grayed out while matching versions will be displayed in the tree as normal.  In contrast, the ``Workspace`` panel will display matching results and omit versions with no matches.  Double-clicking a version from the ``Workspace's`` results will bring up the associated pipeline with matching modules highlighted.  See figures :ref:`Workspace <fig-querying-workspace>` and :ref:`Pipeline <fig-querying-pipeline>`.  
+
+The remaining two options are ``Current Workflow`` and ``Open Vistrails``.  The ``Current Workflow`` option is the simplest and will display the pipeline with matching modules highlighted.  The ``Open Vistrails`` option will put all of its results in the ``Workspace`` panel, listing open vistrails with their matching versions.   From here, double-clicking on a vistrail will bring up a version tree which emphasizes matching versions, or double-clicking on a version will bring up the associated pipeline with matching modules highlighted.
+
+After constructing a pipeline and selecting the appropriate search option, click the ``Execute`` button to begin the query.  This button will be available as long as the query window is not empty.  However, you may need to press the ``Back to Search`` button to return to the query window to re-execute.
+
+.. topic:: Note
+
+   You may leave the ``Query`` either through use of the toolbar or by pressing the ``Edit`` button.  However, the search results will persist until the search is cleared (press ``Clear Search``), returning the workspace to its normal form.
+
+.. topic:: Try it now!
+
+   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-history`).  Notice that the query results are also displayed in the ``Workspace`` tab.  Double-click on the html version in the workspace to open the results in the pipeline view.  
+
+
+.. _fig-querying-workspace:
+
+.. figure:: figures/querying/workspace_results.png
+   :align: center
+
+   Workspace.  The query results displayed in the workspace.
 
 .. _fig-querying-history:
 
@@ -61,7 +85,7 @@ Figure :ref:`fig-querying-query` shows an example pipeline that has been built i
    :height: 3in
    :align: center
 
-   Query results in the ``History`` view.
+   History.  Search results in the ``History`` view.
 
 .. _fig-querying-pipeline:
 
@@ -69,18 +93,7 @@ Figure :ref:`fig-querying-query` shows an example pipeline that has been built i
    :height: 3in
    :align: center
 
-   The results in the ``Pipeline`` view.
-
-After constructing a pipeline, click the ``Execute`` button
-to begin the query.  This button will be available as long as the
-query window is not empty.  Executing the query will bring you back to
-the ``History`` view where the matching versions are
-displayed.  Section :ref:`sec-querying-results` provides information on
-interacting with query results.
-
-.. topic:: Try it now!
-
-   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Query`` button to enter ``Query`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Query canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-results`).
+   Pipeline.  The results in the ``Pipeline`` view.
 
 Note that Query by Example provides the capability to iteratively
 refine searches by adding more criteria.  For example, if you were
@@ -89,11 +102,11 @@ such a query returns too many results.  You could then refine the query
 to find only those workflows where the given module has a parameter
 setting that falls within a given range.
 This is done by specifying parameter values in the ``Methods`` panel on the right side of the window.
-One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations, such as '<' and '>', in parameter values. The following example illustrates this.
+One major difference between the ``Pipeline`` view and the ``Search`` view is that you can use comparison operations, such as '<' and '>', in parameter values. The following example illustrates this.
 
 .. topic:: Try it now!
 
-   Open the "terminator.vt" example file, and enter ``Query`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Query canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` modules. Return to the ``Query`` view, select the ``vtkActor`` icon, then drag the ``RotateZ`` method from the ``Methods`` panel to the ``Set Methods`` panel. In the ``RotateZ`` text field, type ``'> 90'``. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`fig-querying-vtkActor_example`.
+   Open the "terminator.vt" example file, and enter ``Search`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Search canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` module. Select ``Back to Search`` to return to the ``Search`` view, select the ``vtkActor`` module, then select ``RotateZ`` method from the ``Module Information`` tab. In the ``RotateZ`` text field, select ``'>'`` and then enter '90'. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`fig-querying-vtkActor_example`.
 
 .. _fig-querying-vtkActor_example:
 
@@ -124,10 +137,7 @@ Textual Queries
    pair: queries; textual
 
 There are many ways to search for versions in the version tree using textual queries, but they all rely on a simple
-text box for input.  Begin a search by activating the
-``History`` view.  The search box is in the
-``Properties`` panel, and can be identified by the
-magnifying glass icon next to it.  If you enter query text, |vistrails|
+text box for input.  Begin a search by selecting ``Search`` on the toolbar.  The search box is at the top of the center panel and has a magnifying glass icon next to it.  If you enter query text, |vistrails|
 will attempt to match logical categories, but if your query is more
 specific, |vistrails| has special syntax to markup the query.
 To execute a query, simply press the 'Enter' key after typing your query.
@@ -181,7 +191,7 @@ be ``'after: April 1 before: June 1'``.
 
 .. topic:: Try it now!
 
-   Open the "terminator.vt" example file, and enter ``History`` mode.  Let's look for all workflows that were created after July 1, 2007. In the search box in the ``Properties`` panel, type ``'after: 1 july 2007'`` and press 'Enter'. The expected result is shown in Figure :ref:`fig-querying-july1`.
+   Open the "terminator.vt" example file, and enter ``Search`` mode.  Let's look for all workflows that were created after November 24, 2010. In the search box in the ``Search`` panel, type ``'after: 24 nov 2010'`` and press 'Enter'. The expected result is shown in Figure :ref:`fig-querying-july1`.
 
 .. _fig-querying-july1:
 
@@ -189,44 +199,31 @@ be ``'after: April 1 before: June 1'``.
    :width: 3.5in
    :align: center
 
-   Results of a query to find any changes made after July 1, 2007.
+   Results of a query to find any changes made after November 24, 2010.
+
+In addition, |vistrails| keeps track of the most recent textual
+queries, and repeating or clearing these queries can be accomplished by selecting the recent query from the dropdown menu attached to the search box.  Finally, the 'X' button next to the search box will reset the query.
 
 .. _sec-querying-results:
 
-Query Results
-=============
+Refining the Results
+^^^^^^^^^^^^^^^^^^^^
 
-.. %TODO consider dropping this section, and merging its content into the other sections.
-
-.. index::
-   pair: queries; viewing results
-
-After executing either a query by example or a textual query, the matching versions are highlighted in the version tree.  In addition, there is a button named ``Reset Query`` in the lower-left of the version tree that allows you to reset the query, returning the view to normal.  For queries by example, if you click on a specific matching version and
-change to the ``Pipeline`` view, the matching structure will
-also be highlighted.  Figure :ref:`fig-querying-results` shows the
-results of the query by example in Figure :ref:`fig-querying-query` in
-both the ``History`` and ``Pipeline`` views.
+.. %TODO consider dropping this section, and merging its content into the other sections. 
 
 .. index:: search; refine
 
-While in the ``History`` view, you can select two different
-ways of viewing search results.  The magnifying glass icon to the left of the textual search box contains andropdown menu with two options: "Search" and "Refine" (Figure :ref:`fig-querying-search_or_refine`).  The first displays results by simply highlighting the matching nodes while the second condenses the tree to show only the versions that match.  For large vistrails, this second method can help you determine relationships between the matching versions more easily.
+While in the ``Search`` view, you can select two different
+ways of viewing search results.  The magnifying glass icon to the left of the textual search box contains a dropdown menu with two options: "Search" and "Refine" (Figure :ref:`fig-querying-search_or_refine`).  The first displays results by simply highlighting the matching nodes while the second condenses the tree to show only the versions that match.  For large vistrails, this second method can help you determine relationships between the matching versions more easily.
 
 .. %TODO I'm not sure that this button actually works as intended.
 
 .. _fig-querying-search_or_refine:
 
 .. figure:: figures/querying/search_or_refine.png
-   :width: 3in
+   :width: 1.6in
    :align: center
 
    Clicking the button to the left of the query text box accesses a dropdown menu.
-
-In addition, |vistrails| keeps track of the most recent textual
-queries, and repeating these queries can be accomplished by selecting
-the recent query from the dropdown menu attached to the search box.
-You can also clear recent searches using this menu.  Finally, the
-'X' button next to the search box will reset the query and
-restore the normal view of the version tree.
 
 .. index:: queries

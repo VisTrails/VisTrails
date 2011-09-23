@@ -223,7 +223,7 @@ if test_examples:
                                     vtfile)
             print filename
             locator = core.db.locator.FileLocator(os.path.abspath(filename))
-            (v, abstractions, thumbnails) = core.db.io.load_vistrail(locator)
+            (v, abstractions, thumbnails, mashups) = core.db.io.load_vistrail(locator)
             w_list = []
             for version,tag in v.get_tagMap().iteritems():
                 if tag not in VT_EXAMPLES[vtfile]:

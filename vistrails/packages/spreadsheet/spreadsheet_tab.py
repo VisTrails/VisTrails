@@ -464,8 +464,8 @@ class StandardWidgetSheetTabInterface(object):
         """
         pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
         executePipelineWithProgress(pipeline, 'Execute Cell',
-                                    vistrailLocator=pInfo[0],
-                                    currentVersion=pInfo[1],
+                                    locator=pInfo[0],
+                                    current_version=pInfo[1],
                                     actions=pInfo[2],
                                     reason=reason)
 
@@ -477,8 +477,10 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         sheetName = str(self.tabWidget.tabText(self.tabWidget.indexOf(self)))
+        # Note that we must increment row/col by 1 to match how the
+        # CellReference module expects them
         return assignPipelineCellLocations(inPipeline, sheetName,
-                                           row, col, cellIds)
+                                           row + 1, col + 1, cellIds)
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple

@@ -38,6 +38,7 @@ from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
                                QThumbnailConfiguration)
+from gui.module_palette import QModulePalette
 from core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
 from core import debug
@@ -299,7 +300,7 @@ class QPackagesWidget(QtGui.QWidget):
         except self._current_package.MissingDependency, e:
             debug.critical("Missing dependencies", str(e))
         else:
-            palette = QtGui.QApplication.instance().builderWindow.modulePalette
+            palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
@@ -351,7 +352,7 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         codepath = str(item.text())
         
-        palette = QtGui.QApplication.instance().builderWindow.modulePalette
+        palette = QModulePalette.instance()
         palette.setUpdatesEnabled(False)
         pm.reload_package_disable(codepath)
         self.erase_cache = True
@@ -367,7 +368,7 @@ class QPackagesWidget(QtGui.QWidget):
             raise
         finally:
             self.populate_lists()
-            palette = QtGui.QApplication.instance().builderWindow.modulePalette
+            palette = QModulePalette.instance()
             palette.setUpdatesEnabled(True)
             palette.treeWidget.expandAll()
             self.erase_cache = True

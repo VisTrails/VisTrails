@@ -47,7 +47,7 @@ from core.packagemanager import PackageManager
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 import core.system
-from core.system import vistrails_default_file_type
+
 from core.vistrail.annotation import Annotation
 from core.vistrail.controller import VistrailController as BaseController, \
     vt_action
@@ -93,15 +93,15 @@ class VistrailController(QtCore.QObject, BaseController):
 
     """
 
-    def __init__(self, vis=None, auto_save=True, name=''):
-        """ VistrailController(vis: Vistrail, name: str) -> VistrailController
+    def __init__(self, vistrail=None, auto_save=True, name=''):
+        """ VistrailController(vistrail: Vistrail, 
+                               auto_save: bool, 
+                               name: str) -> VistrailController
         Create a controller for a vistrail.
 
         """
         QtCore.QObject.__init__(self)
-        BaseController.__init__(self, vis)
-        self.name = ''
-        self.file_name = None
+        BaseController.__init__(self, vistrail)
         self.set_file_name(name)
         # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
         self.current_pipeline_view = None
@@ -123,6 +123,21 @@ class VistrailController(QtCore.QObject, BaseController):
         #self._current_graph_layout = VistrailsTreeLayoutLW()
         #self.animate_layout = False
         #self.num_versions_always_shown = 1
+
+    # just need to switch current_pipeline_view to update controller to
+    # new version and pipeline...
+    def _get_current_version(self):
+        return self.current_pipeline_view.current_version
+    def _set_current_version(self, version):
+        # print "set_current_version:", version, id(self.current_pipeline_view)
+        self.current_pipeline_view.current_version = version
+    current_version = property(_get_current_version, _set_current_version)
+
+    def _get_current_pipeline(self):
+        return self.current_pipeline_view.current_pipeline
+    def _set_current_pipeline(self, pipeline):
+        self.current_pipeline_view.current_pipeline = pipeline
+    current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
     ##########################################################################
     # Signal vistrail relayout / redraw
@@ -179,14 +194,15 @@ class VistrailController(QtCore.QObject, BaseController):
         self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.stop()
 
-    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
+    def set_vistrail(self, vistrail, locator, abstractions=None, 
+                     thumbnails=None, mashups=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         # self.vistrail = vistrail
         BaseController.set_vistrail(self, vistrail, locator, abstractions,
-                                    thumbnails)
+                                    thumbnails, mashups)
         if locator != None:
             self.set_file_name(locator.name)
         else:
@@ -371,9 +387,11 @@ class VistrailController(QtCore.QObject, BaseController):
 
     @vt_action
     def update_function(self, module, function_name, param_values, old_id=-1L,
-                        aliases=[]):
+                        aliases=[], query_methods=[], should_replace=True):
         op_list = self.update_function_ops(module, function_name, param_values,
-                                           old_id, aliases=aliases)
+                                           old_id, aliases=aliases,
+                                           query_methods=query_methods,
+                                           should_replace=should_replace)
         action = core.db.action.create_action(op_list)
         return action
 
@@ -397,6 +415,14 @@ class VistrailController(QtCore.QObject, BaseController):
 
         module = self.current_pipeline.get_module_by_id(module_id)
         function = module.functions[function_pos]
+        action = core.db.action.create_action([('delete', function,
+                                                module.vtType, module.id)])
+        return action
+
+    @vt_action
+    def delete_function(self, real_id, module_id):
+        module = self.current_pipeline.get_module_by_id(module_id)
+        function = module.get_function_by_real_id(real_id)
         action = core.db.action.create_action([('delete', function,
                                                 module.vtType, module.id)])
         return action
@@ -649,8 +675,10 @@ class VistrailController(QtCore.QObject, BaseController):
         self.quiet = old_quiet
         if changed:
             self.invalidate_version_tree(False)
+        return (results, changed)
 
-    def execute_current_workflow(self, custom_aliases=None):
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None,
+                                 reason='Pipeline Execution'):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -661,13 +689,16 @@ class VistrailController(QtCore.QObject, BaseController):
             if locator:
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
-            self.execute_workflow_list([(self.locator,
+            return self.execute_workflow_list([(self.locator,
                                          self.current_version,
                                          self.current_pipeline,
                                          self.current_pipeline_view,
                                          custom_aliases,
+                                         custom_params,
+                                         reason,
                                          None)])
-
+        return ([], False)
+    
     def enable_missing_package(self, identifier, deps):
         from gui.application import VistrailsApplication
         msg = "VisTrails needs to enable package '%s'." % identifier
@@ -790,9 +821,12 @@ class VistrailController(QtCore.QObject, BaseController):
             debug.critical('Unexpected Exception\n%s' % str(e), 
                            traceback.format_exc())
         
-        if not self._current_terse_graph or \
-                new_version not in self._current_terse_graph.vertices:
-            self.recompute_terse_graph()
+        # FIXME: this code breaks undo/redo, and seems to be ok with normal
+        # pipeline manipulations so I am leaving it commented out for now
+
+        # if not self._current_terse_graph or \
+        #         new_version not in self._current_terse_graph.vertices:
+        #     self.recompute_terse_graph()
 
         self.emit(QtCore.SIGNAL('versionWasChanged'), self.current_version)
 
@@ -846,6 +880,9 @@ class VistrailController(QtCore.QObject, BaseController):
         reference
         
         """
+        if self._current_full_graph is None:
+            self.recompute_terse_graph()
+
         if not self.animate_layout:
             return (self._current_terse_graph, self._current_full_graph,
                     self._current_graph_layout)
@@ -1031,11 +1068,13 @@ class VistrailController(QtCore.QObject, BaseController):
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
 
-    def hide_versions_below(self, v):
+    def hide_versions_below(self, v=None):
         """ hide_versions_below(v: int) -> None
         Hide all versions including and below v
         
         """
+        if v is None:
+            v = self.current_version
         full = self.vistrail.getVersionGraph()
         x = [v]
 
@@ -1129,11 +1168,14 @@ class VistrailController(QtCore.QObject, BaseController):
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
-    def expand_or_collapse_all_versions_below(self, v, expand=True):
+    def expand_or_collapse_all_versions_below(self, v=None, expand=True):
         """ expand_or_collapse_all_versions_below(v: int) -> None
         Expand/Collapse all versions including and under version v
         
         """
+        if v is None:
+            v = self.current_version
+
         full = self.vistrail.getVersionGraph()
         x = [v]
         
@@ -1162,6 +1204,12 @@ class VistrailController(QtCore.QObject, BaseController):
             self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
+
+    def expand_all_versions_below(self, v=None):
+        self.expand_or_collapse_all_versions_below(v, True)
+
+    def collapse_all_versions_below(self, v=None):
+        self.expand_or_collapse_all_versions_below(v, False)
 
     def collapse_all_versions(self):
         """ collapse_all_versions() -> None
@@ -1236,6 +1284,25 @@ class VistrailController(QtCore.QObject, BaseController):
             self.perform_action(action, quiet=True)
         self.set_changed(True)
         self.invalidate_version_tree(False)
+
+    def get_pipeline_name(self, version=None):
+        tag_map = self.vistrail.get_tagMap()
+        action_map = self.vistrail.actionMap
+        if version == None:
+            version = self.current_version
+        count = 0
+        while True:
+            if version in tag_map or version <= 0:
+                if version in tag_map:
+                    name = tag_map[version]
+                else:
+                    name = "ROOT"
+                count_str = ""
+                if count > 0:
+                    count_str = " + " + str(count)
+                return "Pipeline: " + name + count_str
+            version = action_map[version].parent
+            count += 1
 
     ################################################################################
     # Clipboard, copy/paste
@@ -1506,20 +1573,16 @@ class VistrailController(QtCore.QObject, BaseController):
         Change the controller file name
         
         """
-        if file_name == None:
-            file_name = ''
-        if self.file_name!=file_name:
-            self.file_name = file_name
-            self.name = os.path.split(file_name)[1]
-            if self.name=='':
-                self.name = 'untitled%s'%vistrails_default_file_type()
+        old_name = self.file_name
+        BaseController.set_file_name(self, file_name)
+        if old_name!=file_name:
             self.emit(QtCore.SIGNAL('stateChanged'))
 
     def write_vistrail(self, locator, version=None):
         need_invalidate = BaseController.write_vistrail(self, locator, version)
         if need_invalidate:
             self.invalidate_version_tree(False)
-            #self.set_changed(False)
+            self.set_changed(False)
 
     def write_opm(self, locator):
         if self.log:
@@ -1629,9 +1692,10 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
             os.remove(filename)
 
     def test_create_functions(self):
-        controller = VistrailController(Vistrail(), False)
+        controller = VistrailController(auto_save=False)
+        controller.current_pipeline_view = DummyView().scene()
+        controller.set_vistrail(Vistrail(), None)
         controller.change_selected_version(0L)
-        controller.current_pipeline_view = DummyView()
         module = controller.add_module(0.0,0.0, 'edu.utah.sci.vistrails.basic', 
                                        'ConcatenateString')
         functions = [('str1', ['foo'], -1, True),
@@ -1664,10 +1728,10 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()
         controller = VistrailController(auto_save=False)
+        controller.current_pipeline_view = DummyView().scene()
         controller.set_vistrail(v,locator)
         controller.change_selected_version(9L)
         self.assertNotEqual(controller.current_pipeline, None)
-        controller.current_pipeline_view = DummyView()
         
         module_ids = [1, 2, 3]
         connection_ids = [1, 2, 3]

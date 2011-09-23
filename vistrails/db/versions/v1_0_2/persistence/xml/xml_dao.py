@@ -52,21 +52,27 @@ class XMLDAO:
 	return None
 
     def convertFromStr(self, value, type):
-	if value is not None:
+        if value is not None:
             if type == 'str':
                 return str(value)
             elif value.strip() != '':
-		if type == 'long':
-		    return long(value)
-		elif type == 'float':
-		    return float(value)
-		elif type == 'int':
-		    return int(value)
-		elif type == 'date':
-		    return date(*strptime(value, '%Y-%m-%d')[0:3])
-		elif type == 'datetime':
-		    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
-	return None
+                if type == 'long':
+                    return long(value)
+                elif type == 'float':
+                    return float(value)
+                elif type == 'int':
+                    try:
+                        return int(value)
+                    except ValueError:
+                        if 'False' == value:
+                            return -1
+                        else:
+                            return 0
+                elif type == 'date':
+                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+                elif type == 'datetime':
+                   return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+        return None
 
     def convertToStr(self, value, type):
 	if value is not None:

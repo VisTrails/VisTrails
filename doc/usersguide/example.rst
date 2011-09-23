@@ -1,3 +1,7 @@
+************
+User's Guide
+************
+
 #################
 Preliminary Pages
 #################
@@ -25,12 +29,16 @@ Learning VisTrails By Example
    :maxdepth: 2
 
    creating
+   groups
    version_tree
    merging
-   spreadsheet
    querying
+   spreadsheet
    analogies
    parameter_exploration
+   provenance
+   mashups
+   example_guide
    
 
 ############################################

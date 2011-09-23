@@ -31,7 +31,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 identifier = 'edu.utah.sci.vistrails.qgis'
 version = '0.0.1'
 name = "QGIS"

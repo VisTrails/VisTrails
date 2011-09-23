@@ -45,8 +45,10 @@ from core import system, debug
 from core.configuration import get_vistrails_configuration
 from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
 from core.db.io import load_vistrail
+from core.thumbnails import ThumbnailCache
 from core.log.log import Log
 from core.log.opm_graph import OpmGraph
+from core.collection import Collection
 import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.tag import Tag
@@ -353,7 +355,7 @@ class QViewManager(QtGui.QTabWidget):
         else:
             locator = None
         try:
-            (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
+            (vistrail, abstraction_files, thumbnail_files, _) = load_vistrail(locator)
         except ModuleRegistryException, e:
             debug.critical("Module registry error for %s" %
                            str(e.__class__.__name__), str(e))
@@ -427,19 +429,40 @@ class QViewManager(QtGui.QTabWidget):
                     view.setup_view(version)
             return view
         try:
-            (vistrail, abstraction_files, thumbnail_files) = \
+            (vistrail, abstraction_files, thumbnail_files, _) = \
                                         load_vistrail(locator, is_abstraction)
             result = self.set_vistrail_view(vistrail, locator, 
                                             abstraction_files, thumbnail_files,
                                             version)
+            # update collection
+            try:
+                vistrail.thumbnails = thumbnail_files
+                vistrail.abstractions = abstraction_files
+                collection = Collection.getInstance()
+                url = locator.to_url()
+                # create index if not exist
+                entity = collection.fromUrl(url)
+                if entity:
+                    # find parent vistrail
+                    while entity.parent:
+                        entity = entity.parent 
+                else:
+                    entity = collection.updateVistrail(url, vistrail)
+                # add to relevant workspace categories
+                collection.add_to_workspace(entity)
+                collection.commit()
+            except Exception, e:
+                import traceback
+                debug.critical('Failed to index vistrail', str(e) + traceback.format_exc())
             return result
         except ModuleRegistryException, e:
             debug.critical("Module registry error for %s" %
                            str(e.__class__.__name__), str(e))
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            import traceback
+            debug.critical('An error has occurred', str(e) + traceback.format_exc())
             raise
-
+        
     def save_vistrail(self, locator_class,
                       vistrailView=None,
                       force_choose_locator=False):
@@ -447,10 +470,11 @@ class QViewManager(QtGui.QTabWidget):
 
         force_choose_locator=True triggers 'save as' behavior
         """
+        global bobo
+
         if not vistrailView:
             vistrailView = self.currentWidget()
         vistrailView.flush_changes()
-        
         if vistrailView:
             gui_get = locator_class.save_from_gui
             # get a locator to write to
@@ -467,12 +491,37 @@ class QViewManager(QtGui.QTabWidget):
             # if couldn't get one, ignore the request
             if not locator:
                 return False
+            # update collection
             try:
                 vistrailView.controller.write_vistrail(locator)
             except Exception, e:
                 debug.critical('An error has occurred', str(e))
                 raise
                 return False
+            try:
+                thumb_cache = ThumbnailCache.getInstance()
+                vistrailView.controller.vistrail.thumbnails = \
+                    vistrailView.controller.find_thumbnails(
+                        tags_only=thumb_cache.conf.tagsOnly)
+                vistrailView.controller.vistrail.abstractions = \
+                    vistrailView.controller.find_abstractions(
+                        vistrailView.controller.vistrail, True)
+
+                collection = Collection.getInstance()
+                url = locator.to_url()
+                # create index if not exist
+                entity = collection.fromUrl(url)
+                if entity:
+                    # find parent vistrail
+                    while entity.parent:
+                        entity = entity.parent 
+                else:
+                    entity = collection.updateVistrail(url, vistrailView.controller.vistrail)
+                # add to relevant workspace categories
+                collection.add_to_workspace(entity)
+                collection.commit()
+            except Exception, e:
+                debug.critical('Failed to index vistrail', str(e))
             return locator
         return False
    

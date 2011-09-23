@@ -39,11 +39,13 @@ import api
 import cgi
 from core.configuration import get_vistrails_configuration
 from gui.application import VistrailsApplication
+from gui.common_widgets import QDockPushButton
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
 
-class DebugView(QtGui.QDialog):
+class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
     """ Class used for showing error messages and
         debugging QT signals.
 
@@ -52,18 +54,18 @@ class DebugView(QtGui.QDialog):
            gui.debug.watch_signal(my_signal)
      """
     #Singleton technique
-    _instance = None
-    class DebugViewSingleton():
-        def __call__(self, *args, **kw):
-            if DebugView._instance is None:
-                obj = DebugView(*args, **kw)
-                DebugView._instance = obj
-            return DebugView._instance
+    # _instance = None
+    # class DebugViewSingleton():
+    #     def __call__(self, *args, **kw):
+    #         if DebugView._instance is None:
+    #             obj = DebugView(*args, **kw)
+    #             DebugView._instance = obj
+    #         return DebugView._instance
         
-    getInstance = DebugViewSingleton()
+    # getInstance = DebugViewSingleton()
 
-    def __init__(self, parent = None):
-        QtGui.QDialog.__init__(self, parent)
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
         core.debug.DebugPrint.getInstance().set_stream(debugStream(self.write)) 
         self.setWindowTitle('VisTrails Messages')
         layout = QtGui.QVBoxLayout()
@@ -133,23 +135,16 @@ class DebugView(QtGui.QDialog):
         rightbuttons = QtGui.QGridLayout()
         buttons.addLayout(rightbuttons, 0, 1, QtCore.Qt.AlignRight)
 
-        close = QtGui.QPushButton('&Close', self)
-        close.setFixedWidth(120)
-        close.setDefault(True)
-        leftbuttons.addWidget(close, 0, 0)
-        self.connect(close, QtCore.SIGNAL('clicked()'),
-                     self, QtCore.SLOT('close()'))
-
-        copy = QtGui.QPushButton('Copy &Message', self)
+        copy = QDockPushButton('Copy &Message', self)
         copy.setToolTip('Copy selected message to clipboard')
-        copy.setFixedWidth(120)
+        copy.setFixedWidth(125)
         rightbuttons.addWidget(copy, 0, 0)
         self.connect(copy, QtCore.SIGNAL('clicked()'),
                      self.copyMessage)
 
-        copyAll = QtGui.QPushButton('Copy &All', self)
+        copyAll = QDockPushButton('Copy &All', self)
         copyAll.setToolTip('Copy all messages to clipboard (Can be a lot)')
-        copyAll.setFixedWidth(120)
+        copyAll.setFixedWidth(125)
         rightbuttons.addWidget(copyAll, 0, 1)
         self.connect(copyAll, QtCore.SIGNAL('clicked()'),
                      self.copyAll)
@@ -295,7 +290,7 @@ class DebugView(QtGui.QDialog):
         role = self.msg_box.buttonRole(button)
         if role == self.msg_box.RejectRole:
             self.itemQueue = []
-            self.show()
+            self.set_visible(True)
             self.list.setCurrentItem(self.currentItem)
             self.list.scrollToItem(self.currentItem)
         elif role == self.msg_box.DestructiveRole:

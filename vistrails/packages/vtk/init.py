@@ -746,7 +746,7 @@ def addPorts(module, delayed):
                                 typeMap('TransferFunction'))
     elif klass==vtk.vtkDataSet:
         registry.add_input_port(module, 'SetPointData', typeMap('vtkPointData'))
-        registry.add_input_port(module, 'SetCallData', typeMap('vtkCellData'))
+        registry.add_input_port(module, 'SetCellData', typeMap('vtkCellData'))
     elif klass==vtk.vtkCell:
         registry.add_input_port(module, 'SetPointIds', typeMap('vtkIdList'))
 

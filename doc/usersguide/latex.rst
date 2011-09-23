@@ -5,7 +5,7 @@ Embedding VisTrails Files Via Latex
 .. index:
    pair: embed; latex
 
-The VisTrails Latex extension allows you to embed a result from a VisTrails file in a Latex document.  Images to be included in the Latex document will be generated through VisTrails and can be linked to the VisTrails file and version from which it was generated.  In other words, Latex call VisTrails to generate an image for a resulting PDF document.  The resulting image can be set up so, when clicked, the generating VisTrails file will be opened in Vistrails.
+The VisTrails Latex extension allows you to embed the result from a VisTrails file into a Latex document.  Images to be included in the Latex document will be generated through VisTrails and can be linked to the VisTrails file and version from which it was generated.  In other words, Latex calls VisTrails to generate an image for a resulting PDF document.  The resulting image can be set up so, when clicked, the generated VisTrails file will be opened in VisTrails.
 
 Latex Setup and Commands
 ========================
@@ -17,21 +17,28 @@ To use the Latex extension, copy vistrails.sty and includevistrail.py from the e
 ``\usepackage{vistrails}``
 
 By default, VisTrails will be executed at www.vistrails.org and the images
-downloaded to your hard drive.  If you want to run a local copy of VisTrails instead, add the path to your python file or executable:
+downloaded to your hard drive. This allows any user that downlods your paper to execute the workflows on the server. 
+
+Local Setup
+^^^^^^^^^^^
+
+If you want to run a local copy of VisTrails instead, add the following path to your python file or executable:
 
 ``\renewcommand{\vistrailspath}{/path/to/vistrails.py}``
 
-By default, images are set up to link to their corresponding VisTrail.  However, if you are using your own web server, additional setup is required (see :ref:`sec-latex-setup-using-a-web-server`).  Otherwise, to setup the images without links (not clickable), add:
+Depending on how you are running VisTrails and on which OS you are running, the \vistrailspath should be configured appropriately. Please check head.tex in VisTrails' extensions/latex directory for detailed instructions on the configuration for the different platforms. 
+
+By default, images are set up to link to their corresponding VisTrail. This means that on a local setup, clicking on an image will open the local .vt file. This may not work when other users click on the images on different machines. However, if you are using your own web server, additional setup is required (see :ref:`sec-latex-setup-using-a-web-server`).  Otherwise, to setup the images without links (not clickable), add:
 
 ``\renewcommand{\vistrailsdownload}{}``
 
-Finally, if you don't have python on your path, use this 
-to set the python interpreter:
+Finally, if you are running VisTrails from source and don't have
+python on your path, use this to set the python interpreter:
 
 ``\renewcommand{\vistrailspythonpath}{/path/to/python/executable}``
 
-**Note:** If you set the \vistrailspythonpath to an invalid path VisTrails will use 
-cached files if they exist.
+**Note:** If you set the \vistrailspythonpath to an invalid path
+VisTrails will use cached files if they exist.
 
 .. _sec-latex-setup-using-a-web-server:
 
@@ -42,7 +49,11 @@ Setup For Use With Files on MediaWiki or a Web Server
    pair: latex embedding; mediawiki 
    pair: latex embedding; web server
 
-Many VisTrails files and/or data is stored in a database that readers of a pdf document might not have access to.  If the files are also accessible through the web, the following instructions explain setup that will allow readers to download the VisTrail or workflow through MediaWiki or a web server.
+Many VisTrails files and/or data are stored in a database that readers
+of a pdf document might not have access to.  If the files are also
+accessible through the web, the following instructions explain setup
+that will allow readers to download the VisTrail or workflow through
+MediaWiki or a web server.
 
 **MediaWiki**
 
@@ -69,22 +80,34 @@ To configure VisTrails to run on your web server:
 * Configure your .tex files with:
 
   ``\renewcommand{\vistrailspath}{http://yourwebserver.somethingelse/run_vistrails.php}``
+
   ``\renewcommand{\vistrailsdownload}{http://yourwebserver.somethingelse/download.php}``
 
 Including VisTrails Results in Latex
 ====================================
 
-To include VisTrails Results in a Latex file:
+There are two ways of including VisTrails' objects in a Latex file. Usually you start with a workflow:
 
-* Select the ``History`` view.  
-* Ensure that a version is selected.
-* Press the ``Embed`` button at the bottom of the Properties Panel.  This will launch a dialog with embedding options (see Figure :ref:`fig-configure-embedding`).  
-* Select the result that you would like to display.  The choices are: workflow results, workflow graph, and history tree graph.
-* Select ``Latex``.
+* In ``History`` view, select the version node representing the workflow.
+* In ``Pipeline`` view, ensure that the workflow is being displayed.
+
+Now you can select ``Publish`` :math:`\rightarrow` ``To Paper...`` to launch a dialog with embedding options (see Figure :ref:`fig-configure-embedding`).  
+
+.. _fig-configure-embedding:
+
+.. figure:: figures/latex/embedding.png
+   :align: center
+
+   Embedding Options
+
+Then perform the following steps:
+
+* Select the type of object that you would like to display. The choices are: Workflow Results, Workflow Graph, and History Tree Graph.
+* Make sure that ``Latex`` is displayed in the ``In:`` combobox.
 * You should then choose from a number of "Embed" and "Download" options which will be explained in the tables below.
-* Select "Copy to Clipboard"
+* Press the "Copy to Clipboard" button
 * Paste clipboard contents into you Latex document 
-* Run pdflatex with the -shell-escape option: pdflatex -shell-escape example.tex.
+* Run pdflatex with the -shell-escape option: ``pdflatex -shell-escape example.tex``.
 
 **Note on using local VisTrails files:** Relative or absolute filenames can be used in the .tex file, but absolute filenames are used in the pdf.  Thus, if the absolute location of the file has changed, the pdf will need to be regenerated even if the relative location of the file has not changed.  Also, the VisTrails ``Embed`` function assumes the .vt file is in the same directory as the .tex file.  You will need to change this to an absolute filename if it is not.
 
@@ -112,7 +135,8 @@ To include VisTrails Results in a Latex file:
    +-----------------------+-----------------------+--------------------------------------------------------------------------+ 
    | Option                | Latex Flag            | Description                                                              |
    +=======================+=======================+==========================================================================+
-   | As PDF                | | pdf                 | Download images as pdf files.                                            |
+   | As PDF                | | pdf                 | | Include images as pdf files. If this is not checked, a png image is    |
+   |                       |                       |   used.                                                                  |
    +-----------------------+-----------------------+--------------------------------------------------------------------------+
    | Smart Tag             | tag=<...>             | | Allows you to include a version's tag.  If a tag is provided, version  |
    |                       |                       |   can be omitted and buildalways is implicit.                            |
@@ -121,7 +145,9 @@ To include VisTrails Results in a Latex file:
    |                       | | (do not include     |   If it is included, VisTrails will be called regardless of whether or   |
    |                       |   for caching)        |   not it has been called for the same host, db, version, port and vt_id. |
    +-----------------------+-----------------------+--------------------------------------------------------------------------+
-   | Include .vtl          | | getvtl              | Causes the .vtl file to be downloaded.                                   |
+   | Include .vtl          | | getvtl              | | Causes the .vtl file to be downloaded when compiling the pdf file.     |
+   |                       |                       |   This is useful when you want to package the workflows together with    |
+   |                       |                       |   your paper for archiving.                                              |
    +-----------------------+-----------------------+--------------------------------------------------------------------------+
 
    **Download Options**
@@ -129,14 +155,15 @@ To include VisTrails Results in a Latex file:
    +-----------------------+-----------------------+--------------------------------------------------------------------------+ 
    | Option                | Latex Flag            | Description                                                              |
    +=======================+=======================+==========================================================================+
-   | | Include Workflow    | embedworkflow         | Download the workflow only.                                              |
+   | | Include Workflow    | embedworkflow         | When clicking on the image in the pdf, download the workflow only.       |
    +-----------------------+-----------------------+--------------------------------------------------------------------------+
    | | Execute Workflow    | execute               | Will cause the workflow to be executed when it is opened.                |
    +-----------------------+-----------------------+--------------------------------------------------------------------------+
-   | | Include Full Tree   | includefulltree       | Download the complete VisTrail.                                          |
+   | | Include Full Tree   | includefulltree       | When clicking on the image, download the complete VisTrail.              |
    +-----------------------+-----------------------+--------------------------------------------------------------------------+
-   | | Show Spreadsheet    | showspreadsheetonly   | Will initially only show the spreadsheet.                                |
-   |   Only                |                       |                                                                          |
+   | | Show Spreadsheet    | showspreadsheetonly   | When opening the workflow it will initially only show the spreadsheet.   |
+   |   Only                | execute               | The execute option is implicit.                                          |
+   |                       |                       |                                                                          |
    +-----------------------+-----------------------+--------------------------------------------------------------------------+
 
 .. only:: latex
@@ -158,56 +185,40 @@ To include VisTrails Results in a Latex file:
    .. csv-table:: Embed Options
       :header: **Option**, **Latex Flag**, **Description**
 
-      As PDF, pdf, "Download images as pdf files."
+      As PDF, pdf, "Download images as pdf files. If this is not checked, a png image is used."
       , ,
       Smart Tag, tag=<...>, "Allows you to include a version's tag.  If a tag is provided, version can be omitted and buildalways is implicit."
       , ,
       Cache Images, buildalways (do not include for caching), "When caching desired, the buildalways flag should not be included.  If it is included, VisTrails will be called regardless of whether or not it has been called for the same host, db, version, port and vt_id."
       , ,
-      Include .vtl, getvtl, "Causes the .vtl file to be downloaded."
+      Include .vtl, getvtl, "Causes the .vtl file to be downloaded when compiling the pdf file. This is useful when you want to package the workflows together with your paper for archiving."
 
    .. tabularcolumns:: |p{2.8cm}|p{3.0cm}|p{7.5cm}|
 
    .. csv-table:: Download Options
       :header: **Option**, **Latex Flag**, **Description**
 
-      Include Workflow, embedworkflow, Download the workflow only.
+      Include Workflow, embedworkflow, "When clicking on the image in the pdf, download the workflow only."
       , ,
       Execute Workflow, execute, "Will cause the workflow to be executed when it is opened."
       , ,
-      Include Full Tree, includefulltree, Download the complete VisTrail.
+      Include Full Tree, includefulltree, "When clicking on the image, download the complete VisTrail."
       , ,
-      Show Spreadsheet Only, showspreadsheetonly, "Will initially only show the spreadsheet."
-
-
-.. _fig-configure-embedding:
-
-.. figure:: figures/latex/embedding.png
-   :align: center
-
-   Embedding Options
+      Show Spreadsheet Only, showspreadsheetonly, "When opening the workflow it will initially only show the spreadsheet. The execute option is implicit."
 
 Example
 ^^^^^^^
 
-The following is an example command for including a VisTrails image in Latex:
+The following is an example command for including the execution results the workflow ``aliases`` from examples/head.vt in a pdf and caching the images. When clicking on the images, the user will start |vistrails| showing only the spreadsheet:
 
-| ``\vistrails[host=vistrails.sci.utah.edu,``
-| ``db=vistrails,``
-| ``version=<version_number>,``
-| ``vtid=<vistrails_id>,``
-| ``tag=<tag>``
-| ``port=3306,``  %The default value for port is 3306.
-| ``buildalways,`` 
+| ``\vistrails[filename=head.vt,``
+| ``version=15,``
+| ``pdf,`` 
 | ``execute,``
 | ``showspreadsheetonly,`` 
-| ``pdf,`` 
-| ``showworkflow,`` 
-| ``showtree,`` 
-| ``getvtl,`` 
-| ``]{width=0.45\linewidth}`` %Options you would give to the ``\includegraphics{}`` command.
+| ``]{width=0.45\linewidth} %Options you would give to the \includegraphics{} command``.
 
-See example.tex in the extensions/latex directory for a complete example of usage.
+See example.tex and head.tex in the extensions/latex directory for a complete example of usage.
 
 Additional Notes
 ^^^^^^^^^^^^^^^^
@@ -217,8 +228,7 @@ instructions.  The latex code will be in the "cached" folder and the images in
 vistrails_images.
 
 Vistrails will create in the current directory a directory called 
-vistrails_images/host_db_vtid_version with the png files generated by 
-the spreadsheet.
+vistrails_images/filename_version_options with the png/pdf files generated by the spreadsheet.
 
 
 

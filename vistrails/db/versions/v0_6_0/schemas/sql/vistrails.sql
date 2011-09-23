@@ -31,7 +31,6 @@
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 --
 --#############################################################################
-
 -- generated automatically by auto_dao.py
 
 CREATE TABLE port_spec(

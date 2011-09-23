@@ -12,7 +12,7 @@ Although, we will focus primarily on the use of persistent files, persistent dir
 Getting Started With Persistence
 ================================
 
-A persistent file is simply a file that is kept in a repository and identified by an id and version string and annotated with a signature and content hash.  To begin, notice that there are three persistent file/directory types: input, intermediate, and output. It is helpful to understand the differences among these files as well as their distinguishing characteristics nod configuration options.
+A persistent file is simply a file that is kept in a repository and identified by an id and version string and annotated with a signature and content hash.  To begin, notice that there are three persistent file/directory types: input, intermediate, and output. It is helpful to understand the differences among these files as well as their distinguishing characteristics and configuration options.
 
 Input Files
 ^^^^^^^^^^^
@@ -20,13 +20,13 @@ Input Files
 .. index::
    pair: persistent files; input
 
-To use a persistent input file, after dragging it onto the canvas, it is necessary to edit the configuration (CTRL+E).  For an input file, one can either create a new reference to an existing local file, or use a file that exists in the database.  To create a new reference, select ``Create New Reference`` and either enter the path to the file, or select the folder icon on the right to browse local directories for a file.  Then, give the file a name and any appropriate tags to help identify the file.  Select ``OK``.  The file will be added to the repository.  If the file is already in the repository, select ``Use Existing Reference`` and select the appropriate file.  You may use the search box to search for particular files by name, tag, ID, or content hash.
+To use a persistent input file, after dragging it onto the canvas, it is necessary to edit the configuration (Ctrl+E).  For an input file, one can either create a new reference to an existing local file, or use a file that exists in the database.  To create a new reference, select ``Create New Reference`` and either enter the path to the file, or select the folder icon on the right to browse local directories for a file.  Then, give the file a name and any appropriate tags to help identify the file.  Select ``OK``.  The file will be added to the repository.  If the file is already in the repository, select ``Use Existing Reference`` and select the appropriate file.  You may use the search box to search for particular files by name, tag, ID, or content hash.
 
 .. topic:: Note
 
    A new version of a persistent file is created each time its contents change.  A persistent input file will always use the most recent version of a file if it is assigned to the root of the file tree.
 
-The ``PersitentInputFile`` module can also be used to read or write data directly from or to a local file.  To use this feature, you will need to set ``localPath`` point to a local file.  This can be done in the Set Methods Panel, the Configuration Dialog, or by connecting a file to the localPath input port.  Then, the local file will be read when readLocal is set to true and written when writeLocal is set to true.  To do this using the Configuration Dialog, select ``Keep Local Version``, enter the file location or click on the folder icon to select a file, then select ``Read From Local Path``.
+The ``PersitentInputFile`` module can also be used to read or write data directly from or to a local file.  To use this feature, you will need to set ``localPath`` to point to a local file.  This can be done in the Set Methods Panel, the Configuration Dialog, or by connecting a file to the localPath input port.  Then, the local file will be read when readLocal is set to true and written when writeLocal is set to true.  To do this using the Configuration Dialog, select ``Keep Local Version``, enter the file location or click on the folder icon to select a file, then select ``Read From Local Path``.
 
 Output Files
 ^^^^^^^^^^^^
@@ -34,9 +34,9 @@ Output Files
 .. index::
    pair: persistent files; output
 
-To use a persistent output file, after dragging it onto the canvas, it is necessary to edit the configuration (CTRL+E).  Notice that the Configuration Dialog for the output file is the same as that of a the input file except that an option to ``Always Create New Reference`` exists.  Selecting this new option will cause a new file to be created and added to the persistent store each time the workflow is executed.  The new file does not get a name or tag, so it can be difficult to identify the newly created file.
+To use a persistent output file, after dragging it onto the canvas, it is necessary to edit the configuration (Ctrl+E).  Notice that the Configuration Dialog for the output file is the same as that of the input file except that an option to ``Always Create New Reference`` exists.  Selecting this new option will cause a new file to be created and added to the persistent store each time the workflow is executed.  The new file does not get a name or tag, so it can be difficult to identify the newly created file.
 
-If you prefer to have a new version of the file created each time the workflow is changed, you should choose either of the other options.  The other two options and the option to read from or write to a local path are used in the same manner as with the input file.  However, when the input file is read from a local path, it is not also read from the persistent store.  In contrast, when an output file is written to a local path, it is also written to the selected entry in the persistent store.
+If you prefer to have a new version of the file created each time the workflow is changed rather than executed, you should choose either of the other options (``Create New Reference``, or ``Use Existing Reference``).  The other two options and the option to read from or write to a local path are used in the same manner as with the input file.  However, when the input file is read from a local path, it is not also read from the persistent store.  In contrast, when an output file is written to a local path, it is also written to the selected entry in the persistent store.
 
 Intermediate Files
 ^^^^^^^^^^^^^^^^^^
@@ -49,7 +49,7 @@ An intermediate file is the same as the output file except that its contents can
 Using the Output of One Workflow as Input for Another
 =====================================================
 
-You need to configure the persistence modules using the module's configuration dialog. After adding a PersistentOutputFile to the workflow, click on the triangle in the upper-right corner of the PersistentOutputFile, and select "Edit Configuration" from the menu that appears. In this dialog, select "Create New Reference" and give the reference a name (and any space-delimited tags). Upon running that workflow, the data will be written to the persistent store. In the second workflow where you wish to use that file, add a PersistentInputFile and go to its configuration dialog in the same manner as with the output file. In that dialog, select "Use Existing Reference" and select the data that you just added in the first workflow in the list of files below. Now, when you run that workflow, it will grab the data from the persistent store.
+You need to configure the persistence modules using the module's configuration dialog. After adding a PersistentOutputFile to the workflow, click on the triangle in the upper-right corner of the PersistentOutputFile, and select "Edit Configuration" from the menu that appears. In this dialog, select "Create New Reference" and give the reference a name (and any space-delimited tags). Upon running that workflow, the data will be written to the persistent store. In the second workflow where you wish to use that file, add a PersistentInputFile and go to its configuration dialog in the same manner as with the output file. In that dialog, select "Use Existing Reference" and select the data that you just added in the first workflow from the list of files below. Now, when you run that workflow, it will grab the data from the persistent store.
 
 Managing Files in the Store
 ===========================
@@ -69,7 +69,7 @@ Examples
       
       http://www.vistrails.org/download/download.php?type=DATA&id=spx.vtk
 
-   3) (Optional) Select the ``vtkRenderer`` module and drag ``SetBackgroungWidget`` to the Set Methods Panel.  Select the background color of your choice.
+   3) (Optional) Select the ``vtkRenderer`` module and select ``SetBackgroungWidget`` from the ``Module Information's`` ``Inputs`` tab.  Select the background color of your choice.
 
    **Persistent Output**
 
@@ -79,9 +79,9 @@ Examples
 
    6) Drag the ``PersistentOutputFile`` module to the canvas and connect the output from ``VTKRenderOffscreen`` to its value port. See Figure :ref:`Example 1.2 <fig-pers-example-output>`.
 
-   7) With the ``PersistentOutputFile`` module selected, press CTRL-E to edit the module configuration. 
+   7) With the ``PersistentOutputFile`` module selected, press Ctrl-E to edit the module configuration. 
 
-   8) Select ``Create New Reference``, name it "persistence1_1", and give it a "Persistent Output" tag.  Select ``Ok``.
+   8) Select ``Create New Reference``, name it "persistence1_1", and give it a "Persistent Output" tag.  Select ``Save``.
 
    9) Execute the workflow.
 
@@ -91,7 +91,7 @@ Examples
 
    11) Drag the ``PersistentInputFile`` and ``ImageViewerCell`` modules to the canvas and connect them. See Figure :ref:`Example 1.3 <fig-pers-example-input>`.
 
-   12) Edit the configuration of the ``PersitentInputFile``.  Select "Use Existing Reference" and select the file named "persistence1_1" with the "Persistent Output" tag.  Select ``Ok``. See Figure :ref:`Example 1.4 <fig-pers-example-conf>`.
+   12) Edit the configuration of the ``PersitentInputFile``.  Select "Use Existing Reference" and select the file named "persistence1_1" with the "Persistent Output" tag.  Select ``Save``. See Figure :ref:`Example 1.4 <fig-pers-example-conf>`.
 
    13) Execute the workflow.  An image should be displayed in the VisTrails spreadsheet.
 

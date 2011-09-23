@@ -7,8 +7,7 @@ Control Flow in VisTrails
 Scientific workflows usually follow a dataflow model, but, in some cases,
 control structures, including loops and conditionals, are necessary to
 accomplish certain tasks. |vistrails| provides the ``Control Flow``
-package to support these and other structures.
-
+package to support these and other structures.  To create your own ``Control Flow`` modules, please refer to the Developer's Guide (:ref:`chap-controlflowdev`).  Or, if you would like to use the Control Flow Assistant, to simplify the process described in this chapter, please refer to :ref:`chap-controlflow-assistant`.
 
 The Map operator
 ================
@@ -21,7 +20,7 @@ module provides simple looping as it can be used to iterate through a list
 of inputs.
 
 In order to use the ``Map`` module, a ``ListOfElements``
-type representing a list of data structure is also provided. Two additional
+type representing a list of data structures is also provided. Two additional
 modules help users combine elements of lists: ``Dot`` combines the
 elements of two lists like the dot product (the first element of the first list
 is combined with the first of the second one, the second element of the first
@@ -36,7 +35,7 @@ combined in just one tuple, |eg| (1, 2) + 3 :math:`\rightarrow` ((1, 2), 3);  ot
 
 The Map module has four input ports:
 
-* "FunctionPort": this port receives the module (via the "self" output port) that represents the function to be applied for each element of the input list; if the function uses more than one module, you must use a ``Group`` (see Chapter :ref:`chap-creating`) or a ``SubWorkflow`` and connect that composite module to this port;
+* "FunctionPort": this port receives the module (via the "self" output port) that represents the function to be applied for each element of the input list; if the function uses more than one module, you must use a ``Group`` (see Chapter :ref:`chap-grouping`) or a ``SubWorkflow`` and connect that composite module to this port;
 * "InputPort": this port receives a list of the names of the input ports that represent the individual arguments of the function;
 * "OutputPort": this port receives the name of the output port that represents the individual result of the function;
 * "InputList": this port receives the input list for the loop; it must be a list of tuples if more than one function input port was chosen.
@@ -52,32 +51,27 @@ of a given isosurface. We are going to modify this version, in order to
 calculate the areas of the isosurface given by contour values in a list.
 Then, we will create a 2D plot to show all the areas.
 
-Begin by deleting the ``StandardOutput`` module, and the connection
-between the ``vtkDataSetReader`` and the ``vtkContourFilter``
-modules. Then, drag the following modules to the canvas:
+.. topic:: Try it Now!
 
-* ``Map``
-* ``ListOfElements``
-* ``Cross``
-* ``MplPlot`` (under "matplotlib")
-* ``MplFigure`` (under "matplotlib")
-* ``MplFigureCell`` (under "matplotlib")
-* ``InputPort`` (under "Basic Modules") - you will need two of them
-* ``OutputPort`` (under "Basic Modules")
-* ``PythonSource`` (under "Basic Modules")
+  Begin by deleting the ``StandardOutput`` module, and the connection between the ``vtkDataSetReader`` and the ``vtkContourFilter`` modules. Then, drag the following modules to the canvas:
 
-Notice that when you drag ``Map`` to the pipeline canvas it will be
-drawn in a different shape from the other modules. This is a visual cue to
-help distinguish control modules from other modules. All control modules
-have the same shape.
+   * ``Map``
+   * ``ListOfElements``
+   * ``Cross``
+   * ``MplPlot`` (under "matplotlib")
+   * ``MplFigure`` (under "matplotlib")
+   * ``MplFigureCell`` (under "matplotlib")
+   * ``InputPort`` (under "Basic Modules") - you will need two of them
+   * ``OutputPort`` (under "Basic Modules")
+   * ``PythonSource`` (under "Basic Modules")
 
-Select the ``vtkContourFilter`` module and delete its method "SetValue"
-in the ``Set Methods`` container. Then, open its configuration dialog
-(you can use the "Ctrl-E" or "Command-E" keyboard shortcut) and
-enable this method (the input port "SetValue") by clicking on it,
-and pressing ``OK``.
+Notice that when you drag ``Map`` to the pipeline canvas it will be drawn in a different shape from the other modules. This is a visual cue to help distinguish control modules from other modules. All control modules have the same shape.
 
-Then, connect the modules as shown in Figure :ref:`fig-controlflow-calculate_area`.
+.. topic:: Next Step!
+
+  Select the ``vtkContourFilter`` module and delete its method "SetValue" in the ``Set Methods`` container. Then, open its configuration dialog (you can use the "Ctrl-E" or "Command-E" keyboard shortcut) and enable this method (the input port "SetValue") by clicking on it, and pressing ``OK``.
+
+  Then, connect the modules as shown in Figure :ref:`fig-controlflow-calculate_area`.
 
 .. _fig-controlflow-calculate_area:
 
@@ -91,23 +85,17 @@ These modules represent the function we wish to map: each element of the input l
 necessary to expose these ports in the ``Group``/``SubWorkflow``
 structure.
 
-In this example, we will use a ``SubWorkflow`` structure. Select all the
-modules shown in Figure :ref:`fig-controlflow-calculate_area`, go to the
-``Edit`` menu, and then click on ``Make SubWorkflow``. You can
-name it ``CalculateArea``. Select this SubWorkflow and open its
-configuration. When the configuration dialog opens, enable the output port
-"self" and press ``OK``. You will need this port to connect to
-the ``Map`` module.
+.. topic:: Next Step!
+
+  In this example, we will use a ``SubWorkflow`` structure. Select all the modules shown in Figure :ref:`fig-controlflow-calculate_area`, go to the ``Edit`` menu, and then click on ``Make SubWorkflow``. You can name it ``CalculateArea``. Select this SubWorkflow and open its configuration. When the configuration dialog opens, enable the output port "self" and press ``OK``. You will need this port to connect to the ``Map`` module.
 
 .. topic:: Note
 
    When using ``Map``, the module (or subworkflow) used as function port in the map module MUST be a function, i.e., it can only define 1 output port.
 
-Now, select the ``MplPlot`` module and open its configuration dialog. Inside
-it, add two input ports of type ``ListOfElements``: "InputList" and
-"X_Values". Also, copy the code listed below, in order to create the
-necessary information for the 2D plot, into the source text area and save your
-changes using the ``OK`` button.
+.. topic:: Next Step!
+
+  Now, select the ``MplPlot`` module and open its configuration dialog. Inside it, add two input ports of type ``ListOfElements``: "InputList" and "X_Values". Also, copy the code listed below, in order to create the necessary information for the 2D plot, into the source text area and save your changes using the ``OK`` button.
 
 .. code-block:: python
 
@@ -126,10 +114,9 @@ changes using the ``OK`` button.
 
    l.set_dashes(dashes)
 
-Next, edit the ``PythonSource`` module by adding an output port "List"
-of type ``ListOfElements``, copying the following code to the source text area,
-and saving these changes.  The code will create a range of contour values that we will
-use as our input list.
+.. topic:: Next Step!
+
+  Next, edit the ``PythonSource`` module by adding an output port "List" of type ``ListOfElements``, copying the following code to the source text area, and saving these changes.  The code will create a range of contour values that we will use as our input list.
 
 .. code-block:: python
 
@@ -140,9 +127,9 @@ use as our input list.
 
    self.setResult("List", result)
 
-It may be helpful to identify this ``PythonSource`` module by labeling it as
-``RangeList``. Connect all the modules as shown in
-Figure :ref:`fig-controlflow-map_workflow`.
+.. topic:: Next Step!
+
+  It may be helpful to identify this ``PythonSource`` module by labeling it as ``RangeList``. Connect all the modules as shown in Figure :ref:`fig-controlflow-map_workflow`.
 
 .. _fig-controlflow-map_workflow:
 
@@ -152,11 +139,13 @@ Figure :ref:`fig-controlflow-map_workflow`.
 
    All the modules connected in the canvas
 
-You will set some parameters now:
+.. topic:: Next Step!
 
-* ``HTTPFile``: set the parameter "url" to http://www.sci.utah.edu/~cscheid/stuff/head.120.vtk
-* ``ListOfElements``: set the parameter "value" to *[0]*
-* ``Map``: set the parameter "InputPort" to *["SetValue"]* and the parameter "OutputPort" to *GetSurfaceArea*
+  You will set some parameters now:
+
+  * ``HTTPFile``: set the parameter "url" to http://www.sci.utah.edu/~cscheid/stuff/head.120.vtk
+  * ``ListOfElements``: set the parameter "value" to *[0]*
+  * ``Map``: set the parameter "InputPort" to *["SetValue"]* and the parameter "OutputPort" to *GetSurfaceArea*
 
 
 The workflow is now ready to be executed. When you execute the workflow, you will
@@ -199,18 +188,14 @@ work. Thus, ``Filter`` will not return a list with boolean values as
 ``Map`` would do, but rather the elements of the input list for which
 the condition evaluated to ``True``.
 
-To better understand how ``Filter`` works, let's modify our earlier example
-to filter out areas less than 200,000. With the previous vistrail open (you can
-use the "Surface Area with Map" version), add the following modules to the
-canvas:
+.. topic:: Try it Now!
 
-* ``Filter``
-* ``PythonSource`` (under "Basic Modules")
+  To better understand how ``Filter`` works, let's modify our earlier example to filter out areas less than 200,000. With the previous vistrail open (you can use the "Surface Area with Map" version), add the following modules to the canvas:
 
-Edit the configuration of ``PythonSource`` by adding an input port of type
-``Float`` named "Area", and an output port of type ``Boolean``
-named "Condition", and writing the following code inside the source text
-area:
+  * ``Filter``
+  * ``PythonSource`` (under "Basic Modules")
+
+  Edit the configuration of ``PythonSource`` by adding an input port of type ``Float`` named "Area", and an output port of type ``Boolean`` named "Condition", and writing the following code inside the source text area:
 
 .. code-block:: python
 
@@ -221,9 +206,9 @@ area:
    else:
        self.setResult("Condition", False)
 
-Press the ``OK`` button. You can label this ``PythonSource`` as
-``FilterCondition``. Now, reorganize the modules in the canvas as shown in
-Figure :ref:`fig-controlflow-mapandfilter_workflow`.
+.. topic:: Next Step!
+
+  Press the ``OK`` button. You can label this ``PythonSource`` as ``FilterCondition``. Now, reorganize the modules in the canvas as shown in Figure :ref:`fig-controlflow-mapandfilter_workflow`.
 
 .. _fig-controlflow-mapandfilter_workflow:
 
@@ -233,15 +218,14 @@ Figure :ref:`fig-controlflow-mapandfilter_workflow`.
 
    The new organization of the modules in the canvas
 
-Select the ``Filter`` module and set the values of its parameters to the
-following:
+.. topic:: Next Step!
 
-* "InputPort": *["Area"]*
-* "OutputPort": *Condition*
+  Select the ``Filter`` module and set the values of its parameters to the following:
 
-When you execute this workflow, it will generate another plot that is similar to
-the one from the ``Map`` example, but only areas above 200,000 are
-considered (Figure :ref:`fig-controlflow-mapandfilter_spreadsheet`).
+  * "InputPort": *["Area"]*
+  * "OutputPort": *Condition*
+
+When you execute this workflow, it will generate another plot that is similar to the one from the ``Map`` example, but only areas above 200,000 are considered (Figure :ref:`fig-controlflow-mapandfilter_spreadsheet`).
 
 .. _fig-controlflow-mapandfilter_spreadsheet:
 
@@ -285,42 +269,34 @@ port is chosen, the result of this port will not be returned in a list. If
 "TrueOutputPorts" or "FalseOutputPorts" are not enabled,
 "Result" returns ``None``.
 
-Let's do now a simple example to show how exactly this module works. This example is
-from the bioinformatics domain, and takes a string as the input; if it's a structure
-identifier, a web service from the European Bioinformatics Institute, or simply EBI
-(http://www.ebi.ac.uk/), a centre of researchs in bioinformatics,
-is used to get the structure in the PDB format, a standard representation for
-macromolecular structure, and then, the ``VTK`` package is used to show the protein in
-the |vistrails| Spreadsheet; otherwise, the input is assumed to be invalid, and a message
-is generated in the Spreadsheet too.
+Let's do now a simple example to show how this module works. This example is
+from the bioinformatics domain, and takes a string as the input.  If this string is a structure identifier, a web service from the European Bioinformatics Institute - EBI (http://www.ebi.ac.uk/) is used to put the structure into PDB format (a standard representation for macromolecular structure) and the ``VTK`` package is used to show the protein in
+the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and a message is generated in the Spreadsheet.
 
-First, the EBI's web service must be enabled. For this, you need to add the following
-url to the ``wsdlList`` configuration:
+.. topic:: Try it Now!
+
+  First, the EBI's web service must be enabled. For this, you need to add the following url to the ``wsdlList`` configuration:
 
 
-``http://www.ebi.ac.uk/Tools/webservices/wsdl/WSDbfetch.wsdl``
+  ``http://www.ebi.ac.uk/Tools/webservices/wsdl/WSDbfetch.wsdl``
 
 
-Don't forget to ensure that the ``webServices`` package is enabled in the 
-``Preferences`` dialog. For more information about web services in |vistrails|, see
-Chapter :ref:`chap-webservices`.
+  Don't forget to ensure that the ``webServices`` package is enabled in the  ``Preferences`` dialog. For more information about web services in |vistrails|, see Chapter :ref:`chap-webservices`.
 
-Now, you're going to drag the following modules to the canvas:
+  Now, you're going to drag the following modules to the canvas:
 
-* ``If``
-* ``fetchData`` (under "Methods" for the current web service)
-* ``vtkPDBReader`` (under "VTK")
-* ``vtkDataSetMapper`` (under "VTK")
-* ``vtkActor`` (under "VTK")
-* ``vtkRenderer`` (under "VTK")
-* ``VTKCell`` (under "VTK")
-* ``PythonSource`` (under "Basic Modules") - you will need three of them
-* ``String`` (under "Basic Modules")
-* ``RichTextCell`` (under "|vistrails| Spreadsheet")
+  * ``If``
+  * ``fetchData`` (under "Methods" for the current web service)
+  * ``vtkPDBReader`` (under "VTK")
+  * ``vtkDataSetMapper`` (under "VTK")
+  * ``vtkActor`` (under "VTK")
+  * ``vtkRenderer`` (under "VTK")
+  * ``VTKCell`` (under "VTK")
+  * ``PythonSource`` (under "Basic Modules") - you will need three of them
+  * ``String`` (under "Basic Modules")
+  * ``RichTextCell`` (under "|vistrails| Spreadsheet")
 
-Select one of the ``PythonSource`` modules, and open its configuration dialog. Inside it,
-add one input port of type ``String``, named "PDB_format", and one output port of
-type ``File``, named "File". Then, write the following code:
+  Select one of the ``PythonSource`` modules, and open its configuration dialog. Inside it, add one input port of type ``String``, named "PDB_format", and one output port of type ``File``, named "File". Then, write the following code:
 
 .. code-block:: python
    :linenos:
@@ -335,13 +311,14 @@ type ``File``, named "File". Then, write the following code:
 
    file_.close()
 
-You can name this module as ``CreateFile``.
-Now, set some paremeters of ``fetchData``:
+.. topic:: Next Step!
 
-* "format": *pdb*
-* "style": *raw*
+  You can name this module as ``CreateFile``.  Now, set some paremeters of ``fetchData``:
 
-Next, connect some modules as shown in Figure :ref:`fig-controlflow-if_group`.
+  * "format": *pdb*
+  * "style": *raw*
+
+  Next, connect some modules as shown in Figure :ref:`fig-controlflow-if_group`.
 
 .. _fig-controlflow-if_group:
 
@@ -355,10 +332,9 @@ The aim of this group of modules is to get the PDB format of the structure ID, t
 and then make the visualization with the ``VTK`` package. This is the part of the workflow
 that will be executed if the input is a structure identifier.
 
-Next, select another ``PythonSource`` module and open its configuration
-dialog too. One input port named "Structure", of type ``String``, and one
-output port named "Is_ID", of type ``Boolean``, must be added, as well as the
-code below:
+.. topic:: Next Step!
+
+  Next, select another ``PythonSource`` module and open its configuration dialog too. One input port named "Structure", of type ``String``, and one output port named "Is_ID", of type ``Boolean``, must be added, as well as the code below:
 
 .. code-block:: python
    :linenos:
@@ -382,12 +358,11 @@ code below:
 
    self.setResult("Is_ID", is_ID)
 
-Name this module as ``Is_ID``. This module will be the condition for the ``If``
-structure.
+.. topic:: Next Step!
 
-Now, select the last ``PythonSource`` module, and, inside its configuration, add
-one input port of type ``String``, named "Input", and one output port of
-type ``File``, named "html". Then, copy the code below:
+  Name this module as ``Is_ID``. This module will be the condition for the ``If`` structure.
+
+  Now, select the last ``PythonSource`` module, and, inside its configuration, add one input port of type ``String``, named "Input", and one output port of type ``File``, named "html". Then, copy the code below:
 
 .. code-block:: python
    :linenos:
@@ -412,13 +387,11 @@ type ``File``, named "html". Then, copy the code below:
 
    f.close()
 
-Name this ``PythonSource`` as ``Not_ID``. This module will print a message in the
-|vistrails| Spreadsheet when the input is not a structure identifier.
+.. topic:: Next Step!
 
-Finally, the ``String`` module can be named as ``Workflow_Input``, to make it
-clear that it takes the input of the workflow. Also, open the configuration dialog of
-``RichTextCell`` to enable the output port "self", so it can be connected to the
-``If`` module. Then, connect all the modules as shown in Figure :ref:`fig-controlflow-if_workflow`. 
+  Name this ``PythonSource`` as ``Not_ID``. This module will print a message in the |vistrails| Spreadsheet when the input is not a structure identifier.
+
+  Finally, the ``String`` module can be named as ``Workflow_Input``, to make it clear that it takes the input of the workflow. Also, open the configuration dialog of ``RichTextCell`` to enable the output port "self", so it can be connected to the ``If`` module. Then, connect all the modules as shown in Figure :ref:`fig-controlflow-if_workflow`. 
 
 .. _fig-controlflow-if_workflow:
 
@@ -428,10 +401,9 @@ clear that it takes the input of the workflow. Also, open the configuration dial
 
    All the modules connected
 
-In order to better organize the disposal of the modules, group all the modules shown in
-Figure :ref:`fig-controlflow-if_group` by selecting them, going to the ``Edit``
-menu and clicking on ``Group``. Name it as ``Generate_Visualization``.
-Your workflow must correspond to the one shown in Figure :ref:`fig-controlflow-if_workflow_group`.
+.. topic:: Next Step!
+
+  In order to better organize the disposal of the modules, group all the modules shown in Figure :ref:`fig-controlflow-if_group` by selecting them, going to the ``Edit`` menu and clicking on ``Group``. Name it as ``Generate_Visualization``. Your workflow must correspond to the one shown in Figure :ref:`fig-controlflow-if_workflow_group`.
 
 .. _fig-controlflow-if_workflow_group:
 
@@ -441,16 +413,14 @@ Your workflow must correspond to the one shown in Figure :ref:`fig-controlflow-i
 
    The final workflow, using the ``Group`` structure
 
-Note that this implementation follows exactly the initial especification of the workflow. If the input
+Note that this implementation follows exactly the initial specification of the workflow. If the input
 is a structure identifier (``Is_ID`` returns ``True``), ``Generate_Visualization``
 will be executed; otherwise (``Is_ID`` returns ``False``), ``Not_ID``
 and ``RichTextCell`` will create an error message in the |vistrails| Spreadsheet.
 
-For the workflow execution, set the parameter "value" of the
-``Workflow_Input`` module to *PDB:3BG0*. This entry is an ID from a
-protein; so, the condition will be ``True``, and the ``Generate_Visualization``
-group will be executed, generating the visualization show in
-Figure :ref:`fig-controlflow-if_spreadsheet_true`.
+.. topic:: Next Step!
+
+  For the workflow execution, set the parameter "value" of the ``Workflow_Input`` module to *PDB:3BG0*. This entry is an ID from a protein; so, the condition will be ``True``, and the ``Generate_Visualization`` group will be executed, generating the visualization shown in Figure :ref:`fig-controlflow-if_spreadsheet_true`.
 
 .. _fig-controlflow-if_spreadsheet_true:
 

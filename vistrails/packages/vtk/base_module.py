@@ -201,6 +201,16 @@ class vtkBaseModule(Module):
                 if connector in self.is_method:
                     continue
                 call_it(function, p)
+                
+        #In the case of a vtkRenderer, 
+        # we need to call the methods after the
+        #input ports are set.
+        if isinstance(self.vtkInstance, vtk.vtkRenderer):
+            for value in methods:
+                (_, port) = value
+                conn = self.is_method.inverse[value]
+                p = conn()
+                call_it(port, p)
 
         # Call update if appropriate
         if hasattr(self.vtkInstance, 'Update'):

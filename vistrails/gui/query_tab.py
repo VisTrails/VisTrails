@@ -49,6 +49,7 @@ from core.vistrail.vistrail import Vistrail
 import db.services.io
 from core.modules.module_registry import get_module_registry
 from gui.method_dropbox import QMethodInputForm
+from gui.modules import get_widget_class
 from gui.pipeline_tab import QPipelineTab
 from gui.theme import CurrentTheme
 from gui.vistrail_controller import VistrailController
@@ -84,6 +85,7 @@ class QQueryTab(QPipelineTab):
         self.connect(controller,
                      QtCore.SIGNAL('vistrailChanged()'),
                      self.vistrailChanged)
+        
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None
@@ -177,7 +179,7 @@ class QParameterQuery(QtGui.QWidget):
         constant_class = reg.get_module_by_name(param.identifier,
                                                 param.type,
                                                 param.namespace)
-        widget_type = constant_class.get_widget_class() 
+        widget_type = get_widget_class(constant_class)
         self.editor = widget_type(param)
         layout.addWidget(self.editor)
 

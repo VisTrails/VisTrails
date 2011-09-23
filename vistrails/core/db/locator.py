@@ -42,11 +42,28 @@ from core.external_connection import ExtConnectionList, DBConnection
 from core.thumbnails import ThumbnailCache
 from core import debug
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
-    DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
+    DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator, \
+    BaseLocator as _BaseLocator
 from db.services.io import SaveBundle, test_db_connection
 from db import VistrailsDBException
 from PyQt4 import QtCore
 ElementTree = get_elementtree_library()
+
+class BaseLocator(_BaseLocator):
+    @staticmethod
+    def convert_locator(locator):
+        if locator.__class__ == _XMLFileLocator:
+            locator.__class__ = XMLFileLocator
+        elif locator.__class__ == _ZIPFileLocator:
+            locator.__class__ = ZIPFileLocator
+        elif locator.__class__ == _DBLocator:
+            locator.__class__ = DBLocator
+            
+    @staticmethod
+    def from_url(url):
+        locator = _BaseLocator.from_url(url)
+        BaseLocator.convert_locator(locator)
+        return locator
 
 class CoreLocator(object):
     @staticmethod
@@ -89,8 +106,8 @@ class CoreLocator(object):
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
-    def __init__(self, filename, version_node=None, version_tag=''):
-        _XMLFileLocator.__init__(self, filename, version_node, version_tag)
+    def __init__(self, filename, **kwargs):
+        _XMLFileLocator.__init__(self, filename, **kwargs)
         
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -154,12 +171,12 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
-    def update_from_gui(self, parent_widget, klass=None):
-        from core.vistrail.vistrail import Vistrail
-        if klass is None:
-            klass = Vistrail
-        import gui.extras.core.db.locator as db_gui
-        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
+#    def update_from_gui(self, parent_widget, klass=None):
+#        from core.vistrail.vistrail import Vistrail
+#        if klass is None:
+#            klass = Vistrail
+#        import gui.extras.core.db.locator as db_gui
+#        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
 
 class DBLocator(_DBLocator, CoreLocator):
     
@@ -175,12 +192,10 @@ class DBLocator(_DBLocator, CoreLocator):
     keyChain = getKeyChain()
     
     def __init__(self, host, port, database, user, passwd, name=None,
-                 obj_id=None, obj_type=None, connection_id=None,
-                 version_node=None, version_tag=''):
+                 **kwargs):
         
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
-                            obj_id, obj_type, connection_id, version_node,
-                            version_tag)
+                            **kwargs)
         self.ext_connection_id = -1
 
     def load(self, klass=None):
@@ -441,8 +456,8 @@ class DBLocator(_DBLocator, CoreLocator):
     
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
-    def __init__(self, filename, version_node=None, version_tag=''):
-        _ZIPFileLocator.__init__(self, filename, version_node, version_tag)
+    def __init__(self, filename, **kwargs):
+        _ZIPFileLocator.__init__(self, filename, **kwargs)
 
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -499,15 +514,14 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
                                                          locator)
 
 class FileLocator(CoreLocator):
-    def __new__(self, *args):
-        if len(args) > 0:
-            filename = args[0]
+    def __new__(self, filename=None, **kwargs):
+        if filename:
             if filename.endswith('.vt'):
-                return ZIPFileLocator(*args)
+                return ZIPFileLocator(filename, **kwargs)
             elif filename.endswith('.vtl'):
-                return FileLocator.from_link_file(*args)
+                return FileLocator.from_link_file(filename)
             else:
-                return XMLFileLocator(*args)
+                return XMLFileLocator(filename, **kwargs)
         else:
             #return class based on default file type
             if vistrails_default_file_type() == '.vt':
@@ -628,10 +642,14 @@ class FileLocator(CoreLocator):
         vtname = convert_from_str(data, 'str')
         data = node.get('forceDB',None)
         forceDB = convert_from_str(data,'bool')
+        data = node.get('mashuptrail', None)
+        mashuptrail = convert_from_str(data, 'str')
+        data = node.get('mashupVersion', None)
+        mashupVersion = convert_from_str(data, 'int')
         
-        #asking to show only the spreadsheet force the workflow to be executed
-        if showSpreadsheetOnly:
-            execute = True
+        #if execute is False, we will show the builder too
+        if showSpreadsheetOnly and not execute:
+            showSpreadsheetOnly = False
         try:
             version = int(version)
         except:
@@ -658,24 +676,46 @@ class FileLocator(CoreLocator):
                     ext = guess_extension_from_contents(vtcontent)
                     dirname = os.path.dirname(filename)
                     fname = os.path.join(dirname,"%s%s"%(base,ext))
-                i = 1
-                while os.path.exists(fname):
-                    newbase = "%s_%s%s" % (base, i, ext)
-                    fname = os.path.join(dirname,newbase)
-                    i+=1
-                f = open(fname,'wb')
-                f.write(vtcontent)
-                f.close()
-                return FileLocator(fname, version, tag)
+                create_file = True
+                if os.path.exists(fname): #file was extracted before
+                    create_file = False
+                    oldf = open(fname)
+                    oldcontents = oldf.read()
+                    if oldcontents != vtcontent:
+                        import gui.extras.core.db.locator as db_gui
+                        (overwrite, newname) = \
+                                 db_gui.ask_to_overwrite_file(None, 'vistrail')
+                        create_file = True
+                        if newname:
+                            fname = newname
+                        elif overwrite == False:
+                            i=1
+                            while os.path.exists(fname):
+                                newbase = "%s_%s%s" % (base, i, ext)
+                                fname = os.path.join(dirname,newbase)
+                                i+=1
+                        
+                if create_file:
+                    f = open(fname,'wb')
+                    f.write(vtcontent)
+                    f.close()
+                return FileLocator(fname, version_node=version, version_tag=tag,
+                                   mashuptrail=mashuptrail, 
+                                   mashupVersion=mashupVersion)
         if host is not None:
             user = ""
             passwd = ""
             
             return DBLocator(host, port, database,
-                             user, passwd, None, vt_id, 'vistrail',
-                             None, version, tag)
+                             user, passwd, None, obj_id=vt_id, 
+                             obj_type='vistrail',connection_id=None, 
+                             version_node=version, version_tag=tag,
+                             mashuptrail=mashuptrail, 
+                             mashupVersion=mashupVersion)
         elif vtname is not None:
-            return FileLocator(vtname, version, tag)
+            return FileLocator(vtname, version_node=version, versin_tag=tag,
+                               mashuptrail=mashuptrail, 
+                               mashupVersion=mashupVersion)
         
         
     ##########################################################################

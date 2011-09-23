@@ -48,7 +48,8 @@ from core.vistrail.vistrail import Vistrail
 ################################################################################
     
 def run_and_get_results(w_list, parameters='', workflow_info=None, 
-                        update_vistrail=False, extra_info=None):
+                        update_vistrail=True, extra_info=None, 
+                        reason='Console Mode Execution'):
     """run_and_get_results(w_list: list of (locator, version), parameters: str,
                            workflow_info:str, update_vistrail: boolean,
                            extra_info:dict)
@@ -60,9 +61,9 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     aliases = {}
     result = []
     for locator, workflow in w_list:
-        (v, abstractions , thumbnails)  = load_vistrail(locator)
+        (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
         controller = VistrailController()
-        controller.set_vistrail(v, locator, abstractions, thumbnails)
+        controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
         if type(workflow) == type("str"):
             version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
@@ -100,8 +101,9 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        (results, _) = controller.execute_current_workflow(aliases,
-                                                           extra_info)
+        (results, _) = controller.execute_current_workflow(custom_aliases=aliases,
+                                                           extra_info=extra_info,
+                                                           reason=reason)
         new_version = controller.current_version
         if new_version != version:
             debug.warning("Version '%s' (%s) was upgraded. The actual version executed \
@@ -126,9 +128,10 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
     result = []
     for locator, workflow in w_list:
         try:
-            (v, abstractions , thumbnails)  = load_vistrail(locator)
+            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
             controller = VistrailController()
-            controller.set_vistrail(v, locator, abstractions, thumbnails)
+            controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                    mashups)
             if type(workflow) == type("str"):
                 version = v.get_version_number(workflow)
             elif type(workflow) in [ type(1), long]:
@@ -169,9 +172,10 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
     result = []
     for locator in vt_list:
         try:
-            (v, abstractions , thumbnails)  = load_vistrail(locator)
+            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
             controller = VistrailController()
-            controller.set_vistrail(v, locator, abstractions, thumbnails)
+            controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                    mashups)
             if tree_info is not None:
                 from gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
@@ -192,15 +196,15 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
 
 ################################################################################
 
-def run(w_list, parameters='', workflow_info=None, update_vistrail=False,
-        extra_info=None):
+def run(w_list, parameters='', workflow_info=None, update_vistrail=True,
+        extra_info=None, reason="Console Mode Execution"):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns list of errors (empty list if there are no errors)
     """
     all_errors = []
     results = run_and_get_results(w_list, parameters, workflow_info, 
-                                  update_vistrail,extra_info)
+                                  update_vistrail,extra_info, reason)
     for result in results:
         (objs, errors, executed) = (result.objects,
                                     result.errors, result.executed)
@@ -299,10 +303,10 @@ class TestConsoleMode(unittest.TestCase):
     def test_change_parameter(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() + 
                                  '/tests/resources/test_change_vistrail.xml')
-        result = run([(locator, "v1")])
+        result = run([(locator, "v1")], update_vistrail=False)
         self.assertEqual(len(result), 0)
 
-        result = run([(locator, "v2")])
+        result = run([(locator, "v2")], update_vistrail=False)
         self.assertEquals(len(result), 0)
 
     def test_ticket_73(self):

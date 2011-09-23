@@ -218,7 +218,7 @@ class Service:
         """
         self.address = address
         self.signature = toSignature(self.address)
-        self.wsdlHash = '0'
+        self.wsdlHash = '-1'
         self.modules = []
         self.package = None
         debug.log("Installing Web Service from WSDL: %s"% address)
@@ -245,6 +245,9 @@ class Service:
             debug.critical("Could not load WSDL: %s" % address,
                            str(e) + '\n' + str(traceback.format_exc()))
             self.service = None
+            if self.wsdlHash == '-1':
+                # create empty package
+                self.createFailedPackage()
         
     def makeDictType(self, obj):
         """ Create recursive dict from SUDS object
@@ -260,7 +263,7 @@ class Service:
             if e is not None:
                 p = self.makeDictType(e)
                 if p is not None and p != {}:
-                    d[o] = self.makeDictType(e)
+                    d[str(o)] = self.makeDictType(e)
         return d
             
     def createPackage(self):
@@ -290,6 +293,32 @@ class Service:
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,
                                        'abstract':True})
+
+    def createFailedPackage(self):
+        """ Failed package is created so that the user can remove
+        it manually using package submenu """
+        reg = core.modules.module_registry.get_module_registry()
+
+        # create a document hash integer from the cached sax tree
+        # "name" is what suds use as the cache key
+        name = '%s-%s' % (abs(hash(self.address)), "wsdl")
+        self.wsdlHash = '0'
+
+        package_id = reg.idScope.getNewId(Package.vtType)
+        package = Package(id=package_id,
+                          codepath=__file__,
+                          load_configuration=False,
+                          name="SUDS#" + self.address,
+                          identifier=self.signature,
+                          version=self.wsdlHash,
+                          )
+        self.package = package
+        reg.add_package(package)
+        self.module = new_module(Module, str(self.signature))
+        reg.add_module(self.module, **{'package':self.signature,
+                                       'package_version':self.wsdlHash,
+                                       'abstract':True})
+        self.service = -1
 
     def setTypes(self):
         """ Return dict containing all exposed types in the service
@@ -428,12 +457,21 @@ class Service:
                     if obj.__class__.__name__ == 'UberClass':
                         # UberClass is a placeholder and its value is assumed
                         # to be the correct attribute value
-                        setattr(obj, part.name, obj.value)
+                        if len(self.wstype.parts) == 1:
+                            setattr(obj, part.name, obj.value)
+                        else:
+                            # update each attribute
+                            if hasattr(obj.value, part.name):
+                                setattr(obj, part.name, getattr(obj.value, part.name))
                     if self.hasInputFromPort(part.name):
                         p = self.getInputFromPort(part.name)
                         if hasattr(obj, part.name):
                             setattr(obj, part.name, p)
+                        else:
+                            # do it anyway - assume attribute missing in template
+                            setattr(obj, part.name, p)
                     if hasattr(obj, part.name):
+                        # 
                         res = getattr(obj, part.name)
                         self.setResult(part.name, res)
                 self.setResult(self.wstype.qname[0], obj)
@@ -498,19 +536,19 @@ It is a WSDL type with signature:
                 params = {}
                 mname = self.wsmethod.qname[0]
                 for name in self.wsmethod.inputs:
+                    name = str(name)
                     if self.hasInputFromPort(name):
                         params[name] = self.getInputFromPort(name)
                         if params[name].__class__.__name__ == 'UberClass':
                             params[name] = params[name].value
                         params[name] = self.service.makeDictType(params[name])
                 try:
-                    self.service.service.set_options(retxml = True)
+#                    print "params:", str(params)[:400]
+#                    self.service.service.set_options(retxml = True)
+#                    result = getattr(self.service.service.service, mname)(**params)
+#                    print "result:", str(result)[:400]
+#                    self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
-                    import api
-                    api.retxml = result
-                    self.service.service.set_options(retxml = False)
-                    result = getattr(self.service.service.service, mname)(**params)
-                    api.retxml = result
                 except Exception, e:
                     raise ModuleError(self, "Error invoking method %s: %s"%(name, str(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
@@ -565,8 +603,8 @@ Outputs:
                 elif ptype in self.typeClasses:
                     c = self.typeClasses[ptype]
                 else:
-                    debug.critical("Cannot find module for type: " + str(ptype))
-                    continue
+                    # use string as default
+                    c = wsdlTypesDict['string']
                 reg.add_input_port(M, p, c)
             for p, ptype in m.outputs.iteritems():
                 if ptype[1] in wsdlSchemas:
@@ -574,8 +612,8 @@ Outputs:
                 elif ptype in self.typeClasses:
                     c = self.typeClasses[ptype]
                 else:
-                    debug.critical("Cannot find module for type: %s %s %s" % (str(t.name), str(p), str(ptype)))
-                    continue
+                    # use string as default
+                    c = wsdlTypesDict['string']
                 reg.add_output_port(M, p, c)
 
 def load_from_signature(signature):
@@ -661,14 +699,7 @@ def handle_missing_module(controller, module_id, pipeline):
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
     if wsdl in wsdlList:
-        debug.warning("'%s' is already loaded." % wsdl)
-        return True
-        debug.warning("'%s' is already loaded. Fetching latest version..." % wsdl)
-        # temporarily disable cache
-        tmp_cache = package_cache
-        package_cache = None
-        webServicesDict[wsdl] = Service(wsdl)
-        package_cache = tmp_cache
+        # it is already loaded
         return True
 
     service = Service(wsdl)

@@ -8762,7 +8762,7 @@ class DBWorkflowExec(object):
 
     vtType = 'workflow_exec'
 
-    def __init__(self, item_execs=None, id=None, user=None, ip=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None):
+    def __init__(self, item_execs=None, id=None, user=None, ip=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None, annotations=None):
         self.db_deleted_item_execs = []
         self.db_item_execs_id_index = {}
         if item_execs is None:
@@ -8783,6 +8783,14 @@ class DBWorkflowExec(object):
         self._db_parent_version = parent_version
         self._db_completed = completed
         self._db_name = name
+        self.db_deleted_annotations = []
+        self.db_annotations_id_index = {}
+        if annotations is None:
+            self._db_annotations = []
+        else:
+            self._db_annotations = annotations
+            for v in self._db_annotations:
+                self.db_annotations_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -8806,6 +8814,10 @@ class DBWorkflowExec(object):
             cp._db_item_execs = []
         else:
             cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
+        if self._db_annotations is None:
+            cp._db_annotations = []
+        else:
+            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         
         # set new ids
         if new_ids:
@@ -8818,6 +8830,7 @@ class DBWorkflowExec(object):
         
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
+        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -8913,12 +8926,30 @@ class DBWorkflowExec(object):
             new_obj.db_name = res
         elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
+        to_del = []
+        for child in self.db_annotations:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_annotation(child)
         to_del = []
         for child in self.db_item_execs:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
@@ -8930,13 +8961,18 @@ class DBWorkflowExec(object):
         return children
     def db_deleted_children(self, remove=False):
         children = []
+        children.extend(self.db_deleted_annotations)
         children.extend(self.db_deleted_item_execs)
         if remove:
+            self.db_deleted_annotations = []
             self.db_deleted_item_execs = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
+        for child in self._db_annotations:
+            if child.has_changes():
+                return True
         for child in self._db_item_execs:
             if child.has_changes():
                 return True
@@ -9138,6 +9174,48 @@ class DBWorkflowExec(object):
         self._db_name = name
     def db_delete_name(self, name):
         self._db_name = None
+    
+    def __get_db_annotations(self):
+        return self._db_annotations
+    def __set_db_annotations(self, annotations):
+        self._db_annotations = annotations
+        self.is_dirty = True
+    db_annotations = property(__get_db_annotations, __set_db_annotations)
+    def db_get_annotations(self):
+        return self._db_annotations
+    def db_add_annotation(self, annotation):
+        self.is_dirty = True
+        self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+    def db_change_annotation(self, annotation):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                self._db_annotations[i] = annotation
+                found = True
+                break
+        if not found:
+            self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+    def db_delete_annotation(self, annotation):
+        self.is_dirty = True
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                if not self._db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self._db_annotations[i])
+                del self._db_annotations[i]
+                break
+        del self.db_annotations_id_index[annotation.db_id]
+    def db_get_annotation(self, key):
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == key:
+                return self._db_annotations[i]
+        return None
+    def db_get_annotation_by_id(self, key):
+        return self.db_annotations_id_index[key]
+    def db_has_annotation_with_id(self, key):
+        return key in self.db_annotations_id_index
     
     def getPrimaryKey(self):
         return self._db_id

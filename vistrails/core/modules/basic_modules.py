@@ -35,28 +35,18 @@
 pipelines."""
 
 import core.cache.hasher
-from core.modules import module_configure
 from core.modules.module_registry import get_module_registry
-from core.modules import port_configure
 from core.modules import vistrails_module
 from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
-from core.modules.python_source_configure import PythonSourceConfigurationWidget
-from core.modules.tuple_configuration import TupleConfigurationWidget, \
-    UntupleConfigurationWidget
-from core.modules.constant_configuration import StandardConstantWidget, \
-    PathChooserWidget, FileChooserWidget, DirectoryChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget, OutputPathChooserWidget
 from core.system import vistrails_version
 from core.utils import InstanceObject
 from core import debug
-from core.modules.paramexplore import make_interpolator, \
-     QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
-     IntegerLinearInterpolator
-from PyQt4 import QtGui
 
 
 import core.system
 from itertools import izip
+import re
 import os
 import os.path
 import shutil
@@ -132,20 +122,43 @@ class Constant(Module):
 
     @staticmethod
     def get_widget_class():
-        return StandardConstantWidget
+        # return StandardConstantWidget
+        return None
+
+    @staticmethod
+    def get_query_widget_class():
+        return None
+
+    @staticmethod
+    def get_param_explore_widget_list():
+        return []
+
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        if query_method == '==' or query_method is None:
+            return (value_a == value_b)
+        elif query_method == '!=':
+            return (value_a != value_b)
+        return False
 
 def new_constant(name, py_conversion, default_value, validation,
-                 widget_type=StandardConstantWidget,
+                 widget_type=None,
                  str_conversion=None, base_class=Constant,
-                 compute=None):
+                 compute=None, query_widget_type=None,
+                 query_compute=None,
+                 param_explore_widget_list=None):
     """new_constant(name: str, 
                     py_conversion: callable,
                     default_value: python_type,
                     validation: callable,
-                    widget_type: QWidget type,
+                    widget_type: (path, name) tuple or QWidget type,
                     str_conversion: callable,
                     base_class: class,
-                    compute: callable) -> Module
+                    compute: callable,
+                    query_widget_type: (path, name) tuple or QWidget type,
+                    query_compute: static callable,
+                    param_explore_widget_list: 
+                        list((path, name) tuple or QWidget type)) -> Module
 
     new_constant dynamically creates a new Module derived from
     Constant with given py_conversion and str_conversion functions, a
@@ -160,20 +173,32 @@ def new_constant(name, py_conversion, default_value, validation,
             base_class.__init__(self)
         return __init__
 
-    @staticmethod
-    def get_widget_class():
-        return widget_type
-
     d = {'__init__': create_init(base_class),
          'validate': validation,
          'translate_to_python': py_conversion,
-         'get_widget_class': get_widget_class,
          'default_value': default_value,
          }
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
     if compute is not None:
         d['compute'] = compute
+    if query_compute is not None:
+        d['query_compute'] = query_compute
+    if widget_type is not None:
+        @staticmethod
+        def get_widget_class():
+            return widget_type
+        d['get_widget_class'] = get_widget_class
+    if query_widget_type is not None:
+        @staticmethod
+        def get_query_widget_class():
+            return query_widget_type
+        d['get_query_widget_class'] = get_query_widget_class
+    if param_explore_widget_list is not None:
+        @staticmethod
+        def get_param_explore_widget_list():
+            return param_explore_widget_list
+        d['get_param_explore_widget_list'] = get_param_explore_widget_list
 
     m = new_module(base_class, name, d)
     m._input_ports = [('value', m)]
@@ -195,24 +220,59 @@ def int_conv(x):
     else:
         return int(x)
 
+@staticmethod
+def numeric_compare(value_a, value_b, query_method):
+    value_a = float(value_a)
+    value_b = float(value_b)
+    if query_method == '==' or query_method is None:
+        return (value_a == value_b)
+    elif query_method == '<':
+        return (value_a < value_b)
+    elif query_method == '>':
+        return (value_a > value_b)
+    elif query_method == '<=':
+        return (value_a <= value_b)
+    elif query_method == '>=':
+        return (value_a >= value_b)
+
+@staticmethod
+def string_compare(value_a, value_b, query_method):
+    if query_method == '*[]*' or query_method is None:
+        return (value_b in value_a)
+    elif query_method == '==':
+        return (value_a == value_b)
+    elif query_method == '=~':
+        try:
+            m = re.match(value_b, value_a)
+            if m is not None:
+                return (m.end() ==len(value_a))
+        except:
+            pass
+    return False
+
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
                        False, staticmethod(lambda x: type(x) == bool),
-                       BooleanWidget)
+                       widget_type=('gui.modules.constant_configuration', 
+                                    'BooleanWidget'))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
-                       staticmethod(lambda x: type(x) == float))
+                       staticmethod(lambda x: type(x) == float),
+                       query_widget_type=('gui.modules.query_configuration',
+                                          'NumericQueryWidget'),
+                       query_compute=numeric_compare,
+                       param_explore_widget_list=[('gui.modules.paramexplore',
+                                                   'FloatExploreWidget')])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
-                       staticmethod(lambda x: type(x) == int))
+                       staticmethod(lambda x: type(x) == int),
+                       query_widget_type=('gui.modules.query_configuration',
+                                          'NumericQueryWidget'),
+                       query_compute=numeric_compare,
+                       param_explore_widget_list=[('gui.modules.paramexplore',
+                                                   'IntegerExploreWidget')])
 String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: type(x) == str))
-
-Float.parameter_exploration_widgets   = [
-    make_interpolator(QFloatLineEdit,
-                      FloatLinearInterpolator,
-                      'Linear Interpolation')]
-Integer.parameter_exploration_widgets = [
-    make_interpolator(QIntegerLineEdit,
-                      IntegerLinearInterpolator,
-                      'Linear Interpolation')]
+                       staticmethod(lambda x: type(x) == str),
+                       query_widget_type=('gui.modules.query_configuration',
+                                          'StringQueryWidget'),
+                       query_compute=string_compare)
 
 ##############################################################################
 
@@ -234,8 +294,8 @@ class Path(Constant):
 
     @staticmethod
     def validate(v):
-        print 'validating', v
-        print 'isinstance', isinstance(v, Path)
+        #print 'validating', v
+        #print 'isinstance', isinstance(v, Path)
         return isinstance(v, Path)
 
     def get_name(self):
@@ -261,7 +321,7 @@ class Path(Constant):
         
     @staticmethod
     def get_widget_class():
-        return PathChooserWidget
+        return ("gui.modules.constant_configuration", "PathChooserWidget")
 
 Path.default_value = Path()
 
@@ -291,7 +351,7 @@ class File(Path):
 
     @staticmethod
     def get_widget_class():
-        return FileChooserWidget
+        return ("gui.modules.constant_configuration", "FileChooserWidget")
 
 File.default_value = File()
     
@@ -337,7 +397,7 @@ class Directory(Path):
             
     @staticmethod
     def get_widget_class():
-        return DirectoryChooserWidget
+        return ("gui.modules.constant_configuration", "DirectoryChooserWidget")
 
 Directory.default_value = Directory()
 
@@ -387,7 +447,7 @@ class OutputPath(Path):
         
     @staticmethod
     def get_widget_class():
-        return OutputPathChooserWidget
+        return ("gui.modules.constant_configuration", "OutputPathChooserWidget")
 
 OutputPath.default_value = OutputPath()
 
@@ -512,85 +572,87 @@ class Color(Constant):
 
     @staticmethod
     def get_widget_class():
-        return ColorWidget
+        return ("gui.modules.constant_configuration", "ColorWidget")
         
-class BaseColorInterpolator(object):
+    @staticmethod
+    def get_query_widget_class():
+        return ("gui.modules.query_configuration", "ColorQueryWidget")
 
-    def __init__(self, ifunc, begin, end, size):
-        self._ifunc = ifunc
-        self.begin = begin
-        self.end = end
-        self.size = size
+    @staticmethod
+    def get_param_explore_widget_list():
+        return [('gui.modules.paramexplore', 'RGBExploreWidget'),
+                ('gui.modules.paramexplore', 'HSVExploreWidget')]
 
-    def get_values(self):
-        if self.size <= 1:
-            return [self.begin]
-        result = [self._ifunc(self.begin, self.end, self.size, i)
-                  for i in xrange(self.size)]
-        return result
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        # SOURCE: http://www.easyrgb.com/index.php?X=MATH
+        def rgb_to_xyz(r, g, b):
+            # r,g,b \in [0,1]
 
-class RGBColorInterpolator(BaseColorInterpolator):
+            if r > 0.04045: 
+                r = ( ( r + 0.055 ) / 1.055 ) ** 2.4
+            else:
+                r = r / 12.92
+            if g > 0.04045:
+                g = ( ( g + 0.055 ) / 1.055 ) ** 2.4
+            else:
+                g = g / 12.92
+            if b > 0.04045: 
+                b = ( ( b + 0.055 ) / 1.055 ) ** 2.4
+            else:
+                b = b / 12.92
 
-    def __init__(self, begin, end, size):
-        def fun(b, e, s, i):
-            b = [float(x) for x in b.split(',')]
-            e = [float(x) for x in e.split(',')]
-            u = float(i) / (float(s) - 1.0)
-            [r,g,b] = [b[i] + u * (e[i] - b[i]) for i in [0,1,2]]
-            return Color.to_string(r, g, b)
-        BaseColorInterpolator.__init__(self, fun, begin, end, size)
+            r *= 100
+            g *= 100
+            b *= 100
 
-class HSVColorInterpolator(BaseColorInterpolator):
-    def __init__(self, begin, end, size):
-        def fun(b, e, s, i):
-            b = [float(x) for x in b.split(',')]
-            e = [float(x) for x in e.split(',')]
-            u = float(i) / (float(s) - 1.0)
+            # Observer. = 2 deg, Illuminant = D65
+            x = r * 0.4124 + g * 0.3576 + b * 0.1805
+            y = r * 0.2126 + g * 0.7152 + b * 0.0722
+            z = r * 0.0193 + g * 0.1192 + b * 0.9505
+            return (x,y,z)
 
-            # Use QtGui.QColor as easy converter between rgb and hsv
-            color_b = QtGui.QColor(int(b[0] * 255),
-                                   int(b[1] * 255),
-                                   int(b[2] * 255))
-            color_e = QtGui.QColor(int(e[0] * 255),
-                                   int(e[1] * 255),
-                                   int(e[2] * 255))
+        def xyz_to_cielab(x,y,z):
+            # Observer= 2 deg, Illuminant= D65
+            ref_x, ref_y, ref_z = (95.047, 100.000, 108.883)
+            x /= ref_x
+            y /= ref_y
+            z /= ref_z
 
-            b_hsv = [color_b.hueF(), color_b.saturationF(), color_b.valueF()]
-            e_hsv = [color_e.hueF(), color_e.saturationF(), color_e.valueF()]
+            if x > 0.008856:
+                x = x ** ( 1/3.0 )
+            else:                    
+                x = ( 7.787 * x ) + ( 16 / 116.0 )
+            if y > 0.008856:
+                y = y ** ( 1/3.0 )
+            else:
+                y = ( 7.787 * y ) + ( 16 / 116.0 )
+            if z > 0.008856: 
+                z = z ** ( 1/3.0 )
+            else:
+                z = ( 7.787 * z ) + ( 16 / 116.0 )
 
-            [new_h, new_s, new_v] = [b_hsv[i] + u * (e_hsv[i] - b_hsv[i])
-                                     for i in [0,1,2]]
-            new_color = QtGui.QColor()
-            new_color.setHsvF(new_h, new_s, new_v)
-            return Color.to_string(new_color.redF(),
-                                   new_color.greenF(),
-                                   new_color.blueF())
-        BaseColorInterpolator.__init__(self, fun, begin, end, size)
-    
+            L = ( 116 * y ) - 16
+            a = 500 * ( x - y )
+            b = 200 * ( y - z )
+            return (L, a, b)
 
-class PEColorChooserButton(ColorChooserButton):
-
-    def __init__(self, param_info, parent=None):
-        ColorChooserButton.__init__(self, parent)
-        r,g,b = [int(float(i) * 255) for i in param_info.value.split(',')]
+        def rgb_to_cielab(r,g,b):
+            return xyz_to_cielab(*rgb_to_xyz(r,g,b))
         
-        self.setColor(QtGui.QColor(r,g,b))
-        self.setFixedHeight(22)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Fixed)
+        value_a_rgb = (float(a) for a in value_a.split(','))
+        value_b_rgb = (float(b) for b in value_b.split(','))
+        value_a_lab = rgb_to_cielab(*value_a_rgb)
+        value_b_lab = rgb_to_cielab(*value_b_rgb)
+        
+        # cie76 difference
+        diff = sum((v_1 - v_2) ** 2 
+                   for v_1, v_2 in izip(value_a_lab, value_b_lab)) ** (0.5)
 
-    def get_value(self):
-        return Color.to_string(self.qcolor.redF(),
-                               self.qcolor.greenF(),
-                               self.qcolor.blueF())
-
-Color.parameter_exploration_widgets = [
-    make_interpolator(PEColorChooserButton,
-                      RGBColorInterpolator,
-                      'RGB Interpolation'),
-    make_interpolator(PEColorChooserButton,
-                      HSVColorInterpolator,
-                      'HSV Interpolation')]
+        # print "CIE 76 DIFFERENCE:", diff
+        if query_method is None:
+            query_method = '2.3'
+        return diff < float(query_method)
 
 ##############################################################################
 
@@ -1015,13 +1077,17 @@ def initialize(*args, **kwargs):
     reg.add_module(StandardOutput)
     reg.add_input_port(StandardOutput, "value", Module)
 
-    reg.add_module(Tuple, configureWidgetType=TupleConfigurationWidget)
+    reg.add_module(Tuple, 
+                   configureWidgetType=("gui.modules.tuple_configuration",
+                                        "TupleConfigurationWidget"))
     reg.add_output_port(Tuple, 'self', Tuple)
 
     reg.add_module(TestTuple)
     reg.add_input_port(TestTuple, 'tuple', [Integer, String])
 
-    reg.add_module(Untuple, configureWidgetType=UntupleConfigurationWidget)
+    reg.add_module(Untuple, 
+                   configureWidgetType=("gui.modules.tuple_configuration",
+                                        "UntupleConfigurationWidget"))
     reg.add_input_port(Untuple, 'tuple', Tuple)
 
     reg.add_module(ConcatenateString)
@@ -1038,12 +1104,14 @@ def initialize(*args, **kwargs):
     reg.add_module(Null)
 
     reg.add_module(PythonSource,
-                    configureWidgetType=PythonSourceConfigurationWidget)
+                   configureWidgetType=("gui.modules.python_source_configure",
+                                        "PythonSourceConfigurationWidget"))
     reg.add_input_port(PythonSource, 'source', String, True)
     reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
-                    configureWidgetType=PythonSourceConfigurationWidget)
+                   configureWidgetType=("gui.modules.python_source_configure",
+                                        "PythonSourceConfigurationWidget"))
     reg.add_input_port(SmartSource, 'source', String, True)
 
     reg.add_module(Unzip)
@@ -1107,6 +1175,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                    'OutputPort':
                        [(None, '1.6', None,
                          {'dst_port_remap': {'old_name': None}})],
+                   'PythonSource':
+                       [(None, '1.6', None, {})],
                    }
 
    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

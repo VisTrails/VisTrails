@@ -78,9 +78,13 @@ class Module(DBModule):
             self.version = ''
         self.set_defaults()
 
-    def set_defaults(self, other=None):                
+    def set_defaults(self, other=None):
         if other is None:
             self.portVisible = set()
+            self.visible_input_ports = set()
+            self.visible_output_ports = set()
+            self.connected_input_ports = {}
+            self.connected_output_ports = {}
             self.is_valid = False
             self.is_breakpoint = False
             self.is_watched = False
@@ -88,6 +92,11 @@ class Module(DBModule):
             self._module_descriptor = None
         else:
             self.portVisible = copy.copy(other.portVisible)
+            self.visible_input_ports = copy.copy(other.visible_input_ports)
+            self.visible_output_ports = copy.copy(other.visible_output_ports)
+            self.connected_input_ports = copy.copy(other.connected_input_ports)
+            self.connected_output_ports = \
+                copy.copy(other.connected_output_ports)
             self.is_valid = other.is_valid
             self.is_breakpoint = other.is_breakpoint
             self.is_watched = other.is_watched
@@ -159,6 +168,8 @@ class Module(DBModule):
         self.db_add_function(function)
     def has_function_with_real_id(self, f_id):
         return self.db_has_function_with_id(f_id)
+    def get_function_by_real_id(self, f_id):
+        return self.db_get_function_by_id(f_id)
 
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)

@@ -36,6 +36,7 @@
 
 from itertools import izip
 import random
+import uuid
 try:
     import hashlib
     sha_hash = hashlib.sha1
@@ -218,6 +219,51 @@ def read_vistrail(vt_fname):
     Vistrail.convert(vistrail)
     return vistrail
 
+def get_abs_namespace_info(vistrail):
+    annotation_add = None
+    annotation_key = '__abstraction_uuid__'
+    namespaces = []
+    while vistrail.get_annotation(annotation_key) is not None:
+        namespaces.append(vistrail.get_annotation(annotation_key).value)
+        if annotation_add is None:
+            annotation_add = 2
+        else:
+            annotation_add += 1
+        annotation_key = '__abstraction_uuid_%d__' % annotation_add
+    return namespaces, annotation_add
+
+def get_all_abs_namespaces(vistrail):
+    return get_abs_namespace_info(vistrail)[0]
+
+def get_cur_abs_namespace(vistrail):
+    all_namespaces = get_abs_namespace_info(vistrail)[0]
+    if len(all_namespaces) > 0:
+        return all_namespaces[-1]
+    return None
+
+def get_next_abs_annotation_key(vistrail):
+    annotation_add = get_abs_namespace_info(vistrail)[1]
+    if annotation_add is None:
+        return "__abstraction_uuid__"
+    return "__abstraction_uuid_%d__" % annotation_add
+
+def get_cur_abs_annotation_key(vistrail):
+    annotation_add = get_abs_namespace_info(vistrail)[1]
+    if annotation_add is None:
+        return None
+    elif annotation_add == 2:
+        return '__abstraction_uuid__'
+    return '__abstraction_uuid_%d__' % (annotation_add - 1)
+    
+def save_abstraction(vistrail, fname):
+    from core.db.io import save_vistrail_to_xml
+
+    # check if vistrail is changed before calling this!
+    new_namespace = str(uuid.uuid1())
+    annotation_key = get_next_abs_annotation_key(vistrail)
+    vistrail.set_annotation(annotation_key, new_namespace)
+    save_vistrail_to_xml(vistrail, fname)
+
 def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
                     pipeline=None):
     """make_abstraction(name: str, 
@@ -246,7 +292,7 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
         pipeline = vistrail.getPipeline(internal_version)
         # try to make the subworkflow work with the package versions we have
         pipeline.validate()
-    uuid = vistrail.get_annotation('__abstraction_uuid__').value
+    uuid = get_cur_abs_namespace(vistrail)
 
     if vistrail.has_notes(action.id):
         docstring = vistrail.get_notes(action.id)
