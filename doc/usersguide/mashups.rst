@@ -15,13 +15,15 @@ Creating Parameter Aliases
 
 If you would like to be able to explore different values for a specific parameter,  you will need to create an alias by double-clicking the parameter in the ``Parameter Aliases`` section.  After naming the alias, you can select the alias in the ``Mashup`` tab (center panel), and configure the alias by selecting the ``Display Widget`` type and setting Default values.  
 
-Notice that a pipeline can have multiple modules of the same type or name, making it difficult to differentiate between them.  These modules are each assigned a number, with the numbers in the ``Annotated Pipeline`` section corresponding to the numbers in the ``Parameter Aliases`` section, making it possible set an alias for the desired module without much confusion. See figure :ref:`Numbered Modules<fig-righttab>`.
+Notice that a pipeline can have multiple modules of the same type or name, making it difficult to differentiate between them.  These modules are each assigned a number, with the numbers in the ``Annotated Pipeline`` section corresponding to the numbers in the ``Parameter Aliases`` section, making it possible set an alias for the desired module without much confusion. See figure :ref:`Numbered Modules... <fig-righttab>`.
 
 .. _fig-righttab:
 
 .. figure:: figures/mashups/righttab.png
+   :width: 2.5in
+   :align: center
 
-   Numbered Modules.  The HTTPFile modules 1 and 2 appear in the annotated pipeline and in the parameter aliases.  The annotated pipeline also, numbers the vtkDataSetReader modules (which appear below the respective HTTPFile modules in the pipeline).  Their parameters have not been exposed to the mashup, so they do not appear in the Parameter Aliases section.
+   Numbered Modules - The HTTPFile modules 1 and 2 appear in the annotated pipeline and in the parameter aliases.  The annotated pipeline also, numbers the vtkDataSetReader modules (which appear below the respective HTTPFile modules in the pipeline).  Their parameters have not been exposed to the mashup, so they do not appear in the Parameter Aliases section.
 
 Finally, not all modules in the ``Annotated Pipeline`` will show up in the ``Parameter Aliases`` section.  Only modules whose parameters have been set in the pipeline will appear.
 
@@ -83,24 +85,32 @@ A Simple Example
 .. _fig-opacityalias:
 
 .. figure:: figures/mashups/opacityalias.png
+   :align: center
+   :width: 50%
 
    Creating the Opacity Alias.
 
 .. _fig-background-create:
 
 .. figure:: figures/mashups/background.png
+   :align: center
+   :width: 35%
 
    Creating the Background Alias.
 
 .. _fig-opacity:
 
 .. figure:: figures/mashups/aliasconfig.png
+   :align: center
+   :width: 80%
 
    Configuring the ``Opacity`` alias.
 
 .. _fig-mashupcomp:
 
 .. figure:: figures/mashups/mashupcomp.png
+   :align: center
+   :width: 80%
 
    The resulting mashup.
 

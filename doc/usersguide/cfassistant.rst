@@ -97,6 +97,7 @@ One useful purpose for the CFA is to provide a version-based approach to paramet
 
 .. figure:: figures/cfassistant/pipeline.png
    :align: center
+   :width: 25%
 
    Example 1.3 - The connected pipeline.
 
@@ -116,12 +117,13 @@ One useful purpose for the CFA is to provide a version-based approach to paramet
       c) Click 'OK' to close the window and build the loop structure as a Group module
    7) Select the newly created 'Group' module, and set the 'SetValue' parameter to: [(0, 0.5), (0, 0.75), (0, 1.0)]
    8) Execute the current workflow.
-   9) In your VisTrails Spreadsheet, you should see three visualizations, one for each set of input parameters to the 'SetValue' port of 'vtkContourFilter'. See Figure :ref:`Example 2.3 <fig-cfassistant-results>`.
+   9) In your VisTrails Spreadsheet, you should see three visualizations, one for each set of input parameters to the 'SetValue' port of 'vtkContourFilter' (see Figure :ref:`Example 2.3 <fig-cfassistant-results>`).
 
 .. _fig-cfassistant-enable-port:
 
 .. figure:: figures/cfassistant/enable_port.png
    :align: center
+   :width: 30%
 
    Example 2.1 - Enabling a port for use with the control flow assistant.
 

@@ -88,6 +88,12 @@ module should now be visible in the VisTrails builder.
 
    All available packages can be enabled and disabled with the VisTrails preferences dialog.
 
+Now create a workflow similar to what is shown in Figure
+:ref:`A simple workflow that uses PythonCalc... <fig-packages-pythoncalcworkflow>`. When executed, this workflow
+will print the following on your terminal:
+
+``7.0``
+
 .. _fig-packages-pythoncalcworkflow:
 
 .. figure:: figures/packages/pythoncalc_workflow.png
@@ -96,11 +102,7 @@ module should now be visible in the VisTrails builder.
 
    A simple workflow that uses ``PythonCalc``, a user-defined module.
 
-Now create a workflow similar to what is shown in Figure
-:ref:`fig-packages-pythoncalcworkflow`. When executed, this workflow
-will print the following on your terminal:
 
-``7.0``
 
 Let's now examine how this works. The first
 two lines simply import required components. The next three lines
@@ -435,7 +437,7 @@ menu (|vistrails|:math:`\rightarrow`
 configure by clicking on it (a package must be enabled to be
 configurable). If the ``Configure`` button is disabled, it
 means the package does not have a configuration object. When you do
-click ``Configure``, a dialog like the one in Figure :ref:`fig-packages-afrontconfigurationwindow` will appear.
+click ``Configure``, a dialog like the one in Figure :ref:`Configuration window for a package... <fig-packages-afrontconfigurationwindow>` will appear.
 
 .. _fig-packages-afrontconfigurationwindow:
 
@@ -530,7 +532,7 @@ file to the name given by VisTrails.
 Interfacing with the |vistrails| Menu
 =====================================
 
-As we saw in Section :ref:`sec-pkg_config`, using the ``ConfigurationObject`` class is one way to "hook" your custom package into the |vistrails| GUI.  However, this is not the only way to integrate your package with the user interface. |vistrails| also supports a mechanism whereby your package can add new options underneath the ``Packages`` menu (Figure :ref:`fig-packages-package_menu`).
+As we saw in Section :ref:`sec-pkg_config`, using the ``ConfigurationObject`` class is one way to "hook" your custom package into the |vistrails| GUI.  However, this is not the only way to integrate your package with the user interface. |vistrails| also supports a mechanism whereby your package can add new options underneath the ``Packages`` menu (Figure :ref:`Packages can integrate their own commands... <fig-packages-package_menu>`).
 
 .. _fig-packages-package_menu:
 
@@ -575,7 +577,7 @@ As an example, we include below the implementation of ``menu_items`` from the |v
 
 Writing your own ``menu_items`` function is straightforward; simply use the provided example as a basis, and substitute labels and callback functions as appropriate for your specific module. Although the Spreadsheet package currently only implements one new menu option, you are free to add as many as you see fit; just append additional pairs to the list (see Line 10 of the example code) before the function returns.
 
-The ``Packages`` menu is organized hierarchically, as illustrated in Figure :ref:`fig-packages-package_menu`. Each package that contributes a ``menu_items`` function will receive an entry in the ``Packages`` menu. The actual menu items for each package will appear in a submenu.
+The ``Packages`` menu is organized hierarchically, as illustrated in Figure :ref:`Packages can integrate their own commands... <fig-packages-package_menu>`. Each package that contributes a ``menu_items`` function will receive an entry in the ``Packages`` menu. The actual menu items for each package will appear in a submenu.
 
 .. _sec-interpackage_dependencies:
 
@@ -792,7 +794,7 @@ gives:
 
 .. figure:: figures/packages/CustomColorShape1.png
    :align: center
-   :width: 5in
+   :width: 2in
 
 and
 
@@ -822,7 +824,7 @@ gives:
 
 .. figure:: figures/packages/CustomColorShape2.png
    :align: center
-   :width: 5in
+   :width: 2in
 
 The moduleColor parameter must be a tuple of three floats between 0 and 1 that specify RGB colors for the module background, while moduleFringe is a list of pairs of floats that specify points as they go around a side of the module (the same one is used to go from the top-right corner to bottom-right corner, and from the bottom-left corner to the top-left one. If this is not enough, let the developers know!)
 
@@ -850,7 +852,7 @@ Alternatively, you can use different fringes for the left and right borders:
 
 .. figure:: figures/packages/CustomColorShape3.png
    :align: center
-   :width: 5in
+   :width: 2in
 
 Configuring Ports
 ^^^^^^^^^^^^^^^^^

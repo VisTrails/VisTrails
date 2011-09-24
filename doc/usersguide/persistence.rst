@@ -133,6 +133,7 @@ Examples
 
 .. figure:: figures/persistence/input.png
    :align: center
+   :width: 30%
 
    Example 1.3 - Persistent Input File
 
@@ -150,6 +151,7 @@ Examples
 
 .. figure:: figures/persistence/intermediate.png
    :align: center
+   :width: 40%
 
    Example 1.5 - Persistent Intermediate File
 
@@ -158,5 +160,6 @@ Examples
 
 .. figure:: figures/persistence/versions.png
    :align: center
+   :width: 70%
 
    Example 1.6 - The History Tree
