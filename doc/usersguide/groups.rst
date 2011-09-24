@@ -22,7 +22,7 @@ An example may clarify how this works.
 
 .. topic:: Try it now!
 
-   Open "vtk_book_3rd_p189.vt".  Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`fig-groupinga`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`fig-groupingb`. Since the label "Group" isn't very descriptive, you can change this by selecting the ``Group`` module, and entering a name in the ``Name`` box of the ``Module Information`` panel.  Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`fig-groupingc`).
+   Open "vtk_book_3rd_p189.vt".  Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`Box selection of four modules <fig-groupinga>`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`The modules represented as a single group module <fig-groupingb>`. Since the label "Group" isn't very descriptive, you can change this by selecting the ``Group`` module, and entering a name in the ``Name`` box of the ``Module Information`` panel.  Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`Renaming the group <fig-groupingc>`).
 
 .. _fig-groupinga:
 
@@ -82,9 +82,9 @@ Subworkflows
    pair: modules; subworkflows
    single: subworkflows
 
-To create a subworkflow, select the modules to include and select ``Create Subworkflow`` from the ``Workflow`` menu.  See Figure :ref:`Creating <fig-subworkflow>`.  You will be prompted to name the subworkflow.  The subworkflow will appear in the modules list under ``My Subworkflows.``  Groups can be converted to subworkflows by selecting the ``Convert to Subworkflow`` option.  
+To create a subworkflow, select the modules to include and select ``Create Subworkflow`` from the ``Workflow`` menu.  See Figure :ref:`Creating a subworkflow <fig-subworkflow>`.  You will be prompted to name the subworkflow.  The subworkflow will appear in the modules list under ``My Subworkflows.``  Groups can be converted to subworkflows by selecting the ``Convert to Subworkflow`` option.  
 
-To edit a subworkflow, select a module of the corresponding subworkflow and select ``Edit Subworkflow`` from the ``Workflow`` menu.  This will open the subworkflow's file.  If you make changes to the subworkflow and save them, the modules that correspond to the old subworkflow will be marked with a '!', meaning that it is not the latest version.  To upgrade to the latest version, either select the triangle in the module's upper right corner and choose ``Upgrade Module``, or delete the old module and replace it with a new one.  See Figure :ref:`Upgrade module <fig-subworkflow_upgrade>`.
+To edit a subworkflow, select a module of the corresponding subworkflow and select ``Edit Subworkflow`` from the ``Workflow`` menu.  This will open the subworkflow's file.  If you make changes to the subworkflow and save them, the modules that correspond to the old subworkflow will be marked with a '!', meaning that it is not the latest version.  To upgrade to the latest version, either select the triangle in the module's upper right corner and choose ``Upgrade Module``, or delete the old module and replace it with a new one.  See Figure :ref:`Upgrading a subworkflow module that had been edited <fig-subworkflow_upgrade>`.
 
 .. _fig-subworkflow:
 
@@ -98,6 +98,7 @@ To edit a subworkflow, select a module of the corresponding subworkflow and sele
 
 .. figure:: figures/grouping/subworkflow_upgrade.png
    :align: center
+   :width: 3in
 
    Upgrading a subworkflow module that has been edited.
 

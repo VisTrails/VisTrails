@@ -40,7 +40,7 @@ Adding and Deleting Modules
 
 A list of available modules is displayed
 hierarchically in the ``Modules`` container on the left side
-of the VisTrails Builder (Figure :ref:`fig-pipeline_screenshot`). A core set of basic modules is always
+of the VisTrails Builder (Figure :ref:`The main VisTrails Pipeline... <fig-pipeline_screenshot>`). A core set of basic modules is always
 distributed with the VisTrails system.  Other packages, such as VTK,
 are also distributed, but are not necessary for VisTrails and thus can
 be disabled on startup (see Chapter :ref:`chap-packages`). Note, however, that the VTK module *is* required for most of the examples in this book. Depending on
@@ -79,7 +79,7 @@ and connections can also be copied and pasted using the
 
 .. topic:: Try it now!
 
-   Let's replace the ``vtkQuadric`` module in our example with a ``vtkCylinder`` module instead. To do this, first type "vtkCylinder" into the search box of the ``Module`` container.  As the letters are typed, the list filters the available modules to match the query.  Select this module and drag the text onto an empty space in the canvas.  (See Figure :ref:`fig-add_and_delete_modulea`.  Then, select the ``vtkQuadric`` module in the canvas and press the 'Delete' key.  This removes the module along with any connections it has (see Figure :ref:`fig-add_and_delete_moduleb`).
+   Let's replace the ``vtkQuadric`` module in our example with a ``vtkCylinder`` module instead. To do this, first type "vtkCylinder" into the search box of the ``Module`` container.  As the letters are typed, the list filters the available modules to match the query.  Select this module and drag the text onto an empty space in the canvas (see Figure :ref:`The vtkCylinder module is added to the canvas <fig-add_and_delete_modulea>`).  Then, select the ``vtkQuadric`` module in the canvas and press the 'Delete' key.  This removes the module along with any connections it has (see Figure :ref:`The vtkQuadric module is deleted <fig-add_and_delete_moduleb>`).
 
 .. _fig-add_and_delete_modulea:
 
@@ -96,14 +96,6 @@ and connections can also be copied and pasted using the
    :align: center
 
    The ``vtkQuadric`` module is deleted.
-
-.. _fig-add_and_delete_modulec:
-
-.. figure:: /figures/creating/delete_quadric.png
-   :height: 1.25in
-   :align: center
-
-   The connection replaced.
 
 Connecting Modules
 ==================
@@ -129,7 +121,15 @@ the modules can be selected and deleted with the 'Delete' key.
 
 .. topic:: Try it now!
 
-   To connect the ``vtkCylinder`` module to the ``vtkSampleFunction`` module, place the cursor over the only output port on the ``vtkCylinder`` module, located on the bottom right. A tooltip should appear that reads "Output port self (vtkCylinder)."  Left click on the port and drag the mouse over the ``vtkSampleFunction`` module.  The connection should snap to the fourth input port from the left.  Hovering the mouse over this port shows a tooltip that reads "Input port SetImplicitFunction (vtkImplicitFunction)."  Release the mouse button to complete the connection between these two modules (see Figure :ref:`fig-add_and_delete_modulec`.  To check for a valid dataflow, execute the workflow by pressing the ``Execute`` button on the toolbar, and see if the results appear in the spreadsheet.
+   To connect the ``vtkCylinder`` module to the ``vtkSampleFunction`` module, place the cursor over the only output port on the ``vtkCylinder`` module, located on the bottom right. A tooltip should appear that reads "Output port self (vtkCylinder)."  Left click on the port and drag the mouse over the ``vtkSampleFunction`` module.  The connection should snap to the fourth input port from the left.  Hovering the mouse over this port shows a tooltip that reads "Input port SetImplicitFunction (vtkImplicitFunction)."  Release the mouse button to complete the connection between these two modules (see Figure :ref:`The connection replaced <fig-add_and_delete_modulec>`).  To check for a valid dataflow, execute the workflow by pressing the ``Execute`` button on the toolbar, and see if the results appear in the spreadsheet.
+
+.. _fig-add_and_delete_modulec:
+
+.. figure:: /figures/creating/delete_quadric.png
+   :height: 1.25in
+   :align: center
+
+   The connection replaced.
 
 Changing Module Parameters
 ==========================
@@ -146,7 +146,7 @@ module information is displayed.  The ``Inputs``, ``Outputs``, and ``Annotations
 
 .. topic:: Try it now!
 
-   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  Select ``SetRadius``, enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figure :ref:`fig-parameter_changes` shows the interface and results of the parameter explorations.
+   To perform a parameter change, select the ``vtkCylinder`` module in the canvas.  Select ``SetRadius``, enter 0.25 into the text box and press the 'Enter' key.  By executing the workflow, the modified visualization appears in the spreadsheet.  Figures :ref:`The module methods... and The results... <fig-parameter_changes>` show the interface and results of the parameter explorations.
 
 .. _fig-parameter_changes:
 
@@ -181,25 +181,28 @@ VisTrails supports the use of global variables, which allows the user to create 
 
 .. topic:: Try it now!
 
-   Open vtk_http.vt and go to the ``Pipeline`` view of the ``Fran Cut Smoothed`` version.  Select ``Views`` :math:`\rightarrow` ``Vistrail Variables``.  Select the ``String`` module from ``Basic Modules``, drag it over to the ``Vistrail Variables`` tab, and drop it (see Figure :ref:`Create a Variable <fig-global-create>`).  Name it 'Filename1' and assign it the following value: 'http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip'.  Click on ``String``, which is just below ``Filename1`` in the ``Vistrail Variables`` tab.  Drag it over and drop it in the port of the ``HTTPFile`` (as shown in Figure :ref:`Assign a Variable <fig-global-assign>`). The variable should be assigned and the port should be filled in with yellow.
+   Open vtk_http.vt and go to the ``Pipeline`` view of the ``Fran Cut Smoothed`` version.  Select ``Views`` :math:`\rightarrow` ``Vistrail Variables``.  Select the ``String`` module from ``Basic Modules``, drag it over to the ``Vistrail Variables`` tab, and drop it (see Figure :ref:`Create a Variable... <fig-global-create>`).  Name it 'Filename1' and assign it the following value: 'http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip'.  Click on ``String``, which is just below ``Filename1`` in the ``Vistrail Variables`` tab.  Drag it over and drop it in the port of the ``HTTPFile`` (as shown in Figure :ref:`Assign a Variable... <fig-global-assign>`). The variable should be assigned and the port should be filled in with yellow.
+
+To delete a global variable, simply click on the 'X' button that appears to the right of its name.  This will remove the variable, but if any ports are assigned to it, they need to be disconnected.  You can do this by right-clicking on the port and selecting ``Disconnect Vistrail Variables`` (see Figure :ref:`Disconnect a Variable... <fig-disconnect>`).
 
 .. _fig-global-create:
 
 .. figure:: /figures/creating/globalcreate.png
+   :width: 2.5in
 
    Create a Variable - Drag the ``String`` module and drop it in the ``Vistrail Variables`` tab to create a global variable.
 
 .. _fig-global-assign:
 
 .. figure:: /figures/creating/globalassign.png
+   :width: 2.5in
 
    Assign a Variable - Drag the type from just below the Global Variables name on the ``Vistrail Variables`` tab.  Drop it on a port to set the variable.
-
-To delete a global variable, simply click on the 'X' button that appears to the right of its name.  This will remove the variable, but if any ports are assigned to it, they need to be disconnected.  You can do this by right-clicking on the port and selecting ``Disconnect Vistrail Variables`` (see Figure :ref:`Disconnect a Variable <fig-disconnect>`).
 
 .. _fig-disconnect:
 
 .. figure:: /figures/creating/disconnect.png
+   :width: 2.5in
 
    Disconnect a Variable - To disconnect a global variable, right click on the assigned port and select ``Disconnect Vistrail Variables``.
 
@@ -221,14 +224,22 @@ Configuring Module Ports
 
 For convenience, all the inputs and outputs of a module are not always
 shown in the canvas as ports.  The ports that are shown by default are
-defined with the method signatures of a package.  A full list of ports is available in the ``Module Configuraton`` window, which is accessed by clicking on the ``Configure`` button in the module information tab or pressing 'Ctrl-E' when a module is selected.  Alternatively, module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs of the ``Module Information`` tab (see Figure :ref:`Enabling <fig-enabling_ports>`).  When enabled, an eye icon will appear to the left of the port name.  New ports will appear on the module with a circle icon instead of a square to signify that they are not visible by default, but can be connected in the same way as the others.
+defined with the method signatures of a package.  A full list of ports is available in the ``Module Configuraton`` window, which is accessed by clicking on the ``Configure`` button in the module information tab or pressing 'Ctrl-E' when a module is selected.  Alternatively, module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs of the ``Module Information`` tab (see Figure :ref:`Enabling the GetRadius port from the Module Information tab <fig-enabling_ports>`).  When enabled, an eye icon will appear to the left of the port name.  New ports will appear on the module with a circle icon instead of a square to signify that they are not visible by default, but can be connected in the same way as the others.
+
+.. %TODO module_configuration.png should be changed to reflect v2.0.  Caption: The module configuration window allows the hidden ports to be displayed.
+
+.. topic:: Try it now!
+
+   As an example of configuring a module port, select the ``vtkCylinder`` module in the canvas, select ``Outputs`` from the ``Module Information`` tab, and click in the left margin next to GetRadius (see Figure :ref:`Enabling the GetRadius port from the Module Information tab <fig-enabling_ports>`). A new circle port should appear on the module.  Next, add a new ``StandardOutput`` module from the basic modules and connect the output port for ``GetRadius`` to the input port of ``StandardOutput``.  Upon execution, the value 0.25 is now output to the console.  Figure :ref:`The vtkCylinder module... <fig-module_configuration>` shows the new workflow.
 
 .. _fig-enabling_ports:
 
 .. figure:: figures/creating/enabling_ports.png
    :align: center
+   :width: 4in
 
-Enabling the GetRadius port from the ``Module Information`` tab.
+   Enabling the GetRadius port from the ``Module Information`` tab.
+
 
 .. _fig-module_configuration:
 
@@ -238,13 +249,6 @@ Enabling the GetRadius port from the ``Module Information`` tab.
 
    The ``vtkCylinder`` module is configured to show an additional ``GetRadius`` port, which is then connected to a ``StandardOutput`` module.
 
-
-
-.. %TODO module_configuration.png should be changed to reflect v2.0.  Caption: The module configuration window allows the hidden ports to be displayed.
-
-.. topic:: Try it now!
-
-   As an example of configuring a module port, select the ``vtkCylinder`` module in the canvas, select ``Outputs`` from the ``Module Information`` tab, and click in the left margin next to GetRadius (see Figure :ref:`Enabling <fig-enabling_ports>`). A new circle port should appear on the module.  Next, add a new ``StandardOutput`` module from the basic modules and connect the output port for ``GetRadius`` to the input port of ``StandardOutput``.  Upon execution, the value 0.25 is now output to the console.  Figure :ref:`The vtkCylinder Module <fig-module_configuration>` shows the new workflow.
 
 Basic Modules
 =============
@@ -285,7 +289,7 @@ workflow.
 
       print radius
 
-   then select ``OK`` to close the window.  Finally, connect the ``GetRadius`` output of the ``vtkCylinder`` module to the new input port of ``PythonSource``.  Upon execution, the radius of the cylinder is printed to the console as before.  Figure :ref:`fig-python_source` shows the new workflow together with the ``PythonSource`` configuration window.
+   then select ``OK`` to close the window.  Finally, connect the ``GetRadius`` output of the ``vtkCylinder`` module to the new input port of ``PythonSource``.  Upon execution, the radius of the cylinder is printed to the console as before.  Figure :ref:`A PythonSource module can be used to directly insert scripts into the workflow <fig-python_source>` shows the new workflow together with the ``PythonSource`` configuration window.
 
 .. _fig-python_source:
 
@@ -301,13 +305,14 @@ workflow.
 
    The configuration window for ``PythonSource`` allows multiple input and output ports to be specified along with the Python code that is to be executed.
 
-**Accessing vtkObjects in PythonSource** When using a ``PythonSource`` module, users will often rely on their knowledge of VTK to interact with VTK modules.  It is important to realize that a VTK module is really a wrapping of a vtkObject.  The real vtkObject is called vtkInstance, meaning the vtkObject of a module called 'dataset' is called 'dataset.vtkInstance' (see figure :ref:`Accessing vtkObjects<fig-pythonsource-vtkinstance>`).
+**Accessing vtkObjects in PythonSource** When using a ``PythonSource`` module, users will often rely on their knowledge of VTK to interact with VTK modules.  It is important to realize that a VTK module is really a wrapping of a vtkObject.  The real vtkObject is called vtkInstance, meaning the vtkObject of a module called 'dataset' is called 'dataset.vtkInstance' (see figure :ref:`Accessing vtkObjects... <fig-pythonsource-vtkinstance>`).
 
 .. _fig-pythonsource-vtkinstance:
 
 .. figure:: figures/creating/python_source_instance.png
    :align: center
+   :width: 4in
 
-   Accessing vtkObjects.  The vtkObject of a VTK module, 'dataset', is accessed with 'dataset.vtkInstance'. 
+   Accessing vtkObjects - The vtkObject of a VTK module, 'dataset', is accessed with 'dataset.vtkInstance'. 
 
 .. index:: builder

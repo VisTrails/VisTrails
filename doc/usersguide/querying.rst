@@ -41,7 +41,7 @@ similar to the ``Pipeline`` view and pipelines can be built
 in a similar manner.  Just like the ``Pipeline`` view,
 modules are added by dragging them from the list on the left side of
 the window, connections are added by clicking and dragging from a port
-on one module to a corresponding port on another module.  Setting module parameters in this view will narrow the search to matching modules whose parameters fall within the specified range of values.  Figure :ref:`fig-querying-query` shows an example pipeline that has been built in the query builder.
+on one module to a corresponding port on another module.  Setting module parameters in this view will narrow the search to matching modules whose parameters fall within the specified range of values.  Figure :ref:`Example pipeline in Search mode <fig-querying-query>` shows an example pipeline that has been built in the query builder.
 
 .. _fig-querying-query:
 
@@ -57,7 +57,7 @@ on one module to a corresponding port on another module.  Setting module paramet
 .. index::
    pair: queries; viewing results
 
-The next step is to decide whether to search the ``Current Vistrail``, ``Current Workflow``, or all ``Open Vistrails``.  The results of the first option are displayed on a version tree as well as in the ``Workspace`` panel.  Non-matching versions in the version tree will be grayed out while matching versions will be displayed in the tree as normal.  In contrast, the ``Workspace`` panel will display matching results and omit versions with no matches.  Double-clicking a version from the ``Workspace's`` results will bring up the associated pipeline with matching modules highlighted.  See figures :ref:`Workspace <fig-querying-workspace>` and :ref:`Pipeline <fig-querying-pipeline>`.  
+The next step is to decide whether to search the ``Current Vistrail``, ``Current Workflow``, or all ``Open Vistrails``.  The results of the first option are displayed on a version tree as well as in the ``Workspace`` panel.  Non-matching versions in the version tree will be grayed out while matching versions will be displayed in the tree as normal.  In contrast, the ``Workspace`` panel will display matching results and omit versions with no matches.  Double-clicking a version from the ``Workspace's`` results will bring up the associated pipeline with matching modules highlighted.  See Figures :ref:`Workspace... <fig-querying-workspace>` and :ref:`Pipeline... <fig-querying-pipeline>`.  
 
 The remaining two options are ``Current Workflow`` and ``Open Vistrails``.  The ``Current Workflow`` option is the simplest and will display the pipeline with matching modules highlighted.  The ``Open Vistrails`` option will put all of its results in the ``Workspace`` panel, listing open vistrails with their matching versions.   From here, double-clicking on a vistrail will bring up a version tree which emphasizes matching versions, or double-clicking on a version will bring up the associated pipeline with matching modules highlighted.
 
@@ -69,15 +69,16 @@ After constructing a pipeline and selecting the appropriate search option, click
 
 .. topic:: Try it now!
 
-   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-history`).  Notice that the query results are also displayed in the ``Workspace`` tab.  Double-click on the html version in the workspace to open the results in the pipeline view.  
+   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`Example pipeline in Search mode <fig-querying-query>` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`History... <fig-querying-history>`).  Notice that the query results are also displayed in the ``Workspace`` tab.  Double-click on the html version in the workspace to open the results in the pipeline view.  
 
 
 .. _fig-querying-workspace:
 
 .. figure:: figures/querying/workspace_results.png
    :align: center
+   :width: 2in
 
-   Workspace.  The query results displayed in the workspace.
+   Workspace - The query results displayed in the workspace.
 
 .. _fig-querying-history:
 
@@ -85,7 +86,7 @@ After constructing a pipeline and selecting the appropriate search option, click
    :height: 3in
    :align: center
 
-   History.  Search results in the ``History`` view.
+   History - Search results in the ``History`` view.
 
 .. _fig-querying-pipeline:
 
@@ -93,7 +94,7 @@ After constructing a pipeline and selecting the appropriate search option, click
    :height: 3in
    :align: center
 
-   Pipeline.  The results in the ``Pipeline`` view.
+   Pipeline - The results in the ``Pipeline`` view.
 
 Note that Query by Example provides the capability to iteratively
 refine searches by adding more criteria.  For example, if you were
@@ -106,7 +107,7 @@ One major difference between the ``Pipeline`` view and the ``Search`` view is th
 
 .. topic:: Try it now!
 
-   Open the "terminator.vt" example file, and enter ``Search`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Search canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` module. Select ``Back to Search`` to return to the ``Search`` view, select the ``vtkActor`` module, then select ``RotateZ`` method from the ``Module Information`` tab. In the ``RotateZ`` text field, select ``'>'`` and then enter '90'. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`fig-querying-vtkActor_example`.
+   Open the "terminator.vt" example file, and enter ``Search`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Search canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` module. Select ``Back to Search`` to return to the ``Search`` view, select the ``vtkActor`` module, then select ``RotateZ`` method from the ``Module Information`` tab. In the ``RotateZ`` text field, select ``'>'`` and then enter '90'. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`Query result showing all workflows... <fig-querying-vtkActor_example>`.
 
 .. _fig-querying-vtkActor_example:
 
@@ -191,7 +192,7 @@ be ``'after: April 1 before: June 1'``.
 
 .. topic:: Try it now!
 
-   Open the "terminator.vt" example file, and enter ``Search`` mode.  Let's look for all workflows that were created after November 24, 2010. In the search box in the ``Search`` panel, type ``'after: 24 nov 2010'`` and press 'Enter'. The expected result is shown in Figure :ref:`fig-querying-july1`.
+   Open the "terminator.vt" example file, and enter ``Search`` mode.  Let's look for all workflows that were created after November 24, 2010. In the search box in the ``Search`` panel, type ``'after: 24 nov 2010'`` and press 'Enter'. The expected result is shown in Figure :ref:`Results of a query to find any changes make after November 24, 2010 <fig-querying-july1>`.
 
 .. _fig-querying-july1:
 
@@ -214,7 +215,7 @@ Refining the Results
 .. index:: search; refine
 
 While in the ``Search`` view, you can select two different
-ways of viewing search results.  The magnifying glass icon to the left of the textual search box contains a dropdown menu with two options: "Search" and "Refine" (Figure :ref:`fig-querying-search_or_refine`).  The first displays results by simply highlighting the matching nodes while the second condenses the tree to show only the versions that match.  For large vistrails, this second method can help you determine relationships between the matching versions more easily.
+ways of viewing search results.  The magnifying glass icon to the left of the textual search box contains a dropdown menu with two options: "Search" and "Refine" (Figure :ref:`Clicking the button to the left... <fig-querying-search_or_refine>`).  The first displays results by simply highlighting the matching nodes while the second condenses the tree to show only the versions that match.  For large vistrails, this second method can help you determine relationships between the matching versions more easily.
 
 .. %TODO I'm not sure that this button actually works as intended.
 
