@@ -158,6 +158,26 @@ downloading the package and extracting it into the ``.vistrails/userpackages`` d
 Upon starting |vistrails|, the ITK package modules will be made
 available to the Builder Window.  
 
+ITK Package Organization
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ITK |vistrails| package loosely mimics the ITK functionality
+hierarchy.  The package's top level consists of base classes,
+containers, and file readers as shown in Figure :ref:`fig-structure`.
+Also available at the top level is the ``PixelType`` module and the
+specific types used to create and execute ITK-based pipelines.  
+
+Currently, the ITK Image Filters are organized into functional groups.  The five filter types, as show in Figure :ref:`fig-structurec`, are:
+
+* Feature Extraction Filters
+* Image Intensity Filters
+* Segmentation Filters
+* Image Selection Filters
+* Image Smoothing Filters
+
+All filter types currently have at least one representative ITK filter
+wrapped and usable from within the |vistrails| environment.
+
 .. _fig-structure:
 
 .. figure:: figures/example_itk/package_structure.png
@@ -180,26 +200,6 @@ available to the Builder Window.
 
    \(c\) The ITK Package Filter Structure
 
-ITK Package Organization
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-The ITK |vistrails| package loosely mimics the ITK functionality
-hierarchy.  The package's top level consists of base classes,
-containers, and file readers as shown in Figure :ref:`fig-structure`.
-Also available at the top level is the ``PixelType`` module and the
-specific types used to create and execute ITK-based pipelines.  
-
-Currently, the ITK Image Filters are organized into functional groups.  The five filter types, as show in Figure :ref:`fig-structurec`, are:
-
-* Feature Extraction Filters
-* Image Intensity Filters
-* Segmentation Filters
-* Image Selection Filters
-* Image Smoothing Filters
-
-All filter types currently have at least one representative ITK filter
-wrapped and usable from within the |vistrails| environment.
-
 Reading DICOM Volumes
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -214,7 +214,7 @@ For the rest of this example, we will use the ``GDCMReader`` module as
 its performace is slightly higher than the ``DICOMReader``
 implementation.
 
-Figure :ref:`fig-slicer` shows the use of the ``GDCMReader`` module.  In
+Figure :ref:`VisTrails workflow utilizing ITK to extract a single slice... <fig-slicer>` shows the use of the ``GDCMReader`` module.  In
 order to properly read a DICOM volume, the ``GDCMReader`` must be supplied
 with the dimension of the volume to be read and the directory
 containing the series to read.  By default, WrapITK supports
@@ -263,7 +263,7 @@ This is possible in |vistrails| through the use of the
 information, the ``ExtractImageFilter`` can extract a single slice from
 the data volume that can be used in further processing, previewing the
 results, or writing to disk.  An example workflow that extracts a slice
-from a DICOM volume can be seen in Figure :ref:`fig-slicer`.  
+from a DICOM volume can be seen in Figure :ref:`VisTrails workflow utilizing ITK to extract a single slice... <fig-slicer>`.  
 
 Visualizing the results
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -276,7 +276,7 @@ sense to view it as such.  This means that we are required to both
 remap the data values in the image to 8 bits as well as perform a
 casting operation to change the data type from unsigned shorts to
 unsigned chars.  These operations are performed through the use of the
-``RescaleIntensityImageFilter`` and the ``CastImageFilter``.  Figure :ref:`fig-slicer` demonstrates the use of the
+``RescaleIntensityImageFilter`` and the ``CastImageFilter``.  Figure :ref:`VisTrails workflow utilizing ITK to extract a single slice... <fig-slicer>` demonstrates the use of the
 ``RescaleIntensityImageFilter`` and the ``CastImageFilter`` in conjunction
 with the ``ImageToFile`` and ``ImageViewerCell`` modules to view the resulting slice in the |vistrails| Spreadsheet.
 

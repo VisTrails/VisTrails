@@ -116,6 +116,16 @@ Interactive Mode
 
 In Interactive Mode, users can interact directly with the viewer for an individual cell, interact with multiple cells at once, or change the layout of the sheet.  Because cells can differ in their contents, interacting with a cell changes based on the type of data displayed.  For example, in a cell displaying VTK data (a ``VTKCell``), a user can rotate, pan, and zoom in or out using the mouse.
 
+.. index::
+   pair: spreadsheet; cells
+
+In a sheet, a cell can be both *active* and *selected*.  There can only be one active cell, and that cell is highlighted by a yellow or grey border.  Clicking on any cell will make it active.  This active cell will respond to keyboard shortcuts as well as mouse input.  In constrast to the active cell, one or more cells can be selected, and the active cell need not be selected.  To select multiple cells, either click on a row or column heading to toggle selection or 'Ctrl'-click to add or remove a cell from the group of selected cells.  The backgrounds of selected cells are highlighted using a platform-dependent selection color.  See Figure :ref:`Different states of a spreadsheet cell... <fig-cell_states>` for examples of the different cell states.
+
+Depending on the cell type, additional controls may appear in the
+toolbar when a cell is activated. These controls affect only the
+active cell, and change for different cell types. As shown by
+Figure :ref:`Different states of a spreadsheet cell \(d\) <fig-cell_states>`, a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds controls for resizing, flipping, and rotating the image in the active cell.
+
 .. _fig-cell_states:
 
 .. figure:: figures/spreadsheet/cell_states.png
@@ -123,16 +133,6 @@ In Interactive Mode, users can interact directly with the viewer for an individu
    :align: center
 
    Different states of a spreadsheet cell. \(a\) inactive and unselected, \(b\) active and unselected, \(c\) active and selected, \(d\) an active cell with its toolbar and resizer.
-
-.. index::
-   pair: spreadsheet; cells
-
-In a sheet, a cell can be both *active* and *selected*.  There can only be one active cell, and that cell is highlighted by a yellow or grey border.  Clicking on any cell will make it active.  This active cell will respond to keyboard shortcuts as well as mouse input.  In constrast to the active cell, one or more cells can be selected, and the active cell need not be selected.  To select multiple cells, either click on a row or column heading to toggle selection or 'Ctrl'-click to add or remove a cell from the group of selected cells.  The backgrounds of selected cells are highlighted using a platform-dependent selection color.  See Figure :ref:`Different states of a spreadsheet cell <fig-cell_states>` for examples of the different cell states.
-
-Depending on the cell type, additional controls may appear in the
-toolbar when a cell is activated. These controls affect only the
-active cell, and change for different cell types. As shown by
-Figure :ref:`Different states of a spreadsheet cell \(d\) <fig-cell_states>`, a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds controls for resizing, flipping, and rotating the image in the active cell.
 
 The Camera
 ++++++++++
@@ -151,6 +151,8 @@ specific cell to a different location.
 Synchronizing Cells
 +++++++++++++++++++
 
+Often, when a group of cells all display results from similar workflows, it is useful to interact with all of these cells at the same time.  For example, for a group of ``VTKCells``, it is instructive to rotate or zoom in on multiple cells at once and compare the results.  For this reason, if a group of cells is selected, mouse and keyboard events for a single cell of the selection are propogated to each of the other selected cells.  Currently, this feature only works for ``VTKCells``, but we plan to add this to other cell types as well.  An example of this functionality is shown in Figure :ref:`When selecting all cells... <fig-spreadsheet_sync>`.
+
 .. _fig-spreadsheet_sync:
 
 .. figure:: figures/spreadsheet/spreadsheet_sync.png
@@ -159,20 +161,10 @@ Synchronizing Cells
 
    When selecting all cells, interacting with one VTK cell \(A1\) causes the other two VTK cells \(B1 and B2\) to change their camera to the same position.
 
-Often, when a group of cells all display results from similar workflows, it is useful to interact with all of these cells at the same time.  For example, for a group of ``VTKCells``, it is instructive to rotate or zoom in on multiple cells at once and compare the results.  For this reason, if a group of cells is selected, mouse and keyboard events for a single cell of the selection are propogated to each of the other selected cells.  Currently, this feature only works for ``VTKCells``, but we plan to add this to other cell types as well.  An example of this functionality is shown in Figure :ref:`When selecting all cells <fig-spreadsheet_sync>`.
-
 .. _sec-spreadsheet-editing:
 
 Editing Mode
 ^^^^^^^^^^^^
-
-.. _fig-editing_mode:
-
-.. figure:: figures/spreadsheet/editing_mode.png
-   :width: 6.5in
-   :align: center
-
-   The spreadsheet in Editing Mode. \(a\) All cell widgets are replaced with an information widget \(b\) Two cells are swapped after drag and drop the 'Move' icon from A1 to B1.
 
 .. index::
    triple: spreadsheet; modes; editing
@@ -180,7 +172,7 @@ Editing Mode
 Recall that Editing Mode can be entered either by accessing the ``View`` menu or by keying 'Ctrl-Shift-E'. Editing Mode provides more
 operations to layout and organize spreadsheet cells.  In this mode,
 the view for each cell is frozen and overlaid with additional
-information and controls (see Figure :ref:`The spreadsheet in editing mode <fig-editing_mode>`).  The top
+information and controls (see Figure :ref:`The spreadsheet in editing mode... <fig-editing_mode>`).  The top
 of the overlay displays information about which vistrail, version, and
 type of execution were used to generate the cell.  The bottom piece of
 the overlay contains a variety of controls to manipulate the cell
@@ -193,7 +185,15 @@ a cell to a location on a different sheet, drag the icon over the
 target sheet tab to bring that sheet into focus first and then drop it
 at the desired location. If you move a cell to an already-occupied
 cell, the contents of the two cells will be swapped.  See
-Figure :ref:`The spreadsheet in editing mode<fig-editing_mode>` for an example of swapping two cells.
+Figure :ref:`The spreadsheet in editing mode... <fig-editing_mode>` for an example of swapping two cells.
+
+.. _fig-editing_mode:
+
+.. figure:: figures/spreadsheet/editing_mode.png
+   :width: 6.5in
+   :align: center
+
+   The spreadsheet in Editing Mode. \(a\) All cell widgets are replaced with an information widget \(b\) Two cells are swapped after drag and drop the 'Move' icon from A1 to B1.
 
 Clicking the ``Locate Version`` icon will highlight the node in the version tree (in the ``History`` view) from which the visualization in that cell was generated. The next two icons, ``Create Analogy`` and ``Apply Analogy``, help with creating visualizations by analogy. Please refer to Chapter :ref:`chap-analogies` for information about this feature.
 

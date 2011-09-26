@@ -97,6 +97,7 @@ Now you can select ``Publish`` :math:`\rightarrow` ``To Paper...`` to launch a d
 
 .. figure:: figures/latex/embedding.png
    :align: center
+   :width: 5.5in
 
    Embedding Options
 
