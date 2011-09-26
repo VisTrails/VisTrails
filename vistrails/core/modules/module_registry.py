@@ -667,7 +667,6 @@ class ModuleRegistry(DBRegistry):
         namespace = namespace or ''
         package_version = package_version or ''
         module_version = module_version or ''
-
         try:
             package = self.packages[identifier]
             if package_version:

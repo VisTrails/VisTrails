@@ -46,6 +46,9 @@ from java.awt import BorderLayout
 
 from view_manager import JViewManager
 from core.db.locator import ZIPFileLocator
+from core.modules.module_registry import ModuleRegistry
+from core.packagemanager import PackageManager
+import sys
 
 class BuilderFrame(JFrame):
     
@@ -63,6 +66,18 @@ class BuilderFrame(JFrame):
         self.setJMenuBar(menuBar)
         self.viewManager = JViewManager()
         self.currentVersion = "-1"
+        self.clickedVersionNodeId = -1
+        """
+        self._registry = ModuleRegistry()
+        self._registry.set_global()
+        package = self._registry.create_package("basic_modules")
+        self._package_list = {}
+        self._package_list["basic_modules"] = package
+        prefix_dictionary = {'basic_modules': 'core.modules.'}
+        existing_paths = set(sys.modules.iterkeys())
+        for package in self._package_list.itervalues():
+            package.load(prefix_dictionary.get(package.codepath, None),
+                             existing_paths)"""
     
     def showFrame(self):
         self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)

@@ -149,10 +149,13 @@ class JVersionVistrailView(JPanel, MouseListener):
                 if node[1].label is None or node[1].label == "":
                     jLabel = JLabel("TREE ROOT")
                 fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
-                graphics.drawRect(int(node[1].p.x), int(node[1].p.y),
-                                  int(fontRect.getWidth()), int(fontRect.getHeight()))
                 graphics.drawString(jLabel.getText(), int(node[1].p.x),
                                     int(node[1].p.y) + int(fontRect.getHeight()))
+                if (self.builderFrame.clickedVersionNodeId == node[1].id):
+                    graphics.setColor(Color.red)
+                graphics.drawRect(int(node[1].p.x), int(node[1].p.y),
+                                  int(fontRect.getWidth()), int(fontRect.getHeight()))
+                graphics.setColor(Color.black)
                 if maxWidth < int(fontRect.getWidth()):
                     maxWidth = int(fontRect.getWidth())
                 if maxHeight < int(fontRect.getHeight()):
@@ -184,9 +187,18 @@ class JVersionVistrailView(JPanel, MouseListener):
     def mouseClicked(self, event):
         eventX = event.getX()
         eventY = event.getY()
+        isClickInsideNode = False
         for node in self.nodesToDim:
             nodeRect = Rectangle(self.nodesToDim[node]["x"], self.nodesToDim[node]["y"],
                                           self.nodesToDim[node]["width"],
                                           self.nodesToDim[node]["height"])
             if nodeRect.contains(eventX, eventY):
                 self.builderFrame.currentVersion = node
+                self.builderFrame.clickedVersionNodeId = node
+                isClickInsideNode = True
+        if isClickInsideNode == False:
+            self.builderFrame.clickedVersionNodeId = -1
+        self.invalidate()
+        self.revalidate()
+        self.repaint()
+            
