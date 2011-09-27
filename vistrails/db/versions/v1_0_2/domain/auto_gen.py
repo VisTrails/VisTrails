@@ -5698,6 +5698,7 @@ class DBPort(object):
         self._db_moduleId = moduleId
         self._db_moduleName = moduleName
         self._db_name = name
+        self.name = name
         self._db_signature = signature
         self.is_dirty = True
         self.is_new = True

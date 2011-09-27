@@ -51,7 +51,7 @@ class JViewManager(JComponent):
     
     def open_vistrail(self, locator, viewType = "pipeline", version = None, is_abstraction=False, builderFrame = None):
         try:
-            (vistrail, abstraction_files, thumbnail_files) = \
+            (vistrail, abstraction_files, thumbnail_files, mashup) = \
                                         load_vistrail(locator, is_abstraction)                                                
             result = self.set_vistrail_view(vistrail, locator, viewType, 
                                             abstraction_files, thumbnail_files,
