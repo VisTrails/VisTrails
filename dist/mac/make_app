@@ -15,9 +15,9 @@ exit 0
 fi
 VOL="$1"
 DMG="$VOL.dmg"
-ALPS_VERSION="2.0.2-r5625"
+ALPS_VERSION="2.0.2-r5698"
 ALPS_URL="http://archive.comp-phys.org/software/vistrails/"
-ALPS_FILE="alps-vistrails-${ALPS_VERSION}-Darwin.tar.gz"
+ALPS_FILE="alps-vistrails-${ALPS_VERSION}-macosx-10.6.tar.gz"
 echo "removing build and dist folders..."
 rm -rf dist/ build/
 echo "removing old bundle..."

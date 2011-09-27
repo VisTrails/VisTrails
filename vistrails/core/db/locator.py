@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -35,6 +35,7 @@
 import base64
 import getpass
 import os.path
+from core import get_vistrails_application
 from core.configuration import get_vistrails_configuration
 from core.system import vistrails_default_file_type, get_elementtree_library, \
                         default_connections_file, default_dot_vistrails
@@ -46,7 +47,6 @@ from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     BaseLocator as _BaseLocator
 from db.services.io import SaveBundle, test_db_connection
 from db import VistrailsDBException
-from PyQt4 import QtCore
 ElementTree = get_elementtree_library()
 
 class BaseLocator(_BaseLocator):
@@ -171,12 +171,12 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
-    def update_from_gui(self, parent_widget, klass=None):
-        from core.vistrail.vistrail import Vistrail
-        if klass is None:
-            klass = Vistrail
-        import gui.extras.core.db.locator as db_gui
-        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
+#    def update_from_gui(self, parent_widget, klass=None):
+#        from core.vistrail.vistrail import Vistrail
+#        if klass is None:
+#            klass = Vistrail
+#        import gui.extras.core.db.locator as db_gui
+#        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
 
 class DBLocator(_DBLocator, CoreLocator):
     
@@ -184,10 +184,10 @@ class DBLocator(_DBLocator, CoreLocator):
     
     class getKeyChain(object):
         def set_key(self, key, passwd):
-            QtCore.QCoreApplication.instance().keyChain.set_key(key,passwd)
+            get_vistrails_application().keyChain.set_key(key,passwd)
         
         def get_key(self, key):
-            return QtCore.QCoreApplication.instance().keyChain.get_key(key)
+            return get_vistrails_application().keyChain.get_key(key)
     
     keyChain = getKeyChain()
     

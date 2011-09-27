@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -45,7 +45,8 @@ from core import debug
 from core.utils import expression
 from core.vistrail.module_function import ModuleFunction
 from core.modules import module_registry
-from core.modules.constant_configuration import StandardConstantWidget, \
+from gui.modules import get_widget_class
+from gui.modules.constant_configuration import StandardConstantWidget, \
     FileChooserToolButton
 from gui.common_widgets import QPromptWidget
 from gui.method_palette import QMethodTreeWidget
@@ -343,10 +344,7 @@ class QMethodInputForm(QtGui.QGroupBox):
             except module_registry.ModuleRegistryException:
                 debug.critical("HIT ModuleRegistryException in DROPBOX")
                 pass
-            if p_module is not None:
-                widget_type = p_module.get_widget_class()
-            else:
-                widget_type = StandardConstantWidget
+            widget_type = get_widget_class(p_module)
             ps_label = ''
             if ps_labels is not None and len(ps_labels) > pIndex:
                 ps_label = str(ps_labels[pIndex])

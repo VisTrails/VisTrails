@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -449,7 +449,7 @@ class ExecutionSearchWidget(QtGui.QSplitter):
                      connection_id=config.get('id', None))
         print "url:", locator.to_url()
         import gui.application
-        app = gui.application.VistrailsApplication
+        app = gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
@@ -725,7 +725,7 @@ class WorkflowSearchWidget(QtGui.QSplitter):
                      connection_id=config.get('id', None))
         print "url:", locator.to_url()
         import gui.application
-        app = gui.application.VistrailsApplication
+        app = gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
         args['version'] = version_name if version_name else v_version

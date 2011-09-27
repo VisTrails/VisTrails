@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -931,6 +931,8 @@ class Pipeline(DBWorkflow):
         except InvalidPipeline, e:
             exceptions.update(e.get_exception_set())
         
+        self.check_subworkflow_versions()
+        
         if len(exceptions) > 0:
             if raise_exception:
                 raise InvalidPipeline(exceptions, self)
@@ -1114,6 +1116,12 @@ class Pipeline(DBWorkflow):
     
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)
+
+    def check_subworkflow_versions(self):
+        reg = get_module_registry()
+        for module in self.modules.itervalues():
+            if module.is_valid and module.is_abstraction():
+                module.check_latest_version()
                 
     ##########################################################################
     # Debugging

@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -74,6 +74,9 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
             painter = QtGui.QPainter(self.viewport())
             for mId, annotatedId in \
                     self.inspector.annotated_modules.iteritems():
+                if mId not in self.scene().modules:
+                    # faulty annotated_modules entry
+                    continue
                 item = self.scene().modules[mId]
                 br = item.sceneBoundingRect()
                 rect = QtCore.QRect(self.mapFromScene(br.topLeft()),

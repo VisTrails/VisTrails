@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -38,8 +38,6 @@ import core.interpreter.noncached
 cached_interpreter = core.interpreter.cached.CachedInterpreter
 noncached_interpreter = core.interpreter.noncached.Interpreter
 __default_interpreter = cached_interpreter
-
-from PyQt4 import QtCore
 
 ##############################################################################
 

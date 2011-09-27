@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -80,7 +80,7 @@ class ModuleParam(DBParameter):
             self.namespace = namespace
 
         # This is used for visual query and will not get serialized
-        self.queryMethod = 0
+        self.queryMethod = None
 
     def __copy__(self):
         return ModuleParam.do_copy(self)
@@ -91,7 +91,7 @@ class ModuleParam(DBParameter):
         cp.minValue = self.minValue
         cp.maxValue = self.maxValue
         cp.evaluatedStrValue = self.evaluatedStrValue
-        cp.queryMethod = 0
+        cp.queryMethod = self.queryMethod
 
         # cp.identifier = self.identifier
         # cp.namespace = self.namespace
@@ -105,7 +105,7 @@ class ModuleParam(DBParameter):
         if _parameter.__class__ == ModuleParam:
             return
         _parameter.__class__ = ModuleParam
-        _parameter.queryMethod = 0
+        _parameter.queryMethod = None
         _parameter.minValue = ""
         _parameter.maxValue = ""
         _parameter.evaluatedStrValue = ""

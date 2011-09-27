@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -33,8 +33,9 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
-from core.modules.constant_configuration import ConstantWidgetMixin
-from core.modules.constant_configuration import StandardConstantWidget
+from gui.modules import get_widget_class
+from gui.modules.constant_configuration import ConstantWidgetMixin, \
+    StandardConstantWidget
 from core.modules.module_registry import get_module_registry
 
 class QAliasSliderWidget(QtGui.QWidget):
@@ -51,7 +52,8 @@ class QAliasSliderWidget(QtGui.QWidget):
         self.value.setRange(int(alias.component.minVal), 
                             int(alias.component.maxVal))
         self.value.setSingleStep(int(alias.component.stepSize))
-
+        self.value.setContents(self.alias.component.val)
+        
         self.connect(self.value,
                      QtCore.SIGNAL("contentsChanged"),
                      self.contents_changed)
@@ -121,12 +123,14 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
             self.value.setRange(int(alias.component.minVal), 
                                 int(alias.component.maxVal))
             self.value.setSingleStep(int(alias.component.stepSize))
+            self.value.setContents(self.alias.component.val)            
         elif self.alias.component.type == "Float":
             self.value = QNumericStepperFloatWidget(param=vtparam,
                                                     parent=self)
             self.value.setRange(float(alias.component.minVal), 
                                 float(alias.component.maxVal))
             self.value.setSingleStep(float(alias.component.stepSize))
+            self.value.setContents(self.alias.component.val)
 
         self.connect(self.value,
                      QtCore.SIGNAL("contentsChanged"),
@@ -236,7 +240,7 @@ class QDropDownWidget(QtGui.QWidget):
         self.setLayout(hbox)    
         
     def createMenu(self):
-        self.menu = QtGui.QMenu(self)
+        self.menu = QMenuValue(self)
         self.menu.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                 QtGui.QSizePolicy.Maximum)
         mbox = QtGui.QVBoxLayout()
@@ -249,10 +253,10 @@ class QDropDownWidget(QtGui.QWidget):
             hbox = QtGui.QHBoxLayout()
             rb = QMenuRadioButton()
             rb.setChecked(False)
-            vw = self.createAliasWidget(val=v, parent=self)
-            vw.setFocusProxy(rb)
+            vw = self.createMenuAliasWidget(val=v, parent=self)
             vw.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                 QtGui.QSizePolicy.Maximum)
+            vw.setReadOnly(True)
             
             self.menu_widgets[rb] = vw
             hbox.addWidget(rb)
@@ -262,6 +266,9 @@ class QDropDownWidget(QtGui.QWidget):
             self.connect(rb,
                          QtCore.SIGNAL("clicked(bool)"),
                          self.menu.hide)
+            self.connect(vw,
+                         QtCore.SIGNAL("clicked(bool)"),
+                         rb.setChecked)
         self.menu.setLayout(mbox)
         self.dropdownbtn.setMenu(self.menu)
         
@@ -294,14 +301,15 @@ class QDropDownWidget(QtGui.QWidget):
         reg = get_module_registry()
         p_module = reg.get_module_by_name(idn, self.vtparam.type, 
                                           self.vtparam.namespace)
-        if p_module is not None:
-            widget_type = p_module.get_widget_class()
-        else:
-            widget_type = StandardConstantWidget
+        get_widget_class(p_module)
         if val:
             self.vtparam.strValue = val
         return widget_type(self.vtparam, parent)
-            
+    
+    def createMenuAliasWidget(self, val=None, parent=None):
+        widget = self.createAliasWidget(val)
+        return QMenuValueItem(widget, parent)
+    
     def value_selected(self):
         #print "value_selected", self.menu.pos()
         for rb, vw in self.menu_widgets.iteritems():
@@ -323,3 +331,31 @@ class QMenuRadioButton(QtGui.QRadioButton):
         self.setChecked(True)
         #self.emit(QtCore.SIGNAL("clicked(bool)"), True)
         QtGui.QRadioButton.focusInEvent(self, event)
+        
+class QMenuValue(QtGui.QMenu):    
+    def mousePressEvent(self, e):
+        vw = self.childAt(e.pos())
+        while vw is not None and not isinstance(vw, QMenuValueItem):
+            vw = vw.parent()
+        if vw is not None:
+            vw.emit(QtCore.SIGNAL("clicked(bool)"), True)
+        QtGui.QMenu.mousePressEvent(self, e)
+        
+class QMenuValueItem(QtGui.QWidget):
+    def __init__(self, widget, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.widget = widget
+        vlayout = QtGui.QVBoxLayout()
+        vlayout.setMargin(0)
+        vlayout.setSpacing(0)
+        vlayout.addWidget(self.widget)
+        self.setLayout(vlayout)
+        
+    def setReadOnly(self, on):
+        self.setEnabled(not on)
+        
+    def contents(self):
+        return self.widget.contents()
+    
+    def mousePressEvent(self, e):
+        self.emit(QtCore.SIGNAL("clicked(bool)"), True)

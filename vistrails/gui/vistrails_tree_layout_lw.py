@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -36,7 +36,7 @@ Interface Vistrails - TreeLayoutLW to align version trees
 
 """
 
-from tree_layout_lw import TreeLW, NodeLW, TreeLayoutLW
+from core.tree_layout_lw import TreeLW, NodeLW, TreeLayoutLW
 from core.data_structures.point import Point
 
 ################################################################################

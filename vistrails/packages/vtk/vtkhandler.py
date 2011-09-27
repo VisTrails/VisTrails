@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -236,7 +236,10 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         if fid!=-1:
             f = self.module.functions[fid]
             self.codeEditor.setPlainText(urllib.unquote(f.params[0].strValue))
-        self.codeEditor.document().setModified(False)
+        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+            self.codeEditor.document().setModified(False)
+        else:
+            self.codeEditor.setModified(False)
         self.layout().addWidget(self.codeEditor, 1)
         
     def createButtonLayout(self):

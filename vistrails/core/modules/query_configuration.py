@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -31,4 +31,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-pass
+
+# *** MOVED *** to gui.modules.query_configuration
+
+import traceback
+from core import debug
+debug.warning("The use of core.modules.query_configuration is deprecated.  "
+              "Please use gui.modules.query_configuration.",
+              ''.join(traceback.format_stack()))
+
+from gui.modules.query_configuration import *

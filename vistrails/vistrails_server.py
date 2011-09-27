@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -34,8 +34,8 @@
 """Main file for running VisTrails in server mode"""
 
 if __name__ == '__main__':
-    import core.requirements
-    core.requirements.check_pyqt4()
+    import gui.requirements
+    gui.requirements.check_pyqt4()
 
     from PyQt4 import QtGui
     import gui.application_server

@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -97,7 +97,7 @@ class SpreadsheetAnalogyObject(object):
         """
         def get_controller_by_locator(locator):
             import gui.application
-            app = gui.application.VistrailsApplication
+            app = gui.application.get_vistrails_application()
             m = app.builderWindow
             # slow, but who cares
             for v in xrange(m.stack.count()):

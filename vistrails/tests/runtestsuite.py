@@ -3,7 +3,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -272,8 +272,5 @@ if test_examples:
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
-s.close()
-f.close()
-err.close()
-gui.application.VistrailsApplication.finishSession()
+gui.application.get_vistrails_application().finishSession()
 gui.application.stop_application()

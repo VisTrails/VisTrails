@@ -145,12 +145,7 @@ configuration dialog:
    self.setResult("outfile",output1)
    f1.close()
 
-Click ``OK`` to close the dialog. One  of the ports we need to use is
-an  optional port.   Select the  ``OntologyDataItemList``  module and
-type   'Ctrl-E'.     Check   the   box    for   ``ListElement``
-under  ``Output  Ports`` and  select  ``OK``  to close  the
-dialog.     Now     connect    the    modules    together     as    shown    in
-Figure :ref:`fig-chebi_pipeline_screenshot`.
+Close the dialog.  One of the ports we need to use is an optional port.  Select the ``OntologyDataItemList`` module and select the ``Outputs`` tab from the ``Module Information`` panel.  Click in the left column next to ``ListElement`` so the eye icon appears.  Now connect the modules together as shown in Figure :ref:`fig-chebi_pipeline_screenshot`.
 
 .. _fig-chebi_pipeline_screenshot:
 
@@ -160,14 +155,7 @@ Figure :ref:`fig-chebi_pipeline_screenshot`.
 
    Our example pipeline.
 
-Our  workflow is  now complete  except for  one crucial  element:  the starting
-point. We  need to pass a  chebiID string to the  workflow in order  to look up
-information about a  chemical. We do this by assigning a  chebiID string to the
-the  ``String``   module  at  the   top  of  the   pipeline.   Highlight
-the ``String``  module in the canvas, then  in the ``Methods``
-panel   at   the  right,   drag   the   "value"   parameter  down   to
-the ``Set  Methods`` panel.  Type ``CHEBI:15357`` into  the text
-field.
+Our workflow is now complete except for one crucial element: the starting point.  We need to pass a chebiID string to the workflow in order to look up information about a chemical.  We do this by assigning a chebiID string to the ``String`` module at the top of the pipeline.  Highlight the ``String`` module in the canvas, then in the ``Module Information`` panel on the right, make sure the ``Inputs`` tab is selected and click on ``value`` and type ``CHEBI:15357`` into the ``String`` input box that comes up.
 
 Executing the workflow
 ======================

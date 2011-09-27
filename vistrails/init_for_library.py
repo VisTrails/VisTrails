@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -115,7 +115,6 @@ import core.vistrail.module_function
 import core.vistrail.pipeline
 import core.vistrail.port
 import core.vistrail.vistrail
-import core.vistrails_tree_layout_lw
 import db.services.io
 import gui.common_widgets
 import gui.graphics_view
@@ -128,5 +127,6 @@ import gui.theme
 import gui.utils
 import gui.version_view
 import gui.vistrail_controller
+import gui.vistrails_tree_layout_lw
 spreadsheet = __import__('packages.spreadsheet', globals(), locals(), 
                             ['spreadsheet_controller'], -1) 

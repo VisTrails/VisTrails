@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -477,8 +477,10 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         sheetName = str(self.tabWidget.tabText(self.tabWidget.indexOf(self)))
+        # Note that we must increment row/col by 1 to match how the
+        # CellReference module expects them
         return assignPipelineCellLocations(inPipeline, sheetName,
-                                           row, col, cellIds)
+                                           row + 1, col + 1, cellIds)
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple

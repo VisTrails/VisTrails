@@ -13,7 +13,7 @@ Version Tree View
    pair: versions;viewing
    single: history
 
-The ``History`` button on the |vistrails| toolbar lets users interact with a workflow history. It consists of a tree view in the center and the ``Properties`` tool container on the right for querying and managing version properties  (Figure :ref:`In History mode <fig-version_tree_screenshot_labeled>`). Versions are displayed as ellipses in the tree view where the root of the tree is displayed at the top of the view. The nodes of the tree correspond to a version of a workflow while an edge between two nodes indicates that one was derived from the other.
+The ``History`` button on the |vistrails| toolbar lets users interact with a workflow history. It consists of a tree view in the center and the ``Properties`` tool container on the right for querying and managing version properties  (see Figure :ref:`In History mode <fig-version_tree_screenshot_labeled>`). Versions are displayed as ellipses in the tree view where the root of the tree is displayed at the top of the view. The nodes of the tree correspond to a version of a workflow while an edge between two nodes indicates that one was derived from the other.
 
 .. _fig-version_tree_screenshot_labeled:
 
@@ -29,10 +29,10 @@ The ``History`` button on the |vistrails| toolbar lets users interact with a wor
 
 The nodes are displayed as colored ellipses, and are either blue or orange.  A blue color denotes that the corresponding version was created by the current user while orange nodes were created by other users.  The brightness of each node indicates how recently a version was created; brighter nodes were created more recently than dimmer ones.  Each node may also have a *tag* that describes the version, and this tag is displayed as a text label in the center of the ellipse of the corresponding version.
 
-The nodes are connected by a solid line if the child node is a direct descendent of the parent node; that is, if you have made only a single change from the older version to the newer version. By default, only nodes that are leaves, have more than one child node, are specially tagged (see Section :ref:`sec-adding_deleting_tags`), and the current version, will be
+The nodes are connected by a solid line if the child node is a direct descendent of the parent node; that is, if you have made only a single change from the older version to the newer version. By default, only nodes that: are leaves, have more than one child node, are specially tagged (see Section :ref:`sec-adding_deleting_tags`), or are current version will be
 displayed. To save space, other nodes will be "collapsed," or hidden from view.  Collapsed nodes are marked by the appearance of a small expansion button along an edge connecting two nodes. Clicking this button expands the
 version tree to reveal the hidden versions (Figure :ref:`To conserve space <fig-expand_collapse_versions>`). The tree expansion is smoothly
-animated to help you maintain context from one view to the next. Clicking the button a second time collapses the nodes once again. Because most non-trivial changes to a workflow take more than action, most edges in a the
+animated to help you maintain context from one view to the next. Clicking the button a second time collapses the nodes once again. Because most non-trivial changes to a workflow take more than one action, most edges in a the
 version tree will be shown with these expansion buttons.
 
 .. _fig-expand_collapse_versions:
@@ -94,7 +94,7 @@ Adding and Deleting Tags
 .. %As noted above, only certain nodes, including specially tagged ones, are shown by default in the version tree.  To tag a version, simply add meaningful text to the tag text box in the ``Properties`` container and press 'Enter'.  If you would like to change the tag to different text, click in the same text box and modify the string, again hitting 'Enter' when finished.  Note that deleting all of the text in the tag field effectively deletes the tag.  A second way to delete a tag is to click the 'X' button to the right of the text box. Removing a tag from a node may cause it to not be displayed in the default version tree view if it doesn't satisfy any of the other criteria for display.
 
 As noted above, only certain nodes, including specially tagged ones, are shown by default in the version tree.  To tag a version, simply 
-click inside a selected node and type some meaningful text. The tag is created when you either click outside the node or press 'Enter'. If you would like to change the tag to a different text, click inside the node again and modify the text as before. 
+click inside a selected node and type some meaningful text. The tag is created when you either click outside the node or press 'Enter'. If you would like to change the tag's text, click inside the node again and modify the text as before. 
 (Alternately, you can also create and modify tags using the ``Tag`` text field in the ``Properties`` panel.)
 
 Note that deleting all of the text in the tag field effectively deletes the tag. A second way to delete a tag is to click the 'X' button to the right of the text box. Removing a tag from a node may cause it to not be displayed in the default version tree view if it doesn't satisfy any of the other criteria for display.
@@ -134,7 +134,7 @@ While selecting versions in the ``History`` view and using the ``Pipeline`` view
 
 .. index::
    single: legend
-   pair:: parameters; differences
+   pair: parameters; differences
 
 In the new tab, the difference is displayed in a manner that is very similar to the pipeline view, but modules and connections are colored based on similarity.  Dark gray indicates those modules and connections that are shared between the two versions; orange and blue show modules and connections that exist in one workflow and not the other; and light gray modules are those where parameters between the two versions differ.  The Legend, which is displayed in the ``Diff Properties`` panel on the right, will remind you of these color correspondences.  If the ``Diff Properties`` panel is not visible on the right, you may enable it by selecting ``Diff Properties`` under the ``View`` menu.  This panel also shows the differences in parameters for light gray colored modules that are selected.
 

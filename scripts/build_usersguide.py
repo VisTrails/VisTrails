@@ -3,7 +3,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -46,14 +46,14 @@ import sys
 import time
 ### Begin configuration ###
 # Folder where vistrails is
-PATH_TO_VISTRAILS_GIT = None
+PATH_TO_VISTRAILS_GIT = "/Users/emanuele/code/vistrails"
 
 # Folder where the html files will be placed. This script will build
 # the docs in the standard location and move files later
 HTML_FOLDER = None
 
 # Complete file path to where copy final pdf file
-PDF_FILE = None
+PDF_FILE = "/Users/emanuele/code/vistrails/dist/mac/dist/doc/VisTrails.pdf"
 
 # Should we run a `git pull` before building docs? 
 PERFORM_GIT_PULL = True

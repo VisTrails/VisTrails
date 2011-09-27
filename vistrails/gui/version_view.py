@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -47,7 +47,6 @@ QVersionTreeView
 from PyQt4 import QtCore, QtGui
 from core.system import systemType
 from core.thumbnails import ThumbnailCache
-from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from gui.base_view import BaseView
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
@@ -1104,9 +1103,14 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
             }
         
     def set_action_defaults(self):
-        self.action_defaults = \
-            {'execute' : [('setEnabled', False, False)],
-             }
+        self.action_defaults['execute'] = \
+            [('setEnabled', True, self.set_action_execute_default)]
+
+    def set_action_execute_default(self):
+        if self.controller:
+            if self.controller.current_pipeline:
+                return len(self.controller.current_pipeline.modules) > 0
+        return False
     
     def check_publish_db(self, versionId):
         loc = self.controller.locator

@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -52,7 +52,7 @@ from core.db.action import create_action
 from core.system import systemType
 from core.utils import profile
 from core.vistrail.annotation import Annotation
-from core.modules.module_configure import DefaultModuleConfigurationWidget
+from gui.modules.module_configure import DefaultModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 
@@ -443,7 +443,6 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.scene().clearSelection()
         self.parentItem().setSelected(True)
         self.contextMenuEvent(event)
-        event.ignore()
         
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
@@ -1102,7 +1101,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
         """
         if self.progress>0.0:
-            progressRect = self.paddedRect.adjusted(0, 0, (self.progress-1.0)*self.paddedRect.width(), 0)
+            width = (self.progress-1.0)*self.paddedRect.width()
+            progressRect = self.paddedRect.adjusted(0, 0, width, 0)
             
         if self._needs_state_updated:
             self.setPainterState()
@@ -1131,7 +1131,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         painter.setFont(self.labelFont)
         painter.drawText(self.labelRect, QtCore.Qt.AlignCenter, self.label)
         if self.module.is_abstraction() and not self.module.is_latest_version():
-                painter.drawText(self.abstRect, QtCore.Qt.AlignCenter, '!')
+            painter.drawText(self.abstRect, QtCore.Qt.AlignCenter, '!')
         if self.descRect:
             painter.setFont(self.descFont)
             painter.drawText(self.descRect, QtCore.Qt.AlignCenter,
@@ -2540,11 +2540,11 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              }
     
     def set_action_defaults(self):
-        self.action_defaults = \
+        self.action_defaults.update(
         { 'execute': [('setEnabled', True, self.set_execute_action),
                       ('setIcon', False, CurrentTheme.EXECUTE_PIPELINE_ICON),
                       ('setToolTip', False, 'Execute the current pipeline')],
-        }
+        })
         
     def set_execute_action(self):
         if self.controller:

@@ -25,7 +25,7 @@ the evolution of their workflows.
 
 The Spreadsheet package is installed with |vistrails| by default, and
 it can display a variety of data ranging from VTK renderings to
-webpages without additional configuration.
+webpages without additional configuration.  To view the spreadsheet if it is hidden, select ``Packages`` :math:`\rightarrow` ``Spreadsheet`` :math:`\rightarrow` ``Show Spreadsheet.``
 
 ..  %% TODO add this sentence back in once the Custom Cell chapter is complete!
 ..  %In addition to the included types of viewers, users can create and register additional viewers using customized cell widgets (see Chapter :ref:`chap-custom_cells`).
@@ -79,7 +79,7 @@ Sending Output to the Spreadsheet
 
 Users may send results to the spreadsheet by using a spreadsheet cell.  Upon inspecting the VisTrails Spreadsheet package (in the list of packages, to the left of the pipeline builder), one can see there are built-in cells for different kinds of data, e.g., RichTextCell to display HTML and plain text.
 
-By default, an unoccupied cell on the active sheet will be chosen to display the result. However, you can specify in the pipeline exactly where a spreadsheet cell will be placed by using CellLocation and SheetReference. CellLocation specifies the location (row and column) of a cell when connecting to a spreadsheet cell (VTKCell, ImageViewerCell, ...). Similarly, a SheetReference module (when connecting to a CellLocation) will specify which sheet the cell will be put on given its name, minimum row size and minimum column size. There is an example of this in examples/vtk.xml (select the version below Double Renderer).
+By default, an unoccupied cell on the active sheet will be chosen to display the result. However, you can specify in the pipeline exactly where a spreadsheet cell will be placed by using CellLocation and SheetReference. CellLocation specifies the location (row and column) of a cell when connecting to a spreadsheet cell (VTKCell, ImageViewerCell, ...). Similarly, a SheetReference module (when connecting to a CellLocation) will specify which sheet the cell will be put on given its name, minimum row size and minimum column size. There is an example of this in examples/vtk.vt (select the Cell Location version).
 
 Advanced Cell Options
 ^^^^^^^^^^^^^^^^^^^^^
@@ -106,7 +106,7 @@ Interacting with the Spreadsheet
 .. index:: 
    pair: spreadsheet; modes
 
-Currently, there are two operating modes in the Spreadsheet: Interactive Mode and Editing Mode.  Interactive Mode allows users to view and interact with the spreadsheet cells, while Editing Mode provides operations for manipulating cells.  The modes can be toggled via the ``View`` menu or their corresponding keyboard shortcuts ('Ctrl-Shift-I') and 'Ctrl-Shift-E').
+Currently, there are two operating modes in the Spreadsheet: Interactive Mode and Editing Mode.  Interactive Mode allows users to view and interact with the spreadsheet cells, while Editing Mode provides operations for manipulating cells.  The modes can be toggled via the ``View`` menu or their corresponding keyboard shortcuts ('Ctrl-Shift-I') and ('Ctrl-Shift-E').
 
 Interactive Mode
 ^^^^^^^^^^^^^^^^
@@ -132,8 +132,11 @@ In a sheet, a cell can be both *active* and *selected*.  There can only be one a
 Depending on the cell type, additional controls may appear in the
 toolbar when a cell is activated. These controls affect only the
 active cell, and change for different cell types. As shown by
-Figure :ref:`Different states of a spreadsheet cell \(d\) <fig-cell_states>`, a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds controls for resizing, flipping, and rotating the image in the active
-cell.
+Figure :ref:`Different states of a spreadsheet cell \(d\) <fig-cell_states>`, a cell optimized for rendering 2D images (a ``ImageViewerCell``) adds controls for resizing, flipping, and rotating the image in the active cell.
+
+.. topic:: Note:
+
+   Pressing 'r' will center the image in the cell.
 
 Arranging Cells
 ^^^^^^^^^^^^^^^

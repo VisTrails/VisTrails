@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -50,6 +50,7 @@ class BaseView(object):
         self.set_default_layout()
         self.action_links = {}
         self.action_defaults = {}
+        BaseView.set_action_defaults(self)
         self.set_action_defaults()
         self.set_action_links()
         self.detachable = False
@@ -62,8 +63,14 @@ class BaseView(object):
         raise Exception("Class must define the action links")
 
     def set_action_defaults(self):
-        raise Exception("Class must define the action defaults")
-    
+        self.action_defaults.update(
+            {'history'    : [('setEnabled', False, True)],
+             'search'     : [('setEnabled', False, True)],
+             'explore'    : [('setEnabled', False, True)],
+             'provenance' : [('setEnabled', False, True)],
+             'mashup'     : [('setEnabled', False, True)]
+             })
+
     def set_title(self, title):
         self.title = title
 

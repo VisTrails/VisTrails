@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -42,7 +42,9 @@ from core.vistrail.vistrail import Vistrail
 
 from gui.base_view import BaseView
 from gui.common_widgets import QSearchBox
+from gui.modules import get_query_widget_class
 from gui.pipeline_view import QPipelineView
+from gui.ports_pane import ParameterEntry
 from gui.theme import CurrentTheme
 from gui.version_view import QVersionTreeView
 from gui.vistrail_controller import VistrailController
@@ -54,13 +56,13 @@ class QueryController(object):
         self.search = None
         self.search_str = None
         self.search_pipeline = None
-        self.vistrail = None
+        self.vt_controller = None
 
     def set_query_view(self, query_view=None):
         self.query_view = query_view
     
-    def set_vistrail(self, vistrail):
-        self.vistrail = vistrail
+    def set_vistrail_controller(self, vt_controller):
+        self.vt_controller = vt_controller
 
     def set_search(self, search_str=None):
         """ set_search(search_str: str) -> None
@@ -72,27 +74,35 @@ class QueryController(object):
         if search_str is None:
             search_str = self.query_view.query_box.getCurrentText()
         if self.search_str != search_str or \
-                self.search_pipeline != search_pipeline:
+                self.search_pipeline != search_pipeline or \
+                self.query_view.p_controller.changed:
             self.search_str = search_str
             self.search_pipeline = search_pipeline
+            # reset changed here
+            self.query_view.p_controller.set_changed(False)
             vt_controller = self.query_view.vt_controller
             versions_to_check = \
                 set(vt_controller._current_terse_graph.vertices.iterkeys())
             self.search = CombinedSearch(search_str, search_pipeline,
                                          versions_to_check)
-            self.search.run(self.vistrail, '')
-            if self.refine:
-                self.recompute_terse_graph()
+            self.search.run(self.vt_controller.vistrail, '')
+            # if self.refine:
+            self.recompute_terse_graph()
             self.invalidate_version_tree(True)
             
             result_entities = []
-            entity = self.search.getResultEntity(self.vistrail,
+            entity = self.search.getResultEntity(self.vt_controller.vistrail,
                                                  versions_to_check)
             if entity is not None:
                 result_entities.append(entity)
 
             from gui.vistrails_window import _app
             _app.notify("search_changed", result_entities)
+        else:
+            self.query_view.set_display_view(
+                self.query_view.VERSION_RESULT_VIEW)
+            self.query_view.query_box.backButton.setEnabled(True)
+            
 
         # if self.search != search or self.search_str != text:
         #     self.search = search
@@ -130,12 +140,18 @@ class QueryController(object):
             self.query_view.pipeline_view.controller.current_pipeline)
         self.query_view.set_display_view(self.query_view.VISUAL_SEARCH_VIEW)
         self.query_view.query_box.searchBox.clearSearch()
+        self.query_view.vistrailChanged()
 
         from gui.vistrails_window import _app
         _app.notify("search_changed", None)
 
+    def back_to_search(self):
+        self.query_view.set_display_view(self.query_view.VISUAL_SEARCH_VIEW)
+        self.query_view.query_box.backButton.setEnabled(False)
+
     def invalidate_version_tree(self, *args, **kwargs):
         self.query_view.set_display_view(self.query_view.VERSION_RESULT_VIEW)
+        self.query_view.query_box.backButton.setEnabled(True)
         self.query_view.query_box.setManualResetEnabled(True)
         result_view = self.query_view.version_result_view
         result_view.controller.search = self.search
@@ -144,6 +160,7 @@ class QueryController(object):
 
     def recompute_terse_graph(self, *args, **kwargs):
         self.query_view.set_display_view(self.query_view.VERSION_RESULT_VIEW)
+        self.query_view.query_box.backButton.setEnabled(True)
         self.query_view.query_box.setManualResetEnabled(True)
         result_view = self.query_view.version_result_view
         result_view.controller.search = self.search
@@ -207,6 +224,11 @@ class QQueryBox(QtGui.QWidget):
         radio_layout.addWidget(self.searchCurrent)
         radio_layout.addWidget(self.searchWorkflow)
         self.searchCurrent.setChecked(True)
+        
+        self.backButton = QtGui.QPushButton("Back to Search")
+        self.backButton.setEnabled(False)
+        radio_layout.addStretch(1)
+        radio_layout.addWidget(self.backButton, 0, QtCore.Qt.AlignRight)
         layout.addLayout(radio_layout)
         self.setLayout(layout)
 
@@ -216,6 +238,8 @@ class QQueryBox(QtGui.QWidget):
                      self.executeSearch)
         self.connect(self.searchBox, QtCore.SIGNAL('refineMode(bool)'),
                      self.refineMode)
+        self.connect(self.backButton, QtCore.SIGNAL('clicked()'),
+                     self.backToSearch)
 
     def resetSearch(self, emit_signal=True):
         """
@@ -227,7 +251,11 @@ class QQueryBox(QtGui.QWidget):
             self.emit(QtCore.SIGNAL('textQueryChange(bool)'), False)
         else:
             self.searchBox.clearSearch()
-    
+
+    def backToSearch(self):
+        if self.controller:
+            self.controller.back_to_search()
+
     def executeSearch(self, text):
         """
         executeSearch(text: QString) -> None
@@ -280,7 +308,7 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.vt_controller.set_vistrail(controller.vistrail, None)
         self.version_result_view.set_controller(self.vt_controller)
         self.workflow_result_view.set_controller(self.vt_controller)
-        self.query_controller.set_vistrail(controller.vistrail)
+        self.query_controller.set_vistrail_controller(controller)
 
     def build_widget(self):
         layout = QtGui.QVBoxLayout()
@@ -375,3 +403,10 @@ class QQueryView(QtGui.QWidget, BaseView):
         if query is None:
             self.query_controller.reset_search()
         # FIXME add support for changing the query to something specific
+
+class QueryEntry(ParameterEntry):
+    def __init__(self, port_spec, function=None, parent=None):
+        ParameterEntry.__init__(self, port_spec, function, parent)
+
+    def get_widget(self):
+        return self.build_widget(get_query_widget_class, False)

@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -32,6 +32,7 @@
 ##
 ###############################################################################
 from core import query
+from core.modules.module_registry import get_module_registry
 from core.utils import append_to_dict_of_lists
 import copy
 import re
@@ -147,7 +148,7 @@ class VisualQuery(query.Query):
             append_to_dict_of_lists(candidateFunctions, f.name, f)
 
         for f in target.functions:
-            if not candidateFunctions.has_key(f.name):
+            if f.name not in candidateFunctions:
                 return False
             fNotMatch = True
             candidates = candidateFunctions[f.name]
@@ -159,7 +160,7 @@ class VisualQuery(query.Query):
                     cp = cf.params[pid]
                     p = f.params[pid]                    
                     if not self.matchQueryParam(p, cp):
-                        pMatch= False
+                        pMatch = False
                         break
                 if pMatch:
                     fNotMatch = False
@@ -173,56 +174,65 @@ class VisualQuery(query.Query):
         Check to see if target can match with a query template
         
         """
-        if template.type!=target.type:
+        if (template.type != target.type or
+            template.identifier != target.identifier or 
+            template.namespace != target.namespace):
             return False
-        if template.type=='String':
-            op = template.queryMethod/2
-            caseInsensitive = template.queryMethod%2==0
-            templateStr = template.strValue
-            targetStr = target.strValue
-            if caseInsensitive:
-                templateStr = templateStr.lower()
-                targetStr = targetStr.lower()
+        
+        reg = get_module_registry()
+        desc = reg.get_descriptor_by_name(template.identifier, template.type,
+                                          template.namespace)
+        return desc.module.query_compute(target.strValue, template.strValue,
+                                         template.queryMethod)
 
-            if op==0:
-                return templateStr in targetStr
-            if op==1:
-                return templateStr==targetStr
-            if op==2:
-                try:
-                    mo = re.match(templateStr, targetStr)
-                    if mo!=None:
-                        return mo.end()==len(targetStr)
-                    else:
-                        return False
-                except:
-                    return False
-        else:
-            # FIXME: eval should pretty much never be used
-            if template.strValue.strip()=='':
-                return True
-            realTypeDict = {'Integer': int, 'Float': float}
-            realType = realTypeDict[template.type]
-            try:
-                return realType(template.strValue)==realType(target.strValue)
-            except: # not a constant
-                try:
-                    return bool(eval(target.strValue+' '+template.strValue))
-                except: # not a '<', '>', or '==' expression
-                    try:
-                        s = template.strValue.replace(' ', '')
-                        if s[0]=='(':
-                            mid1 = '<%s)' % target.strValue
-                        if s[0]=='[':
-                            mid1 = '<=%s)' % target.strValue
-                        if s[-1]==')':
-                            mid2 = '(%s<' % target.strValue
-                        if s[-1]==']':
-                            mid2 = '(%s<=' % target.strValue
+        # if template.type=='String':
+        #     op = template.queryMethod/2
+        #     caseInsensitive = template.queryMethod%2==0
+        #     templateStr = template.strValue
+        #     targetStr = target.strValue
+        #     if caseInsensitive:
+        #         templateStr = templateStr.lower()
+        #         targetStr = targetStr.lower()
+
+        #     if op==0:
+        #         return templateStr in targetStr
+        #     if op==1:
+        #         return templateStr==targetStr
+        #     if op==2:
+        #         try:
+        #             mo = re.match(templateStr, targetStr)
+        #             if mo!=None:
+        #                 return mo.end()==len(targetStr)
+        #             else:
+        #                 return False
+        #         except:
+        #             return False
+        # else:
+        #     # FIXME: eval should pretty much never be used
+        #     if template.strValue.strip()=='':
+        #         return True
+        #     realTypeDict = {'Integer': int, 'Float': float}
+        #     realType = realTypeDict[template.type]
+        #     try:
+        #         return realType(template.strValue)==realType(target.strValue)
+        #     except: # not a constant
+        #         try:
+        #             return bool(eval(target.strValue+' '+template.strValue))
+        #         except: # not a '<', '>', or '==' expression
+        #             try:
+        #                 s = template.strValue.replace(' ', '')
+        #                 if s[0]=='(':
+        #                     mid1 = '<%s)' % target.strValue
+        #                 if s[0]=='[':
+        #                     mid1 = '<=%s)' % target.strValue
+        #                 if s[-1]==')':
+        #                     mid2 = '(%s<' % target.strValue
+        #                 if s[-1]==']':
+        #                     mid2 = '(%s<=' % target.strValue
                             
-                        s = s.replace(',', '%s and %s' % (mid1, mid2))
-                        s = '(' + s[1:-1] + ')'
-                        return eval(s)
-                    except:
-                        print 'Invalid query "%s".' % template.strValue
-                        return False
+        #                 s = s.replace(',', '%s and %s' % (mid1, mid2))
+        #                 s = '(' + s[1:-1] + ')'
+        #                 return eval(s)
+        #             except:
+        #                 print 'Invalid query "%s".' % template.strValue
+        #                 return False

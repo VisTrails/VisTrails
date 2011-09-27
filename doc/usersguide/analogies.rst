@@ -19,7 +19,7 @@ Before explaining either approach, however, let's first set up the vistrail that
 
 .. topic:: Try it now!
 
-   Open the "vtk\_http.vt" vistrail, located in the examples directory of the |vistrails| distribution. Go to the ``History`` view, and select the version labeled ``tetra mesh contour``. This will be our "source" workflow. Execute this workflow, and take a look at the resultant visualization in the Spreadsheet.
+   Open the "vtk\_http.vt" vistrail, located in the examples directory of the |vistrails| distribution. If the ``tetra mesh contour`` version is not selected, go to the ``History`` view and select it. This will be our "source" workflow. Execute this workflow, and take a look at the resultant visualization in the Spreadsheet.
 
    We will now create our "target" workflow.  Switch to the ``Pipeline`` view and add a new module, ``vtkSmoothPolyDataFilter`` between the ``vtkContourFilter`` and ``vtkDataSetMapper`` modules. Your modified pipeline should resemble the one shown in Figure :ref:`fig-analogy_setupa`.
 
@@ -63,20 +63,23 @@ Before explaining either approach, however, let's first set up the vistrail that
 Using the Visual Diff Window
 ============================
 
+.. index:: 
+   pair: analogy; visual diff
+
 By creating an analogy, you're telling |vistrails| to analyze and store the differences between the "source" and "target" versions of a workflow.  Then when you apply that analogy to another (perhaps completely different) version of the workflow, |vistrails| attempts to make similar types of changes to this other workflow.
 
 One way to create an analogy is to run a ``Visual Diff`` between the "source" and "target" workflows. Recall from Chapter :ref:`chap-version_tree` that to perform a ``Visual Diff`` between two versions of a workflow, you need to drag the icon for one version atop the icon for the other. However, in the case of analogies, the sequence is important. In order for the analogy to work correctly, the icon for the *source* version of the workflow must be dragged atop the icon for the *target* version (not vice versa).
 
-In the toolbar of the ``Visual Diff`` window, there is a button whose tooltip is labeled ``Create Analogy`` (Figure :ref:`fig-analogy_diff`).  Clicking the ``Create Analogy`` will open up a dialog that lets you give this analogy a descriptive name. 
+In the toolbar of the ``Diff Properties`` window, there is a button whose tooltip is labeled ``Create Analogy`` (Figure :ref:`fig-analogy_diff`).  Clicking the ``Create Analogy`` will open up a dialog that lets you give this analogy a descriptive name. 
 Once the analogy has a name, you can then apply it to any version of the workflow. This is done by returning to the ``History`` view, and selecting then right-clicking the version you want to apply the analogy to. A menu will appear, showing you a list of available analogies. Choose the one you want, and |vistrails| will attempt to apply the selected analogy to this version of the workflow.
 
 .. _fig-analogy_diff:
 
 .. figure:: figures/analogies/analogy_diff.png
-   :width: 2in
+   :width: 4.5in
    :align: center
 
-   Click the ``Create Analogy`` button in the ``Visual Diff`` window to create a named analogy.
+   Click the ``Create Analogy`` button in the ``Diff Properties`` window to create a named analogy.
 
 .. topic:: Try it now!
 

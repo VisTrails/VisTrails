@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -31,4 +31,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-pass
+
+def get_vistrails_application():
+    import core.application
+    return core.application.get_vistrails_application()
+
+def is_running_gui():
+    return get_vistrails_application().is_running_gui()

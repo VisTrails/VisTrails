@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -73,7 +73,10 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     self._is_abstract: whether module is abstract
     self._configuration_widget: reference to the Qt class that provides a
-      custom configuration widget for the class.
+      custom configuration widget for the class.  Note that this can
+      be a tuple (path, name) that will be loaded only when needed via
+      __import__ (! this is preferred !) or as a QWidget (deprecated)
+
     self._left_fringe and self._right_fringe: lists of 2D points that
       define a drawing style for modules in the GUI
     self._module_color: color of the module in the GUI
@@ -141,6 +144,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             # rather than 'local.abstractions'
             self.ghost_identifier = ''
             self.ghost_package_version = ''
+            self.ghost_namespace = None
         else:
             # FIXME this will break things, I think
             self.children = copy.copy(other.children)
@@ -160,6 +164,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._namespace_hidden = other._namespace_hidden
             self.ghost_identifier = other.ghost_identifier
             self.ghost_package_version = other.ghost_package_version
+            self.ghost_namespace = other.ghost_namespace
         self.port_specs = self.db_portSpecs_name_index
         if self.version is None:
             self.version = ''
@@ -232,6 +237,10 @@ class ModuleDescriptor(DBModuleDescriptor):
         return self._is_abstract
 
     def set_configuration_widget(self, configuration_widget_type):
+        """set_configuration_widget(configuration_widget_type: 
+                                        (path, name) tuple or QWidget) -> None
+        
+        """
         self._configuration_widget = configuration_widget_type
 
     def configuration_widget(self):

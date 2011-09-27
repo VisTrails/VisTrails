@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -50,7 +50,7 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent=parent)
-        self.app = gui.application.VistrailsApplication
+        self.app = gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)

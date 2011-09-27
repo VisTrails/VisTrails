@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -55,7 +55,9 @@ from core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort, \
     MissingPackage
 from core.modules.package import Package
-from core.modules.sub_module import new_abstraction, read_vistrail
+from core.modules.sub_module import new_abstraction, read_vistrail, \
+    get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
+    get_next_abs_annotation_key, save_abstraction
 from core.packagemanager import PackageManager, get_package_manager
 import core.packagerepository
 from core.thumbnails import ThumbnailCache
@@ -75,7 +77,6 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
-from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from db import VistrailsDBException
 from db.domain import IdScope, DBWorkflowExec
 from db.services.io import create_temp_folder, remove_temp_folder
@@ -116,9 +117,6 @@ class VistrailController(object):
         self.flush_pipeline_cache()
         self._current_full_graph = None
         self._current_terse_graph = None
-        self._previous_graph_layout = None
-        self._current_graph_layout = VistrailsTreeLayoutLW()
-        self.animate_layout = False
         self.num_versions_always_shown = 1
 
         # if self.search is True, vistrail is currently being searched
@@ -180,7 +178,7 @@ class VistrailController(object):
             if mashups is not None:
                 self._mashups = mashups
         self.current_version = -1
-        self.current_pipeline = None
+        self.current_pipeline = Pipeline()
         if self.locator != locator and self.locator is not None:
             self.locator.clean_temporaries()
         self.locator = locator
@@ -339,11 +337,16 @@ class VistrailController(object):
                             y=y,
                             )
         if internal_version > -1:
+            # only get the current namespace if this is a local subworkflow
+            if package == abstraction_pkg:
+                namespace = get_cur_abs_namespace(descriptor.module.vistrail)
+            else:
+                namespace = descriptor.namespace
             abstraction_id = id_scope.getNewId(Abstraction.vtType)
             module = Abstraction(id=abstraction_id,
                                  name=descriptor.name,
                                  package=descriptor.identifier,
-                                 namespace=descriptor.namespace,
+                                 namespace=namespace,
                                  version=package.version,
                                  location=location,
                                  internal_version=internal_version,
@@ -423,7 +426,8 @@ class VistrailController(object):
         return self.create_param_static(self.id_scope, *args, **kwargs)
 
     @staticmethod
-    def create_param_static(id_scope, port_spec, pos, value, alias=''):
+    def create_param_static(id_scope, port_spec, pos, value, alias='', 
+                            query_method=None):
         param_id = id_scope.getNewId(ModuleParam.vtType)
         descriptor = port_spec.descriptors()[pos]
         param_type = descriptor.sigstring
@@ -436,13 +440,17 @@ class VistrailController(object):
                                 val=value,
                                 type=param_type,
                                 )
+
+        # FIXME probably should put this in the ModuleParam constructor
+        new_param.queryMethod = query_method
         return new_param
 
     def create_params(self, *args, **kwargs):
         return self.create_params_static(self.id_scope, *args, **kwargs)
 
     @staticmethod
-    def create_params_static(id_scope, port_spec, values, aliases=[]):
+    def create_params_static(id_scope, port_spec, values, aliases=[], 
+                             query_methods=[]):
         params = []
         for i in xrange(len(port_spec.descriptors())):
             if i < len(values):
@@ -453,8 +461,13 @@ class VistrailController(object):
                 alias = str(aliases[i])
             else:
                 alias = ''
+            if i < len(query_methods):
+                query_method = query_methods[i]
+            else:
+                query_method = None
             param = VistrailController.create_param_static(id_scope, port_spec,
-                                                           i, value, alias)
+                                                           i, value, alias,
+                                                           query_method)
             params.append(param)
         return params
 
@@ -463,7 +476,7 @@ class VistrailController(object):
 
     @staticmethod
     def create_function_static(id_scope, module, function_name, 
-                               param_values=[], aliases=[]):
+                               param_values=[], aliases=[], query_methods=[]):
         port_spec = module.get_port_spec(function_name, 'input')
         if len(param_values) <= 0 and port_spec.defaults is not None:
             param_values = port_spec.defaults
@@ -476,7 +489,8 @@ class VistrailController(object):
         new_function.is_valid = True
         new_params = \
             VistrailController.create_params_static(id_scope, port_spec, 
-                                                    param_values, aliases)
+                                                    param_values, aliases,
+                                                    query_methods)
         new_function.add_parameters(new_params)        
         return new_function
 
@@ -583,7 +597,8 @@ class VistrailController(object):
         return op_list
 
     def update_function_ops(self, module, function_name, param_values=[],
-                            old_id=-1L, should_replace=True, aliases=[]):
+                            old_id=-1L, should_replace=True, aliases=[],
+                            query_methods=[]):
         """NOTE: aliases will be removed in the future!"""
         op_list = []
         port_spec = module.get_port_spec(function_name, 'input')
@@ -599,19 +614,27 @@ class VistrailController(object):
             function = module.function_idx[old_id]
             for i, new_param_value in enumerate(param_values):
                 old_param = function.params[i]
-                if (len(aliases) > i and old_param.alias != aliases[i]) or \
-                        (old_param.strValue != new_param_value):
+                if ((len(aliases) > i and old_param.alias != aliases[i]) or
+                    (len(query_methods) > i and 
+                     old_param.queryMethod != query_methods[i]) or
+                    (old_param.strValue != new_param_value)):
                     if len(aliases) > i:
                         alias = aliases[i]
                     else:
                         alias = ''
+                    if len(query_methods) > i:
+                        query_method = query_methods[i]
+                    else:
+                        query_method = None
                     new_param = self.create_param(port_spec, i, 
-                                                  new_param_value, alias)
+                                                  new_param_value, alias,
+                                                  query_method)
                     op_list.append(('change', old_param, new_param,
                                     function.vtType, function.real_id))
         else:
             new_function = self.create_function(module, function_name,
-                                                param_values, aliases)
+                                                param_values, aliases,
+                                                query_methods)
             op_list.append(('add', new_function,
                             module.vtType, module.id))        
         return op_list
@@ -632,7 +655,7 @@ class VistrailController(object):
             op_list.extend(self.update_function_ops(module, *f))
         return op_list
 
-    def update_parameter(self, old_param, new_value):
+    def create_updated_parameter(self, old_param, new_value):
         """update_parameter(old_param: ModuleParam, new_value: str)
               -> ModuleParam
         Generates a change parameter action if the value is different
@@ -670,6 +693,398 @@ class VistrailController(object):
             else:
                 op_list.append(('add', annotation, module.vtType, module.id))
         return op_list
+
+    def check_subworkflow_versions(self, changed_subworkflow_desc):
+        if self.current_pipeline is not None:
+            self.current_pipeline.check_subworkflow_versions()
+
+    @vt_action
+    def add_module_action(self, module):
+        if not self.current_pipeline:
+            raise Exception("No version is selected")
+        action = core.db.action.create_action([('add', module)])
+        return action
+
+    def add_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
+                                   internal_version=-1):
+        module = self.create_module_from_descriptor(descriptor, x, y, 
+                                                    internal_version)
+        action = self.add_module_action(module)
+        return module
+
+
+    def add_module(self, identifier, name, namespace='', x=0.0, y=0.0, 
+                   internal_version=-1):
+        """ addModule(x: int, y: int, identifier, name: str, namespace='') 
+               -> Module
+        Add a new module into the current pipeline
+        
+        """
+        module = self.create_module(identifier, name, namespace, x, y,
+                                    internal_version)
+        action = self.add_module_action(module)
+        return module
+            
+    def delete_module(self, module_id):
+        """ delete_module(module_id: int) -> version id
+        Delete a module from the current pipeline
+        
+        """
+        return self.delete_module_list([module_id])
+
+    def create_module_list_deletion_action(self, pipeline, module_ids):
+        """ create_module_list_deletion_action(
+               pipeline: Pipeline,
+               module_ids: [int]) -> Action
+        Create action that will delete multiple modules from the given pipeline.
+
+        """
+        ops = self.delete_module_list_ops(pipeline, module_ids)
+        return core.db.action.create_action(ops)
+
+    @vt_action
+    def delete_module_list(self, module_ids):
+        """ delete_module_list(module_ids: [int]) -> [version id]
+        Delete multiple modules from the current pipeline
+        
+        """
+        action = self.create_module_list_deletion_action(self.current_pipeline,
+                                                         module_ids)
+        return action
+
+    def move_module_list(self, move_list):
+        """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
+        Move all modules to a new location. No flushMoveActions is
+        allowed to to emit to avoid recursive actions
+        
+        """
+        action_list = []
+        for (id, x, y) in move_list:
+            module = self.current_pipeline.get_module_by_id(id)
+            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+            location = Location(id=loc_id,
+                                x=x, 
+                                y=y,
+                                )
+            if module.location and module.location.id != -1:
+                old_location = module.location
+                action_list.append(('change', old_location, location,
+                                    module.vtType, module.id))
+            else:
+                # probably should be an error
+                action_list.append(('add', location, module.vtType, module.id))
+        action = core.db.action.create_action(action_list)
+        self.add_new_action(action)
+        return self.perform_action(action)
+
+    @vt_action
+    def add_connection_action(self, connection):
+        action = core.db.action.create_action([('add', connection)])
+        return action
+
+    def add_connection(self, output_id, output_port_spec, 
+                       input_id, input_port_spec):
+        """ add_connection(output_id: long,
+                           output_port_spec: PortSpec | str,
+                           input_id: long,
+                           input_port_spec: PortSpec | str) -> Connection
+        Add a new connection into Vistrail
+        
+        """
+        connection = \
+            self.create_connection_from_ids(output_id, output_port_spec, 
+                                            input_id, input_port_spec)
+        action = self.add_connection_action(connection)
+        return connection
+    
+    def delete_connection(self, id):
+        """ delete_connection(id: int) -> version id
+        Delete a connection with id 'id'
+        
+        """
+        return self.delete_connection_list([id])
+
+    @vt_action
+    def delete_connection_list(self, connect_ids):
+        """ delete_connection_list(connect_ids: list) -> version id
+        Delete a list of connections
+        
+        """
+        action_list = []
+        for c_id in connect_ids:
+            action_list.append(('delete', 
+                                self.current_pipeline.connections[c_id]))
+        action = core.db.action.create_action(action_list)
+        return action
+
+    @vt_action
+    def add_function_action(self, module, function):
+        action = core.db.action.create_action([('add', function, 
+                                                module.vtType, module.id)])
+        return action
+
+    def add_function(self, module, function_name):
+        function = self.create_function(module, function_name)
+        action = self.add_function_action(module, function)
+        return function
+
+    @vt_action
+    def update_function(self, module, function_name, param_values, old_id=-1L,
+                        aliases=[], query_methods=[]):
+        op_list = self.update_function_ops(module, function_name, param_values,
+                                           old_id, aliases=aliases,
+                                           query_methods=query_methods)
+        action = core.db.action.create_action(op_list)
+        return action
+
+    @vt_action
+    def update_parameter(self, function, old_param_id, new_value):
+        old_param = function.parameter_idx[old_param_id]
+        new_param = self.create_updated_parameter(old_param, new_value)
+        if new_param is None:
+            return None
+        op = ('change', old_param, new_param, 
+              function.vtType, function.real_id)
+        action = core.db.action.create_action([op])
+        return action
+
+    @vt_action
+    def delete_method(self, function_pos, module_id):
+        """ delete_method(function_pos: int, module_id: int) -> version id
+        Delete a method with function_pos from module module_id
+
+        """
+
+        module = self.current_pipeline.get_module_by_id(module_id)
+        function = module.functions[function_pos]
+        action = core.db.action.create_action([('delete', function,
+                                                module.vtType, module.id)])
+        return action
+
+    @vt_action
+    def delete_function(self, real_id, module_id):
+        module = self.current_pipeline.get_module_by_id(module_id)
+        function = module.get_function_by_real_id(real_id)
+        action = core.db.action.create_action([('delete', function,
+                                                module.vtType, module.id)])
+        return action
+
+    @vt_action
+    def delete_annotation(self, key, module_id):
+        """ delete_annotation(key: str, module_id: long) -> version_id
+        Deletes an annotation from a module
+        
+        """
+        module = self.current_pipeline.get_module_by_id(module_id)
+        annotation = module.get_annotation_by_key(key)
+        action = core.db.action.create_action([('delete', annotation,
+                                                module.vtType, module.id)])
+        return action
+
+    @vt_action
+    def add_annotation(self, pair, module_id):
+        """ add_annotation(pair: (str, str), moduleId: int)        
+        Add/Update a key/value pair annotation into the module of
+        moduleId
+        
+        """
+        assert type(pair[0]) == type('')
+        assert type(pair[1]) == type('')
+        if pair[0].strip()=='':
+            return
+
+        module = self.current_pipeline.get_module_by_id(module_id)
+        a_id = self.vistrail.idScope.getNewId(Annotation.vtType)
+        annotation = Annotation(id=a_id,
+                                key=pair[0], 
+                                value=pair[1],
+                                )
+        if module.has_annotation_with_key(pair[0]):
+            old_annotation = module.get_annotation_by_key(pair[0])
+            action = \
+                core.db.action.create_action([('change', old_annotation,
+                                                   annotation,
+                                                   module.vtType, module.id)])
+        else:
+            action = core.db.action.create_action([('add', annotation,
+                                                        module.vtType, 
+                                                        module.id)])
+        return action
+
+    def update_functions_ops_from_ids(self, module_id, functions):
+        module = self.current_pipeline.modules[module_id]
+        return self.update_functions_ops(module, functions)
+
+    def update_port_spec_ops_from_ids(self, module_id, deleted_ports, 
+                                      added_ports):
+        module = self.current_pipeline.modules[module_id]
+        return self.update_port_spec_ops(module, deleted_ports, added_ports)
+
+    @vt_action
+    def update_functions(self, module, functions):
+        op_list = self.update_functions_ops(module, functions)
+        action = core.db.action.create_action(op_list)
+        return action
+
+    @vt_action
+    def update_ports_and_functions(self, module_id, deleted_ports, added_ports,
+                                   functions):
+        op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
+                                                     added_ports)
+        op_list.extend(self.update_functions_ops_from_ids(module_id, functions))
+        action = core.db.action.create_action(op_list)
+        return action
+
+    @vt_action
+    def update_ports(self, module_id, deleted_ports, added_ports):
+        op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
+                                                     added_ports)
+        action = core.db.action.create_action(op_list)
+        return action
+
+    def has_module_port(self, module_id, port_tuple):
+        """ has_module_port(module_id: int, port_tuple: (str, str)): bool
+        Parameters
+        ----------
+        
+        - module_id : 'int'        
+        - port_tuple : (portType, portName)
+
+        Returns true if there exists a module port in this module with given params
+
+        """
+        (type, name) = port_tuple
+        module = self.current_pipeline.get_module_by_id(module_id)
+        return len([x for x in module.db_portSpecs
+                    if x.name == name and x.type == type]) > 0
+
+    @vt_action
+    def add_module_port(self, module_id, port_tuple):
+        """ add_module_port(module_id: int, port_tuple: (str, str, list)
+        Parameters
+        ----------
+        
+        - module_id : 'int'        
+        - port_tuple : (portType, portName, portSpec)
+        
+        """
+        module = self.current_pipeline.get_module_by_id(module_id)
+        p_id = self.vistrail.idScope.getNewId(PortSpec.vtType)
+        port_spec = PortSpec(id=p_id,
+                             type=port_tuple[0],
+                             name=port_tuple[1],
+                             sigstring=port_tuple[2],
+                             )
+        action = core.db.action.create_action([('add', port_spec,
+                                                module.vtType, module.id)])
+        return action
+
+    @vt_action
+    def delete_module_port(self, module_id, port_tuple):
+        """
+        Parameters
+        ----------
+        
+        - module_id : 'int'
+        - port_tuple : (portType, portName, portSpec)
+        
+        """
+        spec_id = -1
+        module = self.current_pipeline.get_module_by_id(module_id)
+        port_spec = module.get_portSpec_by_name((port_tuple[1], port_tuple[0]))
+        action_list = [('delete', port_spec, module.vtType, module.id)]
+        for function in module.functions:
+            if function.name == port_spec.name:
+                action_list.append(('delete', function, 
+                                    module.vtType, module.id))
+        action = core.db.action.create_action(action_list)
+        return action
+
+    def create_group(self, module_ids, connection_ids):
+        self.flush_delayed_actions()
+        (group, connections) = \
+            self.build_group(self.current_pipeline, 
+                             module_ids, connection_ids)
+        op_list = []
+        op_list.extend(('delete', self.current_pipeline.connections[c_id])
+                       for c_id in connection_ids)
+        op_list.extend(('delete', self.current_pipeline.modules[m_id]) 
+                       for m_id in module_ids)
+        op_list.append(('add', group))
+        op_list.extend(('add', c) for c in connections)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+#         for op in action.operations:
+#             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
+        result = self.perform_action(action)
+        return group
+    
+    def create_abstraction(self, module_ids, connection_ids, name):
+        self.flush_delayed_actions()
+        (abstraction, connections) = \
+            self.build_abstraction(self.current_pipeline, 
+                                   module_ids, connection_ids, name)
+        op_list = []
+        op_list.extend(('delete', self.current_pipeline.connections[c_id])
+                       for c_id in connection_ids)
+        op_list.extend(('delete', self.current_pipeline.modules[m_id]) 
+                       for m_id in module_ids)
+        op_list.append(('add', abstraction))
+        op_list.extend(('add', c) for c in connections)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        result = self.perform_action(action)
+        return abstraction
+
+    def create_abstractions_from_groups(self, group_ids):
+        for group_id in group_ids:
+            self.create_abstraction_from_group(group_id)
+
+    def create_abstraction_from_group(self, group_id, name=""):
+        self.flush_delayed_actions()
+        name = self.get_abstraction_name(name)
+        
+        (abstraction, connections) = \
+            self.build_abstraction_from_group(self.current_pipeline, 
+                                              group_id, name)
+
+        op_list = []
+        getter = self.get_connections_to_and_from
+        op_list.extend(('delete', c)
+                       for c in getter(self.current_pipeline, [group_id]))
+        op_list.append(('delete', self.current_pipeline.modules[group_id]))
+        op_list.append(('add', abstraction))
+        op_list.extend(('add', c) for c in connections)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        result = self.perform_action(action)
+        return abstraction
+
+
+    def ungroup_set(self, module_ids):
+        self.flush_delayed_actions()
+        for m_id in module_ids:
+            self.create_ungroup(m_id)
+
+    def create_ungroup(self, module_id):
+        (modules, connections) = \
+            self.build_ungroup(self.current_pipeline, module_id)
+        pipeline = self.current_pipeline
+        old_conn_ids = self.get_module_connection_ids([module_id], 
+                                                      pipeline.graph)
+        op_list = []
+        op_list.extend(('delete', pipeline.connections[c_id]) 
+                       for c_id in old_conn_ids)
+        op_list.append(('delete', pipeline.modules[module_id]))
+        op_list.extend(('add', m) for m in modules)
+        op_list.extend(('add', c) for c in connections)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        res = self.perform_action(action)
+        self.validate(self.current_pipeline, False)
+        return res
+
+
 
     ##########################################################################
     # Methods to access/find pipeline information
@@ -913,7 +1328,7 @@ class VistrailController(object):
                                                       in_module, in_port))
         return connections
 
-    def create_group(self, full_pipeline, module_ids, connection_ids):
+    def build_group(self, full_pipeline, module_ids, connection_ids):
         id_remap = {}
         (pipeline, outside_connections) = \
             self.create_subpipeline(full_pipeline, module_ids, connection_ids,
@@ -930,8 +1345,8 @@ class VistrailController(object):
 
         return (group, connections)
 
-    def create_abstraction(self, full_pipeline, module_ids, connection_ids, 
-                           name):
+    def build_abstraction(self, full_pipeline, module_ids, 
+                          connection_ids, name):
         id_remap = {}
         (pipeline, outside_connections) = \
             self.create_subpipeline(full_pipeline, module_ids, connection_ids, 
@@ -946,7 +1361,7 @@ class VistrailController(object):
         # need to late enable stuff on the abstraction_pkg package
         self.add_abstraction_to_registry(abs_vistrail, abs_fname, name, 
                                          None, "1")
-        namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
+        namespace = get_cur_abs_namespace(abs_vistrail)
         (avg_x, avg_y) = self.get_avg_location([full_pipeline.modules[m_id]
                                                 for m_id in module_ids])
         abstraction = self.create_module(abstraction_pkg, name, namespace, 
@@ -955,7 +1370,7 @@ class VistrailController(object):
                                                           outside_connections)
         return (abstraction, connections)
 
-    def create_abstraction_from_group(self, full_pipeline, group_id, name):
+    def build_abstraction_from_group(self, full_pipeline, group_id, name):
         if name is None:
             return
         group = self.current_pipeline.modules[group_id]
@@ -982,7 +1397,7 @@ class VistrailController(object):
         # need to late enable stuff on the 'local.abstractions' package
         self.add_abstraction_to_registry(abs_vistrail, abs_fname, name,
                                          None, "1")
-        namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
+        namespace = get_cur_abs_namespace(abs_vistrail)
         abstraction = self.create_module(abstraction_pkg, name, namespace, 
                                          group.location.x, group.location.y, 
                                          1L)
@@ -1043,8 +1458,7 @@ class VistrailController(object):
                                     is_global=True, avail_fnames=[]):
         reg = core.modules.module_registry.get_module_registry()
         if namespace is None:
-            namespace = \
-                abs_vistrail.get_annotation('__abstraction_uuid__').value
+            namespace = get_cur_abs_namespace(abs_vistrail)
 
         if module_version is None:
             module_version = -1L
@@ -1059,14 +1473,16 @@ class VistrailController(object):
             vistrail_id_scope = self.id_scope
             self.id_scope = abs_vistrail.idScope
             (new_version, new_pipeline) = \
-                self.handle_invalid_pipeline(e, long(module_version), 
-                                             abs_vistrail, False)
-            core.db.io.save_vistrail_to_xml(abs_vistrail, abs_fname)
+                self.handle_invalid_pipeline(e, long(module_version), \
+                                                 abs_vistrail, False)
+            save_abstraction(abs_vistrail, abs_fname)
             self.set_changed(True)
             self.id_scope = vistrail_id_scope
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                           new_version, new_pipeline)
             module_version = str(new_version)
+
+        all_namespaces = get_all_abs_namespaces(abs_vistrail)
 
         old_desc = None
         if is_global:
@@ -1079,16 +1495,26 @@ class VistrailController(object):
                 pass
 
         hide_descriptor = not is_global or old_desc is not None
-        new_desc = reg.auto_add_module((abstraction, 
-                                        {'package': abstraction_pkg,
-                                         'package_version': abstraction_ver,
-                                         'namespace': namespace,
-                                         'version': str(module_version),
-                                         'hide_namespace': True,
-                                         'hide_descriptor': hide_descriptor,
-                                         }))
-        reg.auto_add_ports(abstraction)
+        for namespace in all_namespaces:
+            # print '()()() adding abstraction', namespace
+            if reg.has_descriptor_with_name(abstraction_pkg, 
+                                            name, 
+                                            namespace,
+                                            abstraction_ver, 
+                                            str(module_version)):
+                # don't add something twice
+                continue
+            new_desc = reg.auto_add_module((abstraction, 
+                                            {'package': abstraction_pkg,
+                                             'package_version': abstraction_ver,
+                                             'namespace': namespace,
+                                             'version': str(module_version),
+                                             'hide_namespace': True,
+                                             'hide_descriptor': hide_descriptor,
+                                             }))
+            reg.auto_add_ports(abstraction)
         if old_desc is not None:
+            # print '$$$ calling update_module'
             reg.update_module(old_desc, new_desc)
         return new_desc
 
@@ -1114,13 +1540,13 @@ class VistrailController(object):
             abs_vistrail = read_vistrail(abs_fname)
             self._loaded_abstractions[abs_fname] = abs_vistrail
         
-        abstraction_uuid = abs_vistrail.get_annotation('__abstraction_uuid__')
+        # print "LOAD_VT NAMESPACES:", get_all_abs_namespaces(abs_vistrail)
+
+        abstraction_uuid = get_cur_abs_namespace(abs_vistrail)
         if abstraction_uuid is None:
             # No current uuid exists - generate one
             abstraction_uuid = str(uuid.uuid1())
             abs_vistrail.set_annotation('__abstraction_uuid__', abstraction_uuid)
-        else:
-            abstraction_uuid = abstraction_uuid.value
         origin_uuid = abs_vistrail.get_annotation('__abstraction_origin_uuid__')
         if origin_uuid is None:
             # No origin uuid exists - set to current uuid (for backwards compatibility)
@@ -1142,8 +1568,8 @@ class VistrailController(object):
             old_version = module_version
             module_version = str(upgrade_version)
         
-        desc = self.get_abstraction_desc(abstraction_pkg, abs_name, abstraction_uuid,
-                                         module_version)
+        desc = self.get_abstraction_desc(abstraction_pkg, abs_name, 
+                                         abstraction_uuid, module_version)
         if desc is None:
             print "adding version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to registry"
             desc = self.add_abstraction_to_registry(abs_vistrail, abs_fname, 
@@ -1151,7 +1577,7 @@ class VistrailController(object):
                                                     module_version, 
                                                     is_global, avail_fnames)
             if desc.version != module_version:
-                print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version
+                print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
         else:
             if upgrade_version is not None:
                 print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
@@ -1160,27 +1586,41 @@ class VistrailController(object):
         return desc
     
     def unload_abstractions(self):
+        reg = core.modules.module_registry.get_module_registry()
         for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
-            abs_desc_info = abs_vistrail.get_annotation('__abstraction_descriptor_info__')
-            if abs_desc_info is not None:
-                abs_desc_info = eval(abs_desc_info.value)
-                # Don't unload package abstractions that have been upgraded by this controller (during a manual version upgrade)
-                # because that would also unload the version in the module palette
-                if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
-                    continue
             abs_name = self.parse_abstraction_name(abs_fname)
-            abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
-            try:
-                descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
-                print "removing all versions of", abs_name, "from registry (namespace: %s)"%abs_namespace
-                while descriptor is not None:
-                    reg = core.modules.module_registry.get_module_registry()
+            # FIXME? do we need to remove all versions (call
+            # delete_module over and over?)
+            for namespace in get_all_abs_namespaces(abs_vistrail):
+                try:
                     reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
-                    descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
-            except:
-                # No versions of the abstraction exist in the registry now
-                pass
+                except:
+                    pass
         self._loaded_abstractions.clear()
+
+        # for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
+        #     abs_desc_info = abs_vistrail.get_annotation('__abstraction_descriptor_info__')
+        #     if abs_desc_info is not None:
+        #         abs_desc_info = eval(abs_desc_info.value)
+        #         # Don't unload package abstractions that have been
+        #         # upgraded by this controller (during a manual version
+        #         # upgrade) because that would also unload the version
+        #         # in the module palette
+        #         if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
+        #             continue
+        #     abs_name = self.parse_abstraction_name(abs_fname)
+        #     abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
+        #     try:
+        #         descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
+        #         print "removing all versions of", abs_name, "from registry (namespace: %s)"%abs_namespace
+        #         while descriptor is not None:
+        #             reg = core.modules.module_registry.get_module_registry()
+        #             reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
+        #             descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
+        #     except:
+        #         # No versions of the abstraction exist in the registry now
+        #         pass
+        # self._loaded_abstractions.clear()
 
 #    def update_abstraction(self, abstraction, new_actions):
 #        module_version = abstraction.internal_version
@@ -1233,24 +1673,31 @@ class VistrailController(object):
             raise VistrailsInternalError("Abstraction with name '%s' already "
                                          "exists" % name)
         
-        # Set uuid's (this is somewhat tricky because of backwards compatibility - there was
-        # originally only '__abstraction_uuid__' and no origin, so we have to handle cases
-        # where a uuid is set, but hasn't been set as the origin yet).
+        # Set uuid's (this is somewhat tricky because of backwards
+        # compatibility - there was originally only
+        # '__abstraction_uuid__' and no origin, so we have to handle
+        # cases where a uuid is set, but hasn't been set as the origin
+        # yet).
+        new_uuid = str(uuid.uuid1())
         if vistrail.get_annotation('__abstraction_origin_uuid__') is None:
             # No origin uuid exists
             current_uuid = vistrail.get_annotation('__abstraction_uuid__')
             if current_uuid is None:
-                # No current uuid exists - generate one and use it as origin and current uuid
-                new_uuid = str(uuid.uuid1())
+                # No current uuid exists - generate one and use it as
+                # origin and current uuid
                 vistrail.set_annotation('__abstraction_origin_uuid__', new_uuid)
-                vistrail.set_annotation('__abstraction_uuid__', new_uuid)
+                # vistrail.set_annotation('__abstraction_uuid__', new_uuid)
             else:
-                # A current uuid exists - set it as origin and generate a new current uuid
-                vistrail.set_annotation('__abstraction_origin_uuid__', current_uuid.value)
-                vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
-        else:
-            # Origin uuid exists - just generate a new current uuid
-            vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
+                # A current uuid exists - set it as origin and
+                # generate a new current uuid
+                vistrail.set_annotation('__abstraction_origin_uuid__', 
+                                        current_uuid.value)
+                # vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
+        # else:
+        #     # Origin uuid exists - just generate a new current uuid
+        #     vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
+        annotation_key = get_next_abs_annotation_key(vistrail)
+        vistrail.set_annotation(annotation_key, new_uuid)
 
         if save_dir is None:
             save_dir = self.get_abstraction_dir()
@@ -1262,7 +1709,8 @@ class VistrailController(object):
         return vt_fname
 
     def upgrade_abstraction_module(self, module_id, test_only=False):
-        """upgrade_abstraction_module(module_id, test_only) -> None or (preserved: bool, missing_ports: list)
+        """upgrade_abstraction_module(module_id, test_only) -> None or
+        (preserved: bool, missing_ports: list)
 
         If test_only is False, attempts to automatically upgrade an
         abstraction by adding a new abstraction with the current package
@@ -1281,14 +1729,22 @@ class VistrailController(object):
         """
         # get the new descriptor first
         invalid_module = self.current_pipeline.modules[module_id]
+        # make sure that we don't get an obselete descriptor
+        invalid_module._module_descriptor = None
         abs_fname = invalid_module.module_descriptor.module.vt_fname
-        (path, prefix, abs_name, abs_namespace, suffix) = self.parse_abstraction_name(abs_fname, True)
+        print "&&& abs_fname", abs_fname
+        (path, prefix, abs_name, abs_namespace, suffix) = \
+            self.parse_abstraction_name(abs_fname, True)
+        # abs_vistrail = invalid_module.vistrail
+        abs_vistrail = read_vistrail(abs_fname)
+        abs_namespace = get_cur_abs_namespace(abs_vistrail)
         lookup = {(abs_name, abs_namespace): abs_fname}
         descriptor_info = invalid_module.descriptor_info
-        newest_version = str(invalid_module.vistrail.get_latest_version())
+        newest_version = str(abs_vistrail.get_latest_version())
+        print '&&& check_abstraction', abs_namespace, newest_version
         d = self.check_abstraction((descriptor_info[0],
                                     descriptor_info[1],
-                                    descriptor_info[2],
+                                    abs_namespace,
                                     descriptor_info[3],
                                     newest_version),
                                    lookup)
@@ -1389,7 +1845,8 @@ class VistrailController(object):
         abs_fname = self.save_abstraction(abs_vistrail, new_name)
         # Duplicate the vistrail and set the uuid and descriptor annotation back on the original vistrail
         imported_vistrail = read_vistrail(abs_fname)
-        abs_vistrail.set_annotation('__abstraction_uuid__', namespace)
+        annotation_key = get_next_abs_annotation_key(abs_vistrail)
+        abs_vistrail.set_annotation(annotation_key, namespace)
         if abs_desc_info is not None:
             abs_vistrail.set_annotation('__abstraction_descriptor_info__', abs_desc_info.value)
         #if new_name == name and package == abstraction_pkg:
@@ -1519,7 +1976,7 @@ class VistrailController(object):
             for abstraction in abstraction_list:
                 abstraction.module_descriptor = descriptor
             
-    def create_ungroup(self, full_pipeline, module_id):
+    def build_ungroup(self, full_pipeline, module_id):
 
         group = full_pipeline.modules[module_id]
         if group.vtType == Group.vtType:
@@ -1835,22 +2292,19 @@ class VistrailController(object):
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
-        self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
-        self._current_graph_layout.layout_from(self.vistrail,
-                                               self._current_terse_graph)
         
-    def refine_graph(self, step=1.0):
-        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
-        Refine the graph of the current vistrail based the search
-        status of the controller. It also return the full graph as a
-        reference
+    # def refine_graph(self, step=1.0):
+    #     """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
+    #     Refine the graph of the current vistrail based the search
+    #     status of the controller. It also return the full graph as a
+    #     reference
                      
-        """
+    #     """
         
-        if self._current_full_graph is None:
-            self.recompute_terse_graph()
-        return (self._current_terse_graph, self._current_full_graph,
-                self._current_graph_layout)
+    #     if self._current_full_graph is None:
+    #         self.recompute_terse_graph()
+    #     return (self._current_terse_graph, self._current_full_graph,
+    #             self._current_graph_layout)
 
     def get_latest_version_in_graph(self):
         if not self._current_terse_graph:
@@ -2464,62 +2918,93 @@ class VistrailController(object):
             if locator:
                 locator.save_temporary(self.vistrail)
 
+    def write_abstractions(self, locator, save_bundle, abstractions, 
+                           abs_save_dir):
+        def make_abstraction_path_unique(abs_fname, namespace):
+            # Constructs the abstraction name using the namespace to
+            # prevent conflicts and copies the abstraction to the new
+            # path so save_bundle has a valid file
+            path, prefix, absname, old_ns, suffix = \
+                self.parse_abstraction_name(abs_fname, True)
+            new_abs_fname = os.path.join(abs_save_dir, 
+                                         '%s%s(%s)%s' % (prefix, absname, 
+                                                         namespace, suffix))
+            # print " $@$@$ new_abs_fname:", new_abs_fname
+            shutil.copy(abs_fname, new_abs_fname)
+            return new_abs_fname
+
+        included_abstractions = {}
+        for abstraction_list in abstractions.itervalues():
+            for abstraction in abstraction_list:
+                abs_module = abstraction.module_descriptor.module
+                namespaces = set(get_all_abs_namespaces(abstraction.vistrail))
+                if abs_module is not None:
+                    abs_fname = abs_module.vt_fname
+                    path, prefix, abs_name, old_ns, suffix = \
+                        self.parse_abstraction_name(abs_fname, True)
+                    # do our indexing by abstraction name
+                    # we know that abstractions with different names
+                    # cannot overlap, but those that have the same
+                    # name may or may not
+                    if abs_name not in included_abstractions:
+                        included_abstractions[abs_name] = [(abstraction, 
+                                                            namespaces)]
+                    else:
+                        # only keep abstractions that don't repeat what
+                        # others already cover
+                        new_list = []
+                        found = False
+                        for (i_abs, i_namespaces) in \
+                                included_abstractions[abs_name]:
+                            if not (i_namespaces < namespaces):
+                                new_list.append((i_abs, i_namespaces))
+                            if i_namespaces >= namespaces:
+                                found = True
+                        # only add new one once
+                        if not found:
+                            new_list.append((abstraction, namespaces))
+                        included_abstractions[abs_name] = new_list
+
+        for abs_name, abstraction_list in included_abstractions.iteritems():
+            for (abstraction, _) in abstraction_list:
+                abs_module = abstraction.module_descriptor.module
+                if abs_module is None:
+                    continue
+                abs_fname = abs_module.vt_fname
+                if not os.path.exists(abs_fname):
+                    # Write vistrail to disk if the file no longer
+                    # exists (if temp file was deleted)
+                    if abs_save_dir is None:
+                        abs_save_dir = \
+                            tempfile.mkdtemp(prefix='vt_abs')
+                    abs_fname = os.path.join(abs_save_dir, 
+                                             abstraction.name + '.xml')
+                    save_abstraction(abstraction.vistrail, abs_fname)
+                namespace = get_cur_abs_namespace(abstraction.vistrail)
+                abs_unique_name = make_abstraction_path_unique(abs_fname,
+                                                               namespace)
+                save_bundle.abstractions.append(abs_unique_name)
+                                
     def write_vistrail(self, locator, version=None):
         """write_vistrail(locator,version) -> Boolean
         It will return a boolean that tells if the tree needs to be 
         invalidated"""
-        def make_abstraction_path_unique(abs_save_dir, abs_fname, namespace):
-            # Constructs the abstraction name using the namespace to prevent conflicts
-            # and copies the abstraction to the new path so save_bundle has a valid file
-            if abs_save_dir is None:
-                abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
-            path, prefix, absname, old_ns, suffix = self.parse_abstraction_name(abs_fname, True)
-            new_abs_fname = os.path.join(abs_save_dir, prefix + absname + '(' + namespace + ')' + suffix)
-            shutil.copy(abs_fname, new_abs_fname)
-            return (abs_save_dir, new_abs_fname)
         result = False 
         if self.vistrail and (self.changed or self.locator != locator):
-            abs_save_dir = None
+            # FIXME create this on-demand?
+            abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
             is_abstraction = self.vistrail.is_abstraction
+            if is_abstraction and self.changed:
+                new_namespace = str(uuid.uuid1())
+                annotation_key = get_next_abs_annotation_key(self.vistrail)
+                self.vistrail.set_annotation(annotation_key, new_namespace)
             save_bundle = SaveBundle(self.vistrail.vtType)
             save_bundle.vistrail = self.vistrail
             if self.log and len(self.log.workflow_execs) > 0:
                 save_bundle.log = self.log
             abstractions = self.find_abstractions(self.vistrail, True)
-            included_abstractions = set()
-            for abstraction_list in abstractions.itervalues():
-                for abstraction in abstraction_list:
-                    abs_module = abstraction.module_descriptor.module
-                    if abs_module is not None:
-                        abs_fname = abs_module.vt_fname
-                        if abs_fname not in included_abstractions:
-                            included_abstractions.add(abs_fname)
-                            if not os.path.exists(abs_fname):
-                                # Write vistrail to disk if the file no longer exists (if temp file was deleted)
-                                if abs_save_dir is None:
-                                    abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
-                                abs_fname = os.path.join(abs_save_dir, abstraction.name + '.xml')
-                                core.db.io.save_vistrail_to_xml(abstraction.vistrail, abs_fname)
-                            # Retrieve the namespace
-                            old_namespace = abstraction.vistrail.get_annotation('__abstraction_uuid__').value
-                            new_namespace = old_namespace
-                            if self.locator != locator:
-                                # Need to set origin for abstractions that are stored with vistrail
-                                origin_namespace = abstraction.vistrail.get_annotation('__abstraction_origin_uuid__')
-                                if origin_namespace is None:
-                                    abstraction.vistrail.set_annotation('__abstraction_origin_uuid__', old_namespace)
-                                # Generate new namespace for abstraction when creating new save or copying an upgraded package abstraction
-                                new_namespace = str(uuid.uuid1())
-                                abstraction.vistrail.set_annotation('__abstraction_uuid__', new_namespace)
-                                core.db.io.save_vistrail_to_xml(abstraction.vistrail, abs_fname)
-                                # Temporarily set uuid back so abstractions are unloaded properly.
-                                # This won't affect objects in memory since the new abstractions will be
-                                # entirely reloaded from the saved file.
-                                abstraction.vistrail.set_annotation('__abstraction_uuid__', old_namespace)
-                            # Copy the abstraction to a unique pathname
-                            abs_save_dir, abs_unique_name = make_abstraction_path_unique(abs_save_dir, abs_fname, new_namespace)
-                            save_bundle.abstractions.append(abs_unique_name)
-
+            self.write_abstractions(locator, save_bundle, abstractions, 
+                                    abs_save_dir)
             thumb_cache = ThumbnailCache.getInstance()
             if thumb_cache.conf.autoSave:
                 save_bundle.thumbnails = self.find_thumbnails(
@@ -2535,16 +3020,19 @@ class VistrailController(object):
                 log = Log()
                 if type(self.locator) == core.db.locator.DBLocator:
                     connection = self.locator.get_connection()
-                    db_log = open_vt_log_from_db(connection, self.vistrail.db_id)
+                    db_log = open_vt_log_from_db(connection, 
+                                                 self.vistrail.db_id)
                     Log.convert(db_log)
                     for workflow_exec in db_log.workflow_execs:
-                        workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
+                        workflow_exec.db_id = \
+                            log.id_scope.getNewId(DBWorkflowExec.vtType)
                         log.db_add_workflow_exec(workflow_exec)
                 # add recent log entries
                 if self.log and len(self.log.workflow_execs) > 0:
                     for workflow_exec in self.log.db_workflow_execs:
                         workflow_exec = copy.copy(workflow_exec)
-                        workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
+                        workflow_exec.db_id = \
+                            log.id_scope.getNewId(DBWorkflowExec.vtType)
                         log.db_add_workflow_exec(workflow_exec)
                 if len(log.workflow_execs) > 0:
                     save_bundle.log = log
@@ -2552,8 +3040,14 @@ class VistrailController(object):
                 self.locator = locator
                 save_bundle = self.locator.save_as(save_bundle, version)
                 new_vistrail = save_bundle.vistrail
-                self.unload_abstractions() # Unload abstractions from old namespace
-                self.ensure_abstractions_loaded(new_vistrail, save_bundle.abstractions) # Load all abstractions from new namespaces
+
+                # DAK don't think is necessary since we have a new
+                # namespace for an abstraction on each save
+                # Unload abstractions from old namespace
+                # self.unload_abstractions() 
+                # Load all abstractions from new namespaces
+                self.ensure_abstractions_loaded(new_vistrail, 
+                                                save_bundle.abstractions) 
                 if type(self.locator) == core.db.locator.DBLocator:
                     new_vistrail.db_log_filename = None
                 self.set_file_name(locator.name)
@@ -2561,18 +3055,28 @@ class VistrailController(object):
                     old_locator.clean_temporaries()
                     old_locator.close()
                 self.flush_pipeline_cache()
-                self.change_selected_version(new_vistrail.db_currentVersion, from_root=True)
+                self.change_selected_version(new_vistrail.db_currentVersion, 
+                                             from_root=True)
             else:
                 save_bundle = self.locator.save(save_bundle)
                 new_vistrail = save_bundle.vistrail
-                self.ensure_abstractions_loaded(new_vistrail, save_bundle.abstractions) # Load any abstractions that were given new namespaces
+                # Load any abstractions that were given new namespaces
+                self.ensure_abstractions_loaded(new_vistrail, 
+                                                save_bundle.abstractions)
             # FIXME abstractions only work with FileLocators right now
             if is_abstraction:
                 new_vistrail.is_abstraction = True
                 if ( type(self.locator) == core.db.locator.XMLFileLocator or
                      type(self.locator) == core.db.locator.ZIPFileLocator ):
                     filename = self.locator.name
+                    if filename in self._loaded_abstractions:
+                        del self._loaded_abstractions[filename]
                     self.load_abstraction(filename, True)
+                    
+                    # reg = core.modules.module_registry.get_module_registry()
+                    # for desc in reg.get_package_by_name('local.abstractions').descriptor_list:
+                    #     print desc.name, desc.namespace, desc.version
+                        
             if id(self.vistrail) != id(new_vistrail):
                 new_version = new_vistrail.db_currentVersion
                 self.set_vistrail(new_vistrail, locator)
@@ -2581,15 +3085,16 @@ class VistrailController(object):
             if self.log:
                 self.log.delete_all_workflow_execs()
             self.set_changed(False)
-            if abs_save_dir is not None:
-                try:
-                    for root, _, files in os.walk(abs_save_dir, topdown=False):
-                        for name in files:
-                            os.remove(os.path.join(root, name))
-                    os.rmdir(abs_save_dir)
-                except OSError, e:
-                    raise VistrailsDBException("Can't remove %s: %s" % \
-                                                   (abs_save_dir, str(e)))
+
+            # delete any temporary subworkflows
+            try:
+                for root, _, files in os.walk(abs_save_dir, topdown=False):
+                    for name in files:
+                        os.remove(os.path.join(root, name))
+                os.rmdir(abs_save_dir)
+            except OSError, e:
+                raise VistrailsDBException("Can't remove %s: %s" % \
+                                               (abs_save_dir, str(e)))
             return result
 
 

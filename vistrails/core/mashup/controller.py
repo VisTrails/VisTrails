@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -57,8 +57,10 @@ class MashupController(object):
         
     def setCurrentVersion(self, version):
         self.currentVersion = version
+        self.vtPipeline = self.vtController.vistrail.getPipeline(self.vtVersion)
         if version > -1:
             self.currentMashup = self.mshptrail.getMashup(version)
+            self.updatePipelineAliasesFromCurrentMashup()
             
     def getVistrailParam(self, alias):
         if self.vtPipeline:

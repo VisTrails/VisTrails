@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -38,7 +38,7 @@ should have no interaction with VisTrail core"""
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from gui.theme import CurrentTheme
-from core.modules.constant_configuration import StandardConstantWidget
+from gui.modules.constant_configuration import StandardConstantWidget
 from core.system import systemType
 ################################################################################
 

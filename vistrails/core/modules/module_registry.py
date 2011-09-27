@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -32,16 +32,16 @@
 ##
 ###############################################################################
 
-from PyQt4 import QtCore
 import __builtin__
 from itertools import izip
 import copy
 import os
 import tempfile
 import traceback
+import uuid
 
+from core import debug, get_vistrails_application
 from core.data_structures.graph import Graph
-from core import debug
 import core.modules
 import core.modules.vistrails_module
 from core.modules.module_descriptor import ModuleDescriptor
@@ -133,81 +133,108 @@ def _toposort_abstractions(package, abstraction_list):
 ###############################################################################
 # ModuleRegistrySignals
 
-# Refactored this because __class__ assignment fails on ModuleRegistry
-# if it inherits from QtCore.QObject
-#class ModuleRegistrySignals(QtCore.QObject):
-class ModuleRegistrySignals():
-    # new_module_signal is emitted with descriptor of new module
-    # / new_module_signal = QtCore.SIGNAL("new_module")
-    # new_abstraction_signal is emitted with descriptor of new abstraction
-    # / new_abstraction_signal = QtCore.SIGNAL("new_abstraction")
-    # new_package_signal is emitted with identifier of new package (only for abstractions)
-    # / new_package_signal = QtCore.SIGNAL("new_package")
-    # deleted_module_signal is emitted with descriptor of deleted module
-    # / deleted_module_signal = QtCore.SIGNAL("deleted_module")
-    # deleted_abstraction_signal is emitted with descriptor of deleted abstraction
-    # / deleted_abstraction_signal = QtCore.SIGNAL("deleted_abstraction")
-    # deleted_package_signal is emitted with package identifier
-    # / deleted_package_signal = QtCore.SIGNAL("deleted_package")
-    # new_input_port_signal is emitted with identifier and name of module, 
-    # new port and spec
-    # / new_input_port_signal = QtCore.SIGNAL("new_input_port_signal")
-    # new_output_port_signal is emitted with identifier and name of module,
-    # new port and spec
-    # / new_output_port_signal = QtCore.SIGNAL("new_output_port_signal")
+class ModuleRegistrySignals(object):
 
-    # /show_module_signal = QtCore.SIGNAL("show_module")
-    # / hide_module_signal = QtCore.SIGNAL("hide_module")
-    # / module_updated_signal = QtCore.SIGNAL("module_updated")
+    # # new_module_signal is emitted with descriptor of new module
+    # new_module_signal = QtCore.SIGNAL("new_module")
+    # # new_abstraction_signal is emitted with descriptor of new abstraction
+    # new_abstraction_signal = QtCore.SIGNAL("new_abstraction")
+    # # new_package_signal is emitted with identifier of new package (only for abstractions)
+    # new_package_signal = QtCore.SIGNAL("new_package")
+    # # deleted_module_signal is emitted with descriptor of deleted module
+    # deleted_module_signal = QtCore.SIGNAL("deleted_module")
+    # # deleted_abstraction_signal is emitted with descriptor of deleted abstraction
+    # deleted_abstraction_signal = QtCore.SIGNAL("deleted_abstraction")
+    # # deleted_package_signal is emitted with package identifier
+    # deleted_package_signal = QtCore.SIGNAL("deleted_package")
+    # # new_input_port_signal is emitted with identifier and name of module, 
+    # # new port and spec
+    # new_input_port_signal = QtCore.SIGNAL("new_input_port_signal")
+    # # new_output_port_signal is emitted with identifier and name of module,
+    # # new port and spec
+    # new_output_port_signal = QtCore.SIGNAL("new_output_port_signal")
+
+    # show_module_signal = QtCore.SIGNAL("show_module")
+    # hide_module_signal = QtCore.SIGNAL("hide_module")
+    # module_updated_signal = QtCore.SIGNAL("module_updated")
 
     def __init__(self):
-        i = 1
-        #QtCore.QObject.__init__(self)
+        app = get_vistrails_application()
+        notifications = ["reg_new_module",
+                         "reg_new_abstraction",
+                         "reg_new_package",
+                         "reg_deleted_module",
+                         "reg_deleted_abstraction",
+                         "reg_deleted_package",
+                         "reg_new_input_port",
+                         "reg_new_output_port",
+                         "reg_show_module",
+                         "reg_hide_module",
+                         "reg_module_updated"]
+
+        for notification in notifications:
+            app.create_notification(notification)
+        
+    def emit_new_module(self, descriptor):
+        app = get_vistrails_application()
+        app.send_notification("reg_new_module", descriptor)
+        # self.emit(self.new_module_signal, descriptor)
+
+    def emit_new_abstraction(self, descriptor):
+        print "<><> EMIT NEW ABSTRACTION", descriptor.package, descriptor.name, descriptor.namespace
+        app = get_vistrails_application()
+        app.send_notification("reg_new_abstraction", descriptor)
+        # self.emit(self.new_abstraction_signal, descriptor)
 
     def emit_new_package(self, identifier, prepend=False):
-         i = 1
-        #self.emit(self.new_package_signal, identifier, prepend)
-
-    def emit_new_module(self, descriptor):
-        i = 1
-        #self.emit(self.new_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_new_package", identifier, prepend)
+        # self.emit(self.new_package_signal, identifier, prepend)        
         
-    def emit_new_abstraction(self, descriptor):
-        i = 1
-        #self.emit(self.new_abstraction_signal, descriptor)
-        
-    def emit_deleted_abstraction(self, descriptor):
-        i = 1
-        #self.emit(self.deleted_abstraction_signal, descriptor)
-    
     def emit_deleted_module(self, descriptor):
-        i = 1
-        #self.emit(self.deleted_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_deleted_module", descriptor)
+        # self.emit(self.deleted_module_signal, descriptor)
 
+    def emit_deleted_abstraction(self, descriptor):
+        app = get_vistrails_application()
+        app.send_notification("reg_deleted_abstraction", descriptor)
+        # self.emit(self.deleted_abstraction_signal, descriptor)
+    
     def emit_deleted_package(self, package):
-        i = 1
-        #self.emit(self.deleted_package_signal, package)
+        app = get_vistrails_application()
+        app.send_notification("reg_deleted_package", package)
+        # self.emit(self.deleted_package_signal, package)
 
     def emit_new_input_port(self, identifier, name, port_name, spec):
-        i = 1
-        #self.emit(self.new_input_port_signal, identifier, name, port_name, spec)
+        app = get_vistrails_application()
+        app.send_notification("reg_new_input_port", identifier, name, 
+                              port_name, spec)
+        # self.emit(self.new_input_port_signal, identifier, name, port_name,
+        #           spec)
 
     def emit_new_output_port(self, identifier, name, port_name, spec):
-        i = 1
-        #self.emit(self.new_output_port_signal, identifier, name, port_name, 
-        #          spec)
+        app = get_vistrails_application()
+        app.send_notification("reg_new_output_port", identifier, name, 
+                              port_name, spec)
+        # self.emit(self.new_output_port_signal, identifier, name, port_name, 
+        #           spec)
 
     def emit_show_module(self, descriptor):
-        i = 1
-        #self.emit(self.show_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_show_module", descriptor)
+        # self.emit(self.show_module_signal, descriptor)
 
     def emit_hide_module(self, descriptor):
-        i = 1
-        #self.emit(self.hide_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_hide_module", descriptor)
+        # self.emit(self.hide_module_signal, descriptor)
 
     def emit_module_updated(self, old_descriptor, new_descriptor):
-        i = 1
-        #self.emit(self.module_updated_signal, old_descriptor, new_descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_module_updated", old_descriptor, 
+                              new_descriptor)
+        # self.emit(self.module_updated_signal, old_descriptor, new_descriptor)
 
 ###############################################################################
 # ModuleRegistry
@@ -437,14 +464,12 @@ class ModuleRegistry(DBRegistry):
             else:
                 self._default_package = None
                 self._current_package = None
-            self._abs_pkg_upgrades = {}
         else:
             self._constant_hasher_map = copy.copy(other._constant_hasher_map)
             self._current_package = \
                 self.packages[other._current_package.identifier]
             self._default_package = \
                 self.packages[other._default_package.identifier]
-            self._abs_pkg_upgrades = copy.copy(other._abs_pkg_upgrades)
 
     def setup_indices(self):
         self.descriptors_by_id = {}
@@ -568,13 +593,31 @@ class ModuleRegistry(DBRegistry):
         self.add_package(self._default_package)
         return self._default_package
 
-    def has_abs_upgrade(self, descriptor_info):
-        return descriptor_info in self._abs_pkg_upgrades
+    def has_abs_upgrade(self, identifier, name, namespace='', 
+                        package_version='', module_version=''):
 
-    def get_abs_upgrade(self, descriptor_info):
-        if self.has_abs_upgrade(descriptor_info):
-            return self._abs_pkg_upgrades[descriptor_info]
-        return None
+        # if this fails, we want to raise the exception
+        try:
+            package = self.get_package_by_name(identifier, package_version)
+        except MissingPackageVersion:
+            package = self.get_package_by_name(identifier)
+        return package.has_abs_upgrade(name, namespace, module_version)
+
+    def get_abs_upgrade(self, identifier, name, namespace='',
+                        package_version='', module_version=''):
+        try:
+            package = self.get_package_by_name(identifier, package_version)
+        except MissingPackageVersion:
+            package = self.get_package_by_name(identifier)
+        return package.get_abs_upgrade(name, namespace, module_version)
+
+    # def has_abs_upgrade(self, descriptor_info):
+    #     return descriptor_info in self._abs_pkg_upgrades
+
+    # def get_abs_upgrade(self, descriptor_info):
+    #     if self.has_abs_upgrade(descriptor_info):
+    #         return self._abs_pkg_upgrades[descriptor_info]
+    #     return None
 
     ##########################################################################
     # Per-module registry functions
@@ -603,13 +646,14 @@ class ModuleRegistry(DBRegistry):
 
     def get_package_by_name(self, identifier, package_version=''):
         package_version = package_version or ''
+        package_version_key = (identifier, package_version)
 #         if package_version is not None and package_version.strip() == "":
 #             package_version = None
         try:
             if not package_version:
                 return self.packages[identifier]
             else:
-                return self.package_versions[(identifier, package_version)]
+                return self.package_versions[package_version_key]
         except KeyError:
             if identifier not in self.packages:
                 raise MissingPackage(identifier)
@@ -667,6 +711,7 @@ class ModuleRegistry(DBRegistry):
         namespace = namespace or ''
         package_version = package_version or ''
         module_version = module_version or ''
+
         try:
             package = self.packages[identifier]
             if package_version:
@@ -944,6 +989,7 @@ class ModuleRegistry(DBRegistry):
           is_root=False,
           ghost_package=None,
           ghost_package_version=None,
+          ghost_namespace=None,
 
         Registers a new module with VisTrails. Receives the class
         itself and an optional name that will be the name of the
@@ -1010,6 +1056,10 @@ class ModuleRegistry(DBRegistry):
         are loaded simultaneously, this will allow overriding of
         the package_version to associate with in the module palette.
 
+        If ghost_namespace is not None, the descriptor will be
+        displayed under the specified namespace instead of the
+        'namespace' attribute of the descriptor.
+
         Notice: in the future, more named parameters might be added to
         this method, and the order is not specified. Always call
         add_module with named parameters.
@@ -1043,6 +1093,7 @@ class ModuleRegistry(DBRegistry):
         is_root = fetch('is_root', False)
         ghost_identifier = fetch('ghost_package', None)
         ghost_package_version = fetch('ghost_package_version', None)
+        ghost_namespace = fetch('ghost_namespace', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError(
@@ -1067,8 +1118,12 @@ class ModuleRegistry(DBRegistry):
             base_descriptor = self.get_descriptor(baseClass)
 
         if module in self._module_key_map:
-            raise DuplicateModule(self.get_descriptor(module), identifier,
-                                  name, namespace)
+            # This is really obsolete as having two descriptors
+            # pointing to the same module isn't a big deal except to
+            # get_descriptor which shouldn't be used often
+            if identifier != 'local.abstractions':
+                raise DuplicateModule(self.get_descriptor(module), identifier,
+                                      name, namespace)
         elif self.has_descriptor_with_name(identifier, name, namespace,
                                            package_version, version):
             raise DuplicateIdentifier(identifier, name, namespace,
@@ -1115,6 +1170,8 @@ class ModuleRegistry(DBRegistry):
             descriptor.ghost_identifier = ghost_identifier
         if ghost_package_version:
             descriptor.ghost_package_version = ghost_package_version
+        if ghost_namespace:
+            descriptor.ghost_namespace = ghost_namespace
                  
         self.signals.emit_new_module(descriptor)
         if self.is_abstraction(descriptor):
@@ -1134,7 +1191,8 @@ class ModuleRegistry(DBRegistry):
             raise TypeError("Expected filename or (filename, kwargs)")
 
     def add_subworkflow(self, vt_fname, **kwargs):
-        from core.modules.sub_module import new_abstraction, read_vistrail
+        from core.modules.sub_module import new_abstraction, read_vistrail, \
+            get_next_abs_annotation_key
 
         # vt_fname is relative to the package path
         if 'package' in kwargs:
@@ -1189,6 +1247,13 @@ class ModuleRegistry(DBRegistry):
                                      package_version, str(version)))
             vt_save_dir = tempfile.mkdtemp(prefix='vt_upgrade_abs')
             vt_fname = os.path.join(vt_save_dir, os.path.basename(vt_fname))
+            
+            
+            # need to create new namespace for upgraded version
+            new_namespace = str(uuid.uuid1())
+            annotation_key = get_next_abs_annotation_key(vistrail)
+            vistrail.set_annotation(annotation_key, new_namespace)
+
             # FIXME: Should delete this upgrade file when vistrails is exited
             save_vistrail_to_xml(vistrail, vt_fname) 
             module = new_abstraction(name, vistrail, vt_fname, new_version, 
@@ -1196,9 +1261,15 @@ class ModuleRegistry(DBRegistry):
             # need to set identifier to local.abstractions and its version
             kwargs['package'] = abstraction_pkg
             kwargs['package_version'] = abstraction_ver
-            # Set ghost attributes so module palette shows it in package instead of 'My Subworkflows'
+            # only want to change the namespace on the new version
+            # (the one being added to local.abstractions)
+            kwargs['namespace'] = new_namespace
+
+            # Set ghost attributes so module palette shows it in
+            # package instead of 'My Subworkflows'
             kwargs['ghost_package'] = identifier
             kwargs['ghost_package_version'] = package_version
+            kwargs['ghost_namespace'] = namespace
             is_upgraded_abstraction = True
                                     
         module.internal_version = str(module.internal_version)
@@ -1211,8 +1282,15 @@ class ModuleRegistry(DBRegistry):
         if is_upgraded_abstraction:
             descriptor_info = (identifier, name, namespace,  
                                package_version, str(version))
-            self._abs_pkg_upgrades[descriptor_info] = descriptor
-            package._abs_pkg_upgrades[descriptor_info] = descriptor
+            # print 'adding to upgrades:', descriptor_info
+            # print '  ', descriptor.package, descriptor.name, descriptor.namespace, descriptor.version, descriptor.package_version
+            if identifier != abstraction_pkg:
+                info_exc = ModuleRegistryException(*descriptor_info)
+                debug.critical("Module %s in package %s is out-of-date.  "
+                               "Please check with the package developer for "
+                               "a new version." % (info_exc._module_name,
+                                                   info_exc._package_name))
+            package.add_abs_upgrade(descriptor, name, namespace, str(version))
             self.auto_add_ports(descriptor.module)
         return descriptor
 
@@ -1450,9 +1528,10 @@ class ModuleRegistry(DBRegistry):
             self.delete_module(*(sigstring.split(':',2)))
         
         # Remove upgraded package subworkflows from registry
-        for descriptor_info, descriptor in package._abs_pkg_upgrades.iteritems():
-            self.delete_module(descriptor.identifier, descriptor.name, descriptor.namespace)
-            del self._abs_pkg_upgrades[descriptor_info]
+        for key, version_dict in package._abs_pkg_upgrades.iteritems():
+            for version, descriptor in version_dict.iteritems():
+                self.delete_module(descriptor.identifier, descriptor.name, 
+                                   descriptor.namespace)
         package._abs_pkg_upgrades.clear()
         
         self.delete_package(package)
@@ -1668,8 +1747,12 @@ class ModuleRegistry(DBRegistry):
 
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
-        return descriptor.configuration_widget()
-        
+        klass = descriptor.configuration_widget()
+        if type(klass) == tuple:
+            (path, klass_name) = klass
+            module = __import__(path, globals(), locals(), [klass_name])
+            klass = getattr(module, klass_name)            
+        return klass
 
     def is_descriptor_subclass(self, sub, super):
         """is_descriptor_subclass(sub : ModuleDescriptor, 

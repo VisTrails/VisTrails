@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -138,9 +138,25 @@
 
 ################################################################################
 
+import xml.sax.saxutils
+
+from core.application import is_running_gui
 from core.utils import memo_method
 
+# convenience method that does the full html extract if PyQt is loaded
+def extract_text(escaped_html_str):
+    notes = xml.sax.saxutils.unescape(escaped_html_str)
+    if is_running_gui():
+        from PyQt4 import QtGui
+        from PyQt4.QtCore import QString
+        fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
+        return str(fragment.toPlainText())
+    else:
+        return str(notes)
  
+# The queries are old and are preserved for reference.  Some code is
+# quite old (references to vis_application, for example).
+
 class Query(object):
 
     def upstream(self, graph, id):

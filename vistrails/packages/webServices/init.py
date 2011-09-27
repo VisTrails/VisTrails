@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -1377,8 +1377,8 @@ next VisTrails release. Please consider using the new SUDS Web Services package.
 This message will not be shown again."
         pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
         try:
-            from gui.application import VistrailsApplication
-            if VistrailsApplication is not None:
+            from gui.application import get_vistrails_application
+            if get_vistrails_application() is not None:
                 configuration.showWarning = False
                 VisTrailsApplication.save_configuration()
         except:

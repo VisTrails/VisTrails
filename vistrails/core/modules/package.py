@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -38,13 +38,13 @@ import os
 import sys
 import traceback
 import xml.dom
-from PyQt4 import QtCore
 
-from core.utils import versions_increasing
-from core.utils.uxml import (named_elements, enter_named_element)
 from core import debug
+from core import get_vistrails_application
 from core.configuration import ConfigurationObject, get_vistrails_configuration
 from core.modules.module_descriptor import ModuleDescriptor
+from core.utils import versions_increasing
+from core.utils.uxml import (named_elements, enter_named_element)
 
 from db.domain import DBPackage
 
@@ -470,6 +470,31 @@ class Package(DBPackage):
             return package._init_module.handle_missing_module(*args, **kwargs)
         return self._init_module.handle_missing_module(*args, **kwargs)
 
+    def add_abs_upgrade(self, new_desc, name, namespace, module_version):
+        key = (name, namespace)
+        if key not in self._abs_pkg_upgrades:
+            self._abs_pkg_upgrades[key] = {}
+        self._abs_pkg_upgrades[key][module_version] = new_desc
+
+    def has_abs_upgrade(self, name, namespace='', module_version=''):
+        key = (name, namespace)
+        if key not in self._abs_pkg_upgrades:
+            return False
+        if module_version and module_version not in self._abs_pkg_upgrades[key]:
+            return False
+        return True
+        
+    def get_abs_upgrade(self, name, namespace='', module_version=''):
+        key = (name, namespace)
+        if key in self._abs_pkg_upgrades:
+            if module_version:
+                if module_version in self._abs_pkg_upgrades[key]:
+                    return self._abs_pkg_upgrades[key][module_version]
+            else:
+                latest_version = max(self._abs_pkg_upgrades[key].iterkeys())
+                return self._abs_pkg_upgrades[key][latest_version]
+        return None
+
     def has_contextMenuName(self):
         # redirect webservices to SUDSWebServices
         if self.identifier.startswith("SUDS#"):
@@ -576,8 +601,7 @@ class Package(DBPackage):
         node. This is done as part of package disable.
 
         """
-        from PyQt4 import QtCore
-        startup = QtCore.QCoreApplication.instance().vistrailsStartup
+        startup = get_vistrails_application().vistrailsStartup
         dom = startup.startup_dom()
         doc = dom.documentElement
 
@@ -611,8 +635,7 @@ class Package(DBPackage):
             element.removeChild(configuration)
         self.configuration = copy.copy(self._initial_configuration)
 
-        from PyQt4 import QtCore
-        startup = QtCore.QCoreApplication.instance().vistrailsStartup
+        startup = get_vistrails_application().vistrailsStartup
         startup.write_startup_dom(dom)
 
     def find_own_dom_element(self):
@@ -622,8 +645,7 @@ class Package(DBPackage):
         and returns DOM and node. Creates a new one if element is not there.
 
         """
-        from PyQt4 import QtCore
-        dom = QtCore.QCoreApplication.instance().vistrailsStartup.startup_dom()
+        dom = get_vistrails_application().vistrailsStartup.startup_dom()
         doc = dom.documentElement
         packages = enter_named_element(doc, 'packages')
         for package_node in named_elements(packages, 'package'):
@@ -636,8 +658,7 @@ class Package(DBPackage):
         package_node.setAttribute('name', self.codepath)
         packages.appendChild(package_node)
 
-        from PyQt4 import QtCore
-        QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
+        get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
         return (dom, package_node)
 
     def load_persistent_configuration(self):
@@ -654,8 +675,7 @@ class Package(DBPackage):
         if child:
             element.removeChild(child)
         self.configuration.write_to_dom(dom, element)
-        from PyQt4 import QtCore
-        QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
+        get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
         dom.unlink()
 
     def create_startup_package_node(self):
@@ -675,7 +695,6 @@ class Package(DBPackage):
             configuration = enter_named_element(oldpackage, 'configuration')
             if configuration:
                 self.configuration.set_from_dom_node(configuration)
-            from PyQt4 import QtCore
-            QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
+            get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
         dom.unlink()
 

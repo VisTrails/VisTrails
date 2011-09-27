@@ -2,7 +2,7 @@
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -42,12 +42,12 @@ from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape
 from gui.theme import CurrentTheme
 from gui.common_widgets import QPromptWidget
+from gui.modules.paramexplore import QParameterEditor
 from gui.paramexplore.param_view import QParameterTreeWidget
 from gui.utils import show_warning
 from core import debug
 from core.modules.basic_modules import Constant
 from core.modules.module_registry import get_module_registry
-from core.modules.paramexplore import QParameterEditor
 from core.system import current_time
 from core.vistrail.module_param import ModuleParam
 import core.db.action
@@ -100,6 +100,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
+                self.setFocus()
                 for item in data.items:
                     self.table.addParameter(item.parameter)
             vsb = self.verticalScrollBar()
