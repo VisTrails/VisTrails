@@ -52,7 +52,7 @@ def switch_to_pipeline_view():
     Changes current viewing mode to pipeline view in the builder window.
 
     """
-    _app.builderWindow.viewModeChanged(0)
+    _app.builderWindow.qactions['pipeline'].trigger()
 
 def switch_to_history_view():
     """switch_to_history_view():
@@ -60,15 +60,15 @@ def switch_to_history_view():
     Changes current viewing mode to history view in the builder window.
 
     """
-    _app.builderWindow.viewModeChanged(1)
-
+    _app.builderWindow.qactions['history'].trigger()
+    
 def switch_to_query_view():
     """switch_to_query_view():
 
     Changes current viewing mode to query view in the builder window.
 
     """
-    _app.builderWindow.viewModeChanged(2)
+    _app.builderWindow.qactions['search'].trigger()
 
 ################################################################################
 # Access to current state
@@ -95,7 +95,7 @@ def get_current_controller():
 
     """
     try:
-        return get_builder_window().viewManager.currentWidget().controller
+        return _app.builderWindow.get_current_controller()
     except AttributeError:
         raise NoVistrail
 
@@ -113,10 +113,13 @@ def get_current_vistrail_view():
     Returns the currently selected vistrail view.
 
     """
-    return get_current_controller().vistrail_view
+    view = _app.builderWindow.get_current_view()
+    if view is None:
+        raise NoVistrail
+    return view    
 
 def close_current_vistrail(quiet=False):
-    get_builder_window().viewManager.closeVistrail(get_current_vistrail_view())
+    _app.builderWindow.close_vistrail(get_current_vistrail_view())
 
 def get_module_registry():
     from core.modules.module_registry import get_module_registry
@@ -128,6 +131,8 @@ def get_module_registry():
 def add_module(x, y, identifier, name, namespace, controller=None):
     if controller is None:
         controller = get_current_controller()
+    if controller.current_version==-1:
+        controller.change_selected_version(0)
     result = controller.add_module(x, y, identifier, name, namespace)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
     result = controller.current_pipeline.modules[result.id]
@@ -137,6 +142,8 @@ def add_module_from_descriptor(descriptor, x=0.0, y=0.0,
                                internal_version=-1, controller=None):
     if controller is None:
         controller = get_current_controller()
+    if controller.current_version==-1:
+        controller.change_selected_version(0)
     result = controller.add_module_from_descriptor(descriptor, x, y, 
                                                    internal_version)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
@@ -283,17 +290,21 @@ def open_vistrail_from_file(filename):
     from core.db.locator import FileLocator
 
     f = FileLocator(filename)
-    
-    manager = get_builder_window().viewManager
-    view = manager.open_vistrail(f)
+    view = get_builder_window().open_vistrail(f)
     return view
 
 def close_vistrail(view, quiet=True):
-    get_builder_window().viewManager.closeVistrail(view, quiet=quiet)
+    """close_vistrail(view: QVistrailView, quiet:bool)-> None
+    Closes vistrail in view. If quiet is True it will discard changes
+    automatically.
+    
+    """
+    get_builder_window().close_vistrail(view, quiet=quiet)
 
 def new_vistrail():
     # Returns VistrailView - remember to be consistent about it..
-    result = _app.builderWindow.viewManager.newVistrail(False)
+    _app.builderWindow.new_vistrail(False)
+    result = _app.builderWindow.get_current_view()
     return result
 
 def get_vistrail_from_file(filename):
@@ -325,15 +336,16 @@ class TestAPI(gui.utils.TestVisTrailsGUI):
         close_vistrail(v)
 
     def test_new_vistrail_button_states(self):
-        assert _app.builderWindow.newVistrailAction.isEnabled()
-        assert not _app.builderWindow.closeVistrailAction.isEnabled()
-        assert not _app.builderWindow.saveFileAction.isEnabled()
-        assert not _app.builderWindow.saveFileAsAction.isEnabled()
-        new_vistrail()
-        assert _app.builderWindow.newVistrailAction.isEnabled()
-        assert _app.builderWindow.closeVistrailAction.isEnabled()
-        assert _app.builderWindow.saveFileAction.isEnabled()
-        assert _app.builderWindow.saveFileAsAction.isEnabled()
+        assert _app.builderWindow.qactions['newVistrail'].isEnabled()
+        assert not _app.builderWindow.qactions['closeVistrail'].isEnabled()
+        assert not _app.builderWindow.qactions['saveFile'].isEnabled()
+        assert not _app.builderWindow.qactions['saveFileAs'].isEnabled()
+        view = new_vistrail()
+        assert _app.builderWindow.qactions['newVistrail'].isEnabled()
+        assert _app.builderWindow.qactions['closeVistrail'].isEnabled()
+        self.assertEqual(_app.builderWindow.qactions['saveFile'].isEnabled(),
+                         view.has_changes())
+        assert _app.builderWindow.qactions['saveFileAs'].isEnabled()
 
     
     

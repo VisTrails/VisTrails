@@ -31,7 +31,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 # -*- coding: utf-8 -*-
 
 # Resource object code

@@ -3581,6 +3581,9 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'module':
             p = all_objects[('module', obj.db_parent)]
             p.db_add_annotation(obj)
+        elif obj.db_parentType == 'workflow_exec':
+            p = all_objects[('workflow_exec', obj.db_parent)]
+            p.db_add_annotation(obj)
         elif obj.db_parentType == 'module_exec':
             p = all_objects[('module_exec', obj.db_parent)]
             p.db_add_annotation(obj)
@@ -4580,6 +4583,9 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
+        for child in obj.db_annotations:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id

@@ -43,7 +43,7 @@ from core.modules.module_registry import get_module_registry
 from gui.theme import CurrentTheme
 #from core.modules.python_source_configure import PythonEditor
 from gui.utils import show_warning
-from core.utils import all
+from core.utils import all, unimplemented
 
 ##############################################################################
 
@@ -195,26 +195,33 @@ class IntegerLinearInterpolator(BaseLinearInterpolator):
     def __init__(self, mn, mx, steps):
         BaseLinearInterpolator.__init__(self, int, mn, mx, steps)
 
-class QIntegerLineEdit():
-#class QIntegerLineEdit(QtGui.QLineEdit):
+class BasePEWidget(object):
+    def get_value(self):
+        unimplemented()
+    def set_value(self):
+        unimplemented()
+        
+class QIntegerLineEdit(QtGui.QLineEdit, BasePEWidget):
     def __init__(self, param_info, parent=None):
         QtGui.QLineEdit.__init__(self, param_info.value, parent)
         self.setValidator(QtGui.QIntValidator(self))
     def get_value(self):
         return int(str(self.text()))
-
+    def set_value(self, str_value):
+        self.setText(str_value)
+        
 class FloatLinearInterpolator(BaseLinearInterpolator):
     def __init__(self, mn, mx, steps):
         BaseLinearInterpolator.__init__(self, float, mn, mx, steps)
-
-class QFloatLineEdit():    
-#class QFloatLineEdit(QtGui.QLineEdit):
+    
+class QFloatLineEdit(QtGui.QLineEdit, BasePEWidget):
     def __init__(self, param_info, parent=None):
         QtGui.QLineEdit.__init__(self, param_info.value, parent)
         self.setValidator(QtGui.QDoubleValidator(self))
     def get_value(self):
         return float(str(self.text()))
-
+    def set_value(self, str_value):
+        self.setText(str_value)
 ##############################################################################
 
 def make_interpolator(widget_class, interpolator_class, name):

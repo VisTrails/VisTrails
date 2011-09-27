@@ -118,7 +118,7 @@ def initialize(*args, **keywords):
         app = QtGui.QApplication(sys.argv)
     if hasattr(app, 'builderWindow'):
         global spreadsheetWindow        
-        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
 
 def menu_items():
     """menu_items() -> tuple of (str,function)
@@ -128,6 +128,8 @@ def menu_items():
     """
     def show_spreadsheet():
         spreadsheetWindow.show()
+        spreadsheetWindow.activateWindow()
+        spreadsheetWindow.raise_()
     lst = []
     lst.append(("Show Spreadsheet", show_spreadsheet))
     return tuple(lst)

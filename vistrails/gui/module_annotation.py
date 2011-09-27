@@ -89,7 +89,7 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
     run-time
     
     """    
-    def __init__(self, module, controller, parent=None):
+    def __init__(self, module=None, controller=None, parent=None):
         """ QModuleAnnotationTable(module: Module, controller: 
         VistrailController, parent: QWidget) -> QModuleAnnotationTable
         Construct the 1x2 table
@@ -110,13 +110,18 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         self.updateLocked = False
         self.updateModule()
 
-    def updateModule(self):
+    def set_controller(self, controller):
+        self.controller = controller
+
+    def updateModule(self, module=None):
         """ updateModule() -> None
         Update the widget to view the module annotations
         """
+
+        self.module = module
         self.setSortingEnabled(False)
         if self.updateLocked: return
-        self.clear()
+        self.clearContents()
         self.setRowCount(0)
         if self.module:
             self.setRowCount(len(self.module.annotations)+1)

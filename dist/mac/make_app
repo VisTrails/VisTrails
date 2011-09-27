@@ -15,7 +15,7 @@ exit 0
 fi
 VOL="$1"
 DMG="$VOL.dmg"
-ALPS_VERSION="2.0.0rc4-r5336"
+ALPS_VERSION="2.0.2-r5625"
 ALPS_URL="http://archive.comp-phys.org/software/vistrails/"
 ALPS_FILE="alps-vistrails-${ALPS_VERSION}-Darwin.tar.gz"
 echo "removing build and dist folders..."
@@ -29,19 +29,19 @@ python setup.py py2app --no-chdir
 #cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/pyexpat.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
 #cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/_elementtree.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
 #cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/xml dist/VisTrails.app/Contents/Resources/lib/python2.5/
-echo "copying Ft/Data directory"
-cp -r /usr/local/share/4Suite/Data dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
-cp -r /usr/local/share/4Suite/default.cat dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
+#echo "copying Ft/Data directory"
+#cp -r /usr/local/share/4Suite/Data dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
+#cp -r /usr/local/share/4Suite/default.cat dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
 echo "copying python headers and libs..."
-cp -r /Library/Frameworks/Python.framework/Versions/2.6/include/python2.6/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.6/include/python2.6
-cp -r /Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/config/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.6/lib/python2.6/config
+cp -r /Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.7/include/python2.7
+cp -r /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config
 echo "creating links to python frameworks"
 curdir=`pwd`                                               
 frameworkdir="dist/VisTrails.app/Contents/Frameworks/Python.framework/"
 cd $frameworkdir
-ln -s Versions/2.6/include/python2.6 Headers
-ln -s Versions/2.6/Python Python
-ln -s Versions/2.6/Resources Resources
+ln -s Versions/2.7/include/python2.7 Headers
+ln -s Versions/2.7/Python Python
+ln -s Versions/2.7/Resources Resources
 cd $curdir
 echo "copying hdf5 headers and libs..."
 mkdir dist/VisTrails.app/Contents/Resources/hdf5
@@ -97,6 +97,10 @@ echo "adding extension files..."
 cp -r ../../extensions dist/extensions
 echo "adding script files..."
 cp -r ../../scripts dist/scripts
+echo "Building User's Guide and adding it distribution"
+#make sure that build_usersguide is configured for this step
+mkdir dist/doc
+python ../../scripts/build_usersguide.py
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/VisTrails.app dist/VisTrails/
@@ -104,6 +108,7 @@ mv dist/examples dist/VisTrails/
 mv dist/extensions dist/VisTrails/
 mv dist/scripts dist/VisTrails/
 mv dist/VisTrails.command dist/VisTrails/
+mv dist/doc dist/VisTrails/doc
 #uncomment the following lines for itk support
 #echo "including itk..."
 #python fix_itk_libraries.py ~/src/itk dist/VisTrails/VisTrails.app/Contents

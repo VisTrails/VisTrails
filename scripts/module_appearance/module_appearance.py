@@ -31,7 +31,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'module_appearance.ui'

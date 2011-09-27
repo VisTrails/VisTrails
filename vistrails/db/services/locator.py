@@ -39,9 +39,12 @@ from db.services import io
 from db.services.io import SaveBundle
 from db.domain import DBVistrail
 import urllib
+import urlparse
+import cgi
 from db import VistrailsDBException
 from core import debug
-from core.system import get_elementtree_library
+from core.system import get_elementtree_library, systemType
+
 ElementTree = get_elementtree_library()
 import hashlib
 from time import strptime
@@ -83,6 +86,59 @@ class BaseLocator(object):
     def parse(element):
         pass #Parse an XML object representing a locator and returns a Locator
     
+    @staticmethod
+    def from_url(url):
+        # FIXME works only with absolute paths right now...
+        # FIXME are ? or / in filenames problematic?
+        if '://' in url:
+            scheme, rest = url.split('://', 1)
+        else:
+            scheme = 'file'
+            rest = url
+        if scheme == 'db':
+            return DBLocator.from_url(url)
+        elif scheme == 'file':
+            filename = urlparse.urlsplit('http://' + rest)[2]
+            if filename.endswith('.vt'):
+                return ZIPFileLocator.from_url(url)
+            elif filename.endswith('.xml'):
+                return XMLFileLocator.from_url(url)
+        return None
+
+    @staticmethod
+    def parse_args(arg_str):
+        args = {}
+        parsed_dict = cgi.parse_qs(arg_str)
+        if 'type' in parsed_dict:
+            args['obj_type'] = parsed_dict['type'][0]
+        if 'id' in parsed_dict:
+            args['obj_id'] = parsed_dict['id'][0]
+        args['version_node'] = None
+        args['version_tag'] = None
+        if 'workflow' in parsed_dict:
+            workflow_arg = parsed_dict['workflow'][0]
+            try:
+                args['version_node'] = int(workflow_arg)
+            except ValueError:
+                args['version_tag'] = workflow_arg
+        if 'workflow_exec' in parsed_dict:
+            args['workflow_exec'] = parsed_dict['workflow_exec'][0]
+        return args
+
+    @staticmethod
+    def generate_args(args):
+        generate_dict = {}
+        if 'obj_type' in args and args['obj_type']:
+            generate_dict['type'] = args['obj_type']
+        if 'obj_id' in args and args['obj_id']:
+            generate_dict['id'] = args['obj_id']
+        if 'version_node' in args and args['version_node']:
+            generate_dict['workflow'] = args['version_node']
+        elif 'version_tag' in args and args['version_tag']:
+            generate_dict['workflow'] = args['version_tag']
+        return urllib.urlencode(generate_dict)
+
+
     def _get_name(self):
         return None # Returns a name that will be displayed for the object
     name = property(_get_name)
@@ -101,15 +157,17 @@ class BaseLocator(object):
         pass # Implement nonequality
 
 class XMLFileLocator(BaseLocator):
-    def __init__(self, filename, version_node=None, version_tag=''):
+    def __init__(self, filename, **kwargs):
         self._name = filename
-        self._vnode = version_node
-        self._vtag = version_tag
+        self._vnode = kwargs.get('version_node', None)
+        self._vtag = kwargs.get('version_tag', '')
+     
         config = core.configuration.get_vistrails_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
         else:
             self._dot_vistrails = core.system.default_dot_vistrails()
+        self.kwargs = kwargs
 
     def load(self, type):
         fname = self._find_latest_temporary()
@@ -149,6 +207,26 @@ class XMLFileLocator(BaseLocator):
     def _get_short_name(self):
         return os.path.splitext(os.path.basename(self._name))[0]
     short_name = property(_get_short_name)
+
+    @staticmethod
+    def from_url(url):
+        if '://' in url:
+            scheme, rest = url.split('://', 1)
+        else:
+            scheme = 'file'
+            rest = url
+        url = 'http://' + rest
+        (_, _, path, args_str, _) = urlparse.urlsplit(url)
+        # "/c:/path" needs to be "c:/path"
+        if systemType in ['Windows', 'Microsoft']:
+            path = path[1:]
+        kwargs = BaseLocator.parse_args(args_str)
+        return XMLFileLocator(path, **kwargs)
+
+    def to_url(self):
+        args_str = BaseLocator.generate_args(self.kwargs)
+        url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
+        return urlparse.urlunsplit(url_tuple)
 
     def encode_name(self, filename):
         """encode_name(filename) -> str
@@ -293,9 +371,29 @@ class XMLFileLocator(BaseLocator):
 class ZIPFileLocator(XMLFileLocator):
     """Files are compressed in zip format. The temporaries are
     still in xml"""
-    def __init__(self, filename, version_node=None, version_tag=None):
-        XMLFileLocator.__init__(self, filename, version_node, version_tag)
+    def __init__(self, filename, **kwargs):
+        XMLFileLocator.__init__(self, filename, **kwargs)
         self.tmp_dir = None
+
+    @staticmethod
+    def from_url(url):
+        if '://' in url:
+            scheme, rest = url.split('://', 1)
+        else:
+            scheme = 'file'
+            rest = url
+        url = 'http://' + rest
+        (_, _, path, args_str, _) = urlparse.urlsplit(url)
+        # "/c:/path" needs to be "c:/path"
+        if systemType in ['Windows', 'Microsoft']:
+            path = path[1:]
+        kwargs = BaseLocator.parse_args(args_str)
+        return ZIPFileLocator(path, **kwargs)
+
+    def to_url(self):
+        args_str = BaseLocator.generate_args(self.kwargs)
+        url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
+        return urlparse.urlunsplit(url_tuple)
 
     def load(self, type):
         fname = self._find_latest_temporary()
@@ -386,22 +484,22 @@ class DBLocator(BaseLocator):
     cache_timestamps = {}
     connections = {}
     cache_connections = {}
-    
+        
     def __init__(self, host, port, database, user, passwd, name=None,
-                 obj_id=None, obj_type=None, connection_id=None,
-                 version_node=None, version_tag=''):
+                 **kwargs):
         self._host = host
-        self._port = port
+        self._port = int(port)
         self._db = database
         self._user = user
         self._passwd = passwd
         self._name = name
-        self._obj_id = obj_id
-        self._obj_type = obj_type
-        self._conn_id = connection_id
-        self._vnode = version_node
-        self._vtag = version_tag
         self._hash = ''
+        self.kwargs = kwargs
+        self._obj_id = self.kwargs.get('obj_id', None)
+        self._obj_type = self.kwargs.get('obj_type', None)
+        self._conn_id = self.kwargs.get('connection_id', None)
+        self._vnode = self.kwargs.get('version_node', None)
+        self._vtag = self.kwargs.get('version_tag', None)
 
     def _get_host(self):
         return self._host
@@ -439,23 +537,18 @@ class DBLocator(BaseLocator):
     def hash(self):
         node = self.to_xml()
         xml_string = ElementTree.tostring(node)
+        print "hash", xml_string
         return hashlib.sha224(xml_string).hexdigest()
     
     def is_valid(self):
         if self._conn_id is not None \
-                and DBLocator.connections.has_key(self._conn_id):
+                and self._conn_id in DBLocator.connections:
             return True
-        else:
-            config = {'host': str(self._host),
-                      'port': int(self._port),
-                      'db': str(self._db),
-                      'user': str(self._user),
-                      'passwd': str(self._passwd)}
-            try:
-                io.test_db_connection(config)
-            except VistrailsDBException:
-                return False
-            return True
+        try:
+            self.get_connection()
+        except:
+            return False
+        return True
         
     def get_connection(self):
         if self._conn_id is not None \
@@ -474,12 +567,13 @@ class DBLocator(BaseLocator):
                 if len(DBLocator.connections.keys()) == 0:
                     self._conn_id = 1
                 else:
-                    self._conn_id = max(DBLocator.connections.keys()) + 1 
+                    self._conn_id = max(DBLocator.connections.keys()) + 1
         config = {'host': self._host,
                   'port': self._port,
                   'db': self._db,
                   'user': self._user,
                   'passwd': self._passwd}
+        print "config:", config
         connection = io.open_db_connection(config)
             
         DBLocator.connections[self._conn_id] = connection
@@ -488,7 +582,7 @@ class DBLocator(BaseLocator):
 
     def load(self, type, tmp_dir=None):
         self._hash = self.hash()
-        
+        print "LLoad Big|type", type
         if DBLocator.cache.has_key(self._hash):
             save_bundle = DBLocator.cache[self._hash]
             obj = save_bundle.get_primary_obj()
@@ -509,6 +603,7 @@ class DBLocator(BaseLocator):
         save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
         primary_obj = save_bundle.get_primary_obj()
         self._name = primary_obj.db_name
+        print "locator db name:", self._name
         for obj in save_bundle.get_db_objs():
             obj.locator = self
         
@@ -586,7 +681,29 @@ class DBLocator(BaseLocator):
             return None
         else:
             return None
-        
+    
+    @staticmethod
+    def from_url(url):
+        #FIXME may need some urllib.quote work here
+        scheme, rest = url.split('://', 1)
+        url = 'http://' + rest
+        (_, net_loc, db_name, args_str, _) = urlparse.urlsplit(url)
+        db_name = db_name[1:]
+        host, port = net_loc.split(':', 1)
+#        obj_type, obj_id = args_str.split('=', 1)
+        kwargs = BaseLocator.parse_args(args_str)
+        return DBLocator(host, port, db_name, None, '', **kwargs)
+    
+    def to_url(self):
+        # FIXME may need some urllib.quote work here 
+        # FIXME may also want to allow database type to be encoded in 
+        # scheme (ie mysql://host/db, sqlite3://path/to)
+        net_loc = '%s:%s' % (self._host, self._port)
+        args_str = BaseLocator.generate_args(self.kwargs)
+        # query_str = '%s=%s' % (self._obj_type, self._obj_id)
+        url_tuple = ('db', net_loc, self._db, args_str, '')
+        return urlparse.urlunsplit(url_tuple)
+
     #ElementTree port
     def to_xml(self, node=None, include_name = False):
         """to_xml(node: ElementTree.Element) -> ElementTree.Element
@@ -627,7 +744,7 @@ class DBLocator(BaseLocator):
                     if type == 'long':
                         return long(value)
                     elif type == 'float':
-                       return float(value)
+                        return float(value)
                     elif type == 'int':
                         return int(value)
                     elif type == 'bool':
@@ -663,7 +780,7 @@ class DBLocator(BaseLocator):
                     if child.tag == 'name':
                         name = str(child.text).strip(" \n\t")
             return DBLocator(host, port, database,
-                             user, passwd, name, vt_id, None)
+                             user, passwd, name, obj_id=vt_id, obj_type='vistrail')
         else:
             return None
 

@@ -51,7 +51,7 @@ from core.utils import InstanceObject
 from core import debug
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
-     IntegerLinearInterpolator
+     IntegerLinearInterpolator, BasePEWidget
 from PyQt4 import QtGui
 
 
@@ -568,7 +568,7 @@ class HSVColorInterpolator(BaseColorInterpolator):
         BaseColorInterpolator.__init__(self, fun, begin, end, size)
     
 
-class PEColorChooserButton(ColorChooserButton):
+class PEColorChooserButton(ColorChooserButton, BasePEWidget):
 
     def __init__(self, param_info, parent=None):
         ColorChooserButton.__init__(self, parent)
@@ -583,6 +583,13 @@ class PEColorChooserButton(ColorChooserButton):
         return Color.to_string(self.qcolor.redF(),
                                self.qcolor.greenF(),
                                self.qcolor.blueF())
+        
+    def set_value(self, str_value):
+        color = str_value.split(',')
+        qcolor = QtGui.QColor(float(color[0])*255,
+                              float(color[1])*255,
+                              float(color[2])*255)
+        self.setColor(qcolor)
 
 Color.parameter_exploration_widgets = [
     make_interpolator(PEColorChooserButton,

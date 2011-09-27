@@ -36,9 +36,10 @@ only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from gui.theme import CurrentTheme
 from core.modules.constant_configuration import StandardConstantWidget
-
+from core.system import systemType
 ################################################################################
 
 class QToolWindow(QtGui.QDockWidget):
@@ -53,12 +54,64 @@ class QToolWindow(QtGui.QDockWidget):
         
         """
         QtGui.QDockWidget.__init__(self, parent)
-        self.setFeatures(QtGui.QDockWidget.AllDockWidgetFeatures)        
-        self.setWidget(widget)
+        self.setFeatures(QtGui.QDockWidget.AllDockWidgetFeatures)  
+        self.mwindow = QtGui.QMainWindow(self)
+        self.centralwidget = widget
+        self.mwindow.setWindowFlags(QtCore.Qt.Widget) 
+        self.mwindow.setCentralWidget(widget)     
+        self.setWidget(self.mwindow)
+        self.createToolBar()
         if widget:
             self.setWindowTitle(widget.windowTitle())
+        self.pinStatus = False
         self.monitorWindowTitle(widget)
-
+        
+        self.connect(self, QtCore.SIGNAL("topLevelChanged(bool)"),
+                     self.setDefaultPinStatus)
+             
+    def createToolBar(self):
+        self.toolbar = QtGui.QToolBar(self.mwindow)
+        self.pinButton = QtGui.QAction(CurrentTheme.UNPINNED_PALETTE_ICON,
+                                       "", self.toolbar,checkable=True,
+                                       checked=False,
+                                       toggled=self.pinStatusChanged)
+        
+        self.pinButton.setToolTip("Pin this on the Tab Bar")
+        spacer = QtGui.QWidget()
+        spacer.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
+                             QtGui.QSizePolicy.Preferred)
+        self.toolbar.addWidget(spacer)
+        self.toolbar.addAction(self.pinButton)
+        self.pinAction = self.pinButton
+        self.toolbar.setFloatable(False)
+        self.toolbar.setMovable(False)
+        self.toolbar.setIconSize(QtCore.QSize(16,16))
+        self.mwindow.addToolBar(self.toolbar)
+                   
+    def setDefaultPinStatus(self, topLevel):
+        if topLevel:
+            self.setPinStatus(False)
+            self.pinButton.setEnabled(False)
+        else:
+            self.pinButton.setEnabled(True)
+        
+    def pinStatusChanged(self, pinStatus):
+        self.pinStatus = pinStatus
+        self.updateButtonIcon(pinStatus)
+        
+    def updateButtonIcon(self, on):
+        if on:
+            self.pinButton.setIcon(CurrentTheme.PINNED_PALETTE_ICON)
+            self.pinButton.setToolTip("Unpin this from the the Tab Bar")
+        else:
+            self.pinButton.setIcon(CurrentTheme.UNPINNED_PALETTE_ICON)
+            self.pinButton.setToolTip("Pin this on the Tab Bar")
+            
+    def setPinStatus(self, pinStatus):
+        self.pinStatus = pinStatus
+        self.pinButton.setChecked(pinStatus)
+        self.updateButtonIcon(pinStatus)
+        
     def monitorWindowTitle(self, widget):
         """ monitorWindowTitle(widget: QWidget) -> None        
         Watching window title changed on widget and use it as a window
@@ -78,8 +131,9 @@ class QToolWindow(QtGui.QDockWidget):
         elif event.type()==QtCore.QEvent.Close:
             object.removeEventFilter(self)
         return QtGui.QDockWidget.eventFilter(self, object, event)
-        # return super(QToolWindow, self).eventFilter(object, event)
-
+        # return super(QToolWindow, self).eventFilter(object, event)                    
+            
+        
 class QToolWindowInterface(object):
     """
     QToolWindowInterface can be co-inherited in any class to allow the
@@ -94,8 +148,8 @@ class QToolWindowInterface(object):
         """
         if not hasattr(self, '_toolWindow'):
             self._toolWindow = QToolWindow(self, self.parent())
-        elif self._toolWindow.widget()!=self:
-            self._toolWindow.setWidget(self)
+        elif self._toolWindow.centralwidget!=self:
+            self._toolWindow.window.setCentralWidget(self)
         return self._toolWindow
 
     def changeEvent(self, event):
@@ -108,6 +162,8 @@ class QToolWindowInterface(object):
             hasattr(self, '_toolWindow')):
             if self.parent()!=self._toolWindow:
                 self._toolWindow.setParent(self.parent())
+
+###############################################################################
 
 class QDockContainer(QtGui.QMainWindow):
     """
@@ -124,6 +180,7 @@ class QDockContainer(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
         self.setDockNestingEnabled(True)
 
+###############################################################################
 
 class QSearchTreeWidget(QtGui.QTreeWidget):
     """
@@ -405,8 +462,10 @@ class QStringEdit(QtGui.QFrame):
         if not fileName.isEmpty():
             self.setText(fileName)
         
+###############################################################################
+
 class MultiLineWidget(StandardConstantWidget):
-     def __init__(self, contents, contentType, parent=None):
+    def __init__(self, contents, contentType, parent=None):
         """__init__(contents: str, contentType: str, parent: QWidget) ->
                                              StandardConstantWidget
         Initialize the line edit with its contents. Content type is limited
@@ -415,32 +474,34 @@ class MultiLineWidget(StandardConstantWidget):
         """
         StandardConstantWidget.__init__(self, parent)
 
-     def update_parent(self):
-         pass
+    def update_parent(self):
+        pass
      
-     def keyPressEvent(self, event):
-         """ keyPressEvent(event) -> None       
-         If this is a string line edit, we can use Ctrl+Enter to enter
-         the file name 	       
+    def keyPressEvent(self, event):
+        """ keyPressEvent(event) -> None       
+        If this is a string line edit, we can use Ctrl+Enter to enter
+        the file name 	       
 
-         """
-         k = event.key()
-         s = event.modifiers()
-         if ((k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return) and
-             s & QtCore.Qt.ShiftModifier):
-             event.accept()
-             if self.contentIsString and self.multiLines:
-                 fileNames = QtGui.QFileDialog.getOpenFileNames(self,
-                                                                'Use Filename '
-                                                                'as Value...',
-                                                                self.text(),
-                                                                'All files '
-                                                                '(*.*)')
-                 fileName = fileNames.join(',')
-                 if not fileName.isEmpty():
-                     self.setText(fileName)
-                     return
-         QtGui.QLineEdit.keyPressEvent(self,event)
+        """
+        k = event.key()
+        s = event.modifiers()
+        if ((k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return) and
+            s & QtCore.Qt.ShiftModifier):
+            event.accept()
+            if self.contentIsString and self.multiLines:
+                fileNames = QtGui.QFileDialog.getOpenFileNames(self,
+                                                               'Use Filename '
+                                                               'as Value...',
+                                                               self.text(),
+                                                               'All files '
+                                                               '(*.*)')
+                fileName = fileNames.join(',')
+                if not fileName.isEmpty():
+                    self.setText(fileName)
+                    return
+        QtGui.QLineEdit.keyPressEvent(self,event)
+        
+###############################################################################
 
 class QSearchEditBox(QtGui.QComboBox):
     def __init__(self, incremental=True, parent=None):
@@ -472,6 +533,8 @@ class QSearchEditBox(QtGui.QComboBox):
             return
         QtGui.QComboBox.keyPressEvent(self, e)
         
+###############################################################################
+
 class QSearchBox(QtGui.QWidget):
     """ 
     QSearchBox contains a search combo box with a clear button and
@@ -536,6 +599,7 @@ class QSearchBox(QtGui.QWidget):
         self.resetButton.setAutoRaise(True)
         self.resetButton.setEnabled(False)
         hLayout.addWidget(self.resetButton)
+        self.manualResetEnabled = False
 
         self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
                      self.resetSearch)
@@ -562,6 +626,7 @@ class QSearchBox(QtGui.QWidget):
         """
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
+        self.manualResetEnabled = False
         self.emit(QtCore.SIGNAL('resetSearch()'))
 
     def clearSearch(self):
@@ -573,6 +638,7 @@ class QSearchBox(QtGui.QWidget):
         """
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
+        self.manualResetEnabled = False
 
     def searchMode(self):
         """
@@ -589,7 +655,8 @@ class QSearchBox(QtGui.QWidget):
         self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
 
     def resetToggle(self, text):
-        self.resetButton.setEnabled(str(text)!='')
+        self.resetButton.setEnabled((str(text) != '') or 
+                                    self.manualResetEnabled)
 
     def executeIncrementalSearch(self, text):
         """
@@ -597,7 +664,8 @@ class QSearchBox(QtGui.QWidget):
         The text is changing, so update the search.
 
         """
-        self.resetButton.setEnabled(str(text)!='')
+        self.resetButton.setEnabled((str(text)!='') or
+                                    self.manualResetEnabled)
         self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
 
     def executeTextSearch(self, text):
@@ -620,3 +688,134 @@ class QSearchBox(QtGui.QWidget):
             self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
                       self.searchEdit.currentText())
 
+    def getCurrentText(self):
+        return str(self.searchEdit.currentText())
+
+    def setManualResetEnabled(self, boolVal):
+        self.manualResetEnabled = boolVal
+        self.resetButton.setEnabled((self.getCurrentText() != '') or
+                                    self.manualResetEnabled)
+
+###############################################################################
+
+class QTabBarDetachButton(QtGui.QAbstractButton):
+    """QTabBarDetachButton is a special button to be added to a tab
+    
+    """
+    def __init__(self, parent):
+        QtGui.QAbstractButton.__init__(self)
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.setCursor(QtCore.Qt.ArrowCursor)
+        self.setToolTip("Detach Tab")
+        self.setIcon(CurrentTheme.DETACH_TAB_ICON)
+        self.activePixmap = self.icon().pixmap(self.sizeHint(),
+                                               mode=QtGui.QIcon.Active)
+        self.normalPixmap = self.icon().pixmap(self.sizeHint(),
+                                               mode=QtGui.QIcon.Normal)
+        
+        self.resize(self.sizeHint())
+        
+    def sizeHint(self):
+        self.ensurePolished()
+        size = QtCore.QSize()
+        if not self.icon().isNull():
+            iconSize = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
+                                                None, self)
+            sz = self.icon().actualSize(QtCore.QSize(iconSize, iconSize))
+            size = max(sz.width(), sz.height())
+        
+        return QtCore.QSize(size, size)
+    
+    def enterEvent(self, event):
+        if self.isEnabled():
+            icon = QtGui.QIcon(self.activePixmap)
+            self.setIcon(icon)
+            self.update()
+        else:
+            icon = QtGui.QIcon(self.normalPixmap)
+            self.setIcon(icon)
+        QtGui.QAbstractButton.enterEvent(self, event)
+        
+    def leaveEvent(self, event):
+        icon = QtGui.QIcon(self.normalPixmap)
+        self.setIcon(icon)
+        if self.isEnabled():
+            self.update()
+        QtGui.QAbstractButton.leaveEvent(self, event)
+        
+    def closePosition(self):
+        tb = self.parent()
+        if isinstance(tb, QtGui.QTabBar):
+            close_position = self.style().styleHint(QtGui.QStyle.SH_TabBar_CloseButtonPosition,
+                                                  None, tb)
+            return close_position
+        return -1
+    
+    def otherPosition(self):
+        tb = self.parent()
+        if isinstance(tb, QtGui.QTabBar):
+            close_position = self.closePosition()
+            if close_position == QtGui.QTabBar.LeftSide:
+                position = QtGui.QTabBar.RightSide
+            else:
+                position = QtGui.QTabBar.LeftSide
+            return position
+        return -1
+            
+    def paintEvent(self, event):
+        p = QtGui.QPainter(self)
+        opt = QtGui.QStyleOptionToolButton()
+        opt.init(self)
+        opt.state |= QtGui.QStyle.State_AutoRaise
+        if (self.isEnabled() and self.underMouse() and 
+            not self.isChecked() and not self.isDown()):
+            opt.state |= QtGui.QStyle.State_Raised
+        if self.isChecked():
+            opt.state |= QtGui.QStyle.State_On
+        if self.isDown():
+            opt.state |= QtGui.QStyle.State_Sunken
+        tb = self.parent()
+        if isinstance(tb, QtGui.QTabBar):
+            index = tb.currentIndex()
+            position = self.otherPosition()
+            if tb.tabButton(index, position) == self:
+                opt.state |= QtGui.QStyle.State_Selected
+            opt.icon = self.icon()
+            opt.subControls = QtGui.QStyle.SC_None
+            opt.activeSubControls = QtGui.QStyle.SC_None
+            opt.features = QtGui.QStyleOptionToolButton.None
+            opt.arrowType = QtCore.Qt.NoArrow
+            size = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
+                                                None, self)
+            opt.iconSize = QtCore.QSize(size,size)
+            self.style().drawComplexControl(QtGui.QStyle.CC_ToolButton, opt, p, 
+                                            self)
+
+###############################################################################
+
+class QMouseTabBar(QtGui.QTabBar):
+    """QMouseTabBar is a QTabBar that emits a signal when a tab
+    receives a mouse event. For now only doubleclick events are
+    emitted."""
+    #signals
+    tabDoubleClicked = pyqtSignal(int,QtCore.QPoint)
+    
+    def __init__(self, parent=None):
+        QtGui.QTabBar.__init__(self, parent)
+        
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            tab_idx = self.tabAt(event.pos())
+            if tab_idx != -1:
+                self.tabDoubleClicked.emit(tab_idx, event.pos())
+        QtGui.QTabBar.mouseDoubleClickEvent(self, event)
+
+###############################################################################
+
+class QDockPushButton(QtGui.QPushButton):
+    """QDockPushButton is a button to be used inside QDockWidgets. It will 
+    set the minimum height on Mac so it looks nice on both Mac and Windows"""
+    def __init__(self, text, parent=None):
+        QtGui.QPushButton.__init__(self, text, parent) 
+        if systemType in ['Darwin']:
+            self.setMinimumHeight(32)

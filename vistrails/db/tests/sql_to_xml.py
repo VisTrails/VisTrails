@@ -31,7 +31,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 # MACOSX binary install stuff
 if __name__ != '__main__':
     import tests

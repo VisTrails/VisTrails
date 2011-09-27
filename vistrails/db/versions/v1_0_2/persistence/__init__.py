@@ -335,6 +335,99 @@ class DAOList(dict):
                     self.save_to_db(db_connection, child.db_workflow, do_copy,
                                     new_props)
 
+    def save_many_to_db(self, db_connection, objList, do_copy=False):
+        if do_copy == 'with_ids':
+            do_copy = True
+
+        childrenDict = {}
+        global_propsDict = {}
+        dbCommandList = []
+        writtenChildren = []
+        for obj in objList:
+            if do_copy and obj.db_id is not None:
+                obj.db_id = None
+
+            children = obj.db_children()
+            children.reverse()
+            global_props = {'entity_type': obj.vtType}
+
+            child = children[0][0]
+            dbCommand = self['sql'][child.vtType].set_sql_command(
+                db_connection, child, global_props, do_copy)
+            if dbCommand is not None:
+                dbCommandList.append(dbCommand)
+                writtenChildren.append(child)
+            
+            childrenDict[child] = children
+            global_propsDict[child] = global_props
+
+        # Execute all insert/update statements for the main objects
+        results = self['sql'][children[0][0].vtType].executeSQLGroup(
+                                                    db_connection,
+                                                    dbCommandList, False)
+        resultDict = dict(zip(writtenChildren, results))
+        dbCommandList = []
+        writtenChildren = []
+        for child, children in childrenDict.iteritems():
+            # process objects
+            if child in resultDict:
+                lastId = resultDict[child]
+                self['sql'][child.vtType].set_sql_process(
+                    child, global_propsDict[child], lastId)
+            self['sql'][child.vtType].to_sql_fast(child, do_copy)
+
+            # process children
+            global_props = {'entity_id': child.db_id,
+                                       'entity_type': child.vtType}
+            global_propsDict[child] = global_props
+            # do deletes
+            if not do_copy:
+                for (child, _, _) in childrenDict[child]:
+                    for c in child.db_deleted_children(True):
+                        self['sql'][c.vtType].delete_sql_column(db_connection,
+                                                                c,
+                                                                global_props)
+            child = children.pop(0)[0]
+            child.is_dirty = False
+            child.is_new = False
+            
+            # list of all children
+            # process remaining children
+            for (child, _, _) in children:
+                dbCommand = self['sql'][child.vtType].set_sql_command(
+                                db_connection, child, global_props, do_copy)
+                if dbCommand is not None:
+                    dbCommandList.append(dbCommand)
+                    writtenChildren.append(child)
+                self['sql'][child.vtType].to_sql_fast(child, do_copy)
+    
+        # Execute all child insert/update statements
+        results = self['sql'][children[0][0].vtType].executeSQLGroup(
+                                                        db_connection,
+                                                        dbCommandList, False)
+        resultDict = dict(zip(writtenChildren, results))
+
+        for child, children in childrenDict.iteritems():
+            global_props = global_propsDict[child]
+            # process remaining children
+            for (child, _, _) in children:
+                if child in resultDict:
+                    lastId = resultDict[child]
+                    self['sql'][child.vtType].set_sql_process(child, 
+                                                              global_props,
+                                                              lastId)
+                self['sql'][child.vtType].to_sql_fast(child, do_copy)
+                if child.vtType == DBGroup.vtType:
+                    if child.db_workflow:
+                        # print '*** entity_type:', global_props['entity_type']
+                        new_props = {'entity_id': global_props['entity_id'],
+                                     'entity_type': global_props['entity_type']}
+                        is_dirty = child.db_workflow.is_dirty
+                        child.db_workflow.db_entity_type = DBWorkflow.vtType
+                        child.db_workflow.is_dirty = is_dirty
+                        self.save_to_db(db_connection, child.db_workflow, do_copy,
+                                        new_props)
+
     def delete_from_db(self, db_connection, type, obj_id):
         root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
                         DBLog.vtType, DBRegistry.vtType])

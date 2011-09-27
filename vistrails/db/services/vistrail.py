@@ -935,21 +935,36 @@ def function_sig(function):
             [(param.db_type, param.db_val)
              for param in function.db_get_parameters()])
 
-def getParamChanges(m1, m2, heuristic_match):
+def getParamChanges(m1, m2, same_vt=True, heuristic_match=True):
     paramChanges = []
     # need to check to see if any children of m1 and m2 are affected
     m1_functions = m1.db_get_functions()
     m2_functions = m2.db_get_functions()
     m1_unmatched = []
     m2_unmatched = []
-    for f1 in m1_functions:
-        # see if m2 has f1, too
-        f2 = m2.db_get_function(f1.db_id)
-        if f2 is None:            
-            m1_unmatched.append(f1)
-        else:
-            # function is same, parameters have changed
-            paramChanges.append((function_sig(f1), function_sig(f2)))
+    if same_vt:
+        for f1 in m1_functions:
+            # see if m2 has f1, too
+            f2 = m2.db_get_function(f1.db_id)
+            if f2 is None:            
+                m1_unmatched.append(f1)
+            else:
+                # function is same, check if parameters have changed
+                if heuristic_match:
+                    matchValue = heuristicFunctionMatch(f1, f2)
+                    if matchValue != 1:
+                        paramChanges.append((function_sig(f1), 
+                                             function_sig(f2)))
+                else:
+                    paramChanges.append((function_sig(f1), function_sig(f2)))
+        for f2 in m2_functions:
+            # see if m1 has f2, too
+            if m1.db_get_function(f2.db_id) is None:
+                m2_unmatched.append(f2)
+    else:
+        m1_unmatched.extend(m1_functions)
+        m2_unmatched.extend(m2_functions)
+
 #             functionMatch = True
 #             f1_params = f1.db_get_parameters()
 #             f2_params = f2.db_get_parameters()
@@ -965,17 +980,12 @@ def getParamChanges(m1, m2, heuristic_match):
 #                     break
 #             if functionMatch:
 
-
-    for f2 in m2_functions:
-        # see if m1 has f2, too
-        if m1.db_get_function(f2.db_id) is None:
-            m2_unmatched.append(f2)
-
     if len(m1_unmatched) + len(m2_unmatched) > 0:
         if heuristic_match and len(m1_unmatched) > 0 and len(m2_unmatched) > 0:
             # do heuristic matches
             for f1 in m1_unmatched[:]:
                 matched = False
+                matchValue = 0
                 for f2 in m2_unmatched:
                     matchValue = heuristicFunctionMatch(f1, f2)
                     if matchValue == 1:
@@ -986,7 +996,9 @@ def getParamChanges(m1, m2, heuristic_match):
                         # match, but not exact so continue to look
                         matched = f1
                 if matched:
-                    paramChanges.append((function_sig(f1), function_sig(f2)))
+                    if matchValue != 1:
+                        paramChanges.append((function_sig(f1), 
+                                             function_sig(f2)))
                     m1_unmatched.remove(f1)
                     m2_unmatched.remove(f2)
 
@@ -1019,7 +1031,7 @@ def setNewObjId(operation, id):
     else:
         operation.db_objectId = id
 
-def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
+def getWorkflowDiffCommon(vistrail, v1, v2, heuristic_match=True):
     (sharedOps, vOnlyOps) = \
         getVersionDifferences(vistrail, [v1, v2])
 
@@ -1131,65 +1143,127 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
 
     paramChgModulePairs = [(id, id) for id in paramChgModules.keys()]
 
-    heuristicModulePairs = []
-    heuristicConnectionPairs = []
-    # add heuristic matches
+    # print "^^^^ SHARED MODULE PAIRS:", sharedModulePairs
     if heuristic_match:
-        # match modules
-        for (m1_id, m2_id) in paramChgModulePairs[:]:
-            m1 = v1Workflow.db_get_module(m1_id)
-            m2 = v2Workflow.db_get_module(m2_id)
-            if heuristicModuleMatch(m1, m2) == 1:
-                paramChgModulePairs.remove((m1_id, m2_id))
-                heuristicModulePairs.append((m1_id, m2_id))
+        (heuristicModulePairs, heuristicConnectionPairs, v1Only, v2Only, \
+             c1Only, c2Only) = do_heuristic_diff(v1Workflow, v2Workflow, \
+                                                     v1Only, v2Only, \
+                                                     c1Only, c2Only)
+        paramChgModulePairs.extend(heuristicModulePairs)
 
-        for m1_id in v1Only[:]:
-            m1 = v1Workflow.db_get_module(m1_id)
-            match = None
-            for m2_id in v2Only:
-                m2 = v2Workflow.db_get_module(m2_id)
-                isMatch = heuristicModuleMatch(m1, m2)
-                if isMatch == 1:
-                    match = (m1_id, m2_id)
-                    break
-                elif isMatch == 0:
-                    match = (m1_id, m2_id)
-            if match is not None:
-                v1Only.remove(match[0])
-                v2Only.remove(match[1])
-                heuristicModulePairs.append(match)
-
-        # match connections
-        for c1_id in c1Only[:]:
-            c1 = v1Workflow.db_get_connection(c1_id)
-            match = None
-            for c2_id in c2Only:
-                c2 = v2Workflow.db_get_connection(c2_id)
-                isMatch = heuristicConnectionMatch(c1, c2)
-                if isMatch == 1:
-                    match = (c1_id, c2_id)
-                    break
-                elif isMatch == 0:
-                    match = (c1_id, c2_id)
-            if match is not None:
-                # don't have port changes yet
-                c1Only.remove(match[0])
-                c2Only.remove(match[1])
-                heuristicConnectionPairs.append(match)
-                    
-    paramChanges = []
-    #     print sharedModulePairs
-    #     print paramChgModulePairs
-    for (m1_id, m2_id) in paramChgModulePairs:
-        m1 = v1Workflow.db_get_module(m1_id)
-        m2 = v2Workflow.db_get_module(m2_id)
-        paramChanges.append(((m1_id, m2_id),
-                             getParamChanges(m1, m2, heuristic_match)))
+    (heuristicModulePairs, paramChanges) = \
+        check_params_diff(v1Workflow, v2Workflow, paramChgModulePairs, 
+                          True, heuristic_match)
 
     return (v1Workflow, v2Workflow, 
             sharedModulePairs, heuristicModulePairs, v1Only, v2Only, 
             paramChanges, sharedConnectionPairs, heuristicConnectionPairs, 
             c1Only, c2Only)
+
+def do_heuristic_diff(v1Workflow, v2Workflow, v1_modules, v2_modules, 
+                      v1_connections, v2_connections):    
+    # add heuristic matches
+    heuristicModulePairs = []
+    heuristicConnectionPairs = []
+    paramChgModulePairs = []
+    
+    v1Only = copy.copy(v1_modules)
+    v2Only = copy.copy(v2_modules)
+    c1Only = copy.copy(v1_connections)
+    c2Only = copy.copy(v2_connections)
+
+    # we now check all heuristic pairs for parameter changes
+    # match modules
+    # for (m1_id, m2_id) in paramChgModulePairs[:]:
+    #     m1 = v1Workflow.db_get_module(m1_id)
+    #     m2 = v2Workflow.db_get_module(m2_id)
+    #     if heuristicModuleMatch(m1, m2) == 1:
+    #         # paramChgModulePairs.remove((m1_id, m2_id))
+    #         # heuristicModulePairs.append((m1_id, m2_id))
+    #         pass
+
+    for m1_id in v1Only[:]:
+        m1 = v1Workflow.db_get_module(m1_id)
+        match = None
+        for m2_id in v2Only:
+            m2 = v2Workflow.db_get_module(m2_id)
+            isMatch = heuristicModuleMatch(m1, m2)
+            if isMatch == 1:
+                match = (m1_id, m2_id)
+                break
+            elif isMatch == 0:
+                match = (m1_id, m2_id)
+        if match is not None:
+            v1Only.remove(match[0])
+            v2Only.remove(match[1])
+            # we now check all heuristic pairs for parameter changes
+            heuristicModulePairs.append(match)
+            # paramChgModulePairs.append(match)
+
+    # match connections
+    for c1_id in c1Only[:]:
+        c1 = v1Workflow.db_get_connection(c1_id)
+        match = None
+        for c2_id in c2Only:
+            c2 = v2Workflow.db_get_connection(c2_id)
+            isMatch = heuristicConnectionMatch(c1, c2)
+            if isMatch == 1:
+                match = (c1_id, c2_id)
+                break
+            elif isMatch == 0:
+                match = (c1_id, c2_id)
+        if match is not None:
+            # don't have port changes yet
+            c1Only.remove(match[0])
+            c2Only.remove(match[1])
+            heuristicConnectionPairs.append(match)
+
+    return (heuristicModulePairs, heuristicConnectionPairs, v1Only, v2Only,
+            c1Only, c2Only)
+
+def check_params_diff(v1Workflow, v2Workflow, paramChgModulePairs, 
+                      same_vt=True, heuristic_match=True):
+    matched = []
+    paramChanges = []
+    # print "^^^^ PARAM CHG PAIRS:", paramChgModulePairs
+    for (m1_id, m2_id) in paramChgModulePairs:
+        m1 = v1Workflow.db_get_module(m1_id)
+        m2 = v2Workflow.db_get_module(m2_id)
+        moduleParamChanges = getParamChanges(m1, m2, same_vt, heuristic_match)
+        if len(moduleParamChanges) > 0:
+            paramChanges.append(((m1_id, m2_id), moduleParamChanges))
+        else:
+            # heuristicModulePairs.append((m1_id, m2_id))
+            matched.append((m1_id, m2_id))
+
+    return (matched, paramChanges)    
+
+def getWorkflowDiff(vt_pair_1, vt_pair_2, heuristic_match=True):
+    (vistrail_1, v_1) = vt_pair_1
+    (vistrail_2, v_2) = vt_pair_2
+    
+    if vistrail_1 == vistrail_2:
+        return getWorkflowDiffCommon(vistrail_1, v_1, v_2, heuristic_match)
+    
+    workflow_1 = materializeWorkflow(vistrail_1, v_1)
+    workflow_2 = materializeWorkflow(vistrail_2, v_2)
+    modules_1 = workflow_1.db_modules_id_index.keys()
+    modules_2 = workflow_2.db_modules_id_index.keys()
+    conns_1 = workflow_1.db_connections_id_index.keys()
+    conns_2 = workflow_2.db_connections_id_index.keys()
+
+    if heuristic_match:
+        (m_matches, c_matches, modules_1, modules_2, conns_1, conns_2) = \
+            do_heuristic_diff(workflow_1, workflow_2, modules_1, modules_2, \
+                                  conns_1, conns_2)
+        (m_matches, param_changes) = check_params_diff(workflow_1, workflow_2, 
+                                                       m_matches, False,
+                                                       heuristic_match)
+        return (workflow_1, workflow_2, [], m_matches, modules_1, modules_2,
+                param_changes, [], c_matches, conns_1, conns_2)
+
+    return (workflow_1, workflow_2, [], [], modules_1, modules_2, [], [], [], 
+            conns_1, conns_2)
 
 ################################################################################
 

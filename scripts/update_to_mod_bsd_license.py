@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ###############################################################################
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
@@ -32,6 +33,8 @@
 ##
 ###############################################################################
 
+=======
+>>>>>>> origin/v2.0
 # Finds all .py files recursively in current directory (.)
 # and updates to modified BSD license in the file header. 
 import re

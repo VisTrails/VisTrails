@@ -79,7 +79,7 @@ from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from db import VistrailsDBException
 from db.domain import IdScope, DBWorkflowExec
 from db.services.io import create_temp_folder, remove_temp_folder
-from db.services.io import SaveBundle, open_vt_log_from_db, open_log_from_xml
+from db.services.io import SaveBundle, open_vt_log_from_db
 
 from db.services.vistrail import getSharedRoot
 from core.utils import any
@@ -105,9 +105,9 @@ class VistrailController(object):
             self.current_session = vistrail.idScope.getNewId('session')
             vistrail.current_session = self.current_session
             vistrail.log = self.log
-        self.current_pipeline = None
+        self._current_pipeline = None
         self.locator = None
-        self.current_version = -1
+        self._current_version = -1
         self.changed = False
 
         # if _cache_pipelines is True, cache pipelines to speed up
@@ -133,6 +133,23 @@ class VistrailController(object):
         self._delayed_actions = []
         self._loaded_abstractions = {}
         
+        # This will just store the mashups in memory and send them to SaveBundle
+        # when writing the vistrail
+        self._mashups = []
+        
+    # allow gui.vistrail_controller to reference individual views
+    def _get_current_version(self):
+        return self._current_version
+    def _set_current_version(self, version):
+        self._current_version = version
+    current_version = property(_get_current_version, _set_current_version)
+
+    def _get_current_pipeline(self):
+        return self._current_pipeline
+    def _set_current_pipeline(self, pipeline):
+        self._current_pipeline = pipeline
+    current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
+
     def flush_pipeline_cache(self):
         self._pipelines = {0: Pipeline()}
 
@@ -148,7 +165,8 @@ class VistrailController(object):
     def get_locator(self):
         return self.locator
     
-    def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
+    def set_vistrail(self, vistrail, locator, abstractions=None, 
+                     thumbnails=None, mashups=None):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
@@ -159,6 +177,8 @@ class VistrailController(object):
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
+            if mashups is not None:
+                self._mashups = mashups
         self.current_version = -1
         self.current_pipeline = None
         if self.locator != locator and self.locator is not None:
@@ -302,18 +322,24 @@ class VistrailController(object):
             self.set_changed(True)
             self.current_version = action.db_id
             self.recompute_terse_graph()
+            
+    def create_module_from_descriptor(self, *args, **kwargs):
+        return self.create_module_from_descriptor_static(self.id_scope,
+                                                         *args, **kwargs)
 
-    def create_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
-                                      internal_version=-1):
+    @staticmethod
+    def create_module_from_descriptor_static(id_scope, descriptor, 
+                                             x=0.0, y=0.0, 
+                                             internal_version=-1):
         reg = core.modules.module_registry.get_module_registry()
         package = reg.get_package_by_name(descriptor.identifier)
-        loc_id = self.id_scope.getNewId(Location.vtType)
+        loc_id = id_scope.getNewId(Location.vtType)
         location = Location(id=loc_id,
                             x=x, 
                             y=y,
                             )
         if internal_version > -1:
-            abstraction_id = self.id_scope.getNewId(Abstraction.vtType)
+            abstraction_id = id_scope.getNewId(Abstraction.vtType)
             module = Abstraction(id=abstraction_id,
                                  name=descriptor.name,
                                  package=descriptor.identifier,
@@ -324,7 +350,7 @@ class VistrailController(object):
                                  )
         elif descriptor.identifier == basic_pkg and \
                 descriptor.name == 'Group':
-            group_id = self.id_scope.getNewId(Group.vtType)
+            group_id = id_scope.getNewId(Group.vtType)
             module = Group(id=group_id,
                            name=descriptor.name,
                            package=descriptor.identifier,
@@ -333,7 +359,7 @@ class VistrailController(object):
                            location=location,
                            )
         else:
-            module_id = self.id_scope.getNewId(Module.vtType)
+            module_id = id_scope.getNewId(Module.vtType)
             module = Module(id=module_id,
                             name=descriptor.name,
                             package=descriptor.identifier,
@@ -344,11 +370,16 @@ class VistrailController(object):
         module.is_valid = True
         return module
 
-    def create_module(self, identifier, name, namespace='', x=0.0, y=0.0,
-                      internal_version=-1):
+    def create_module(self, *args, **kwargs):
+        return self.create_module_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_module_static(id_scope, identifier, name, namespace='', 
+                             x=0.0, y=0.0, internal_version=-1):
         reg = core.modules.module_registry.get_module_registry()
         d = reg.get_descriptor_by_name(identifier, name, namespace)
-        return self.create_module_from_descriptor(d, x, y, internal_version)
+        static_call = VistrailController.create_module_from_descriptor_static
+        return static_call(id_scope, d, x, y, internal_version)
 
     def create_connection_from_ids(self, output_id, output_port_spec,
                                        input_id, input_port_spec):
@@ -357,8 +388,12 @@ class VistrailController(object):
         return self.create_connection(output_module, output_port_spec, 
                                       input_module, input_port_spec)
 
-    def create_connection(self, output_module, output_port_spec,
-                          input_module, input_port_spec):     
+    def create_connection(self, *args, **kwargs):
+        return self.create_connection_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_connection_static(id_scope, output_module, output_port_spec,
+                                 input_module, input_port_spec):     
         if type(output_port_spec) == type(""):
             output_port_spec = \
                 output_module.get_port_spec(output_port_spec, 'output')
@@ -369,23 +404,27 @@ class VistrailController(object):
             raise VistrailsInternalError("output port spec is None")
         if input_port_spec is None:
             raise VistrailsInternalError("input port spec is None")
-        output_port_id = self.id_scope.getNewId(Port.vtType)
+        output_port_id = id_scope.getNewId(Port.vtType)
         output_port = Port(id=output_port_id,
                            spec=output_port_spec,
                            moduleId=output_module.id,
                            moduleName=output_module.name)
-        input_port_id = self.id_scope.getNewId(Port.vtType)
+        input_port_id = id_scope.getNewId(Port.vtType)
         input_port = Port(id=input_port_id,
                            spec=input_port_spec,
                            moduleId=input_module.id,
                            moduleName=input_module.name)
-        conn_id = self.id_scope.getNewId(Connection.vtType)
+        conn_id = id_scope.getNewId(Connection.vtType)
         connection = Connection(id=conn_id,
                                 ports=[input_port, output_port])
         return connection
 
-    def create_param(self, port_spec, pos, value, alias=''):
-        param_id = self.id_scope.getNewId(ModuleParam.vtType)
+    def create_param(self, *args, **kwargs):
+        return self.create_param_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_param_static(id_scope, port_spec, pos, value, alias=''):
+        param_id = id_scope.getNewId(ModuleParam.vtType)
         descriptor = port_spec.descriptors()[pos]
         param_type = descriptor.sigstring
         # FIXME add/remove description
@@ -399,7 +438,11 @@ class VistrailController(object):
                                 )
         return new_param
 
-    def create_params(self, port_spec, values, aliases=[]):
+    def create_params(self, *args, **kwargs):
+        return self.create_params_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_params_static(id_scope, port_spec, values, aliases=[]):
         params = []
         for i in xrange(len(port_spec.descriptors())):
             if i < len(values):
@@ -410,27 +453,38 @@ class VistrailController(object):
                 alias = str(aliases[i])
             else:
                 alias = ''
-            param = self.create_param(port_spec, i, value, alias)
+            param = VistrailController.create_param_static(id_scope, port_spec,
+                                                           i, value, alias)
             params.append(param)
         return params
 
-    def create_function(self, module, function_name, param_values=[], 
-                        aliases=[]):
+    def create_function(self, *args, **kwargs):
+        return self.create_function_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_function_static(id_scope, module, function_name, 
+                               param_values=[], aliases=[]):
         port_spec = module.get_port_spec(function_name, 'input')
         if len(param_values) <= 0 and port_spec.defaults is not None:
             param_values = port_spec.defaults
 
-        f_id = self.id_scope.getNewId(ModuleFunction.vtType)
+        f_id = id_scope.getNewId(ModuleFunction.vtType)
         new_function = ModuleFunction(id=f_id,
                                       pos=module.getNumFunctions(),
                                       name=function_name,
                                       )
         new_function.is_valid = True
-        new_params = self.create_params(port_spec, param_values, aliases)
+        new_params = \
+            VistrailController.create_params_static(id_scope, port_spec, 
+                                                    param_values, aliases)
         new_function.add_parameters(new_params)        
         return new_function
 
-    def create_functions(self, module, functions):
+    def create_functions(self, *args, **kwargs):
+        return self.create_functions_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_functions_static(id_scope, module, functions):
         """create_functions(module: Module,
                             functions: [function_name: str,
                                         param_values: [str]]) 
@@ -438,13 +492,18 @@ class VistrailController(object):
         
         """
         new_functions = []
+        static_call = VistrailController.create_function_static
         for f in functions:
-            new_functions.append(self.create_function(module, *f))
+            new_functions.append(static_call(id_scope, module, *f))
         return new_functions
+
+    def create_port_spec(self, *args, **kwargs):
+        return self.create_port_spec_static(self.id_scope, *args, **kwargs)
     
-    def create_port_spec(self, module, port_type, port_name, port_sigstring,
-                         port_sort_key=-1):
-        p_id = self.id_scope.getNewId(PortSpec.vtType)
+    @staticmethod
+    def create_port_spec_static(id_scope, module, port_type, port_name, 
+                                port_sigstring, port_sort_key=-1):
+        p_id = id_scope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
                              type=port_type,
                              name=port_name,
@@ -552,7 +611,7 @@ class VistrailController(object):
                                     function.vtType, function.real_id))
         else:
             new_function = self.create_function(module, function_name,
-                                                param_values)
+                                                param_values, aliases)
             op_list.append(('add', new_function,
                             module.vtType, module.id))        
         return op_list
@@ -1628,7 +1687,7 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
-            (locator, version, pipeline, view, aliases, extra_info) = vis
+            (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
             
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
@@ -1644,6 +1703,8 @@ class VistrailController(object):
                       'logger': self.get_logger(),
                       'controller': self,
                       'aliases': aliases,
+                      'params': params,
+                      'reason': reason,
                       'extra_info': extra_info,
                       }    
             result = interpreter.execute(pipeline, **kwargs)
@@ -1676,12 +1737,17 @@ class VistrailController(object):
             interpreter.debugger.update_values()
         return (results,changed)
     
-    def execute_current_workflow(self, custom_aliases=None, extra_info=None):
-        """ execute_current_workflow(custo_aliases: dict, extra_info: dict) -> (list, bool)
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None,
+                                 extra_info=None, reason='Pipeline Execution'):
+        """ execute_current_workflow(custom_aliases: dict, 
+                                     custom_params: list,
+                                     extra_info: dict) -> (list, bool)
         Execute the current workflow (if exists)
+        custom_params is a list of tuples (vttype, oId, newval) with new values
+        for parameters
         extra_info is a dictionary containing extra information for execution.
         As we want to make the executions thread safe, we will pass information
-        specific to each pipeline through this parameter
+        specific to each pipeline through extra_info
         As, an example, this will be useful for telling the spreadsheet where
         to dump the images.
         """
@@ -1697,19 +1763,22 @@ class VistrailController(object):
                                                 self.current_pipeline,
                                                 view,
                                                 custom_aliases,
+                                                custom_params,
+                                                reason,
                                                 extra_info)])
 
     def recompute_terse_graph(self):
-        # get full version tree (including pruned nodes)                                            
-        # this tree is kept updated all the time. This                                              
-        # data is read only and should not be updated!                                              
+        # get full version tree (including pruned nodes) this tree is
+        # kept updated all the time. This data is read only and should
+        # not be updated!
         fullVersionTree = self.vistrail.tree.getVersionTree()
 
-        # create tersed tree                                                                        
+        # create tersed tree
         x = [(0,None)]
         tersedVersionTree = Graph()
 
-        # cache actionMap and tagMap because they're properties, sort of slow                       
+        # cache actionMap and tagMap because they're properties, sort
+        # of slow
         am = self.vistrail.actionMap
         tm = self.vistrail.get_tagMap()
         last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
@@ -1720,7 +1789,7 @@ class VistrailController(object):
             except IndexError:
                 break
 
-            # mount childs list                                                                     
+            # mount childs list
             if current in am and self.vistrail.is_pruned(current):
                 children = []
             else:
@@ -1730,31 +1799,31 @@ class VistrailController(object):
                                             to == self.current_version)]
 
             if (self.full_tree or
-                (current == 0) or  # is root                                                        
-                (current in tm) or # hasTag:                                                        
-                (len(children) <> 1) or # not oneChild:                                             
-                (current == self.current_version) or # isCurrentVersion                             
-                (am[current].expand) or  # forced expansion                                         
-                (current in last_n)): # show latest                                                 
-                # yes it will!                                                                      
-                # this needs to be here because if we are refining                                  
-                # version view receives the graph without the non                                   
-                # matching elements                                                                 
+                (current == 0) or  # is root
+                (current in tm) or # hasTag:
+                (len(children) <> 1) or # not oneChild:
+                (current == self.current_version) or # isCurrentVersion
+                (am[current].expand) or  # forced expansion
+                (current in last_n)): # show latest
+
+                # yes it will!  this needs to be here because if we
+                # are refining version view receives the graph without
+                # the non matching elements
                 if( (not self.refine) or
                     (self.refine and not self.search) or
                     (current == 0) or
                     (self.refine and self.search and
                      self.search.match(self.vistrail,am[current]) or
                      current == self.current_version)):
-                    # add vertex...                                                                 
+                    # add vertex...
                     tersedVersionTree.add_vertex(current)
 
-                    # ...and the parent                                                             
+                    # ...and the parent
                     if parent is not None:
                         tersedVersionTree.add_edge(parent,current,0)
 
-                    # update the parent info that will                                              
-                    # be used by the childs of this node                                            
+                    # update the parent info that will be used by the
+                    # childs of this node
                     parentToChildren = current
                 else:
                     parentToChildren = parent
@@ -1771,13 +1840,15 @@ class VistrailController(object):
                                                self._current_terse_graph)
         
     def refine_graph(self, step=1.0):
-        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)                                       
-        Refine the graph of the current vistrail based the search                                      
-        status of the controller. It also return the full graph as a                                   
-        reference                                                                                      
-                                                                                                       
+        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
+        Refine the graph of the current vistrail based the search
+        status of the controller. It also return the full graph as a
+        reference
+                     
         """
         
+        if self._current_full_graph is None:
+            self.recompute_terse_graph()
         return (self._current_terse_graph, self._current_full_graph,
                 self._current_graph_layout)
 
@@ -2454,6 +2525,8 @@ class VistrailController(object):
                 save_bundle.thumbnails = self.find_thumbnails(
                                            tags_only=thumb_cache.conf.tagsOnly)
             
+            #mashups
+            save_bundle.mashups = self._mashups
             # FIXME hack to use db_currentVersion for convenience
             # it's not an actual field
             self.vistrail.db_currentVersion = self.current_version
@@ -2550,16 +2623,7 @@ class VistrailController(object):
         """ Returns the saved log from zip or DB
         
         """
-        log = Log()
-        if type(self.locator) == core.db.locator.ZIPFileLocator:
-            if self.vistrail.db_log_filename is not None:
-                log = open_log_from_xml(self.vistrail.db_log_filename, True)
-        if type(self.locator) == core.db.locator.DBLocator:
-            # read log from DB - first get log id:s
-            connection = self.locator.get_connection()
-            log = open_vt_log_from_db(connection, self.vistrail.db_id)
-        Log.convert(log)
-        return log
+        return self.vistrail.get_log()
  
     def write_registry(self, locator):
         registry = core.modules.module_registry.get_module_registry()

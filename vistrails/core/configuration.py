@@ -208,6 +208,7 @@ def default():
         'reviewMode': False,
         'rootDirectory': (None, str),
         'shell': default_shell(),
+        'showScrollbars': True,
         'showMovies': True,
         'showSplash': True,
         'showSpreadsheetOnly': False,

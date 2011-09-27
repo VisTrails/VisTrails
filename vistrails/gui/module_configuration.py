@@ -38,7 +38,7 @@ the user selects a module's "Edit Configuration"
 from PyQt4 import QtCore, QtGui
 from core.modules.module_registry import get_module_registry
 from core.modules.module_configure import DefaultModuleConfigurationWidget
-from gui.common_widgets import QToolWindowInterface
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
@@ -74,13 +74,14 @@ class QConfigurationWidget(QtGui.QWidget):
             
 ################################################################################
         
-class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
+class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
     def __init__(self, parent=None, scene=None):
         """QModuleConfiguration(parent: QWidget) -> QModuleConfiguration
         Initialize widget constraints
         
         """
         QtGui.QScrollArea.__init__(self, parent)
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowTitle('Module Configuration')
         self.setWidgetResizable(True)
         self.confWidget = QConfigurationWidget()
@@ -91,6 +92,18 @@ class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
         self.updateLocked = False
         self.hasChanges = False
         
+    def set_controller(self, controller):
+        self.controller = controller
+        self.scene = controller.current_pipeline_view
+
+        selected_ids = self.scene.get_selected_module_ids() 
+        modules = [controller.current_pipeline.modules[i] 
+                   for i in selected_ids]
+        if len(modules) == 1:
+            self.updateModule(modules[0])
+        else:
+            self.updateModule(None)
+
     def updateModule(self, module):
         if self.updateLocked: return
         self.module = module
@@ -98,13 +111,13 @@ class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
         self.confWidget.setVisible(False)
         self.confWidget.clear()
         if module and self.controller:
-            if module.has_annotation_with_key('__desc__'):
-                label = module.get_annotation_by_key('__desc__').value.strip()
-                title = '%s (%s) Module Configuration'%(label,
-                                                        module.name)
-            else:
-                title = '%s Module Configuration'%module.name
-            self.setWindowTitle(title)
+            # if module.has_annotation_with_key('__desc__'):
+            #     label = module.get_annotation_by_key('__desc__').value.strip()
+            #     title = '%s (%s) Module Configuration'%(label,
+            #                                             module.name)
+            # else:
+            #     title = '%s Module Configuration'%module.name
+            # self.setWindowTitle(title)
             registry = get_module_registry()
             getter = registry.get_configuration_widget
             widgetType = getter(module.package, module.name, module.namespace)
@@ -119,20 +132,22 @@ class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
                          self.configureDone)
             self.connect(widget, QtCore.SIGNAL("stateChanged"),
                          self.stateChanged)
-        else:
-            self.setWindowTitle("Module Configuration")
+        # else:
+        #     self.setWindowTitle("Module Configuration")
         self.confWidget.setUpdatesEnabled(True)
         self.confWidget.setVisible(True)
         self.hasChanges = False
     
     def configureDone(self):
+        from gui.vistrails_window import _app
         self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)  
+        _app.notify('module_done_configure', self.module.id)
         
     def stateChanged(self):
-        # self.setWindowModified seems not to work here
-        # self.setWindowModified(self.confWidget.widget.state_changed)
-        title = str(self.windowTitle())
         self.hasChanges = self.confWidget.widget.state_changed
+        # self.setWindowModified seems not to work here
+        # self.setWindowModified(self.hasChanges)
+        title = str(self.windowTitle())
         if self.hasChanges:
             if not title.endswith("*"):
                 self.setWindowTitle(title + "*")
@@ -160,6 +175,7 @@ class QModuleConfiguration(QtGui.QScrollArea, QToolWindowInterface):
         
     def activate(self):
         if self.isVisible() == False:
-            self.toolWindow().show()
+            # self.toolWindow().show()
+            self.show()
         self.activateWindow()
         self.confWidget.activate()

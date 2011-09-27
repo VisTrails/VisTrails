@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 """ This script assumes that VisTrails.command file is located at ../ 
 Run this script after you copied the VisTrails folder and run from where it 
 is located. 

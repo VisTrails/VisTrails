@@ -464,8 +464,8 @@ class StandardWidgetSheetTabInterface(object):
         """
         pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
         executePipelineWithProgress(pipeline, 'Execute Cell',
-                                    vistrailLocator=pInfo[0],
-                                    currentVersion=pInfo[1],
+                                    locator=pInfo[0],
+                                    current_version=pInfo[1],
                                     actions=pInfo[2],
                                     reason=reason)
 

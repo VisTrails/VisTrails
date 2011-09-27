@@ -150,6 +150,8 @@ class DefaultTheme(object):
             QtGui.QColor(240, 240, 240))
         self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QColor(119, 143, 159))
+        self.QUERY_RESULT_BACKGROUND_BRUSH = QtGui.QBrush(
+            QtGui.QColor(208, 226, 239))
 
         # Pen to draw a module shape at regular state
         self.MODULE_PEN = QtGui.QPen(QtGui.QBrush(
@@ -496,6 +498,24 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/down.png')
 
+        # Icon for expand all/collapse all buttons in the Module Palette
+        self.EXPAND_ALL_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/expand_all.png')
+        
+        self.COLLAPSE_ALL_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/collapse_all.png')
+        
+        # Icons for tree/list view buttons in the Workspace
+        self.LIST_VIEW_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/list_view.png')
+        
+        self.TREE_VIEW_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/tree_view.png')
+
         # Toolbar icons for views
         self.PIPELINE_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
@@ -509,6 +529,9 @@ class DefaultTheme(object):
         self.EXPLORE_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/explore.png')
+        self.PROVENANCE_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/search_database.png')
 
         # Toolbar icon for visual query on a vistrail
         self.VISUAL_QUERY_ICON = QtGui.QIcon(
@@ -530,6 +553,22 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/dragging.png')
 
+        #Tabbar icon for detach a tab        
+        self.DETACH_TAB_ICON = QtGui.QIcon()
+        self.DETACH_TAB_ICON.addFile(core.system.vistrails_root_directory() +
+                                     '/gui/resources/images/detach.png',
+                                     mode=QtGui.QIcon.Normal)
+        self.DETACH_TAB_ICON.addFile(core.system.vistrails_root_directory() +
+                                     '/gui/resources/images/detach_on.png',
+                                     mode=QtGui.QIcon.Active)
+
+        #toolbutton icon for pin/unpin palette
+        self.PINNED_PALETTE_ICON = QtGui.QIcon(
+                                core.system.vistrails_root_directory() +
+                                '/gui/resources/images/pinned.png')
+        self.UNPINNED_PALETTE_ICON = QtGui.QIcon(
+                                core.system.vistrails_root_directory() +
+                                '/gui/resources/images/unpinned.png')
         # Parameter Exploration Pixmaps
         self.EXPLORE_COLUMN_PIXMAP = QtGui.QPixmap(
             core.system.vistrails_root_directory() +
@@ -575,7 +614,18 @@ class DefaultTheme(object):
         self.ZOOM_ICON = QtGui.QIcon(QtGui.QPixmap(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/zoom_icon.png'))
-
+        
+        # Mashup Icons
+        self.EXECUTE_MASHUP_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/mashup_execute.png')
+        self.MASHUP_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/mashup_create.png')
+        self.MASHUP_ALIAS_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/alias.png')
+        
         # Saved Queries icons
         self.QUERY_VIEW_ICON = self.ZOOM_ICON
         self.QUERY_ARROW_ICON = QtGui.QIcon(QtGui.QPixmap(

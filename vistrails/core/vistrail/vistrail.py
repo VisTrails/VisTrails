@@ -36,32 +36,25 @@
 import copy
 import datetime
 import getpass
-import itertools
-import string
-import traceback
-import xml.dom.minidom
 
 from db.domain import DBVistrail
-from db import VistrailsDBException
+from db.services.io import open_vt_log_from_db, open_log_from_xml
+from core.db.locator import DBLocator
+from core.log.log import Log
 from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
 from core import debug
 import core.db.io
-from core.utils import enum, VistrailsInternalError, InstanceObject, \
+from core.utils import VistrailsInternalError, \
      InvalidPipeline
 from core.vistrail.action import Action
-from core.vistrail.abstraction import Abstraction
 from core.vistrail.action_annotation import ActionAnnotation
 from core.vistrail.annotation import Annotation
-from core.vistrail.connection import Connection
-from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from core.vistrail.pipeline import Pipeline
 from core.vistrail.plugin_data import PluginData
-from core.vistrail.port_spec import PortSpec
 ################################################################################
 
 class Vistrail(DBVistrail):
@@ -83,9 +76,9 @@ class Vistrail(DBVistrail):
     get_tag_str(tag_name).action_id
 
     """
-	
+
     def __init__(self, locator=None):
-	DBVistrail.__init__(self)
+        DBVistrail.__init__(self)
 
         self.locator = locator
         self.set_defaults()
@@ -97,6 +90,7 @@ class Vistrail(DBVistrail):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBVistrail.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Vistrail
+        cp.locator = copy.copy(self.locator)
         cp.set_defaults(self)
         return cp
 
@@ -121,10 +115,10 @@ class Vistrail(DBVistrail):
 
     @staticmethod
     def convert(_vistrail):
-	_vistrail.__class__ = Vistrail
+        _vistrail.__class__ = Vistrail
 
-	for action in _vistrail.actions:
-	    Action.convert(action)
+        for action in _vistrail.actions:
+            Action.convert(action)
 # 	for tag in _vistrail.tags:
 #             Tag.convert(tag)
         for annotation in _vistrail.annotations:
@@ -448,7 +442,8 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return core.db.io.get_workflow_diff_with_connections(self, v1, v2)
+        return core.db.io.get_workflow_diff_with_connections((self, v1), 
+                                                             (self, v2))
         
     def get_pipeline_diff(self, v1, v2):
         """ get_pipeline_diff(v1: int, v2: int) -> tuple        
@@ -473,7 +468,7 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return core.db.io.get_workflow_diff(self, v1, v2)               
+        return core.db.io.get_workflow_diff((self, v1), (self, v2))
                         
     def getFirstCommonVersion(self, v1, v2):
         """ Returns the first version that it is common to both v1 and v2 
@@ -526,7 +521,7 @@ class Vistrail(DBVistrail):
         pipeline v1 into v2."""
 
         return core.db.io.getPathAsAction(self, v1, v2)
-		    
+    
     def actionChain(self, t, start=0):
         """ actionChain(t:int, start=0) -> [Action]  
         Returns the action chain (list of Action)  necessary to recreate a 
@@ -982,13 +977,13 @@ class Vistrail(DBVistrail):
         return result
 
     def getDate(self):
-	""" getDate() -> str - Returns the current date and time. """
+        """ getDate() -> str - Returns the current date and time. """
     #	return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):
-	""" getUser() -> str - Returns the username. """
-	return getpass.getuser()
+        """ getUser() -> str - Returns the username. """
+        return getpass.getuser()
 
     def serialize(self, filename):
         pass
@@ -1087,7 +1082,21 @@ class Vistrail(DBVistrail):
             c.id = fresh_id
 
         raise Exception("not finished")
-            
+    
+    def get_log(self):
+        """
+        Returns the log object for this vistrail if available
+        """
+        log = Log()
+        if type(self.locator) == core.db.locator.ZIPFileLocator:
+            if self.db_log_filename is not None:
+                log = open_log_from_xml(self.db_log_filename, True)
+        if type(self.locator) == core.db.locator.DBLocator:
+            connection = self.locator.get_connection()
+            log = open_vt_log_from_db(connection, self.db_id)
+        Log.convert(log)
+        return log
+
 ##############################################################################
 
 class ExplicitExpandedVersionTree(object):

@@ -41,18 +41,18 @@ QModuleTreeWidgetItem
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import (QSearchTreeWindow,
-                                QSearchTreeWidget,
-                                QToolWindowInterface)
+                                QSearchTreeWidget)
 from gui.module_documentation import QModuleDocumentation
+from gui.theme import CurrentTheme
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from core.modules.module_registry import get_module_registry
 from core.system import systemType
 from core.utils import VistrailsInternalError
-from core.packagemanager import get_package_manager
 import weakref
 
 ################################################################################
                 
-class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
+class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
     """
     QModulePalette just inherits from QSearchTreeWindow to have its
     own type of tree widget
@@ -60,8 +60,34 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     """
     def __init__(self, parent=None):
         QSearchTreeWindow.__init__(self, parent)
+        self.setContentsMargins(0,5,0,0)
         self.packages = {}
         self.namespaces = {}
+        self.addButtonsToToolBar()
+        
+    def addButtonsToToolBar(self):
+        self.expandAction = QtGui.QAction(CurrentTheme.EXPAND_ALL_ICON,
+                                           "Expand All", self.toolWindow().toolbar,
+                                           triggered=self.expandAll)
+        
+        self.collapseAction = QtGui.QAction(CurrentTheme.COLLAPSE_ALL_ICON,
+                                           "Collapse All", self.toolWindow().toolbar,
+                                           triggered=self.collapseAll)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.collapseAction)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.expandAction)
+        
+    def expandAll(self):
+        self.treeWidget.expandAll()
+    
+    def collapseAll(self):
+        self.treeWidget.collapseAll()
+
+    def link_registry(self):
+        self.updateFromModuleRegistry()
+        self.connect_registry_signals()
+        
 
     def connect_registry_signals(self):
         registry = get_module_registry()
@@ -202,6 +228,9 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.treeWidget.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.treeWidget.setSortingEnabled(True)
 #        self.treeWidget.expandAll()
+
+    def sizeHint(self):
+        return QtCore.QSize(256, 760)
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """

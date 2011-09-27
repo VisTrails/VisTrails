@@ -31,5 +31,5 @@
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 --
 --#############################################################################
-create table file (id text, name text, tags text, user text, date_created text, date_modified text, content_hash text, version text, signature text, type text, deleted bool NOT NULL DEFAULT False);
+create table file (id text, name text, tags text, user text, date_created text, date_modified text, content_hash text, version text, signature text, type text);
 create index signature_idx on file(signature);

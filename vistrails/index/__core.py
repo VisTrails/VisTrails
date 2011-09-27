@@ -31,7 +31,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 """ This is the core classes for the general workflow model
 
 The structures can hold a description of a workflow and lists of operations.

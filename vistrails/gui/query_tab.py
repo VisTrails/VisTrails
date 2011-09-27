@@ -84,6 +84,7 @@ class QQueryTab(QPipelineTab):
         self.connect(controller,
                      QtCore.SIGNAL('vistrailChanged()'),
                      self.vistrailChanged)
+        
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None

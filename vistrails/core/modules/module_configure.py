@@ -125,12 +125,12 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     # over this panel.
     # I already spent a lot of time trying fix and I couldn't.
     # If anybody has the time to fix this, please do it. (Emanuele)     
+    #
+    # DAK -- seems to be ok when in the palette window...
+
     def focusOutEvent(self, event):
-        if self.mouseOver:
-            event.ignore()
-        else:
-            self.askToSaveChanges()
-            QtGui.QWidget.focusOutEvent(self, event)
+        self.askToSaveChanges()
+        QtGui.QWidget.focusOutEvent(self, event)
         
     def enterEvent(self, event):
         self.mouseOver = True

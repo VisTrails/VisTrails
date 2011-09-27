@@ -31,7 +31,6 @@
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 --
 --#############################################################################
-
 -- genereated automatically by generate.py
 
 DROP TABLE IF EXISTS port_spec, module, tag, port, log_tbl, machine, add_tbl, other, location, workflow_exec, function, abstraction, workflow, abstraction_ref, annotation, change_tbl, parameter, connection_tbl, action, delete_tbl, vistrail, module_exec

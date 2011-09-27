@@ -218,23 +218,7 @@ def NewPythonEditor(parent):
             else:
                 QsciScintilla.keyPressEvent(self, event)
     
-        def focusInEvent(self, event):
-            """ disable builder undo/redo actions
-                so that the editor can use its own """
-            bw = getBuilderWindow()
-            self.undoEnabled = bw.undoAction.isEnabled()
-            self.redoEnabled = bw.redoAction.isEnabled()
-            bw.undoAction.setEnabled(False)
-            bw.redoAction.setEnabled(False)
-    
-            QsciScintilla.focusInEvent(self, event)
-    
         def focusOutEvent(self, event):
-            """ restore builder undo/redo actions """
-            bw = getBuilderWindow()
-            bw.undoAction.setEnabled(self.undoEnabled)
-            bw.redoAction.setEnabled(self.redoEnabled)
-
             if self.parent():
                 QtCore.QCoreApplication.sendEvent(self.parent(), event)
             QsciScintilla.focusOutEvent(self, event)

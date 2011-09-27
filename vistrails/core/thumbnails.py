@@ -264,7 +264,7 @@ class ThumbnailCache(object):
 
     def _copy_thumbnails(self, thumbnails):
         """_copy_thumbnails(thumbnails: list of str) -> None """
-        local_dir = get_thumbnail_dir()
+        local_dir = self.get_directory()
         for thumb in thumbnails:
             local_thumb = os.path.join(local_dir, os.path.basename(thumb))
             if os.path.exists(thumb) and not os.path.exists(local_thumb):

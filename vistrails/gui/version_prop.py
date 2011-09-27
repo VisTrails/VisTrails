@@ -39,20 +39,23 @@ QVersionNotes
 QVersionPropOverlay
 QExpandButton
 QNotesDialog
+QVersionThumbs
+QVersionMashups
+
 """
 import os.path
 from PyQt4 import QtCore, QtGui
 from core.query.version import SearchCompiler, SearchParseError, TrueSearch
 from core.thumbnails import ThumbnailCache
 from gui.theme import CurrentTheme
-from gui.common_widgets import QToolWindowInterface
 from gui.common_widgets import QSearchBox
+from gui.vistrails_palette import QVistrailsPaletteInterface
 from core.utils import all
 from core import debug
 
 ################################################################################
 
-class QVersionProp(QtGui.QWidget, QToolWindowInterface):
+class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     QVersionProp is a widget holding property of a version including
     tagname and notes
@@ -67,34 +70,32 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.setWindowTitle('Properties')
 
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
-        vLayout.setSpacing(5)
+        vLayout.setMargin(2)
+        vLayout.setSpacing(2)
         self.setLayout(vLayout)
 
-        self.searchBox = QSearchBox(True, False, self)
-        vLayout.addWidget(self.searchBox)
-        
         gLayout = QtGui.QGridLayout()
-        gLayout.setMargin(0)
+        gLayout.setMargin(2)
         gLayout.setSpacing(5)
         gLayout.setColumnMinimumWidth(1,5)
-        gLayout.setRowMinimumHeight(0,24)
-        gLayout.setRowMinimumHeight(1,24)
-        gLayout.setRowMinimumHeight(2,24)
-        gLayout.setRowMinimumHeight(3,24)        
+        gLayout.setRowMinimumHeight(0,20)
+        gLayout.setRowMinimumHeight(1,20)
+        gLayout.setRowMinimumHeight(2,20)
+        gLayout.setRowMinimumHeight(3,20)        
         vLayout.addLayout(gLayout)
         
         tagLabel = QtGui.QLabel('Tag:', self)
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
         editLayout = QtGui.QHBoxLayout()
-        editLayout.setMargin(0)
+        editLayout.setMargin(2)
         editLayout.setSpacing(2)
         self.tagEdit = QtGui.QLineEdit()
         tagLabel.setBuddy(self.tagEdit)
         editLayout.addWidget(self.tagEdit)
         self.tagEdit.setEnabled(False)
-
+        self.tagEdit.setMinimumHeight(22)
+        
         self.tagReset = QtGui.QToolButton(self)
         self.tagReset.setIcon(QtGui.QIcon(
                 self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
@@ -127,38 +128,18 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.versionThumbs = QVersionThumbs()
         vLayout.addWidget(self.versionThumbs)
         
-        eLayout = QtGui.QVBoxLayout()
-        self.versionEmbedBtn = QtGui.QPushButton("Embed")
-        eLayout.addWidget(self.versionEmbedBtn)
-        self.versionEmbedBtn.setEnabled(False)
-        self.versionEmbedBtn.setMinimumHeight(20)
-        self.versionEmbedBtn.setSizePolicy(QtGui.QSizePolicy(
-                                                       QtGui.QSizePolicy.Fixed,
-                                                       QtGui.QSizePolicy.Fixed))
-        self.versionEmbedBtn.setToolTip("Get workflow embed code")
-        vLayout.addLayout(eLayout)
-        
-        self.versionEmbedPanel = QVersionEmbed(self)
-        self.versionEmbedPanel.setVisible(False)
-        
+        self.versionMashups = QVersionMashups()
+        vLayout.addWidget(self.versionMashups)
+                
         self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
                      self.tagFinished)
         self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
                      self.tagChanged)
         self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
                      self.tagCleared)
-        self.connect(self.searchBox, QtCore.SIGNAL('resetSearch()'),
-                     self.resetSearch)
-        self.connect(self.searchBox, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.executeSearch)
-        self.connect(self.searchBox, QtCore.SIGNAL('refineMode(bool)'),
-                     self.refineMode)
-        self.connect(self.versionEmbedBtn, QtCore.SIGNAL('clicked()'),
-                     self.showEmbedPanel)
 
         self.controller = None
         self.versionNumber = -1
-        self.refineMode(False)
 
     def updateController(self, controller):
         """ updateController(controller: VistrailController) -> None
@@ -167,8 +148,9 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         self.controller = controller
         self.versionNotes.controller = controller
-        self.versionEmbedPanel.controller = controller
         self.versionThumbs.controller = controller
+        self.versionMashups.controller = controller
+        self.updateVersion(controller.current_version)
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
@@ -178,7 +160,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.versionNumber = versionNumber
         self.versionNotes.updateVersion(versionNumber)
         self.versionThumbs.updateVersion(versionNumber)
-        self.versionEmbedPanel.updateVersion(versionNumber)
+        self.versionMashups.updateVersion(versionNumber)
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
@@ -187,15 +169,10 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
                 self.tagEdit.setEnabled(True)
-                self.versionEmbedBtn.setEnabled(versionNumber > 0)
-                if versionNumber == 0:
-                    self.versionEmbedPanel.hide()
                 return
             else:
                 self.tagEdit.setEnabled(False)
                 self.tagReset.setEnabled(False)
-                self.versionEmbedBtn.setEnabled(False)
-                self.versionEmbedPanel.hide()
                 
         self.tagEdit.setText('')
         self.userEdit.setText('')
@@ -212,7 +189,6 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
             currentText = str(self.tagEdit.text())
             if name != currentText:    
                 self.controller.update_current_tag(currentText)
-                self.versionEmbedPanel.updateVersion(self.versionNumber)
 
     def tagChanged(self, text):
         """ tagChanged(text: QString) -> None
@@ -228,43 +204,6 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """ 
         self.tagEdit.setText('')
         self.tagFinished()
-        
-    def resetSearch(self, emit_signal=True):
-        """
-        resetSearch() -> None
-
-        """
-        if self.controller and emit_signal:
-            self.controller.set_search(None)
-            self.emit(QtCore.SIGNAL('textQueryChange(bool)'), False)
-        else:
-            self.searchBox.clearSearch()
-    
-    def executeSearch(self, text):
-        """
-        executeSearch(text: QString) -> None
-
-        """
-        s = str(text)
-        if self.controller:
-            try:
-                search = SearchCompiler(s).searchStmt
-            except SearchParseError, e:
-                debug.warning("Search Parse Error", str(e))
-                search = None
-            self.controller.set_search(search, s)
-            self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')
-
-    def refineMode(self, on):
-        """
-        refineMode(on: bool) -> None
-        
-        """
-        if self.controller:
-            self.controller.set_refine(on)
-            
-    def showEmbedPanel(self):
-        self.versionEmbedPanel.show()
 
 class QVersionNotes(QtGui.QTextEdit):
     """
@@ -692,366 +631,6 @@ class QNotesDialog(QtGui.QDialog):
         return QtCore.QSize(250,200)
         
 ################################################################################
-class QVersionEmbed(QtGui.QWidget):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtGui.QWidget.__init__(self, parent, 
-                               f | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
-        self.setWindowTitle('Embed Options')
-        self.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.versionNumber = None
-        self.versionTag = ''
-        label1 = QtGui.QLabel("Embed:")
-        self.cbcontent = QtGui.QComboBox()
-        self.cbcontent.setEditable(False)
-        items = QtCore.QStringList()
-        items << "Workflow Results" << "Workflow Graph" << "History Tree Graph";
-        self.cbcontent.addItems(items)
-        label2 = QtGui.QLabel("In")
-        
-        self.cbtype = QtGui.QComboBox()
-        self.cbtype.setEditable(False)
-        items = QtCore.QStringList()
-        items << "Wiki" << "Latex" << "Shared Memory";
-        self.cbtype.addItems(items)
-        
-        self.controller = None
-        self.pptag = 'Image(s) from (%s,%s,%s,%s,%s)'
-        
-        #options
-        self.gbEmbedOpt = QtGui.QGroupBox("Embed Options")
-        self.chbPdf = QtGui.QCheckBox("As PDF")
-        self.chbSmartTag = QtGui.QCheckBox("Smart Tag")
-        self.chbCache = QtGui.QCheckBox("Cache Images")
-        self.chbLatexVTL = QtGui.QCheckBox("Include .vtl")
-        self.chbLatexVTL.setVisible(False)
-        
-        gblayout = QtGui.QGridLayout()
-        gblayout.addWidget(self.chbPdf, 0, 0)
-        gblayout.addWidget(self.chbSmartTag, 0, 1)
-        gblayout.addWidget(self.chbCache, 0, 2)
-        gblayout.addWidget(self.chbLatexVTL, 1, 0)
-        self.gbEmbedOpt.setLayout(gblayout)
-        
-        self.gbDownOpt = QtGui.QGroupBox("Download Options")
-        self.chbWorkflow = QtGui.QCheckBox("Include Workflow")
-        self.chbFullTree = QtGui.QCheckBox("Include Full Tree")
-        self.chbFullTree.setEnabled(False)
-        self.chbExecute = QtGui.QCheckBox("Execute Workflow")
-        self.chbSpreadsheet = QtGui.QCheckBox("Show Spreadsheet Only")
-        
-        gblayout = QtGui.QGridLayout()
-        gblayout.addWidget(self.chbWorkflow, 0, 0)
-        gblayout.addWidget(self.chbFullTree, 0, 1)
-        gblayout.addWidget(self.chbExecute, 1, 0)
-        gblayout.addWidget(self.chbSpreadsheet, 1, 1)
-        self.gbDownOpt.setLayout(gblayout)
-        
-        self.embededt = QtGui.QTextEdit(self)
-        self.embededt.setAcceptRichText(False)
-        self.embededt.setReadOnly(False)
-        self.exportHtml = '<a href="export">Export...</a>'
-        self.copyHtml = '<a href="copy">Copy to Clipboard</a>'
-        self.copylabel = QtGui.QLabel(self.copyHtml)
-        self.copylabel.setCursor(QtCore.Qt.PointingHandCursor)
-        
-        label3 = QtGui.QLabel("After making your selection, click on 'Copy To \
-Clipboard'. The code changes based on your selection.")
-        label3.setWordWrap(True)
-        
-        font = QtGui.QFont("Arial", 10, QtGui.QFont.Normal)
-        font.setItalic(True)
-        label3.setFont(font)
-        
-        layout = QtGui.QGridLayout()
-        layout.addWidget(label1,0,0)
-        layout.addWidget(self.cbcontent,0,1)
-        layout.addWidget(label2,1,0)
-        layout.addWidget(self.cbtype,1,1)
-        layout.addWidget(self.gbEmbedOpt,2,0,1,-1)
-        layout.addWidget(self.gbDownOpt,3,0,1,-1)
-        layout.addWidget(self.copylabel,4,1,QtCore.Qt.AlignRight)
-        layout.addWidget(self.embededt,5,0,1,-1)
-        layout.addWidget(label3,6,0,1,-1)
-        layout.setColumnStretch(1, 1)
-        
-        self.setLayout(layout)
-        
-        #connect signals
-        self.connect(self.cbtype,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeEmbedType)
-        
-        self.connect(self.copylabel,
-                     QtCore.SIGNAL("linkActivated(const QString &)"),
-                     self.linkActivated)
-        
-        self.connect(self.cbcontent,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeOption)
-        
-        optlist = [self.cbcontent,
-                   self.chbPdf,
-                   self.chbSmartTag,
-                   self.chbCache,
-                   self.chbLatexVTL,
-                   self.chbWorkflow,
-                   self.chbFullTree,
-                   self.chbExecute,
-                   self.chbSpreadsheet]
-        for cb in optlist:
-            self.connect(cb, QtCore.SIGNAL("toggled(bool)"),
-                         self.changeOption)
-        #special cases
-        self.connect(self.chbWorkflow, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeIncludeWorkflow)
-        self.connect(self.chbSpreadsheet, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeShowSpreadsheet)
-        self.connect(self.chbExecute, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeExecute)
-        self.connect(self.cbcontent,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeContent)
-        self.connect(self.chbSmartTag, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeSmartTag)
-        self.connect(self.chbCache, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeCache)
-        
-    def closeEvent(self,e):
-        """ closeEvent(e: QCloseEvent) -> None
-        Doesn't allow the Legend widget to close, but just hide
-        instead
-        
-        """
-        e.ignore()
-        self.hide()
-    
-    def focusInEvent(self, event):
-        if self.controller:
-            if self.controller.locator:
-                app = QtGui.QApplication.instance()
-                if hasattr(app, 'builderWindow'):
-                    manager = app.builderWindow.viewManager
-                    manager.ensureVistrail(self.controller.locator)
-                    
-                    
-    def checkLocator(self):
-        """checkLocator() -> bool
-        Only vistrails on a database are allowed to embed a tag"""
-        result = False
-        if self.controller:
-            if self.controller.locator:
-                title = "Embed Options for %s"%self.controller.locator.name
-                self.setWindowTitle(title)
-                result = True
-        return result
-
-    def checkControllerStatus(self):
-        """checkControllerStatus() -> bool
-        this checks if the controller has saved the latest changes """
-        result = False
-        if self.controller:
-            result = not self.controller.changed
-        return result
-    
-    def updateEmbedText(self):
-        ok = (self.checkLocator() and self.checkControllerStatus() and
-              self.versionNumber > 0)
-        self.embededt.setEnabled(ok)
-        self.copylabel.setEnabled(ok)
-        self.embededt.setText('')
-
-        if self.controller and self.versionNumber > 0:
-            if self.controller.locator and not self.controller.changed:
-                loc = self.controller.locator
-                if hasattr(loc,'host'):
-                    self.updateCbtype('db')    
-                elif hasattr(loc, 'name'):
-                    self.updateCbtype('file')
-                        
-                if self.versionTag != "":
-                    self.chbSmartTag.setEnabled(True)
-                else:
-                    self.chbSmartTag.setChecked(False)
-                    self.chbSmartTag.setEnabled(False)
-                    
-                self.setEmbedText()
-            elif self.controller.changed:
-                self.embededt.setPlainText('You must save your vistrail to proceed')
-            else:
-                self.embededt.setPlainText('')
-                
-    def setEmbedText(self):
-        #check options
-        options = {}
-        options['content'] = str(self.cbcontent.currentText())
-        options['pdf'] = self.chbPdf.isChecked()
-        options['smartTag'] = self.chbSmartTag.isChecked()
-        options['buildalways'] = not self.chbCache.isChecked()
-        options['includeWorkflow'] = self.chbWorkflow.isChecked()
-        options['includeFullTree'] = self.chbFullTree.isChecked()
-        options['execute'] = self.chbExecute.isChecked()
-        options['showspreadsheetonly'] = self.chbSpreadsheet.isChecked()
-        
-        if self.cbtype.currentText() == "Wiki":
-            text = self.buildWikiTag(options)
-        elif self.cbtype.currentText() == "Latex":
-            options['getvtl'] = self.chbLatexVTL.isChecked()
-            text = self.buildLatexCommand(options)
-        elif text == "Shared Memory":
-            text = self.pptag
-        self.embededt.setPlainText(text)
-            
-    def updateVersion(self, versionNumber):
-        self.versionNumber = versionNumber
-        if versionNumber > 0:
-            self.versionTag = self.controller.vistrail.getVersionName(self.versionNumber)
-        self.updateEmbedText()
-
-    def linkActivated(self, link):
-        if link=='copy':
-            clipboard = QtGui.QApplication.clipboard()
-            clipboard.setText(self.embededt.toPlainText())
-        elif link=='export':
-            app = QtCore.QCoreApplication.instance()
-            app.builderWindow.interactiveExportCurrentPipeline()
-    
-    def changeEmbedType(self, text):
-        if text!='Shared Memory':
-            self.copylabel.setText(self.copyHtml)
-        else:
-            self.copylabel.setText(self.exportHtml)
-        self.chbLatexVTL.setVisible(text == 'Latex')
-        self.chbPdf.setEnabled(text == 'Latex')
-        self.setEmbedText()  
-        
-    def changeOption(self, value):
-        self.setEmbedText()
-        
-    def changeContent(self, text):
-        if text == "Workflow Results":
-            self.chbExecute.setEnabled(True)
-            self.chbSpreadsheet.setEnabled(True)
-            self.chbCache.setEnabled(True)
-            self.chbSmartTag.setEnabled(True)
-        else:
-            self.chbExecute.setChecked(False)
-            self.chbSpreadsheet.setChecked(False)
-            self.chbExecute.setEnabled(False)
-            self.chbSpreadsheet.setEnabled(False)
-            if text == "History Tree Graph":
-                self.chbCache.setChecked(False)
-                self.chbCache.setEnabled(False)
-                self.chbSmartTag.setChecked(False)
-                self.chbSmartTag.setEnabled(False)
-            else:
-                self.chbCache.setEnabled(True)
-                self.chbSmartTag.setEnabled(True)
-                
-    def updateCbtype(self, type):
-        currentText = self.cbtype.currentText()
-        self.cbtype.clear()
-        items = QtCore.QStringList()
-        if type == 'db':
-            items << "Wiki" << "Latex" << "Shared Memory";
-        elif type == 'file':
-            items << "Latex";
-        self.cbtype.addItems(items)
-        index = items.indexOf(currentText)
-        if index > 0:
-            self.cbtype.setCurrentIndex(index)
-        text = str(self.cbtype.currentText())
-        self.chbLatexVTL.setVisible(text == 'Latex')
-        self.chbPdf.setEnabled(text == 'Latex')
-            
-    def buildLatexCommand(self, options):
-        text = '\\vistrail['
-        loc = self.controller.locator
-        if hasattr(loc, 'host'):
-            text += 'host=%s,\ndb=%s,\nport=%s,\nvtid=%s,\n'% (loc.host,
-                                                               loc.db,
-                                                               loc.port,
-                                                               loc.obj_id)
-        else:
-            text += 'filename=%s,\n' % os.path.basename(loc.name)
-        if options['content'] != "History Tree Graph":    
-            text += 'version=%s,\n'%self.versionNumber
-            if options['smartTag']:
-                text += 'tag={%s},\n'%self.versionTag
-        if options['pdf']:
-            text += 'pdf,\n'
-        if options['buildalways']:
-            text+= 'buildalways,\n'
-        if options['getvtl']:
-            text += 'getvtl,\n'
-        if options['includeWorkflow']:
-            text+= 'embedworkflow,\n'
-            if options['includeFullTree']:
-                text += 'includefulltree,\n'
-        if options['content'] == "Workflow Graph":
-            text += 'showworkflow,\n'
-        elif options['content'] == "History Tree Graph":
-            text += 'showtree,\n'
-        else:
-            if options['execute']:
-                text += 'execute,\n'
-            if options['showspreadsheetonly']:
-                text += 'showspreadsheetonly,\n'
-        
-        text = text[0:-2] + "]{}"
-        return text        
-
-    def buildWikiTag(self, options):
-        text = '<vistrail '
-        loc = self.controller.locator
-        
-        text += 'host="%s" db="%s" port="%s" vtid="%s" '% (loc.host,
-                                                            loc.db,
-                                                            loc.port,
-                                                            loc.obj_id)
-        if options['content'] != "History Tree Graph":
-            text += 'version="%s" '%self.versionNumber
-            if options['smartTag']:
-                text += 'tag="%s " '%self.versionTag
-        if options['buildalways']:
-            text+= 'buildalways="True" '
-        if options['includeWorkflow']:
-            text+= 'embedworkflow="True" '
-            if options['includeFullTree']:
-                text += 'includefulltree="True" '
-        if options['content'] == "Workflow Graph":
-            text += 'showworkflow="True" ' #"Workflow Results" << "Workflow Graph" << "History Tree Graph";
-        elif options['content'] == "History Tree Graph":
-            text += 'showtree="True" '
-        else:
-            if options['execute']:
-                text += 'execute="True" '
-            if options['showspreadsheetonly']:
-                text += 'showspreadsheetonly="True" '
-        
-        text += "/>"
-        return text        
-
-    def changeIncludeWorkflow(self,checked):
-        self.chbFullTree.setEnabled(checked)
-        if self.cbcontent.currentText() == "History Tree Graph":
-            self.chbFullTree.setChecked(checked)
-        
-    def changeShowSpreadsheet(self, checked):
-        if checked:
-            self.chbExecute.setChecked(True)
-            
-    def changeExecute(self, checked):
-        if not checked:
-            self.chbSpreadsheet.setChecked(False)
-            
-    def changeSmartTag(self, checked):
-        if checked and self.cbtype.currentText() == 'Latex':
-            self.chbCache.setChecked(False)
-            
-    def changeCache(self, checked):
-        if checked and self.cbtype.currentText() == 'Latex':
-            self.chbSmartTag.setChecked(False)
-################################################################################
 
 class QVersionThumbs(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -1065,7 +644,7 @@ class QVersionThumbs(QtGui.QWidget):
         self.scrollArea.setWidget(self.thumbs)
         self.scrollArea.setWidgetResizable(True)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setMargin(2)
         layout.addWidget(label)
         layout.addWidget(self.scrollArea)
         self.setLayout(layout)
@@ -1098,3 +677,133 @@ class QVersionThumbs(QtGui.QWidget):
                 
         self.thumbs.setPixmap(QtGui.QPixmap())
         self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)
+
+################################################################################
+class QVersionMashups(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.versionNumber = None
+        self.controller = None
+        #label = QtGui.QLabel("Mashups:")
+        self.mashupsButton = QtGui.QToolButton()
+        self.mashupsButton.setText("Mashups")
+        self.mashupsButton.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.mashupsButton.setArrowType(QtCore.Qt.RightArrow)
+        self.mashupsButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        
+#        font = QtGui.QFont("Arial", 11, QtGui.QFont.Normal)
+#        font.setItalic(True)
+#        self.group = QtGui.QGroupBox()
+#        helplabel = QtGui.QLabel("Double-click a mashup to execute it")
+#        helplabel.setFont(font)
+#        self.mashupsList = QtGui.QListWidget()
+#        self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+#        self.mashupsList.itemDoubleClicked.connect(self.mashupDoubleClicked)
+#        glayout = QtGui.QVBoxLayout()
+#        glayout.setMargin(2)
+#        glayout.setSpacing(5)
+#        #layout.addWidget(label)
+#        glayout.addWidget(self.mashupsList)
+#        glayout.addWidget(helplabel)
+#        self.group.setLayout(glayout)
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(2)
+        layout.setSpacing(5)
+        #layout.addStretch()
+        layout.addWidget(self.mashupsButton)
+        #layout.addWidget(self.group)
+        self.setLayout(layout)
+        self.apps = {}
+        #self.group.setVisible(False)
+        #self.connect(self.mashupsButton, QtCore.SIGNAL("clicked(bool)"),
+        #             self.showList)
+        
+    def createMashupsMenu(self, tagMap):
+        tags = tagMap.keys()
+        self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+        #latestversion = mtrail.getLatestVersion()
+        mashupsMenu = QtGui.QMenu(self)
+        if len(tags) > 0:
+            tags.sort()
+            for tag in tags:
+                action = QtGui.QAction(str(tag), self, 
+                                       triggered=self.mashupSelected)
+                action.setData(tagMap[tag])
+                mashupsMenu.addAction(action)
+            self.mashupsButton.setEnabled(True)
+        return mashupsMenu
+    
+#    def showList(self, on):
+#        self.group.setVisible(on)
+        
+    def updateController(self, controller):
+        """ updateController(controller: VistrailController) -> None
+
+        """
+        self.controller = controller
+
+    def updateVersion(self, versionNumber):
+        """ updateVersion(versionNumber: int) -> None
+
+        """
+        #self.mashupsList.clear()
+        
+        from gui.mashups.mashups_manager import MashupsManager
+        from gui.mashups.mashups_inspector import QMashupListPanelItem
+        getMshptrail = MashupsManager.getMashuptrailforVersionInVistrailController
+        if self.controller:
+            vistrail = self.controller.vistrail
+            if versionNumber in vistrail.actionMap.keys():
+                self.mtrail = getMshptrail(self.controller, versionNumber)
+                if self.mtrail:
+                    tagMap = self.mtrail.getTagMap()
+                    self.mashupsButton.setMenu(self.createMashupsMenu(tagMap))
+#                    tags = tagMap.keys()
+#                    self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+#                    #latestversion = mtrail.getLatestVersion()
+#                    if len(tags) > 0:
+#                        tags.sort()
+#                        for tag in tags:
+#                            item = QMashupListPanelItem(str(tag),
+#                                                        tagMap[tag],
+#                                                        self.mashupsList)
+#                        self.mashupsButton.setEnabled(True)
+#                    else:
+#                        self.mashupsButton.setEnabled(False)
+                else:
+                    self.mashupsButton.setText("Mashups (0)")
+                    self.mashupsButton.setEnabled(False)
+            else:
+                self.mashupsButton.setText("Mashups (0)")
+                self.mashupsButton.setEnabled(False)
+        else:
+            self.mashupsButton.setText("Mashups (0)")
+            self.mashupsButton.setEnabled(False)
+                
+    def mashupSelected(self):
+        action = self.sender()
+        version, ok = action.data().toInt()
+        print "mashupSelected ", version
+        self.openMashup(version)
+
+    def openMashup(self, version):
+        from gui.mashups.mashups_manager import MashupsManager
+        item_key = (self.mtrail.id, version)
+        if self.apps.has_key(item_key):
+            app = self.apps[item_key]
+            if app:
+                app.activateWindow()
+                return
+        
+        app = MashupsManager.createMashupApp(self.controller, self.mtrail, 
+                                             version)
+        app.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        app.appWasClosed.connect(self.appWasClosed)
+        self.apps[item_key] = app
+        app.activateWindow()
+        app.raise_()
+                
+    def appWasClosed(self, app):
+        for (k, a) in self.apps.iteritems():
+            if a == app:
+                self.apps[k] = None

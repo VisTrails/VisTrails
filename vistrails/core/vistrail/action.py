@@ -84,16 +84,16 @@ class Action(DBAction):
     operations = DBAction.db_operations
 
     def _get_date(self):
-	if self.db_date is not None:
-	    return self.db_date.strftime('%d %b %Y %H:%M:%S')
-	return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
+        if self.db_date is not None:
+            return self.db_date.strftime('%d %b %Y %H:%M:%S')
+        return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
 
     def _set_date(self, date):
         if type(date) == datetime:
             self.db_date = date
         elif type(date) == type('') and date.strip() != '':
             newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
-	    self.db_date = newDate
+            self.db_date = newDate
     date = property(_get_date, _set_date)
 
     def has_annotation_with_key(self, key):

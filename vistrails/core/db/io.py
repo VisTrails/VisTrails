@@ -67,6 +67,7 @@ def load_vistrail(locator, is_abstraction=False):
 
     abstraction_files = []
     thumbnail_files = []
+    mashups = []
     vistrail = None
     if locator is None:
         vistrail = Vistrail()
@@ -76,10 +77,11 @@ def load_vistrail(locator, is_abstraction=False):
             vistrail = res.vistrail
             abstraction_files.extend(res.abstractions)
             thumbnail_files.extend(res.thumbnails)
+            mashups.extend(res.mashups)
         else:
             vistrail = res
     vistrail.is_abstraction = is_abstraction
-    return (vistrail, abstraction_files, thumbnail_files)
+    return (vistrail, abstraction_files, thumbnail_files, mashups)
     
 def open_registry(filename):
     from core.modules.module_registry import ModuleRegistry
@@ -103,24 +105,43 @@ def serialize(object):
     """
     return db.services.io.serialize(object)
 
+def open_log(fname, was_appended=False):
+    log = db.services.io.open_log_from_xml(fname, was_appended)
+    Log.convert(log)
+    return log
+
+
 def merge_logs(new_log, log_fname):
     log = db.services.io.merge_logs(new_log, log_fname)
     Log.convert(log)
     return log
 
-def get_workflow_diff(vt, v1, v2):
+def get_workflow_diff(vt_pair_1, vt_pair_2):
+    """get_workflow_diff( tuple(Vistrail, id), tuple(Vistrail, id) ) ->
+            Pipeline, Pipeline, [tuple(id, id)], [tuple(id, id)], 
+            [id], [id], [tuple(id, id, list)]
+
+    Return a difference between two workflows referenced as vistrails.
+    """
+
     from core.vistrail.pipeline import Pipeline
     (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes, \
-         _, _, _, _) = db.services.vistrail.getWorkflowDiff(vt, v1, v2, True)
+         _, _, _, _) = \
+         db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2, True)
     Pipeline.convert(v1)
     Pipeline.convert(v2)
     return (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes)
 
-def get_workflow_diff_with_connections(vt, v1, v2):
+def get_workflow_diff_with_connections(vt_pair_1, vt_pair_2):
+    """get_workflow_diff_with_connections
+
+    Similar to get_workflow_diff but with connection pairings.
+    """
+
     from core.vistrail.pipeline import Pipeline
     (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes, \
          c_pairs, c_heuristic, c1_only, c2_only) = \
-         db.services.vistrail.getWorkflowDiff(vt, v1, v2, False)
+         db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2, False)
     Pipeline.convert(v1)
     Pipeline.convert(v2)
     return (v1, v2, m_pairs, m_heustric, v1_only, v2_only, param_changes,

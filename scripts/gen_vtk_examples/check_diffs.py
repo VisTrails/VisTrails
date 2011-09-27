@@ -36,7 +36,7 @@ import sys
 import os
 import re
 
-def run(in_dir, out_dir)
+def run(in_dir, out_dir):
     def collectFilenames(dir):
         # create the regular expression matcher machines
         fileNameParser = re.compile('.*\.py')

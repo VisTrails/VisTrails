@@ -464,6 +464,13 @@ class QDBConnectionList(QtGui.QListWidget):
         self.takeItem(self.currentRow())
         self.__list.remove_connection(id)
         
+    def get_connection(self, id):
+        """get_connection() -> None
+        Returns the selected connection
+
+        """
+        return self.__list.get_connection(id)
+
     def setConnectionInfo(self, *args, **kwargs):
         """setConnectionInfo(id: int, name: str, host: str, port:int,
                      user:str, passwd:str, db:str) -> None

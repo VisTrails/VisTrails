@@ -42,7 +42,6 @@ from core.modules.vistrails_module import Module, ModuleError
 from core.modules.sub_module import read_vistrail, new_abstraction, \
     get_abstraction_dependencies
 import core.modules.module_registry
-import core.vistrail.controller
 from core.db.io import save_vistrail_to_xml
 from core.system import vistrails_version
 from core.utils import InvalidPipeline
@@ -100,6 +99,7 @@ def initialize(*args, **kwargs):
                     # handle_invalid_pipeline will raise it's own InvalidPipeline
                     # exception if it fails
                     try:
+                        import core.vistrail.controller
                         module_version = abs_vistrail.get_latest_version()
                         # Use a "dummy" controller to handle the upgrade
                         controller = core.vistrail.controller.VistrailController(abs_vistrail)
@@ -127,11 +127,11 @@ def initialize(*args, **kwargs):
         abs_vistrails = new_vistrails
 
     for abs_name, (_, e) in cannot_load.iteritems():
-        debug.critical("Cannot load abstraction '%s'" % abs_name)
+        debug.critical("Cannot load subworkflow '%s'" % abs_name)
         if e:
             debug.critical("- %s" % e)
     for abs_name in abs_vistrails:
-        debug.critical("Cannot load abstraction '%s'" % abs_name)
+        debug.critical("Cannot load subworkflow '%s'" % abs_name)
 
 def package_dependencies():
     import core.packagemanager
@@ -167,7 +167,7 @@ def package_dependencies():
                 vistrails[abstraction[:-4]] = \
                     (vistrail, abs_fname, inter_depends)
             else:
-                debug.critical(("Abstraction '%s' is missing packages it " +
+                debug.critical(("Subworkflow '%s' is missing packages it " +
                                 "depends on") % abstraction)
     # print 'all_packages:', all_packages
     return list(all_packages)

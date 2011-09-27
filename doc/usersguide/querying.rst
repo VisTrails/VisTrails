@@ -31,7 +31,7 @@ Query By Example
    :width: 3in
    :align: center
 
-   Example pipeline in ``Query`` mode.
+   Example pipeline in ``Search`` mode.
 
 One of the problems faced when trying to query a collection of
 workflows is the fact that structure is important.  Suppose that you
@@ -42,7 +42,7 @@ interface which mirrors the ``Pipeline`` view, allowing
 you to construct a (partial) workflow to serve as the search criteria.
 
 To use the Query by Example interface, click on the
-``Query`` button on the toolbar.  This view is extremely
+``Search`` button on the toolbar.  This view is extremely
 similar to the ``Pipeline`` view and pipelines can be built
 in a similar manner.  Just like the ``Pipeline`` view,
 modules are added by dragging them from the list on the left side of
@@ -51,7 +51,7 @@ on one module to a corresponding port on another module.
 Figure :ref:`fig-querying-query` shows an example pipeline that has been built in the query builder.
 
 .. %TODO what are the next few sentences actually trying to say?
-.. %, and parameters can be edited on the right-side of the window.  One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations in parameter values.  For example, instead of searching for a pipeline that contains a Float with a value of ``4.5``, you can search for a pipeline that contains a Float with a value ``'< 4.5'`` or ``'> 4.5'``.
+.. %, and parameters can be edited on the right-side of the window.  One major difference between the ``Pipeline`` view and the ``Search`` view is that you can use comparison operations in parameter values.  For example, instead of searching for a pipeline that contains a Float with a value of ``4.5``, you can search for a pipeline that contains a Float with a value ``'< 4.5'`` or ``'> 4.5'``.
 
 .. _fig-querying-results:
 
@@ -61,7 +61,7 @@ Figure :ref:`fig-querying-query` shows an example pipeline that has been built i
    :height: 3in
    :align: center
 
-   Query results in the ``History`` view.
+   Search results in the ``History`` view.
 
 .. _fig-querying-pipeline:
 
@@ -80,7 +80,7 @@ interacting with query results.
 
 .. topic:: Try it now!
 
-   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Query`` button to enter ``Query`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Query canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-results`).
+   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`fig-querying-query` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`fig-querying-results`).
 
 Note that Query by Example provides the capability to iteratively
 refine searches by adding more criteria.  For example, if you were
@@ -89,11 +89,11 @@ such a query returns too many results.  You could then refine the query
 to find only those workflows where the given module has a parameter
 setting that falls within a given range.
 This is done by specifying parameter values in the ``Methods`` panel on the right side of the window.
-One major difference between the ``Pipeline`` view and the ``Query`` view is that you can use comparison operations, such as '<' and '>', in parameter values. The following example illustrates this.
+One major difference between the ``Pipeline`` view and the ``Search`` view is that you can use comparison operations, such as '<' and '>', in parameter values. The following example illustrates this.
 
 .. topic:: Try it now!
 
-   Open the "terminator.vt" example file, and enter ``Query`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Query canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` modules. Return to the ``Query`` view, select the ``vtkActor`` icon, then drag the ``RotateZ`` method from the ``Methods`` panel to the ``Set Methods`` panel. In the ``RotateZ`` text field, type ``'> 90'``. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`fig-querying-vtkActor_example`.
+   Open the "terminator.vt" example file, and enter ``Search`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Search canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` modules. Return to the ``Search`` view, select the ``vtkActor`` icon, then drag the ``RotateZ`` method from the ``Methods`` panel to the ``Set Methods`` panel. In the ``RotateZ`` text field, type ``'> 90'``. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`fig-querying-vtkActor_example`.
 
 .. _fig-querying-vtkActor_example:
 
@@ -210,7 +210,7 @@ both the ``History`` and ``Pipeline`` views.
 .. index:: search; refine
 
 While in the ``History`` view, you can select two different
-ways of viewing search results.  The magnifying glass icon to the left of the textual search box contains andropdown menu with two options: "Search" and "Refine" (Figure :ref:`fig-querying-search_or_refine`).  The first displays results by simply highlighting the matching nodes while the second condenses the tree to show only the versions that match.  For large vistrails, this second method can help you determine relationships between the matching versions more easily.
+ways of viewing search results.  The magnifying glass icon to the left of the textual search box contains a dropdown menu with two options: "Search" and "Refine" (Figure :ref:`fig-querying-search_or_refine`).  The first displays results by simply highlighting the matching nodes while the second condenses the tree to show only the versions that match.  For large vistrails, this second method can help you determine relationships between the matching versions more easily.
 
 .. %TODO I'm not sure that this button actually works as intended.
 

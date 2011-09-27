@@ -33,7 +33,6 @@
 ###############################################################################
 
 from PyQt4 import QtGui, QtCore
-from gui.common_widgets import QToolWindowInterface, QToolWindow
 import core.system
 import copy
 import sys
@@ -41,20 +40,26 @@ import time
 import os.path
 import gui.application
 from core.interpreter.default import get_default_interpreter
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ############################################################################
 
-class QDebugger(QToolWindow, QToolWindowInterface):
+class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     This class provides a dockable interface to the debugger tree.
     """
-    def __init__(self, parent, controller):
-        QToolWindow.__init__(self, parent=parent)
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent=parent)
         self.app = gui.application.VistrailsApplication
         self.inspector = QObjectInspector()
-        self.setWidget(self.inspector)
-        self.setTitleBarWidget(QtGui.QLabel("Debugger"))
-        self.controller = controller
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        layout.addWidget(self.inspector)
+        self.setLayout(layout)
+        # self.setTitleBarWidget(QtGui.QLabel("Debugger"))
+        self.setWindowTitle("Debugger")
+        self.controller = None
         self.vistrails_interpreter = get_default_interpreter()
         self.vistrails_interpreter.debugger = self
 

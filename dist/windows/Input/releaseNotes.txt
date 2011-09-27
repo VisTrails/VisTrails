@@ -1,22 +1,288 @@
 RELEASE NOTES
 -------------
+Release Name: v2.0-alpha build 66794be43ba3 from v2.0 branch
+Enhancements: 
+ - VisTrails now requires Python 2.7.*, Qt 4.7.*, sip 4.12.2 and PyQt4 4.8.4 to run 
+ - Reworked VisTrails interface. Added Workspace palette where user's vistrails
+   are kept. Users can open multiple pipelines in different tabs that are 
+   detachable.
+ - In addition to Pipeline, History, Query and Exploration Views, new views were
+   added, including Provenance and Mashup views. The Provenance view displays the
+   execution logs of a vistrail. The Mashup view allows creating simple 
+   applications based on workflows by exposing only the relevant parameters. 
+   See the VisTrails manual for detailed instructions.
+ - Merged the "Methods" and the "Set Methods" panel into an improved 
+   "Module Information" Palette. Now port visibility, connectedness, and 
+   parameters are shown in a single display. Thus, for module types without 
+   special configuration widgets, there is no need for a separate configuration 
+   window.
+ - Added a Control Flow Assistant (f05f014bc778)
+ - Added Vistrail Variables support, so that modules deriving from Constant can be used to create re-usable variables (a83402e0c218)
+ - Added support for cross-vistrail diffs (c300063531e8)
+ - Perform visual diff from workspace by dragging pipelines together (dd83c3f08cea)
+ - Simplify visual diff and improve parameter changes display (65849c433682)
+ - Search results show up in workspace window (f3a763972866)
+ - Improve query handling (e4b0722b1d70)
+ - Added support for opening a vistrail in a separate window (f502431ae11b)
+ - Added Expand All and Collapse All buttons to Module Palette (264410835b7)
+ - Added annotations to WorkflowExec in v1.0.2 schema (0ade1076517b)
+ - Provenance browser now shows status icon in list (fc112c4c1079)
+ - Autosort module palette (de80a5b0fb1c)
+ - Added merge by dragging vistrail to vistrail (6bb73281842a)
+ - Executable paper editing (3a96ea787a82)
+ - PythonSource editor will now indent newline to previous line (e221d10351d1)
+ - Improved PythonEditor class using QScintilla2 (d737455457db)
+ - PythonSource editor will now indent newline to previous line (d1e5d63bd715)
+ - Enhanced query capabilities (0e5f60ce0d91)
+ - Added support for interpreter to execute a pipeline with an extra list
+   of parameter values. Updating VistrailController calls to also accept
+   the new list (db6e4611305)
+ - persistence package now hides file references instead of deleting them (ae3d19282ef4)
+ - Added versioning for SUDS Web Services using content hash (47279d4246bf)
+ - Improved PythonEditor class using QScintilla2 (5ed5953f57b9)
+ - ParaView package: Added ScalarBarWidgetRepresentation to Rendering
+  namespace in modules list.  (7429a1be15cf)
+ - Add better provenance information for persistent entities (22964cfeb53b)
+ - New manager for persistent store (f0dafc611fd0)
+ - Improved efficiency of vtk workflow upgrades (3736cc9ef269)
+ - LaTex extension: Added an example for embedding local files (be50aeab59ca)
+ - Group SQL statements to enable faster DB communication (b520f1c847c8)
+ - ParaView package: Added server configuration window options to
+package configuration and loading initial values from there. Also added
+option to start paraview server when the package is initialized.  (9023c13aa76b)
+ - Ticket #408: Allow opening multiple PythonSource Editors (73e72b8419a8)
+ - Ticket #411: Support temporary directories in the FilePool (7eb29d2ba0fb)
+ - Initial version of a GIS package that uses QGIS (4cd7cc6df8db)
 
-Release Name: v1.6 build 48e477f4c1d9 from master branch
+Bug fixes: 
+ 
+ - Ticket #450: Indexing failures need to be more graceful (f76532828242)
+ - Better error handling when indexing workflow (f76532828242)
+ - Ticket #452: Visual Diff Parameter Changes not detected (65849c433682)
+ - If the clipboard contained utf-8 characters, VisTrails would raise
+ an error (d7cecf541ced)
+ - QPipelineScene.addModule were calling addItem twice (d77e833f431f)
+ - Dropping vistrails variable created error (8c0b0e921201)
+ - Fixed export/import menu options (8d68b5b56ff3)
+ - Fixed parameter exploration in v2.0 (8485390429b1)
+ - Parameter exploration was not saving color parameters when they
+were being interpolated (8485390429b1)
+ - Fixed 'Diff properities' label typo (8a88bd21895a)
+ - Removed close button from Vistrails Messages view (2581ea446bad)
+ - Ticket #441: vistrail browser is not being updated (d892cd18e5b8)
+ - Correctly update collection on load/save (d892cd18e5b8)
+ - Show project selector (d892cd18e5b8)
+ - Sort default project by name (d892cd18e5b8)
+ - Ticket #435: diff result is not properly sized/centered (96c4adaa2a1a)
+ - Show executions for the current session as well (fc112c4c1079)
+ - Workspace threw exception when closing vistrails (47ae1c3c4428)
+ - Fixed crash when running VisTrails 64-bit on Windows with more than 4GB 
+   of RAM (71b4bfc41a6d)
+ - 2 bugfixes to the vistrail merge code (4f05a96bcc2c)
+ - open merged vistrail in new tab and other fixes (556804ba40c4)
+ - builder_window was stealing ctrl-z/ctrl-y from PythonSource (e221d10351d1)
+ - Made new PythonEditor use correct font (2579b6f662ca)
+ - removed self reference in static method in persistence package (12e57882a72b)
+ - open merged vistrail in new tab and other fixes (971228751494)
+ - Fix menubar issue on non-Mac platforms (9d5e66156935)
+ - persistence package did not show dates correctly (357f3a55aaf5)
+ - Spreadsheet package: Fixed a typo on the usage of issubclass() which prevented
+   subclassed sheets to be used by the spreadsheet (8bcd8ac86cd4)
+ - SUDSWebServices wsdl caching in Windows need to use pickle 
+   protocol=0 (4ca71139f604)
+ - SUDSWebService wsdl hash did not use the correct wsdl string (4ca71139f604)
+ - Fix issue with caching and persistent files (f56f14061d3f)
+ - ParaView package: Fixed example pipeline where it should display
+   both a box and a sphere.  (7429a1be15cf)
+ - VTK Package: Fixed bug when drawing TransferFunction widget (daaacfcedfca)
+ - Handle unnamed data when writing from manager (22964cfeb53b)
+ -  Fixed infovis example  (7d6a0dace8ca)
+ -  Fixed NOAA Web services example. NOAA had changed the urls
+for their services  (7d6a0dace8ca)
+ - Do not import MySQLdb directly in sql_dao (b1d1809c0d57)
+ - Ticket #420: VisTrails fails to install package dependencies on Ubuntu (35cd1cceeded)
+ - debug imports cause ubuntu package install to fail (35cd1cceeded)
+ - Ticket #416: The log is not copied when saving a vistrail from database to disk (1af107087fbe)
+ - Include log when copying vistrail from DB (1af107087fbe)
+ - LaTex extension: When generating LaTex command using the Embed panel,
+ make sure to enclose tag between {} so symbols are escaped. (be50aeab59ca)
+ - LaTex extension: Fixed problem when passing envrionment variables
+using \vistrailsenv{} (be50aeab59ca)
+ - Ticket #417: Database INSERT statements are not protected from overflowing (b520f1c847c8)
+ - Overflow checking for SQL datatypes (b520f1c847c8)
+ - Changed memory size to be computed in megabytes instead of bytes
+to avoid large numbers (4d21156d99f5)
+ - Ticket #414: Focus out event on Tag version edit box generates an unnecessary 
+   vistrail change event (6dc3154542ba)
+ - Media wiki extension: casting returned version of a given tag to
+string before using it (6dc3154542ba)
+ - Ticket #412: Parameter exploration on File parameters fails (e54b74bb9412)
+ - Fix parameter explorations on File parameters (e54b74bb9412)
+ - Added ability to create temporary directories in the FilePool (7eb29d2ba0fb)
+ - LaTex extension: added support to work on Windows with MikTex (2bdfb94be496)
+ - LaTex extension: changed behavior of passing environment variables -
+passed variables will not replace existing ones, they will be inserted at the
+beginning (2bdfb94be496)
+ -  Removed warning when copying thumbnails fail because the files are the
+same (2bdfb94be496)
+ -  New log file was not being created on Windows when the version was
+upgraded  (2bdfb94be496)
+ - Ticket #410: Encode VTK changes as upgrades (fa2e48cedf06)
+ - Attempt to implement VTK upgrades (fa2e48cedf06)
+ - Ticket #409: Problem in workflow upgrade (5d57b4ce54b3)
+ - Fix issue with upgrading modules with null functions (no parameters) (5d57b4ce54b3)
+ - Ticket #407: Aliases in a workflow disappear after upgrade (843603916a48)
+ - Preserve aliases during upgrades (843603916a48)
+ - Replaced more GUI code that would work only on recent versions of Qt/PyQt4 (7cfcb98320ee)
+ - Replaced code that would work only on recent versions of PyQt4 (e5ca41c3fab7)
+ - Enabled with_statement for python2.5 (3ec5bdd47c3e)
+
+
+From Release: v1.7 build 325bfe1b517d from v1.7 branch
+
+Enhancements:
+ - VisTrails is now distributed under the "Modified BSD License"
+ - VisTrails binaries are now shipped with python 2.7.1, Qt 4.7.2, sip 4.12.2, 
+   PyQt4 4.8.4, vtk 5.6.1, numpy 1.5.1, scipy 0.9.0 and matplotlib 1.0.1. 
+Bug fixes:
+ - Importing basic_modules.py leads to import loop (325bfe1b517d)
+ - VTK Package: Fixed bug when drawing TransferFunction widget (7722fc6727aa)
+
+From Release: v1.6.2 build af4a69ad566a from v1.6 branch
 
 Enhancements: 
+ - Adding pdf version of Usersguide to binaries.  (60cec4e6d858)
+ - Improved efficiency of vtk workflow upgrades (501a552cd722)
+ - LaTex extension: Added an example for embedding local files (f5976c82826f)
+
+Bug fixes: 
+ - Fixed infovis example  (bd810b67daaf)
+ - Fixed NOAA Web services example. NOAA had changed the urls
+for their services  (bd810b67daaf)
+ - Added matplotlib mplot3d toolkit to Mac binary (5054da25e2e8)
+ - Ticket #410: Encode VTK changes as upgrades (aeaa56469120)
+ - Attempt to implement VTK upgrades (aeaa56469120)
+ - Ticket #420: VisTrails fails to install package dependencies on Ubuntu (5180336d429d)
+ - debug imports cause ubuntu package install to fail (5180336d429d)
+ - LaTex extension: When generating LaTex command using the Embed panel,
+ make sure to enclose tag between {} so symbols are escaped. (f5976c82826f)
+ - LaTex extension: Fixed problem when passing envrionment variables
+using \vistrailsenv{} (f5976c82826f)
+ - Changed memory size to be computed in megabytes instead of bytes
+to avoid large numbers (5f57a040c97c)
+ - Ticket #414: Focus out event on Tag version edit box generates an unnecessary vistrail change event (460836e2206e)
+ - Media wiki extension: casting returned version of a given tag to
+string before using it (460836e2206e)
+ - Ticket #412: Parameter exploration on File parameters fails (7630f10fb73c)
+ - Fix parameter explorations on File parameters (7630f10fb73c)
+ - LaTex extension: added support to work on Windows with MikTex (36322a953de2)
+ - LaTex extension: changed behavior of passing environment variables -
+passed variables will not replace existing ones, they will be inserted at the
+beginning (36322a953de2)
+ -  Removed warning when copying thumbnails fail because the files are the
+same (36322a953de2)
+ -  New log file was not being created on Windows when the version was
+upgraded  (36322a953de2)
+ - Ticket #409: Problem in workflow upgrade (040f46c2f980)
+ - Fix issue with upgrading modules with null functions (no parameters) (040f46c2f980)
+ - Ticket #407: Aliases in a workflow disappear after upgrade (5575069d2727)
+ - Preserve aliases during upgrades (5575069d2727)
+ - Replaced more GUI code that would work only on recent versions of Qt/PyQt4 (2704aa1fe222)
+ - Replaced code that would work only on recent versions of PyQt4 (50ead740f6de)
+ - Enabled with_statement for python2.5 (bec2a6498965)
+
+
+From Release: v1.6.1 build ba9616b413d2 from v1.6 branch
+
+Bug fixes: 
+ - Ticket #406: Builder Window menu inconsistencies (fd46220842bf)
+ - Added support for executing workflows even if VisTrails is already
+running (useful for Latex extension) (16c1d253a63a)
+ - Added single instance limitation per user/machine instead of per
+machine. Now multiple users logged to the same system can execute their
+version of VisTrails (16c1d253a63a)
+ - VisTrails was ignoring batch mode input parameters if already running
+ (16c1d253a63a)
+ - Latex and Wiki extensions: all options can now be set from the builder. (16c1d253a63a)
+ - Ticket #405: VisTrails is not downloading unavailable packages if they are present in the packages repository (77cadf0fb8a1)
+ - VisTrails batch mode: Separated generation of the workflow graph from execution of the workflow. Added support for generating the history tree graph (77cadf0fb8a1)
+ - When generating a workflow graph VisTrails would sometimes generate a line in the borders (77cadf0fb8a1)
+ - When testing a database connection with a password=None VisTrails would crash without catching the exception (77cadf0fb8a1)
+ - When opening a vistrail from a vtl, VisTrails was ignoring the version that should be open and always opening the most recent one (77cadf0fb8a1)
+ - Latex extension: added support for running vistrails locally (15255a96e4e0)
+ - Latex extension: added support for embedding workflow and/or
+including full tree when generating vtl requests (15255a96e4e0)
+ - Wiki extension: workflows were not being embedded in .vtl file (5348cad089ba)
+ - Added title to console and debugger toolbars (b2e3bda06f62)
+ - Better error handling for duplicate module identifiers in packages (579520227409) (d5df9421d0c1)
+ - Fixed an issue where the FilePool's local copy mechanism failed in Windows (7b398b211212) (254bce86348e)
+
+
+From Release: v1.6 build e9f97c5908ac from v1.6 branch
+
+Enhancements:
+ - Added prompt for password for database access in batch mode (06c4b63434a7)
+ - Please notice that the parameter separator in the command line changed again from 
+  '&&' to '$&$' so it's consistent with the server version. (35ad76515a97)
+ - VisTrails now has "Check for Updates" option in Help drop-down (b80862d8a39f)
+ - Show port_spec.sigstring in PortMismatch error message for more
+   detailed debugging (c28dad738abc)
+ - Turn off popup messages if messages window is open (62aeb9371235)
+ - add/delete Web Services from module palette for SUDSWebServices package (2e381a4394ed)
+ - Package-level context menus in the module palette (2e381a4394ed)
+ - Add preference for migrating tags and notes on upgrades (41177e74e687)
+ - Add stack trace to exception details for unexpected exceptions during 
+   change_selected_version (fd3840df3c6b)
+ - Added new class Chdir to prevent users from triggering side-effects by accident 
+   when using os.chdir() (4aa722db61d1)
+ - Added Open Recent to File menu (it works for vistrails in the file system or in 
+   the database. The maximum number of files in the list can be configured from Advanced 
+   Preferences Tab (search for maxRecentVistrails) (4aa722db61d1)
+ - Configuration object now supports bound methods as subscribers (4aa722db61d1)
+ - Debug messages now have a "details" attribute (f2911a6a6000)
+ - Buttons for filtering VisTrails messages (ebc728d49db3)
+ - Colors of message types added to theme file (ebc728d49db3)
+ - Improved log messages in the server log to also indicate the instance of the server that 
+   is logging the messages (762902e79b7a)
+ - Improved handling of log messages (037568dc5960)
+ - Changed all examples using relative paths to datasets to use HTTPFile (403205442fd7)
+ - Updated head.vt and terminator.vt example to use TransferFunction widget (403205442fd7)
+ - Maintain suffixes on persistent files and directories (e9b5e906e069)
+ - Improved debug messages (9dcd1a5a2ea8)
+ - Ticket #390: Add support to Latex extension to download workflows at compilation 
+   time (90ef6cee20a9)
+ - Improved error handling in vistrails.packages (a44800a88083)
+ - Improved debugging messages for vistrails.gui (25b718347ef0)
+ - Improved error handling in vistrails.core (2e095f36dc90)
+ - Debug library updated (41e3778d507e)
+ - Web Services package is now deprecated. Showing a warning message when the WebServices 
+   package is loaded. Message will be shown only once. (9996bba52dd1)
+ - Ticket #375: Add GUI support for synchronizing vistrails (4efb09fbe5bd)
+ - Merge 2 Vistrails from within VisTrails (4efb09fbe5bd)
+ - Detect changes to directories so the cache can be invalidated when they change (3058d55966f2)
+ - New Web Services package that uses SUDS library (0d1d3efb99da)
+ - Add pinch gesture support to graphics views (3d01e549f849)
+ - ParaView package: Converted to new VisTrails package format (65453bd92aa5)
+ - Updated php scripts to work with Latex extension's new features (2b53ad32a374)
+ - VisTrails server: added new function to return version tree as pdf  (2b53ad32a374)
+ - Created a separate php file to store the server configuration (8d15fdbe8e1d)
+ - Added support for running crowdlabs and vistrails server on separate machines 
+   (still testing) (064304a99993)
  - Ticket #382: Improvements to Latex extension (3123297d6a1b)
- - LaTex extension: VisTrails can now embed a workflow graph or
-a history tree in LaTex pdf (3123297d6a1b)
- - LaTex extension: Caching latex instructions and images for embedding
-images in case python is not available (3123297d6a1b)
- - Ticket #381: Split HTTPFile.compute() method to download the file in a separate function (62d25dca3f3a)
+ - LaTex extension: VisTrails can now embed a workflow graph or a history tree in 
+   LaTex pdf (3123297d6a1b)
+ - LaTex extension: Caching latex instructions and images for embedding images in case python 
+   is not available (3123297d6a1b)
+ - Ticket #381: Split HTTPFile.compute() method to download the file in a separate 
+   function (62d25dca3f3a)
  - Add MplScatterplot and MplHistogram modules to pylab (4af6514c20d4)
  - Ticket #295: Add Debug .command to Mac distribution (e835d69d8426)
- - Added git executable to windows repository. It will be included
-in future windows binaries for persistence package  (8d9931bbbe04)
+ - Added git executable to windows repository. It will be included in future windows 
+   binaries for persistence package  (8d9931bbbe04)
  - Updated version of the rpy package (c895125216cb)
  - Migrating new persistence package from persistence_exp to persistence (5b6418233dea)
- - Added methods to expand shortcut string representations for module descriptors and port specs (5b6418233dea)
+ - Added methods to expand shortcut string representations for module descriptors and port 
+   specs (5b6418233dea)
  - Added support for shortcuts to remap modules/ports for upgrades (5b6418233dea)
  - Use List for controlflow now instead of ListOfSElements (74f30460d3fe)
  - Highlight invalidate port specs (74f30460d3fe)
@@ -30,7 +296,106 @@ in future windows binaries for persistence package  (8d9931bbbe04)
     '1.6'. (fb30dca8a15d)
  - HTTPFile now supports proxies. (3799edddbb62)
 
-Bug fixes: 
+Bug fixes:
+ - Fix issue with console mode and unit tests (a4d544eec673)
+ - Ticket #361: Cannot configure output cell layout for cells in groups in parameter 
+   explorations (5807414236ba)
+ - Enable all spreadsheet cells for parameter exploration, even if they are embedded in 
+   groups or subworkflows (5807414236ba)
+ - Ticket #399: Exception thrown when loading parameter exploration tab with no existing 
+   exploration (4366e52c39cf)
+ - Fixed exception when loading parameter exploration tab for a workflow with no saved 
+   explorations (4366e52c39cf)
+ - Ticket #154: vistrails should check for a new version being available and tell the 
+   user to download it (b80862d8a39f)
+ - Ticket #398: Failure opening vtl files (filename issue) (c52ba7adc5f8)
+ - Matplotlib package: if hide toolbar parameter is set after the source
+   and there isn't an extra line at the end, the MplPlot would fail  (c52ba7adc5f8)
+ - Ticket #398: Failure opening vtl files (filename issue) (cdfa0c97493d)
+ - Added escaping to filename in unzip commandline call (cdfa0c97493d)
+ - Fixed issue where it was not possible to ungroup a subpipeline that had an InputPort
+   connected directly to an OutputPort (e1ea9b437507)
+ - Fixed problem where controlflow package would raise duplicate errors (4351b3f0102f)
+ - Fixed issue with groups and input values that evaluate to False (6fc007c0535d)
+ - Fixed ordering of PortMismatch parameters in ensure_port_specs (c28dad738abc)
+ - Fixed bug introduced on Windows platforms when changed os.chdir() calls by 
+   core.utils.Chdir (0a2b8a0d50d8)
+ - Enable the Linux theme for 'Linux' system types (57dfb4a85e7a)
+ - added deletion of namespaces in module palette (2e381a4394ed)
+ - Add ability to migrate tags when upgrades are not delayed (9c49285269ca)
+ - Message filter colors does not show in linux (ee8906c91039)
+ - Ticket #397: Save execution log when in console mode (2dae96a8f004) (1afa51d895e9)
+ - Update version tree when adding delayed actions (d1dbf3005499)
+ - Subworkflows from packages that need upgrades are now moved to local.abstractions 
+   in the registry and picked up for workflow upgrades (04476a172f61)
+ - Fixed issue with spreadsheet and grouped spreadsheet cells (fd3840df3c6b)
+ - Replaced svn command with git command to get current commit (if present) (4aa722db61d1)
+ - Flush delayed actions (including upgrades) to fix issues with delayed upgrades and 
+   grouping upgraded workflows (79dd982e6cef)
+ - VisTrails Server: Applied fix to caching of history tree images when
+   generated as pdfs (fc0ab9f1626d)
+ - VisTrails Server: fixed problem in caching of history tree images (4862e1f7d18a)
+ - Ignoring mouse gestures when Qt version is < 4.6 (4862e1f7d18a)
+ - Ticket #394: VisTrails server is not detecting updates in vistrails loaded 
+   from the database (762902e79b7a)
+ - Restoring extensions/http/run_vistrails.php to version before merge (762902e79b7a)
+ - VisTrails server was ignoring the build_always variable if it
+   found cached images (762902e79b7a)
+ - Using port to identify the instance of the server instead of virtual
+   display in script that starts vistrails server using Xvfb (762902e79b7a)
+ - Ticket #393: Latex extension doesn't handle workflow exec. errors properly (16f522c459c5)
+ - Latex extension: Making sure to convert line breaks into \MessageBreak
+   Latex commands before displaying error messages. (16f522c459c5)
+ - Forwarding force build to server so the server can also bypass
+   caching (47a1105664a0)
+ - Ticket #392: Refactor php extensions caching logic used for wf executions (3125e0eb8e81)
+ - Updated mediawiki extension to work with crowdlabs server  (3125e0eb8e81)
+ - Added workaround for RotateFileHandler problem on Windows when some
+   packages start child processes during workflow execution (e5afc47797cb)
+ - Fixed issue where named intermediate persistent files/directories were not 
+   reused correctly (df3deb58a18c)
+ - Fixed git hash retrieval for persisted directories (df3deb58a18c)
+ - Pasted text in VisTrails shell was being ignored (c48e67f02ae8)
+ - Giving focus to VisTrails shell when showing it (c48e67f02ae8)
+ - Added 'VisTrails messages' button and fixed 'VisTrails debugger' button (b401b2498c74)
+ - Don't mask AttributeErrors when materializing pipelines (b5c3650e5ca6)
+ - Add upgrade path for old InputPort and OutputPort modules (8abfff56592c)
+ - Fixed an issue with groups and upgrades (720d93c8e3be)
+ - VisTrails shell was not using fixed-width font  (b521e096f879)
+ - Latex extension: delaying check for a valid url so we can include
+   cached images if there's no Internet connection (79296270cc86)
+ - Batch mode: On Windows, VisTrails was not executing workflows
+   when an absolute path to a vt file was given (81812ac04e85)
+ - Minor error fixes (45b53eef1c53)
+ - Ticket #386: Moving modules after an upgrade generates invalid actions with 
+   delayed upgrades (ad9e029035f7)
+ - With delayed upgrades, moving modules after an upgrade now generates actions 
+   in the correct order (ad9e029035f7)
+ - Ticket #385: Workflow instantiation fails when doing on-demand package loading (aff3408c7a51)
+ - Fix issue with on-demand package loading leaving workflows as invalid (aff3408c7a51)
+ - Casting DBLocator names to string as they can store None sometimes (9996bba52dd1)
+ - Ticket #384: Deleting version edits version tag if delete is canceled (cc05bc9e80e5)
+ - Don't delete tag text when attempting to prune (cc05bc9e80e5)
+ - Expanding port specs deals with differences between descriptor and port signatures (c5763a437606)
+ - UpgradeWorkflowError tries to trim None-value (93b3be3d2a50)
+ - Ticket #383: Unversioned modules are not upgraded (4b3fa72869f0)
+ - If a module has no version, force it to be upgraded (4b3fa72869f0)
+ - Ticket #302: Moved modules action generated when nothing changed (3e59defe4685)
+ - Fixed logic so moved modules are properly detected and positions updated. (3e59defe4685)
+ - ParaView package: Removed hardcoded path to pvserver and mpiexec
+and using configuration object for that (accessible through Menu
+Preferences -> Module Packages) (65453bd92aa5)
+ - ParaView package: Updated pv.vt example to work with current version
+of the package (65453bd92aa5)
+ - Fixed bug in some php scripts when only the tag is passed instead of
+a version number  (2b53ad32a374)
+ - Updated all php scripts in extensions/http to work with
+the current version of crowdlabs vistrails server (only local
+setup currently supported) (8d15fdbe8e1d)
+ - Fixed bug where server method get_wf_graph_png would sometimes
+fail (064304a99993)
+ - Fixed bug where although DBLocators were being cached, the 
+   connections were not  (b07c22d9e93d)
  - Ticket #359: When using VTKRenderOffscreen module VisTrails crashes (48e477f4c1d9)
  - VTK Package doesnt work with VTK version 5.7.0 (ba5e0bdbbb16)
  - Fixed issue with query-by-example where parameters couldn't be updated (741b1c0d7737)
@@ -83,8 +448,7 @@ VisMashup (93884b6a47c0)
  - Web Services package: fixed bug in certain Complex Types (60128ff3a89a)
  - Ticket #374: Web service package can't be reloaded (38976729a2a9)
  - Fixed an issue with package reloading where modules imported using the "from" syntax were not added to the imported list (38976729a2a9)
- - HTTPFile: Fixed error when parsing the date from the file's
- header. (3799edddbb62)
+ - HTTPFile: Fixed error when parsing the date from the file's header. (3799edddbb62)
 
 From Release: v1.5.1 build 1863
 
