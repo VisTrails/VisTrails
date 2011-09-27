@@ -36,7 +36,7 @@
 // This file will connect to VisTrails XML RPC Server and return the url for
 // the pdf file of a workflow.
 // The url should follow this format:
-// get_wf_pdf.php?host=vistrails.sci.utah.edu&db=vistrails&vt=8&version=598
+// get_wf_pdf.php?host=vistrails.org&db=vistrails&vt=8&version=598
 // host and dbname are optional and you can set the default values below
 // if the port is different from the dafault you can also pass the new value on
 // the url
@@ -46,7 +46,7 @@ require_once 'functions.php';
 require_once 'config.php';
 
 // set variables with default values
-$host = 'vistrails.sci.utah.edu';
+$host = 'vistrails.org';
 $port = '3306';
 $dbname = 'vistrails';
 $vtid = '';
@@ -56,43 +56,53 @@ $version_tag = '';
 
 //Get the variables from the url
 if(array_key_exists('host', $_GET))
-	$host = $_GET['host'];
+    $host = $_GET['host'];
 if(array_key_exists('db',$_GET))
-	$dbname = $_GET['db'];
+    $dbname = $_GET['db'];
 if(array_key_exists('port',$_GET))
-	$port = $_GET['port'];
+    $port = $_GET['port'];
 if(array_key_exists('vt',$_GET))
-	$vtid = $_GET['vt'];
+    $vtid = $_GET['vt'];
 if(array_key_exists('version',$_GET))
-	$version = $_GET['version'];
+    $version = $_GET['version'];
 if(array_key_exists('tag',$_GET)){
-	$version_tag = $_GET['tag'];
-	if ($version_tag != ''){
-		$request = xmlrpc_encode_request('get_tag_version',array($host, $port,
-																 $dbname, $vtid,
-																 $version_tag));
-		$response = do_call($VT_HOST,$VT_PORT,$request);
-		$version = get_version_from_response($response);
-	}
+    $version_tag = $_GET['tag'];
+    if ($version_tag != ''){
+        $request = xmlrpc_encode_request('get_tag_version',
+                                         array($host, $port, $dbname, $vtid,
+                                               $version_tag));
+        $response = do_call($VT_HOST,$VT_PORT,$request);
+        $version = get_version_from_response($response);
+    }
 }
 if(array_key_exists('buildalways',$_GET))
-	$force_build = (bool) $_GET['buildalways'];
-	
+    $force_build = (bool) $_GET['buildalways'];
+        
 //echo $force_build;
 
 //Check if vtid and version were provided
 //echo $vtid . $version;
 if($vtid != '' and $version != ''){
-	//echo $host . $port . $dbname . $vtid . $version;
-	$request = xmlrpc_encode_request('get_wf_graph_pdf',
-                                     array($host, $port, $dbname, $vtid, $version));
-	//echo $request;
-	$response = do_call($VT_HOST,$VT_PORT,$request);	
-	$path = clean_up($response);
-	echo "$URL_TO_GRAPHS$path";
+    //echo $host . $port . $dbname . $vtid . $version;
+    $filename = md5($host . '_'. $dbname .'_' . $port .'_' .$vtid . '_' . $version);
+    $filename = 'workflows/'.$filename . ".pdf";
+    $fullpath = $PATH_TO_GRAPHS. $filename;
+    $cached = file_exists($fullpath);
+    if($USE_LOCAL_VISTRAILS_SERVER or 
+       (!$cached or strcasecmp($force_build,'True') == 0)) {
+        $request = xmlrpc_encode_request('get_wf_graph_pdf',
+                                 array($host, $port, $dbname, $vtid, $version,
+                                 $USE_LOCAL_VISTRAILS_SERVER));
+        //echo $request;
+        $response = do_call($VT_HOST,$VT_PORT,$request);        
+        $path = clean_up($response, $filename);
+    } else {
+        $path = $filename;
+    }
+    echo "$URL_TO_GRAPHS$path";
 }
 else{
-	echo "ERROR: Vistrails id or version not provided.\n";
+    echo "ERROR: Vistrails id or version not provided.\n";
 }
 
 function get_version_from_response($xmlstring){
@@ -104,11 +114,20 @@ function get_version_from_response($xmlstring){
     }
 }
 
-function clean_up($xmlstring){
+function clean_up($xmlstring, $filename=""){
+    global $PATH_TO_GRAPHS, $USE_LOCAL_VISTRAILS_SERVER;
     try{
         $node = @new SimpleXMLElement($xmlstring);
-   
-        return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        if ($USE_LOCAL_VISTRAILS_SERVER)
+            return $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->string[0];
+        else{
+            $contents = $node->params[0]->param[0]->value[0]->array[0]->data[0]->value[0]->base64[0];
+            $fileHandle = fopen($PATH_TO_GRAPHS. $filename, 'wb') or die("can't open file");
+            fputs($fileHandle, base64_decode($contents));
+            fclose($fileHandle);
+            return $filename;
+        }
+                  
     } catch(Exception $e) {
         echo "bad xml";
     }

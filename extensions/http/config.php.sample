@@ -7,6 +7,13 @@
 $VT_HOST = "localhost";
 $VT_PORT = 8080;
 
+//This controls how VisTrails will be accessed
+//Set it to false if you plan to execute in the command line
+$USE_VISTRAILS_XML_RPC_SERVER = True;
+
+//Set this to False if VisTrails server runs on a different machine
+$USE_LOCAL_VISTRAILS_SERVER = True;
+
 // Change this to point to the folder where vistrails.py is
 // You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
 // Used in run_vistrails.php
