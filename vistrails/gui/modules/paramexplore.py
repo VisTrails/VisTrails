@@ -39,6 +39,7 @@ API in the classes.
 
 from PyQt4 import QtCore, QtGui
 from core.modules.module_registry import get_module_registry
+from core.modules.basic_modules import Color
 from gui.common_widgets import QStringEdit
 from gui.modules.constant_configuration import ColorChooserButton
 from gui.modules.python_source_configure import PythonEditor
