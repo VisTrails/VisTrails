@@ -87,7 +87,7 @@ class VistrailsApplicationInterface(object):
         
         """
         add = command_line.CommandLineParser.add_option
-        add("-S", "--startup", action="store", type="str", default=None,
+        """add("-S", "--startup", action="store", type="str", default=None,
             dest="dotVistrails",
             help="Set startup file (default is ~/.vistrails/startup.py)")
         add("-?", action="help",
@@ -165,7 +165,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-U", "--evolutiongraph", action="store",
             default = None,
             help=("Save evolution graph in specified directory without running "
-                  "any workflow (only valid in console mode)."))
+                  "any workflow (only valid in console mode)."))"""
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -266,18 +266,18 @@ The builder window can be accessed by a spreadsheet menu option.")
         # This is the persistent configuration
         # Setup configuration to default
         self.configuration = core.configuration.default()
-        
+
         self.keyChain = keychain.KeyChain()
         self.setupOptions()
-        
+  
         # self.temp_configuration is the configuration that will be updated 
         # with the command line and custom options dictionary. 
         # We have to do this because we don't want to make these settings 
         # persistent. This is the actual VisTrails current configuration
         self.temp_configuration = copy.copy(self.configuration)
-        
+ 
         core.interpreter.default.connect_to_configuration(self.temp_configuration)
-        
+          
         # now we want to open vistrails and point to a specific version
         # we will store the version in temp options as it doesn't
         # need to be persistent. We will do the same to database
@@ -293,23 +293,23 @@ The builder window can be accessed by a spreadsheet menu option.")
         # Read only new .vistrails folder option if passed in the command line
         # or in the optionsDict because this may affect the configuration file 
         # VistrailsStartup will load. This updates self.temp_configuration
-        self.read_dotvistrails_option()
+        #self.read_dotvistrails_option() DISABLE FOR JYTHON
         
         if optionsDict and 'dotVistrails' in optionsDict.keys():
             self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
-                
+          
         # During this initialization, VistrailsStartup will load the
         # configuration from disk and update both configurations
         self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration,
                                                     self.temp_configuration)
-        
+         
         # the problem here is that if the user pointed to a new .vistrails
         # folder, the persistent configuration will always point to the 
         # default ~/.vistrails. So we will copy whatever it's on 
         # temp_configuration to the persistent one. In case the configuration
         # that is on disk is different, it will overwrite this one
         self.configuration.dotVistrails = self.temp_configuration.dotVistrails
-        
+
         # Starting in version 1.2.1 logging is enabled by default.
         # Users have to explicitly disable it through the command-line
         self.configuration.nologger = False
@@ -320,8 +320,7 @@ The builder window can be accessed by a spreadsheet menu option.")
                 setattr(self.temp_configuration, k, v)
                 
         # Command line options override temp_configuration
-        self.readOptions()
-        
+        #self.readOptions() DISABLE FOR JYTHON        
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:

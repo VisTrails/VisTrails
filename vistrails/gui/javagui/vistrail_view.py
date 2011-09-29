@@ -73,6 +73,7 @@ class JVistrailView(JPanel):
         tersedPipelineGraph = Graph()
         for module in self.controller.current_pipeline._get_modules():
             tersedPipelineGraph.add_vertex(module, self.controller.current_pipeline.modules[module])
+            self.controller.current_pipeline.modules[module].sourcePorts()
         
         edgeId = 0   
         for connection in self.controller.current_pipeline.connections:

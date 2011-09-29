@@ -43,7 +43,7 @@ import weakref
 
 from core import debug
 from core import system
-from core.utils import InstanceObject, Ref, append_to_dict_of_lists
+from core.utils import InstanceObject, Ref, append_to_dict_of_lists, VistrailsInternalError
 from core.utils.uxml import (named_elements,
                              elements_filter, eval_xml_value,
                              quote_xml_value)
@@ -253,7 +253,7 @@ def default_shell():
             'font_face': 'Fixed',
             'font_size': 12,
             }
-    elif system.systemType in ['Windows', 'Microsoft']:
+    elif system.systemType in ['Windows', 'Microsoft', 'Java']:
         shell_dir = {
             'font_face': 'Courier New',
             'font_size': 8,

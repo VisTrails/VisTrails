@@ -45,6 +45,7 @@ from core.configuration import ConfigurationObject, get_vistrails_configuration
 from core.modules.module_descriptor import ModuleDescriptor
 from core.utils import versions_increasing
 from core.utils.uxml import (named_elements, enter_named_element)
+from core.utils import VistrailsInternalError
 
 from db.domain import DBPackage
 
