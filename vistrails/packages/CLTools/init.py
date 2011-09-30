@@ -102,14 +102,14 @@ def add_tool(path):
                       if 'type' in options else 'string'
                 for value in values:
                     if 'flag' == klass:
-                        if value and 'value' in options:
-                            value = options['value']
+                        if value and 'flag' in options:
+                            value = options['flag']
                         else:
                             continue
                     elif 'file' == klass:
                         value = str(value.name)
                     # check for flag and append file name
-                    if 'flag' in options:
+                    if not 'flag' == klass and 'flag' in options:
                         args.append(options['flag'])
                     if 'prefix' in options:
                         value = options['prefix'] + str(value)
@@ -124,7 +124,7 @@ def add_tool(path):
                 if 'flag' in options:
                     args.append(options['flag'])
                 args.append(fname)
-                if "File" == klass:
+                if "file" == klass:
                     self.setResult(name, file)
                 else: # assume String - set to string value after execution
                     setOutput.append((name, file))
@@ -214,9 +214,9 @@ def add_tool(path):
         reg.add_output_port(M, name, to_vt_type(type), optional=optional)
     for type, name, klass, options in conf['args']:
         optional = 'required' not in options
-        if 'input' == type:
+        if 'input' == type.lower():
             reg.add_input_port(M, name, to_vt_type(klass), optional=optional)
-        elif 'output' == type:
+        elif 'output' == type.lower():
             reg.add_output_port(M, name, to_vt_type(klass), optional=optional)
     cl_tools[tool_name] = M
 
