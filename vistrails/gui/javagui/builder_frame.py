@@ -68,11 +68,12 @@ class BuilderFrame(JFrame):
         self.viewManager = JViewManager()
         self.currentVersion = "-1"
         self.clickedVersionNodeId = -1
+        """
         core.application.init()
         configuration = core.configuration.default()
         self.vistrailsStartup = core.startup.VistrailsStartup(
              configuration)
-        self.vistrailsStartup.set_registry()
+        self.vistrailsStartup.set_registry()"""
     
     def showFrame(self):
         self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)

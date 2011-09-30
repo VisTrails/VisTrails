@@ -41,7 +41,7 @@ from java.awt import Graphics
 from java.awt.event import MouseListener
 from java.awt import Rectangle
 from core.data_structures.graph import Graph
-from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from core.vistrail.pipeline import Pipeline
 from java.awt import Color
 import core.db.io
@@ -149,13 +149,17 @@ class JVersionVistrailView(JPanel, MouseListener):
                 if node[1].label is None or node[1].label == "":
                     jLabel = JLabel("TREE ROOT")
                 fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
-                graphics.drawString(jLabel.getText(), int(node[1].p.x),
-                                    int(node[1].p.y) + int(fontRect.getHeight()))
                 if (self.builderFrame.clickedVersionNodeId == node[1].id):
                     graphics.setColor(Color.red)
-                graphics.drawRect(int(node[1].p.x), int(node[1].p.y),
+                #Hack to restore correct color if not well set...
+                if graphics.getColor() != (Color.white and Color.red) :
+                    graphics.setColor(Color.white)
+                graphics.fillRect(int(node[1].p.x), int(node[1].p.y),
                                   int(fontRect.getWidth()), int(fontRect.getHeight()))
                 graphics.setColor(Color.black)
+                graphics.drawString(jLabel.getText(), int(node[1].p.x),
+                    int(node[1].p.y) + int(fontRect.getHeight()))
+                graphics.setColor(Color.white)
                 if maxWidth < int(fontRect.getWidth()):
                     maxWidth = int(fontRect.getWidth())
                 if maxHeight < int(fontRect.getHeight()):
@@ -178,10 +182,20 @@ class JVersionVistrailView(JPanel, MouseListener):
                         if self._current_terse_graph.has_edge(nodeId, nodeBisId) or self._current_terse_graph.has_edge(nodeBisId, nodeId):
                             jLabel = JLabel(node[1].label)
                             fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
-                            graphics.drawLine(int(node[1].p.x) + maxWidth/2 ,
-                                              int(node[1].p.y) - maxHeight/2,
-                                              int(nodeBis[1].p.x) + maxWidth/2,
-                                              int(nodeBis[1].p.y) + maxHeight/2)
+                            previousColor = graphics.getColor()
+                            graphics.setColor(Color.black)
+                            #detecting the top node in order to correctly draw edges
+                            if node[1].p.y < nodeBis[1].p.y:
+                                topNode = node
+                                bottomNode = nodeBis
+                            else:
+                                topNode = nodeBis
+                                bottomNode = node
+                            graphics.drawLine(int(topNode[1].p.x) + self.nodesToDim[topNode[1].id]["width"]/2 ,
+                                              int(topNode[1].p.y) + maxHeight,
+                                              int(bottomNode[1].p.x) + self.nodesToDim[bottomNode[1].id]["width"]/2,
+                                              int(bottomNode[1].p.y))
+                            graphics.setColor(previousColor)
                 alreadyVisitedNode.append(nodeId)
 
     def mouseClicked(self, event):

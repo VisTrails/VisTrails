@@ -39,7 +39,7 @@ from javax.swing import JLabel
 from java.awt import Font
 from java.awt import Graphics
 from core.data_structures.graph import Graph
-from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from core.vistrail.pipeline import Pipeline
 from java.awt import Color
 import core.db.io
@@ -73,7 +73,7 @@ class JVistrailView(JPanel):
         tersedPipelineGraph = Graph()
         for module in self.controller.current_pipeline._get_modules():
             tersedPipelineGraph.add_vertex(module, self.controller.current_pipeline.modules[module])
-            self.controller.current_pipeline.modules[module].sourcePorts()
+            #self.controller.current_pipeline.modules[module].sourcePorts()
         
         edgeId = 0   
         for connection in self.controller.current_pipeline.connections:
@@ -114,8 +114,10 @@ class JVistrailView(JPanel):
                             xNode = xNode + 10 + nodesToDim[nodeId]["width"]
                             overlapBoolean = True
                 if jLabel.getText() != "ERROR NULNODE":
-                    graphics.drawRect(xNode, yNode,
+                    graphics.setColor(Color.white)
+                    graphics.fillRect(xNode, yNode,
                                   int(fontRect.getWidth()), int(fontRect.getHeight()))
+                    graphics.setColor(Color.black)
                     graphics.drawString(jLabel.getText(), xNode,
                                     yNode + int(fontRect.getHeight()))
                 #storing the dimension of the nodes to easily draw edges
@@ -134,11 +136,10 @@ class JVistrailView(JPanel):
                 xTarget = nodesToDim[targetId]["x"]
                 yTarget = nodesToDim[targetId]["y"]
                 sourceWidth = nodesToDim[sourceId]["width"]
-                sourceHeight = nodesToDim[sourceId]["width"]
+                sourceHeight = nodesToDim[sourceId]["height"]
                 targetWidth = nodesToDim[targetId]["width"]
-                targetHeight = nodesToDim[targetId]["width"]
                 graphics.drawLine(xSource + sourceWidth/2 ,
-                  ySource,
+                  ySource + sourceHeight,
                   xTarget +  targetWidth/2,
                   yTarget)
 
