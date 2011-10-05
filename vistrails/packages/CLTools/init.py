@@ -18,7 +18,7 @@
 ##    contributors may be used to endorse or promote products derived from 
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+## THIS SOFTWARE IS PROVIDED B Y THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
 ## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
 ## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
 ## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
@@ -36,6 +36,7 @@ import sys
 import json
 import tempfile
 import subprocess
+import time
 
 import core.system
 import core.modules.module_registry
@@ -61,7 +62,8 @@ class CLTools(Module):
     def compute(self):
         raise core.modules.vistrails_module.IncompleteImplementation
 
-SUFFIX = '.conf'
+SUFFIX = '.clt'
+TEMPSUFFIX = '.cltoolsfile'
 
 def add_tool(path):
     # first create classes
@@ -77,7 +79,6 @@ def add_tool(path):
     except ValueError as exc:
         debug.critical("Package CLTools could not parse '%s'" % path, str(exc))
         return
-    
     def compute(self):
         """ 1. read inputs
             2. call with inputs
@@ -85,8 +86,10 @@ def add_tool(path):
         """
         # add all arguments as an unordered list
         args = [self.conf['command']]
+        file_std = 'options' in self.conf and 'std_using_files' in self.conf['options']
         setOutput = [] # (name, File) - set File contents as output for name
         open_files = []
+        stdin = None
         kwargs = {}
         for type, name, klass, options in self.conf['args']:
             type = type.lower()
@@ -117,7 +120,7 @@ def add_tool(path):
             elif "output" == type:
                 # output must be a filename but we may convert the result to a string
                 # create new file
-                file = _file_pool.create_file(suffix='.cltoolsfile')
+                file = _file_pool.create_file(suffix=TEMPSUFFIX)
                 fname = file.name
                 if 'prefix' in options:
                     fname = options['prefix'] + fname
@@ -134,46 +137,75 @@ def add_tool(path):
             if self.hasInputFromPort(name):
                 value = self.getInputFromPort(name)
                 if "file" == type:
-                    f = open(value.name, 'rb')
-                else: # assume String - create temporary file
-                    file = _file_pool.create_file(suffix='.cltoolsfile')
-                    f = open(file.name, 'w')
-                    f.write(str(value))
-                    f.close()
-                    f = open(file.name)
-                open_files.append(f)
-                kwargs['stdin'] = f.fileno()
+                    if file_std:
+                        f = open(value.name, 'rb')
+                        data = f.read()
+                        stdin = ''
+                        while data:
+                            stdin += data
+                            data = f.read()
+                        f.close()
+                    else:
+                        f = open(value.name, 'rb')
+                else: # assume String
+                    if file_std:
+                        file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                        f = open(file.name, 'w')
+                        f.write(str(value))
+                        f.close()
+                        f = open(file.name)
+                    else:
+                        stdin = value
+                if file_std:
+                    open_files.append(f)
+                    kwargs['stdin'] = f.fileno()
+                else:
+                    kwargs['stdin'] = subprocess.PIPE
         if "stdout" in self.conf:
-            name, type, options = self.conf["stdout"]
-            type = type.lower()
-            file = _file_pool.create_file(suffix='.cltoolsfile')
-            if "file" == type:
-                self.setResult(name, file)
-            else: # assume String - set to string value after execution
-                setOutput.append((name, file))
-            f = open(file.name, 'wb')
-            open_files.append(f)
-            kwargs['stdout'] = f.fileno()
+            if file_std:
+                name, type, options = self.conf["stdout"]
+                type = type.lower()
+                file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                if "file" == type:
+                    self.setResult(name, file)
+                else: # assume String - set to string value after execution
+                    setOutput.append((name, file))
+                f = open(file.name, 'wb')
+                open_files.append(f)
+                kwargs['stdout'] = f.fileno()
+            else:
+                kwargs['stdout'] = subprocess.PIPE
         if "stderr" in self.conf:
-            name, type, options = self.conf["stderr"]
-            type = type.lower()
-            file = _file_pool.create_file(suffix='.cltoolsfile')
-            if "file" == type:
-                self.setResult(name, file)
-            else: # assume String - set to string value after execution
-                setOutput.append((name, file))
-            f = open(file.name, 'wb')
-            open_files.append(f)
-            kwargs['stderr'] = f.fileno()
-
+            if file_std:
+                name, type, options = self.conf["stderr"]
+                type = type.lower()
+                file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                if "file" == type:
+                    self.setResult(name, file)
+                else: # assume String - set to string value after execution
+                    setOutput.append((name, file))
+                f = open(file.name, 'wb')
+                open_files.append(f)
+                kwargs['stderr'] = f.fileno()
+            else:
+                kwargs['stderr'] = subprocess.PIPE
         # On windows, builtin commands like cd/dir must use shell=True
         if core.system.systemType in ['Windows', 'Microsoft'] and \
                           args[0] in ['dir', 'cd']:
             kwargs['shell'] = True   
             
-        print "calling", args, kwargs
-        retcode = subprocess.call(args, **kwargs)
-        print "retcode:", retcode
+        #print "calling", args, kwargs
+        process = subprocess.Popen(args, **kwargs)
+        if file_std:
+            process.wait()
+        else:
+            #if stdin:
+            #    print "stdin:", len(stdin), stdin[:30]
+            stdout, stderr = process.communicate(stdin)
+            #if stdout:
+            #    print "stdout:", len(stdout), stdout[:30]
+            #if stderr:
+            #    print "stderr:", len(stderr), stderr[:30]
 
         for f in open_files:
             f.close()
@@ -182,6 +214,31 @@ def add_tool(path):
             f = open(file.name)
             self.setResult(name, f.read())
             f.close()
+
+        if not file_std:
+            if stdout and "stdout" in self.conf:
+                name, type, options = self.conf["stdout"]
+                type = type.lower()
+                if "file" == type:
+                    file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                    f = open(file.name, 'w')
+                    f.write(stdout)
+                    f.close()
+                    self.setResult(name, file)
+                else: # assume String - set to string value after execution
+                    self.setResult(name, stdout)
+            if stderr and "stderr" in self.conf:
+                name, type, options = self.conf["stderr"]
+                type = type.lower()
+                if "file" == type:
+                    file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                    f = open(file.name, 'w')
+                    f.write(stderr)
+                    f.close()
+                    self.setResult(name, file)
+                else: # assume String - set to string value after execution
+                    self.setResult(name, stderr)
+
 
     # create docstring
     d = """This module is a wrapper for the command line tool '%s'""" % \

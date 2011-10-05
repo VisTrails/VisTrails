@@ -42,6 +42,8 @@ encode_list = [['\xe2\x80\x90', '-'],
                ['\xe2\x80\x9d', '"'],
                ['\xe2\x80\x9c', '"']]
 
+SUFFIX = '.clt'
+
 class QCLToolsWizard(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
@@ -50,96 +52,124 @@ class QCLToolsWizard(QtGui.QWidget):
         self.setTitle()
         self.file = None
 
-        self.fileTools = QtGui.QHBoxLayout()
-        self.newFileButton = QtGui.QPushButton('New')
-        self.newFileButton.setToolTip('Start on a new Wrapper')
-        self.connect(self.newFileButton, QtCore.SIGNAL('clicked()'),
-                     self.newFile)
-        self.fileTools.addWidget(self.newFileButton)
-        self.openFileButton = QtGui.QPushButton('open')
-        self.openFileButton.setToolTip('Open an existing file')
-        self.connect(self.openFileButton, QtCore.SIGNAL('clicked()'),
-                     self.openFile)
-        self.fileTools.addWidget(self.openFileButton)
-        self.saveButton = QtGui.QPushButton('Save')
-        self.saveButton.setToolTip('Save Wrapper')
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked()'),
-                     self.save)
-        self.fileTools.addWidget(self.saveButton)
-        self.saveAsButton = QtGui.QPushButton('Save As')
-        self.saveAsButton.setToolTip('Save Wrapper as new file')
-        self.connect(self.saveAsButton, QtCore.SIGNAL('clicked()'),
-                     self.saveAs)
-        self.fileTools.addWidget(self.saveAsButton)
-        self.layout().addLayout(self.fileTools)
-        
-        self.generator = QtGui.QGridLayout()
-        self.vbox.addLayout(self.generator)
-        self.generator.addWidget(QtGui.QLabel("Enter command:") , 0, 0)
-        self.command = QtGui.QLineEdit()
-        self.generator.addWidget(self.command, 1, 0)
+        self.toolBar = QtGui.QToolBar()
+        self.layout().addWidget(self.toolBar)
 
-        self.generator.addWidget(QtGui.QLabel("View args from:") , 0, 1)
-        self.generator.addWidget(QtGui.QLabel("Import args from:") , 1, 1)
-        self.viewManButton = QtGui.QPushButton("man page")
+        self.newFileAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-new'), 'New', self)
+        self.newFileAction.setToolTip('Start on a new Wrapper')
+        self.connect(self.newFileAction, QtCore.SIGNAL('triggered()'),
+                     self.newFile)
+        self.toolBar.addAction(self.newFileAction)
+        self.openFileAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-open'), 'Open', self)
+        self.openFileAction.setToolTip('Open an existing wrapper')
+        self.connect(self.openFileAction, QtCore.SIGNAL('triggered()'),
+                     self.openFile)
+        self.toolBar.addAction(self.openFileAction)
+        self.saveFileAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-save'), 'Save', self)
+        self.saveFileAction.setToolTip('Save wrapper')
+        self.connect(self.saveFileAction, QtCore.SIGNAL('triggered()'),
+                     self.save)
+        self.toolBar.addAction(self.saveFileAction)
+        self.saveFileAsAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-save-as'), 'Save As', self)
+        self.saveFileAsAction.setToolTip('Save wrapper as a new file')
+        self.connect(self.saveFileAsAction, QtCore.SIGNAL('triggered()'),
+                     self.saveAs)
+        self.toolBar.addAction(self.saveFileAsAction)
+        
+        self.toolBar.addSeparator()
+        self.addAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('list-add'), 'Add', self)
+        self.addAction.setToolTip('Add a new argument')
+        self.connect(self.addAction, QtCore.SIGNAL('triggered()'),
+                     self.addArgument)
+        self.toolBar.addAction(self.addAction)
+        self.removeAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('list-remove'), 'Remove', self)
+        self.removeAction.setToolTip('Remove the selected argument')
+        self.connect(self.removeAction, QtCore.SIGNAL('triggered()'),
+                     self.removeArgument)
+        self.toolBar.addAction(self.removeAction)
+        self.upAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('go-up'), 'Move up', self)
+        self.upAction.setToolTip('Move argument up one position')
+        self.connect(self.upAction, QtCore.SIGNAL('triggered()'),
+                     self.moveUp)
+        self.toolBar.addAction(self.upAction)
+        self.downAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('go-down'), 'Move down', self)
+        self.downAction.setToolTip('Move argument down one position')
+        self.connect(self.downAction, QtCore.SIGNAL('triggered()'),
+                     self.moveDown)
+        self.toolBar.addAction(self.downAction)
+        
+        self.toolBar.addSeparator()
+        self.showStdin = QtGui.QAction('stdin', self)
+        self.showStdin.setToolTip('Check to use standard input as an input port')
+        self.showStdin.setCheckable(True)
+        self.toolBar.addAction(self.showStdin)
+        self.showStdout = QtGui.QAction("stdout", self)
+        self.showStdout.setToolTip('Check to use standard output as an output port')
+        self.showStdout.setCheckable(True)
+        self.toolBar.addAction(self.showStdout)
+        self.showStderr = QtGui.QAction("stderr", self)
+        self.showStderr.setToolTip('Check to use standard error as an output port')
+        self.showStderr.setCheckable(True)
+        self.toolBar.addAction(self.showStderr)
+        
+        self.toolBar.addSeparator()
+        self.stdAsFiles = QtGui.QAction('std file processing', self)
+        self.stdAsFiles.setToolTip('Check to make pipes communicate using files instead of strings\nOnly useful when processing large files')
+        self.stdAsFiles.setCheckable(True)
+        self.toolBar.addAction(self.stdAsFiles)
+
+        self.commandLayout = QtGui.QHBoxLayout()
+        self.commandLayout.addWidget(QtGui.QLabel("command:"))
+        self.command = QtGui.QLineEdit()
+        self.commandLayout.addWidget(self.command)
+        self.vbox.addLayout(self.commandLayout)
+
+        self.importLayout = QtGui.QHBoxLayout()
+        self.importLayout.setAlignment(QtCore.Qt.AlignLeft)
+        self.importLayout.addWidget(QtGui.QLabel("Man page:"))
+        self.viewManButton = QtGui.QPushButton("view")
+        self.viewManButton.setToolTip('View the man page for the current command')
         self.connect(self.viewManButton, QtCore.SIGNAL('clicked()'),
                      self.viewManPage)
-        self.generator.addWidget(self.viewManButton, 0, 2)
-        self.importManButton = QtGui.QPushButton("man page")
+        self.importLayout.addWidget(self.viewManButton)
+        self.importManButton = QtGui.QPushButton("import")
+        self.importManButton.setToolTip('Import arguments from the man page for the current command')
         self.connect(self.importManButton, QtCore.SIGNAL('clicked()'),
                      self.generateFromManPage)
-        self.generator.addWidget(self.importManButton, 1, 2)
+        self.importLayout.addWidget(self.importManButton)
 
-        self.viewHelpButton = QtGui.QPushButton("help (-h)")
+        self.importLayout.addWidget(QtGui.QLabel("help page (-h):"))
+        self.viewHelpButton = QtGui.QPushButton("view")
+        self.viewHelpButton.setToolTip('View the help (-h) page for the current command')
         self.connect(self.viewHelpButton, QtCore.SIGNAL('clicked()'),
                      self.viewHelpPage)
-        self.generator.addWidget(self.viewHelpButton, 0, 3)
-        self.importHelpButton = QtGui.QPushButton("help (-h)")
+        self.importLayout.addWidget(self.viewHelpButton)
+        self.importHelpButton = QtGui.QPushButton("import")
+        self.importHelpButton.setToolTip('Import arguments from the help (-h) page for the current command')
         self.connect(self.importHelpButton, QtCore.SIGNAL('clicked()'),
                      self.generateFromHelpPage)
-        self.generator.addWidget(self.importHelpButton, 1, 3)
+        self.importLayout.addWidget(self.importHelpButton)
 
-        self.viewHelpButton2 = QtGui.QPushButton("help (--help)")
+        self.importLayout.addWidget(QtGui.QLabel("help page (--help):"))
+        self.viewHelpButton2 = QtGui.QPushButton("view")
+        self.viewHelpButton2.setToolTip('View the help (--help) page for the current command')
         self.connect(self.viewHelpButton2, QtCore.SIGNAL('clicked()'),
                      self.viewHelpPage2)
-        self.generator.addWidget(self.viewHelpButton2, 0, 4)
-        self.importHelpButton2 = QtGui.QPushButton("help (--help)")
+        self.importLayout.addWidget(self.viewHelpButton2)
+        self.importHelpButton2 = QtGui.QPushButton("import")
+        self.importHelpButton2.setToolTip('Import arguments from the help (--help) page for the current command')
         self.connect(self.importHelpButton2, QtCore.SIGNAL('clicked()'),
                      self.generateFromHelpPage2)
-        self.generator.addWidget(self.importHelpButton2, 1, 4)
-
-        self.argTools = QtGui.QHBoxLayout()
-        self.newButton = QtGui.QPushButton('Add')
-        self.newButton.setToolTip('Add a new Argument')
-        self.connect(self.newButton, QtCore.SIGNAL('clicked()'),
-                     self.addArgument)
-        self.argTools.addWidget(self.newButton)
-        self.upButton = QtGui.QPushButton('Move Up')
-        self.upButton.setToolTip('Move argument up one position')
-        self.connect(self.upButton, QtCore.SIGNAL('clicked()'),
-                     self.moveUp)
-        self.argTools.addWidget(self.upButton)
-        self.downButton = QtGui.QPushButton('Move Down')
-        self.downButton.setToolTip('Move argument down one position')
-        self.connect(self.downButton, QtCore.SIGNAL('clicked()'),
-                     self.moveDown)
-        self.argTools.addWidget(self.downButton)
-        self.removeButton = QtGui.QPushButton('Remove')
-        self.removeButton.setToolTip('Remove argument')
-        self.connect(self.removeButton, QtCore.SIGNAL('clicked()'),
-                     self.removeArgument)
-        self.argTools.addWidget(self.removeButton)
-        self.showStdin = QtGui.QCheckBox("Use stdin")
-        self.showStdin.setToolTip('Check to use standard input as an input port')
-        self.argTools.addWidget(self.showStdin)
-        self.showStdout = QtGui.QCheckBox("Use stdout")
-        self.showStdout.setToolTip('Check to use standard output as an output port')
-        self.argTools.addWidget(self.showStdout)
-        self.showStderr = QtGui.QCheckBox("Use stderr")
-        self.showStderr.setToolTip('Check to use standard error as an output port')
-        self.argTools.addWidget(self.showStderr)
-        self.argTools.addWidget(self.removeButton)
-        self.layout().addLayout(self.argTools)
+        self.importLayout.addWidget(self.importHelpButton2)
+        self.vbox.addLayout(self.importLayout)
 
         self.stdinWidget = QArgWidget('stdin')
         self.stdinGroup = QtGui.QGroupBox('Standard input')
@@ -159,11 +189,12 @@ class QCLToolsWizard(QtGui.QWidget):
         self.stderrGroup.layout().addWidget(self.stderrWidget)
         self.layout().addWidget(self.stderrGroup)
         self.stderrGroup.setVisible(False)
-        self.connect(self.showStdin, QtCore.SIGNAL('stateChanged(int)'),
+
+        self.connect(self.showStdin, QtCore.SIGNAL('toggled(bool)'),
                      self.stdinGroup.setVisible)
-        self.connect(self.showStdout, QtCore.SIGNAL('stateChanged(int)'),
+        self.connect(self.showStdout, QtCore.SIGNAL('toggled(bool)'),
                      self.stdoutGroup.setVisible)
-        self.connect(self.showStderr, QtCore.SIGNAL('stateChanged(int)'),
+        self.connect(self.showStderr, QtCore.SIGNAL('toggled(bool)'),
                      self.stderrGroup.setVisible)
         
         self.argList = QtGui.QListWidget()
@@ -173,8 +204,11 @@ class QCLToolsWizard(QtGui.QWidget):
         self.parent().setWindowTitle("CLTools Wizard - " + (file if file else "untitled"))
 
     def newFile(self):
-        # TODO: clear all fields
         self.file = None
+        self.command.clear()
+        self.showStdin.setChecked(False)
+        self.showStdout.setChecked(False)
+        self.showStderr.setChecked(False)
         while self.argList.count():
             item = self.argList.item(0)
             itemWidget = self.argList.itemWidget(item)
@@ -184,31 +218,27 @@ class QCLToolsWizard(QtGui.QWidget):
             self.argList.removeItemWidget(item)
             item.setHidden(True)
             self.argList.takeItem(0)
- #           sip.delete(item)
         self.argList.hide()
         self.layout().takeAt(self.layout().indexOf(self.argList))
-#        sip.delete(self.argList)
         self.argList = QtGui.QListWidget()
         self.layout().addWidget(self.argList)
+        self.stdAsFiles.setChecked(False)
         self.setTitle()
     
     def openFile(self):
         fileName = QtGui.QFileDialog.getOpenFileName(self,
-                                                     "Open Wrapper",
-                                                     max(self.file, ''),
-                                                     "Wrappers (*.conf)")
+                "Open Wrapper", max(self.file, ''), "Wrappers (*%s)" % SUFFIX)
         if not fileName:
             return
         try:
             conf = json.load(open(fileName))
         except  ValueError as exc:
-            print "Error opening Wizard '%s': %s" % (fileName, exc)
+            print "Error opening Wrapper '%s': %s" % (fileName, exc)
             return
         self.newFile()
         self.file = fileName
         self.setTitle(self.file)
         self.command.setText(conf.get('command', ''))
-        # TODO: stdin,out,err
         if 'stdin' in conf:
             self.stdinWidget.fromList(conf['stdin'])
         self.stdinGroup.setVisible('stdin' in conf)
@@ -221,7 +251,6 @@ class QCLToolsWizard(QtGui.QWidget):
             self.stderrWidget.fromList(conf['stderr'])
         self.stderrGroup.setVisible('stderr' in conf)
         self.showStderr.setChecked('stderr' in conf)
-        
         for argConf in conf.get('args', []):
             arg = QArgWidget()
             arg.fromList(argConf)
@@ -229,12 +258,14 @@ class QCLToolsWizard(QtGui.QWidget):
             item.setSizeHint(arg.sizeHint())
             self.argList.addItem(item)
             self.argList.setItemWidget(item, arg)
-        
+        if 'options' in conf:
+            self.stdAsFiles.setChecked('std_using_files' in conf['options'])
     def save(self):
         if not self.file:
             self.saveAs()
+            if not self.file:
+                return
         conf = {}
-        # TODO stdin,out,err
         conf['command'] = str(self.command.text()).strip()
         if self.stdinGroup.isVisible():
             conf['stdin'] = self.stdinWidget.toList()
@@ -247,17 +278,37 @@ class QCLToolsWizard(QtGui.QWidget):
             arg = self.argList.itemWidget(self.argList.item(row))
             args.append(arg.toList())
         conf['args'] = args
+        if self.stdAsFiles.isChecked():
+            if not 'options' in conf:
+                conf['options'] = {}
+            conf['options']['std_using_files'] = ''
+
         f = open(self.file, "w")
         conf = json.dump(conf, f, sort_keys=True, indent=4)
         f.close()
 
     def saveAs(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self,
-                            "Save Wrapper as", max(self.file, ''), "Wrappers (*.conf)")
+                            "Save Wrapper as", max(self.file, ''),
+                            "Wrappers (*%s)" % SUFFIX)
         if fileName:
-            self.file = fileName
-            self.setTitle(self.file)
+            self.file = str(fileName)
+            if not self.file.endswith(SUFFIX):
+                self.file += SUFFIX
             self.save()
+            self.setTitle(self.file)
+
+    def loadFromCommand(self, argv):
+        self.command.setText(argv[0])
+        pos = 0
+        for argName in argv[1:]:
+            arg = QArgWidget()
+            arg.guess(argName, pos)
+            pos += 1
+            item = QtGui.QListWidgetItem()
+            item.setSizeHint(arg.sizeHint())
+            self.argList.addItem(item)
+            self.argList.setItemWidget(item, arg)
 
     def addArgument(self):
         arg = QArgWidget()
@@ -298,6 +349,12 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         self.argList.takeItem(currentRow)
 
+    def keyPressEvent(self, event):
+        if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
+            self.removeArgument()
+        else:
+            QtGui.QWidget.keyPressEvent(self, event)
+    
     def parse(self, text):
         """ parse(self, text)
         parses the description of a command and extracts possible arguments
@@ -332,22 +389,31 @@ class QCLToolsWizard(QtGui.QWidget):
         #    print arg
         return args
         
+    def runProcess(self, args):
+        try:
+            text, stderr = subprocess.Popen(args,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE).communicate()
+            if not (text and len(text)):
+                text = stderr
+                if not (text and len(text)) or (text and text.beginswith('No ')):
+                    return None
+            # fix weird formatting
+            for a, b in encode_list:
+                text = text.replace(a, b)
+            return text
+        except:
+            return None
+    
     def generateFromManPage(self):
         command = str(self.command.text())
         if command == '':
             return
-        try:
-            text = subprocess.Popen(['man', command],
-                                    stdout=subprocess.PIPE).communicate()[0]
-        except subprocess.CalledProcessError as err:
-            QtGui.QMessageBox.warning(self,
-                                      "Man page not found for command '%s'" \
-                                      % command,"%s" % err)
+        text = self.runProcess(['man', command])
+        if not text:
+            QtGui.QMessageBox.warning(self, "Man page not found",
+                                      "For command '%s'" % command)
             return
-        # fix weird formatting
-        for a, b in encode_list:
-            text = text.replace(a, b)
-
         args = self.parse(text)
         title = "Import arguments from man page for '%s'" % command
         self.manpageImport = QManpageImport(title, args, self)
@@ -360,19 +426,11 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        try:
-            text = subprocess.Popen([command, '-h'],
-                                    stdout=subprocess.PIPE).communicate()[0]
-        except subprocess.CalledProcessError as err:
-            QtGui.QMessageBox.warning(self,
-                                      "Help page not found for command '%s'" \
-                                      % command,"%s" % err)
+        text = self.runProcess([command, '-h'])
+        if not text:
+            QtGui.QMessageBox.warning(self, "Help page (-h) not found",
+                                      "For command '%s'" % command)
             return
-
-        # fix weird formatting
-        for a, b in encode_list:
-            text = text.replace(a, b)
-
         args = self.parse(text)
 
         title = "Import arguments from help page (-h) for '%s'" % command
@@ -386,19 +444,11 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        try:
-            text = subprocess.Popen([command, '--help'],
-                                    stdout=subprocess.PIPE).communicate()[0]
-        except subprocess.CalledProcessError as err:
-            QtGui.QMessageBox.warning(self,
-                                      "Help page not found for command '%s'" \
-                                      % command,"%s" % err)
+        text = self.runProcess([command, '--help'])
+        if not text:
+            QtGui.QMessageBox.warning(self, "Help page (--help) not found",
+                                      "For command '%s'" % command)
             return
-
-        # fix weird formatting
-        for a, b in encode_list:
-            text = text.replace(a, b)
-
         args = self.parse(text)
 
         title = "Import arguments from help page (--help) for '%s'" % command
@@ -412,17 +462,12 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        try:
-            text = subprocess.Popen(['man', command],
-                                    stdout=subprocess.PIPE).communicate()[0]
-        except subprocess.CalledProcessError as err:
-            QtGui.QMessageBox.warning(self,
-                                      "Man page not found for command '%s'" \
-                                      % command,"%s" % err)
+        text = self.runProcess(['man', command])
+        if not text:
+            QtGui.QMessageBox.warning(self, "Man page not found",
+                                      "For command '%s'" % command)
             return
         title = "man page for '%s'" % command
-        for a, b in encode_list:
-            text = text.replace(a, b)
         self.manpageView = QManpageDialog(title, text, self)
         self.manpageView.show()
 
@@ -430,17 +475,12 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        try:
-            text = subprocess.Popen([command, '-h'],
-                                    stdout=subprocess.PIPE).communicate()[0]
-        except subprocess.CalledProcessError as err:
-            QtGui.QMessageBox.warning(self,
-                                      "Help page not found for command '%s'" \
-                                      % command,"%s" % err)
+        text = self.runProcess([command, '-h'])
+        if not text:
+            QtGui.QMessageBox.warning(self, "Help page (-h) not found",
+                                      "For command '%s'" % command)
             return
         title = "Help page for '%s'" % command
-        for a, b in encode_list:
-            text = text.replace(a, b)
         self.helppageView = QManpageDialog(title, text, self)
         self.helppageView.show()
 
@@ -448,17 +488,12 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        try:
-            text = subprocess.Popen([command, '--help'],
-                                    stdout=subprocess.PIPE).communicate()[0]
-        except subprocess.CalledProcessError as err:
-            QtGui.QMessageBox.warning(self,
-                                      "Help page not found for command '%s'" \
-                                      % command,"%s" % err)
+        text = self.runProcess([command, '--help'])
+        if not text:
+            QtGui.QMessageBox.warning(self, "Help page (--help) not found",
+                                      "For command '%s'" % command)
             return
         title = "Help page for '%s'" % command
-        for a, b in encode_list:
-            text = text.replace(a, b)
         self.helppageView = QManpageDialog(title, text, self)
         self.helppageView.show()
 
@@ -636,6 +671,20 @@ class QArgWidget(QtGui.QWidget):
         self.listLabel.setVisible(klass == "List")
         self.subtype.setVisible(klass == "List")
 
+    def guess(self, name, count=0):
+        """ add argument by guessing what the arg might be """
+        if '.' in name or '/' in name or '\\' in name: # guess file
+            self.fromList(['Input', 'file%s' % count, 'File',
+                           {'desc':'"%s" guessed to be an Input file' % name}])
+        elif name.startswith('-'): # guess flag
+            self.fromList(['Input', 'flag%s' % name, 'Flag',
+                           {'desc':'"%s" guessed to be a flag' % name,
+                            'flag':name}])
+        else: # guess string
+            self.fromList(['Input', 'input%s' % count, 'String',
+                           {'desc':'"%s" guessed to be an input string' % name}])
+            
+
 class QManpageDialog(QtGui.QDialog):
     def __init__(self, title, text, parent=None):
         QtGui.QDialog.__init__(self, parent)
@@ -737,5 +786,8 @@ class QCLToolsWizardWindow(QtGui.QMainWindow):
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = QCLToolsWizardWindow()
+    if len(sys.argv)>2 and sys.argv[1] == '-c':
+        # read command from command line
+        window.wizard.loadFromCommand(sys.argv[2:])
     window.show()
     app.exec_()
