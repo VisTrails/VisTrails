@@ -411,7 +411,15 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.set_title("Search")
 
     def set_controller(self, controller=None):
+        if self.controller:
+            self.disconnect(self.controller,
+                     QtCore.SIGNAL('stateChanged'),
+                     self.update_controller)
         self.controller = controller
+        if controller:
+            self.connect(self.controller,
+                         QtCore.SIGNAL('stateChanged'),
+                         self.update_controller)
         self.vt_controller.vistrail_view = self.version_result_view
         self.vt_controller.current_pipeline_view = \
             self.workflow_result_view.scene()
