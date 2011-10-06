@@ -41,6 +41,7 @@ from java.awt import Graphics
 from core.data_structures.graph import Graph
 from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from java.awt import Color
+from java.awt import Polygon
 import core.db.io
 
 class JVistrailView(JPanel):
@@ -72,13 +73,6 @@ class JVistrailView(JPanel):
         tersedPipelineGraph = Graph()
         for module in self.controller.current_pipeline._get_modules():
             tersedPipelineGraph.add_vertex(module, self.controller.current_pipeline.modules[module])
-            count = 0
-            print "module"
-            print self.controller.current_pipeline.modules[module].name
-            print len(self.controller.current_pipeline.modules[module].sourcePorts())
-            print len(self.controller.current_pipeline.modules[module].destinationPorts())
-            print "end module"
-        
         edgeId = 0   
         for connection in self.controller.current_pipeline.connections:
             sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
@@ -90,7 +84,7 @@ class JVistrailView(JPanel):
                                                self.pipelineGraph)
         
     def paintComponent(self, graphics):
-        font = Font("FontDialog", Font.PLAIN, 12)
+        font = Font("FontDialog", Font.PLAIN, 14)
         fontRenderContext = graphics.getFontRenderContext()
 
         #draw the pipeline tree
@@ -120,15 +114,44 @@ class JVistrailView(JPanel):
                 if jLabel.getText() != "ERROR NULNODE":
                     graphics.setColor(Color.white)
                     graphics.fillRect(xNode, yNode,
-                                  int(fontRect.getWidth()), int(fontRect.getHeight()))
+                                  int(fontRect.getWidth()), 2*int(fontRect.getHeight()))
                     graphics.setColor(Color.black)
                     graphics.drawString(jLabel.getText(), xNode,
-                                    yNode + int(fontRect.getHeight()))
+                                    yNode + 3 * int(fontRect.getHeight()) / 2)
+                    #parameters to draw ports
+                    currentPortCount = 0 #
+                    offsetDestinationY = 5
+                    offsetDestinationX = 15
+                    portHeight = 5
+                    portWidth = 5
+                    #drawing destination ports
+                    for port in self.controller.current_pipeline.modules[node[1].id].destinationPorts():
+                        graphics.fillRect(xNode + offsetDestinationY + ((currentPortCount) * offsetDestinationX),
+                                          yNode + offsetDestinationY, portWidth, portHeight)
+                        currentPortCount = currentPortCount + 1
+                    #drawing source ports
+                    #reset the counter, it nows points to the current number of source ports
+                    currentPortCount = 0
+                    for port in self.controller.current_pipeline.modules[node[1].id].sourcePorts():
+                        if port.name != "self":
+                            graphics.fillRect(xNode + int(fontRect.getWidth()) - offsetDestinationY
+                                              - ((currentPortCount) * offsetDestinationX),
+                                              yNode + 2 * int(fontRect.getHeight()) - offsetDestinationY,
+                                              portWidth, portHeight)
+                            currentPortCount = currentPortCount + 1
+                    #drawing the triangle on the top right corner of the module
+                    shape = Polygon([xNode + int(fontRect.getWidth()) - offsetDestinationY,
+                                    xNode + int(fontRect.getWidth()) - offsetDestinationY,
+                                    xNode + int(fontRect.getWidth())],
+                                    [yNode + offsetDestinationY, yNode + 2 * offsetDestinationY,
+                                     yNode + (3 * offsetDestinationY / 2)],
+                                    3)
+                    graphics.fill(shape)
                 #storing the dimension of the nodes to easily draw edges
                 dim = {}
                 dim["x"] = xNode
                 dim["y"] = yNode
-                dim["height"] = int(fontRect.getHeight())
+                dim["height"] = 2 * int(fontRect.getHeight())
                 dim["width"] = int(fontRect.getWidth())
                 nodesToDim[node[1].id] = dim
             #drawing edges    
