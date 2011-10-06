@@ -159,7 +159,6 @@ class ModuleRegistrySignals(object):
     # module_updated_signal = QtCore.SIGNAL("module_updated")
 
     def __init__(self):
-        print "before get"
         app = get_vistrails_application()
         notifications = ["reg_new_module",
                          "reg_new_abstraction",
@@ -441,23 +440,17 @@ class ModuleRegistry(DBRegistry):
         dynamically configurable modules, like PythonSource).
 
         """
-        print "CALL INIT IN MODULE REGISTRY"
         if 'root_descriptor_id' not in kwargs:
             kwargs['root_descriptor_id'] = -1
-        print "in module registry before DBRegistry init in init"
         DBRegistry.__init__(self, *args, **kwargs)
-        print "in module registry before set_defaults in init"
         self.set_defaults()
-        print "in module registry after set_defaults in init"
 
         
     def __copy__(self):
         ModuleRegistry.do_copy(self)
 
     def set_defaults(self, other=None):
-        print "begin of the set_defautls method in module reg"
         self._root_descriptor = None
-        print "initial"
         self.signals = ModuleRegistrySignals()
         self.setup_indices()
         if other is None:
@@ -477,7 +470,6 @@ class ModuleRegistry(DBRegistry):
                 self.packages[other._current_package.identifier]
             self._default_package = \
                 self.packages[other._default_package.identifier]
-        print "end of the set_defautls method in module reg"
 
     def setup_indices(self):
         self.descriptors_by_id = {}

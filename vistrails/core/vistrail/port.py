@@ -133,11 +133,11 @@ class Port(DBPort):
     ##########################################################################
     # Properties
     
-    id = 1 #DBPort.db_id
-    moduleId = 1 #DBPort.db_moduleId
-    moduleName = "uh" #DBPort.db_moduleName
-    name = "uhuh" #DBPort.db_name
-    type = "a" #DBPort.db_type
+    id = 1 #DBPort.db_id MODIFIED FOR JYTHON
+    moduleId = 1 #DBPort.db_moduleId MODIFIED FOR JYTHON
+    moduleName = "uh" #DBPort.db_moduleName MODIFIED FOR JYTHON
+    name = "uhuh" #DBPort.db_name MODIFIED FOR JYTHON
+    type = "a" #DBPort.db_type MODIFIED FOR JYTHON
 
     def _get_endPoint(self):
         if self.db_type in PortSpec.end_point_map:

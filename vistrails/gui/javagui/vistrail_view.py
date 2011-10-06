@@ -40,7 +40,6 @@ from java.awt import Font
 from java.awt import Graphics
 from core.data_structures.graph import Graph
 from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
-from core.vistrail.pipeline import Pipeline
 from java.awt import Color
 import core.db.io
 
@@ -73,7 +72,12 @@ class JVistrailView(JPanel):
         tersedPipelineGraph = Graph()
         for module in self.controller.current_pipeline._get_modules():
             tersedPipelineGraph.add_vertex(module, self.controller.current_pipeline.modules[module])
-            #self.controller.current_pipeline.modules[module].sourcePorts()
+            count = 0
+            print "module"
+            print self.controller.current_pipeline.modules[module].name
+            print len(self.controller.current_pipeline.modules[module].sourcePorts())
+            print len(self.controller.current_pipeline.modules[module].destinationPorts())
+            print "end module"
         
         edgeId = 0   
         for connection in self.controller.current_pipeline.connections:

@@ -83,6 +83,8 @@ class PortSpec(DBPortSpec):
             del kwargs['tooltip']
         else:
             self._tooltip = None
+        del kwargs['defaults'] #MODIFIED FOR JYTHON
+        del kwargs['labels'] #MODIFIED FOR JYTHON
         DBPortSpec.__init__(self, *args, **kwargs)
 
         self._entries = None
