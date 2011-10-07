@@ -111,6 +111,7 @@ class JVistrailView(JPanel):
                         if nodesToDim[nodeId]["x"] == xNode and nodesToDim[nodeId]["y"] == yNode:
                             xNode = xNode + 10 + nodesToDim[nodeId]["width"]
                             overlapBoolean = True
+                dim = {}
                 if jLabel.getText() != "ERROR NULNODE":
                     graphics.setColor(Color.white)
                     graphics.fillRect(xNode, yNode,
@@ -124,10 +125,20 @@ class JVistrailView(JPanel):
                     offsetDestinationX = 15
                     portHeight = 5
                     portWidth = 5
+                    #
+                    destinationPorts = {}
+                    sourcePorts = {}
+                    dim["destinationPorts"] = destinationPorts
+                    dim["sourcePorts"] = sourcePorts
                     #drawing destination ports
                     for port in self.controller.current_pipeline.modules[node[1].id].destinationPorts():
                         graphics.fillRect(xNode + offsetDestinationY + ((currentPortCount) * offsetDestinationX),
                                           yNode + offsetDestinationY, portWidth, portHeight)
+                        port = {}
+                        destinationPorts[currentPortCount] = port
+                        port["used"] = False
+                        port["x"] = xNode + offsetDestinationY + ((currentPortCount) * offsetDestinationX)
+                        port["y"] = yNode + offsetDestinationY
                         currentPortCount = currentPortCount + 1
                     #drawing source ports
                     #reset the counter, it nows points to the current number of source ports
@@ -138,6 +149,11 @@ class JVistrailView(JPanel):
                                               - ((currentPortCount) * offsetDestinationX),
                                               yNode + 2 * int(fontRect.getHeight()) - offsetDestinationY,
                                               portWidth, portHeight)
+                            port = {}
+                            sourcePorts[currentPortCount] = port
+                            port["used"] = False
+                            port["x"] = xNode + int(fontRect.getWidth()) - offsetDestinationY - ((currentPortCount) * offsetDestinationX)
+                            port["y"] = yNode + 2 * int(fontRect.getHeight()) - offsetDestinationY
                             currentPortCount = currentPortCount + 1
                     #drawing the triangle on the top right corner of the module
                     shape = Polygon([xNode + int(fontRect.getWidth()) - offsetDestinationY,
@@ -148,7 +164,6 @@ class JVistrailView(JPanel):
                                     3)
                     graphics.fill(shape)
                 #storing the dimension of the nodes to easily draw edges
-                dim = {}
                 dim["x"] = xNode
                 dim["y"] = yNode
                 dim["height"] = 2 * int(fontRect.getHeight())
@@ -158,16 +173,28 @@ class JVistrailView(JPanel):
             for connection in self.controller.current_pipeline.connections:
                 sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
                 targetId = self.controller.current_pipeline.connections[connection]._get_destinationId()
-                xSource = nodesToDim[sourceId]["x"]
-                ySource = nodesToDim[sourceId]["y"]
-                xTarget = nodesToDim[targetId]["x"]
-                yTarget = nodesToDim[targetId]["y"]
+                for port in nodesToDim[sourceId]["sourcePorts"]:
+                    if nodesToDim[sourceId]["sourcePorts"][port]["used"] == False:
+                        xSource = nodesToDim[sourceId]["sourcePorts"][port]["x"]
+                        ySource = nodesToDim[sourceId]["sourcePorts"][port]["y"]
+                        nodesToDim[sourceId]["sourcePorts"][port]["used"] = True
+                        break
+                for port in nodesToDim[targetId]["destinationPorts"]:
+                    if nodesToDim[targetId]["destinationPorts"][port]["used"] == False:
+                        xTarget = nodesToDim[targetId]["destinationPorts"][port]["x"]
+                        yTarget = nodesToDim[targetId]["destinationPorts"][port]["y"]
+                        nodesToDim[targetId]["destinationPorts"][port]["used"] = True
+                        break
+                #xSource = nodesToDim[sourceId]["x"]
+                #ySource = nodesToDim[sourceId]["y"]
+                #xTarget = nodesToDim[targetId]["x"]
+                #yTarget = nodesToDim[targetId]["y"]
                 sourceWidth = nodesToDim[sourceId]["width"]
                 sourceHeight = nodesToDim[sourceId]["height"]
                 targetWidth = nodesToDim[targetId]["width"]
-                graphics.drawLine(xSource + sourceWidth/2 ,
-                  ySource + sourceHeight,
-                  xTarget +  targetWidth/2,
+                graphics.drawLine(xSource, # + sourceWidth/2 ,
+                  ySource, #+ sourceHeight,
+                  xTarget, # +  targetWidth/2,
                   yTarget)
 
 
