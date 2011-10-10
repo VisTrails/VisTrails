@@ -169,10 +169,10 @@ class JVistrailView(JPanel):
                 dim["height"] = 2 * int(fontRect.getHeight())
                 dim["width"] = int(fontRect.getWidth())
                 nodesToDim[node[1].id] = dim
-            #drawing edges    
+            #drawing edges 
             for connection in self.controller.current_pipeline.connections:
                 sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
-                targetId = self.controller.current_pipeline.connections[connection]._get_destinationId()
+                targetId = self.controller.current_pipeline.connections[connection]._get_destinationId() 
                 for port in nodesToDim[sourceId]["sourcePorts"]:
                     if nodesToDim[sourceId]["sourcePorts"][port]["used"] == False:
                         xSource = nodesToDim[sourceId]["sourcePorts"][port]["x"]

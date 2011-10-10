@@ -49,6 +49,7 @@ from core.db.locator import ZIPFileLocator
 from core.modules.module_registry import ModuleRegistry
 from core.packagemanager import PackageManager
 import core.modules
+import core.system
 import sys
 
 class BuilderFrame(JFrame):
@@ -100,20 +101,32 @@ class BuilderFrame(JFrame):
         self.contentPanel = JPanel(BorderLayout())
         self.contentPanel.add(self.viewComp, BorderLayout.CENTER)
         toolBar = JToolBar()
-        pipelineIcon = ImageIcon("C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/vistrails/gui/resources/images/pipeline.png")
+        root = str(core.system.vistrails_root_directory())
+        executeIconFile = root + "/gui/resources/images/execute.png"
+        executeIcon = ImageIcon(executeIconFile)
+        self.executeButton = JButton(executeIcon)
+        self.executeButton.actionPerformed= self.buttonClicked
+        self.executeButton.setToolTipText("Execute the current pipeline")
+        self.executeButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+        self.executeButton.setHorizontalTextPosition(SwingConstants.CENTER);
+        self.executeButton.setText("Execute")
+        pipelineIconFile = root + "/gui/resources/images/pipeline.png"
+        pipelineIcon = ImageIcon(pipelineIconFile)
         self.pipelineButton = JButton(pipelineIcon)
         self.pipelineButton.actionPerformed= self.buttonClicked
         self.pipelineButton.setToolTipText("Switch to pipeline view")
         self.pipelineButton.setVerticalTextPosition(SwingConstants.BOTTOM);
         self.pipelineButton.setHorizontalTextPosition(SwingConstants.CENTER);
         self.pipelineButton.setText("Pipeline")
-        historyIcon = ImageIcon("C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/vistrails/gui/resources/images/history.png")
+        historyIconFile = root + "/gui/resources/images/history.png"
+        historyIcon = ImageIcon(historyIconFile)
         self.historyButton = JButton(historyIcon)
         self.historyButton.setToolTipText("Switch to version view")
         self.historyButton.actionPerformed= self.buttonClicked
         self.historyButton.setVerticalTextPosition(SwingConstants.BOTTOM);
         self.historyButton.setHorizontalTextPosition(SwingConstants.CENTER);
         self.historyButton.setText("Version")
+        toolBar.add(self.executeButton)
         toolBar.add(self.pipelineButton)
         toolBar.add(self.historyButton)
         self.contentPanel.add(toolBar, BorderLayout.NORTH)
