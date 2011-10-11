@@ -35,7 +35,6 @@
 import sys
 import json
 import subprocess
-import sip
 from PyQt4 import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
@@ -214,7 +213,6 @@ class QCLToolsWizard(QtGui.QWidget):
             itemWidget = self.argList.itemWidget(item)
             itemWidget.setVisible(False)
             itemWidget.setParent(None)
-            sip.delete(itemWidget)
             self.argList.removeItemWidget(item)
             item.setHidden(True)
             self.argList.takeItem(0)
@@ -260,6 +258,7 @@ class QCLToolsWizard(QtGui.QWidget):
             self.argList.setItemWidget(item, arg)
         if 'options' in conf:
             self.stdAsFiles.setChecked('std_using_files' in conf['options'])
+
     def save(self):
         if not self.file:
             self.saveAs()
