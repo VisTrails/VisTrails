@@ -46,15 +46,13 @@ class QPortDocumentation(QtGui.QDialog):
     QPortDocumentation is a dialog for showing port documentation. duh.
 
     """
-    def __init__(self, descriptor, endpoint, port_name, parent=None):
+    def __init__(self, descriptor, port_type, port_name, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.descriptor = descriptor
         self.setModal(True)
-        if endpoint == PortEndPoint.Source:
-            port_type = 'output'
+        if port_type == 'output':
             call_ = descriptor.module.provide_output_port_documentation
-        elif endpoint == PortEndPoint.Destination:
-            port_type = 'input'
+        elif port_type == 'input':
             call_ = descriptor.module.provide_input_port_documentation
         else:
             raise VistrailsInternalError("Invalid port type")
