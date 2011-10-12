@@ -102,10 +102,19 @@ class BuilderFrame(JFrame):
         self.contentPanel.add(self.viewComp, BorderLayout.CENTER)
         toolBar = JToolBar()
         root = str(core.system.vistrails_root_directory())
+        #Create and add the different buttons
+        openIconFile = root + "/gui/resources/images/open_vistrail.png"
+        openIcon = ImageIcon(openIconFile)
+        self.openButton = JButton(openIcon)
+        self.openButton.actionPerformed = self.buttonClicked
+        self.openButton.setToolTipText("Open")
+        self.openButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+        self.openButton.setHorizontalTextPosition(SwingConstants.CENTER);
+        self.openButton.setText("Open")
         executeIconFile = root + "/gui/resources/images/execute.png"
         executeIcon = ImageIcon(executeIconFile)
         self.executeButton = JButton(executeIcon)
-        self.executeButton.actionPerformed= self.buttonClicked
+        self.executeButton.actionPerformed = self.buttonClicked
         self.executeButton.setToolTipText("Execute the current pipeline")
         self.executeButton.setVerticalTextPosition(SwingConstants.BOTTOM);
         self.executeButton.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -126,6 +135,7 @@ class BuilderFrame(JFrame):
         self.historyButton.setVerticalTextPosition(SwingConstants.BOTTOM);
         self.historyButton.setHorizontalTextPosition(SwingConstants.CENTER);
         self.historyButton.setText("Version")
+        toolBar.add(self.openButton)
         toolBar.add(self.executeButton)
         toolBar.add(self.pipelineButton)
         toolBar.add(self.historyButton)
@@ -137,6 +147,11 @@ class BuilderFrame(JFrame):
             viewCompTemp = self.viewManager.open_vistrail(self.currentLocator, "pipeline", None, False, self)
         elif (event.getSource() == self.historyButton):
             viewCompTemp = self.viewManager.open_vistrail(self.currentLocator, "version", None, False, self)
+        elif (event.getSource() == self.executeButton):
+            return
+        elif (event.getSource() == self.openButton):
+            self.openAction(event)
+            return
         self.getContentPane().remove(self.viewComp)
         self.getContentPane().invalidate()
         self.getContentPane().revalidate()
