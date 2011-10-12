@@ -26,7 +26,19 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0-alpha build 1b88c3949efd from v2.0 branch
+Release Name: v2.0-alpha build d83b2637f5b5 from v2.0 branch
+
+Enhancements: 
+ - Wizard for CLTools - gui for wrapper creation (de5fbcd6144a)
+
+Bug fixes: 
+ - Ticket #508: Add port documentation back to ports panel (d83b2637f5b5)
+ - Ticket #502: change_selected_version causes key error in adjacency_list (815d38ff608a)
+ - Ticket #472: parameters in parameter exploration are reset if not executed (829303e1efeb)
+ - Parameter exploration with Color Constant was not working (ecfbedcd4406)
+
+
+From Release: v2.0-alpha build 1b88c3949efd from v2.0 branch
 
 Enhancements: 
  - VisTrails now requires Python 2.7.*, Qt 4.7.*, sip 4.12.2 and PyQt4 4.8.4 to run 
