@@ -802,7 +802,7 @@ class QVistrailView(QtGui.QWidget):
             else:
                 view.set_title(view.get_long_title())
                 view.window().setWindowTitle(view.get_long_title())
-        _app.notify("version_changed", version_id)
+        _app.notify("version_changed", self.controller.current_version)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
     def query_version_selected(self, search=None, version_id=None):

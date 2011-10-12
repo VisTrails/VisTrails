@@ -42,6 +42,7 @@ from core.vistrail.port_spec import PortSpec
 from core.system import vistrails_root_directory
 from gui.modules import get_widget_class
 from gui.common_widgets import QToolWindowInterface
+from gui.port_documentation import QPortDocumentation
 from gui.theme import CurrentTheme
 
 class AliasLabel(QtGui.QLabel):
@@ -300,6 +301,27 @@ class PortItem(QtGui.QTreeWidgetItem):
 
         self.visible_checkbox = QtGui.QCheckBox()
         self.connected_checkbox = QtGui.QCheckBox()
+        
+    def contextMenuEvent(self, event, widget):
+        if self.port_spec is None:
+            return
+        act = QtGui.QAction("View Documentation", widget)
+        act.setStatusTip("View method documentation")
+        QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.view_documentation)
+        menu = QtGui.QMenu(widget)
+        menu.addAction(act)
+        menu.exec_(event.globalPos())
+        
+    def view_documentation(self):
+        descriptor = self.treeWidget().module.module_descriptor
+        port_type = self.treeWidget().port_type
+        widget = QPortDocumentation(descriptor,
+                                    port_type,
+                                    self.port_spec.name)
+        widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        widget.exec_()
 
 class PortsList(QtGui.QTreeWidget):
     def __init__(self, port_type, parent=None):
@@ -545,6 +567,11 @@ class PortsList(QtGui.QTreeWidget):
             
         #     methodBox.unlockUpdate()
 
+    def contextMenuEvent(self, event):
+        # Just dispatches the menu event to the widget item
+        item = self.itemAt(event.pos())
+        if item:
+            item.contextMenuEvent(event, self)
 
 class QPortsPane(QtGui.QWidget, QToolWindowInterface):
     def __init__(self, port_type, parent=None, flags=QtCore.Qt.Widget):
