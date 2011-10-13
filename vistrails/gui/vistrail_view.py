@@ -81,6 +81,7 @@ class QVistrailView(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
+        self.is_executing = False
         self.notifications = {}
         self.tabs = QMouseTabBar(self)
         self.tabs.setDocumentMode(True)
@@ -987,11 +988,18 @@ class QVistrailView(QtGui.QWidget):
         prop.versionNotes.commit_changes()
 
     def execute(self):
+        # makes sure we are not already executing
+        if self.is_executing:
+            return
+        self.is_executing = True
+
         view = self.get_current_tab()
         if hasattr(view, 'execute'):
             view.setFocus(QtCore.Qt.MouseFocusReason)
-            view.execute()      
-            
+            view.execute()
+
+        self.is_executing = False
+
     def publish_to_web(self):
         view = self.get_current_tab()
         if hasattr(view, 'publish_to_web'):
