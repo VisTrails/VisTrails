@@ -497,8 +497,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.setWatchedAct,
 			       QtCore.SIGNAL("triggered()"),
 			       self.set_watched)
-        self.setErrorAct = QtGui.QAction("Show Stack Trace", self.scene())
-        self.setErrorAct.setStatusTip("Show Stack Trace")
+        self.setErrorAct = QtGui.QAction("Show Error", self.scene())
+        self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_error)
@@ -528,7 +528,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 
     def set_error(self):
         if self.moduleId >= 0:
-            self.scene().print_stack(self.moduleId)
+            self.scene().print_error(self.moduleId)
 
     def configure(self):
         """ configure() -> None
@@ -2306,15 +2306,19 @@ mutual connections."""
             module = self.controller.current_pipeline.modules[id]
             module.toggle_watched()
 
-    def print_stack(self, id):
+    def print_error(self, id):
+        toolTip = str(self.modules[id].toolTip())
         errorTrace = self.modules[id].errorTrace
-        if not errorTrace:
+        if not toolTip and not errorTrace:
             return
+        text = toolTip
+        if errorTrace and errorTrace.strip() != 'None':
+            text += '\n\n' + errorTrace
         class StackPopup(QtGui.QDialog):
             def __init__(self, errorTrace='', parent=None):
                 QtGui.QDialog.__init__(self, parent)
                 self.resize(700, 400)
-                self.setWindowTitle('Stack Trace')
+                self.setWindowTitle('Module Error')
                 layout = QtGui.QVBoxLayout()
                 self.setLayout(layout)
                 text = QtGui.QTextEdit('')
@@ -2327,7 +2331,7 @@ mutual connections."""
                 layout.addWidget(close)
                 self.connect(close, QtCore.SIGNAL('clicked()'),
                              self, QtCore.SLOT('close()'))
-        sp = StackPopup(errorTrace)
+        sp = StackPopup(text)
         sp.exec_()
 
     def open_annotations_window(self, id):
