@@ -1356,9 +1356,21 @@ class VistrailController(QtCore.QObject, BaseController):
         Returns the list of module ids of added modules
 
         """
+        def remove_duplicate_aliases(pip):
+            aliases = self.current_pipeline.aliases.keys()
+            for a in aliases:
+                if a in pip.aliases:
+                    (type, oId, parentType, parentId, mid) = pip.aliases[a]
+                    pip.remove_alias_by_name(a)
+                    _mod = pip.modules[mid]
+                    _fun = _mod.function_idx[parentId]
+                    _par = _fun.parameter_idx[oId]
+                    _par.alias = ''
+                                    
         self.flush_delayed_actions()
-
         pipeline = core.db.io.unserialize(str, Pipeline)
+        remove_duplicate_aliases(pipeline)
+
         modules = []
         connections = []
         if pipeline:
