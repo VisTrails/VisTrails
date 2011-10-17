@@ -234,7 +234,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         if not hasattr(self, 'openActionVar'):
             self.openActionVar = QtGui.QAction(QtGui.QIcon(':/images/open.png'),
                                                '&Open...', self)
-            self.openActionVar.setStatusTip('Open a new spreadsheet')
+            self.openActionVar.setStatusTip('Open a saved spreadsheet')
             self.openActionVar.setShortcut('Ctrl+O')
             self.connect(self.openActionVar,
                          QtCore.SIGNAL('triggered()'),
