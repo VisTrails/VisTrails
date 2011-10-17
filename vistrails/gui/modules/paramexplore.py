@@ -848,6 +848,7 @@ class QUserFunctionDialog(QtGui.QDialog):
         vLayout.setMargin(0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
+        self.setWindowTitle('User-defined Function')
         
         label = QtGui.QLabel("Please define your function below. This "
                              "'value(i)' function will be iteratively called "
@@ -859,7 +860,6 @@ class QUserFunctionDialog(QtGui.QDialog):
 
         self.editor = PythonEditor(self)
         self.editor.setPlainText(function)
-        self.editor.moveCursor(QtGui.QTextCursor.End)
         vLayout.addWidget(self.editor)
 
         hLayout = QtGui.QHBoxLayout()        
