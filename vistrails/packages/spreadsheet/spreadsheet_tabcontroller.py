@@ -39,6 +39,7 @@ import os.path
 from PyQt4 import QtCore, QtGui
 from core.db.locator import FileLocator, _DBLocator as DBLocator
 from core.interpreter.default import get_default_interpreter
+from db.services.io import SaveBundle
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
@@ -740,8 +741,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             except KeyError:
                 locator = parse_locator(serializedLocator)
             if locator:
-                vistrail = locator.load()
-                pipeline = vistrail.getPipeline(version)
+                bundle = locator.load()
+                if isinstance(bundle, SaveBundle):
+                    pipeline = bundle.vistrail.getPipeline(version)
+                else:
+                    pipeline = bundle.getPipeline(version)
                 execution = get_default_interpreter()
                 progress.setValue(pipelineIdx)
                 QtCore.QCoreApplication.processEvents()
