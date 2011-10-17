@@ -94,6 +94,8 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
         self.addAction(self.sheetTab.tabWidget.newSheetAction())
+        self.addAction(self.sheetTab.tabWidget.openAction())
+        self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
