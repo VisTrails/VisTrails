@@ -101,7 +101,8 @@ class LogController(object):
                 to_add = False
                 self.machine = machine
         if to_add:
-            self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
+            self.machine.id = 1
+            #self.machine.id = self.log.id_scope.getNewId(Machine.vtType) Jython change
             self.log.add_machine(self.machine)
             
     def start_workflow_execution(self, vistrail=None, pipeline=None, 
@@ -112,10 +113,11 @@ class LogController(object):
         else:
             parent_type = Pipeline.vtType
             parent_id = pipeline.id
-
-        wf_exec_id = self.log.id_scope.getNewId(WorkflowExec.vtType)
+        wf_exec_id = 1
+        #wf_exec_id = self.log.id_scope.getNewId(WorkflowExec.vtType) Jython change
         if vistrail is not None:
-            session = vistrail.current_session
+            #session = vistrail.current_session Jython change
+            session = None
         else:
             session = None
         self.workflow_exec = WorkflowExec(id=wf_exec_id,
@@ -140,7 +142,8 @@ class LogController(object):
 
     def create_module_exec(self, module, module_id, module_name,
                            cached):
-        m_exec_id = self.log.id_scope.getNewId(ModuleExec.vtType)
+        #m_exec_id = self.log.id_scope.getNewId(ModuleExec.vtType) Jython change
+        m_exec_id = 1
         module_exec = ModuleExec(id=m_exec_id,
                                  machine_id=self.machine.id,
                                  module_id=module_id,
@@ -226,7 +229,8 @@ class LogController(object):
             module.module_exec.completed = -1
             module.module_exec.error = error
             if errorTrace:
-                a_id = self.log.id_scope.getNewId(Annotation.vtType)
+                a_id = 1
+                #a_id = self.log.id_scope.getNewId(Annotation.vtType) Jython change
                 annotation = Annotation(id=a_id,
                                         key="errorTrace",
                                         value=errorTrace)
@@ -328,7 +332,8 @@ class LogController(object):
         self.workflow_exec"""
         if self.workflow_exec:
             for k,v in a_dict.iteritems():
-                a_id = self.log.id_scope.getNewId(Annotation.vtType)
+                a_id = 1
+                #a_id = self.log.id_scope.getNewId(Annotation.vtType) Jython Change
                 annotation = Annotation(id=a_id,
                                         key=k,
                                         value=v)

@@ -34,14 +34,18 @@
 
 from vistrail_controller import JVistrailController
 
+from java.lang import Runnable
 from javax.swing import JPanel
 from javax.swing import JLabel
+from javax.swing import SwingUtilities
 from java.awt import Font
 from java.awt import Graphics
-from core.data_structures.graph import Graph
-from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from java.awt import Color
 from java.awt import Polygon
+
+from core.data_structures.graph import Graph
+from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+
 import core.db.io
 
 class JVistrailView(JPanel):
@@ -54,6 +58,7 @@ class JVistrailView(JPanel):
         self.idScope = self.controller.id_scope
         self.current_version = self.builderFrame.currentVersion
         self.set_vistrail(vistrail, locator)
+        self.executed = {} #list of executed modules
     
     def set_vistrail(self, vistrail, locator, abstraction_files=None,
                           thumbnail_files=None, version=None):
@@ -61,7 +66,30 @@ class JVistrailView(JPanel):
         self.locator = locator
         self.controller.set_vistrail(vistrail, locator)
         self.set_graph()
+
+    def execute_workflow(self):
+        (results, changed) = self.controller.execute_current_workflow()
+        print results[0].__str__()
+        self.executed = results[0].executed
+        SwingUtilities.invokeLater(CustomRunner(self.invalidate))
+        SwingUtilities.invokeLater(CustomRunner(self.revalidate))
+        SwingUtilities.invokeLater(CustomRunner(self.repaint))
         
+    def define_modules_color(self):
+        self.colorModules = {}
+        if self.executed == {}:
+            for module in self.controller.current_pipeline._get_modules():
+                self.colorModules[module] = Color.WHITE
+        else:
+            for module in self.controller.current_pipeline._get_modules():
+                if module in self.executed:
+                    if self.executed[module] == True:
+                        self.colorModules[module] = Color.GREEN
+                    else:
+                        self.colorModules[module] = Color.RED
+                else:
+                    self.colorModules[module] = Color.ORANGE
+  
     def set_graph(self):
 
         self._current_graph_layout = VistrailsTreeLayoutLW()
@@ -73,6 +101,9 @@ class JVistrailView(JPanel):
         tersedPipelineGraph = Graph()
         for module in self.controller.current_pipeline._get_modules():
             tersedPipelineGraph.add_vertex(module, self.controller.current_pipeline.modules[module])
+            #Not  nice lines, just here to force value of string module while module information panels are not implemented
+            if self.controller.current_pipeline.modules[module]._get_module_descriptor().module().__str__() == "<<<class 'core.modules.vistrails_module.String'>>>":
+                self.controller.current_pipeline.modules[module]._get_module_descriptor().module().setValue("testString")
         edgeId = 0   
         for connection in self.controller.current_pipeline.connections:
             sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
@@ -86,7 +117,7 @@ class JVistrailView(JPanel):
     def paintComponent(self, graphics):
         font = Font("FontDialog", Font.PLAIN, 14)
         fontRenderContext = graphics.getFontRenderContext()
-
+        self.define_modules_color() #compute modules colors
         #draw the pipeline tree
         nodesToDim = {}
         if graphics is not None:
@@ -113,7 +144,7 @@ class JVistrailView(JPanel):
                             overlapBoolean = True
                 dim = {}
                 if jLabel.getText() != "ERROR NULNODE":
-                    graphics.setColor(Color.white)
+                    graphics.setColor(self.colorModules[node[0]])
                     graphics.fillRect(xNode, yNode,
                                   int(fontRect.getWidth()), 2*int(fontRect.getHeight()))
                     graphics.setColor(Color.black)
@@ -185,10 +216,6 @@ class JVistrailView(JPanel):
                         yTarget = nodesToDim[targetId]["destinationPorts"][port]["y"]
                         nodesToDim[targetId]["destinationPorts"][port]["used"] = True
                         break
-                #xSource = nodesToDim[sourceId]["x"]
-                #ySource = nodesToDim[sourceId]["y"]
-                #xTarget = nodesToDim[targetId]["x"]
-                #yTarget = nodesToDim[targetId]["y"]
                 sourceWidth = nodesToDim[sourceId]["width"]
                 sourceHeight = nodesToDim[sourceId]["height"]
                 targetWidth = nodesToDim[targetId]["width"]
@@ -198,5 +225,11 @@ class JVistrailView(JPanel):
                   yTarget)
 
 
-
+class CustomRunner(Runnable):
+    
+    def __init__(self, func):
+        self.runner = func;
+        
+    def run(self):
+        self.runner()
                            

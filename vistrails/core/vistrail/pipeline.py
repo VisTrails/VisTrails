@@ -431,13 +431,19 @@ class Pipeline(DBWorkflow):
             self.ensure_connection_specs([c.id])
 
             source_name = c.source.name
-            output_ports = self.modules[c.sourceId].connected_output_ports
+            try:
+                output_ports = self.modules[c.sourceId].connected_output_ports
+            except:
+                output_ports = self.modules[c.id].connected_output_ports
             if source_name not in output_ports:
                 output_ports[source_name] = 0
             output_ports[source_name] += 1
                 
             dest_name = c.destination.name
-            input_ports = self.modules[c.destinationId].connected_input_ports
+            try:
+                input_ports = self.modules[c.destinationId].connected_input_ports
+            except:
+                input_ports = self.modules[c.id].connected_input_ports
             if dest_name not in input_ports:
                 input_ports[dest_name] = 0
             input_ports[dest_name] += 1
@@ -774,7 +780,10 @@ class Pipeline(DBWorkflow):
             return self._module_signatures[module_id]
         except KeyError:
             registry = get_module_registry()
-            m = self.modules[module_id]
+            try:
+                m = self.modules[module_id]
+            except:
+                return "None"
             sig = registry.module_signature(self, m)
             self._module_signatures[module_id] = sig
             return sig
@@ -796,15 +805,18 @@ class Pipeline(DBWorkflow):
         try:
             return self._subpipeline_signatures[module_id]
         except KeyError:
-            upstream_sigs = [(self.subpipeline_signature(m) +
+            try:
+                upstream_sigs = [(self.subpipeline_signature(m) +
                               Hasher.connection_signature(
                                   self.connections[edge_id]))
                              for (m, edge_id) in
                              self.graph.edges_to(module_id)]
-            module_sig = self.module_signature(module_id)
-            sig = Hasher.subpipeline_signature(module_sig,
+                module_sig = self.module_signature(module_id)
+                sig = Hasher.subpipeline_signature(module_sig,
                                                upstream_sigs)
-            self._subpipeline_signatures[module_id] = sig
+                self._subpipeline_signatures[module_id] = sig
+            except:
+                return "None"
             return sig
 
     def subpipeline_id_from_signature(self, signature):
@@ -980,6 +992,8 @@ class Pipeline(DBWorkflow):
         if connection_ids is None:
             connection_ids = self.connections.iterkeys()
         for conn_id in connection_ids:
+            if conn_id < 0:
+                break
             conn = self.connections[conn_id]
             # print 'checking connection', conn_id, conn.source.moduleId, conn.source.moduleName, conn.source.name, conn.destination.moduleId, conn.destination.moduleName, conn.destination.name
             src_module = self.modules[conn.source.moduleId]

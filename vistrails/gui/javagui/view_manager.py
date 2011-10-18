@@ -65,13 +65,13 @@ class JViewManager(JComponent):
     def set_vistrail_view(self, vistrail, locator, viewType = "pipeline" ,abstraction_files=None,
                           thumbnail_files=None, version=None, builderFrame = None):
         if (viewType == None or viewType == "pipeline"):   
-            vistrailView = JVistrailView(vistrail, locator, builderFrame)
-            vistrailView.set_vistrail(vistrail, locator, abstraction_files,
+            self.vistrailView = JVistrailView(vistrail, locator, builderFrame)
+            self.vistrailView.set_vistrail(vistrail, locator, abstraction_files,
                                   thumbnail_files)
-            self.add_vistrail_view(vistrailView)
+            self.add_vistrail_view(self.vistrailView)
         elif (viewType == "version"):
-            vistrailView = JVersionVistrailView(vistrail, locator, builderFrame)
-            vistrailView.set_vistrail(vistrail, locator, abstraction_files,
+            self.vistrailView = JVersionVistrailView(vistrail, locator, builderFrame)
+            self.vistrailView.set_vistrail(vistrail, locator, abstraction_files,
                                   thumbnail_files)
-            self.add_vistrail_view(vistrailView)
-        return vistrailView
+            self.add_vistrail_view(self.vistrailView)
+        return self.vistrailView

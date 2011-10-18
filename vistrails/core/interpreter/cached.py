@@ -241,9 +241,17 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         # Create the new connections
         for i in conn_added_set:
             persistent_id = conn_map[i]
-            conn = self._persistent_pipeline.connections[persistent_id]
-            src = self._objects[conn.sourceId]
-            dst = self._objects[conn.destinationId]
+            conn = self._persistent_pipeline.connections[i]
+            if conn.sourceId in tmp_to_persistent_module_map:
+                sourceId = tmp_to_persistent_module_map[conn.sourceId]
+            else:
+                sourceId = conn.sourceId
+            if conn.destinationId in tmp_to_persistent_module_map:
+                destinationId = tmp_to_persistent_module_map[conn.destinationId]
+            else:
+                destinationId = conn.destinationId
+            src = self._objects[sourceId]
+            dst = self._objects[destinationId]
             conn.makeConnection(src, dst)
 
         if self.done_summon_hook:

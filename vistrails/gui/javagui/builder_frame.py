@@ -148,6 +148,10 @@ class BuilderFrame(JFrame):
         elif (event.getSource() == self.historyButton):
             viewCompTemp = self.viewManager.open_vistrail(self.currentLocator, "version", None, False, self)
         elif (event.getSource() == self.executeButton):
+            from vistrail_view import JVistrailView
+            if str(self.viewManager.vistrailView.__class__) == "<class 'vistrail_view.JVistrailView'>":
+                viewCompTemp = self.viewManager.vistrailView
+            viewCompTemp.execute_workflow()
             return
         elif (event.getSource() == self.openButton):
             self.openAction(event)
