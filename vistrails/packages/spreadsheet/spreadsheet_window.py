@@ -334,6 +334,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         
         """
         self.show()
+        # Without this Ubuntu Unity will not show the menu bar
+        self.raise_()
 
     def closeEvent(self, e):
         """ closeEvent(e: QCloseEvent) -> None
