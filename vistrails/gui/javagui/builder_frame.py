@@ -151,8 +151,11 @@ class BuilderFrame(JFrame):
             from vistrail_view import JVistrailView
             if str(self.viewManager.vistrailView.__class__) == "<class 'vistrail_view.JVistrailView'>":
                 viewCompTemp = self.viewManager.vistrailView
-            viewCompTemp.execute_workflow()
-            return
+                viewCompTemp.execute_workflow()
+                return
+            else:
+                viewCompTemp = self.viewManager.open_vistrail(self.currentLocator, "pipeline", None, False, self)
+                viewCompTemp.execute_workflow()
         elif (event.getSource() == self.openButton):
             self.openAction(event)
             return
