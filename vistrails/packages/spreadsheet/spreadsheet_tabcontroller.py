@@ -49,6 +49,7 @@ from core.utils.uxml import XMLWrapper, named_elements
 import copy
 import gc
 from gui.theme import CurrentTheme
+from gui.utils import show_warning
 
 ################################################################################
 
@@ -624,6 +625,27 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             root.setAttribute("version", "1.0")
             locator.serialize(dom,root)
             return dom.toxml()
+        
+        def need_save():
+            from gui.vistrails_window import _app
+            need_save_vt = False
+            for t in self.tabWidgets:
+                dim = t.getDimension()
+                for r in xrange(dim[0]):
+                    for c in xrange(dim[1]):
+                        info = t.getCellPipelineInfo(r,c)
+                        if info:
+                            locator = info[0]['locator']
+                            view = _app.ensureVistrail(locator)
+                            if view:
+                                controller = view.get_controller()
+                                if controller.changed:
+                                    need_save_vt = True
+            return need_save_vt
+        
+        if need_save():
+            show_warning('Save Spreadsheet', 'Please save your vistrails and try again.')
+            return
         
         if fileName==None:
             fileName = self.spreadsheetFileName
