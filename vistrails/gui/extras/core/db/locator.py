@@ -177,7 +177,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         if obj_type == 'vistrail':
             f += get_vistrails_configuration().defaultFileType
         else:
-            f += '.' + suffix_map[obj_type][0]
+            f += suffix_map[obj_type][0]
 
     if os.path.isfile(f):
         msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
