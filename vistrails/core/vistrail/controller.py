@@ -2163,7 +2163,8 @@ class VistrailController(object):
                       'params': params,
                       'reason': reason,
                       'extra_info': extra_info,
-                      }    
+                      }
+            print interpreter.__class__    
             result = interpreter.execute(pipeline, **kwargs)
             
             thumb_cache = ThumbnailCache.getInstance()

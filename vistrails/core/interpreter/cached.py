@@ -375,7 +375,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                       name, value))
         def make_change_parameter(obj):
             return lambda *args: change_parameter(obj, *args)
-
+        
         # Update **all** modules in the current pipeline
         for i, obj in tmp_id_to_module_map.iteritems():
             obj.logging = logging_obj
@@ -402,7 +402,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         else:
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
-                                        
+                             
         # Update new sinks
         for obj in persistent_sinks:
             try:
@@ -410,7 +410,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
-                    errors[me.module.id] = me
+                    errors[me.module.id] = me    
                 break
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg, me.errorTrace)
@@ -420,10 +420,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
                 break
-
+         
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
-                
+             
         # objs, errs, and execs are mappings that use the local ids as keys,
         # as opposed to the persistent ids.
         # They are thus ideal to external consumption.
@@ -434,7 +434,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         execs = {}
         caches = {}
 
-        to_delete = []
+        to_delete = [] 
+        
         for (tmp_id, obj) in tmp_id_to_module_map.iteritems():
             if clean_pipeline:
                 to_delete.append(obj.id)
@@ -444,13 +445,13 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 if not clean_pipeline:
                     to_delete.append(obj.id)
             if obj.id in executed:
+                print executed[obj.id]
                 execs[tmp_id] = executed[obj.id]
             elif obj.id in cached:
                 caches[tmp_id] = cached[obj.id]
             else:
                 # these modules didn't execute
                 execs[tmp_id] = False
-
         return (to_delete, objs, errs, execs, caches, parameter_changes)
 
     def finalize_pipeline(self, pipeline, to_delete, objs, errs, execs, cached,
@@ -486,7 +487,6 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         caching. Caching works by reusing pipelines directly.  This
         means that there exists one global pipeline whose parts get
         executed over and over again. This allows nested execution."""
-
         res = self.setup_pipeline(pipeline, **kwargs)
         modules_added = res[2]
         conns_added = res[3]
@@ -648,19 +648,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                         .subpipeline_id_from_signature(new_sig)
                 module_id_map[new_module_id] = i
         for connection in pipeline.connections.itervalues():
-            print "for"
-            print connection.id
             new_sig = pipeline.connection_signature(connection.id)
             if not self._persistent_pipeline.has_connection_signature(new_sig):
                 # Must add connection to persistent pipeline
-                print "in if of connection from added persistent pipeline"
                 persistent_connection = copy.copy(connection)
                 persistent_id = self._persistent_pipeline.fresh_connection_id()
-                print persistent_id
-                print persistent_connection
-                print persistent_connection.__class__
-                print persistent_connection.sourceId
-                print persistent_connection.destinationId
                 persistent_connection.id = persistent_id
                 persistent_connection.sourceId = module_id_map[
                     connection.sourceId]
@@ -669,9 +661,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 self._persistent_pipeline.add_connection(persistent_connection)
                 connection_id_map[connection.id] = persistent_id
                 connections_added.add(connection.id)
-                print connection.id
             else:
-                print "in else of connection from added persistent pipeline"
                 i = self._persistent_pipeline \
                         .connection_id_from_signature(new_sig)
                 connection_id_map[connection.id] = i
