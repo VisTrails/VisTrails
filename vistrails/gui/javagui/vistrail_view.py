@@ -108,6 +108,7 @@ class JVistrailView(JPanel):
         for connection in self.controller.current_pipeline.connections:
             sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
             targetId = self.controller.current_pipeline.connections[connection]._get_destinationId()
+            print self.controller.current_pipeline.connections[connection].id
             tersedPipelineGraph.add_edge(sourceId, targetId, edgeId)
             edgeId = edgeId + 1
         self.pipelineGraph = tersedPipelineGraph    

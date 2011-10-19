@@ -591,6 +591,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         logger.start_workflow_execution(vistrail, pipeline, current_version)
         self.annotate_workflow_execution(logger, reason, aliases, params)
         result = self.unlocked_execute(pipeline, **new_kwargs)
+        print result.__str__()
         logger.finish_workflow_execution(result.errors)
         self.parent_execs = [None]
 
@@ -647,11 +648,19 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                         .subpipeline_id_from_signature(new_sig)
                 module_id_map[new_module_id] = i
         for connection in pipeline.connections.itervalues():
+            print "for"
+            print connection.id
             new_sig = pipeline.connection_signature(connection.id)
             if not self._persistent_pipeline.has_connection_signature(new_sig):
                 # Must add connection to persistent pipeline
+                print "in if of connection from added persistent pipeline"
                 persistent_connection = copy.copy(connection)
                 persistent_id = self._persistent_pipeline.fresh_connection_id()
+                print persistent_id
+                print persistent_connection
+                print persistent_connection.__class__
+                print persistent_connection.sourceId
+                print persistent_connection.destinationId
                 persistent_connection.id = persistent_id
                 persistent_connection.sourceId = module_id_map[
                     connection.sourceId]
@@ -660,7 +669,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 self._persistent_pipeline.add_connection(persistent_connection)
                 connection_id_map[connection.id] = persistent_id
                 connections_added.add(connection.id)
+                print connection.id
             else:
+                print "in else of connection from added persistent pipeline"
                 i = self._persistent_pipeline \
                         .connection_id_from_signature(new_sig)
                 connection_id_map[connection.id] = i
