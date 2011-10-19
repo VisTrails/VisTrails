@@ -1355,7 +1355,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         """ state for the view changed so we need to update buttons"""
         self.view_changed(view)
 
-    def new_vistrail(self, recover_files=True):
+    def new_vistrail(self, recover_files=False):
         # if self.single_document_mode and self.currentView():
         #     if not self.closeVistrail():
         #         return None
