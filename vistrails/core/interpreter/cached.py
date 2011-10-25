@@ -356,6 +356,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         # views and loggers work on local ids
         def update_progress(obj, percentage=0.0):
+            print "called"
             i = get_remapped_id(obj.id)
             view.set_module_progress(i, percentage)
             
@@ -380,7 +381,6 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         for i, obj in tmp_id_to_module_map.iteritems():
             obj.logging = logging_obj
             obj.change_parameter = make_change_parameter(obj)
-            
             # Update object pipeline information
             obj.moduleInfo['locator'] = locator
             obj.moduleInfo['version'] = current_version

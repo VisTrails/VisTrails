@@ -192,6 +192,7 @@ class LogController(object):
             if ret is not None:
                 parent_execs.append(ret)
         else:
+            print "else"
             ret = self.start_module_execution(module, module_id, module_name,
                                               parent_exec, cached)
             if ret is not None:
