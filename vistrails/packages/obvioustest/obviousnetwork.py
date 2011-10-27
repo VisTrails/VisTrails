@@ -3,7 +3,6 @@ from core.modules.vistrails_module import Module, ModuleError
 from obvious.data import Schema, Network, DataFactory
 from obvious.impl import SchemaImpl
 from obviousx.io.impl import GraphMLImport
-from javax.swing import JFrame
 from java.lang import System
 
 version = "0.0.1"
@@ -32,4 +31,4 @@ def initialize(*args, **keywords):
     reg.add_input_port(ObviousNetwork, "dataFactoryName"
                        (core.modules.basic_modules.String, "name of the datafactory"))
     reg.add_output_port(ObviousNetwork, "network",
-                        (Network, "an Obvious network")
+                        (Network, "an Obvious network"))
