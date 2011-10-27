@@ -1,9 +1,9 @@
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
+from obvious.data import DataFactory
 from obvious.impl import TableImpl, SchemaImpl
 from obviousx.io.impl import  CSVTableImport, ObviousTableModel
-from java.lang import String
-from java.lang import Integer
+from java.lang import String, System, Integer
 from javax.swing import JTable, JFrame
 
 version = "0.0.1"
@@ -15,10 +15,15 @@ class ObviousTable(Module):
 
     def compute(self):
         schema = SchemaImpl()
-        schema.addColumn("nodeId", Integer.getClass(), 1)
-        schema.addColumn("color", String.getClass(), "color")
-        table = TableImpl(schema)
+        #should fin a way to pass the schema through a port
         file = self.getInputConnector("file")
+        try:
+            dataFactoryName = self.getInputConnector("dataFactoryName")
+            System.setProperty("obvious.DataFactory", dataFactoryName)
+            factory = DataFactory.getInstance()
+            table = factory.createTable(schema)
+        except:
+            table = TableImpl(schema)
         importer = CSVTableImport(file, table, ",")
         loadedtable = importer.loadTable()
         obviousTableModel = ObviousTableModel(loadedtable)
@@ -35,5 +40,7 @@ def initialize(*args, **keywords):
     reg.addModule(ObviousTable)
     reg.add_input_port(ObviousTable, "file",
                        (core.modules.basic_modules.File, "a csv file describing table content"))
+    reg.add_input_port(ObviousTable, "dataFactoryName"
+                       (core.modules.basic_modules.String, "name of the datafactory"))
     reg.add_output_port(ObviousTable, "frame",
                         (JFrame, "a Java swing JFrame containing a JTable"))
