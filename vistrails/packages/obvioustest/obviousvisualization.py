@@ -4,7 +4,7 @@ from obvious.data import Data
 from obvious.viz import Visualization, VisualizationFactory
 from java.lang import System
 
-version = "0.0.1"
+version = "0.0.2"
 name = "ObviousVisualization"
 identifier = "com.googlecode.obvious.viz.obviousvisualization"
 class ObviousVisualization(Module):
@@ -13,9 +13,9 @@ class ObviousVisualization(Module):
         data = self.getInputConnector("data")
         params = self.getInputConnector("params")
         generatedparams = self.parseParams(params)
-        factory = VisualizationFactory.getInstance()
         visualizationFactoryName = self.getInputConnector("visualizationFactoryName")
         System.setProperty("obvious.VisualizationFactory", visualizationFactoryName)
+        factory = VisualizationFactory.getInstance()
         visualization = factory.createVisualization(data, None, None, generatedparams)
         self.setResult("visualization", visualization)
         
