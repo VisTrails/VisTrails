@@ -1453,6 +1453,19 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.reset_toolbar_for_view(view)
             self.qactions['history'].trigger()
             view.version_view.zoomToFit()
+            try:
+                version = int(version)
+            except ValueError:
+                # version is a tag name
+                try:
+                    version = vistrail.get_tag_str(version).action_id
+                except KeyError:
+                    # tag does not exist
+                    debug.critical("A workflow named '%s' does not exist" % version)
+                    version = None
+            except TypeError:
+                #version is None
+                pass
             if version is None:
                 view.controller.select_latest_version()
                 version = view.controller.current_version
