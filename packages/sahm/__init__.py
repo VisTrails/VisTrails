@@ -2,13 +2,13 @@ from core.configuration import ConfigurationObject
 
 name = "SAHM"
 identifier = "gov.usgs.sahm"
-version = '0.0.4'
+version = '0.0.5'
 
-sahm_path = None
-models_path = None
 configuration = \
-    ConfigurationObject(sahm_path='I:/VisTrails/Central_SAHM',
-                        models_path='I:/VisTrails/Central_SAHM/Resources/ModelBuilder',
-                        layers_path = 'I:/VisTrails/Central_VisTrailsInstall/VisTrails/vistrails/packages/sahm/layers.csv',
-                        r_path = 'I:/VisTrails/Central_VisTrailsInstall/Central_R/R-2.12.1/bin',
-                        verbose = 'true')
+    ConfigurationObject(output_dir= r'C:\temp\SAHM_workspace',
+                        r_path = r'..\\Central_R\R-2.12.1\bin',
+                        gdal_path = r'..\\Central_GDAL',
+                        maxent_path = r'..\\Central_Maxent',
+                        qgis_path = r'..\\Central_QGIS',
+                        projection_layers_path = r'I:\WorldClim_Future_Climate\RenamedBILs', #This only applies to instances running in the FORT Infrastructure
+                        verbose = 'True')

@@ -1,75 +1,820 @@
-File name,Layer name,Group,Source,Categorical
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio1.tif,Annual mean temperature,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio2.tif,Mean diurnal range,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio3.tif,Isothermality,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio4.tif,Temperature seasonality,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio5.tif,Maximum temperature of warmest month,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio6.tif,Minimum temperature of coldest month,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio7.tif,Temperature annual range,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio8.tif,Mean temperature of wettest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio9.tif,Mean temperature of driest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio10.tif,Mean temperature of warmest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio11.tif,Mean temperature of coldest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio12.tif,Annual precipitation,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio13.tif,Precipitation of wettest month,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio14.tif,Precipitation of driest month,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio15.tif,Precipitation seasonality,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio16.tif,Precipitation of wettest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio17.tif,Precipitation of driest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio18.tif,Precipitiation of warmest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\Bio19.tif,Precipitation of coldest quarter,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\bafloind.tif,,Hydrology,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\comtopindx.tif,Compound topographic index,Hydrology,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\dist_h2o.tif,Distance to water,Hydrology,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\eastness.tif,Eastness (sin(aspect)),Topography,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\elevation.tif,Elevation,Topography,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_01.tif,EVI Beginning of season,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_02.tif,EVI End of season,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_03.tif,EVI Length of season,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_04.tif,EVI Base value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_05.tif,EVI Peak time,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_06.tif,EVI Peak value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_07.tif,EVI Amplitude,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_08.tif,EVI Greenup rate,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_09.tif,EVI Browndown rate,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_10.tif,EVI Integral over season absolute,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_11.tif,EVI Integral over season scaled,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_12.tif,EVI Maximum value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_13.tif,EVI Minimum value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_14.tif,EVI Mean value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\evi_15.tif,EVI RMSE,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\flowaccum.tif,Flow accumulation,Hydrology,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\flowdir.tif,Flow direction,Hydrology,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\freqprcip.tif,Frequency of precipitaiton events,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\frostdays.tif,Frost free days,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\geology.tif,Geology of bedrock,Soil?,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\growday.tif,Growing degree days,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\humidity.tif,Humidity,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\maxtemp.tif,Average annual maximum temperature,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\mintemp.tif,Average annual minimum temperature,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\mjr_rd_dist.tif,Distance to major roads,Anthropogenic,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_01.tif,NDVI Beginning of season,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_02.tif,NDVI End of season,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_03.tif,NDVI Length of season,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_04.tif,NDVI Base value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_05.tif,NDVI Peak time,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_06.tif,NDVI Peak value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_07.tif,NDVI Amplitude,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_08.tif,NDVI Greenup rate,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_09.tif,NDVI Browndown rate,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_10.tif,NDVI Integral over season absolute,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_11.tif,NDVI Integral over season scaled,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_12.tif,NDVI Maximum value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_13.tif,NDVI Minimum value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_14.tif,NDVI Mean value,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_15.tif,NDVI RMSE,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvi_wd.tif,NDVI Winter dearth,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\ndvieviampdif.tif,Difference of NDVI and EVI amplitude,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\northness.tif,northness (cos(aspect)),Topography,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\precipsize.tif,Average size of precipitation events,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\radiation.tif,Solar radiation,Climate,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\slpdeg.tif,Slope (degree),Topography,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_bare_vcf.tif,Cover of bare ground,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_herb_vcf.tif,Cover of herbaceous vegetation,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\us_tree_vcf.tif,Cover of trees,Remote sensing,Daymet,N
-I:\Maxent_Daymet_WGS84\UnitedStates\tiff2\uspop.tif,US population density,Anthropogenic,Daymet,N
+FileName,LayerName,Group,Source,Categorical
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_1.tif,Annual mean temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_2.tif,Mean diurnal range,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_3.tif,Isothermality,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_4.tif,Temperature seasonality,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_5.tif,Max. temperature of warmest month,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_6.tif,Min. temperature of coldest month,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_7.tif,Temperature annual range,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_8.tif,Mean temperature of wettest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_9.tif,Mean temperature of driest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_10.tif,Mean temperature of warmest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_11.tif,Mean temperature of coldest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_12.tif,Annual precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_13.tif,Precipitation of wettest month,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_14.tif,Precipitation of driest month,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_15.tif,Precipitation seasonality,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_16.tif,Precipitation of wettest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_17.tif,Precipitation of driest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_18.tif,Precipitiation of warmest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\DerivedData\bio_19.tif,Precipitation of coldest quarter,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax1.tif,Average Jan. Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax2.tif,Average Feb. Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax3.tif,Average March Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax4.tif,Average April Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax5.tif,Average May Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax6.tif,Average June Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax7.tif,Average July Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax8.tif,Average Aug. Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax9.tif,Average Sept. Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax10.tif,Average Oct. Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax11.tif,Average Nov. Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMaxTemp\tmax12.tif,Average Dec. Max. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean1.tif,Average Jan. Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean2.tif,Average Feb. Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean3.tif,Average March Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean4.tif,Average April Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean5.tif,Average May Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean6.tif,Average June Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean7.tif,Average July Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean8.tif,Average Aug. Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean9.tif,Average Sept. Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean10.tif,Average Oct. Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean11.tif,Average Nov. Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMeanTemp\tmean12.tif,Average Dec. Mean Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin1.tif,Average Jan. Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin2.tif,Average Feb. Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin3.tif,Average March Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin4.tif,Average April Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin5.tif,Average May Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin6.tif,Average June Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin7.tif,Average July Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin8.tif,Average Aug. Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin9.tif,Average Sept. Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin10.tif,Average Oct. Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin11.tif,Average Nov. Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMinTemp\tmin12.tif,Average Dec. Min. Temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt1.tif,Average Jan. Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt2.tif,Average Feb. Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt3.tif,Average March Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt4.tif,Average April Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt5.tif,Average May Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt6.tif,Average June Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt7.tif,Average July Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt8.tif,Average Aug. Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt9.tif,Average Sept. Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt10.tif,Average Oct. Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt11.tif,Average Nov. Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\DAYMET\SourceData\AvgMonthlyMonthlyPrecip\ppt12.tif,Average Dec. Precipitation,Climate,"Daymet (1980-1997) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_1,Average Jan. Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_2,Average Feb. Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_3,Average March Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_4,Average April Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_5,Average May Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_6,Average June Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_7,Average July Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_8,Average Aug. Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_9,Average Sept. Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_10,Average Oct. Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_11,Average Nov. Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MaxTempAvg1950-2000\tmax_30s_esri\tmax\tmax_12,Average Dec. Max. Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_1,Average Jan. Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_2,Average Feb. Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_3,Average March Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_4,Average April Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_5,Average May Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_6,Average June Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_7,Average July Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_8,Average Aug. Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_9,Average Sept. Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_10,Average Oct. Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_11,Average Nov. Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MeanTempAvg1950-2000\tmean_30s_esri\tmean\tmean_12,Average Dec. Mean Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_1,Average Jan. Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_2,Average Feb. Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_3,Average March Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_4,Average April Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_5,Average May Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_6,Average June Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_7,Average July Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_8,Average Aug. Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_9,Average Sept. Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_10,Average Oct. Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_11,Average Nov. Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\MinTempAvg1950-2000\tmin_30s_esri\tmin\tmin_12,Average Dec. Min Temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_1,Average Jan. Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_2,Average Feb. Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_3,Average March Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_4,Average April Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_5,Average May Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_6,Average June Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_7,Average July Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_8,Average Aug. Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_9,Average Sept. Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_10,Average Oct. Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_11,Average Nov. Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\TotPrecipAvg1950-2000\prec_30s_esri\prec\prec_12,Average Dec. Precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_1,Annual mean temperature,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_2,Mean diurnal range,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_3,Isothermality,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_4,Temperature seasonality,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_5,Max. temperature of warmest month,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_6,Min. temperature of coldest month,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_7,Temperature annual range,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_8,Mean temperature of wettest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_9,Mean temperature of driest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_10,Mean temperature of warmest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_11,Mean temperature of coldest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_12,Annual precipitation,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_13,Precipitation of wettest month,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_14,Precipitation of driest month,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_15,Precipitation seasonality,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_16,Precipitation of wettest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_17,Precipitation of driest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_18,Precipitiation of warmest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\WorldClim\BioclimaticVariables\bio_30s_esri\bio\bio_19,Precipitation of coldest quarter,Climate,"WorldClim (1950-2000) Normals, 1km.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_01.img,Average Jan. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_02.img,Average Feb. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_03.img,Average March Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_04.img,Average April Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_05.img,Average May Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_06.img,Average June Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_07.img,Average July Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_08.img,Average Aug. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_09.img,Average Sept. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_10.img,Average Oct. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_11.img,Average Nov. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\ppt_1971_2000_12.img,Average Dec. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_01.img,Average Jan. Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_02.img,Average Feb. Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_03.img,Average March Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_04.img,Average April Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_05.img,Average May Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_06.img,Average June Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_07.img,Average July Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_08.img,Average Aug. Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_09.img,Average Sept. Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_10.img,Average Oct. Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_11.img,Average Nov. Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmax_1971_2000_12.img,Average Dec. Max. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_01.img,Average Jan. Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_02.img,Average Feb. Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_03.img,Average March Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_04.img,Average April Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_05.img,Average May Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_06.img,Average June Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_07.img,Average July Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_08.img,Average Aug. Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_09.img,Average Sept. Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_10.img,Average Oct. Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_11.img,Average Nov. Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\Input_1971_2000\tmin_1971_2000_12.img,Average Dec. Min. Temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_01_1971_2000.img,Annual mean temperature,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_02_1971_2000.img,Mean diurnal range,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_03_1971_2000.img,Isothermality,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_04_1971_2000.img,Temperature seasonality,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_05_1971_2000.img,Max. temperature of warmest month,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_06_1971_2000.img,Min. temperature of coldest month,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_07_1971_2000.img,Temperature annual range,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_08_1971_2000.img,Mean temperature of wettest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_09_1971_2000.img,Mean temperature of driest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_10_1971_2000.img,Mean temperature of warmest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_11_1971_2000.img,Mean temperature of coldest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_12_1971_2000.img,Annual precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_13_1971_2000.img,Precipitation of wettest month,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_14_1971_2000.img,Precipitation of driest month,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_15_1971_2000.img,Precipitation seasonality,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_16_1971_2000.img,Precipitation of wettest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_17_1971_2000.img,Precipitation of driest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_18_1971_2000.img,Precipitiation of warmest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Climate\PRISM\OregonStateUniversity_Normal_1971_2000_800m\BioClim_1971_2000\bio_19_1971_2000.img,Precipitation of coldest quarter,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+K:\GIS_LIBRARY\Veg_LandCover\MODIS\LatLon.NA.2001.bare.tif,VCF Bare Landcover,Remote Sensing,MODIS / GLCF North America (2001) .5 km,N
+K:\GIS_LIBRARY\Veg_LandCover\MODIS\LatLon.NA.2001.herbaceous.tif,VCF Herbaceous Landcover,Remote Sensing,MODIS / GLCF North America (2001) .5 km,N
+K:\GIS_LIBRARY\Veg_LandCover\MODIS\LatLon.NA.2001.tree.tif,VCF Tree Landcover,Remote Sensing,MODIS / GLCF North America (2001) .5 km,N
+K:\GIS_LIBRARY\Veg_LandCover\MODIS\LatLon.SA.2001.bare.tif,VCF Bare Landcover,Remote Sensing,MODIS / GLCF South America (2001) .5 km,N
+K:\GIS_LIBRARY\Veg_LandCover\MODIS\LatLon.SA.2001.herbaceous.tif,VCF Herbaceous Landcover,Remote Sensing,MODIS / GLCF South America (2001) .5 km,N
+K:\GIS_LIBRARY\Veg_LandCover\MODIS\LatLon.SA.2001.tree.tif,VCF Tree Landcover,Remote Sensing,MODIS / GLCF South America (2001) .5 km,N
+K:\GIS_LIBRARY\Elevation\EDNA\dem\dem,DEM,Elevation / Topography,"EDNA Continental US, 30 m.",N
+K:\GIS_LIBRARY\Elevation\EDNA\aspect\aspect,DEM Derivative: Aspect,Elevation / Topography,"EDNA Continental US, 30 m.",N
+K:\GIS_LIBRARY\Elevation\EDNA\slopedeg\slopedeg,DEM Derivative: Slope in Degrees,Elevation / Topography,"EDNA Continental US, 30 m.",N
+K:\GIS_LIBRARY\Elevation\EDNA\facc\facc,DEM Derivative: Flow Accumulation,Hydrology,"EDNA Continental US, 30 m.",N
+K:\GIS_LIBRARY\Elevation\EDNA\fdir\fdir,DEM Derivative: Flow Direction,Hydrology,"EDNA Continental US, 30 m.",N
+K:\GIS_LIBRARY\Elevation\EDNA\cti\cti,DEM Derivative: CTI/Steady State Wetness,Hydrology,"EDNA Continental US, 30 m.",N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2000.tif,amplitudes1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2001.tif,amplitudes1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2002.tif,amplitudes1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2003.tif,amplitudes1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2004.tif,amplitudes1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2005.tif,amplitudes1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2006.tif,amplitudes1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2007.tif,amplitudes1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2008.tif,amplitudes1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_2009.tif,amplitudes1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes1\NDVI_amplitudes1_Average.tif,amplitudes1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2000.tif,amplitudes2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2001.tif,amplitudes2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2002.tif,amplitudes2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2003.tif,amplitudes2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2004.tif,amplitudes2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2005.tif,amplitudes2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2006.tif,amplitudes2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2007.tif,amplitudes2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2008.tif,amplitudes2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_2009.tif,amplitudes2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\amplitudes2\NDVI_amplitudes2_Average.tif,amplitudes2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2000.tif,annualMaximumValue_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2001.tif,annualMaximumValue_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2002.tif,annualMaximumValue_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2003.tif,annualMaximumValue_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2004.tif,annualMaximumValue_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2005.tif,annualMaximumValue_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2006.tif,annualMaximumValue_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2007.tif,annualMaximumValue_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2008.tif,annualMaximumValue_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_2009.tif,annualMaximumValue_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMaximumValue\NDVI_annualMaximumValue_Average.tif,annualMaximumValue_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2000.tif,annualMeanValue_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2001.tif,annualMeanValue_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2002.tif,annualMeanValue_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2003.tif,annualMeanValue_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2004.tif,annualMeanValue_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2005.tif,annualMeanValue_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2006.tif,annualMeanValue_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2007.tif,annualMeanValue_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2008.tif,annualMeanValue_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_2009.tif,annualMeanValue_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMeanValue\NDVI_annualMeanValue_Average.tif,annualMeanValue_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2000.tif,annualMinimumValue_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2001.tif,annualMinimumValue_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2002.tif,annualMinimumValue_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2003.tif,annualMinimumValue_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2004.tif,annualMinimumValue_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2005.tif,annualMinimumValue_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2006.tif,annualMinimumValue_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2007.tif,annualMinimumValue_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2008.tif,annualMinimumValue_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_2009.tif,annualMinimumValue_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\annualMinimumValue\NDVI_annualMinimumValue_Average.tif,annualMinimumValue_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2000.tif,baselevels1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2001.tif,baselevels1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2002.tif,baselevels1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2003.tif,baselevels1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2004.tif,baselevels1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2005.tif,baselevels1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2006.tif,baselevels1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2007.tif,baselevels1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2008.tif,baselevels1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_2009.tif,baselevels1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels1\NDVI_baselevels1_Average.tif,baselevels1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2000.tif,baselevels2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2001.tif,baselevels2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2002.tif,baselevels2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2003.tif,baselevels2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2004.tif,baselevels2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2005.tif,baselevels2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2006.tif,baselevels2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2007.tif,baselevels2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2008.tif,baselevels2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_2009.tif,baselevels2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\baselevels2\NDVI_baselevels2_Average.tif,baselevels2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2000.tif,browndownrates1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2001.tif,browndownrates1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2002.tif,browndownrates1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2003.tif,browndownrates1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2004.tif,browndownrates1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2005.tif,browndownrates1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2006.tif,browndownrates1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2007.tif,browndownrates1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2008.tif,browndownrates1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_2009.tif,browndownrates1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates1\NDVI_browndownrates1_Average.tif,browndownrates1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2000.tif,browndownrates2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2001.tif,browndownrates2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2002.tif,browndownrates2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2003.tif,browndownrates2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2004.tif,browndownrates2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2005.tif,browndownrates2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2006.tif,browndownrates2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2007.tif,browndownrates2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2008.tif,browndownrates2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_2009.tif,browndownrates2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndownrates2\NDVI_browndownrates2_Average.tif,browndownrates2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2000.tif,browndowns1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2001.tif,browndowns1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2002.tif,browndowns1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2003.tif,browndowns1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2004.tif,browndowns1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2005.tif,browndowns1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2006.tif,browndowns1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2007.tif,browndowns1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2008.tif,browndowns1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_2009.tif,browndowns1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns1\NDVI_browndowns1_Average.tif,browndowns1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2000.tif,browndowns2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2001.tif,browndowns2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2002.tif,browndowns2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2003.tif,browndowns2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2004.tif,browndowns2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2005.tif,browndowns2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2006.tif,browndowns2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2007.tif,browndowns2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2008.tif,browndowns2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_2009.tif,browndowns2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\browndowns2\NDVI_browndowns2_Average.tif,browndowns2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2000.tif,greenuprates1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2001.tif,greenuprates1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2002.tif,greenuprates1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2003.tif,greenuprates1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2004.tif,greenuprates1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2005.tif,greenuprates1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2006.tif,greenuprates1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2007.tif,greenuprates1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2008.tif,greenuprates1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_2009.tif,greenuprates1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates1\NDVI_greenuprates1_Average.tif,greenuprates1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2000.tif,greenuprates2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2001.tif,greenuprates2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2002.tif,greenuprates2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2003.tif,greenuprates2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2004.tif,greenuprates2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2005.tif,greenuprates2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2006.tif,greenuprates2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2007.tif,greenuprates2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2008.tif,greenuprates2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_2009.tif,greenuprates2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenuprates2\NDVI_greenuprates2_Average.tif,greenuprates2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2000.tif,greenups1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2001.tif,greenups1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2002.tif,greenups1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2003.tif,greenups1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2004.tif,greenups1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2005.tif,greenups1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2006.tif,greenups1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2007.tif,greenups1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2008.tif,greenups1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_2009.tif,greenups1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups1\NDVI_greenups1_Average.tif,greenups1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2000.tif,greenups2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2001.tif,greenups2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2002.tif,greenups2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2003.tif,greenups2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2004.tif,greenups2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2005.tif,greenups2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2006.tif,greenups2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2007.tif,greenups2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2008.tif,greenups2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_2009.tif,greenups2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\greenups2\NDVI_greenups2_Average.tif,greenups2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2000.tif,landcover_2000,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2001.tif,landcover_2001,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2002.tif,landcover_2002,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2003.tif,landcover_2003,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2004.tif,landcover_2004,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2005.tif,landcover_2005,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2006.tif,landcover_2006,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2007.tif,landcover_2007,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2008.tif,landcover_2008,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_2009.tif,landcover_2009,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\landcover\NDVI_landcover_Average.tif,landcover_Average,MODIS Phenology,NDVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2000.tif,largeintegrals1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2001.tif,largeintegrals1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2002.tif,largeintegrals1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2003.tif,largeintegrals1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2004.tif,largeintegrals1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2005.tif,largeintegrals1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2006.tif,largeintegrals1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2007.tif,largeintegrals1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2008.tif,largeintegrals1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_2009.tif,largeintegrals1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals1\NDVI_largeintegrals1_Average.tif,largeintegrals1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2000.tif,largeintegrals2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2001.tif,largeintegrals2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2002.tif,largeintegrals2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2003.tif,largeintegrals2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2004.tif,largeintegrals2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2005.tif,largeintegrals2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2006.tif,largeintegrals2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2007.tif,largeintegrals2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2008.tif,largeintegrals2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_2009.tif,largeintegrals2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\largeintegrals2\NDVI_largeintegrals2_Average.tif,largeintegrals2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2000.tif,maxpeakvalues1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2001.tif,maxpeakvalues1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2002.tif,maxpeakvalues1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2003.tif,maxpeakvalues1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2004.tif,maxpeakvalues1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2005.tif,maxpeakvalues1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2006.tif,maxpeakvalues1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2007.tif,maxpeakvalues1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2008.tif,maxpeakvalues1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_2009.tif,maxpeakvalues1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues1\NDVI_maxpeakvalues1_Average.tif,maxpeakvalues1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2000.tif,maxpeakvalues2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2001.tif,maxpeakvalues2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2002.tif,maxpeakvalues2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2003.tif,maxpeakvalues2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2004.tif,maxpeakvalues2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2005.tif,maxpeakvalues2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2006.tif,maxpeakvalues2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2007.tif,maxpeakvalues2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2008.tif,maxpeakvalues2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_2009.tif,maxpeakvalues2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\maxpeakvalues2\NDVI_maxpeakvalues2_Average.tif,maxpeakvalues2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2000.tif,peakdates1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2001.tif,peakdates1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2002.tif,peakdates1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2003.tif,peakdates1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2004.tif,peakdates1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2005.tif,peakdates1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2006.tif,peakdates1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2007.tif,peakdates1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2008.tif,peakdates1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_2009.tif,peakdates1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates1\NDVI_peakdates1_Average.tif,peakdates1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2000.tif,peakdates2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2001.tif,peakdates2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2002.tif,peakdates2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2003.tif,peakdates2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2004.tif,peakdates2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2005.tif,peakdates2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2006.tif,peakdates2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2007.tif,peakdates2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2008.tif,peakdates2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_2009.tif,peakdates2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\peakdates2\NDVI_peakdates2_Average.tif,peakdates2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2000.tif,qualityFlag_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2001.tif,qualityFlag_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2002.tif,qualityFlag_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2003.tif,qualityFlag_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2004.tif,qualityFlag_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2005.tif,qualityFlag_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2006.tif,qualityFlag_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2007.tif,qualityFlag_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2008.tif,qualityFlag_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_2009.tif,qualityFlag_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\qualityFlag\NDVI_qualityFlag_Average.tif,qualityFlag_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2000.tif,RMSE_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2001.tif,RMSE_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2002.tif,RMSE_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2003.tif,RMSE_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2004.tif,RMSE_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2005.tif,RMSE_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2006.tif,RMSE_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2007.tif,RMSE_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2008.tif,RMSE_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_2009.tif,RMSE_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\RMSE\NDVI_RMSE_Average.tif,RMSE_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2000.tif,seasonlengths1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2001.tif,seasonlengths1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2002.tif,seasonlengths1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2003.tif,seasonlengths1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2004.tif,seasonlengths1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2005.tif,seasonlengths1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2006.tif,seasonlengths1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2007.tif,seasonlengths1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2008.tif,seasonlengths1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_2009.tif,seasonlengths1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths1\NDVI_seasonlengths1_Average.tif,seasonlengths1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2000.tif,seasonlengths2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2001.tif,seasonlengths2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2002.tif,seasonlengths2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2003.tif,seasonlengths2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2004.tif,seasonlengths2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2005.tif,seasonlengths2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2006.tif,seasonlengths2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2006.tif,seasonlengths2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2007.tif,seasonlengths2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2008.tif,seasonlengths2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_2009.tif,seasonlengths2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\seasonlengths2\NDVI_seasonlengths2_Average.tif,seasonlengths2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2000.tif,smallintegrals1_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2001.tif,smallintegrals1_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2002.tif,smallintegrals1_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2003.tif,smallintegrals1_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2004.tif,smallintegrals1_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2005.tif,smallintegrals1_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2006.tif,smallintegrals1_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2007.tif,smallintegrals1_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2008.tif,smallintegrals1_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_2009.tif,smallintegrals1_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals1\NDVI_smallintegrals1_Average.tif,smallintegrals1_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2000.tif,smallintegrals2_2000,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2001.tif,smallintegrals2_2001,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2002.tif,smallintegrals2_2002,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2003.tif,smallintegrals2_2003,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2004.tif,smallintegrals2_2004,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2005.tif,smallintegrals2_2005,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2006.tif,smallintegrals2_2006,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2007.tif,smallintegrals2_2007,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2008.tif,smallintegrals2_2008,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_2009.tif,smallintegrals2_2009,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_NDVI\smallintegrals2\NDVI_smallintegrals2_Average.tif,smallintegrals2_Average,MODIS Phenology,NDVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2000.tif,amplitudes1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2001.tif,amplitudes1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2002.tif,amplitudes1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2003.tif,amplitudes1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2004.tif,amplitudes1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2005.tif,amplitudes1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2006.tif,amplitudes1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2007.tif,amplitudes1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2008.tif,amplitudes1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_2009.tif,amplitudes1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes1\EVI_amplitudes1_Average.tif,amplitudes1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2000.tif,amplitudes2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2001.tif,amplitudes2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2002.tif,amplitudes2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2003.tif,amplitudes2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2004.tif,amplitudes2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2005.tif,amplitudes2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2006.tif,amplitudes2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2007.tif,amplitudes2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2008.tif,amplitudes2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_2009.tif,amplitudes2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\amplitudes2\EVI_amplitudes2_Average.tif,amplitudes2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2000.tif,annualMaximumValue_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2001.tif,annualMaximumValue_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2002.tif,annualMaximumValue_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2003.tif,annualMaximumValue_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2004.tif,annualMaximumValue_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2005.tif,annualMaximumValue_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2006.tif,annualMaximumValue_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2007.tif,annualMaximumValue_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2008.tif,annualMaximumValue_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_2009.tif,annualMaximumValue_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMaximumValue\EVI_annualMaximumValue_Average.tif,annualMaximumValue_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2000.tif,annualMeanValue_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2001.tif,annualMeanValue_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2002.tif,annualMeanValue_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2003.tif,annualMeanValue_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2004.tif,annualMeanValue_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2005.tif,annualMeanValue_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2006.tif,annualMeanValue_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2007.tif,annualMeanValue_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2008.tif,annualMeanValue_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_2009.tif,annualMeanValue_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMeanValue\EVI_annualMeanValue_Average.tif,annualMeanValue_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2000.tif,annualMinimumValue_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2001.tif,annualMinimumValue_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2002.tif,annualMinimumValue_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2003.tif,annualMinimumValue_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2004.tif,annualMinimumValue_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2005.tif,annualMinimumValue_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2006.tif,annualMinimumValue_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2007.tif,annualMinimumValue_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2008.tif,annualMinimumValue_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_2009.tif,annualMinimumValue_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\annualMinimumValue\EVI_annualMinimumValue_Average.tif,annualMinimumValue_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2000.tif,baselevels1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2001.tif,baselevels1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2002.tif,baselevels1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2003.tif,baselevels1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2004.tif,baselevels1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2005.tif,baselevels1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2006.tif,baselevels1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2007.tif,baselevels1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2008.tif,baselevels1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_2009.tif,baselevels1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels1\EVI_baselevels1_Average.tif,baselevels1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2000.tif,baselevels2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2001.tif,baselevels2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2002.tif,baselevels2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2003.tif,baselevels2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2004.tif,baselevels2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2005.tif,baselevels2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2006.tif,baselevels2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2007.tif,baselevels2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2008.tif,baselevels2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_2009.tif,baselevels2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\baselevels2\EVI_baselevels2_Average.tif,baselevels2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2000.tif,browndownrates1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2001.tif,browndownrates1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2002.tif,browndownrates1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2003.tif,browndownrates1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2004.tif,browndownrates1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2005.tif,browndownrates1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2006.tif,browndownrates1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2007.tif,browndownrates1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2008.tif,browndownrates1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_2009.tif,browndownrates1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates1\EVI_browndownrates1_Average.tif,browndownrates1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2000.tif,browndownrates2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2001.tif,browndownrates2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2002.tif,browndownrates2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2003.tif,browndownrates2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2004.tif,browndownrates2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2005.tif,browndownrates2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2006.tif,browndownrates2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2007.tif,browndownrates2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2008.tif,browndownrates2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_2009.tif,browndownrates2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndownrates2\EVI_browndownrates2_Average.tif,browndownrates2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2000.tif,browndowns1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2001.tif,browndowns1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2002.tif,browndowns1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2003.tif,browndowns1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2004.tif,browndowns1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2005.tif,browndowns1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2006.tif,browndowns1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2007.tif,browndowns1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2008.tif,browndowns1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_2009.tif,browndowns1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns1\EVI_browndowns1_Average.tif,browndowns1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2000.tif,browndowns2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2001.tif,browndowns2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2002.tif,browndowns2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2003.tif,browndowns2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2004.tif,browndowns2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2005.tif,browndowns2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2006.tif,browndowns2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2007.tif,browndowns2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2008.tif,browndowns2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_2009.tif,browndowns2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\browndowns2\EVI_browndowns2_Average.tif,browndowns2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2000.tif,greenuprates1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2001.tif,greenuprates1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2002.tif,greenuprates1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2003.tif,greenuprates1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2004.tif,greenuprates1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2005.tif,greenuprates1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2006.tif,greenuprates1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2007.tif,greenuprates1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2008.tif,greenuprates1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_2009.tif,greenuprates1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates1\EVI_greenuprates1_Average.tif,greenuprates1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2000.tif,greenuprates2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2001.tif,greenuprates2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2002.tif,greenuprates2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2003.tif,greenuprates2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2004.tif,greenuprates2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2005.tif,greenuprates2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2006.tif,greenuprates2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2007.tif,greenuprates2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2008.tif,greenuprates2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_2009.tif,greenuprates2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenuprates2\EVI_greenuprates2_Average.tif,greenuprates2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2000.tif,greenups1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2001.tif,greenups1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2002.tif,greenups1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2003.tif,greenups1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2004.tif,greenups1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2005.tif,greenups1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2006.tif,greenups1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2007.tif,greenups1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2008.tif,greenups1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_2009.tif,greenups1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups1\EVI_greenups1_Average.tif,greenups1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2000.tif,greenups2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2001.tif,greenups2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2002.tif,greenups2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2003.tif,greenups2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2004.tif,greenups2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2005.tif,greenups2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2006.tif,greenups2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2007.tif,greenups2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2008.tif,greenups2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_2009.tif,greenups2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\greenups2\EVI_greenups2_Average.tif,greenups2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2000.tif,landcover_2000,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2001.tif,landcover_2001,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2002.tif,landcover_2002,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2003.tif,landcover_2003,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2004.tif,landcover_2004,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2005.tif,landcover_2005,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2006.tif,landcover_2006,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2007.tif,landcover_2007,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2008.tif,landcover_2008,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_2009.tif,landcover_2009,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\landcover\EVI_landcover_Average.tif,landcover_Average,MODIS Phenology,EVI (230 m),Y
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2000.tif,largeintegrals1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2001.tif,largeintegrals1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2002.tif,largeintegrals1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2003.tif,largeintegrals1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2004.tif,largeintegrals1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2005.tif,largeintegrals1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2006.tif,largeintegrals1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2007.tif,largeintegrals1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2008.tif,largeintegrals1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_2009.tif,largeintegrals1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals1\EVI_largeintegrals1_Average.tif,largeintegrals1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2000.tif,largeintegrals2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2001.tif,largeintegrals2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2002.tif,largeintegrals2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2003.tif,largeintegrals2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2004.tif,largeintegrals2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2005.tif,largeintegrals2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2006.tif,largeintegrals2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2007.tif,largeintegrals2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2008.tif,largeintegrals2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_2009.tif,largeintegrals2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\largeintegrals2\EVI_largeintegrals2_Average.tif,largeintegrals2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2000.tif,maxpeakvalues1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2001.tif,maxpeakvalues1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2002.tif,maxpeakvalues1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2003.tif,maxpeakvalues1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2004.tif,maxpeakvalues1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2005.tif,maxpeakvalues1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2006.tif,maxpeakvalues1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2007.tif,maxpeakvalues1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2008.tif,maxpeakvalues1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_2009.tif,maxpeakvalues1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues1\EVI_maxpeakvalues1_Average.tif,maxpeakvalues1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2000.tif,maxpeakvalues2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2001.tif,maxpeakvalues2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2002.tif,maxpeakvalues2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2003.tif,maxpeakvalues2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2004.tif,maxpeakvalues2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2005.tif,maxpeakvalues2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2006.tif,maxpeakvalues2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2007.tif,maxpeakvalues2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2008.tif,maxpeakvalues2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_2009.tif,maxpeakvalues2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\maxpeakvalues2\EVI_maxpeakvalues2_Average.tif,maxpeakvalues2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2000.tif,peakdates1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2001.tif,peakdates1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2002.tif,peakdates1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2003.tif,peakdates1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2004.tif,peakdates1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2005.tif,peakdates1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2006.tif,peakdates1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2007.tif,peakdates1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2008.tif,peakdates1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_2009.tif,peakdates1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates1\EVI_peakdates1_Average.tif,peakdates1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2000.tif,peakdates2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2001.tif,peakdates2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2002.tif,peakdates2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2003.tif,peakdates2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2004.tif,peakdates2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2005.tif,peakdates2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2006.tif,peakdates2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2007.tif,peakdates2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2008.tif,peakdates2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_2009.tif,peakdates2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\peakdates2\EVI_peakdates2_Average.tif,peakdates2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2000.tif,qualityFlag_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2001.tif,qualityFlag_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2002.tif,qualityFlag_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2003.tif,qualityFlag_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2004.tif,qualityFlag_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2005.tif,qualityFlag_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2006.tif,qualityFlag_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2007.tif,qualityFlag_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2008.tif,qualityFlag_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_2009.tif,qualityFlag_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\qualityFlag\EVI_qualityFlag_Average.tif,qualityFlag_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2000.tif,RMSE_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2001.tif,RMSE_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2002.tif,RMSE_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2003.tif,RMSE_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2004.tif,RMSE_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2005.tif,RMSE_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2006.tif,RMSE_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2007.tif,RMSE_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2008.tif,RMSE_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_2009.tif,RMSE_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\RMSE\EVI_RMSE_Average.tif,RMSE_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2000.tif,seasonlengths1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2001.tif,seasonlengths1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2002.tif,seasonlengths1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2003.tif,seasonlengths1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2004.tif,seasonlengths1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2005.tif,seasonlengths1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2006.tif,seasonlengths1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2007.tif,seasonlengths1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2008.tif,seasonlengths1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_2009.tif,seasonlengths1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths1\EVI_seasonlengths1_Average.tif,seasonlengths1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2000.tif,seasonlengths2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2001.tif,seasonlengths2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2002.tif,seasonlengths2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2003.tif,seasonlengths2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2004.tif,seasonlengths2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2005.tif,seasonlengths2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2006.tif,seasonlengths2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2006.tif,seasonlengths2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2007.tif,seasonlengths2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2008.tif,seasonlengths2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_2009.tif,seasonlengths2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\seasonlengths2\EVI_seasonlengths2_Average.tif,seasonlengths2_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2000.tif,smallintegrals1_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2001.tif,smallintegrals1_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2002.tif,smallintegrals1_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2003.tif,smallintegrals1_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2004.tif,smallintegrals1_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2005.tif,smallintegrals1_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2006.tif,smallintegrals1_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2007.tif,smallintegrals1_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2008.tif,smallintegrals1_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_2009.tif,smallintegrals1_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals1\EVI_smallintegrals1_Average.tif,smallintegrals1_Average,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2000.tif,smallintegrals2_2000,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2001.tif,smallintegrals2_2001,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2002.tif,smallintegrals2_2002,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2003.tif,smallintegrals2_2003,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2004.tif,smallintegrals2_2004,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2005.tif,smallintegrals2_2005,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2006.tif,smallintegrals2_2006,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2007.tif,smallintegrals2_2007,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2008.tif,smallintegrals2_2008,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_2009.tif,smallintegrals2_2009,MODIS Phenology,EVI (230 m),N
+\\IGSKBACBVMFS002\InvasivesNAS$\Phenology Share\FinalMosaics_WGS84Sinusoidal\MOD09Q1P_EVI\smallintegrals2\EVI_smallintegrals2_Average.tif,smallintegrals2_Average,MODIS Phenology,EVI (230 m),N
