@@ -49,6 +49,7 @@ from core.log.log import Log
 from core.log.opm_graph import OpmGraph
 from core.db.locator import FileLocator, XMLFileLocator
 from core.modules.module_registry import ModuleRegistry
+from core.configuration import get_vistrails_configuration
 
 from gui.collection.vis_log import QLogView
 from gui.common_widgets import QMouseTabBar
@@ -170,6 +171,8 @@ class QVistrailView(QtGui.QWidget):
         # self.execPipelineEnabled = False
         # self.execDiffId1 = -1
         # self.execDiffId2 = -1
+        if get_vistrails_configuration().detachHistoryView:
+            self.detach_history_view()
 
     def get_notifications(self):
         return self.notifications
@@ -247,10 +250,9 @@ class QVistrailView(QtGui.QWidget):
 
     def history_selected(self):
         from gui.vistrails_window import _app
-        if hasattr(self.window(), 'qactions'):
-            window = self.window()
-        else:
-            window = _app
+        if get_vistrails_configuration().detachHistoryView:
+            _app.history_view.raise_()
+            return
         #print "VERSION"
         self.stack.setCurrentIndex(self.stack.indexOf(self.version_view))
         self.tabs.setTabText(self.tabs.currentIndex(), "History")
@@ -431,6 +433,14 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.show()
         return view
 
+    def detach_history_view(self):
+        from gui.vistrails_window import _app
+        view = self.version_view
+        window = _app.history_view
+        self.version_index = window.stack.addWidget(view)
+        window.stack.setCurrentIndex(self.version_index)
+        window.view = view
+
     def detach_view(self, tab_idx):
         from gui.vistrails_window import QBaseViewWindow
         if self.tab_to_stack_idx.has_key(tab_idx):
@@ -608,6 +618,10 @@ class QVistrailView(QtGui.QWidget):
             else:
                 self.tabs.setTabToolTip(self.tabs.currentIndex(),
                                         "")
+        if get_vistrails_configuration().detachHistoryView:
+            if hasattr(self.window(), 'qactions'):
+                _app = self.window()
+            _app.history_view.stack.setCurrentIndex(self.version_index)
 
     def showCurrentViewPalettes(self):
         current_tab = self.get_current_tab(True)

@@ -97,6 +97,8 @@ class QBaseViewWindow(QtGui.QMainWindow):
         pass
     
     def get_current_view(self):
+        if self.view is None:
+            return None
         return self.view.vistrail_view
     
     def get_current_tab(self):
@@ -839,6 +841,18 @@ class QVistrailsWindow(QVistrailViewWindow):
                      QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
                      self.applicationFocusChanged)
 
+        if get_vistrails_configuration().detachHistoryView:
+            self.history_view = QBaseViewWindow(parent=None)
+            self.history_view.resize(800, 600)
+            from gui.version_prop import QVersionProp
+            inst = QVersionProp.instance().toolWindow()
+            self.history_view.addDockWidget(QtCore.Qt.RightDockWidgetArea,inst)
+            self.history_view.stack = QtGui.QStackedWidget()
+            self.history_view.setCentralWidget(self.history_view.stack)
+            self.history_view.show()
+            self.history_view.move(self.rect().center())
+            self.history_view.setWindowTitle('Version Tree')
+
     def create_actions_and_toolbar(self):
         self.current_view = None
         self.windows = {}
@@ -1280,6 +1294,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                     self.stack.setCurrentWidget(view)
                     view.reset_tab_state()
             self.view_changed(view)
+            if view and get_vistrails_configuration().detachHistoryView:
+                self.history_view.stack.setCurrentIndex(view.version_index)
+                self.history_view.view = view.controller
         else:
             debug.warning("change_view() got a wrong view type:'%s'"%view)            
 
