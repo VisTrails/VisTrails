@@ -22,123 +22,298 @@ import sys
 import csv
 import os
 import time
+import random
+import shutil
 
 from osgeo import gdalconst
 from osgeo import gdal
 
 from optparse import OptionParser
+import utilities
+#from Utilities import self.writetolog
 
-def run(argv):
-    usageStmt = "usage:  options: -f --fieldData -d --inDir -r --rasters -o --output"
-    desc = "Creates a merged dataset file (mds) from a csv of field points and rasters located in a given directory or set of files."
-    parser = OptionParser(usage=usageStmt, description=desc)
+class MDSBuilder(object):
+    '''Takes a csv with animal location x,y and attributes each with the values 
+    extracted from each of the grids (covariates) indicated in the supplied 
+    csv list of files
+    '''
+    def __init__(self):
+        #instance level variables
+        self.verbose = False
+        self.inputsCSV = ''
+        self.inputs = []
+        self.fieldData = ''
+        self.outputMDS  = ''
+        self.probsurf = ''
+        self.pointcount = 0
+        self.NDFlag = -9999
+        self.deleteTmp = False
+        self.logger = None
     
-    parser.add_option("-f", "--fieldData", 
-                      dest="fieldData", 
-                      help="The input CSV of field data points")
-    parser.add_option("-d", "--inDir", 
-                      dest="inDir", 
-                      help="The folder containing our inputs.")              
-    parser.add_option("-r", "--rasters", 
-                      dest="rast", 
-                      help="Comma separated list of rasters to include.")
-    parser.add_option("-o", "--output", 
-                      dest="output", 
-                      help="Output file to save to.")
-    
-    (options, args) = parser.parse_args(argv)
-    
-    validateArgs(args, options)
-    
-    MDSFile(options.fieldData, 
-            options.inDir,
-            options.rast,
-            options.output)
-
-def validateArgs(args, options):
-    #check our CSV file for expectations
-    try:
-        csvfile = open(options.fieldData, "r")
-        reader = csv.reader(csvfile)
-        header = reader.next()
-        if not header[0].lower() == "x" and \
-            header[1].lower() == "y" and \
-            len(header) >= 3:
-            print "Invalid CSV of fieldData provided.  Please check input file: " + str(options.fieldData)
-            raise RuntimeError
-        del reader
-        csvfile.close()
-    except:
-        print "Invalid CSV of fieldData provided.  Please check input file: " + str(options.fieldData)
-        raise RuntimeError       
+    def validateArgs(self):
+        #check our CSV file for expectations
+        if not os.path.exists(self.fieldData):
+            raise RuntimeError, "Could not find CSV file of fieldData provided.  Please check input file: " + str(self.fieldData)
+         
+        if not os.path.exists(self.inputsCSV):
+            raise RuntimeError, "Could not find CSV file of inputs provided.  Please check input file: " + str(self.inputsCSV) 
         
-    #check for a valid indirectory or rast input parameter
-    try:
-        if options.inDir:
-            if not os.path.isdir(options.inDir):
-                print "There is a problem with the directory passed.  Please check input directory: " + str(options.inDir)
-                raise RuntimeError
-        elif options.rast:
-            pass #we will assume that the rast variable passed is ok.  This will be fully check during runtime
+        #check the input CSV file of inputs
+        reader = csv.reader(open(self.inputsCSV, 'r'))
+        header = reader.next()
+        missingfiles = []
+        for row in reader:
+            if not self.isRaster(row[0]):
+                missingfiles.append(row[0])
+        if not len(missingfiles) ==0:
+            msg = "One or more of the files in the input covariate list CSV could not be identified as rasters by GDAL."
+            msg += "\n    ".join(missingfiles)
+            raise RuntimeError, msg
+            
+        if self.probsurf <> '':
+            if not self.isRaster(self.probsurf):
+                raise RuntimeError, "The supplied probability surface, " + self.probsurf + ", does not appear to be a valid raster."
+        
+        try:
+            self.pointcount = int(self.pointcount)
+        except:
+            raise RuntimeError, "The supplied point count parameter, " + self.pointcount +", does not appear to be an integer"
+        
+        #make sure the directory the mds file is going into exists:
+        outDir = os.path.split(self.outputMDS)[0]
+        if not os.path.exists(outDir):
+            raise RuntimeError, "The directory of the supplied MDS output file path, " + self.outputMDS +", does not appear to exist on the filesystem"
+        
+        if self.logger is None:
+            self.logger = utilities.logger(outDir, self.verbose)  
+        self.writetolog = self.logger.writetolog
+            
+    def run(self):
+        '''
+        This routine loops through a set of rasters and creates an MDS file
+        '''
+        
+        self.validateArgs()
+        self.writetolog('\nRunning MDSBuilder', True, True)
+        # start timing
+        startTime = time.time()
+        gdal.UseExceptions()
+        gdal.AllRegister()
+        
+        self.constructEmptyMDS()
+        
+        if self.pointcount <> 0:
+            self.addBackgroundPoints()
+        
+        outputRows = self.readInPoints()
+        
+        #loop though each of the supplied rasters and add the 
+        #extracted values to
+        for input in self.inputs:
+            inputND = self.getND(input)
+            rasterDS = gdal.Open(input, gdalconst.GA_ReadOnly)
+            # get image size
+            rows = rasterDS.RasterYSize
+            cols = rasterDS.RasterXSize
+            band = rasterDS.GetRasterBand(1)
+            # get georeference info
+            transform = rasterDS.GetGeoTransform()
+            xOrigin = transform[0]
+            yOrigin = transform[3]
+            pixelWidth = transform[1]
+            pixelHeight = transform[5]
+            
+            if self.verbose:
+                self.writetolog("    Extracting raster values for " + input)
+                print "    ",
+            
+            pcntDone = 0
+            i = 1
+            badpoints = []
+            for row in outputRows:
+                x = float(row[0])
+                y = float(row[1])
+                # compute pixel offset
+                xOffset = int((x - xOrigin) / pixelWidth)
+                yOffset = int((y - yOrigin) / pixelHeight)
+#                try:
+                if xOffset < 0 or yOffset < 0:
+                    if row[:3] not in badpoints:
+                        badpoints.append(row[:3])
+                    row.append(str(self.NDFlag))
+                else:
+                    try:
+                        data = band.ReadAsArray(xOffset, yOffset, 1, 1)
+                        value = data[0,0]
+                        if value <> inputND:
+                            row.append(value)
+                        else:
+                            row.append(str(self.NDFlag))
+                    except:
+                        badpoints.append(row[:3])
+                        row.append(str(self.NDFlag))
+                
+                if self.verbose:
+                    if i/float(len(outputRows)) > float(pcntDone)/100:
+                        pcntDone += 10
+                        print str(pcntDone) + "...",
+                i += 1
+            if self.verbose:
+                self.writetolog("    Done")
+        if len(badpoints) > 0:
+                msg =  "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                msg += "\n!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                msg += str(len(badpoints)) + " point fell outside the Covariate coverage."
+                msg += "\nThese points were assigned the NoData value of -9999 for all covariates and will"
+                msg += "not be included in subsequent models.\n     These points are:"
+                for badpoint in badpoints:
+                    msg += "     x:" + str(row[0]) + " Y: " + str(row[1]) + " response: " + str(row[2]) 
+                self.writetolog(msg)
+            
+            
+        outputMDS = csv.writer(open(self.outputMDS, 'ab'))
+        thrownOut = 0
+        kept = 0
+        for row in outputRows:
+            #remove this if when Marian handles the ND   
+            if not str(self.NDFlag) in row[3:]:
+                outputMDS.writerow(row)
+                kept += 1
+            else:
+                outputMDS.writerow(row)
+                thrownOut += 1
+        if thrownOut > 0:
+            msg =  "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            msg += "\n!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            msg += str(thrownOut) + " points had 'nodata' in at least one of the covariates."
+            msg += "\nThese points will not be considered in subsequent Models."
+            msg +=  "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            msg +=  "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            self.writetolog(msg)
+        del outputMDS
+        
+        #convert the mds csv to a shapefile
+        output_shp = self.outputMDS.replace(".csv", ".mds")
+        utilities.mds_to_shape(self.outputMDS, output_shp)
+        
+        # figure out how long the script took to run
+        endTime = time.time()
+        
+        if self.deleteTmp:
+            #if this flag is trud the field data we're working with is 
+            # a temporary copy which we created so that we could add
+            # background points.  Delete it to clean up our working file.
+            os.remove(self.fieldData)
+        
+        if self.verbose:
+            self.writetolog('Finished running MDSBuilder', True, True)
+            self.writetolog('    The process took ' + str(endTime - startTime) + ' seconds')
+        
+    def constructEmptyMDS(self):
+        '''Creates the triple header line format of our output file.
+        Also parses the inputs file to append the '_categorical' flag 
+        to the covariate names of all categorical inputs.
+        '''        
+        
+        field_data_CSV = csv.reader(open(self.fieldData, "r"))
+        orig_header = field_data_CSV.next()
+        full_header = ["x", "y"]
+        if orig_header[2].lower not in ["responsebinary", "responsecount"]:
+            #inputs not conforming to our expected format will be assumed
+            #to be binary data
+            full_header.append("responseBinary")
         else:
-            if not options.inDir and not options.rast:
-                print "Neither an input directory or list of rasters was provided.  Please check inputs."
-                raise RuntimeError
-    except:
-        print "There is some problem with the directory or raster list passed.  Please check inputs."
-        raise RuntimeError   
+            full_header.append(orig_header[2])
+        
+        inputs_CSV = csv.reader(open(self.inputsCSV, "r"))
+        inputs_header = inputs_CSV.next()
+        self.inputs = []
 
-    
-def MDSFile(fieldDataCSV, dir, rasters, output):
-    '''
-    This routine loops through a set of rasters and creates an MDS file
-    '''
-    
-    # start timing
-    startTime = time.time()
-    
-    csvfile = open(fieldDataCSV, "r")
-    reader = csv.reader(csvfile)
-    origHeader = reader.next()
-    fullHeader = []
-    fullHeader = ["x", "y", "ResponseBinary"]
-    #fullHeader.extend(origHeader)
-    
-    inputs = []
-    # register all of the drivers
-    gdal.AllRegister()
-    
-    if rasters:
-        rasters_tmp = str.split(rasters,",")
-        for raster in rasters_tmp:
-            if isRaster(raster.rstrip()):
-                inputs.append(raster.rstrip())
-    if dir:
-        rasters_tmp = getRasters(dir)
-        for raster in rasters_tmp:
-            inputs.append(raster.rstrip())
-            rasterShortName = os.path.split(raster)[1]
-            rasterShortName = os.path.splitext(rasterShortName)[0]
-            fullHeader.append(rasterShortName)
+        #each row contains a covariate raster layer
+        #item 0 is the full path to the file
+        #item 1 is 0/1 indicating categorical
+        #Construct our output header by extracting each individual 
+        #file (raster) name and appending '_categorical' if the flag is 1
+        rasters = {}
+        for row in inputs_CSV:
+            temp_raster = row[0]
+#            self.inputs.append(temp_raster)
+            raster_shortname = os.path.split(temp_raster)[1]
+            raster_shortname = os.path.splitext(raster_shortname)[0]
+            if len(row) > 1 and row[1] == '1':
+                raster_shortname += "_categorical"
+            rasters[raster_shortname] = temp_raster
+            
+        keys = rasters.keys()
+        keys.sort(key=lambda s: s.lower())
+        keys.sort(key=lambda s: s.lower())
+        for key in keys:
+            self.inputs.append(rasters[key])
+            full_header.append(key)
 
-    #Open up and write to an output file
-    oFile = open(output, 'wb')
-    fOut = csv.writer(oFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        #Open up and write to an output file
+        oFile = open(self.outputMDS, 'wb')
+        fOut = csv.writer(oFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        #Format and write out our three header lines
+        #    the original template, fieldData, and parc folder are 
+        #    stored in spots 1,2,3 in the second header line
+        if len(orig_header) > 7 and os.path.exists(orig_header[7]):
+            #The input is an output from Field data query
+            original_field_data = orig_header[7]
+            field_data_template = orig_header[8]
+        else:
+            #The input is a raw field data file
+            original_field_data = self.fieldData
+            field_data_template = "NA"
+        
+        if len(inputs_header) > 5:
+            parc_template = inputs_header[5]
+            parc_workspace = inputs_header[6]
+        else:
+            parc_template = "Unknown"
+            parc_workspace = "Unknown"
+        
+        secondRow = [original_field_data, field_data_template, ""] + ["1" for elem in self.inputs]
+        thirdRow = [parc_template, parc_workspace, ""] + self.inputs
+        fOut.writerow(full_header)
+        fOut.writerow(secondRow)
+        fOut.writerow(thirdRow)
+        oFile.close()
+        del fOut
     
-    #Format and write out our three header lines
-    secondRow = ["0" for elem in ["x", "y", "ResponseBinary"]] + ["1" for elem in inputs]
-    thirdRow = ["" for elem in ["x", "y", "ResponseBinary"]] + inputs
-    fOut.writerow(fullHeader)
-    fOut.writerow(secondRow)
-    fOut.writerow(thirdRow)
-
-    #loop through each xy in our field data and pull the points from each of our inputs.
-    outputRows = []
-    for row in reader:
-        outputRows.append(row[:3])
+    def readInPoints(self):
+        '''Loop through each row in our field data and add the X, Y, response
+        to our in memory list of rows to write to our output MDS file
+        '''
+        fieldDataCSV = csv.reader(open(self.fieldData, "r"))
+        origHeader = fieldDataCSV.next()
+        points = []
+        for row in fieldDataCSV:
+            points.append(row[:3])
+            
+        del fieldDataCSV
+        return points
     
-    for input in inputs:
-        rasterDS = gdal.Open(input, gdalconst.GA_ReadOnly)
+    def addBackgroundPoints(self):
+        '''Add pointcount number of points to the supplied field data
+        If a probability surface was provided the distribution will 
+        follow this otherwise it will be uniform within the extent of the first of our inputs.
+        No more than one per pixel is used.
+        '''
+        #First we'll create a temp copy of the Field Data to work with.
+        shutil.copy(self.fieldData, self.fieldData + ".tmp.csv")
+        self.fieldData = self.fieldData + ".tmp.csv"
+        self.deleteTmp = True
+        
+        if self.probsurf <> '':
+            rasterDS = gdal.Open(self.probsurf, gdalconst.GA_ReadOnly)
+            useProbSurf = True
+        else:
+            print self.inputs[0]
+            rasterDS = gdal.Open(self.inputs[0], gdalconst.GA_ReadOnly)
+            useProbSurf = False
+            
         # get image size
         rows = rasterDS.RasterYSize
         cols = rasterDS.RasterXSize
@@ -149,62 +324,150 @@ def MDSFile(fieldDataCSV, dir, rasters, output):
         yOrigin = transform[3]
         pixelWidth = transform[1]
         pixelHeight = transform[5]
+        xRange = [xOrigin, xOrigin * pixelWidth * cols]
+        yRange = [yOrigin, yOrigin * pixelHeight * rows]
         
-        print "Starting on " + input
+        #Open up and write to an output file
+        oFile = open(self.fieldData, 'ab')
+        fOut = csv.writer(oFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
-        for row in outputRows:
-            #print row[0], row[1]
-            # get x,y
-            x = float(row[0])
-            y = float(row[1])
-            # compute pixel offset
-            xOffset = int((x - xOrigin) / pixelWidth)
-            yOffset = int((y - yOrigin) / pixelHeight)
-            data = band.ReadAsArray(xOffset, yOffset, 1, 1)
+        
+        if self.verbose:
+            self.writetolog('    Starting generation of ' + str(self.pointcount) + ' random background points, ')
+            if self.probsurf <> '':
+                self.writetolog('      using ' + self.probsurf + ' as the probability surface.')
+            print "    Percent Done:    ",
+        
+        foundPoints = 0 # The running count of how many we've found
+        pcntDone = 0 #for status bar
+        while foundPoints < self.pointcount: #loop until we find enough
+            x = random.randint(0, cols - 1) 
+            y = random.randint(0, rows - 1)
+            #print x, y
+            tmpPixel = [x, y, -9999] # a random pixel in the entire image
+            if useProbSurf:
+                # if they supplied a probability surface ignore the random pixel
+                # if a random number between 1 and 100 is > the probability surface value
+                pixelProb = int(band.ReadAsArray(tmpPixel[0], tmpPixel[1], 1, 1)[0,0])
+                #pixelProb is the extracted probability from the probability surface
+                rand = random.randint(1,100)
+                #rand is a uniform random integer between 1 and 100 inclusive
+                if rand > pixelProb:
+                    continue
+                    #don't record this pixel in our output file 
+                    #because our rand number was lower (or equal) than that pixel's probability
+                    
+            #convert our outValues for row, col to coordinates
+            tmpPixel[0] = xOrigin + tmpPixel[0] * pixelWidth
+            tmpPixel[1] = yOrigin + tmpPixel[1] * pixelHeight
             
-
-            value = data[0,0]
-            row.append(value)
-            #print value
-        
-    for row in outputRows:   
-        fOut.writerow(row)
-    oFile.close
-    # figure out how long the script took to run
-    endTime = time.time()
-    print 'The script took ' + str(endTime - startTime) + ' seconds'
-    print "Done"
+            fOut.writerow(tmpPixel)
+            foundPoints += 1
+            if self.verbose:
+                if float(foundPoints)/self.pointcount > float(pcntDone)/100:
+                    pcntDone += 10
+                    print str(pcntDone) + "...",
+        print "Done!\n"
+        oFile.close()
+        del fOut
     
-
-
-def getRasters(directory):
-    #the list of rasters in the given directory
-    rasters = []
-    dirList = os.listdir(directory)
-    for file in [elem for elem in dirList if elem[-4:].lower() == ".tif"]:
-        if isRaster(os.path.join(directory, file)):
-            rasters.append(os.path.join(directory, file))
-    for file in [elem for elem in dirList if elem[-4:].lower() == ".asc"]:
-        if isRaster(os.path.join(directory,file)):
-            rasters.append(os.path.join(directory, file))
-    for folder in [name for name in dirList if os.path.isdir(os.path.join(directory, name)) ]:
-        if isRaster(os.path.join(directory, folder)):
-            rasters.append(os.path.join(directory, folder))
-
-    return rasters
-
-def isRaster(filePath):
-    try:
-        dataset = gdal.Open(filePath, gdalconst.GA_ReadOnly)
-        if dataset is None:
+    def getRasters(self, directory):
+        #the list of rasters in the given directory
+        rasters = []
+        dirList = os.listdir(directory)
+        for file in [elem for elem in dirList if elem[-4:].lower() == ".tif"]:
+            if isRaster(os.path.join(directory, file)):
+                rasters.append(os.path.join(directory, file))
+        for file in [elem for elem in dirList if elem[-4:].lower() == ".asc"]:
+            if isRaster(os.path.join(directory,file)):
+                rasters.append(os.path.join(directory, file))
+        for folder in [name for name in dirList if os.path.isdir(os.path.join(directory, name)) ]:
+            if isRaster(os.path.join(directory, folder)):
+                rasters.append(os.path.join(directory, folder))
+    
+        return rasters
+    
+    def isRaster(self, filePath):
+        '''Verifies that a pased file and path is recognized by
+        GDAL as a raster file.
+        '''
+        try:
+            dataset = gdal.Open(filePath, gdalconst.GA_ReadOnly)
+            if dataset is None:
+                return False
+            else:
+                return True
+                del dataset
+        except:
             return False
+        
+    def getND(self, raster):
+        dataset = gdal.Open(raster, gdalconst.GA_ReadOnly)
+        ND = dataset.GetRasterBand(1).GetNoDataValue()
+        if ND is None:
+            if dataset.GetRasterBand(1).DataType == 1:
+                print "Warning:  Could not extract NoData value.  Using assumed nodata value of 255"
+                return 255
+            elif dataset.GetRasterBand(1).DataType == 2:
+                print "Warning:  Could not extract NoData value.  Using assumed nodata value of 65536"
+                return 65536
+            elif dataset.GetRasterBand(1).DataType == 3:
+                print "Warning:  Could not extract NoData value.  Using assumed nodata value of 32767"
+                return 32767
+            elif dataset.GetRasterBand(1).DataType == 4:
+                print "Warning:  Could not extract NoData value.  Using assumed nodata value of 2147483647"
+                return 2147483647
+            elif dataset.GetRasterBand(1).DataType == 5:
+                print "Warning:  Could not extract NoData value.  Using assumed nodata value of 2147483647"
+                return 2147483647
+            elif dataset.GetRasterBand(1).DataType == 6:
+                print "Warning:  Could not extract NoData value.  Using assumed nodata value of -3.40282346639e+038"
+                return -3.40282346639e+038
+            else:
+                return None
         else:
-            return True
-            del dataset
-    except:
-        return False
-     
+            return ND
 
+def main(argv):
+    
+    usageStmt = "usage:  options: -f --fieldData -i --inCSV -o --output -pc --pointcount -ps --probsurf"
+    desc = "Creates a merged dataset file (mds) from a csv of field points and rasters located in a csv listing one raster per line.  Optionally this module adds a number of background points to the output."
+    parser = OptionParser(usage=usageStmt, description=desc)
+    
+    parser.add_option("-v", 
+                      dest="verbose", 
+                      default=False, 
+                      action="store_true", 
+                      help="the verbose flag causes diagnostic output to print")
+    parser.add_option("-f", "--fieldData", 
+                      dest="fieldData", 
+                      help="The input CSV of field data points")
+    parser.add_option("-i", "--inCSV", 
+                      dest="inputsCSV", 
+                      help="The input CSV containing a list of our inputs, one per line.")              
+    parser.add_option("-o", "--output", 
+                      dest="outputMDS", 
+                      help="Output MDS file to save to.")
+    parser.add_option("-p", "--probsurf", 
+                      dest="probsurf",
+                      default='', 
+                      help="Probability surface to use for generation of background points (optional)")
+    parser.add_option("-c", "--pointcount", 
+                      dest="pointcount",
+                      default=0, 
+                      help="Number of random background points to add(optional)")
+    
+    (options, args) = parser.parse_args(argv)
+    
+    ourMDS = MDSBuilder()
+    ourMDS.verbose = options.verbose
+    ourMDS.fieldData = options.fieldData
+    ourMDS.inputsCSV = options.inputsCSV
+    ourMDS.probsurf = options.probsurf
+    ourMDS.pointcount = options.pointcount
+    ourMDS.outputMDS = options.outputMDS
+    ourMDS.run()
+   
 
 if __name__ == '__main__':
-    sys.exit(run(sys.argv))
+    sys.exit(main(sys.argv))

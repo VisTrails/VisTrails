@@ -45,59 +45,13 @@
 #   splines -  used by gbm library
 #   lattice -  used by gbm library
 #   sp - used by rdgal library
+options(error=NULL)
 
-Debug=F   # set to F for command line pluggability
-if(Debug==T){
-    # if Debug=T, the variables set in the next few lines will control a model run when this file is sourced.  See the last
-      # few lines of this script for the context in which these variables are used.
-
-    # general settings #
-      debug.mode=T  # if true, prints output and status updates to the console. Otherwise all of this goes to a log file and only the XML output is printed to console.
-      simp.method="cross-validation" # use cross-validation model simplification methods of Elith '08.
-      tc=NULL # tree complexity - setting to NULL allows tc to be set by the model, based on the number of observations, following Elith '08.
-      n.folds=3 # number of folds used for cross-validation.
-
-    # input:output settings #
-      tif.dir <- "F:/yerc/RRSC/YELL/" # directory containing geotiff files
-      make.p.tif=F # make a geotiff of probability surface?
-      make.binary.tif=F  # make a binary response surface geotiff?
-      output.dir <- "F:/code for Jeff and Roger/jeffs paper/filtered_rs/" # a set of ouput files will be created in this directory.
-      ma.name <- "F:/code for Jeff and Roger/jeffs paper/data/07_YELL_Dalmatiantoadflax_train_clean_filt.csv" # model array to use.
-      response.col <- "^response.binary"  # the name of the response column
-
-    # this can be used to run the fitted model on a test dataset #
-      test.name <- NULL  # if this is non-NULL, it will be read for use as test data.
-      test.resp.col <- "response"
-
-    # the following lines only apply if you wish to run a batch of model arrays #
-    #setwd('F:/code for Jeff and Roger/jeffs paper/data')
-    tif.dir <- "j:/SAHM/YELL/" # directory containing geotiff files
-    ma.name <- "j:/SAHM/07_YELL_Dalmatiantoadflax_train_clean_filt_mod2.csv" # model array to use.
-    #ma.name <- "GSENM_cheat_pres_abs_2001_factor.mds" # model array to use.
-    test.name <- NULL
-    debug.mode=F  # if true, prints output and status updates to the console. Otherwise all of this goes to a log file and only the XML output is printed to console.
-    batch.mode=F
-    make.p.tif=F # make a geotiff of probability surface?
-    make.binary.tif=F  # make a binary response surface geotiff?
-    output.dir <- "c:/temp"  # a set of ouput files will be created in this directory.
-    ma.names <- c("a","b","c")
-    test.resp.col <- "pres_abs"
-    response.col <- "^response.binary"
-    library(tools)
-    script.name="glm.r"
-    out.table <- as.data.frame(matrix(NA,nrow=21,ncol=length(ma.names),dimnames=list(c("ncov.final","nrow_train","ncol_train",
-              "dev_exp_train","auc_train","auc.sd_train","thresh_train","pcc_train","sens_train","spec_train","kappa_train",
-              "nrow_test","ncol_test","dev_exp_test","auc_test","auc.sd_test","thresh_test","pcc_test","sens_test","spec_test",
-              "kappa_test"),file_path_sans_ext(basename(ma.names)))))
-    }
-
-
-
-fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^response.binary",test.resp.col="response",make.p.tif=T,make.binary.tif=T,
-      simp.method="cross-validation",debug.mode=F,responseCurveForm="jpg",tc=NULL,n.folds=3,ma.test=NULL,alpha=1,script.name="brt.r",
+fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^response.binary",make.p.tif=T,make.binary.tif=T,
+      simp.method="cross-validation",debug.mode=F,responseCurveForm="jpg",tc=NULL,n.folds=3,alpha=1,script.name="brt.r",
      learning.rate = NULL, bag.fraction = 0.5,
  prev.stratify = TRUE, model.family = "bernoulli",max.trees = 10000,tolerance.method = "auto",
-  tolerance = 0.001){
+  tolerance = 0.001,seed=NULL,opt.methods=2,save.model=TRUE,UnitTest=FALSE,MESS=FALSE){
 
 # Possibly to add later
 # offset = NULL, fold.vector = NULL, var.monotone = rep(0,length(gbm.x))
@@ -107,7 +61,7 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
 #  tree.complexity = 1,                      # sets the complexity of individual trees
 #  learning.rate = 0.01,                     # sets the weight applied to inidivudal trees
 #  bag.fraction = 0.75,                      # sets the proportion of observations used in selecting variables
-#  site.weights = rep(1, nrow(dat)),        # allows varying weighting for sites
+#  site.weights = rep(1, nrow(dat)),         # allows varying weighting for sites
 #  var.monotone = rep(0, length(gbm.x)),     # restricts responses to individual predictors to monotone
 #  n.folds = 10,                             # number of folds
 #  prev.stratify = TRUE,                     # prevalence stratify the folds - only for p/a data
@@ -117,9 +71,15 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
 #  max.trees = 10000,                        # max number of trees to fit before stopping
 #  tolerance.method = "auto",                # method to use in deciding to stop - "fixed" or "auto"
 #  tolerance = 0.001,                        # tolerance value to use - if method == fixed is absolute,
+#  seed=NULL                                 # sets a seed for the algorithm, any inegeger is acceptable
+#  opt.methods=2                             # sets the method used for threshold optimization used in the
+#                                            # the evaluation statistics module
+#  save.model=FALSE                          # whether the model will be used to later produce tifs
+
     # This function fits a boosted regression tree model to presence-absence data.
     # written by Alan Swanson, Jan-March 2009
     # uses code modified from that published in Elith et al 2008
+    # Maintained and edited by Marian Talbert September 2010-
     #
     # Arguements.
     # ma.name: is the name of a .csv file with a model array.  full path must be included unless it is in the current
@@ -166,14 +126,13 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
     #simp.method <- match.arg(simp.method)
     out <- list(
       input=list(ma.name=ma.name,
-                 ma.test=ma.test,
                  tif.dir=tif.dir,
                  output.dir=output.dir,
                  response.col=response.col,
-                 test.resp.col=test.resp.col,
                  make.p.tif=make.p.tif,
                  make.binary.tif=make.binary.tif,
                  tc=tc,
+                 save.model=save.model,
                  learning.rate=learning.rate,
                  n.folds=n.folds,
                  bag.fraction=bag.fraction,
@@ -188,7 +147,8 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
                  model.source.file=script.name,
                  model.fitting.subset=c(n.pres=500,n.abs=500),
                  run.time=paste(c(format(Sys.time(),"%Y-%m-%d"),format(Sys.time(),"%H:%M:%S")),collapse="T"),
-                 sig.test="relative influence"),
+                 sig.test="relative influence",
+                 MESS=MESS),
       dat = list(missing.libs=NULL,
                  output.dir=list(dname=NULL,exist=F,readable=F,writable=F),
                  tif.dir=list(dname=NULL,exist=F,readable=F,writable=F),
@@ -198,17 +158,20 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
                  bad.factor.covs=NULL, # factorchange
                  ma=list( status=c(exists=F,readable=F),
                           dims=c(NA,NA),
-                          n.pres=c(all=NA,complete=NA,subset=NA),
-                          n.abs=c(all=NA,complete=NA,subset=NA),
+                          n.pres=c(all=NA,complete=NA,subset=NA,test=NA),
+                          n.abs=c(all=NA,complete=NA,subset=NA,test=NA),
                           ratio=NA,
                           resp.name=NULL,
                           factor.levels=NA,
                           used.covs=NULL,
                           ma=NULL,
-                          site.weights=NULL,
+                          train.weights=NULL,
+                          test.weights=NULL,
+                          train.xy=NULL,
+                          test.xy=NULL,
                           ma.subset=NULL,
                           weight.subset=NULL),
-                 ma.test=NULL),
+                          ma.test=NULL),
       mods=list(parms=list(n.target.trees=1000,tc.full=tc,tc.sub=tc),
                 lr.mod=NULL,
                 simp.mod=NULL,
@@ -222,8 +185,10 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
       error.mssg=list(NULL),
       ec=0
       )
+      if(!is.null(seed)) set.seed(seed)
     # load libaries #
-    out <- check.libs(list("PresenceAbsence","rgdal","XML","sp","survival","lattice","raster"),out)
+
+    out <- check.libs(list("PresenceAbsence","rgdal","XML","sp","survival","lattice","raster","tcltk2","foreign","ade4","gbm"),out)
 
     # exit program now if there are missing libraries #
       if(!is.null(out$error.mssg[[1]])){
@@ -257,18 +222,8 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
 
     # sink console output to log file #
     if(!debug.mode) {sink(logname <- paste(bname,"_log.txt",sep=""));on.exit(sink)} else logname<-NULL
-    options(warn=-1)
-    out <- check.libs(list("gbm"),out)
+    options(warn=1)
 
-    # check that only one of tif.dir and tif.file is supplied #
-#     if(sum(is.null(tif.file),is.null(tif.dir))!=1){
-#              out$ec<-out$ec+1
-#             out$error.mssg[[out$ec]] <- paste("ERROR: Exactly one of tif.dir and tif.file must be supplied at the function call")
-#              if(!debug.mode) {sink();on.exit();unlink(paste(bname,"_log.txt",sep=""))}
-#            cat(saveXML(brt.to.xml(out),indent=T),'\n')
-#            return()
-#            }
-     
     # check tif dir #
     if(!is.null(tif.dir)){
       out$dat$tif.dir <- check.dir(tif.dir)
@@ -288,7 +243,7 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
     # check for model array #
     out$input$ma.name <- check.dir(out$input$ma.name)$dname
     out <- read.ma(out)
-
+    if(UnitTest==1) return(out)
     # exit program now if there are errors in the input data #
     if(!is.null(out$error.mssg[[1]])){
           if(!debug.mode) {sink();on.exit();unlink(paste(bname,"_log.txt",sep=""))}
@@ -304,7 +259,9 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
     #  Begin model fitting #
     ##############################################################################################################
 
-    # estimate optimal learning rate and tc #
+    # estimate optimal learning rate and tc #         o
+
+     if(out$input$model.family=="binomial")  out$input$model.family="bernoulli"
     out <-est.lr(out)
     if(debug.mode) assign("out",out,envir=.GlobalEnv)
 
@@ -314,63 +271,48 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
           cat(saveXML(brt.to.xml(out),indent=T),'\n')
           return()}
 
-    cat("\nfinished with learning rate estimation, lr=",out$mods$lr.mod$lr0,", t=",try(round(out$mods$lr.mod$t.elapsed,2),silent=T),"sec\n")
+    cat("\nfinished with learning rate estimation, lr=",out$mods$lr.mod$lr0,", t=",round(out$mods$lr.mod$t.elapsed,2),"sec\n")
     cat("\nfor final fit, lr=",out$mods$lr.mod$lr,"and tc=",out$mods$parms$tc.full,"\n");flush.console()
     if(!debug.mode) {sink();cat("Progress:30%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("30%\n")}
 
     if(out$input$simp.method=="cross-validation"){
-        # remove variables with <1% relative influence and re-fit model #
-
+        # remove variables with <1% relative influence and re-fit model
+        print(debug.mode)
         t1 <- unclass(Sys.time())
-        m0 <- try(gbm.step.fast(dat=out$dat$ma$ma.subset,gbm.x=out$mods$lr.mod$good.cols,gbm.y=1,family=out$input$model.family,
+            if(length(out$mods$lr.mod$good.cols)<=1) stop("BRT must have at least two independent variables")
+        m0 <- gbm.step.fast(dat=out$dat$ma$ma.subset,gbm.x=out$mods$lr.mod  $good.cols,gbm.y=1,family=out$input$model.family,
               n.trees = c(300,600,800,1000,1200,1500,1800),step.size=out$input$step.size,max.trees=out$input$max.trees,
               tolerance.method=out$input$tolerance.method,tolerance=out$input$tolerance, n.folds=out$input$n.folds,tree.complexity=out$mods$parms$tc.sub,
-              learning.rate=out$mods$lr.mod$lr0,bag.fraction=out$input$bag.fraction,site.weights=out$dat$ma$weight.subset,autostop=T,debug.mode=F,silent=T,
-              plot.main=F,superfast=F))
-        if(debug.mode) assign("m0",m0,envir=.GlobalEnv)
-        if(class(m0)=="try-error"){
-              if(!debug.mode) {sink();on.exit();unlink(paste(bname,"_log.txt",sep=""))}
-              out$ec<-out$ec+1
-              out$error.mssg[[out$ec]] <- paste("Error fitting reduced BRT model:",m0)
-              cat(saveXML(brt.to.xml(out),indent=T),'\n')
-              return()
+              learning.rate=out$mods$lr.mod$lr0,bag.fraction=out$input$bag.fraction,site.weights=out$dat$ma$weight.subset,autostop=T,debug.mode=F,silent=!debug.mode,
+              plot.main=F,superfast=F)
+              if(debug.mode) assign("m0",m0,envir=.GlobalEnv)
+
+              t1b <- unclass(Sys.time())
+              if(!debug.mode) {sink();cat("Progress:40%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("40%\n")}
+              cat("\nfinished with trimmed model fitting, n.trees=",m0$target.trees,", t=",round(t1b-t1,2),"sec\n");flush.console()
+              cat("\nbeginning model simplification - very slow...\n");flush.console()
+        out$mods$simp.mod <- gbm.simplify(m0,n.folds=out$input$n.folds,plot=F,verbose=F,alpha=out$input$alpha) # this step is very slow #
+              if(debug.mode) assign("out",out,envir=.GlobalEnv)
+
+              out$mods$simp.mod$good.cols <- out$mods$simp.mod$pred.list[[length(out$mods$simp.mod$pred.list)]]
+              out$mods$simp.mod$good.vars <- names(out$dat$ma$ma)[out$mods$simp.mod$good.cols]
+              cat("\nfinished with model simplification, t=",round((unclass(Sys.time())-t1b)/60,2),"min\n");flush.console()
+              if(!debug.mode) {sink();cat("Progress:50%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("50%\n")}
               }
-        t1b <- unclass(Sys.time())
-        if(!debug.mode) {sink();cat("Progress:40%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("40%\n")}
-        cat("\nfinished with trimmed model fitting, n.trees=",m0$target.trees,", t=",round(t1b-t1,2),"sec\n");flush.console()
-        cat("\nbeginning model simplification - very slow...\n");flush.console()
-        out$mods$simp.mod <- try(gbm.simplify(m0,n.folds=out$input$n.folds,plot=F,verbose=F,alpha=out$input$alpha),silent=T) # this step is very slow #
-        if(debug.mode) assign("out",out,envir=.GlobalEnv)
-        if(class(out$mods$simp.mod)=="try-error"){
-            if(!debug.mode) {sink();on.exit();unlink(paste(bname,"_log.txt",sep=""))}
-            out$error.mssg[[out$ec<-out$ec+1]] <- paste("Error simplifying BRT model:",out$mods$simp.mod)
-            cat(saveXML(brt.to.xml(out),indent=T),'\n')
-            return()
-            }
-        out$mods$simp.mod$good.cols <- out$mods$simp.mod$pred.list[[length(out$mods$simp.mod$pred.list)]]
-        out$mods$simp.mod$good.vars <- names(out$dat$ma$ma)[out$mods$simp.mod$good.cols]
-        cat("\nfinished with model simplification, t=",round((unclass(Sys.time())-t1b)/60,2),"min\n");flush.console()
-        if(!debug.mode) {sink();cat("Progress:50%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("50%\n")}
-        }
 
-    # fit final model #
-    t2 <- unclass(Sys.time())
+          # fit final model #
+          t2 <- unclass(Sys.time())
 
-  out$mods$final.mod <- try(gbm.step.fast(dat=out$dat$ma$ma,gbm.x=out$mods$simp.mod$good.cols,gbm.y = 1,family=out$input$model.family,
+   if(out$mods$lr.mod$lr==0) out$mods$lr.mod$lr<-out$mods$lr.mod$lr0
+  out$mods$final.mod <- gbm.step.fast(dat=out$dat$ma$ma,gbm.x=out$mods$simp.mod$good.cols,gbm.y = 1,family=out$input$model.family,
                   n.trees = c(300,600,700,800,900,1000,1200,1500,1800,2200,2600,3000,3500,4000,4500,5000),n.folds=out$input$n.folds,
-                  tree.complexity=out$mods$parms$tc.full,learning.rate=out$mods$lr.mod$lr,bag.fraction=out$input$bag.fraction,site.weights=out$dat$ma$site.weights,
-                  autostop=T,debug.mode=F,silent=T,plot.main=F,superfast=F))
+                  tree.complexity=out$mods$parms$tc.full,learning.rate=out$mods$lr.mod$lr,bag.fraction=out$input$bag.fraction,site.weights=out$dat$ma$train.weights,
+                  autostop=T,debug.mode=F,silent=!debug.mode,plot.main=F,superfast=F)
 
 
 
-    if(debug.mode) assign("out",out,envir=.GlobalEnv)
-    if(class(out$mods$final.mod)=="try-error"){
-          if(!debug.mode) {sink();on.exit();unlink(paste(bname,"_log.txt",sep=""))}
-          out$ec<-out$ec+1
-          out$error.mssg[[out$ec]]<- paste("Error fitting final BRT model:",out$mods$final.mod)
-          cat(saveXML(brt.to.xml(out),indent=T),'\n')
-          return()
-          }
+    assign("out",out,envir=.GlobalEnv)
+
     t3 <- unclass(Sys.time())
     cat("\nfinished with final model fitting, n.trees=",out$mods$final.mod$target.trees,", t=",round(t3-t2,2),"sec\n\n\n");flush.console()
     if(!debug.mode) {sink();cat("Progress:60%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("60%\n")}
@@ -380,18 +322,9 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
     ##############################################################################################################
 
     # Store .jpg ROC plot #
-    auc.output <- try(make.auc.plot.jpg(out$dat$ma$ma,pred=predict.gbm(out$mods$final.mod,out$dat$ma$ma,
-            out$mods$final.mod$target.trees,type="response"),plotname=paste(bname,"_auc_plot.jpg",sep=""),modelname="BRT"),
-            silent=T)
-
-    if(class(auc.output)=="try-error"){
-          out$ec<-out$ec+1
-          out$error.mssg[[out$ec]] <- paste("Error making ROC plot:",auc.output)
-    } else { out$mods$auc.output<-auc.output}
 
     # Generate and store text summary #
-    #source('F:/code for Jeff and Roger/boosted regression trees/brt.functions.aks.021709.r')
-    y <- try(gbm.interactions(out$mods$final.mod),silent=T)
+    y <- gbm.interactions(out$mods$final.mod)
     if(debug.mode) assign("out",out,envir=.GlobalEnv)
     if(class(y)!="try-error"){
         int <- y$rank.list;
@@ -406,7 +339,7 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
         out$error.mssg[[out$ec]] <- paste("ERROR: problem assessing interactions:",y)
         }
 
-    model.summary <- try(summary(out$mods$final.mod,plotit=F),silent=T)
+    model.summary <- summary(out$mods$final.mod,plotit=F)
     if(class(model.summary)=="try-error"){
         if(!debug.mode) {sink();on.exit();unlink(paste(bname,"_log.txt",sep=""))}
         out$ec<-out$ec+1
@@ -417,17 +350,9 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
         out$mods$summary <- model.summary
         }
     if(debug.mode) assign("out",out,envir=.GlobalEnv)
-    txt0 <- paste("Boosted Regression Tree Modeling Results\n",out$input$run.time,"\n\n","Data:\n",ma.name,"\n","n(pres)=",
-        out$dat$ma$n.pres[2],", n(abs)=",out$dat$ma$n.abs[2],", n covariates considered=",length(out$dat$ma$used.covs),
-        "\n\n","Settings:\n","tree complexity=",out$mods$parms$tc.full,", learning rate=",round(out$mods$lr.mod$lr,4),
-        ", n(trees)=",out$mods$final.mod$target.trees,",\n","model simplification=",out$input$simp.method,", n folds=",out$input$n.folds,
-        "\n\n","Results:\n","AUC=",round(out$mods$auc.output$auc,4),", n covariates in final model=",nrow(out$mods$final.mod$contributions),
-        ", pct deviance explained=",round(out$mods$auc.output$pct_dev_exp,1),"%\n",
-        "total time for model fitting=",round((unclass(Sys.time())-t0)/60,2),"min\n",sep="")
-    txt1 <- "\nRelative influence of predictors in final model:\n\n"
-    txt2 <- "\nImportant interactions in final model:\n\n"
-    capture.output(cat(txt0),cat(txt1),print(out$mods$final.mod$contributions),cat(txt2),print(out$mods$interactions,row.names=F),file=paste(bname,"_output.txt",sep=""))
-    cat(txt0);cat(txt1);print(out$mods$final.mod$contributions);cat(txt2);print(out$mods$interactions,row.names=F)
+    
+
+    
     if(!is.null(out$dat$bad.factor.cols)){
         capture.output(cat("\nWarning: the following categorical response variables were removed from consideration\n",
             "because they had only one level:",paste(out$dat$bad.factor.cols,collapse=","),"\n"),
@@ -437,6 +362,39 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
         }
 
 
+    txt0 <- paste("\nBoosted Regression Tree Modeling Results\n",out$input$run.time,"\n\n",
+                  "Data:\n",ma.name,"\n",
+                  "\n\tn(pres)=",out$dat$ma$n.pres[2],
+                  "\n\tn(abs)=",out$dat$ma$n.abs[2],
+                  "\n\tn covariates considered=",length(out$dat$ma$used.covs),
+        "\n\n","Settings:\n",
+                "\n\ttree complexity=",out$mods$parms$tc.full,
+                "\n\tlearning rate=",round(out$mods$lr.mod$lr,4),
+                "\n\tn(trees)=",out$mods$final.mod$target.trees,
+                "\n\tmodel simplification=",out$input$simp.method,
+                "\n\tn folds=",out$input$n.folds,
+                "\n\tn covariates in final model=",nrow(out$mods$final.mod$contributions),
+        "\n\ttotal time for model fitting=",round((unclass(Sys.time())-t0)/60,2),"min\n",sep="")
+    txt1 <- "\nRelative influence of predictors in final model:\n\n"
+    txt2 <- "\nImportant interactions in final model:\n\n"
+
+    capture.output(cat(txt0),cat(txt1),print(out$mods$final.mod$contributions),cat(txt2),print(out$mods$interactions,row.names=F),file=paste(bname,"_output.txt",sep=""))
+    cat(txt0);cat(txt1);print(out$mods$final.mod$contributions);cat(txt2);print(out$mods$interactions,row.names=F)
+
+  if(out$input$model.family=="bernoulli"){
+      auc.output <- make.auc.plot.jpg(out$dat$ma$ma,pred=predict.gbm(out$mods$final.mod,out$dat$ma$ma,
+            out$mods$final.mod$target.trees,type="response"),plotname=paste(bname,"_auc_plot.jpg",sep=""),modelname="BRT",opt.methods=opt.methods,
+            weight=out$dat$ma$train.weights,out=out)
+
+      out$mods$auc.output<-auc.output
+      }
+  if(out$input$model.family=="poisson"){
+      auc.output <- make.poisson.jpg(out$dat$ma$ma,pred=predict.gbm(out$mods$final.mod,out$dat$ma$ma,
+            out$mods$final.mod$target.trees,type="response"),plotname=paste(bname,"_auc_plot.jpg",sep=""),modelname="BRT",
+            weight=out$dat$ma$train.weights,out=out)
+
+      out$mods$auc.output<-auc.output
+      }
 
     if(!debug.mode) {sink();cat("Progress:70%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("70%\n")}
 
@@ -451,7 +409,7 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
 
         pdf(paste(bname,"_response_curves.pdf",sep=""),width=11,height=8.5,onefile=T)
             par(oma=c(2,2,4,2))
-            r.curves <- try(gbm.plot(out$mods$final.mod,plotit=T,plot.layout=c(prow,pcol)),silent=T)
+            r.curves <- try(gbm.plot(out$mods$final.mod,plotit=T,plot.layout=c(prow,pcol)))
             if(class(r.curves)!="try-error") {out$mods$r.curves <- r.curves
             mtext(paste("BRT response curves for",basename(ma.name)),outer=T,side=3,cex=1.3)}
             par(mfrow=c(1,1))
@@ -462,7 +420,7 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
                 }
         graphics.off()
         } else {
-            r.curves <- try(gbm.plot(out$mods$final.mod,plotit=F),silent=T)
+            r.curves <- try(gbm.plot(out$mods$final.mod,plotit=F))
             if(class(r.curves)!="try-error") {out$mods$r.curves <- r.curves
               } else {
               out$ec<-out$ec+1
@@ -473,13 +431,16 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
     cat("\nfinished with final model summarization, t=",round(t4-t3,2),"sec\n");flush.console()
     if(!debug.mode) {sink();cat("Progress:80%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("80%\n")}
 
+    assign("out",out,envir=.GlobalEnv)
     # Make .tif of predictions #
+    
+    save.image(paste(output.dir,"modelWorkspace",sep="\\"))
     if(out$input$make.p.tif==T | out$input$make.binary.tif==T){
         cat("\nproducing prediction maps...","\n","\n");flush.console()
         mssg <- proc.tiff(model=out$mods$final.mod,vnames=as.character(out$mods$final.mod$contributions$var),
             tif.dir=out$dat$tif.dir$dname,filenames=out$dat$tif.ind,pred.fct=brt.predict,factor.levels=out$dat$ma$factor.levels,make.binary.tif=make.binary.tif,
             thresh=out$mods$auc.output$thresh,make.p.tif=make.p.tif,outfile.p=paste(out$dat$bname,"_prob_map.tif",sep=""),
-            outfile.bin=paste(out$dat$bname,"_bin_map.tif",sep=""),tsize=50.0,NAval=-3000,logname=logname)     #"brt.prob.map.tif"
+            outfile.bin=paste(out$dat$bname,"_bin_map.tif",sep=""),tsize=50.0,NAval=-3000,logname=logname,out=out)     #"brt.prob.map.tif"
 
         if(class(mssg)=="try-error" | mssg!=0){
           if(!debug.mode) {sink();on.exit();unlink(paste(bname,"_log.txt",sep=""))}
@@ -496,9 +457,13 @@ fit.brt.fct <- function(ma.name,tif.dir=NULL,output.dir=NULL,response.col="^resp
         }
     if(!debug.mode) {sink();cat("Progress:90%\n");flush.console();sink(logname,append=T)} else {cat("\n");cat("90%\n")}  ### print time
 
-    # read in test data #
-    if(!is.null(out$input$ma.test)) out <- read.ma(out,T)
+    # Evaluation Statistics on Test Data#
 
+    if(!is.null(out$dat$ma$ma.test)) Eval.Stat<-EvaluationStats(out,thresh=auc.output$thresh,train=out$dat$ma$ma,train.pred=predict.gbm(out$mods$final.mod,out$dat$ma$ma,
+            out$mods$final.mod$target.trees,type="response"),opt.methods)
+
+
+    
     # Write summaries to xml #
     if(debug.mode) assign("out",out,envir=.GlobalEnv)
     doc <- brt.to.xml(out)
@@ -524,8 +489,8 @@ brt.predict <- function(model,x) {
     # make predictions from full data #
     y <- predict.gbm(model,x,model$target.trees,type="response")
     # encode missing values as -1.
-    a<-apply(x,1,sum)
-    y[is.na(a)]<- NaN
+     a<-complete.cases(x)
+    y[!(a)]<- NaN
 
     # return predictions.
     return(y)
@@ -533,26 +498,6 @@ brt.predict <- function(model,x) {
 
 
 
-make.auc.plot.jpg<-function(ma.reduced,pred,plotname,modelname){
-    auc.data <- data.frame(ID=1:nrow(ma.reduced),pres_abs=ma.reduced[,1],pred=pred)
-    p_bar <- mean(auc.data$pres_abs); n_pres <- sum(auc.data$pres_abs); n_abs <- nrow(auc.data)-n_pres
-    null_dev <- -2*(n_pres*log(p_bar)+n_abs*log(1-p_bar))
-    dev_fit <- -2*(sum(log(auc.data$pred[auc.data$pres_abs==1]))+sum(log(1-auc.data$pred[auc.data$pres_abs==0])))
-    dev_exp <- null_dev - dev_fit
-    pct_dev_exp <- dev_exp/null_dev*100
-    thresh <- as.numeric(optimal.thresholds(auc.data,opt.methods=2))[2]
-    auc.fit <- auc(auc.data,st.dev=T)
-    jpeg(file=plotname)
-    auc.roc.plot(auc.data,model.names=modelname,opt.thresholds=thresh)
-    graphics.off()
-    cmx <- cmx(auc.data,threshold=thresh)
-    PCC <- pcc(cmx,st.dev=F)
-    SENS <- sensitivity(cmx,st.dev=F)
-    SPEC <- specificity(cmx,st.dev=F)
-    KAPPA <- Kappa(cmx,st.dev=F)
-    return(list(thresh=thresh,null_dev=null_dev,dev_fit=dev_fit,dev_exp=dev_exp,pct_dev_exp=pct_dev_exp,auc=auc.fit[1,1],auc.sd=auc.fit[1,2],
-        plotname=plotname,pcc=PCC,sens=SENS,spec=SPEC,kappa=KAPPA))
-}
 
 logit <- function(x) 1/(1+exp(-x))
 
@@ -676,7 +621,6 @@ est.lr <- function(out){
     # written by AKS early 2009
     suppressMessages(require(gbm))
 
-
     t0 <- unclass(Sys.time())
 
     # set tree complexity for full-data run #
@@ -684,14 +628,14 @@ est.lr <- function(out){
     if(is.null(out$mods$parms$tc.full)) out$mods$parms$tc.full<-min(round(a+b*out$dat$ma$dims[1]),15) # this gives 3 for n=250
     if(is.null(out$mods$parms$tc.sub)){
         n <- out$dat$ma$n.abs[3]+out$dat$ma$n.pres[3]  # this gives 3 for n=250
-       if(is.na(n)) (n=length(out$input$site.weights))
+       if(is.na(n)) (n=length(out$dat$ma$weight.subset))
         out$mods$parms$tc.sub <- round(a+b*n)
     }
 
     cat("\n");cat("tree complexity set to",out$mods$parms$tc.sub,"\n")
 
     n.trees <- c(100,200,400,800,900,1000,1100,1200,1500,1800,2400)
-    lrs <- c(.1,.06,.05,.04,.03,.02,.01,.005,.0025,.001)
+    lrs <- c(.1,.06,.05,.04,.03,.02,.01,.005,.0025,.001,.0005,.0001)
     lr.out <- data.frame(lrs=lrs,max.trees=0)
     dat <- out$dat$ma$ma.subset
     gbm.y <- 1
@@ -727,12 +671,13 @@ est.lr <- function(out){
        i<-i+1 #ifelse(max.trees<=200,i+2,i+1)
        }
     # pick lr that gives closest to 1000 trees #
+
     lr.out$i <- 1:nrow(lr.out)
     lr.out <- lr.out[lr.out$max.trees!=0,]
     ab<-coef(lm(max.trees~log(lrs),data=lr.out))
     tt <- out$dat$ma$ratio*800
     lr.full <- round(as.numeric(exp((tt-ab[1])/ab[2])),4)
-    lr <- round(as.numeric(exp((1000-ab[1])/ab[2])),4)
+    lr <- round(as.numeric(exp((1000-ab[1])/ab[2])),6)
     lr.out$abs <- abs(lr.out$max.trees-1000)
     lr.out$d.lr <- abs(lr.out$lrs-lr)
     lr.out <- lr.out[order(lr.out$abs,lr.out$d.lr),]
@@ -745,236 +690,12 @@ est.lr <- function(out){
     good.cols <- c(1:ncol(dat))[names(dat)  %in%  good.vars]
     out$mods$simp.mod <- list(good.cols=good.cols,good.vars=good.vars)
     out$mods$lr.mod <- list(tc=out$mods$parms$tc.sub,lr=lr.full,lr0=lr0,lr.out=lr.out,ab=ab,gbm.fit=gbm.fit,good.cols=good.cols,t.elapsed=c(unclass(Sys.time())-t0))
-    if(!is.null(out$input$learning.rate)) out$mods$lr.mod$lr0=out$input$learning.rate
-
+    if(!is.null(out$input$learning.rate)) {out$mods$lr.mod$lr0=out$input$learning.rate
+       out$mods$lr.mod$lr=out$input$learning.rate
+    }
     return(out)
     }
 
- read.ma <- function(out,test.dat=F){
-
-      if(test.dat==F){
-          ma.name <- out$input$ma.name
-          } else ma.name <- out$input$ma.test
-      tif.dir <- out$dat$tif.dir$dname
-      out.list <- out$dat$ma
-      out.list$status[1] <- file.access(ma.name,mode=0)==0
-      if(!is.null(out$input$tif.dir)){
-          ma <- try(read.csv(ma.name, header=TRUE),silent=T)}
-
-      if(is.null(out$input$tif.dir)){
-          try(ma<-read.csv(ma.name,skip=3),silent=T)
-          hl<-readLines(ma.name,1)
-          hl=strsplit(hl,',')
-          colnames(ma) = hl[[1]]
-          
-          tif.info<-readLines(ma.name,3)
-          tif.info<-strsplit(tif.info,',')
-          include<-(as.numeric(tif.info[[2]]))
-          paths<-as.character(tif.info[[3]])
-          #paths<-paths[!is.na(include)]
-          #include[is.na(include)]<-0
-
-            }
-      if(class(ma)=="try-error"){
-          out$ec <- out$ec+1
-          out$error.mssg[[out$ec]] <- paste("ERROR: model array",ma.name,"is not readable")
-          return(out)
-          } else {
-          out.list$status[2]<-T
-          }
-
-      if(test.dat==F){
-          r.name <- out$input$response.col
-          } else r.name <- out$input$test.resp.col
-
-      # remove x and y columns #
-      xy.cols <- c(match("x",tolower(names(ma))),match("y",tolower(names(ma))))
-      xy.cols <- xy.cols[!is.na(xy.cols)]
-      if(length(xy.cols)>0){ ma <- ma[,-xy.cols]
-          if(is.null(out$input$tif.dir)){
-           include<-include[-xy.cols]
-           paths<-paths[-xy.cols]
-      }}
-       # remove weights column
-       site.weights<-match("site.weights",tolower(names(ma)))
-       ifelse(!is.na(site.weights),{
-          out$input$site.weights<-ma[,site.weights]
-          ma <- ma[,-site.weights]
-           if(is.null(out$input$tif.dir)){
-           include<-include[-site.weights]
-           paths<-paths[-site.weights]
-            }
-          },
-          out$input$site.weights<-rep(1,times=dim(ma)[1]))
-
-      # check to make sure that response column exists in the model array #
-
-      r.col <- grep(r.name,names(ma))
-      if(length(r.col)==0){
-          out$ec <- out$ec+1
-          out$error.mssg[[out$ec]] <- paste("ERROR: response column (",r.name,") not found in ",ma.name,sep="")
-          return(out)
-          }
-      if(length(r.col)>1){
-          out$ec <- out$ec+1
-          out$error.mssg[[out$ec]] <- paste("ERROR: multiple columns in ",ma.name," match:",r.name,sep="")
-          return(out)
-          }
-      # check that response column contains only 1's and 0's, but not all 1's or all 0's if GLMFamily==binomial
-
-      if(tolower(out$input$model.family)=="bernoulli"){
-      if(any(ma[,r.col]!=1 & ma[,r.col]!=0) | sum(ma[,r.col]==1)==nrow(ma) | sum(ma[,r.col]==0)==nrow(ma)){
-          out$ec <- out$ec+1
-          out$error.mssg[[out$ec]] <- paste("ERROR: response column (#",r.col,") in ",ma.name," is not binary 0/1",sep="")
-          return(out)
-          }
-           out$dat$ma$resp.name <- names(ma)[r.col]<-"response"
-          out.list$n.pres[1] <- sum(ma[,r.col])
-          out.list$n.abs[1] <- nrow(ma)-sum(ma[,r.col])
-          out.list$resp.name <- names(ma)[r.col]
-          ma.names <- names(ma)
-          }
-     #check that response column contains at least two unique values for counts
-
-      if(tolower(out$input$model.family)=="poisson"){
-      if(length(table(unique(ma[,r.col])))==1){
-          out$ec <- out$ec+1
-          out$error.mssg[[out$ec]] <- paste("ERROR: response column (#",r.col,") in ",ma.name," does not have at least two unique values",sep="")
-          return(out)
-          }
-          out$dat$ma$resp.name <- names(ma)[r.col]<-"response"
-          out.list$n.pres[1] <- sum(ma[,r.col])
-          out.list$n.abs[1] <- nrow(ma)-sum(ma[,r.col])
-          out.list$resp.name <- names(ma)[r.col]
-          ma.names <- names(ma)
-          }
-
-      # identify factors (this will eventually be derived from image metadata) #
-
-      factor.cols <- grep("categorical",names(ma))
-      factor.cols <- factor.cols[!is.na(factor.cols)]
-      if(length(factor.cols)==0){
-          out.list$factor.levels <- NA
-          } else {
-          names(ma) <- ma.names <-  sub("categorical.","",ma.names)
-          factor.names <- ma.names[factor.cols]
-          if(test.dat==F) factor.levels <- list()
-          for (i in 1:length(factor.cols)){
-
-
-              f.col <- factor.cols[i]
-              if(test.dat==F){
-                  x <- table(ma[,f.col])
-                  if(nrow(x)<2){
-                        out$dat$bad.factor.cols <- c(out$dat$bad.factor.cols,factor.names[i])
-                        }
-                  lc.levs <-  as.numeric(row.names(x))[x>0] # make sure there is at least one "available" observation at each level
-                  lc.levs <- data.frame(number=lc.levs,class=lc.levs)
-                  factor.levels[[i]] <- lc.levs
-                  } else {
-                      f.index <- match(factor.names[i],names(out$dat$ma$factor.levels))
-                      lc.levs <- out$dat$ma$factor.levels[[f.index]]
-                  }
-              ma[,f.col] <- factor(ma[,f.col],levels=lc.levs$number,labels=lc.levs$class)
-
-
-              }
-          if(test.dat==F) {
-              names(factor.levels)<-factor.names
-              out.list$factor.levels <- factor.levels
-              }
-          }
-
-      #out.list$ma <- ma[,c(r.col,c(1:ncol(ma))[-r.col])]
-
-      # if producing geotiff output, check to make sure geotiffs are available for each column of the model array #
-        if(out$input$make.binary.tif==T | out$input$make.p.tif==T){
-               # test that geotiffs match ma.columns
-          if(is.null(out$input$tif.dir)){
-              ma.cols <- match(ma.names[-r.col],sub(".tif","",basename(paths[-r.col])))
-                if(any(is.na(ma.cols))){
-                  out$ec <- out$ec+1
-                  out$error.mssg[[out$ec]] <- paste("ERROR: the following geotiff(s) are missing in ",
-                        tif.dir,":  ",paste(ma.names[-r.col][is.na(ma.cols)],collapse=" ,"),sep="")
-                  return(out)
-                }
-                 #remove columns that shouldn't be used from tiff based on the indicator
-                include<-include[-r.col]
-                paths<-paths[-r.col]
-                paths<-paths[include==1]
-                 #creates a list of predictors from tif.ind and response column
-               ma.use <- c(r.col,match(sub(".tif","",basename(paths)),ma.names))
-                ma<-ma[,ma.use]
-                ma.names<-names(ma)
-                #Now check that tiffs to be used exist
-              #out$dat$tif.names <- tif.names[ma.cols]
-
-              if(sum(file.access(paths),mode=0)!=0){
-                  out$ec <- out$ec+1
-                  out$error.mssg[[out$ec]] <- paste("ERROR: the following geotiff(s) are missing : ",
-                        paths[(file.access(paths)!=0),][1],sep="")
-                return(out)
-                }
-                out$dat$tif.ind<-paths
-                }
-          if(!is.null(out$input$tif.dir)){
-              tif.names <- out$dat$tif.names
-              ma.cols <- match(ma.names[-r.col],sub(".tif","",basename(tif.names)))
-              if(any(is.na(ma.cols))){
-                  out$ec <- out$ec+1
-                  out$error.mssg[[out$ec]] <- paste("ERROR: the following geotiff(s) are missing in ",
-                        tif.dir,":  ",paste(ma.names[-r.col][is.na(ma.cols)],collapse=" ,"),sep="")
-                return(out)
-                }
-            out$dat$tif.names <- tif.names[ma.cols]
-            }} else out$dat$tif.names <- ma.names[-1]
-
-      out.list$ma <- ma[complete.cases(ma),c(r.col,c(1:ncol(ma))[-r.col])]
-      out.list$site.weights <- out$input$site.weights[complete.cases(ma)]
-      if(!test.dat & !is.null(out$dat$bad.factor.cols)) out.list$ma <- out.list$ma[,-match(out$dat$bad.factor.cols,names(out.list$ma))]
-      if(test.dat & any(ss<-is.na(match(names(ma),names(out$dat$ma$ma))))) {
-           out$ec <- out$ec+1
-           out$error.mssg[[out$ec]] <- paste("ERROR: missing columns in test model array:  ",paste(names(ma)[ss],collapse=" ,"),sep="")
-           return(out)
-           }
-
-        out.list$dims <- dim(out.list$ma)
-        out.list$ratio <- min(sum(out$input$model.fitting.subset)/out.list$dims[1],1)
-        out.list$n.pres[2] <- sum(out.list$ma[,1])
-        out.list$n.abs[2] <- nrow(out.list$ma)-sum(out.list$ma[,1])
-        out.list$used.covs <- names(out.list$ma)[-1]
-      if(!is.null(out$input$model.fitting.subset)){
-            pres.sample <- sample(c(1:nrow(out.list$ma))[out.list$ma[,1]==1],min(out.list$n.pres[2],out$input$model.fitting.subset[1]))
-            abs.sample <- sample(c(1:nrow(out.list$ma))[out.list$ma[,1]==0],min(out.list$n.abs[2],out$input$model.fitting.subset[2]))
-            out.list$ma.subset <- out.list$ma[c(pres.sample,abs.sample),]
-            out.list$weight.subset<-out.list$site.weights[c(pres.sample,abs.sample)]
-            out.list$n.pres[3] <- length(pres.sample)
-            out.list$n.abs[3] <- length(abs.sample)
-            } else {
-            out.list$ma.subset <- NULL
-            out.list$weight.subset<-NULL
-            out.list$n.pres[3] <- NA
-            out.list$n.abs[3] <- NA }
-
-if(tolower(out$input$model.family)=="poisson"){
-out.list$ma.subset<-out.list$ma
-}
-
-      if(test.dat==F){
-          out$dat$ma <- out.list
-          } else out$dat$ma.test <- out.list
-      return(out)
-      }
-
-check.libs <- function(libs,out){
-      lib.mssg <- unlist(suppressMessages(suppressWarnings(lapply(libs,require,quietly = T, warn.conflicts=F,character.only=T))))
-      if(any(!lib.mssg)){
-            out$ec <- out$ec+1
-            out$dat$missing.libs <-  paste(unlist(libs)[!lib.mssg],collapse="; ")
-            out$error.mssg[[out$ec]] <- paste("ERROR: the following package(s) could not be loaded:",out$dat$missing.libs)
-            }
-      return(out)
-      }
 
 check.dir <- function(dname){
     if(is.null(dname)) dname <- getwd()
@@ -988,167 +709,7 @@ check.dir <- function(dname){
     return(list(dname=dname,exist=exist,readable=readable,writable=writable))
     }
 
-proc.tiff <- function(model,vnames,tif.dir=NULL,filenames=NULL,pred.fct,factor.levels=NA,make.binary.tif=F,make.p.tif=T,binary.thresh=NA,
-    thresh=0.5,outfile.p="brt.prob.map.tif",outfile.bin="brt.bin.map.tif",tsize=2.0,NAval=-3000,fnames=NULL,logname=NULL){
-    # vnames,fpath,myfun,make.binary.tif=F,outfile=NA,outfile.bin=NA,output.dir=NA,tsize=10.0,NAval=NA,fnames=NA
-    # Written by Alan Swanson, YERC, 6-11-08
-    # Description:
-    # This function is used to make predictions using a number of .tiff image inputs
-    # in cases where memory limitations don't allow the full images to be read in.
-    #
-    # Arguments:
-    # vname: names of variables used for prediction.  must be same as filenames and variables
-    #   in model used for prediction. do not include a .tif extension as this is added in code.
-    # fpath: path to .tif files for predictors. use forward slashes and end with a forward slash ('/').
-    # myfun: prediction function.  must generate a vector of predictions using only a
-    #   dataframe as input.
-    # outfile:  name of output file.  placed in same directory as input .tif files.  should
-    #   have .tif extension in name.
-    # tsize: size of dataframe used for prediction in MB.  this controls the size of tiles
-    #   extracted from the input files, and the memory usage of this function.
-    # NAval: this is the NAvalue used in the input files.
-    # fnames: if the filenames of input files are different from the variable names used in the
-    #   prediction model.
-    #
-    # Modification history:
-    # NA
-    #
-    # Description:
-    # This function reads in a limited number of lines of each image (specified in terms of the
-    # size of the temporary predictor dataframe), applies a user-specified
-    # prediction function, and stores the results as matrix.  Alternatively, if an
-    # output file is specified, a file is written directly to that file in .tif format to
-    # the same directory as the input files.  Geographic information from the input images
-    # is retained.
-    #
-    # Example:
-    # tdata <- read.csv("D:/yerc/LISN biodiversity/resource selection/split/05_GYA_Leafyspurge_reduced_250m_train.csv")
-    # tdata$gya_250m_evi_16landcovermap_4ag05<-factor(tdata$gya_250m_evi_16landcovermap_4ag05)
-    # f.levels <- levels(tdata$gya_250m_evi_16landcovermap_4ag05)
-    # m0 <- glm(pres_abs~gya_250m_evi_01greenup_4ag05+gya_250m_evi_02browndown_4ag05+gya_250m_evi_03seasonlength_4ag05+
-    #          gya_250m_evi_04baselevel_4ag05+gya_250m_evi_05peakdate_4ag05+gya_250m_evi_16landcovermap_4ag05,data=tdata,family=binomial())#
-    # glm.predict <- function(x) {
-    #   x$gya_250m_evi_16landcovermap_4ag05<-factor(x$gya_250m_evi_16landcovermap_4ag05,levels=f.levels)
-    #   y <- as.vector(predict(m0,x,type="response"))
-    #   y[is.na(y)]<- -1
-    #   return(y)
-    # }
-    # x<-glm.predict(temp)
-    # fnames <- names(tdata)[c(10:14,25)]
-    # vnames <- fnames
-    # fpath <- 'D:/yerc/LISN biodiversity/GYA data/gya_250m_tif_feb08_2/'
-    # x <- proc.tiff(vnames,fpath,glm.predict)
-    # proc.tiff(vnames,fpath,glm.predict,"test11.tif")
 
-    # Start of function #
-    require(rgdal)
-
-    if(is.na(NAval)) NAval<- -3000
-    if(is.null(fnames)) fnames <- paste(vnames,"tif",sep=".")
-    nvars<-length(vnames)
-
-    # check availability of image files #
-   if(!is.null(tif.dir)){
-      fnames <- fnames[match(vnames,basename(sub(".tif","",fnames)))]
-      fullnames <- paste(tif.dir,fnames,sep="/")
-      goodfiles <- file.access(fullnames)==0
-      if(!all(goodfiles)){
-          cat('\n',paste("ERROR: the following image files are missing:",paste(fullnames[!goodfiles],collapse=", ")),'\n','\n')
-         flush.console()
-          return(paste("ERROR: the following image files are missing:",paste(fullnames[!goodfiles],collapse=", ")))
-          }}
-# settup up output raster to match input raster
-       if(!is.null(filenames)){
-          fullnames <- as.character(filenames[match(vnames,basename(sub(".tif","",filenames)))])
-          goodfiles <- file.access(fullnames)==0
-        if(!all(goodfiles)){
-          cat('\n',paste("ERROR: the following image files are missing:",paste(fullnames[!goodfiles],collapse=", ")),'\n','\n')
-         flush.console()
-          return(paste("ERROR: the following image files are missing:",paste(fullnames[!goodfiles],collapse=", ")))
-          }}
-  
-  
-RasterInfo=raster(fullnames[1])
-
-
-    # get spatial reference info from existing image file
-    gi <- GDALinfo(fullnames[1])
-    dims <- as.vector(gi)[1:2]
-    ps <- as.vector(gi)[6:7]
-    ll <- as.vector(gi)[4:5]
-    pref<-attr(gi,"projection")
-
-RasterInfo=raster(fullnames[1])
-
-if(!is.na(match("AREA_OR_POINT=Point",attr(gi,"mdata")))){
-   xx<-RasterInfo  #this shifts by a half pixel
-nrow(xx) <- nrow(xx) - 1
-ncol(xx) <- ncol(xx) - 1
-rs <- res(xx)
-xmin(RasterInfo) <- xmin(RasterInfo) - 0.5 * rs[1]
-xmax(RasterInfo) <- xmax(RasterInfo) - 0.5 * rs[1]
-ymin(RasterInfo) <- ymin(RasterInfo) + 0.5 * rs[2]
-ymax(RasterInfo) <- ymax(RasterInfo) + 0.5 * rs[2]
- }
-    # calculate position of upper left corner and get geotransform ala http://www.gdal.org/gdal_datamodel.html
-    #ul <- c(ll[1]-ps[1]/2,ll[2]+(dims[1]+.5)*ps[2])
-    ul <- c(ll[1],ll[2]+(dims[1])*ps[2])
-    gt<-c(ul[1],ps[1],0,ul[2],0,ps[2])
-
-    # setting tile size
-    MB.per.row<-dims[2]*nvars*32/8/1000/1024
-
-    nrows<-min(round(tsize/MB.per.row),dims[1])
-    bs<-c(nrows,dims[2])
-    nbs <- ceiling(dims[1]/nrows)
-    inc<-round(10/nbs,1)
-
-    chunksize<-bs[1]*bs[2]
-    tr<-blockSize(RasterInfo,chunksize=chunksize)
-
-  continuousRaster<-raster(RasterInfo)
-  NAvalue(continuousRaster)<-NAval
-  continuousRaster <- writeStart(continuousRaster, filename=outfile.p, overwrite=TRUE)
-    if(make.binary.tif) {
-     binaryRaster<-raster(RasterInfo)
-      NAvalue(binaryRaster)<-NAval
-      binaryRaster <- writeStart(binaryRaster, filename=outfile.bin, overwrite=TRUE)
-      }
-temp <- data.frame(matrix(ncol=nvars,nrow=tr$size*ncol(RasterInfo))) # temp data.frame.
-names(temp) <- vnames
-
-  for (i in 1:tr$n) {
-    strt <- c((i-1)*nrows,0)
-     region.dims <- c(min(dims[1]-strt[1],nrows),dims[2])
-        if (i==tr$n) temp <- temp[1:(tr$nrows[i]*dims[2]),] # for the last tile...
-      for(k in 1:nvars) { # fill temp data frame
-            temp[,k]<- getValuesBlock(raster(fullnames[k]), row=tr$row[i], nrows=tr$size)
-            }
-    temp[temp==NAval] <- NA # replace missing values #
-    temp[is.na(temp)]<-NA #this seemingly worthless line switches NaNs to NA so they aren't predicted
-        if(!is.na(factor.levels)){
-            factor.cols <- match(names(factor.levels),names(temp))
-            for(j in 1:length(factor.cols)){
-                if(!is.na(factor.cols[j])){
-                    temp[,factor.cols[j]] <- factor(temp[,factor.cols[j]],levels=factor.levels[[j]]$number,labels=factor.levels[[j]]$class)
-                }
-            }
-        }
-    ifelse(sum(!is.na(temp))==0,  # does not calculate predictions if all predictors in the region are na
-        preds<-matrix(data=NaN,nrow=region.dims[1],ncol=region.dims[2]),
-        preds <- t(matrix(pred.fct(model,temp),ncol=dims[2],byrow=T)))
-print(i)
-    ## Writing to the rasters u
-      if(make.binary.tif) binaryRaster<-writeValues(binaryRaster,(preds>thresh),tr$row[i])
-   continuousRaster <- writeValues(continuousRaster,preds, tr$row[i])
-
-  #NAvalue(continuousRaster) <-NAval
-        rm(preds);gc() #why is gc not working on the last call
-}
-  continuousRaster <- writeStop(continuousRaster)
-  if(make.binary.tif) writeStop(binaryRaster)
-   return(0)
-   }
 
 get.image.info <- function(image.names){
     # this function creates a data.frame with summary image info for a set of images #
@@ -1162,8 +723,8 @@ get.image.info <- function(image.names){
     out$type[grep(".asc",image.names)]<-"asc"
     for(i in 1:n.images){
         if(out$type[i]=="tif"){
-            x <-try(GDAL.open(full.names[1],read.only=T),silent=T)
-            suppressMessages(try(GDAL.close(x),silent=T))
+            x <-try(GDAL.open(full.names[1],read.only=T))
+            suppressMessages(try(GDAL.close(x)))
             if(class(x)!="try-error") out$available[i]<-T
             x<-try(file.info(full.names[i]))
         } else {
@@ -2025,12 +1586,16 @@ function(gbm.object,
   n.trees <- gbm.call$best.trees
 
   if (is.null(x.range)) {
-    x.var <- seq(min(data[,x],na.rm=T),max(data[,x],na.rm=T),length = 50)
+   if(!is.factor(data[,x]))
+        x.var <- seq(min(data[,x],na.rm=T),max(data[,x],na.rm=T),length = 50)
+      else x.var<- sort(unique(as.numeric(levels(data[,x]))))
   }
   else {x.var <- seq(x.range[1],x.range[2],length = 50)}
 
   if (is.null(y.range)) {
-    y.var <- seq(min(data[,y],na.rm=T),max(data[,y],na.rm=T),length = 50)
+      if(!is.factor(data[,y]))
+        y.var <- seq(min(data[,y],na.rm=T),max(data[,y],na.rm=T),length = 50)
+      else y.var<- sort(unique(as.numeric(levels(data[,y]))))
   }
   else {y.var <- seq(y.range[1],y.range[2],length = 50)}
 
@@ -2076,11 +1641,12 @@ function(gbm.object,
 # report the maximum value and set up realistic ranges for z
 
   max.pred <- max(prediction)
+  min.pred<-min(prediction)
   if(verbose) cat("maximum value = ",round(max.pred,2),"\n")    #AKS
 
   if (is.null(z.range)) {
     if (family == "bernoulli") {
-      z.range <- c(0,1)
+      z.range <- c(min.pred,max.pred)
     }
     else if (family == "poisson") {
       z.range <- c(0,max.pred * 1.1)
@@ -2094,14 +1660,14 @@ function(gbm.object,
   }
 # form the matrix
 
-  pred.matrix <- matrix(prediction,ncol=50,nrow=50)
+  pred.matrix <- matrix(prediction,ncol=length(y.var),nrow=length(x.var))
 
 # kernel smooth if required
 
   if (smooth == "average") {  #apply a 3 x 3 smoothing average
      pred.matrix.smooth <- pred.matrix
-     for (i in 2:49) {
-       for (j in 2:49) {
+     for (i in 2:(length(x.var)-1)) {
+       for (j in 2:(length(y.var)-1)) {
          pred.matrix.smooth[i,j] <- mean(pred.matrix[c((i-1):(i+1)),c((j-1):(j+1))])
        }
      }
@@ -2118,7 +1684,7 @@ function(gbm.object,
   }
 #
 # and finally plot the result
-#
+
   if (!perspective) {
     image(x = x.var, y = y.var, z = pred.matrix, zlim = z.range)
   }
@@ -2469,7 +2035,7 @@ require(gbm)
 
   orig.data <- data
   orig.gbm.x <- gbm.x
-
+  verbose=TRUE
 #  if (!is.null(eval.data)) independent.test <- TRUE
 #    else independent.test <- FALSE
 
@@ -2516,9 +2082,9 @@ require(gbm)
 
 # create gbm.fixed function call
 
-  gbm.call.string <- paste("try(gbm.fixed(data=train.data,gbm.x=gbm.new.x,gbm.y=gbm.y,",sep="")
+  gbm.call.string <- paste("gbm.fixed(data=train.data,gbm.x=gbm.new.x,gbm.y=gbm.y,",sep="")
   gbm.call.string <- paste(gbm.call.string,"family=family,learning.rate=lr,tree.complexity=tc,",sep="")
-  gbm.call.string <- paste(gbm.call.string,"n.trees = ",n.trees,", site.weights = weights.subset,verbose=FALSE))",sep="")
+  gbm.call.string <- paste(gbm.call.string,"n.trees = ",n.trees,", site.weights = weights.subset,verbose=FALSE)",sep="")
 
 # now set up the fold structure
 
@@ -2657,9 +2223,9 @@ require(gbm)
 
   if(verbose) cat("\nnow processing final dropping of variables with full data \n\n") #aks
 
-  gbm.call.string <- paste("try(gbm.fixed(data=orig.data,gbm.x=gbm.new.x,gbm.y=gbm.y,",sep="")
+  gbm.call.string <- paste("gbm.fixed(data=orig.data,gbm.x=gbm.new.x,gbm.y=gbm.y,",sep="")
   gbm.call.string <- paste(gbm.call.string,"family=family,learning.rate=lr,tree.complexity=tc,",sep="")
-  gbm.call.string <- paste(gbm.call.string,"n.trees = ",n.trees,", site.weights = weights,verbose=FALSE))",sep="")
+  gbm.call.string <- paste(gbm.call.string,"n.trees = ",n.trees,", site.weights = weights,verbose=FALSE)",sep="")
 
   n.steps <- n.steps - 1 #decrement by one to reverse last increment in prev loop
 
@@ -2765,6 +2331,7 @@ function (data,                        # the input dataframe
 
   dataframe.name <- deparse(substitute(data))   # get the dataframe name
 
+  if(length(gbm.x)<=1) stop("Only one predictor remains in backward selection\nplease select more predictors")
   x.data <- eval(data[, gbm.x])                 #form the temporary datasets
   names(x.data) <- names(data)[gbm.x]
   y.data <- eval(data[, gbm.y])
@@ -2774,7 +2341,7 @@ function (data,                        # the input dataframe
   assign("x.data", x.data, pos = 1)             #and assign them for later use
   assign("y.data", y.data, pos = 1)
 
-# fit the gbm model
+#fit the gbm model
 
   z1 <- unclass(Sys.time())
 
@@ -2860,66 +2427,79 @@ function (data,                        # the input dataframe
 }
 
 
+make.p.tif=T
+make.binary.tif=T
+
+tc=NULL
+n.folds=3
+alpha=1
+
+learning.rate = NULL
+bag.fraction = 0.5
+prev.stratify = TRUE
+max.trees = 10000
+tolerance.method = "auto"
+tolerance = 0.001
+seed=NULL
+opt.methods=2
+save.model=TRUE
+MESS=FALSE
 # Interpret command line argurments #
 # Make Function Call #
-if(Debug==F){
-    Args     <- commandArgs(T)
-    print(Args)
+Args <- commandArgs(trailingOnly=FALSE)
+
+    for (i in 1:length(Args)){
+     if(Args[i]=="-f") ScriptPath<-Args[i+1]
+     }
+
     for (arg in Args) {
-    	print(arg)
     	argSplit <- strsplit(arg, "=")
     	argSplit[[1]][1]
     	argSplit[[1]][2]
-    	"hello"
-    	if(argSplit[[1]][1]=="c") csv <- argSplit[[1]][2]; "hello"
+    	if(argSplit[[1]][1]=="c") csv <- argSplit[[1]][2]
     	if(argSplit[[1]][1]=="o") output <- argSplit[[1]][2]
     	if(argSplit[[1]][1]=="rc") responseCol <- argSplit[[1]][2]
+   		if(argSplit[[1]][1]=="mpt") make.p.tif <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="mbt")  make.binary.tif <- argSplit[[1]][2]
+      if(argSplit[[1]][1]=="tc")  tc <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="nf")  n.folds <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="alp")  alpha <- argSplit[[1]][2]
+      if(argSplit[[1]][1]=="lr")  learning.rate <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="bf")  bag.fraction <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="ps")  prev.stratify <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="mt")  max.trees <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="om")  opt.methods <- argSplit[[1]][2]
+ 			if(argSplit[[1]][1]=="seed")  seed <- argSplit[[1]][2]
+ 		  if(argSplit[[1]][1]=="savm")  save.model <- argSplit[[1]][2]
+ 		  if(argSplit[[1]][1]=="tolm")  tolerance.method <- argSplit[[1]][2]
+ 		  if(argSplit[[1]][1]=="tol")  tolerance <- argSplit[[1]][2]
+ 		  if(argSplit[[1]][1]=="mes")  MESS <- argSplit[[1]][2]
+ 			
     }
 	print(csv)
 	print(output)
 	print(responseCol)
-	
+
+ScriptPath<-dirname(ScriptPath)
+source(paste(ScriptPath,"LoadRequiredCode.r",sep="\\"))
+
+
+alpha<-as.numeric(alpha)
+make.p.tif<-as.logical(make.p.tif)
+make.binary.tif<-as.logical(make.binary.tif)
+prev.stratify<-as.logical(prev.stratify)
+save.model<-make.p.tif | make.binary.tif
+opt.methods<-as.numeric(opt.methods)
+MESS<-as.logical(MESS)
+
     fit.brt.fct(ma.name=csv,
 		tif.dir=NULL,
 		output.dir=output,
 		response.col=responseCol,
-		test.resp.col="response",make.p.tif=T,make.binary.tif=T,
-		simp.method="cross-validation",debug.mode=T,responseCurveForm="pdf",tc=NULL,n.folds=3,ma.test=NULL,alpha=1,script.name="brt.r",
-		learning.rate =NULL, bag.fraction = 0.5,prev.stratify = TRUE, model.family = "bernoulli", max.trees = NULL)
-}
-if(Debug==T){
-    if(batch.mode==T){
-        for(g in 1:length(ma.names)){
-            out <- fit.brt.fct(ma.names[g],tif.dir,output.dir=output.dir,make.p.tif=make.p.tif,test.resp.col=test.resp.col,make.binary.tif=make.binary.tif,
-              simp.method=simp.method,debug.mode=debug.mode,tc=tc,response.col=response.col,n.folds=n.folds,ma.test=test.names[g],alpha=2)
-            if(!is.null(test.names)){
-                auc.output <- try(make.auc.plot.jpg(out$dat$ma.test$ma,pred=predict.gbm(out$mods$final.mod,out$dat$ma.test$ma,
-                      out$mods$final.mod$target.trees,type="response"),plotname=paste(out$dat$bname,"_test_auc_plot.jpg",sep=""),
-                      modelname="BRT"),silent=T)
+		make.p.tif=make.p.tif,make.binary.tif=make.binary.tif,
+		simp.method="cross-validation",debug.mode=F,responseCurveForm="pdf",tc=tc,n.folds=n.folds,alpha=alpha,script.name="brt.r",
+		learning.rate =learning.rate, bag.fraction = bag.fraction,prev.stratify = prev.stratify,max.trees = max.trees,seed=seed,
+    save.model=save.model,opt.methods=opt.methods,MESS=MESS)
 
-                #out$dat$ma.test$ma$seki_250m_evi_16landcovermap_4ag05 <- factor(out$dat$ma.test$ma$seki_250m_evi_16landcovermap_4ag05,levels=c(1,5,6,7,8,10,16))
-                #out$dat$ma.test$ma$seki_250m_ndvi_16landcovermap_4ag05 <- factor(out$dat$ma.test$ma$seki_250m_ndvi_16landcovermap_4ag05,levels=c(1,5,6,7,8,10,16))
-
-                print(basename(ma.names[g]))
-                print(out.table[,g]<-c(length(coef(out$mods$final.mod)),out$dat$ma$dims,out$mods$auc.output$pct_dev_exp/100,out$mods$auc.output$auc,
-                          out$mods$auc.output$auc.sd,out$mods$auc.output$thresh,out$mods$auc.output$pcc,out$mods$auc.output$sens,out$mods$auc.output$spec,
-                          out$mods$auc.output$kappa,out$dat$ma.test$dims,auc.output$pct_dev_exp/100,auc.output$auc,auc.output$auc.sd,auc.output$thresh,auc.output$pcc,auc.output$sens,
-                          auc.output$spec,auc.output$kappa))
-                flush.console()
-                #assign(basename(out$dat$bname),out)
-                }
-            }
-      } else {
-         out <- fit.brt.fct(ma.name,tif.dir,output.dir=output.dir,make.p.tif=make.p.tif,test.resp.col=test.resp.col,make.binary.tif=make.binary.tif,
-              simp.method=simp.method,debug.mode=debug.mode,tc=tc,response.col=response.col,n.folds=n.folds,ma.test=test.name)
-         if(!is.null(test.name)){
-              auc.output <- try(make.auc.plot.jpg(out$dat$ma.test$ma,pred=predict(out$mods$final.mod,newdata=out$dat$ma.test$ma,type='response'),
-                  plotname=paste(out$dat$bname,"_test_auc_plot.jpg",sep=""),modelname="BRT"),silent=T)
-              }
-         }
-    #write.csv(data.frame(pres_abs=out$dat$ma.test$ma[,1],pred=predict.gbm(out$mods$final.mod,out$dat$ma.test$ma,
-    #    out$mods$final.mod$target.trees,type="response")),"auc test data.csv",row.names=F)
-    #write.csv(out.table,"./reanalysis/brt_test_results_alpha2b.csv")
-    }
 
 
