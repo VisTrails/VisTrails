@@ -264,6 +264,7 @@ class QVistrailView(QtGui.QWidget):
             window = self.window()
         else:
             window = _app
+
         #print "VERSION"
         self.stack.setCurrentIndex(self.stack.indexOf(self.version_view))
         self.tabs.setTabText(self.tabs.currentIndex(), "History")
