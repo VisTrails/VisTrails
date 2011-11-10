@@ -253,6 +253,10 @@ class QVistrailView(QtGui.QWidget):
         if get_vistrails_configuration().detachHistoryView:
             _app.history_view.raise_()
             return
+        if hasattr(self.window(), 'qactions'):
+            window = self.window()
+        else:
+            window = _app
         #print "VERSION"
         self.stack.setCurrentIndex(self.stack.indexOf(self.version_view))
         self.tabs.setTabText(self.tabs.currentIndex(), "History")
