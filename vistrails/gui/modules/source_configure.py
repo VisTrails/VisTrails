@@ -352,7 +352,11 @@ class SourceConfigurationWidget(SourceWidget):
             modified = self.codeEditor.isModified()
         
         if (self.codeEditor is not None and modified):
-            code = str(self.codeEditor.toPlainText())
+            try:
+                code = str(self.codeEditor.toPlainText())
+            except UnicodeEncodeError, e:
+                debug.critical('Source Code Editor does not support non-ascii characters', str(e)) 
+                return False
             if self.sourceEncode:
                 code = urllib.quote(code)
             functions.append((self.sourcePortName, [code]))
