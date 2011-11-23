@@ -33,6 +33,7 @@
 ###############################################################################
 
 import sys
+import os
 import json
 import subprocess
 from PyQt4 import QtCore, QtGui
@@ -53,27 +54,27 @@ class QCLToolsWizard(QtGui.QWidget):
 
         self.toolBar = QtGui.QToolBar()
         self.layout().addWidget(self.toolBar)
-
+        p = os.path.dirname(__file__) + "/%s"
         self.newFileAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-new'), 'New', self)
+            QtGui.QIcon(p%'icons/document-new.png'), 'New', self)
         self.newFileAction.setToolTip('Start on a new Wrapper')
         self.connect(self.newFileAction, QtCore.SIGNAL('triggered()'),
                      self.newFile)
         self.toolBar.addAction(self.newFileAction)
         self.openFileAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-open'), 'Open', self)
+            QtGui.QIcon(p%'icons/document-open.png'), 'Open', self)
         self.openFileAction.setToolTip('Open an existing wrapper')
         self.connect(self.openFileAction, QtCore.SIGNAL('triggered()'),
                      self.openFile)
         self.toolBar.addAction(self.openFileAction)
         self.saveFileAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-save'), 'Save', self)
+            QtGui.QIcon(p%'icons/document-save.png'), 'Save', self)
         self.saveFileAction.setToolTip('Save wrapper')
         self.connect(self.saveFileAction, QtCore.SIGNAL('triggered()'),
                      self.save)
         self.toolBar.addAction(self.saveFileAction)
         self.saveFileAsAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-save-as'), 'Save As', self)
+            QtGui.QIcon(p%'icons/document-save-as.png'), 'Save As', self)
         self.saveFileAsAction.setToolTip('Save wrapper as a new file')
         self.connect(self.saveFileAsAction, QtCore.SIGNAL('triggered()'),
                      self.saveAs)
@@ -81,25 +82,25 @@ class QCLToolsWizard(QtGui.QWidget):
         
         self.toolBar.addSeparator()
         self.addAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('list-add'), 'Add', self)
+            QtGui.QIcon(p%'icons/list-add.png'), 'Add', self)
         self.addAction.setToolTip('Add a new argument')
         self.connect(self.addAction, QtCore.SIGNAL('triggered()'),
                      self.addArgument)
         self.toolBar.addAction(self.addAction)
         self.removeAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('list-remove'), 'Remove', self)
+            QtGui.QIcon(p%'icons/list-remove.png'), 'Remove', self)
         self.removeAction.setToolTip('Remove the selected argument')
         self.connect(self.removeAction, QtCore.SIGNAL('triggered()'),
                      self.removeArgument)
         self.toolBar.addAction(self.removeAction)
         self.upAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('go-up'), 'Move up', self)
+            QtGui.QIcon(p%'icons/go-up.png'), 'Move up', self)
         self.upAction.setToolTip('Move argument up one position')
         self.connect(self.upAction, QtCore.SIGNAL('triggered()'),
                      self.moveUp)
         self.toolBar.addAction(self.upAction)
         self.downAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('go-down'), 'Move down', self)
+            QtGui.QIcon(p%'icons/go-down.png'), 'Move down', self)
         self.downAction.setToolTip('Move argument down one position')
         self.connect(self.downAction, QtCore.SIGNAL('triggered()'),
                      self.moveDown)
