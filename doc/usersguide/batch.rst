@@ -245,6 +245,17 @@ where pipeline can be a version **tag name** or version **id**.
 Running a Workflow with Specific Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+An alias is a name assigned to a parameter that allows you to reference that parameter in batch mode. An alias is created by clicking on the type of an existing parameter in VisTrails, then entering a name for it.
+
+.. _fig-batch-create_alias:
+
+.. figure:: figures/batch/create_alias.png
+   :align: center
+   :width: 50%
+
+   Example of creating an alias
+
 Users can change workflow parameters that have an alias through the command line.
 
 For example, offscreen pipeline in offscreen.vt always creates the file called image.png. If you want generate it with a different filename:

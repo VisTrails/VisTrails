@@ -595,9 +595,12 @@ def open_vistrail_from_xml(filename):
         vistrail = translate_vistrail(vistrail, version)
         db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
-        msg = "This vistrail was created by a newer version of VisTrails "
-        msg += "and cannot be opened."
-        raise VistrailsDBException(msg)
+        if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
+            msg = "This vistrail was created by a newer version of VisTrails "
+            msg += "and cannot be opened."
+            raise VistrailsDBException(msg)
+        raise e
+        
     return vistrail
 
 def open_vistrail_bundle_from_zip_xml(filename):
