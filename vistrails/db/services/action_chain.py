@@ -100,7 +100,7 @@ def getCurrentOperationDict(actions, currentOperations=None):
                 try:
                     del currentOperations[t]
                 except KeyError:
-                    msg = "Illegal delete operation"
+                    msg = "Illegal delete operation: %d" % d['_db_id']
                     raise Exception(msg)
             elif operationvtType == 'change':
                 what = d['_db_what']
@@ -109,7 +109,7 @@ def getCurrentOperationDict(actions, currentOperations=None):
                 try:
                     del currentOperations[t]
                 except KeyError:
-                    msg = "Illegal change operation"
+                    msg = "Illegal change operation: %d" % d['_db_id']
                     raise Exception(msg)
                 currentOperations[(what,
                                    d['_db_newObjId'])] = operation
