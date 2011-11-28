@@ -1825,6 +1825,7 @@ class ModuleRegistry(DBRegistry):
         else:
             qual_name = d_string
             if cur_package is None:
+                basic_pkg = core.modules.basic_modules.identifier
                 package = basic_pkg
             else:
                 package = cur_package
