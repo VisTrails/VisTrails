@@ -36,7 +36,7 @@ from core.configuration import ConfigurationObject
 
 
 identifier = 'edu.utah.sci.vistrails.persistence'
-version = '0.2.2'
+version = '0.2.3'
 name = 'Persistence'
 
 configuration = ConfigurationObject(global_db=(None, str), 
