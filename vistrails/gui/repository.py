@@ -661,7 +661,7 @@ class QRepositoryLoginWidget(QtGui.QWidget):
         Attempts to log into web repository
         stores auth cookie for session
         """
-        from gui.application import VistrailsApplication
+        from gui.application import get_vistrails_application
 
         params = urllib.urlencode({'username':self.dialog.loginUser.text(),
                                    'password':self.loginPassword.text()})
@@ -696,7 +696,7 @@ class QRepositoryLoginWidget(QtGui.QWidget):
                     self.config.webRepositoryLogin = str(self.dialog.loginUser.text())
                     pers_config = get_vistrails_persistent_configuration()
                     pers_config.webRepositoryLogin = self.config.webRepositoryLogin
-                    VistrailsApplication.save_configuration()
+                    get_vistrails_application().save_configuration()
 
             # remove assiciation between VisTrails user and web repository user
             else:
@@ -704,7 +704,7 @@ class QRepositoryLoginWidget(QtGui.QWidget):
                     self.config.webRepositoryLogin = ""
                     pers_config = get_vistrails_persistent_configuration()
                     pers_config.webRepositoryLogin = ""
-                    VistrailsApplication.save_configuration()
+                    get_vistrails_application().save_configuration()
 
         self.show_login_information()
 

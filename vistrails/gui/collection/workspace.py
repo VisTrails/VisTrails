@@ -111,7 +111,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
 #        if not locator.is_valid():
 #            debug.critical("Locator is not valid:" % locator.to_url())
 #            return
-        app = gui.application.VistrailsApplication
+        app = gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
         args['version'] = locator.kwargs.get('version_node', None) or \

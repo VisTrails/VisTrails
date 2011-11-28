@@ -32,8 +32,7 @@
 ##
 ###############################################################################
 
-from gui.application import VistrailsApplication
-_app = VistrailsApplication
+from gui.application import get_vistrails_application
 
 ##############################################################################
 # Exceptions
@@ -52,7 +51,7 @@ def switch_to_pipeline_view():
     Changes current viewing mode to pipeline view in the builder window.
 
     """
-    _app.builderWindow.qactions['pipeline'].trigger()
+    get_vistrails_application().builderWindow.qactions['pipeline'].trigger()
 
 def switch_to_history_view():
     """switch_to_history_view():
@@ -60,7 +59,7 @@ def switch_to_history_view():
     Changes current viewing mode to history view in the builder window.
 
     """
-    _app.builderWindow.qactions['history'].trigger()
+    get_vistrails_application().builderWindow.qactions['history'].trigger()
     
 def switch_to_query_view():
     """switch_to_query_view():
@@ -68,7 +67,7 @@ def switch_to_query_view():
     Changes current viewing mode to query view in the builder window.
 
     """
-    _app.builderWindow.qactions['search'].trigger()
+    get_vistrails_application().builderWindow.qactions['search'].trigger()
 
 ################################################################################
 # Access to current state
@@ -82,7 +81,7 @@ def get_builder_window():
 
     """
     try:
-        return _app.builderWindow
+        return get_vistrails_application().builderWindow
     except AttributeError:
         raise NoGUI
     
@@ -95,7 +94,7 @@ def get_current_controller():
 
     """
     try:
-        return _app.builderWindow.get_current_controller()
+        return get_vistrails_application().builderWindow.get_current_controller()
     except AttributeError:
         raise NoVistrail
 
@@ -113,13 +112,13 @@ def get_current_vistrail_view():
     Returns the currently selected vistrail view.
 
     """
-    view = _app.builderWindow.get_current_view()
+    view = get_vistrails_application().builderWindow.get_current_view()
     if view is None:
         raise NoVistrail
     return view    
 
 def close_current_vistrail(quiet=False):
-    _app.builderWindow.close_vistrail(get_current_vistrail_view())
+    get_vistrails_application().builderWindow.close_vistrail(get_current_vistrail_view())
 
 def get_module_registry():
     from core.modules.module_registry import get_module_registry
@@ -306,8 +305,8 @@ def close_all_vistrails(quiet=True):
     
 def new_vistrail():
     # Returns VistrailView - remember to be consistent about it..
-    _app.builderWindow.new_vistrail(False)
-    result = _app.builderWindow.get_current_view()
+    get_vistrails_application().builderWindow.new_vistrail(False)
+    result = get_vistrails_application().builderWindow.get_current_view()
     return result
 
 def get_vistrail_from_file(filename):
@@ -339,16 +338,16 @@ class TestAPI(gui.utils.TestVisTrailsGUI):
         close_vistrail(v)
 
     def test_new_vistrail_button_states(self):
-        assert _app.builderWindow.qactions['newVistrail'].isEnabled()
-        assert not _app.builderWindow.qactions['closeVistrail'].isEnabled()
-        assert not _app.builderWindow.qactions['saveFile'].isEnabled()
-        assert not _app.builderWindow.qactions['saveFileAs'].isEnabled()
+        assert get_vistrails_application().builderWindow.qactions['newVistrail'].isEnabled()
+        assert not get_vistrails_application().builderWindow.qactions['closeVistrail'].isEnabled()
+        assert not get_vistrails_application().builderWindow.qactions['saveFile'].isEnabled()
+        assert not get_vistrails_application().builderWindow.qactions['saveFileAs'].isEnabled()
         view = new_vistrail()
-        assert _app.builderWindow.qactions['newVistrail'].isEnabled()
-        assert _app.builderWindow.qactions['closeVistrail'].isEnabled()
-        self.assertEqual(_app.builderWindow.qactions['saveFile'].isEnabled(),
+        assert get_vistrails_application().builderWindow.qactions['newVistrail'].isEnabled()
+        assert get_vistrails_application().builderWindow.qactions['closeVistrail'].isEnabled()
+        self.assertEqual(get_vistrails_application().builderWindow.qactions['saveFile'].isEnabled(),
                          view.has_changes())
-        assert _app.builderWindow.qactions['saveFileAs'].isEnabled()
+        assert get_vistrails_application().builderWindow.qactions['saveFileAs'].isEnabled()
 
     
     

@@ -59,6 +59,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 
 import core.analogy
 import copy
@@ -118,10 +119,10 @@ class VistrailController(QtCore.QObject, BaseController):
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
         
+        self._previous_graph_layout = None
+        self._current_graph_layout = VistrailsTreeLayoutLW()
+        self.animate_layout = False
         #this was moved to BaseController
-        #self._previous_graph_layout = None
-        #self._current_graph_layout = VistrailsTreeLayoutLW()
-        #self.animate_layout = False
         #self.num_versions_always_shown = 1
 
     # just need to switch current_pipeline_view to update controller to
@@ -180,9 +181,9 @@ class VistrailController(QtCore.QObject, BaseController):
         self._auto_save = False
 
     def get_locator(self):
-        from gui.application import VistrailsApplication
+        from gui.application import get_vistrails_application
         if (self._auto_save and 
-            VistrailsApplication.configuration.check('autosave')):
+            get_vistrails_application().configuration.check('autosave')):
             return self.locator or core.db.locator.untitled_locator()
         else:
             return None
@@ -255,394 +256,10 @@ class VistrailController(QtCore.QObject, BaseController):
 
     ##########################################################################
 
-    @vt_action
-    def add_module_action(self, module):
-        if not self.current_pipeline:
-            raise Exception("No version is selected")
-        action = core.db.action.create_action([('add', module)])
-        return action
-
-    def add_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
-                                   internal_version=-1):
-        module = self.create_module_from_descriptor(descriptor, x, y, 
-                                                    internal_version)
-        action = self.add_module_action(module)
-        return module
-
-
     def add_module(self, x, y, identifier, name, namespace='', 
                    internal_version=-1):
-        """ addModule(x: int, y: int, identifier, name: str, namespace='') 
-               -> Module
-        Add a new module into the current pipeline
-        
-        """
-        module = self.create_module(identifier, name, namespace, x, y,
-                                    internal_version)
-        action = self.add_module_action(module)
-        return module
-            
-    def delete_module(self, module_id):
-        """ delete_module(module_id: int) -> version id
-        Delete a module from the current pipeline
-        
-        """
-        return self.delete_module_list([module_id])
-
-    def create_module_list_deletion_action(self, pipeline, module_ids):
-        """ create_module_list_deletion_action(
-               pipeline: Pipeline,
-               module_ids: [int]) -> Action
-        Create action that will delete multiple modules from the given pipeline.
-
-        """
-        ops = BaseController.delete_module_list_ops(self, pipeline, module_ids)
-        return core.db.action.create_action(ops)
-
-    @vt_action
-    def delete_module_list(self, module_ids):
-        """ delete_module_list(module_ids: [int]) -> [version id]
-        Delete multiple modules from the current pipeline
-        
-        """
-        action = self.create_module_list_deletion_action(self.current_pipeline,
-                                                         module_ids)
-        return action
-
-    def move_module_list(self, move_list):
-        """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
-        Move all modules to a new location. No flushMoveActions is
-        allowed to to emit to avoid recursive actions
-        
-        """
-        action_list = []
-        for (id, x, y) in move_list:
-            module = self.current_pipeline.get_module_by_id(id)
-            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-            location = Location(id=loc_id,
-                                x=x, 
-                                y=y,
-                                )
-            if module.location and module.location.id != -1:
-                old_location = module.location
-                action_list.append(('change', old_location, location,
-                                    module.vtType, module.id))
-            else:
-                # probably should be an error
-                action_list.append(('add', location, module.vtType, module.id))
-        action = core.db.action.create_action(action_list)
-        self.add_new_action(action)
-        return self.perform_action(action)
-
-    @vt_action
-    def add_connection_action(self, connection):
-        action = core.db.action.create_action([('add', connection)])
-        return action
-
-    def add_connection(self, output_id, output_port_spec, 
-                       input_id, input_port_spec):
-        """ add_connection(output_id: long,
-                           output_port_spec: PortSpec | str,
-                           input_id: long,
-                           input_port_spec: PortSpec | str) -> Connection
-        Add a new connection into Vistrail
-        
-        """
-        connection = \
-            self.create_connection_from_ids(output_id, output_port_spec, 
-                                            input_id, input_port_spec)
-        action = self.add_connection_action(connection)
-        return connection
-    
-    def delete_connection(self, id):
-        """ delete_connection(id: int) -> version id
-        Delete a connection with id 'id'
-        
-        """
-        return self.delete_connection_list([id])
-
-    @vt_action
-    def delete_connection_list(self, connect_ids):
-        """ delete_connection_list(connect_ids: list) -> version id
-        Delete a list of connections
-        
-        """
-        action_list = []
-        for c_id in connect_ids:
-            action_list.append(('delete', 
-                                self.current_pipeline.connections[c_id]))
-        action = core.db.action.create_action(action_list)
-        return action
-
-    @vt_action
-    def add_function_action(self, module, function):
-        action = core.db.action.create_action([('add', function, 
-                                                module.vtType, module.id)])
-        return action
-
-    def add_function(self, module, function_name):
-        function = self.create_function(module, function_name)
-        action = self.add_function_action(module, function)
-        return function
-
-    @vt_action
-    def update_function(self, module, function_name, param_values, old_id=-1L,
-                        aliases=[], query_methods=[], should_replace=True):
-        op_list = self.update_function_ops(module, function_name, param_values,
-                                           old_id, aliases=aliases,
-                                           query_methods=query_methods,
-                                           should_replace=should_replace)
-        action = core.db.action.create_action(op_list)
-        return action
-
-    @vt_action
-    def update_parameter(self, function, old_param_id, new_value):
-        old_param = function.parameter_idx[old_param_id]
-        new_param = BaseController.update_parameter(self, old_param, new_value)
-        if new_param is None:
-            return None
-        op = ('change', old_param, new_param, 
-              function.vtType, function.real_id)
-        action = core.db.action.create_action([op])
-        return action
-
-    @vt_action
-    def delete_method(self, function_pos, module_id):
-        """ delete_method(function_pos: int, module_id: int) -> version id
-        Delete a method with function_pos from module module_id
-
-        """
-
-        module = self.current_pipeline.get_module_by_id(module_id)
-        function = module.functions[function_pos]
-        action = core.db.action.create_action([('delete', function,
-                                                module.vtType, module.id)])
-        return action
-
-    @vt_action
-    def delete_function(self, real_id, module_id):
-        module = self.current_pipeline.get_module_by_id(module_id)
-        function = module.get_function_by_real_id(real_id)
-        action = core.db.action.create_action([('delete', function,
-                                                module.vtType, module.id)])
-        return action
-
-    @vt_action
-    def delete_annotation(self, key, module_id):
-        """ delete_annotation(key: str, module_id: long) -> version_id
-        Deletes an annotation from a module
-        
-        """
-        module = self.current_pipeline.get_module_by_id(module_id)
-        annotation = module.get_annotation_by_key(key)
-        action = core.db.action.create_action([('delete', annotation,
-                                                module.vtType, module.id)])
-        return action
-
-    @vt_action
-    def add_annotation(self, pair, module_id):
-        """ add_annotation(pair: (str, str), moduleId: int)        
-        Add/Update a key/value pair annotation into the module of
-        moduleId
-        
-        """
-        assert type(pair[0]) == type('')
-        assert type(pair[1]) == type('')
-        if pair[0].strip()=='':
-            return
-
-        module = self.current_pipeline.get_module_by_id(module_id)
-        a_id = self.vistrail.idScope.getNewId(Annotation.vtType)
-        annotation = Annotation(id=a_id,
-                                key=pair[0], 
-                                value=pair[1],
-                                )
-        if module.has_annotation_with_key(pair[0]):
-            old_annotation = module.get_annotation_by_key(pair[0])
-            action = \
-                core.db.action.create_action([('change', old_annotation,
-                                                   annotation,
-                                                   module.vtType, module.id)])
-        else:
-            action = core.db.action.create_action([('add', annotation,
-                                                        module.vtType, 
-                                                        module.id)])
-        return action
-
-    def update_functions_ops_from_ids(self, module_id, functions):
-        module = self.current_pipeline.modules[module_id]
-        return self.update_functions_ops(module, functions)
-
-    def update_port_spec_ops_from_ids(self, module_id, deleted_ports, 
-                                      added_ports):
-        module = self.current_pipeline.modules[module_id]
-        return self.update_port_spec_ops(module, deleted_ports, added_ports)
-
-    @vt_action
-    def update_functions(self, module, functions):
-        op_list = self.update_functions_ops(module, functions)
-        action = core.db.action.create_action(op_list)
-        return action
-
-    @vt_action
-    def update_ports_and_functions(self, module_id, deleted_ports, added_ports,
-                                   functions):
-        op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
-                                                     added_ports)
-        op_list.extend(self.update_functions_ops_from_ids(module_id, functions))
-        action = core.db.action.create_action(op_list)
-        return action
-
-    @vt_action
-    def update_ports(self, module_id, deleted_ports, added_ports):
-        op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
-                                                     added_ports)
-        action = core.db.action.create_action(op_list)
-        return action
-
-    def has_module_port(self, module_id, port_tuple):
-        """ has_module_port(module_id: int, port_tuple: (str, str)): bool
-        Parameters
-        ----------
-        
-        - module_id : 'int'        
-        - port_tuple : (portType, portName)
-
-        Returns true if there exists a module port in this module with given params
-
-        """
-        (type, name) = port_tuple
-        module = self.current_pipeline.get_module_by_id(module_id)
-        return len([x for x in module.db_portSpecs
-                    if x.name == name and x.type == type]) > 0
-
-    @vt_action
-    def add_module_port(self, module_id, port_tuple):
-        """ add_module_port(module_id: int, port_tuple: (str, str, list)
-        Parameters
-        ----------
-        
-        - module_id : 'int'        
-        - port_tuple : (portType, portName, portSpec)
-        
-        """
-        module = self.current_pipeline.get_module_by_id(module_id)
-        p_id = self.vistrail.idScope.getNewId(PortSpec.vtType)
-        port_spec = PortSpec(id=p_id,
-                             type=port_tuple[0],
-                             name=port_tuple[1],
-                             sigstring=port_tuple[2],
-                             )
-        action = core.db.action.create_action([('add', port_spec,
-                                                module.vtType, module.id)])
-        return action
-
-    @vt_action
-    def delete_module_port(self, module_id, port_tuple):
-        """
-        Parameters
-        ----------
-        
-        - module_id : 'int'
-        - port_tuple : (portType, portName, portSpec)
-        
-        """
-        spec_id = -1
-        module = self.current_pipeline.get_module_by_id(module_id)
-        port_spec = module.get_portSpec_by_name((port_tuple[1], port_tuple[0]))
-        action_list = [('delete', port_spec, module.vtType, module.id)]
-        for function in module.functions:
-            if function.name == port_spec.name:
-                action_list.append(('delete', function, 
-                                    module.vtType, module.id))
-        action = core.db.action.create_action(action_list)
-        return action
-
-    def create_group(self, module_ids, connection_ids):
-        self.flush_delayed_actions()
-        (group, connections) = \
-            BaseController.create_group(self, self.current_pipeline, 
-                                        module_ids, connection_ids)
-        op_list = []
-        op_list.extend(('delete', self.current_pipeline.connections[c_id])
-                       for c_id in connection_ids)
-        op_list.extend(('delete', self.current_pipeline.modules[m_id]) 
-                       for m_id in module_ids)
-        op_list.append(('add', group))
-        op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-#         for op in action.operations:
-#             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
-        result = self.perform_action(action)
-        return group
-    
-    def create_abstraction(self, module_ids, connection_ids, name):
-        self.flush_delayed_actions()
-        (abstraction, connections) = \
-            BaseController.create_abstraction(self, self.current_pipeline, 
-                                              module_ids, connection_ids, name)
-        op_list = []
-        op_list.extend(('delete', self.current_pipeline.connections[c_id])
-                       for c_id in connection_ids)
-        op_list.extend(('delete', self.current_pipeline.modules[m_id]) 
-                       for m_id in module_ids)
-        op_list.append(('add', abstraction))
-        op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        result = self.perform_action(action)
-        return abstraction
-
-    def create_abstractions_from_groups(self, group_ids):
-        for group_id in group_ids:
-            self.create_abstraction_from_group(group_id)
-
-    def create_abstraction_from_group(self, group_id, name=""):
-        self.flush_delayed_actions()
-        name = self.get_abstraction_name(name)
-        
-        (abstraction, connections) = \
-            BaseController.create_abstraction_from_group(self, 
-                                                         self.current_pipeline, 
-                                                         group_id, name)
-
-        op_list = []
-        getter = self.get_connections_to_and_from
-        op_list.extend(('delete', c)
-                       for c in getter(self.current_pipeline, [group_id]))
-        op_list.append(('delete', self.current_pipeline.modules[group_id]))
-        op_list.append(('add', abstraction))
-        op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        result = self.perform_action(action)
-        return abstraction
-
-
-    def ungroup_set(self, module_ids):
-        self.flush_delayed_actions()
-        for m_id in module_ids:
-            self.create_ungroup(m_id)
-
-    def create_ungroup(self, module_id):
-        (modules, connections) = \
-            BaseController.create_ungroup(self, self.current_pipeline, 
-                                          module_id)
-        pipeline = self.current_pipeline
-        old_conn_ids = self.get_module_connection_ids([module_id], 
-                                                      pipeline.graph)
-        op_list = []
-        op_list.extend(('delete', pipeline.connections[c_id]) 
-                       for c_id in old_conn_ids)
-        op_list.append(('delete', pipeline.modules[module_id]))
-        op_list.extend(('add', m) for m in modules)
-        op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        res = self.perform_action(action)
-        self.validate(self.current_pipeline, False)
-        return res
+        return BaseController.add_module(identifier, name, namespace, x, y,
+                                         internal_version)
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
                                        name=""):
@@ -700,7 +317,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return ([], False)
     
     def enable_missing_package(self, identifier, deps):
-        from gui.application import VistrailsApplication
+        from gui.application import get_vistrails_application
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 
@@ -712,7 +329,7 @@ class VistrailController(QtCore.QObject, BaseController):
                             [YES_BUTTON, NO_BUTTON], 
                             YES_BUTTON)
         if res == NO_BUTTON:
-#             QtGui.QMessageBox.warning(VistrailsApplication.builderWindow,
+#             QtGui.QMessageBox.warning(get_vistrails_application().builderWindow,
 #                                       'Missing modules',
 #                                       'Some necessary modules will be missing.')
             return False
@@ -757,20 +374,20 @@ class VistrailController(QtCore.QObject, BaseController):
             self.do_version_switch(new_version, report_all_errors,
                                    do_validate, from_root)
         except InvalidPipeline, e:
-            from gui.application import VistrailsApplication
+            from gui.application import get_vistrails_application
 
 
 #             def process_err(err):
 #                 if isinstance(err, Package.InitializationFailed):
 #                     QtGui.QMessageBox.critical(
-#                         VistrailsApplication.builderWindow,
+#                         get_vistrails_application().builderWindow,
 #                         'Package load failed',
 #                         'Package "%s" failed during initialization. '
 #                         'Please contact the developer of that package '
 #                         'and report a bug.' % err.package.name)
 #                 elif isinstance(err, PackageManager.MissingPackage):
 #                     QtGui.QMessageBox.critical(
-#                         VistrailsApplication.builderWindow,
+#                         get_vistrails_application().builderWindow,
 #                         'Unavailable package',
 #                         'Cannot find package "%s" in\n'
 #                         'list of available packages. \n'
@@ -782,11 +399,11 @@ class VistrailController(QtCore.QObject, BaseController):
 #                            (err._port_type, err._port_name, 
 #                             err._module_name, err._package_name)
 #                     QtGui.QMessageBox.critical(
-#                         VistrailsApplication.builderWindow, 'Missing port',
+#                         get_vistrails_application().builderWindow, 'Missing port',
 #                         msg)
 #                 else:
 #                     QtGui.QMessageBox.critical(
-#                         VistrailsApplication.builderWindow,
+#                         get_vistrails_application().builderWindow,
 #                         'Invalid Pipeline', str(err))
 
             # VisTrails will not raise upgrade exceptions unless
@@ -795,7 +412,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
             exception_set = e.get_exception_set()
             if len(exception_set) > 0:
-#                msg_box = QtGui.QMessageBox(VistrailsApplication.builderWindow)
+#                msg_box = QtGui.QMessageBox(get_vistrails_application().builderWindow)
 #                msg_box.setIcon(QtGui.QMessageBox.Warning)
 #                msg_box.setText("The current workflow could not be validated.")
 #                msg_box.setInformativeText("Errors occurred when trying to "
@@ -872,6 +489,12 @@ class VistrailController(QtCore.QObject, BaseController):
         if full != self.full_tree:
             self.full_tree = full
             self.invalidate_version_tree(True)
+
+    def recompute_terse_graph(self):
+        BaseController.recompute_terse_graph(self)
+        self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
+        self._current_graph_layout.layout_from(self.vistrail,
+                                               self._current_terse_graph)
 
     def refine_graph(self, step=1.0):
         """ refine_graph(step: float in [0,1]) -> (Graph, Graph)        

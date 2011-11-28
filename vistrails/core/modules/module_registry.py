@@ -32,7 +32,6 @@
 ##
 ###############################################################################
 
-from PyQt4 import QtCore
 import __builtin__
 from itertools import izip
 import copy
@@ -41,8 +40,8 @@ import tempfile
 import traceback
 import uuid
 
+from core import debug, get_vistrails_application
 from core.data_structures.graph import Graph
-from core import debug
 import core.modules
 import core.modules.vistrails_module
 from core.modules.module_descriptor import ModuleDescriptor
@@ -134,69 +133,107 @@ def _toposort_abstractions(package, abstraction_list):
 ###############################################################################
 # ModuleRegistrySignals
 
-# Refactored this because __class__ assignment fails on ModuleRegistry
-# if it inherits from QtCore.QObject
-class ModuleRegistrySignals(QtCore.QObject):
+class ModuleRegistrySignals(object):
 
-    # new_module_signal is emitted with descriptor of new module
-    new_module_signal = QtCore.SIGNAL("new_module")
-    # new_abstraction_signal is emitted with descriptor of new abstraction
-    new_abstraction_signal = QtCore.SIGNAL("new_abstraction")
-    # new_package_signal is emitted with identifier of new package (only for abstractions)
-    new_package_signal = QtCore.SIGNAL("new_package")
-    # deleted_module_signal is emitted with descriptor of deleted module
-    deleted_module_signal = QtCore.SIGNAL("deleted_module")
-    # deleted_abstraction_signal is emitted with descriptor of deleted abstraction
-    deleted_abstraction_signal = QtCore.SIGNAL("deleted_abstraction")
-    # deleted_package_signal is emitted with package identifier
-    deleted_package_signal = QtCore.SIGNAL("deleted_package")
-    # new_input_port_signal is emitted with identifier and name of module, 
-    # new port and spec
-    new_input_port_signal = QtCore.SIGNAL("new_input_port_signal")
-    # new_output_port_signal is emitted with identifier and name of module,
-    # new port and spec
-    new_output_port_signal = QtCore.SIGNAL("new_output_port_signal")
+    # # new_module_signal is emitted with descriptor of new module
+    # new_module_signal = QtCore.SIGNAL("new_module")
+    # # new_abstraction_signal is emitted with descriptor of new abstraction
+    # new_abstraction_signal = QtCore.SIGNAL("new_abstraction")
+    # # new_package_signal is emitted with identifier of new package (only for abstractions)
+    # new_package_signal = QtCore.SIGNAL("new_package")
+    # # deleted_module_signal is emitted with descriptor of deleted module
+    # deleted_module_signal = QtCore.SIGNAL("deleted_module")
+    # # deleted_abstraction_signal is emitted with descriptor of deleted abstraction
+    # deleted_abstraction_signal = QtCore.SIGNAL("deleted_abstraction")
+    # # deleted_package_signal is emitted with package identifier
+    # deleted_package_signal = QtCore.SIGNAL("deleted_package")
+    # # new_input_port_signal is emitted with identifier and name of module, 
+    # # new port and spec
+    # new_input_port_signal = QtCore.SIGNAL("new_input_port_signal")
+    # # new_output_port_signal is emitted with identifier and name of module,
+    # # new port and spec
+    # new_output_port_signal = QtCore.SIGNAL("new_output_port_signal")
 
-    show_module_signal = QtCore.SIGNAL("show_module")
-    hide_module_signal = QtCore.SIGNAL("hide_module")
-    module_updated_signal = QtCore.SIGNAL("module_updated")
+    # show_module_signal = QtCore.SIGNAL("show_module")
+    # hide_module_signal = QtCore.SIGNAL("hide_module")
+    # module_updated_signal = QtCore.SIGNAL("module_updated")
 
     def __init__(self):
-        QtCore.QObject.__init__(self)
+        app = get_vistrails_application()
+        notifications = ["reg_new_module",
+                         "reg_new_abstraction",
+                         "reg_new_package",
+                         "reg_deleted_module",
+                         "reg_deleted_abstraction",
+                         "reg_deleted_package",
+                         "reg_new_input_port",
+                         "reg_new_output_port",
+                         "reg_show_module",
+                         "reg_hide_module",
+                         "reg_module_updated"]
+
+        for notification in notifications:
+            app.create_notification(notification)
+        
+    def emit_new_module(self, descriptor):
+        app = get_vistrails_application()
+        app.send_notification("reg_new_module", descriptor)
+        # self.emit(self.new_module_signal, descriptor)
+
+    def emit_new_abstraction(self, descriptor):
+        app = get_vistrails_application()
+        app.send_notification("reg_new_abstraction", descriptor)
+        # self.emit(self.new_abstraction_signal, descriptor)
 
     def emit_new_package(self, identifier, prepend=False):
-        self.emit(self.new_package_signal, identifier, prepend)
-
-    def emit_new_module(self, descriptor):
-        self.emit(self.new_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_new_package", identifier, prepend)
+        # self.emit(self.new_package_signal, identifier, prepend)        
         
-    def emit_new_abstraction(self, descriptor):
-        self.emit(self.new_abstraction_signal, descriptor)
-        
-    def emit_deleted_abstraction(self, descriptor):
-        self.emit(self.deleted_abstraction_signal, descriptor)
-    
     def emit_deleted_module(self, descriptor):
-        self.emit(self.deleted_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_deleted_module", descriptor)
+        # self.emit(self.deleted_module_signal, descriptor)
 
+    def emit_deleted_abstraction(self, descriptor):
+        app = get_vistrails_application()
+        app.send_notification("reg_deleted_abstraction", descriptor)
+        # self.emit(self.deleted_abstraction_signal, descriptor)
+    
     def emit_deleted_package(self, package):
-        self.emit(self.deleted_package_signal, package)
+        app = get_vistrails_application()
+        app.send_notification("reg_deleted_package", package)
+        # self.emit(self.deleted_package_signal, package)
 
     def emit_new_input_port(self, identifier, name, port_name, spec):
-        self.emit(self.new_input_port_signal, identifier, name, port_name, spec)
+        app = get_vistrails_application()
+        app.send_notification("reg_new_input_port", identifier, name, 
+                              port_name, spec)
+        # self.emit(self.new_input_port_signal, identifier, name, port_name,
+        #           spec)
 
     def emit_new_output_port(self, identifier, name, port_name, spec):
-        self.emit(self.new_output_port_signal, identifier, name, port_name, 
-                  spec)
+        app = get_vistrails_application()
+        app.send_notification("reg_new_output_port", identifier, name, 
+                              port_name, spec)
+        # self.emit(self.new_output_port_signal, identifier, name, port_name, 
+        #           spec)
 
     def emit_show_module(self, descriptor):
-        self.emit(self.show_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_show_module", descriptor)
+        # self.emit(self.show_module_signal, descriptor)
 
     def emit_hide_module(self, descriptor):
-        self.emit(self.hide_module_signal, descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_hide_module", descriptor)
+        # self.emit(self.hide_module_signal, descriptor)
 
     def emit_module_updated(self, old_descriptor, new_descriptor):
-        self.emit(self.module_updated_signal, old_descriptor, new_descriptor)
+        app = get_vistrails_application()
+        app.send_notification("reg_module_updated", old_descriptor, 
+                              new_descriptor)
+        # self.emit(self.module_updated_signal, old_descriptor, new_descriptor)
 
 ###############################################################################
 # ModuleRegistry

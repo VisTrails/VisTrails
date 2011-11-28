@@ -33,12 +33,10 @@
 ###############################################################################
 # We need to remove QtGui and QtCore refernce by storing all of our
 # notes in plain text, not html, should be fix later
-from PyQt4 import QtGui
-from PyQt4.QtCore import QString
+from core.query import extract_text
 import core.utils
 import re
 import time
-import xml.sax.saxutils
 
 ################################################################################
 
@@ -414,9 +412,7 @@ class UserSearchStmt(SearchStmt):
 class NotesSearchStmt(SearchStmt):
     def match(self, vistrail, action):
         if vistrail.has_notes(action.id):
-            notes = xml.sax.saxutils.unescape(vistrail.get_notes(action.id))
-            fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
-            plainNotes = str(fragment.toPlainText())
+            plainNotes = extract_text(vistrail.get_notes(action.id))
             return self.content.search(plainNotes)
         return False
 

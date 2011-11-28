@@ -34,8 +34,8 @@
 """Main file for running VisTrails in server mode"""
 
 if __name__ == '__main__':
-    import core.requirements
-    core.requirements.check_pyqt4()
+    import gui.requirements
+    gui.requirements.check_pyqt4()
 
     from PyQt4 import QtGui
     import gui.application_server

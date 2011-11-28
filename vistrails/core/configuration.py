@@ -34,21 +34,19 @@
 
 """Configuration variables for controlling specific things in VisTrails."""
 
-from core import debug
-from core import system
-from core.utils import InstanceObject, Ref
-from core.utils.uxml import (named_elements,
-                             elements_filter, eval_xml_value,
-                             quote_xml_value)
-from PyQt4 import QtCore
 import copy
-#import core.logger
 import os.path
 import shutil
 import sys
 import tempfile
-from core.utils import append_to_dict_of_lists
 import weakref
+
+from core import debug
+from core import system
+from core.utils import InstanceObject, Ref, append_to_dict_of_lists
+from core.utils.uxml import (named_elements,
+                             elements_filter, eval_xml_value,
+                             quote_xml_value)
 
 ##############################################################################
 
@@ -304,9 +302,10 @@ def get_vistrails_persistent_configuration():
     get_vistrails_temp_configuration.
 
     """
-    if hasattr(QtCore.QCoreApplication.instance(),
-               'configuration'):
-        return QtCore.QCoreApplication.instance().configuration
+    from core.application import get_vistrails_application
+    app = get_vistrails_application()
+    if hasattr(app, 'configuration'):
+        return app.configuration
     else:
         return None
     
@@ -319,9 +318,10 @@ def get_vistrails_configuration():
     use get_vistrails_persistent_configuration() instead.
     
     """
-    if hasattr(QtCore.QCoreApplication.instance(),
-               'temp_configuration'):
-        return QtCore.QCoreApplication.instance().temp_configuration
+    from core.application import get_vistrails_application
+    app = get_vistrails_application()
+    if hasattr(app, 'temp_configuration'):
+        return app.temp_configuration
     else:
         return None
 
@@ -334,8 +334,9 @@ def get_vistrails_temp_configuration():
     use get_vistrails_persistent_configuration() instead.
     
     """
-    if hasattr(QtCore.QCoreApplication.instance(),
-               'temp_configuration'):
-        return QtCore.QCoreApplication.instance().temp_configuration
+    from core.application import get_vistrails_application
+    app = get_vistrails_application()
+    if hasattr(app, 'temp_configuration'):
+        return app.temp_configuration
     else:
         return None

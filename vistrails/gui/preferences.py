@@ -33,6 +33,7 @@
 ###############################################################################
 
 from PyQt4 import QtGui, QtCore
+from core import get_vistrails_application
 from core.packagemanager import get_package_manager
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
@@ -250,11 +251,14 @@ class QPackagesWidget(QtGui.QWidget):
                      self.select_package_after_update_slot,
                      QtCore.Qt.QueuedConnection)
 
-        pm = get_package_manager()
-        self.connect(pm,
-                     pm.reloading_package_signal,
-                     self.reload_current_package_finisher,
-                     QtCore.Qt.QueuedConnection)
+        # pm = get_package_manager()
+        # self.connect(pm,
+        #              pm.reloading_package_signal,
+        #              self.reload_current_package_finisher,
+        #              QtCore.Qt.QueuedConnection)
+        app = get_vistrails_application()
+        app.register_notification("pm_reloading_package", 
+                                  self.reload_current_package_finisher)
         
         self.populate_lists()
 
@@ -543,10 +547,13 @@ class QPreferencesDialog(QtGui.QDialog):
         l.addWidget(self._status_bar)
 
     def close_dialog(self):
-        pm = get_package_manager()
-        self.disconnect(pm,
-                        pm.reloading_package_signal,
-                        self._packages_tab.reload_current_package_finisher)
+        # pm = get_package_manager()
+        # self.disconnect(pm,
+        #                 pm.reloading_package_signal,
+        #                 self._packages_tab.reload_current_package_finisher)
+        app = get_vistrails_application()
+        app.unregister_notification("pm_reloading_package", 
+                                    self._packages_tab.reload_current_package_finisher)
 
         retval = 0
         if self._packages_tab.erase_cache:
@@ -603,5 +610,5 @@ class QPreferencesDialog(QtGui.QDialog):
         
         """
         from PyQt4 import QtCore
-        from gui.application import VistrailsApplication
-        VistrailsApplication.save_configuration()
+        from gui.application import get_vistrails_application
+        get_vistrails_application().save_configuration()

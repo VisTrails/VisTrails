@@ -33,11 +33,10 @@
 ###############################################################################
 # search functions for entity-type objects
 # notes in plain text, not html, should be fix later
-from PyQt4 import QtGui
-from PyQt4.QtCore import QString
 import re
 import time
-import xml.sax.saxutils
+
+from core.query import extract_text
 
 ################################################################################
 
@@ -413,9 +412,7 @@ class UserSearchStmt(SearchStmt):
 class NotesSearchStmt(SearchStmt):
     def match(self, entity):
         if entity.description:
-            notes = xml.sax.saxutils.unescape(entity.description)
-            fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
-            plainNotes = str(fragment.toPlainText())
+            plainNotes = extract_text(entity.description)
             return self.content.search(plainNotes)
         return False
 
