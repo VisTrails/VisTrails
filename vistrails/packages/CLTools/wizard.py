@@ -36,6 +36,7 @@ import sys
 import os
 import json
 import subprocess
+import platform
 from PyQt4 import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
@@ -43,6 +44,22 @@ encode_list = [['\xe2\x80\x90', '-'],
                ['\xe2\x80\x9c', '"']]
 
 SUFFIX = '.clt'
+
+def default_dir():
+    systemType = platform.system()
+    if systemType in ['Windows', 'Microsoft']:
+        if len(os.environ['HOMEPATH']) == 0:
+            root = '\\'
+        else:
+            root = os.environ['HOMEDRIVE'] + os.environ['HOMEPATH']
+    else:
+        root = os.getenv('HOME')
+    default_dir = os.path.join(root, '.vistrails', 'CLTools')
+    if not os.path.exists(default_dir):
+        os.mkdir(default_dir)
+    return default_dir
+    
+    
 
 class QCLToolsWizard(QtGui.QWidget):
     def __init__(self, parent):
@@ -226,7 +243,9 @@ class QCLToolsWizard(QtGui.QWidget):
     
     def openFile(self):
         fileName = QtGui.QFileDialog.getOpenFileName(self,
-                "Open Wrapper", max(self.file, ''), "Wrappers (*%s)" % SUFFIX)
+                "Open Wrapper",
+                self.file if self.file else default_dir(),
+                "Wrappers (*%s)" % SUFFIX)
         if not fileName:
             return
         try:
@@ -289,7 +308,8 @@ class QCLToolsWizard(QtGui.QWidget):
 
     def saveAs(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self,
-                            "Save Wrapper as", max(self.file, ''),
+                            "Save Wrapper as",
+                            self.file if self.file else default_dir(),
                             "Wrappers (*%s)" % SUFFIX)
         if fileName:
             self.file = str(fileName)

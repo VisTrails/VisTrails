@@ -192,8 +192,17 @@ def add_tool(path):
         # On windows, builtin commands like cd/dir must use shell=True
         if core.system.systemType in ['Windows', 'Microsoft'] and \
                           args[0] in ['dir', 'cd']:
-            kwargs['shell'] = True   
+            kwargs['shell'] = True
             
+        if configuration.check('env'):
+            env = os.environ
+            for var in configuration.env.split(";"):
+                key, value = var.split('=')
+                key = key.strip()
+                value = value.strip()
+                if key:
+                    env[key] = value
+            kwargs['env'] = env
         #print "calling", args, kwargs
         process = subprocess.Popen(args, **kwargs)
         if file_std:

@@ -53,6 +53,14 @@ Supported flags::
 
 .. _fig-cltools-import:
 
+Setting environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If your commands need to set environment variables, such as the PATH variable, this can be done by setting the **env** configuration variable for the CLTools package.
+
+Go to the Preferences->Module Packages dialog, select **CLTools**, make sure it is enabled, and select **Configure...**. Set the **env** variable to the preferred environment. Separate name and value using **=** and variables using **;**.
+
+Note that if you replace e.g. the **PATH** variable, you should include the existing path, which can be found by running ``echo $PATH`` on the command line.
+
 Creating a standalone package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -121,6 +129,6 @@ ARGOPTIONDICT is a dict containing argument options. recognized options are:
         "stderr": ["stderr", "String", {}]
         }
 
-    Save as ``.vistrails/CLTools/cat.clt``
+    Save as ``{yourhomedirectory}/.vistrails/CLTools/cat.clt``
     Reload CLTools package in VisTrails. Test the new module.
 
