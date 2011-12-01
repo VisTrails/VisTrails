@@ -116,7 +116,7 @@ class VistrailsStartup(object):
             self.installPackages()
         self.runStartupHooks()
 
-    def set_needed_packages(package_list):
+    def set_needed_packages(self, package_list):
         self._needed_packages = package_list
 
     ##########################################################################
