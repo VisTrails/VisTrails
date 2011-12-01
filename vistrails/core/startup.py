@@ -99,7 +99,8 @@ class VistrailsStartup(object):
             
         self._do_load_packages = True
         self._package_dictionary = {}
-        
+        # stores all packages that must be enabled on startup
+        self._needed_packages = []
         
     def init(self):
         """ init() -> None        
@@ -114,6 +115,9 @@ class VistrailsStartup(object):
             # self.setupBaseModules()
             self.installPackages()
         self.runStartupHooks()
+
+    def set_needed_packages(package_list):
+        self._needed_packages = package_list
 
     ##########################################################################
     # startup.xml related
@@ -144,6 +148,9 @@ class VistrailsStartup(object):
         Loads the appropriate packages from .vistrails/startup.xml.
         """
         
+        for package_name in self._needed_packages:
+            self._package_manager.add_package(package_name)
+
         def parse_package(node):
             is_value = (lambda node: node.nodeName in
                         set(['bool', 'str', 'int', 'float']))
