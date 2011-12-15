@@ -741,8 +741,8 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                 if (row!=-1 and col!=-1):
                     pipeline = self.setPipelineToLocateAt(row, col, pipeline)
             executePipelineWithProgress(pipeline, 'Execute Cell',
-                                        vistrailLocator=controller.locator,
-                                        currentVersion=versionId,
+                                        locator=controller.locator,
+                                        current_version=versionId,
                                         reason='Drop Version')
         else:
             event.ignore()
