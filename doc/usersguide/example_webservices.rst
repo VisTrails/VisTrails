@@ -65,7 +65,7 @@ dialog  for  this package(``SUDSWebServices``).   Select  the  ``wsdlList``  and
 
 For our example, we need the following URL:
 
-``http://www.ebi.ac.uk/webservices/chebi/webservice?wsdl``
+``http://www.ebi.ac.uk/webservices/chebi/2.0/webservice?wsdl``
 
 After   closing   the   dialog,    you   need   to reload the ``SUDSWebServices`` package in order to load  the changes. Then, close the ``Preferences`` dialog.  A new package will be created for each URL provided.
 
