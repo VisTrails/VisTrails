@@ -258,7 +258,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def add_module(self, x, y, identifier, name, namespace='', 
                    internal_version=-1):
-        return BaseController.add_module(identifier, name, namespace, x, y,
+        return BaseController.add_module(self, identifier, name, namespace, x, y,
                                          internal_version)
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
