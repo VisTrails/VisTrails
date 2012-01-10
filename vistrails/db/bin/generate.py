@@ -322,19 +322,19 @@ def main(argv=None):
                      os.path.join(versionDirs['xmlSchema'], 'vistrail.xsd'),
                      False)
 
-        # run_template('templates/xml_schema.xsd.mako', 
-        #              xml_gen_objects.convert_schema_order(xml_objects, 
-        #                                                   'workflow'),
-        #              version, versionName,
-        #              os.path.join(versionDirs['xmlSchema'], 'workflow.xsd'),
-        #              False)
+        run_template('templates/xml_schema.xsd.mako', 
+                     xml_gen_objects.convert_schema_order(xml_objects, 
+                                                          'workflow'),
+                     version, versionName,
+                     os.path.join(versionDirs['xmlSchema'], 'workflow.xsd'),
+                     False)
 
-        # run_template('templates/xml_schema.xsd.mako', 
-        #              xml_gen_objects.convert_schema_order(xml_objects, 
-        #                                                   'log'),
-        #              version, versionName,
-        #              os.path.join(versionDirs['xmlSchema'], 'log.xsd'),
-        #              False)
+        run_template('templates/xml_schema.xsd.mako', 
+                     xml_gen_objects.convert_schema_order(xml_objects, 
+                                                          'log'),
+                     version, versionName,
+                     os.path.join(versionDirs['xmlSchema'], 'log.xsd'),
+                     False)
 
         run_template('templates/xml.py.mako', xml_objects, version, versionName,
                      os.path.join(versionDirs['xmlPersistence'], 'auto_gen.py'),

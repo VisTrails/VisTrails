@@ -5197,8 +5197,6 @@ class DBDeleteSQLDAOBase(SQLDAO):
     def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
-            if type(row[2])==str:
-                print "from delete_tbl is this not:", row, global_props
             id = self.convertFromDB(row[0], 'long', 'int')
             what = self.convertFromDB(row[1], 'str', 'varchar(255)')
             objectId = self.convertFromDB(row[2], 'long', 'int')
