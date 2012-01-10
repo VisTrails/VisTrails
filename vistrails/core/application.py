@@ -469,7 +469,7 @@ after self.init()"""
         #print '>>> GLOBAL adding notification', notification_id, method  
         #print id(notifications), notifications
         if notification_id not in notifications:
-            self.create_notification(notification_id, link_view, window, view)
+            self.create_notification(notification_id)
         notifications[notification_id].add(method)
 
     def unregister_notification(self, notification_id, method, *args, **kwargs):
