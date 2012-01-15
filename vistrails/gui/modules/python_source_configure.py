@@ -179,6 +179,8 @@ def NewPythonEditor(parent):
         
             # folding margin colors (foreground,background)
             self.setFoldMarginColors(QtGui.QColor("#DDDDDD"),QtGui.QColor("#DDDDDD"))
+            self.setTabWidth(4)
+            self.setTabIndents(True)
         
             ## Choose a lexer
             lexer = QsciLexerPython()
@@ -206,16 +208,6 @@ def NewPythonEditor(parent):
             
             """
             return self.text()
-    
-        def keyPressEvent(self, event):
-            """ keyPressEvent(event: QKeyEvent) -> None
-            Handle tab with 4 spaces
-            
-            """
-            if event.key()==QtCore.Qt.Key_Tab:
-                self.insertPlainText('    ')
-            else:
-                QsciScintilla.keyPressEvent(self, event)
     
         def focusOutEvent(self, event):
             if self.parent():
