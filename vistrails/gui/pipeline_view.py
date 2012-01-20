@@ -216,21 +216,18 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         if len(remove_modules) > 0:
             self.scene().noUpdate = True
             idList = [m.id for m in remove_modules]
-            connections = set()
+            connection_ids = set()
             for m in remove_modules:
                 # dependingConnectionItems requires the module item to be in the scene
                 self.scene().addItem(m)
-                connections.update([c[0] for c in m.dependingConnectionItems()])
+                connection_ids.update(m.dependingConnectionItems().iterkeys())
             #update the dependency list on the other side of connections
-            for conn in connections:
-                self.scene()._old_connection_ids.remove(conn.id)
-                del self.scene().connections[conn.id]
-                if conn.connection.source:
-                    mid = conn.connection.source.moduleId 
-                    m = self.scene().modules[mid]
-                if conn.connection.destination:
-                    mid = conn.connection.destination.moduleId
-                    m = self.scene().modules[mid]
+            connections = []
+            for c_id in connection_ids:
+                conn = self.scene().connections[c_id]
+                connections.append(conn)
+                self.scene()._old_connection_ids.remove(c_id)
+                del self.scene().connections[c_id]
             ops.extend(self.controller.delete_module_list_ops(self.controller.current_pipeline, idList))
             for (mId, item) in self.scene().modules.items():
                 if item in remove_modules:
@@ -946,6 +943,48 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self._needs_state_updated = True
         self.progress = 0.0
         self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
+        self.connectionItems = {}
+
+    def moduleHasChanged(self, core_module):
+        def module_text_has_changed(m1, m2):
+            m1_has = '__desc__' in m1.db_annotations_key_index
+            if m1_has != ('__desc__' in m2.db_annotations_key_index):
+                return True
+            if (m1_has and
+                # m2_has, since m1_has and previous condition
+                m1.db_annotations_key_index['__desc__'].value.strip()!=
+                m2.db_annotations_key_index['__desc__'].value.strip()):
+                return True            
+            return False
+
+        if self.scenePos().x() != core_module.center.x or \
+                -self.scenePos().y() != core_module.center.y:
+            return True
+        elif module_text_has_changed(self.module, core_module):
+            return True
+        else:
+            # Check for changed ports
+            # _db_name because this shows up in the profile.
+            cip = sorted([x.key_no_id() for x in self.inputPorts])
+            cop = sorted([x.key_no_id() for x in self.outputPorts])
+            d = PortEndPoint.Destination
+            s = PortEndPoint.Source
+            pv = core_module.portVisible
+            new_ip = []
+            new_op = []
+            try:
+                new_ip = sorted([x.key_no_id() 
+                                 for x in core_module.destinationPorts()
+                                 if (not x.optional or (d, x._db_name) in pv)])
+                new_op = sorted([x.key_no_id() 
+                                 for x in core_module.sourcePorts()
+                                 if (not x.optional or (s, x._db_name) in pv)])
+            except ModuleRegistryException, e:
+                debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
+            if cip <> new_ip or cop <> new_op:
+                return True
+        return False
+        
 
     def setProgress(self, progress):
         self.progress = progress
@@ -1434,26 +1473,23 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                     operator.sub,
                                     '(edu.utah.sci.vistrails.basic:Module)')
 
+    def addConnectionItem(self, item):
+        self.connectionItems[item.connection.id] = item
+
+    def removeConnectionItem(self, item):
+        del self.connectionItems[item.connection.id]
+
+    # returns a dictionary of (id, connection) key-value pairs!
     def dependingConnectionItems(self):
-        pip = self.controller.current_pipeline
-        sc = self.scene()
-        result = []
-        if pip:
-            try:
-                for (_, edge_id) in pip.graph.edges_from(self.module.id):
-                    result.append((sc.connections[edge_id], False))
-            except KeyError:
-                # On module about to be deleted, the
-                # qmodulegraphicsitem exists, but the pipeline is gone
-                pass
-            try:
-                for (_, edge_id) in pip.graph.edges_to(self.module.id):
-                    result.append((sc.connections[edge_id], True))
-            except KeyError:
-                # On module about to be deleted, the
-                # qmodulegraphicsitem exists, but the pipeline is gone
-                pass
-        return result
+        return self.connectionItems
+
+    # this is a generator that yields (connection, is_source [bool]) pairs
+    def dependingConnectionItemsWithDir(self):
+        for item in self.connectionItems.itervalues():
+            if item.connectingModules[0].id == self.id:
+                yield (item, False)
+            else:
+                yield (item, True)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
@@ -1466,7 +1502,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             oldPos = self.pos()
             newPos = value.toPointF()
             dis = newPos - oldPos
-            for connectionItem, s in self.dependingConnectionItems():
+            for connectionItem, s in self.dependingConnectionItemsWithDir():
                 # If both modules are selected, both of them will
                 # trigger itemChange events.
 
@@ -1505,7 +1541,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                         item.useSelectionRules = False
                         item.setSelected(False)
             # Handle connections from self
-            for (item, start) in self.dependingConnectionItems():
+            for item in self.dependingConnectionItems().itervalues():
                 # Select any connections between self and other selected modules
                 (srcModule, dstModule) = item.connectingModules
                 if value.toBool():
@@ -1667,6 +1703,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 raise e
         self.connections[connection.id] = connectionItem
         self._old_connection_ids.add(connection.id)
+        srcModule.addConnectionItem(connectionItem)
+        dstModule.addConnectionItem(connectionItem)
         return connectionItem
 
     def selected_subgraph(self):
@@ -1722,6 +1760,11 @@ mutual connections."""
         Removes connection from scene, updating appropriate data structures.
 
         """
+        # if c_id in self.connections:
+        connItem = self.connections[c_id]
+        (srcModule, dstModule) = connItem.connectingModules
+        srcModule.removeConnectionItem(connItem)
+        dstModule.removeConnectionItem(connItem)
         self.removeItem(self.connections[c_id])
         del self.connections[c_id]
         self._old_connection_ids.remove(c_id)
@@ -1733,39 +1776,27 @@ mutual connections."""
         Recreates a module on the scene."""
         selected = self.modules[m_id].isSelected()
 
-        depending_connections = self.modules[m_id].dependingConnectionItems()
-        old_depending_connections = self.modules[m_id]._old_connection_ids
+        depending_connections = \
+            [c_id for c_id in self.modules[m_id].dependingConnectionItems()]
+        # old_depending_connections = self.modules[m_id]._old_connection_ids
         
         self.remove_module(m_id)
         
         #when configuring a python source, maybe connections were deleted
         # but are not in the current pipeline. So we need to check the depending
         # connections of the module just before the configure. 
-        if not old_depending_connections: 
-            old_depending_connections = []
-        for it in set(depending_connections+old_depending_connections):
-            self.remove_connection(it[0].id)
+        for c_id in depending_connections:
+            self.remove_connection(c_id)
         
         self.addModule(pipeline.modules[m_id])
-        for it in depending_connections:
-            self.addConnection(pipeline.connections[it[0].id])
+        for c_id in depending_connections:
+            # only add back those connections that are in the pipeline
+            if c_id in pipeline.connections:
+                self.addConnection(pipeline.connections[c_id])
                                
         if selected:
             self.modules[m_id].setSelected(True)
             
-        self.modules[m_id]._old_connection_ids = None
-
-    def module_text_has_changed(self, m1, m2):
-        m1_has = '__desc__' in m1.db_annotations_key_index
-        if m1_has != ('__desc__' in m2.db_annotations_key_index):
-            return True
-        if (m1_has and
-            # m2_has, since m1_has and previous condition
-            m1.db_annotations_key_index['__desc__'].value.strip()!=
-            m2.db_annotations_key_index['__desc__'].value.strip()):
-            return True            
-        return False
-
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
         Construct the scene to view a pipeline
@@ -1809,6 +1840,13 @@ mutual connections."""
                     dmm = pipeline.modules[dmid]
                     dmm.portVisible.add((PortEndPoint.Destination,d.name))
 
+            # remove old connection shapes
+            print 'connections to be deleted:', connections_to_be_deleted
+            for c_id in connections_to_be_deleted:
+                self.remove_connection(c_id)
+                # self.removeItem(self.connections[c_id])
+                # del self.connections[c_id]
+
             # remove old module shapes
             for m_id in modules_to_be_deleted:
                 self.removeItem(self.modules[m_id])
@@ -1827,32 +1865,7 @@ mutual connections."""
                 tm_item = self.modules[m_id]
                 tm = tm_item.module
                 nm = pipeline.modules[m_id]
-                if tm_item.scenePos().x() != nm.center.x or \
-                        -tm_item.scenePos().y() != nm.center.y:
-                    self.recreate_module(pipeline, m_id)
-                    moved.add(m_id)
-                elif self.module_text_has_changed(tm, nm):
-                    self.recreate_module(pipeline, m_id)                    
-                tm_item.module = nm
-                # Check for changed ports
-                # _db_name because this shows up in the profile.
-                cip = sorted([x.key_no_id() for x in tm_item.inputPorts])
-                cop = sorted([x.key_no_id() for x in tm_item.outputPorts])
-                d = PortEndPoint.Destination
-                s = PortEndPoint.Source
-                pv = nm.portVisible
-                new_ip = []
-                new_op = []
-                try:
-                    new_ip = sorted([x.key_no_id() for x in nm.destinationPorts()
-                                     if (not x.optional or
-                                         (d, x._db_name) in pv)])
-                    new_op = sorted([x.key_no_id() for x in nm.sourcePorts()
-                                     if (not x.optional or
-                                         (s, x._db_name) in pv)])
-                except ModuleRegistryException, e:
-                    debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
-                if cip <> new_ip or cop <> new_op:
+                if tm_item.moduleHasChanged(nm):
                     self.recreate_module(pipeline, m_id)
                 if tm_item.isSelected():
                     selected_modules.append(m_id)
@@ -1864,11 +1877,6 @@ mutual connections."""
                 else:
                     tm_item.setGhosted(False)
                 tm_item.setBreakpoint(nm.is_breakpoint)
-
-            # remove old connection shapes
-            for c_id in connections_to_be_deleted:
-                self.removeItem(self.connections[c_id])
-                del self.connections[c_id]
 
             # create new connection shapes
             for c_id in connections_to_be_added:
@@ -2069,19 +2077,17 @@ mutual connections."""
             if len(modules)>0:
                 self.noUpdate = True
                 idList = [m.id for m in modules]
-                connections = set()
+                connection_ids = set()
                 for m in modules:
-                    connections.update([c[0] for c in m.dependingConnectionItems()])
+                    connection_ids.update(
+                        m.dependingConnectionItems().iterkeys())
                 #update the dependency list on the other side of connections
-                for conn in connections:
-                    self._old_connection_ids.remove(conn.id)
-                    del self.connections[conn.id]
-                    if conn.connection.source:
-                        mid = conn.connection.source.moduleId 
-                        m = self.modules[mid]
-                    if conn.connection.destination:
-                        mid = conn.connection.destination.moduleId
-                        m = self.modules[mid]
+                connections = []
+                for c_id in connection_ids:
+                    conn = self.connections[c_id]
+                    connections.append(conn)
+                    self._old_connection_ids.remove(c_id)
+                    del self.connections[c_id]
                 self.controller.delete_module_list(idList)
                 self.removeItems(connections)
                 for (mId, item) in self.modules.items():
@@ -2155,7 +2161,7 @@ mutual connections."""
                 module_ids[item.module.id] = 1
         for item in selectedItems:
             if type(item)==QGraphicsModuleItem:
-                for (connItem, start) in item.dependingConnectionItems():
+                for connItem in item.dependingConnectionItems().itervalues():
                     conn = connItem.connection
                     if not conn.id in connection_ids:
                         source_exists = conn.sourceId in module_ids
