@@ -58,6 +58,7 @@ from time import strptime
 
 from core.configuration import get_vistrails_configuration
 from gui.application import VistrailsApplicationInterface
+import gui.theme
 import core.application
 from gui import qt
 from core.db.locator import DBLocator, ZIPFileLocator, FileLocator
@@ -2085,6 +2086,7 @@ def start_server(optionsDict=None):
         print "Server already started."
         return
     VistrailsServer = VistrailsServerSingleton()
+    gui.theme.initializeCurrentTheme()
     core.application.set_vistrails_application(VistrailsServer)
     try:
         core.requirements.check_all_vistrails_requirements()
