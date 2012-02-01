@@ -191,6 +191,7 @@ class VistrailController(object):
         if not self.vistrail.is_abstraction:
             self.unload_abstractions()
         if locator is not None:
+            locator.clean_temporaries()
             locator.close()
             
     def set_id_scope(self, id_scope):
@@ -3211,6 +3212,7 @@ class VistrailController(object):
             if self.log:
                 self.log.delete_all_workflow_execs()
             self.set_changed(False)
+            locator.clean_temporaries()
 
             # delete any temporary subworkflows
             try:

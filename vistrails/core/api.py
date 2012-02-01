@@ -1,6 +1,8 @@
 import itertools
 
 import core.application
+from core.db.locator import FileLocator
+import core.db.io
 from core.modules.module_registry import get_module_registry
 # from core.modules.package import Package as _Package
 # from core.vistrail.module import Module as _Module
@@ -260,6 +262,7 @@ class VisTrailsAPI(object):
             app = core.application.get_vistrails_application()
         self._packages = None
         self._controller = app.get_controller()
+        self._old_log = None
 
     def add_module(self, identifier, name, namespace='', internal_version=-1):
         module = self._controller.add_module(identifier, name, namespace, 
@@ -308,3 +311,54 @@ class VisTrailsAPI(object):
             print identifier
             for module in package.get_modules():
                 print ' --', module
+
+    def _convert_version(self, version):
+        if type(version) == type(""):
+            try:
+                version = \
+                    self._controller.vistrail.get_version_number(version)
+            except:
+                raise Exception('Cannot locate version "%s"' % version)
+        return version
+
+    def tag_version(self, tag, version=None):
+        if version is None:
+            version = self._controller.current_version
+        else:
+            version = self._convert_version(version)
+        self._controller.vistrail.set_tag(version, tag)
+
+    def save_vistrail(self, fname, version=None):
+        locator = FileLocator(fname)
+        self._controller.write_vistrail(locator, version)
+
+    def load_vistrail(self, fname):
+        self._old_logs = None
+        locator = FileLocator(fname)
+        (vistrail, abstraction_files, thumbnail_files, mashups) = \
+            core.db.io.load_vistrail(locator, False)
+        self._controller.set_vistrail(vistrail, locator, abstraction_files,
+                                      thumbnail_files, mashups)
+        self._controller.select_latest_version()
+        
+    def select_version(self, version):
+        self._controller.change_selected_version(self._convert_version(version))
+
+    def close_vistrail(self):
+        self._controller.close_vistrail(self._controller.get_locator())
+
+    def get_current_workflow(self):
+        return self._controller.current_pipeline
+
+    def get_all_executions(self):
+        wf_execs = []
+        if (self._old_log is None and
+            hasattr(self._controller.vistrail, 'db_log_filename') and
+            self._controller.vistrail.db_log_filename is not None):
+            self._old_log = \
+                core.db.io.open_log(self._controller.vistrail.db_log_filename, True)
+        if self._old_log is not None:
+            wf_execs.extend(self._old_log.workflow_execs)
+        wf_execs.extend(self._controller.log.workflow_execs)
+        return wf_execs
+
