@@ -517,6 +517,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             v = self.get_vistrail()
             self._controller = VistrailController(v)
             self._controller.set_vistrail(v, None)
+            self._controller.change_selected_version(0)
         return self._controller
 
         
