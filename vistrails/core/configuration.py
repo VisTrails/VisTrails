@@ -43,7 +43,8 @@ import weakref
 
 from core import debug
 from core import system
-from core.utils import InstanceObject, Ref, append_to_dict_of_lists
+from core.utils import (InstanceObject, Ref, append_to_dict_of_lists,
+                        VistrailsInternalError)
 from core.utils.uxml import (named_elements,
                              elements_filter, eval_xml_value,
                              quote_xml_value)

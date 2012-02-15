@@ -61,7 +61,7 @@ if __name__ == '__main__':
     import gui.bundles.installbundle
     try:
         core.requirements.require_python_module('PyQt4.QtGui')
-	core.requirements.require_python_module('PyQt4.QtOpenGL')
+        core.requirements.require_python_module('PyQt4.QtOpenGL')
     except MissingRequirement, req:
         r = gui.bundles.installbundle.install(
             {'linux-ubuntu': ['python-qt4',
