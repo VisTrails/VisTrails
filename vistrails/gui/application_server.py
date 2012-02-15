@@ -1843,7 +1843,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         If parameters are missing, write them in and raise error.
         If file doesn't exist, create one and raise error. """
 
-        global accessList, db_host, db_read_user, db_read_pass, db_write_user, db_write_pass, media_dir
+        global accessList, db_host, db_read_user, db_read_pass, db_write_user, db_write_pass, media_dir, script_file, virtual_display
         accessList = []
         db_host = ''
         db_read_user = ''
@@ -1851,6 +1851,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         db_write_user = ''
         db_write_pass = ''
         media_dir = ''
+        script_file = ''
+        virtual_display = ''
 
         config = ConfigParser.ConfigParser()
         file_opened = config.read(filename)
@@ -1915,11 +1917,30 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             if not os.path.exists(media_dir):
                 raise Exception("media_dir %s doesn't exist." % media_dir)
 
+        if not config.has_section("script"):
+            config.add_section("script")
+            has_changed = True
+
+        if config.has_option("script", "script_file"):
+            script_file = config.get("script", "script_file")
+            if not os.path.exists(script_file):
+                raise Exception("script_file %s doesn't exist." % script_file)
+        else:
+            config.set("script", "script_file", "")
+            has_changed = True
+
+        if config.has_option("script", "virtual_display"):
+            virtual_display = config.get("script", "virtual_display")
+        
+        if virtual_display == "":
+            virtual_display = "0"
+
         # check if all required parameters are present
         missing_req_fields = [y for (x,y) in ((db_host,"host"),
                                               (db_read_user,"read_user"),
                                               (db_write_user,"write_user"),
                                               (media_dir,"media_dir"),
+                                              (script_file,"script_file"),
                                               (accessList,"permission_addresses")) if not x]
         if missing_req_fields:
             self.server_logger.error(("Following required parameters where missing "
@@ -1964,15 +1985,16 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         return True
 
     def start_other_instances(self, number):
+        global virtual_display, script_file
         self.others = []
         host = self.temp_xml_rpc_options.server
         port = self.temp_xml_rpc_options.port
-        virtual_display = 6
-        script = os.path.join(os.path.dirname(system.vistrails_root_directory()), "scripts", "start_vistrails_xvfb.sh")
+        virt_disp = int(virtual_display)
         for x in xrange(number):
-            port += 2 # each instance needs two port spaces (normal requests and status requests)
-            virtual_display += 1
-            args = [script,":%s"%virtual_display,host,str(port),'0', '0']
+            port += 1 # each instance needs one port space for now
+                      #later we might need 2 (normal requests and status requests)
+            virt_disp += 1
+            args = [script_file,":%s"%virt_disp,host,str(port),'0', '0']
             try:
                 p = subprocess.Popen(args)
                 time.sleep(20)
