@@ -36,6 +36,7 @@
 
 from core import get_vistrails_application
 from core import debug
+import core.system
 from gui.bundles.utils import guess_system, guess_graphical_sudo
 import gui.bundles.installbundle # this is on purpose
 import os

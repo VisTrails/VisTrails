@@ -32,8 +32,6 @@
 ##
 ###############################################################################
 
-import suds
-
 import sys
 import os.path
 import hashlib
@@ -46,6 +44,15 @@ from core.modules.vistrails_module import Module, ModuleError, new_module
 from core.upgradeworkflow import UpgradeWorkflowHandler
 from core import debug
 from core import configuration
+
+from core.bundles import py_import
+try:
+    mpl_dict = {'linux-ubuntu': 'python-suds',
+                'linux-fedora': 'python-suds'}
+    suds = py_import('suds', mpl_dict)
+except Exception, e:
+    debug.critical("Exception: %s" % e)
+
 
 package_cache = None
 

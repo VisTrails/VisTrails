@@ -53,8 +53,22 @@ def disable_lion_restore():
 if __name__ == '__main__':
     disable_lion_restore()
 
-    import gui.requirements
-    gui.requirements.check_pyqt4()
+    # does not work because it checks if gui already running
+    #import gui.requirements
+    #gui.requirements.check_pyqt4()
+
+    import core.requirements
+    import gui.bundles.installbundle
+    try:
+        core.requirements.require_python_module('PyQt4.QtGui')
+	core.requirements.require_python_module('PyQt4.QtOpenGL')
+    except MissingRequirement, req:
+        r = gui.bundles.installbundle.install(
+            {'linux-ubuntu': ['python-qt4',
+                              'python-qt4-gl',
+                              'python-qt4-sql']})
+        if not r:
+            raise req
 
     from PyQt4 import QtGui
     import gui.application
