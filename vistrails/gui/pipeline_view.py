@@ -1841,7 +1841,7 @@ mutual connections."""
                     dmm.portVisible.add((PortEndPoint.Destination,d.name))
 
             # remove old connection shapes
-            print 'connections to be deleted:', connections_to_be_deleted
+            #print 'connections to be deleted:', connections_to_be_deleted
             for c_id in connections_to_be_deleted:
                 self.remove_connection(c_id)
                 # self.removeItem(self.connections[c_id])
