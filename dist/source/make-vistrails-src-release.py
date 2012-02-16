@@ -44,6 +44,9 @@ VT_VERSION = '2.0-alpha'
 # Branch to be used to build release
 VT_BRANCH = 'v2.0'
 
+# Hash used in the release
+VT_HASH = 'c4e3600b64814e5d9dc27f6eb6f58e1a70273363'
+
 # Prefix of target git export dir (also used as prefix for log files)
 EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
 
@@ -254,6 +257,9 @@ GIT_REVISION_CMD = "%s rev-parse HEAD" % GIT_BASE_CMD
 
 #Git checkout command
 GIT_CHECKOUT_CMD = "%s --work-tree=%s checkout %s" %(GIT_BASE_CMD, EXPORT_DIRNAME, VT_BRANCH)
+
+GIT_CHECKOUT_CMD2 = "%s --work-tree=%s checkout %s" %(GIT_BASE_CMD, EXPORT_DIRNAME, VT_HASH)
+
 # Sourceforge upload command
 SF_UPLOAD_CMD = "scp -v -i %s %s %s,%s@frs.sourceforge.net:/home/frs/project/%s/%s/%s/%s" % (
                     SF_PRIVKEY_PATH, TARBALL_FILENAME, SF_USERNAME, SF_PROJECT, SF_PROJECT[0],
@@ -353,6 +359,20 @@ if __name__ == "__main__":
         debug("Checkout commands: %s" % GIT_CHECKOUT_CMD)
         try:
             checkout_proc = proc.Popen(GIT_CHECKOUT_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
+            checkout_log = checkout_proc.communicate()[0]
+            # Indent checkout log and write to logfile
+            checkout_log = "\n".join([INDENT + line for line in checkout_log.splitlines()])
+            debug("Git Checkout Log:\n%s" % checkout_log)
+            if checkout_proc.returncode != 0:
+                raise Exception("Git checkout failed with return code: %s" % checkout_proc.returncode)
+        except:
+            errexit(ERROR_CHECKOUT_GIT)
+
+    if VT_HASH != "":
+        info("Checking out hash %s ..."%VT_HASH)
+        debug("Checkout commands: %s" % GIT_CHECKOUT_CMD2)
+        try:
+            checkout_proc = proc.Popen(GIT_CHECKOUT_CMD2, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
             checkout_log = checkout_proc.communicate()[0]
             # Indent checkout log and write to logfile
             checkout_log = "\n".join([INDENT + line for line in checkout_log.splitlines()])
