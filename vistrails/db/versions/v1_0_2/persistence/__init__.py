@@ -338,7 +338,8 @@ class DAOList(dict):
     def save_many_to_db(self, db_connection, objList, do_copy=False):
         if do_copy == 'with_ids':
             do_copy = True
-
+        if not len(objList):
+            return
         childrenDict = {}
         global_propsDict = {}
         dbCommandList = []

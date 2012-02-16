@@ -124,8 +124,6 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             widget = widgetType(module, self.controller)
-            self.scene.modules[module.id]._old_connection_ids = \
-              self.scene.modules[module.id].dependingConnectionItems()
         
             self.confWidget.setUpWidget(widget)
             self.connect(widget, QtCore.SIGNAL("doneConfigure"),

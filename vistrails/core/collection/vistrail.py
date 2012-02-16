@@ -31,12 +31,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtGui
-from PyQt4.QtCore import QString
 from core.thumbnails import ThumbnailCache
 from core import debug
+from core.query import extract_text
 import core.system
-import xml.sax.saxutils
 import urlparse
 
 from entity import Entity
@@ -65,9 +63,7 @@ class VistrailEntity(Entity):
         entity = WorkflowEntity(workflow)
         self.children.append(entity)
         if self.vistrail.has_notes(action.id):
-            notes = xml.sax.saxutils.unescape(self.vistrail.get_notes(action.id))
-            fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
-            plain_notes = str(fragment.toPlainText())
+            plain_notes = extract_text(self.vistrail.get_notes(action.id))
             entity.description = plain_notes
         else:
             entity.description = ''
@@ -93,9 +89,7 @@ class VistrailEntity(Entity):
         self.children.append(entity)
         vt_version = mashup.version
         if self.vistrail.has_notes(vt_version):
-            notes = xml.sax.saxutils.unescape(self.vistrail.get_notes(vt_version))
-            fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
-            plain_notes = str(fragment.toPlainText())
+            plain_notes = extract_text(self.vistrail.get_notes(vt_version))
             entity.description = plain_notes
         else:
             entity.description = ''

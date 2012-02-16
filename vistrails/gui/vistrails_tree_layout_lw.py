@@ -36,7 +36,7 @@ Interface Vistrails - TreeLayoutLW to align version trees
 
 """
 
-from tree_layout_lw import TreeLW, NodeLW, TreeLayoutLW
+from core.tree_layout_lw import TreeLW, NodeLW, TreeLayoutLW
 from core.data_structures.point import Point
 
 ################################################################################

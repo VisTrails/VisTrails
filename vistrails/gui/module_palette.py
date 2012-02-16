@@ -40,14 +40,15 @@ QModuleTreeWidgetItem
 """
 
 from PyQt4 import QtCore, QtGui
+from core import get_vistrails_application
+from core.modules.module_registry import get_module_registry
+from core.system import systemType
+from core.utils import VistrailsInternalError
 from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget)
 from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
 from gui.vistrails_palette import QVistrailsPaletteInterface
-from core.modules.module_registry import get_module_registry
-from core.system import systemType
-from core.utils import VistrailsInternalError
 import weakref
 
 ################################################################################
@@ -90,21 +91,30 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         
 
     def connect_registry_signals(self):
-        registry = get_module_registry()
-        self.connect(registry.signals, registry.signals.new_package_signal,
-                     self.newPackage)
-        self.connect(registry.signals, registry.signals.new_module_signal,
-                     self.newModule)
-        self.connect(registry.signals, registry.signals.deleted_module_signal,
-                     self.deletedModule)
-        self.connect(registry.signals, registry.signals.deleted_package_signal,
-                     self.deletedPackage)        
-        self.connect(registry.signals, registry.signals.show_module_signal,
-                     self.showModule)
-        self.connect(registry.signals, registry.signals.hide_module_signal,
-                     self.hideModule)
-        self.connect(registry.signals, registry.signals.module_updated_signal,
-                     self.switchDescriptors)
+        app = get_vistrails_application()
+        app.register_notification("reg_new_module", self.newModule)
+        app.register_notification("reg_new_package", self.newPackage)
+        app.register_notification("reg_deleted_module", self.deletedModule)
+        app.register_notification("reg_deleted_package", self.deletedPackage)
+        app.register_notification("reg_show_module", self.showModule)
+        app.register_notification("reg_hide_module", self.hideModule)
+        app.register_notification("reg_module_updated", self.switchDescriptors)
+
+        # registry = get_module_registry()
+        # self.connect(registry.signals, registry.signals.new_package_signal,
+        #              self.newPackage)
+        # self.connect(registry.signals, registry.signals.new_module_signal,
+        #              self.newModule)
+        # self.connect(registry.signals, registry.signals.deleted_module_signal,
+        #              self.deletedModule)
+        # self.connect(registry.signals, registry.signals.deleted_package_signal,
+        #              self.deletedPackage)        
+        # self.connect(registry.signals, registry.signals.show_module_signal,
+        #              self.showModule)
+        # self.connect(registry.signals, registry.signals.hide_module_signal,
+        #              self.hideModule)
+        # self.connect(registry.signals, registry.signals.module_updated_signal,
+        #              self.switchDescriptors)
     
     def createTreeWidget(self):
         """ createTreeWidget() -> QModuleTreeWidget

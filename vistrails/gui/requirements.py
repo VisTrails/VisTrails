@@ -32,45 +32,20 @@
 ##
 ###############################################################################
 
-"""Module with utilities to inspect bundles, if possible."""
+from core.requirements import MissingRequirement, require_python_module
+import core.bundles.installbundle
 
-from core.bundles.utils import guess_system, guess_graphical_sudo
-import core.bundles.checkbundle # this is on purpose
-import os
+def check_pyqt4():
+    # checks for the presence of pyqt4, which is more important than the rest,
+    # since using pyqt requires a qapplication.
+    try:
+        require_python_module('PyQt4.QtGui')
+        require_python_module('PyQt4.QtOpenGL')
+    except MissingRequirement:
+        r = core.bundles.installbundle.install(
+            {'linux-ubuntu': ['python-qt4',
+                              'python-qt4-gl',
+                              'python-qt4-sql']})
+        if not r:
+            raise
 
-##############################################################################
-
-def linux_ubuntu_check(package_name):
-    import apt_pkg
-    apt_pkg.init()
-    cache = apt_pkg.GetCache()
-    depcache = apt_pkg.GetDepCache(cache)
-
-    def get_single_package(name):
-        if type(package) != str:
-            raise TypeError("Expected string")
-        cache = apt_pkg.GetCache()
-        depcache = apt_pkg.GetDepCache(cache)
-        records = apt_pkg.GetPkgRecords(cache)
-        sourcelist = apt_pkg.GetPkgSourceList()
-        pkg = apt.package.Package(cache, depcache, records,
-                                  sourcelist, None, cache[sys.argv[1]])
-        return pkg
-
-    if type(package_name) == str:
-        return get_single_package(package_name).candidateVersion
-    elif type(package_name) == list:
-        return [get_single_package(name).candidateVersion
-                for name in package_name]
-
-def get_version(dependency_dictionary):
-    """Tries to determine a bundle version.
-    """
-    distro = guess_system()
-    if not dependency_dictionary.has_key(distro):
-        return None
-    else:
-        callable_ = getattr(core.bundles.checkbundle,
-                            distro.replace('-', '_') + '_get_version')
-        
-        return callable_(dependency_dictionary[distro])

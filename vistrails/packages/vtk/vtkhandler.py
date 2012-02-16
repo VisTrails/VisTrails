@@ -37,7 +37,7 @@ from core.modules.basic_modules import String
 from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_registry import get_module_registry
 from core.vistrail.module_function import ModuleFunction, ModuleParam
-from gui.modules.module_configure import StandardModuleConfigurationWidget
+from gui.modules.source_configure import SourceConfigurationWidget
 from gui.modules.python_source_configure import PythonEditor
 import urllib
 
@@ -188,107 +188,19 @@ class vtkInteractionHandler(NotCacheable, Module):
              import RepaintCurrentSheetEvent
         spreadsheetController.postEventToSpreadsheet(RepaintCurrentSheetEvent())
 
-class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
-    """
-    HandlerConfigurationWidget is simialr to PythonSource
-    configuration widget except that it doesn't allow add/remove
-    ports. In this configuration widget, the user will enter their
-    python code to handle a specifc event
-    
-    """
+class HandlerConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
         """ HandlerConfigurationWidget(module: Module,
                                        controller: VistrailController,
                                        parent: QWidget)
                                        -> HandlerConfigurationWidget
-        Setup the dialog to have a single python source editor and 2
-        buttons
+        Setup the dialog to similar to PythonSource but with a
+        different name
         
         """
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
-        self.setWindowTitle('Handler Python Script Editor')
-        self.setLayout(QtGui.QVBoxLayout())
-        self.layout().setMargin(0)
-        self.layout().setSpacing(0)
-        self.createEditor()
-        self.createButtonLayout()        
-    
-    def findHandlerFunction(self):
-        """ findHandlerFunction() -> int
-        Return the function id associated with input port 'source'
-        
-        """
-        fid = -1
-        for i in xrange(self.module.getNumFunctions()):
-            if self.module.functions[i].name=='Handler':
-                fid = i
-                break
-        return fid
-
-    def createEditor(self):
-        """ createEditor() -> None
-        Add a python editor into the widget layout
-        
-        """
-        self.codeEditor = PythonEditor(self)
-        fid = self.findHandlerFunction()
-        if fid!=-1:
-            f = self.module.functions[fid]
-            self.codeEditor.setPlainText(urllib.unquote(f.params[0].strValue))
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
-            self.codeEditor.document().setModified(False)
-        else:
-            self.codeEditor.setModified(False)
-        self.layout().addWidget(self.codeEditor, 1)
-        
-    def createButtonLayout(self):
-        """ createButtonLayout() -> None
-        Construct Ok & Cancel button
-        
-        """
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.okButton = QtGui.QPushButton('&OK', self)
-        self.okButton.setAutoDefault(False)
-        self.okButton.setFixedWidth(100)
-        self.buttonLayout.addWidget(self.okButton)
-        self.cancelButton = QtGui.QPushButton('&Cancel', self)
-        self.cancelButton.setAutoDefault(False)
-        self.cancelButton.setShortcut('Esc')
-        self.cancelButton.setFixedWidth(100)
-        self.buttonLayout.addWidget(self.cancelButton)
-        self.layout().addLayout(self.buttonLayout)
-        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okTriggered)
-        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
-
-    def sizeHint(self):
-        """ sizeHint() -> QSize
-        Return the recommendation size of this widget
-        
-        """
-        return QtCore.QSize(512, 512)
-
-    def updateController(self, controller):
-        """ updateController() -> None        
-        Based on the input of the python editor, update the vistrail
-        controller appropriately
-        
-        """
-        if self.codeEditor.document().isModified():
-            code = urllib.quote(str(self.codeEditor.toPlainText()))
-            functions = [('Handler', [code])]
-            self.controller.update_functions(self.module, functions)
-
-    def okTriggered(self, checked = False):
-        """ okTriggered(checked: bool) -> None
-        Update vistrail controller (if neccesssary) then close the widget
-        
-        """
-        self.updateController(self.controller)
-        self.emit(QtCore.SIGNAL('doneConfigure()'))
-        self.close()
-
+        SourceConfigurationWidget.__init__(self, module, controller, 
+                                           PythonEditor, False, False, parent,
+                                           portName='Handler')
 
 def registerSelf():
     """ registerSelf() -> None

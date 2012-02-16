@@ -169,7 +169,10 @@ class ThumbnailCache(object):
         
         """
         
-        image = self._merge_thumbnails(folder)
+        image = None
+        thumbnail_fnames = self._get_thumbnail_fnames(folder)
+        if len(thumbnail_fnames) > 0:
+            image = self._merge_thumbnails(thumbnail_fnames)
         fname = None
         if image != None and image.width() > 0 and image.height() > 0:
             fname = "%s.png" % str(uuid.uuid1())
@@ -216,26 +219,37 @@ class ThumbnailCache(object):
             debug.warning("Error when removing thumbnails: %s"%str(e))
     
     @staticmethod
-    def _merge_thumbnails(folder):
-        """_merge_thumbnails(folder: str) -> QImage 
-        Generates a single image formed by all the images in folder 
+    def _get_thumbnail_fnames(folder):
+        """Returns the filenames of the images to be composited in the given
+        folder.  (folder: str) -> list(str)
+        
+        """
+        fnames = []
+        for root, dirs, files in os.walk(folder):
+            for f in files:
+                ftype = mimetypes.guess_type(f)
+                if ftype[0] in ThumbnailCache.SUPPORTED_TYPES:
+                    fnames.append(os.path.join(root,f))
+        return fnames
+
+    @staticmethod
+    def _merge_thumbnails(fnames):
+        """_merge_thumbnails(fnames: list(str)) -> QImage 
+        Generates a single image formed by all the images in the fnames list.
         
         """
         from PyQt4 import QtCore, QtGui
         height = 0
         width = 0
         pixmaps = []
-        for root, dirs, files in os.walk(folder):
-            for f in files:
-                ftype = mimetypes.guess_type(f)
-                if ftype[0] in ThumbnailCache.SUPPORTED_TYPES:
-                    pix = QtGui.QPixmap(os.path.join(root,f))
-                    if pix.height() > 0 and pix.width() > 0:
-                        pixmaps.append(pix)
-                        #width += pix.width()
-                        #height = max(height, pix.height())
-                        height += pix.height()
-                        width = max(width,pix.width())
+        for fname in fnames:
+            pix = QtGui.QPixmap(fname)
+            if pix.height() > 0 and pix.width() > 0:
+                pixmaps.append(pix)
+                #width += pix.width()
+                #height = max(height, pix.height())
+                height += pix.height()
+                width = max(width,pix.width())            
         if len(pixmaps) > 0 and height > 0 and width > 0:        
             finalImage = QtGui.QImage(width, height, QtGui.QImage.Format_ARGB32)
             painter = QtGui.QPainter(finalImage)

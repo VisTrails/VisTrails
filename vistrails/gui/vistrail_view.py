@@ -36,9 +36,9 @@ view and a version tree for each opened Vistrail """
 
 from PyQt4 import QtCore, QtGui
 
+from core import debug
 from core.collection import Collection
 from core.db.locator import untitled_locator
-from core import debug
 from core.debug import critical
 from core.data_structures.bijectivedict import Bidict
 from core.system import vistrails_default_file_type
@@ -82,6 +82,7 @@ class QVistrailView(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
+        self.is_executing = False
         self.notifications = {}
         self.tabs = QMouseTabBar(self)
         self.tabs.setDocumentMode(True)
@@ -132,6 +133,12 @@ class QVistrailView(QtGui.QWidget):
         self.connect(self.controller,
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
+
+        from gui.vistrails_window import _app
+        _app.register_notification("reg_new_abstraction", 
+                                   self.controller.check_subworkflow_versions)
+        _app.register_notification("reg_deleted_abstraction",
+                                   self.controller.check_subworkflow_versions)
 
         # self.controller = VistrailController()
         # self.controller.vistrail_view = self
@@ -820,7 +827,7 @@ class QVistrailView(QtGui.QWidget):
             else:
                 view.set_title(view.get_long_title())
                 view.window().setWindowTitle(view.get_long_title())
-        _app.notify("version_changed", version_id)
+        _app.notify("version_changed", self.controller.current_version)
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
     def query_version_selected(self, search=None, version_id=None):
@@ -1005,11 +1012,18 @@ class QVistrailView(QtGui.QWidget):
         prop.versionNotes.commit_changes()
 
     def execute(self):
+        # makes sure we are not already executing
+        if self.is_executing:
+            return
+        self.is_executing = True
+
         view = self.get_current_tab()
         if hasattr(view, 'execute'):
             view.setFocus(QtCore.Qt.MouseFocusReason)
-            view.execute()      
-            
+            view.execute()
+
+        self.is_executing = False
+
     def publish_to_web(self):
         view = self.get_current_tab()
         if hasattr(view, 'publish_to_web'):

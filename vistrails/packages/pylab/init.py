@@ -46,7 +46,7 @@ try:
     mpl_dict = {'linux-ubuntu': 'python-matplotlib',
                 'linux-fedora': 'python-matplotlib'}
     matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg')
+    matplotlib.use('Qt4Agg', warn=False)
     pylab = py_import('pylab', mpl_dict)
 except Exception, e:
     debug.critical("Exception: %s" % e)

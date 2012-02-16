@@ -930,6 +930,8 @@ class Pipeline(DBWorkflow):
         except InvalidPipeline, e:
             exceptions.update(e.get_exception_set())
         
+        self.check_subworkflow_versions()
+        
         if len(exceptions) > 0:
             if raise_exception:
                 raise InvalidPipeline(exceptions, self)
@@ -1020,7 +1022,7 @@ class Pipeline(DBWorkflow):
             exceptions = set()
             for mid in module_ids:
                 module = pipeline.modules[mid]
-                if module.version == '':
+                if not module.version:
                     module.version = '0'
                 try:
                     # FIXME check for upgrades, otherwise use similar
@@ -1113,6 +1115,12 @@ class Pipeline(DBWorkflow):
     
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)
+
+    def check_subworkflow_versions(self):
+        reg = get_module_registry()
+        for module in self.modules.itervalues():
+            if module.is_valid and module.is_abstraction():
+                module.check_latest_version()
                 
     ##########################################################################
     # Debugging

@@ -255,5 +255,5 @@ if test_examples:
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
-gui.application.VistrailsApplication.finishSession()
+gui.application.get_vistrails_application().finishSession()
 gui.application.stop_application()

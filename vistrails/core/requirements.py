@@ -37,7 +37,6 @@ runtime components such as binaries, libraries, other python modules, etc."""
 
 import sys
 import core.system
-import core.bundles.installbundle
 
 ##############################################################################
 
@@ -74,20 +73,6 @@ def require_python_module(module_name):
 def require_executable(filename):
     if not executable_file_exists(filename):
         raise MissingRequirement(filename)
-
-def check_pyqt4():
-    # checks for the presence of pyqt4, which is more important than the rest,
-    # since using pyqt requires a qapplication.
-    try:
-        require_python_module('PyQt4.QtGui')
-        require_python_module('PyQt4.QtOpenGL')
-    except MissingRequirement:
-        r = core.bundles.installbundle.install({'linux-ubuntu': ['python-qt4',
-                                                                 'python-qt4-gl',
-                                                                 'python-qt4-sql']})
-        if not r:
-            raise
-
 
 def check_all_vistrails_requirements():
     pass

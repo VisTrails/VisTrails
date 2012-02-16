@@ -39,6 +39,7 @@ import copy
 from itertools import izip
 import operator
 
+from core import get_vistrails_application
 from core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
 from core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
@@ -58,7 +59,7 @@ from core.thumbnails import ThumbnailCache
 from core.collection import Collection
 from core import debug
 
-from gui.application import VistrailsApplication
+from gui.application import get_vistrails_application
 from gui.preferences import QPreferencesDialog
 from gui.base_view import BaseView
 from gui.pipeline_view import QPipelineView
@@ -869,7 +870,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.init_toolbar()
 
     def create_view(self, vistrail, locator,  abstraction_files=None, 
-                                    thumbnail_files=None, mashups=None):
+                    thumbnail_files=None, mashups=None):
         from gui.collection.workspace import QWorkspaceWindow
         view = QVistrailView(vistrail, locator, abstraction_files,
                              thumbnail_files, mashups)
@@ -1123,80 +1124,90 @@ class QVistrailsWindow(QVistrailViewWindow):
                         palette.toolWindow().show()
                         
     def create_notification(self, notification_id, link_view=False, view=None):
-        if link_view:
-            if view is not None:
-                notifications = self.view_notifications[view]
-        else:
-            notifications = self.notifications
-        if notification_id not in notifications:
-            notifications[notification_id] = set()
-        #else:
-        #    print "already added notification", notification_id
+        vt_app = get_vistrails_application()
+        vt_app.create_notification(notification_id, self, view)
+        # if link_view:
+        #     if view is not None:
+        #         notifications = self.view_notifications[view]
+        # else:
+        #     notifications = self.notifications
+        # if notification_id not in notifications:
+        #     notifications[notification_id] = set()
+        # else:
+        #     print "already added notification", notification_id
 
     def register_notification(self, notification_id, method, link_view=False,
                               view=None):
-        if link_view:
-            if view is not None:
-                notifications = self.view_notifications[view]
-                #print '>>> LOCAL adding notification', notification_id, view, method
-            #print id(notifications), notifications
-            #for n, o in notifications.iteritems():
-            #    print "    ", n , "(%s)"%len(o)
-            #    for m in o:
-            #        print "        ", m
-        else:
-            notifications = self.notifications     
-            #print '>>> GLOBAL adding notification', notification_id, method  
-            #print id(notifications), notifications
-        if notification_id not in notifications:
-            self.create_notification(notification_id, link_view, view)
-        notifications[notification_id].add(method)
+        vt_app = get_vistrails_application()
+        vt_app.register_notification(notification_id, method, self, view)
+        # if link_view:
+        #     if view is not None:
+        #         notifications = self.view_notifications[view]
+        #         #print '>>> LOCAL adding notification', notification_id, view, method
+        #     #print id(notifications), notifications
+        #     #for n, o in notifications.iteritems():
+        #     #    print "    ", n , "(%s)"%len(o)
+        #     #    for m in o:
+        #     #        print "        ", m
+        # else:
+        #     notifications = self.notifications     
+        #     #print '>>> GLOBAL adding notification', notification_id, method  
+        #     #print id(notifications), notifications
+        # if notification_id not in notifications:
+        #     self.create_notification(notification_id, link_view, view)
+        # notifications[notification_id].add(method)
 
     def unregister_notification(self, notification_id, method, link_view=False,
                                 view=None):
-        if link_view:
-            notifications = {}
-            if view in self.view_notifications:
-                notifications = self.view_notifications[view]
-                #print '>>> LOCAL remove notification', notification_id, view
+        vt_app = get_vistrails_application()
+        vt_app.unregister_notification(notification_id, method, self, view)
+        
+#         if link_view:
+#             notifications = {}
+#             if view in self.view_notifications:
+#                 notifications = self.view_notifications[view]
+#                 #print '>>> LOCAL remove notification', notification_id, view
             
-            #print id(notifications), notifications
-#            for n, o in notifications.iteritems():
-#                print "    ", n , "(%s)"%len(o)
-#                for m in o:
-#                    print "        ", m
-        else:
-            notifications = self.notifications    
-            #print '>>> GLOBAL remove notification', notification_id, method   
-            #print id(notifications), notifications           
-        if notification_id in notifications:
-            notifications[notification_id].remove(method)
+#             #print id(notifications), notifications
+# #            for n, o in notifications.iteritems():
+# #                print "    ", n , "(%s)"%len(o)
+# #                for m in o:
+# #                    print "        ", m
+#         else:
+#             notifications = self.notifications    
+#             #print '>>> GLOBAL remove notification', notification_id, method   
+#             #print id(notifications), notifications           
+#         if notification_id in notifications:
+#             notifications[notification_id].remove(method)
 
     def notify(self, notification_id, *args):
-        # do global notifications
-        if notification_id in self.notifications:
-            #print 'global notification ', notification_id
-            for m in self.notifications[notification_id]:
-                try:
-                    #print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
-        notifications = {}
-        # do local notifications
-        if self.current_view in self.view_notifications:
-            notifications = self.view_notifications[self.current_view]
-            #print 'local notification ', notification_id, self.current_view
+        vt_app = get_vistrails_application()
+        vt_app.send_notification(notification_id, *args)
+
+        # # do global notifications
+        # if notification_id in self.notifications:
+        #     print 'global notification ', notification_id
+        #     for m in self.notifications[notification_id]:
+        #         try:
+        #             #print "  m: ", m
+        #             m(*args)
+        #         except Exception, e:
+        #             import traceback
+        #             traceback.print_exc()
+        # notifications = {}
+        # # do local notifications
+        # if self.current_view in self.view_notifications:
+        #     notifications = self.view_notifications[self.current_view]
+        #     print 'local notification ', notification_id, self.current_view
                 
-        if notification_id in notifications:
-            for m in notifications[notification_id]:
-                try:
-                    #print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
+        # if notification_id in notifications:
+        #     for m in notifications[notification_id]:
+        #         try:
+        #             #print "  m: ", m
+        #             m(*args)
+        #         except Exception, e:
+        #             import traceback
+        #             traceback.print_exc()
 
     def clipboard_changed(self):
         self.notify("clipboard_changed")
@@ -1865,16 +1876,22 @@ class QVistrailsWindow(QVistrailViewWindow):
     def connect_package_manager_signals(self):
         """ connect_package_manager_signals()->None
         Connect specific signals related to the package manager """
-        pm = get_package_manager()
-        self.connect(pm,
-                     pm.add_package_menu_signal,
-                     self.add_package_menu_items)
-        self.connect(pm,
-                     pm.remove_package_menu_signal,
-                     self.remove_package_menu_items)
-        self.connect(pm,
-                     pm.package_error_message_signal,
-                     self.show_package_error_message)
+        self.register_notification("pm_add_package_menu", 
+                                   self.add_package_menu_items)
+        self.register_notification("pm_remove_package_menu",
+                                   self.remove_package_menu_items)
+        self.register_notification("pm_package_error_message",
+                                   self.show_package_error_message)
+        # pm = get_package_manager()
+        # self.connect(pm,
+        #              pm.add_package_menu_signal,
+        #              self.add_package_menu_items)
+        # self.connect(pm,
+        #              pm.remove_package_menu_signal,
+        #              self.remove_package_menu_items)
+        # self.connect(pm,
+        #              pm.package_error_message_signal,
+        #              self.show_package_error_message)
 
     def add_package_menu_items(self, pkg_id, pkg_name, items):
         """add_package_menu_items(pkg_id: str,pkg_name: str,items: list)->None
@@ -2219,7 +2236,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         tconf = get_vistrails_configuration()
         conf.recentVistrailList = self.recentVistrailLocators.serialize()
         tconf.recentVistrailList = conf.recentVistrailList
-        VistrailsApplication.save_configuration()
+        get_vistrails_application().save_configuration()
         
     def set_current_locator(self, locator):
         """ set_current_locator(locator: CoreLocator)

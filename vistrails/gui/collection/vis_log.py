@@ -240,6 +240,26 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.connect(self.executionList, QtCore.SIGNAL(
          "itemDoubleClicked(QTreeWidgetItem *, int)"),
          self.doubleClick)
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        # Add the open version action
+        self.openVersionAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('go-next'),
+            'Go to this pipeline', None, triggered=self.openVersion)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.openVersionAction)
+
+    def openVersion(self):
+        if not hasattr(self.parentExecution, 'item'):
+            return
+        version = self.parentExecution.item.wf_execution.parent_version
+        from gui.vistrails_window import _app
+        _app.get_current_view().version_selected(version, True)
+        self.controller.recompute_terse_graph()
+        _app.get_current_view().version_view.select_current_version()
+        _app.get_current_view().version_view.scene().setupScene(self.controller)
+        _app.qactions['pipeline'].trigger()
 
     def execution_updated(self):
         for e in self.controller.log.workflow_execs:
@@ -462,11 +482,6 @@ class QLogView(QPipelineView):
         if type(execution) == WorkflowExec:
             version = execution.parent_version
             # change the current version to this as well
-            from gui.vistrails_window import _app
-            _app.get_current_view().version_selected(version, True)
-            self.controller.recompute_terse_graph()
-            _app.get_current_view().version_view.select_current_version()
-            _app.get_current_view().version_view.scene().setupScene(self.controller)
 
             return self.controller.vistrail.getPipeline(version)
         if type(execution) == GroupExec:

@@ -503,6 +503,10 @@ class PortsList(QtGui.QTreeWidget):
                 subitem.setFirstColumnSpanned(True)
                 self.setItemWidget(subitem, 0, subitem.get_widget())
                 item.setExpanded(True)
+                # need to find port_spec
+                if len(item.port_spec.descriptors()) == 0:
+                    self.update_method(subitem, item.port_spec.name, [], [])
+
         
     def set_controller(self, controller):
         self.controller = controller
@@ -554,6 +558,9 @@ class PortsList(QtGui.QTreeWidget):
         subitem.setFirstColumnSpanned(True)
         self.setItemWidget(subitem, 0, subitem.get_widget())
         item.setExpanded(True)
+        if len(port_spec.descriptors()) == 0:
+            self.update_method(subitem, port_name, [], [])
+            
         
         # if methodBox.controller:
         #     methodBox.lockUpdate()

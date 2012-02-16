@@ -53,8 +53,22 @@ def disable_lion_restore():
 if __name__ == '__main__':
     disable_lion_restore()
 
+    # does not work because it checks if gui already running
+    #import gui.requirements
+    #gui.requirements.check_pyqt4()
+
     import core.requirements
-    core.requirements.check_pyqt4()
+    import gui.bundles.installbundle
+    try:
+        core.requirements.require_python_module('PyQt4.QtGui')
+        core.requirements.require_python_module('PyQt4.QtOpenGL')
+    except MissingRequirement, req:
+        r = gui.bundles.installbundle.install(
+            {'linux-ubuntu': ['python-qt4',
+                              'python-qt4-gl',
+                              'python-qt4-sql']})
+        if not r:
+            raise req
 
     from PyQt4 import QtGui
     import gui.application
@@ -63,17 +77,20 @@ if __name__ == '__main__':
     try:
         v = gui.application.start_application()
         if v != 0:
-            if gui.application.VistrailsApplication:
-                gui.application.VistrailsApplication.finishSession()
+            app = gui.application.get_vistrails_application()
+            if app:
+                app.finishSession()
             sys.exit(v)
-        app = gui.application.VistrailsApplication()
+        app = gui.application.get_vistrails_application()()
     except SystemExit, e:
-        if gui.application.VistrailsApplication:
-            gui.application.VistrailsApplication.finishSession()
+        app = gui.application.get_vistrails_application()
+        if app:
+            app.finishSession()
         sys.exit(e)
     except Exception, e:
-        if gui.application.VistrailsApplication:
-            gui.application.VistrailsApplication.finishSession()
+        app = gui.application.get_vistrails_application()
+        if app:
+            app.finishSession()
         print "Uncaught exception on initialization: %s" % e
         import traceback
         traceback.print_exc()

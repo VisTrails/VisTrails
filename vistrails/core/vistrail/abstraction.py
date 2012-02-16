@@ -32,7 +32,6 @@
 ##
 ###############################################################################
 
-from PyQt4.QtCore import QObject
 import copy
 
 from core.modules.module_registry import get_module_registry
@@ -67,6 +66,12 @@ class Abstraction(DBAbstraction, Module):
 
     def set_defaults(self, other=None):
         Module.set_defaults(self, other)
+        self._is_latest_version = True
+        self.check_latest_version()
+        # if other is None:
+        #     self._is_latest_version = True
+        # else:
+        #     self._is_latest_version = other._is_latest_version
 
     def setup_indices(self):
         pass
@@ -112,26 +117,22 @@ class Abstraction(DBAbstraction, Module):
     def is_abstraction(self):
         return True
 
+    def check_latest_version(self):
+        reg = get_module_registry()
+        try:
+            desc = reg.get_descriptor_by_name(self.package, self.name, 
+                                              self.namespace)
+        except:
+            # Should only get here if the abstraction's descriptor was
+            # removed from the registry which only happens when the
+            # abstraction should be destroyed.
+            self._is_latest_version = False
+            return
+        latest_version = desc.module.vistrail.get_latest_version()
+        self._is_latest_version = \
+            (long(latest_version) == long(self.internal_version))
+
     def is_latest_version(self):
-        if not hasattr(self, '_is_latest_version'):
-            def update_version_status():
-                reg = get_module_registry()
-                try:
-                    desc = reg.get_descriptor_by_name(self.package, self.name, self.namespace)
-                except:
-                    # Should only get here if the abstraction's descriptor was removed from the registry
-                    # which only happens when the abstraction should be destroyed.  So we disconnect
-                    # here to eliminate the object reference.
-                    QObject.disconnect(reg.signals, reg.signals.new_abstraction_signal, update_version_status)
-                    QObject.disconnect(reg.signals, reg.signals.deleted_abstraction_signal, update_version_status)
-                    self._is_latest_version = False
-                    return
-                latest_version = desc.module.vistrail.get_latest_version()
-                self._is_latest_version = (long(latest_version) == long(self.internal_version))
-            reg = get_module_registry()
-            QObject.connect(reg.signals, reg.signals.new_abstraction_signal, update_version_status)
-            QObject.connect(reg.signals, reg.signals.deleted_abstraction_signal, update_version_status)
-            update_version_status()
         return self._is_latest_version
 
     def _get_pipeline(self):

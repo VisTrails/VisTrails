@@ -50,7 +50,7 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent=parent)
-        self.app = gui.application.VistrailsApplication
+        self.app = gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
