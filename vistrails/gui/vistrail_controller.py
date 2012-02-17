@@ -1365,11 +1365,16 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
         controller = VistrailController(auto_save=False)
         controller.current_pipeline_view = DummyView().scene()
         controller.set_vistrail(v,locator)
-        controller.change_selected_version(9L)
+        # DAK: version is different because of upgrades
+        # controller.change_selected_version(9L)
+        controller.select_latest_version()
         self.assertNotEqual(controller.current_pipeline, None)
         
-        module_ids = [1, 2, 3]
-        connection_ids = [1, 2, 3]
+        # DAK: changed these because of upgrades...
+        # module_ids = [1, 2, 3]
+        # connection_ids = [1, 2, 3]
+        module_ids = [4, 5, 6]
+        connection_ids = [6, 8, 9]
         
         controller.create_abstraction(module_ids, connection_ids, 
                                       '__TestFloatList')
