@@ -297,12 +297,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         
         if optionsDict and 'dotVistrails' in optionsDict.keys():
             self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
-                
-        # During this initialization, VistrailsStartup will load the
-        # configuration from disk and update both configurations
-        self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration,
-                                                    self.temp_configuration)
-        
+
         # the problem here is that if the user pointed to a new .vistrails
         # folder, the persistent configuration will always point to the 
         # default ~/.vistrails. So we will copy whatever it's on 
@@ -310,6 +305,12 @@ The builder window can be accessed by a spreadsheet menu option.")
         # that is on disk is different, it will overwrite this one
         self.configuration.dotVistrails = self.temp_configuration.dotVistrails
         
+        # During this initialization, VistrailsStartup will load the
+        # configuration from disk and update both configurations
+        self.vistrailsStartup = \
+            core.startup.VistrailsStartup(self.configuration,
+                                          self.temp_configuration)
+
         # Starting in version 1.2.1 logging is enabled by default.
         # Users have to explicitly disable it through the command-line
         self.configuration.nologger = False
