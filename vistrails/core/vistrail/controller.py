@@ -97,11 +97,12 @@ def vt_action(f):
     return new_f
 
 class VistrailController(object):
-    def __init__(self, vistrail=None, id_scope=None):
+    def __init__(self, vistrail=None, id_scope=None, auto_save=True):
         self.vistrail = vistrail
         self.id_scope = id_scope
         self.current_session = -1
         self.log = Log()
+        self._auto_save = auto_save
         if vistrail is not None:
             self.id_scope = vistrail.idScope
             self.current_session = vistrail.idScope.getNewId('session')
@@ -2334,7 +2335,8 @@ class VistrailController(object):
             locator = self.get_locator()
             if locator:
                 locator.clean_temporaries()
-                locator.save_temporary(self.vistrail)
+                if self._auto_save:
+                    locator.save_temporary(self.vistrail)
             view = DummyView()
             return self.execute_workflow_list([(self.locator,
                                                 self.current_version,
