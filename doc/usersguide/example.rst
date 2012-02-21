@@ -53,4 +53,5 @@ Intermediate Concepts and VisTrails Packages
    database
    example_webservices
    persistence
+   vistrails_server
    latex
