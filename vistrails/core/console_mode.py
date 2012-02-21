@@ -63,7 +63,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController()
+        controller = VistrailController(auto_save=update_vistrail)
         controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
         if type(workflow) == type("str"):
             version = v.get_version_number(workflow)
@@ -260,7 +260,7 @@ class TestConsoleMode(unittest.TestCase):
     def test1(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/dummy.xml')
-        result = run([(locator, "int chain")])
+        result = run([(locator, "int chain")], update_vistrail=False)
         self.assertEqual(len(result), 0)
 
     def test_tuple(self):
@@ -304,19 +304,20 @@ class TestConsoleMode(unittest.TestCase):
     def test_python_source(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/pythonsource.xml')
-        result = run([(locator,"testPortsAndFail")])
+        result = run([(locator,"testPortsAndFail")], update_vistrail=False)
         self.assertEqual(len(result), 0)
 
     def test_python_source_2(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/pythonsource.xml')
-        result = run_and_get_results([(locator, "test_simple_success")])[0]
+        result = run_and_get_results([(locator, "test_simple_success")],
+                                     update_vistrail=False)[0]
         self.assertEquals(len(result.executed), 1)
 
     def test_dynamic_module_error(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() + 
                                  '/tests/resources/dynamic_module_error.xml')
-        result = run([(locator, "test")])
+        result = run([(locator, "test")], update_vistrail=False)
         self.assertNotEqual(len(result), 0)
 
     def test_change_parameter(self):

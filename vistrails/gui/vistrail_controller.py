@@ -102,7 +102,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         """
         QtCore.QObject.__init__(self)
-        BaseController.__init__(self, vistrail)
+        BaseController.__init__(self, vistrail, auto_save=auto_save)
         self.set_file_name(name)
         # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
         self.current_pipeline_view = None
@@ -115,9 +115,9 @@ class VistrailController(QtCore.QObject, BaseController):
         # if self._auto_save is True, an auto_saving timer will save a temporary
         # file every 2 minutes
         self._auto_save = auto_save
-        self.timer = QtCore.QTimer(self)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
-        self.timer.start(1000 * 60 * 2) # Save every two minutes
+        self.timer = None
+        if self._auto_save:
+            self.setup_timer()
         
         self._previous_graph_layout = None
         self._current_graph_layout = VistrailsTreeLayoutLW()
@@ -140,6 +140,16 @@ class VistrailController(QtCore.QObject, BaseController):
         self.current_pipeline_view.current_pipeline = pipeline
     current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
+    def setup_timer(self):
+        self.timer = QtCore.QTimer(self)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+        self.timer.start(1000 * 60 * 2) # Save every two minutes
+        
+    def stop_timer(self):
+        if self.timer:
+            self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+            self.timer.stop()
+            
     ##########################################################################
     # Signal vistrail relayout / redraw
 
@@ -192,8 +202,8 @@ class VistrailController(QtCore.QObject, BaseController):
         locator = self.get_locator()
         if locator:
             locator.clean_temporaries()
-        self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
-        self.timer.stop()
+        if self._auto_save or self.timer:
+            self.stop_timer()
 
     def set_vistrail(self, vistrail, locator, abstractions=None, 
                      thumbnails=None, mashups=None):
