@@ -33,7 +33,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.0 alpha
+AppVerName=VisTrails 2.0 beta
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$9d5942
@@ -134,8 +134,8 @@ Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
 Source: Input\x86\python27.dll; DestDir: {app}\vistrails
 Source: Input\x86\python27.dll; DestDir: {app}\vistrails\Python27
-Source: I:\emanuele\src\vtk\vtk-5.6.1\build\bin\Release\*.dll; DestDir: {app}\vistrails
-Source: I:\emanuele\src\vtk\vtk-5.6.1\build\bin\Release\*.pyd; DestDir: {app}\vistrails
+Source: I:\emanuele\src\vtk\vtk-5.8.0\build\bin\Release\*.dll; DestDir: {app}\vistrails
+Source: I:\emanuele\src\vtk\vtk-5.8.0\build\bin\Release\*.pyd; DestDir: {app}\vistrails
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
