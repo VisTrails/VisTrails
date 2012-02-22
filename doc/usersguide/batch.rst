@@ -288,11 +288,7 @@ Using the VisTrails server mode, it is possible to execute workflows and control
 
 The way you access the server is by doing XML-RPC calls. In the current VisTrails release, we include a set of PHP scripts that can talk to a VisTrails server instance. They are in "extensions/http" folder. The files are reasonably well documented. Also, it should be not difficult to create python scripts to access the server (just use xmlrpclib module).
 
-Note that the VisTrails server requires the provenance and workflows to be in a database. More detailed instructions on how to setup the server and the database are available here:
-
-http://www.crowdlabs.org/site_media/static/dev_docs/vistrails_server_setup.html
-
-http://www.crowdlabs.org/site_media/static/dev_docs/vistrails_database_setup.html
+Note that the VisTrails server requires the provenance and workflows to be in a database. More detailed instructions on how to setup the server and the database are available in :ref:`chap-vistrails-server` and in :ref:`sec-database-setup`.
 
 If what you want is just to execute a series of workflows in batch mode, a simpler solution would be to use the VisTrails client in batch mode (see Section :ref:`sec-cli-batch`). 
 
