@@ -1,7 +1,108 @@
 RELEASE NOTES
 -------------
+Release Name: v2.0-beta build 6c5a05b9bb5d from v2.0 branch
 
-Release Name: v2.0-alpha build c4e3600b6481 from v2.0 branch
+Enhancements: 
+ - Added VisTrails Server documentation (611f2082f98d)
+ - Add more functionality to core.api (26c775f0a7bb)
+ - Ticket #518: Need to fix VTK ports with no parameters (9a985c40f6a2)
+ - Add separate workflow and log xml schemas (04cb36cc5305)
+ - Added support to hardcode necessary packages on startup (834e28f7cfa4)
+ - CLTools: Added enviroment variable and default directory support (5a6e1b0daba3) (7c9a113040c2)
+ - Add operation ids to messages about illegal operations (087b235e32de)
+ - Remove most PyQt4/gui dependencies in core functionality (e6ada340cc15)
+ - Ticket #55: Spreadsheet should have more shortcut icons (5f4db41dc8f2) (127037be178f)
+ - Ticket #284: Capturing Module Errors (60c055eff8f5)
+ - Display module toolTip errors in module stack trace dialog (60c055eff8f5)
+ - Wizard for CLTools - gui for wrapper creation (a7a1db436fd0)
+ - Added support for html and mediawiki extensions to
+access a remote vistrails server  (dd7456507ab4)
+
+Bug fixes: 
+ - Accessing Module Annotate from context menu did not work (ac100b566d84)
+ - Fixed problem where unrequested vistrail temporary files were being created during test suite (445e2b68d9e6) (1a539cad8a9a)
+ - Fix issue with alternate .vistrails directory and its subdirectories (7d26c36ef77a)
+ - Fixed MissingRequirement path and ubuntu detection (11dd911b66a3)
+ - Ticket #528: Install bundle fails with the new core_no_gui changes (87f9e83772ea)
+ - Rendering version and workflow view in server failed because of new gui in 2.0 (e149aa955dd5)
+ - save_many_to_db failed when list of objects were empty (ed257eb2d523)
+ - Vistrail server need to initialize theme after core_no_gui changes (c4d2809d9a09)
+ - Fixed server mode after merge with core_no_gui (4c2cad40c30f)
+ - Ticket #522: remove_connection failure (cc038a500e3c)
+ - Fix for remove_connection issues (cc038a500e3c)
+ - Fixed issues with tabbing in the python editor (c046c86bf0af)
+ - Fixed issue with vtkInteractionHandler which was not updated when the Save/Revert changes were made to source widgets (8abbfb8a51e9)
+ - Allow zero-parameter functions to be set from ports panel (9a985c40f6a2)
+ - Fixed issue with forced versions on modules (4ae602caa09e)
+ - Fix issue with merging thumbnails (5bcaa7e75c6d)
+ - Fixed typo in core.application's register_notification (42c7ae6b0e25)
+ - Argument error caused gui/vistrail_controller test to fail (e447e02b37ca)
+ - CHEBI wsdl changed (a7f1ab43159d) (6e00beb17ce6)
+ - Removed matplotlib backend selection warning (23a6e3a89001)
+ - Dragging a version directly on a spreadsheet cell was not executing 
+   the workflow (3395a01a2139) (66d49a064e59)
+ - Fixed unable to display jpeg images in the spreadsheet
+due to a wrong Qt plugins configuration (a6a1950024a7) (333456765278)
+ - Display more meaningful error when persistent inputs do not exist in a repository (1c905da96eb1)
+ - Fix issue in ModuleDescriptor.expand_descriptor_string (7b973b4a4aeb) (35f1feb4d853)
+ - Add icons to CLTools so that they not only work on X11 (a6a08bc1dd4e) (69110931c4e3)
+ - SourceConfigurationWidget silently fails when code contains 
+   non-ascii characters (0c020878edf3) (768fc8ed4df5)
+ - MultiHeads configuration was not working on 2.0  (669957620bdc) (07e9672e6186)
+ - Ticket #513: Add detachHistoryView back (f238870a17fe) (38a3b95d1b5d)
+ - Added back detachHistoryView option (f238870a17fe) (38a3b95d1b5d)
+ - Removed configuration options that are only used in non-interactive mode 
+   from Expert Configuration (bb0046fe6f49)
+ - Ticket #515: opening a specific version from the command line does 
+   not work (20ab44a5a4ce) (468fe95d351f)
+ - Fixed opening a specific version from the command line (20ab44a5a4ce) (468fe95d351f)
+ - Ticket #512: Add how to create alias to users guide (83e49a3d487b) 
+   (d56e02d30133) (a6249193e674) (f5b881191441)
+ - Ticket #421: db version import error handling (a6eb8ae65052) (6ac6c0abec6e)
+ - Detect between when a db version is missing and when it contains 
+   an error (a6eb8ae65052) (6ac6c0abec6e)
+ - Ticket #391: Module colors in Visual Diff are wrong after upgrades (6b16033351a9) (c28166f2110b)
+ - diff view did not use correct brush for non-upgraded modules (6b16033351a9) (c28166f2110b)
+ - autosave feature caused "new file" action to fail (9b19a0fc5193) (6c49e4329b8a)
+ - Ticket #511: "export workflow as xml" adds extension as "..xml" (two dots) if 
+   not explicitly specified (39d605e721e5) (fb2061eec506)
+ - get_save_file_locator_from_gui was adding two dots (39d605e721e5) (fb2061eec506)
+ - SpreadSheet: prompt the user to save unsaved vistrails before trying 
+   to save a spreadsheet (d296dae6e508) (5e29113d0694)
+ - Ubuntu Unity did not restore menu bar after being closed (3d702340c1fa) (719ad4dd22b5)
+ - Param Exploration User-defined function did not work because of new python 
+   editor interface (8354a9340944) (0f62ec4023c7)
+ - Ticket #510: The Spreadsheet can't open/save spreadsheets (9259d3b8d619) (ae73b7e48971)
+ - Ticket #194: Copy and paste duplicates aliases (7419092665c4) (27ee5e68a7e3)
+ - Ticket #480: Executions button doesn't work (c6a9a6ac15cf)
+ - Ticket #500: Double-clicking the Execute button causes VisTrails to Hang (e024a352c6ce)
+ - Double clicking execute button no longer hangs vistrails (e024a352c6ce)
+ - Ticket #508: Add port documentation back to ports panel (01f189a1a184)
+ - Ticket #505: Version notes are not always visible after an upgrade (d16b3c834c47)
+ - Issue correct version_selected signal after upgrades (d16b3c834c47)
+ - Ticket #502: change_selected_version causes key error in adjacency_list (25104a599816)
+ - Ticket #472: parameters in parameter exploration are reset if not executed (d07bcbd5104b)
+ - Parameter exploration with Color Constant was not working (b0e0da8cc61b)
+ - Ticket #462: Ungrab mouse error after editing subworkflow (2ffac0767f88)
+ - Ticket #432: Problem with labeling groups (2ffac0767f88)
+ - Allowing opening vistrail files that contain mashups. Mashups will be ignored (7d568fec386f)
+ - Ticket #454: Can't interact with TransferFunction widget using Qt 4.7.* (f897a8e68285)
+ - Fixed header placement in xml files that were causing tests to fail (a76060081c31)
+
+
+From Release: v2.0-alpha build c4e3600b6481 from v2.0 branch
+
+Enhancements: 
+ - Wizard for CLTools - gui for wrapper creation (de5fbcd6144a)
+
+Bug fixes: 
+ - Ticket #508: Add port documentation back to ports panel (d83b2637f5b5)
+ - Ticket #502: change_selected_version causes key error in adjacency_list (815d38ff608a)
+ - Ticket #472: parameters in parameter exploration are reset if not executed (829303e1efeb)
+ - Parameter exploration with Color Constant was not working
+ (ecfbedcd4406)
+
+From Release: v2.0-alpha build c4e3600b6481 from v2.0 branch
 
 Enhancements: 
  - Wizard for CLTools - gui for wrapper creation (de5fbcd6144a)
