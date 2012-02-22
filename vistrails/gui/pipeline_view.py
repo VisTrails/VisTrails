@@ -2345,10 +2345,9 @@ mutual connections."""
         Opens the modal annotations window for module with given id
         """
         if self.controller:
-            module = self.controller.current_pipeline.modules[id]
-            widget = QModuleAnnotation(module, self.controller, None)
-            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            widget.exec_()
+            from gui.module_info import QModuleInfo
+            module_info = QModuleInfo.instance()
+            module_info.show_annotations()
 
     def open_module_label_window(self, id):
         """ open_module_label_window(int) -> None
