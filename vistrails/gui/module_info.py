@@ -104,17 +104,17 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         h_layout.addWidget(self.doc_button)
         layout.addLayout(h_layout)
         
-        tab_widget = QtGui.QTabWidget()
-        tab_widget.setDocumentMode(True)
+        self.tab_widget = QtGui.QTabWidget()
+        self.tab_widget.setDocumentMode(True)
         self.input_ports_list = PortsList('input')
-        tab_widget.addTab(self.input_ports_list, 'Inputs')
+        self.tab_widget.addTab(self.input_ports_list, 'Inputs')
         self.output_ports_list = PortsList('output')
-        tab_widget.addTab(self.output_ports_list, 'Outputs')
+        self.tab_widget.addTab(self.output_ports_list, 'Outputs')
         self.ports_lists = [self.input_ports_list,
                             self.output_ports_list]
         self.annotations = QModuleAnnotationTable()
-        tab_widget.addTab(self.annotations, 'Annotations')
-        layout.addWidget(tab_widget, 1)
+        self.tab_widget.addTab(self.annotations, 'Annotations')
+        layout.addWidget(self.tab_widget, 1)
 
         layout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(layout)
@@ -197,3 +197,8 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         
     def update_entry_klass(self, entry_klass):
         self.input_ports_list.set_entry_klass(entry_klass)
+        
+    def show_annotations(self):
+        if self.module is not None:
+            self.tab_widget.setCurrentWidget(self.annotations)
+            self.annotations.editNextAvailableCell()
