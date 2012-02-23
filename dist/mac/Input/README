@@ -26,7 +26,7 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0-beta build 6c5a05b9bb5d from v2.0 branch
+Release Name: v2.0-beta build 895d96b1e796 from v2.0 branch
 
 Enhancements: 
  - Added VisTrails Server documentation (611f2082f98d)
@@ -45,6 +45,11 @@ Enhancements:
 access a remote vistrails server  (dd7456507ab4)
 
 Bug fixes: 
+ - Mashups: editing an alias' values list had no effect (c485a7433dde)
+ - Mashups: slider and numericstepper widgets are only displayed for 
+   numeric aliases (c485a7433dde)
+ - Mashups: Validating Min Max and Step edit boxes so they accept only 
+   numbers (c485a7433dde)
  - Accessing Module Annotate from context menu did not work (ac100b566d84)
  - Fixed problem where unrequested vistrail temporary files were being created during test suite (445e2b68d9e6) (1a539cad8a9a)
  - Fix issue with alternate .vistrails directory and its subdirectories (7d26c36ef77a)
