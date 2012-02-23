@@ -2403,7 +2403,8 @@ class QVistrailsWindow(QVistrailViewWindow):
     def applicationFocusChanged(self, old, current):
         from gui.modules.constant_configuration import ConstantWidgetMixin
         from gui.paramexplore.pe_view import QParamExploreView
-        
+        from gui.mashups.alias_inspector import QAliasInspector
+        from packages.spreadsheet.spreadsheet_cell import QCellWidget
         def is_or_has_parent_of_types(widget, types):
             while widget is not None:
                 for _type in types:
@@ -2414,13 +2415,17 @@ class QVistrailsWindow(QVistrailViewWindow):
                 
         if current is not None:
             owner = current.window()
-#            print "\n\n\n >>>>>> applicationfocuschanged"
-#            print "focus_owner: ", self._focus_owner," previous_vt_view ", self._previous_vt_view, " previous_view ", self._previous_view
-#            print "owner: ", owner, " current: ", current
+            #print "\n\n\n >>>>>> applicationfocuschanged"
+            #print "focus_owner: ", self._focus_owner," previous_vt_view ", self._previous_vt_view, " previous_view ", self._previous_view
+            #print "owner: ", owner, " current: ", current
+            allowed_widgets = [ConstantWidgetMixin,
+                               QParamExploreView,
+                               QAliasInspector,
+                               QCellWidget]
             if (self.isAncestorOf(current) or 
                 owner in self.windows.values()):
                 view = self.get_current_view()
-#                print "view: ", view
+                #print "view: ", view
                 if view and (view == current or view.isAncestorOf(current)):
                     # when a widget spans another control, for example, a Color
                     # wheel, VisTrails will lose focus to that widget and it 
@@ -2431,8 +2436,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                     # constant widget or a parameter exploration widget or has
                     # any of these types as a parent in the hierarchy.  
                     if (owner != self._focus_owner and 
-                        not is_or_has_parent_of_types(current, [ConstantWidgetMixin,
-                                                                QParamExploreView])):
+                        not is_or_has_parent_of_types(current, allowed_widgets)):
                         #print "generating view_changed"
                         self._previous_vt_view = view
                         self._focus_owner = owner
@@ -2446,8 +2450,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 view = owner.get_current_view()
                 #print "QBaseViewWindow view: ", view
                 if (view and owner != self._focus_owner and 
-                    not is_or_has_parent_of_types(current, [ConstantWidgetMixin,
-                                                            QParamExploreView])):
+                    not is_or_has_parent_of_types(current, allowed_widgets)):
                     #print "generating view changed"
                     self._previous_vt_view = view
                     self._focus_owner = owner
