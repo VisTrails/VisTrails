@@ -66,7 +66,8 @@ if __name__ == '__main__':
         r = gui.bundles.installbundle.install(
             {'linux-ubuntu': ['python-qt4',
                               'python-qt4-gl',
-                              'python-qt4-sql']})
+                              'python-qt4-sql'],
+             'linux-fedora': ['PyQt4']})
         if not r:
             raise req
 
