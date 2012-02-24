@@ -6,6 +6,8 @@ import core.db.io
 from core.modules.module_registry import get_module_registry
 # from core.modules.package import Package as _Package
 # from core.vistrail.module import Module as _Module
+from core.vistrail.pipeline import Pipeline
+from core.vistrail.vistrail import Vistrail
 
 _api = None
 
@@ -333,7 +335,6 @@ class VisTrailsAPI(object):
         self._controller.write_vistrail(locator, version)
 
     def load_vistrail(self, fname):
-        self._old_logs = None
         locator = FileLocator(fname)
         (vistrail, abstraction_files, thumbnail_files, mashups) = \
             core.db.io.load_vistrail(locator, False)
@@ -341,6 +342,22 @@ class VisTrailsAPI(object):
                                       thumbnail_files, mashups)
         self._controller.select_latest_version()
         
+    def load_workflow(self, fname):
+        locator = FileLocator(fname)
+        workflow = locator.load(Pipeline)
+        action_list = []
+        for module in workflow.module_list:
+            action_list.append(('add', module))
+        for connection in workflow.connection_list:
+            action_list.append(('add', connection))
+        action = core.db.action.create_action(action_list)
+        vistrail = Vistrail()
+        vistrail.add_action(action, 0L)
+        vistrail.update_id_scope()
+        vistrail.addTag("Imported workflow", action.id)
+        self._controller.set_vistrail(vistrail, None)
+        self._controller.select_latest_version()
+
     def select_version(self, version):
         self._controller.change_selected_version(self._convert_version(version))
 
