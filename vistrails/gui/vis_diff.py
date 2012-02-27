@@ -310,6 +310,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
             'Create analogy', None, triggered=self.createAnalogy)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.createAnalogyAction)
+        self.toolWindow().toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
     def createAnalogy(self):
         if not hasattr(self.controller, 'current_diff'):
