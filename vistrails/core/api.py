@@ -4,6 +4,7 @@ import core.application
 from core.db.locator import FileLocator
 import core.db.io
 from core.modules.module_registry import get_module_registry
+from core.packagemanager import get_package_manager
 # from core.modules.package import Package as _Package
 # from core.vistrail.module import Module as _Module
 from core.vistrail.pipeline import Pipeline
@@ -307,6 +308,14 @@ class VisTrailsAPI(object):
     def get_package(self, identifier):
         packages = self.get_packages()
         return packages[identifier]
+
+    def load_package(self, identifier, codepath):
+        packages = self.get_packages()
+        if identifier not in packages:
+            pm = get_package_manager()
+            pm.late_enable_package(codepath)
+            self._packages = None
+        return self.get_package(identifier)
             
     def list_modules(self):
         for identifier, package in sorted(self.get_packages().iteritems()):
