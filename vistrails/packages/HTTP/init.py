@@ -401,7 +401,8 @@ def initialize(*args, **keywords):
                         (basic.String, 'Checksum'), optional=True)
 
     global package_directory
-    package_directory = core.system.default_dot_vistrails() + "/HTTP"
+    dotVistrails = get_vistrails_persistent_configuration().dotVistrails
+    package_directory = os.path.join(dotVistrails, "HTTP")
 
     if not os.path.isdir(package_directory):
         try:
