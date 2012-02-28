@@ -53,7 +53,6 @@ from vtk_parser import VTKMethodParser
 import re
 import os.path
 from itertools import izip
-from vtkcell import VTKCell
 import tf_widget
 import offscreen
 import fix_classes
@@ -484,6 +483,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 # the information in a list
                 if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
                                        'SpreadsheetCell'):
+                    from vtkcell import VTKCell
                     delayed.add_input_port.append((module, 'SetVTKCell', VTKCell, False))
             # Wrap color methods for VisTrails GUI facilities
             elif name == 'DiffuseColor':
