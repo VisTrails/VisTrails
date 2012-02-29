@@ -26,7 +26,18 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0-beta build 895d96b1e796 from v2.0 branch
+Release Name: v2.0-beta build e29a873af4a1 from v2.0 branch
+
+Bug fixes: 
+ - VTK package: fix problem when upgrading vtkCellArray.InsertNextCell input port (e29a873af4a1)
+ - Ticket #525: The create analogy button is too small (bf61e06b0a50)
+ - The create analogy button is too small (bf61e06b0a50)
+ - Ticket #526: "Show raw pipeline" and "construct from root" commands should switch to the pipeline view (3ada5972d872)
+ - "Show raw pipeline" and "construct from root" commands should switch to the pipeline view (3ada5972d872)
+
+
+
+From Release: v2.0-beta build b074d3a4eb44 from v2.0 branch
 
 Enhancements: 
  - Added VisTrails Server documentation (611f2082f98d)
