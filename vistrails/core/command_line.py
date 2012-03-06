@@ -48,13 +48,18 @@ class CommandLineParserSingleton(object):
         self.options_were_read = False
         self.args = []
 
-    def init_options(self,args=sys.argv[1:]):
+    def init_options(self,args=None):
         """self.init_options(args: [string]) -> None. Initialize option dictionary,
         by parsing command line arguments according to the options set
         by previous add_option calls.
 
         Few programs should call this. Call self.parse_options() unless
         you know what you're doing."""
+        if args is None:
+            if hasattr(sys, "argv"):
+                args = sys.argv[1:]
+            else:
+                args = []
         (self.options, self.args) = self.parser.parse_args(args)
         self.options_were_read = True
 
@@ -71,7 +76,7 @@ class CommandLineParserSingleton(object):
         self.parse_options()
         return getattr(self.options, key)
 
-    def parse_options(self,args=sys.argv[1:]):
+    def parse_options(self,args=None):
         """self.parse_options() -> None. Parse command line arguments,
         according to the options set by previous add_option calls."""
         if not self.options_were_read:

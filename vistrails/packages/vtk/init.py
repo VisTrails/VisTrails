@@ -53,7 +53,6 @@ from vtk_parser import VTKMethodParser
 import re
 import os.path
 from itertools import izip
-from vtkcell import VTKCell
 import tf_widget
 import offscreen
 import fix_classes
@@ -484,6 +483,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 # the information in a list
                 if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
                                        'SpreadsheetCell'):
+                    from vtkcell import VTKCell
                     delayed.add_input_port.append((module, 'SetVTKCell', VTKCell, False))
             # Wrap color methods for VisTrails GUI facilities
             elif name == 'DiffuseColor':
@@ -1203,10 +1203,10 @@ def build_remap(module_name=None):
     uscore_num = re.compile(r"(.+)_(\d+)$")
     
     def get_port_specs(descriptor, port_type):
-       ports = {}
-       for desc in reversed(reg.get_module_hierarchy(descriptor)):
-           ports.update(reg.module_ports(port_type, desc))
-       return ports
+        ports = {}
+        for desc in reversed(reg.get_module_hierarchy(descriptor)):
+            ports.update(reg.module_ports(port_type, desc))
+        return ports
 
     def build_remap_method(desc, port_prefix, port_num, port_type):
         # for connection, need to differentiate between src and dst
@@ -1250,6 +1250,7 @@ def build_remap(module_name=None):
         return remap
 
     def build_function_remap_method(desc, port_prefix, port_num):
+        f_map = {"vtkCellArray": {"InsertNextCell": 3}}
         def build_function(old_function, new_function_name, new_module):
             controller = _get_controller()
             if len(old_function.parameters) > 0:
@@ -1277,7 +1278,11 @@ def build_remap(module_name=None):
                                                   new_module)
                     new_module.add_function(new_function)
                     return []
-            port_name = "%s_%d" % (port_prefix, 1)
+            port_idx = 1
+            if desc.name in f_map:
+                if port_prefix in f_map[desc.name]:
+                    port_idx =  f_map[desc.name][port_prefix]
+            port_name = "%s_%d" % (port_prefix, port_idx)
             new_function = build_function(old_function, port_name, new_module)
             new_module.add_function(new_function)
             return []
