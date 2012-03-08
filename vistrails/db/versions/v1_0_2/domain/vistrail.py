@@ -192,7 +192,7 @@ class DBVistrail(_DBVistrail):
             m.update(str(k))
             annotations[k].sort()
             for v in annotations[k]:
-                m.update(v)
+                m.update(str(v))
         return m.hexdigest()
 
     def hashActionAnnotations(self):
@@ -211,5 +211,5 @@ class DBVistrail(_DBVistrail):
             m.update(k[0] + k[1])
             action_annotations[k].sort()
             for v in action_annotations[k]:
-                m.update(v)
+                m.update(str(v))
         return m.hexdigest()
