@@ -71,7 +71,9 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         if type(execution) == WorkflowExec:
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
-            if str(execution.completed) == '1':
+            if execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
+            elif execution.completed == 1:
                 brush = CurrentTheme.SUCCESS_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
@@ -83,40 +85,46 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         if type(execution) == ModuleExec:
             for loop_exec in execution.loop_execs:
                 QExecutionItem(loop_exec, self)
-            if execution.completed:
+            if execution.completed == 1:
                 if execution.error:
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
-                    self.wf_execution.completed = False
+                    self.wf_execution.completed = -1
                 elif execution.cached:
                     brush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+            elif execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, '%s' % execution.module_name)
         if type(execution) == GroupExec:
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
-            if execution.completed:
+            if execution.completed == 1:
                 if execution.error:
-                    self.wf_execution.completed = False
+                    self.wf_execution.completed = -1
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
                 elif execution.cached:
                     brush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+            elif execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Group')
         if type(execution) == LoopExec:
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
-            if execution.completed:
+            if execution.completed == 1:
                 if execution.error:
-                    self.wf_execution.completed = False
+                    self.wf_execution.completed = -1
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+            elif execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Loop #%s' % execution.db_iteration)
@@ -196,8 +204,9 @@ class QLegendWidget(QtGui.QWidget):
         
         data = [[0, 0, "Successful",      CurrentTheme.SUCCESS_MODULE_BRUSH],
                 [0, 1, "Error",             CurrentTheme.ERROR_MODULE_BRUSH],
+                [0, 2, "Cached",     CurrentTheme.NOT_EXECUTED_MODULE_BRUSH],
                 [1, 0, "Not executed", CurrentTheme.PERSISTENT_MODULE_BRUSH],
-                [1, 1, "Cached",     CurrentTheme.NOT_EXECUTED_MODULE_BRUSH]]
+                [1, 1, "Suspended",     CurrentTheme.SUSPENDED_MODULE_BRUSH]]
 
         for x, y, text, brush in data:         
             self.gridLayout.addWidget(
@@ -533,13 +542,15 @@ class QLogView(QPipelineView):
             brush = CurrentTheme.PERSISTENT_MODULE_BRUSH
             if m_id in module_execs:
                 e = module_execs[m_id]
-                if e.completed:
+                if e.completed == 1:
                     if e.error:
                         brush = CurrentTheme.ERROR_MODULE_BRUSH
                     elif e.cached:
                         brush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
                     else:
                         brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+                elif e.completed == -2:
+                    brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
             module.is_valid = True
