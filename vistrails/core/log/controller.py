@@ -131,9 +131,11 @@ class LogController(object):
                                           session=session)
         self.log.add_workflow_exec(self.workflow_exec)
 
-    def finish_workflow_execution(self, errors):
+    def finish_workflow_execution(self, errors, suspended=False):
         self.workflow_exec.ts_end = core.system.current_time()
-        if len(errors) > 0:
+        if suspended:
+            self.workflow_exec.completed = -2
+        elif len(errors) > 0:
             self.workflow_exec.completed = -1
         else:
             self.workflow_exec.completed = 1
@@ -194,15 +196,16 @@ class LogController(object):
             if ret is not None:
                 parent_execs.append(ret)
         
-    def finish_execution(self, module, error, parent_execs, errorTrace=None):
+    def finish_execution(self, module, error, parent_execs, errorTrace=None,
+                         suspended=False):
         if isinstance(module, Group):
-            if self.finish_group_execution(module, error):
+            if self.finish_group_execution(module, error, suspended):
                 parent_execs.pop()
         else:
-            if self.finish_module_execution(module, error, errorTrace):
+            if self.finish_module_execution(module, error, errorTrace, suspended):
                 parent_execs.pop()
         if module.is_fold_operator:
-            self.finish_loop_execution(module, error, parent_execs.pop())
+            self.finish_loop_execution(module, error, parent_execs.pop(), suspended)
 
     def start_module_execution(self, module, module_id, module_name,
                                parent_exec, cached):
@@ -218,9 +221,13 @@ class LogController(object):
             return module_exec
         return None
 
-    def finish_module_execution(self, module, error, errorTrace=None):
+    def finish_module_execution(self, module, error, errorTrace=None,
+                                suspended=False):
         module.module_exec.ts_end = core.system.current_time()
-        if not error:
+        if suspended:
+            module.module_exec.completed = -2
+            module.module_exec.error = error
+        elif not error:
             module.module_exec.completed = 1
         else:
             module.module_exec.completed = -1
@@ -246,9 +253,12 @@ class LogController(object):
             self.workflow_exec.add_item_exec(group_exec)
         return group_exec
 
-    def finish_group_execution(self, group, error):
+    def finish_group_execution(self, group, error, suspended=False):
         group.group_exec.ts_end = core.system.current_time()
-        if not error:
+        if suspended:
+            group.group_exec.completed = -2
+            group.group_exec.error = error
+        elif not error:
             group.group_exec.completed = 1
         else:
 #             if group.group_exec.module_execs and group.group_exec.\
@@ -273,9 +283,12 @@ class LogController(object):
             self.workflow_exec.add_item_exec(loop_exec)
         return loop_exec
 
-    def finish_loop_execution(self, module, error, loop_exec):
+    def finish_loop_execution(self, module, error, loop_exec, suspended=True):
         loop_exec.ts_end = core.system.current_time()
-        if not error:
+        if suspended:
+            loop_exec.completed = -2
+            loop_exec.error = error
+        elif not error:
             loop_exec.completed = 1
         else:
             loop_exec.completed = -1

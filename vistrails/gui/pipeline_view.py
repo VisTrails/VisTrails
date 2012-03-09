@@ -2250,6 +2250,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     3: CurrentTheme.ACTIVE_MODULE_BRUSH,
                     4: CurrentTheme.COMPUTING_MODULE_BRUSH,
                     6: CurrentTheme.PERSISTENT_MODULE_BRUSH,
+                    7: CurrentTheme.SUSPENDED_MODULE_BRUSH,
                     }
                 item.setProgress(e.progress)
                 if e.status in statusMap:
@@ -2384,7 +2385,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                      QModuleStatusEvent(moduleId, 1, error,
                                                       errorTrace = errorTrace))
         QtCore.QCoreApplication.processEvents()
-        
+
     def set_module_not_executed(self, moduleId):
         """ set_module_not_executed(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
@@ -2427,6 +2428,17 @@ class QPipelineScene(QInteractiveGraphicsScene):
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 6, ''))
         QtCore.QCoreApplication.processEvents()
+
+    def set_module_suspended(self, moduleId, error):
+        """ set_module_suspended(moduleId: int, error: str) -> None
+        Post an event to the scene (self) for updating the module color
+        
+        """
+        text = "Module is suspended, reason: %s" % error
+        QtGui.QApplication.postEvent(self,
+                                     QModuleStatusEvent(moduleId, 7, text))
+        QtCore.QCoreApplication.processEvents()
+
 
     def reset_module_colors(self):
         for module in self.modules.itervalues():
