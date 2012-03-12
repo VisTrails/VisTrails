@@ -20,6 +20,17 @@ VisTrails Server Setup
 
     $ mkdir logs
 
+* if you are running the server without crowdLabs or as a remote server, you need to create a media directory with the following structure::
+
+    /path/to/media_dir/
+                       wf_execution/
+                       graphs/
+                              workflows/
+                              vistrails/
+                       medleys/
+                              images/
+  You can run ``python scripts/create_server_media_dir_structure.py /path/to/media_dir`` to create the directory structure automatically.
+
 * Determine how you will start the vistrails server. You have a choice of using Xvfb or not. If you use it, /server/vistrails/git/scripts/start_vistrails_xvfb.sh is what you will use, otherwise, use start_vistrails.sh
 
 Using Xvfb is slower and not recommended if your workflows will make use of volume rendering or other graphics-card intensive techniques. 

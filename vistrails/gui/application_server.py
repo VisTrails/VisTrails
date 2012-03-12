@@ -789,7 +789,7 @@ class RequestHandler(object):
             # use same hashing as on crowdlabs webserver
             dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
             dest_version = hashlib.sha1(dest_version).hexdigest()
-            path_to_figures = os.path.join(media_dir, "photos", "wf_execution", dest_version)
+            path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
 
         if ((not self.path_exists_and_not_empty(path_to_figures) or 
              build_always) and self.proxies_queue is not None):
