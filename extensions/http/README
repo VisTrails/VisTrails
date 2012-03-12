@@ -1,11 +1,11 @@
 This folder contains files for adding vistrails to a regular web server.
 
-Just copy run_vistrails.py to the folder where your web server files are 
-located.
+Just copy all the files in this directory to the folder where your web server
+files are located.
+Rename config.php.sample to config.php and modify it according to your server 
+installation. 
 
-Update the file according to your needs (set vistrails path and image directory.
-
-More information is documented in the file itself.
+More information is documented in the files.
 
 
 

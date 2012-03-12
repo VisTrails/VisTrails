@@ -67,6 +67,15 @@ $PATH_TO_GRAPHS = '/path/to/graphs/';
 // Change this to the full url pointing to the root where the graphs were generated
 $URL_TO_GRAPHS = "http://your.domain.com/path/to/graphs/";
 
-//Change this to the full url pointing to the download.php script
+// Change this to the full url pointing to the download.php script
 $URL_TO_DOWNLOAD = "http://your.domain.com/path/to/download.php";
+
+// Default configuration variables for database
+// They can be changed through the requests in the scripts
+// default database host
+$DB_HOST = 'your.hostname.com';
+// default databse port
+$DB_PORT = '3306';
+// default database name
+$DB_NAME = 'vistrails';
 ?>
