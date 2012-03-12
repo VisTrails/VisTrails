@@ -47,9 +47,9 @@ require_once 'config.php';
 $SUPPORTED_IMAGE_FILES = array("png", "jpg", "gif");
 
 // set variables with default values
-$host = 'vistrails.org';
-$port = '3306';
-$dbname = 'vistrails';
+$host = $DB_HOST;
+$port = $DB_PORT;
+$dbname = $DB_NAME;
 $vtid = '';
 $version = '';
 $username = "vtserver";

@@ -51,13 +51,14 @@ function registerVistrailTag() {
 function printVistrailTag($input,$params) {
     global $PATH_TO_IMAGES, $WEB_PATH_TO_IMAGES, $URL_TO_GRAPHS,
             $PATH_TO_GRAPHS, $VT_HOST, $VT_PORT, $USE_LOCAL_VISTRAILS_SERVER,
-            $USE_VISTRAILS_XML_RPC_SERVER, $PATH_TO_VISTRAILS, $URL_TO_DOWNLOAD;
-    $host = "";
-    $dbname = "";
+            $USE_VISTRAILS_XML_RPC_SERVER, $PATH_TO_VISTRAILS, $URL_TO_DOWNLOAD,
+            $DB_HOST, $DB_NAME, $DB_PORT;
+    $host = $DB_HOST;
+    $dbname = $DB_NAME;
     $username = "vtserver";
     $vtid = "";
     $version = "";
-    $port = '3306';
+    $port = $DB_PORT;
     $version_tag = "";
     $execute = "False";
     $showspreadsheetonly = "False";

@@ -1,9 +1,14 @@
 This folder contains files for adding vistrails to mediawiki.
 
-Just copy download.php and vistrailsExtension.php to the wiki/extensions/
-folder.
+Just copy 
+  download.php
+  functions.php
+  vistrailsExtension.php 
+  ../http/config.php.sample
 
-Update the files according to your needs.
+to the wiki/extensions/  folder.
+
+Rename config.php.sample to config.php and modify the file according to your needs.
 
 An example of usage is in 
 
