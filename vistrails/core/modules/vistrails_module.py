@@ -280,7 +280,8 @@ context."""
         if port in self.inputPorts:
             for connector in self.inputPorts[port]:
                 connector.obj.update()
-                if connector.obj.suspended:
+                if hasattr(connector.obj, 'suspended') and \
+                   connector.obj.suspended:
                     self.suspended = connector.obj.suspended
             for connector in copy.copy(self.inputPorts[port]):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
@@ -296,7 +297,8 @@ context."""
         for connectorList in self.inputPorts.itervalues():
             for connector in connectorList:
                 connector.obj.update()
-                if connector.obj.suspended:
+                if hasattr(connector.obj, 'suspended') and \
+                   connector.obj.suspended:
                     self.suspended = connector.obj.suspended
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
