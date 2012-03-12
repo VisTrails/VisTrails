@@ -71,6 +71,9 @@ sleep 5
 #try again because sometimes it doesn't quit
 python stop_vistrails_server.py http://$ADDRESS:$PORT
 
+#finally kill it if it still did not respond because it was hanging
+kill -9 `cat $PID`
+
 export PYTHONPATH=/home/emanuele/src/titan/build/lib:$PYTHONPATH
 export LD_LIBRARY_PATH=/home/emanuele/src/titan/build/lib:$LD_LIBRARY_PATH
 python vistrails_server.py -T $ADDRESS -R $PORT -C $CONF_FILE -O$NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
