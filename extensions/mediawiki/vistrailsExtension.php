@@ -143,7 +143,7 @@ function printVistrailTag($input,$params) {
         if($USE_LOCAL_VISTRAILS_SERVER or 
            (!$cached or strcasecmp($force_build,'True') == 0)) {
             $request = xmlrpc_encode_request("get_wf_graph_png", array($host, 
-                                         $port, $dbname, $vtid, $version, $vtid, 
+                                         $port, $dbname, $vtid, $version, 
                                          $USE_LOCAL_VISTRAILS_SERVER));
             $response = do_call($VT_HOST,$VT_PORT,$request);
             $result = clean_up($response, $filename);
