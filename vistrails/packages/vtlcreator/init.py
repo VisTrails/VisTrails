@@ -105,7 +105,7 @@ class VtlFileCreator(NotCacheable, Module):
             node.set('port', str(locator.port))
             node.set('database', str(locator.db))
             node.set('vtid', str(locator.obj_id))
-        else:
+        elif locator is not None:
             node.set('filename', str(locator.name))
             
         node.set('version', str(version))    
