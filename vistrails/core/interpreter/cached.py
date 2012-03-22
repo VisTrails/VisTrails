@@ -504,7 +504,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         if len(errors) == 0:
             res = self.execute_pipeline(pipeline, *(res[:2]), **kwargs)
         else:
-            res = (to_delete, res[0], errors, False, {}, {}, [])
+            res = (to_delete, res[0], errors, {}, {}, {}, [])
         self.finalize_pipeline(pipeline, *(res[:-1]), **kwargs)
         
         return InstanceObject(objects=res[1],
