@@ -51,7 +51,7 @@ ArchitecturesInstallIn64BitMode=x64
 Source: C:\Python27_64\LICENSE.txt; DestDir: {app}\vistrails\Python27_64
 Source: C:\Python27_64\python.exe; DestDir: {app}\vistrails\Python27_64
 Source: C:\Python27_64\pythonw.exe; DestDir: {app}\vistrails\Python27_64
-Source: C:\Python27_64\qt.conf; DestDir: {app}\vistrails\Python27_64
+;Source: C:\Python27_64\qt.conf; DestDir: {app}\vistrails\Python27_64
 Source: C:\Python27_64\README.txt; DestDir: {app}\vistrails\Python27_64
 Source: C:\Python27_64\DLLs\*; DestDir: {app}\vistrails\Python27_64\DLLs
 Source: C:\Python27_64\include\*; DestDir: {app}\vistrails\Python27_64\include
@@ -108,6 +108,7 @@ Source: Input\*.dll; DestDir: {app}\vistrails
 Source: Input\license.txt; DestDir: {app}
 Source: Input\vcredist_x64.exe; DestDir: {tmp}; Flags: deleteafterinstall
 Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
+Source: Input\qt.conf; DestDir: {app}\vistrails\Python27_64
 ;;;; ------- QT LIBS ------- ;;;;
 ;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\phonon4.dll; DestDir: {app}\vistrails
