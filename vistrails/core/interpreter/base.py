@@ -206,12 +206,10 @@ class BaseInterpreter(object):
                     debug.debug("Problem when updating params: %s"%str(e))
 
     def resolve_variables(self, controller, pipeline):
-        #FIXME: This could be faster if we index variables by uuid.  Workaround could be constructing reverse dictionary.
-        vars = controller.get_vistrail_variables()
         var_modules = [m for m in pipeline.module_list if m.has_annotation_with_key('__vistrail_var__')]
         for var_mod in var_modules:
             uuid = var_mod.get_annotation_by_key('__vistrail_var__').value
-            strValue = [var_strValue for var_uuid, descriptor_info, var_strValue in vars.itervalues() if var_uuid == uuid][0]
+            strValue = controller.vistrail.db_get_vistrailVariable_by_uuid(uuid).value
             for func in var_mod.functions:
                 if func.name == 'value':
                     func.params[0].strValue = strValue

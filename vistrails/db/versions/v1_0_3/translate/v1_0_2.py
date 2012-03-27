@@ -32,4 +32,41 @@
 ##
 ###############################################################################
 
-from db.versions.v1_0_3.persistence import *
+from db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
+                                      DBWorkflow, DBLog, DBRegistry
+
+def translateVistrail(_vistrail):
+    """ Translate old annotation based vistrail variables to new
+        DBVistrailVariable class """
+    
+    vistrail = DBVistrail.update_version(_vistrail, {})
+    key = '__vistrail_vars__'
+    if vistrail.db_has_annotation_with_key(key):
+        s = vistrail.db_get_annotation_by_key(key)
+        vistrail.db_delete_annotation(s)
+        for name, data in dict(eval(s.db_value)).iteritems():
+            uuid, identifier, value = data
+            package, module, namespace = identifier
+            var = DBVistrailVariable(name, uuid, package, module, namespace, value)
+            vistrail.db_add_vistrailVariable(var)
+
+    vistrail.db_version = '1.0.3'
+    return vistrail
+
+def translateWorkflow(_workflow):
+    translate_dict = {}
+    workflow = DBWorkflow.update_version(_workflow, translate_dict)
+    workflow.db_version = '1.0.3'
+    return workflow
+
+def translateLog(_log):
+    translate_dict = {}
+    log = DBLog.update_version(_log, translate_dict)
+    log.db_version = '1.0.3'
+    return log
+
+def translateRegistry(_registry):
+    translate_dict = {}
+    registry = DBRegistry.update_version(_registry, translate_dict)
+    registry.db_version = '1.0.3'
+    return registry

@@ -1079,9 +1079,7 @@ class Pipeline(DBWorkflow):
             raise InvalidPipeline(exceptions, self)
         
     def ensure_vistrail_variables(self, vistrail_vars):
-        if len(vistrail_vars) <= 0:
-            return
-        var_uuids = [var_uuid for var_uuid, descriptor_info, var_strValue in vistrail_vars.itervalues()]
+        var_uuids = [var.uuid for var in vistrail_vars]
         exceptions = set()
         for module in self.modules.itervalues():
             if module.has_annotation_with_key('__vistrail_var__'):

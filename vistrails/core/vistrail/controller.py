@@ -232,30 +232,28 @@ class VistrailController(object):
             return self.vistrail.has_vistrail_var(name)
         return False
     
-    def set_vistrail_variable(self, name, value):
+    def set_vistrail_variable(self, name, value=None, set_changed=True):
         """set_vistrail_variable(var) -> Boolean
         Returns True if vistrail variable was changed """
         if self.vistrail:
             changed = self.vistrail.set_vistrail_var(name, value)
-            self.set_changed(changed)
+            if set_changed:
+                self.set_changed(changed)
             return changed
         return False
     
     def get_vistrail_variables(self):
-        """get_vistrail_variables() -> dict
-        Returns the dictionary of vistrail variables """
+        """get_vistrail_variables() -> list
+        Returns the list of vistrail variables """
         if self.vistrail:
             return self.vistrail.vistrail_vars
-        return {}
+        return []
     
     def get_vistrail_variable_name_by_uuid(self, uuid):
         """def get_vistrail_variable_name_by_uuid(uuid: str) -> dict
         Returns the var name for vistrail variable with uuid """
-        vars = self.get_vistrail_variables()
-        for var_name, var_info in vars.iteritems():
-            var_uuid, descriptor_info, var_strValue = var_info
-            if var_uuid == uuid:
-                return var_name
+        if self.vistrail and self.vistrail.db_has_vistrailVariable_with_uuid(uuid):
+            return self.vistrail.db_get_vistrailVariable_by_uuid(uuid).name
     
     def invalidate_version_tree(self, *args, **kwargs):
         """ invalidate_version_tree(self, *args, **kwargs) -> None
