@@ -237,7 +237,7 @@ class VistrailController(object):
         Returns True if vistrail variable was changed """
         if self.vistrail:
             changed = self.vistrail.set_vistrail_var(name, value)
-            if set_changed:
+            if changed and set_changed:
                 self.set_changed(changed)
             return changed
         return False
