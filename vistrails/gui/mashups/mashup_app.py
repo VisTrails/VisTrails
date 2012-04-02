@@ -64,6 +64,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.mainLayout.setSpacing(5)
         centralWidget.setLayout(self.mainLayout)
         self.setCentralWidget(centralWidget)
+        self.numberOfCells = 0
         #self.resize(100,100)
         self.dumpcells = dumpcells
         self.view = vistrail_view
@@ -182,12 +183,14 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         spreadsheetController.setEchoMode(True)        
         #will run to get Spreadsheet Cell events
         cellEvents = []
+        errors = []
         try:
             (res, errors) = self.run(useDefaultValues)
             if res:
                 cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
-            print "Executing pipeline failed: ", str(e)
+            import traceback
+            print "Executing pipeline failed:", str(e), traceback.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
             
@@ -195,9 +198,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
     
     def updateCells(self):
         (cellEvents, errors) = self.runAndGetCellEvents()
+        
         if len(cellEvents) != self.numberOfCells:
             raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
-Pipeline results: %s' % (len(cellEvents), self.numberOfCells), errors)
+Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []

@@ -47,11 +47,9 @@ class QAliasSliderWidget(QtGui.QWidget):
                                 CurrentTheme.METHOD_SELECT_COLOR)
         label = QtGui.QLabel(alias.name)
         label.font().setBold(True)
-        self.value = QSliderIntegerWidget(param=vtparam,
-                                          parent=self)
-        self.value.setRange(int(alias.component.minVal), 
-                            int(alias.component.maxVal))
-        self.value.setSingleStep(int(alias.component.stepSize))
+        self.value = QSliderWidget(param=vtparam, parent=self)
+        self.value.setRange(alias.component.minVal, alias.component.maxVal)
+        self.value.setSingleStep(alias.component.stepSize)
         self.value.setContents(self.alias.component.val)
         
         self.connect(self.value,
@@ -62,7 +60,7 @@ class QAliasSliderWidget(QtGui.QWidget):
         hbox.setMargin(8)
         hbox.addWidget(label)
         hbox.addWidget(self.value)
-        self.setLayout(hbox)    
+        self.setLayout(hbox)
    
     def contents_changed(self, info):
         #print "drop down emitting"
@@ -76,35 +74,61 @@ class QAliasSliderWidget(QtGui.QWidget):
         
 ###############################################################################        
 
-class QSliderIntegerWidget(ConstantWidgetMixin, QtGui.QSlider):
+class QSliderWidget(ConstantWidgetMixin, QtGui.QSlider):
     def __init__(self, param, parent=None):
         QtGui.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
-        assert param.type == 'Integer'
+        assert param.type in['Integer', 'Float']
+        self.sliderType = int if param.type == 'Integer' else float
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
         
-        self.connect(self, QtCore.SIGNAL('valueChanged(int)'),
-                     self.change_val)
+        self.connect(self, QtCore.SIGNAL('valueChanged(int)'),self.change_val)
+        QtGui.QSlider.setSingleStep(self, 1)
+        QtGui.QSlider.setPageStep(self, 5)
+        self.floatMinVal = 0.0
+        self.floatMaxVal = 1.0
+        self.floatStepSize = 1
+        self.numSteps = 1
         self.setContents(param.strValue)
-        self.setTickPosition(QtGui.QSlider.TicksAbove)
-        
+        self.setTickPosition(QtGui.QSlider.TicksAbove)        
+    
     def contents(self):
-        return self.value()
+        floatVal = float(self.value()) * self.floatStepSize + self.floatMinVal
+        return self.sliderType(floatVal)
 
     def setContents(self, strValue, silent=True):
+        """ encodes a number to a scaled integer """
         if strValue:
             value = strValue
         else:
-            value = "0"
+            value = "0.0"
+        floatVal = float(value)
+        value = int((floatVal-self.floatMinVal)/self.floatStepSize)
         self.setValue(int(value))
-        self.setToolTip(value)
+        self.setToolTip("%g" % floatVal)
         
         if not silent:
             self.update_parent()
             
     def change_val(self, newval):
-        self.setToolTip(str(newval))
+        """ decodes a scaled integer to the correct number """
+        floatVal = float(newval) * self.floatStepSize + self.floatMinVal
+        self.setToolTip("%g" % floatVal)
         self.update_parent()
+
+    def setRange(self, minVal, maxVal):
+        self.floatMinVal = float(minVal)
+        self.floatMaxVal = float(maxVal)
+        QtGui.QSlider.setRange(self, 0, 1)
+        self.setSingleStep(self.floatStepSize)
+        
+    def setSingleStep(self, stepSize):
+        """ stepSize tells the step between values. We need to calculate the
+            number of steps """
+        self.floatStepSize = float(stepSize)
+        self.numSteps = int((self.floatMaxVal - self.floatMinVal)/self.floatStepSize)
+        QtGui.QSlider.setRange(self, 0, self.numSteps)
+
         
 ###############################################################################
 
