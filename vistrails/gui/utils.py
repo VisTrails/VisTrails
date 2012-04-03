@@ -41,7 +41,6 @@ import gui.theme
 from core.system import systemType
 ################################################################################
 
-"""
 OK_BUTTON              = QtGui.QMessageBox.Ok
 OPEN_BUTTON            = QtGui.QMessageBox.Open
 SAVE_BUTTON            = QtGui.QMessageBox.Save
@@ -80,7 +79,7 @@ _buttons_captions_dict = { OK_BUTTON   : "Ok",
                            RETRY_BUTTON : "Retry",
                            IGNORE_BUTTON : "Ignore",
                            NOBUTTON_BUTTON : ""}
-"""
+
 
 def show_warning(title, message):
     """ show_warning(title: str, message: str) -> None

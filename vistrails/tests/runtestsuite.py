@@ -60,8 +60,6 @@ if not _this_dir:
 else:
     root_directory = os.path.join(_this_dir,  '..')
 sys.path.append(root_directory)
-sys.path.append('C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/vistrails')
-sys.path.append('C:/Documents and Settings/plhemery/Mes documents/VisTrails/Vistrails2/vistrails/')
 
 
 import tests
@@ -272,5 +270,8 @@ if test_examples:
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
+
+import gui
+
 gui.application.get_vistrails_application().finishSession()
 gui.application.stop_application()
