@@ -312,7 +312,12 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                     break
                 def moduleExecuted(objId):
                     if not progress.wasCanceled():
-                        progress.setValue(progress.value()+1)
+                        #progress.setValue(progress.value()+1)
+                        #the call above was crashing when used by multithreaded
+                        #code, replacing with the call below (thanks to Terence
+                        #for submitting this fix). 
+                        QtCore.QMetaObject.invokeMethod(progress, "setValue", 
+                                        QtCore.Q_ARG(int,progress.value()+1))
                         QtCore.QCoreApplication.processEvents()
                 kwargs = {'locator': self.controller.locator,
                           'current_version': self.controller.current_version,
