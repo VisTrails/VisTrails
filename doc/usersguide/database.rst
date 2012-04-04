@@ -85,22 +85,6 @@ default.  To do so, select the ``Preferences`` option from the ``Edit`` menu. (O
 Opening from a database
 =======================
 
-.. _fig-database-open:
-
-.. figure:: figures/database/open_dialog.png
-   :align: center
-   :width: 3in
-
-   Opening a vistrail from the database.
-
-.. _fig-database-create:
-
-.. figure:: figures/database/create_dialog.png
-   :align: center
-   :width: 3in
-
-   Creating a new database connection.
-
 .. index::
    pair: database; opening from
 
@@ -130,6 +114,22 @@ open a vistrail, select the desired vistrail and click the
 the vistrail has loaded, you will be able to interact with it in
 exactly the same way as a vistrail loaded from a file.
 
+.. _fig-database-open:
+
+.. figure:: figures/database/open_dialog.png
+   :align: center
+   :width: 3in
+
+   Opening a vistrail from the database
+
+.. _fig-database-create:
+
+.. figure:: figures/database/create_dialog.png
+   :align: center
+   :width: 3in
+
+   Creating a new database connection
+
 Saving to a database
 ====================
 
@@ -141,24 +141,24 @@ will be to save that vistrail back to the database.  There will be no
 dialogs displayed---the database the vistrail was loaded from will be
 automatically updated.
 
-.. _fig-database-save:
-
-.. figure:: figures/database/save_dialog.png
-   :align: center
-   :width: 3in
-
-   Saving a vistrail to the database.
-
 If you opened the vistrail from a file, you will need to select either
 ``Save As`` or ``Export`` from the
 ``File`` menu, depending on whether |vistrails| uses the
 database by default (see Section :ref:`sec-database-config`).  You will
 be shown a dialog similar to the one in
 Figure :ref:`fig-database-save`.  As discussed in
-Secion :ref:`sec-database-open`, you can create a new connection to the
+Section :ref:`sec-database-open`, you can create a new connection to the
 database or use an existing one.  Note that the name of the vistrail
 must differ from those already stored on the database, and clicking the
 ``Save`` button will persist the changes to the database.
+
+.. _fig-database-save:
+
+.. figure:: figures/database/save_dialog.png
+   :align: center
+   :width: 3in
+
+   Saving a vistrail to the database
 
 Known Issues
 ============

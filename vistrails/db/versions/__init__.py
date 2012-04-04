@@ -47,9 +47,14 @@ def getVersionDAO(version=None):
         '.persistence'
     try:
         persistence = __import__(persistence_dir, {}, {}, [''])
-    except ImportError:
-        msg = "Cannot find DAO for version '%s'" % version
-        raise VistrailsDBException(msg)
+    except ImportError as e:
+        if str(e).startswith('No module named v'):
+            # assume version is not available
+            msg = "Cannot find DAO for version '%s'" % version
+            raise VistrailsDBException(msg)
+        # assume other error
+        import traceback
+        raise VistrailsDBException(traceback.format_exc())
     return persistence.DAOList()
 
 def translate_object(obj, method_name, version=None, target_version=None):

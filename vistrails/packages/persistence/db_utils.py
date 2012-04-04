@@ -45,16 +45,16 @@ class DatabaseAccessSingleton(object):
 class DatabaseAccess(object):
     _instance = None
     def __init__(self, db_file):
-        print 'initing DatabaseAccess'
+        #print 'initing DatabaseAccess'
         self.db_file = db_file
         run_schema = False
         if not os.path.exists(db_file):
             run_schema = True
         self.conn = sqlite3.connect(db_file)
         if run_schema:
-            print 'running schema'
-            print 'schema file:', os.path.join(os.path.dirname(
-                        os.path.abspath(__file__)), 'schema.sql')
+            #print 'running schema'
+            #print 'schema file:', os.path.join(os.path.dirname(
+            #            os.path.abspath(__file__)), 'schema.sql')
             cur = self.conn.cursor()
             self.run_sql_file(cur, os.path.join(os.path.dirname(
                         os.path.abspath(__file__)), 'schema.sql'))

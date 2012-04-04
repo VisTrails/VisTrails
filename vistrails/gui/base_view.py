@@ -46,7 +46,7 @@ class BaseView(object):
         self.index = -1
         self.tab_idx = -1
 
-        self.layout = {}
+        self.palette_layout = {}
         self.set_default_layout()
         self.action_links = {}
         self.action_defaults = {}
@@ -57,7 +57,10 @@ class BaseView(object):
         self.vistrail_view = None
 
     def set_default_layout(self):
-        raise Exception("Class must define the layout")
+        raise Exception("Class must define the layout as self.palette_layout")
+
+    def set_palette_layout(self, layout):
+        self.palette_layout = layout
 
     def set_action_links(self):
         raise Exception("Class must define the action links")

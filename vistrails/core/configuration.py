@@ -43,7 +43,8 @@ import weakref
 
 from core import debug
 from core import system
-from core.utils import InstanceObject, Ref, append_to_dict_of_lists, VistrailsInternalError
+from core.utils import (InstanceObject, Ref, append_to_dict_of_lists,
+                        VistrailsInternalError)
 from core.utils.uxml import (named_elements,
                              elements_filter, eval_xml_value,
                              quote_xml_value)
@@ -181,13 +182,13 @@ def default():
         'autosave': True,
         'dataDirectory': (None, str),
         'dbDefault': False,
-        'debugSignals': False,
+#        'debugSignals': False,
         'defaultFileType':system.vistrails_default_file_type(),
         'detachHistoryView': False,
         'dotVistrails': system.default_dot_vistrails(),
         'executeWorkflows': False,
         'fileDirectory': (None, str),
-        'evolutionGraph': (None, str),
+#        'evolutionGraph': (None, str),
         'interactiveMode': True,
         'logFile': (None, str),
         'logger': default_logger(),
@@ -220,8 +221,8 @@ def default():
         'useCache': True,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
-        'workflowGraph': (None, str),
-        'workflowInfo': (None, str),
+#        'workflowGraph': (None, str),
+#        'workflowInfo': (None, str),
         'webRepositoryLogin': (None, str),
         'webRepositoryURL': "http://www.crowdlabs.org",
         'isInServerMode': False,

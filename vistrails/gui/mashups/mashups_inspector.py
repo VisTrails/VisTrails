@@ -33,9 +33,11 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
-
-from gui.vistrails_palette import QVistrailsPaletteInterface
+import core.system
+from gui.common_widgets import QDockPushButton
 from gui.mashups.mashups_manager import MashupsManager
+from gui.utils import show_warning
+from gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     """
@@ -53,7 +55,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         """
         QtGui.QFrame.__init__(self, parent)
         QVistrailsPaletteInterface.__init__(self)
-        print "****** Inspector INIT"
+        #print "****** Inspector INIT"
         self.set_title("Mashups Inspector")
         self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -86,16 +88,16 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
                     
     def updateVistrailController(self, controller):
         self.controller = controller
-        print "         *** Mashup Inspector: controller changed ", controller
+        #print "         *** Mashup Inspector: controller changed ", controller
     
     def updateVistrailVersion(self, version):
         if self.controller:
             self.vt_version = version
                 
-        print "         *** Mashup Inspector: version changed ", version
+        #print "         *** Mashup Inspector: version changed ", version
     
     def updateMshpController(self, mshpController):
-        print "     **** updateMshpController", mshpController
+        #print "     **** updateMshpController", mshpController
         if (self.mshpController is not None and 
             self.mshpController != mshpController):
             self.mshpController.stateChanged.disconnect(self.stateChanged)
@@ -107,7 +109,8 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         self.mashupsList.updateController(mshpController)
         
     def updateMshpVersion(self, version):
-        print "updateMshpVersion", version
+        pass
+        #print "updateMshpVersion", version
         
     def stateChanged(self):
         versionId = self.mshpController.currentVersion
@@ -174,11 +177,8 @@ class QMashupProp(QtGui.QWidget):
         self.dateEdit = QtGui.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
         
-        #vtLabel = QtGui.QLabel('Vistrail:', self)
-        #gLayout.addWidget(vtLabel, 3, 0, 1, 1)
-        
-        #self.vtEdit = QtGui.QLabel('', self)
-        #gLayout.addWidget(self.vtEdit, 3, 2, 1, 1)
+        self.btnExport = QDockPushButton("Export...")
+        gLayout.addWidget(self.btnExport, 3,0,1,3, QtCore.Qt.AlignHCenter)
         
         vLayout.addStretch()
         
@@ -188,11 +188,13 @@ class QMashupProp(QtGui.QWidget):
                      self.tagChanged)
         self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
                      self.tagCleared)
+        self.connect(self.btnExport, QtCore.SIGNAL("clicked()"),
+                     self.exportMashupGUI)
         
     def updateController(self, mshpController):
         self.controller = mshpController
        
-        print "QMashupProp.updateController ", self.controller, self.controller.currentVersion
+        #print "QMashupProp.updateController ", self.controller, self.controller.currentVersion
         if self.controller and self.controller.currentVersion > -1:
             self.versionNumber = self.controller.currentVersion
             self.tagEdit.setText(self.controller.mshptrail.getTagForActionId(
@@ -218,7 +220,7 @@ class QMashupProp(QtGui.QWidget):
         if self.controller and self.versionNumber > -1:
             tagtext = self.controller.mshptrail.getTagForActionId(
                                     self.versionNumber)
-            print "updateVersion", versionNumber, tagtext
+            #print "updateVersion", versionNumber, tagtext
             self.tagEdit.setText(tagtext)
             action = self.controller.mshptrail.actionMap[self.versionNumber]
             self.userEdit.setText(action.user)
@@ -243,7 +245,7 @@ class QMashupProp(QtGui.QWidget):
             name = self.controller.mshptrail.getTagForActionId(self.versionNumber)
             currentText = str(self.tagEdit.text())
             if name != currentText:    
-                print "will update current tag", currentText
+                #print "will update current tag", currentText
                 self.controller.updateCurrentTag(currentText)
                 
                 
@@ -261,7 +263,28 @@ class QMashupProp(QtGui.QWidget):
         """ 
         self.tagEdit.setText('')
         self.tagFinished()
-
+        
+    def exportMashupGUI(self):
+        if self.controller:
+            dialog = QMashupExportDialog(self)
+            if dialog.exec_() == QtGui.QDialog.Accepted:
+                result = dialog.btnPressed
+                fileName = QtGui.QFileDialog.getSaveFileName(self,
+                           "Export Mashup...",
+                           core.system.vistrails_file_directory(),
+                           "VisTrail link files (*.vtl)",
+                           None)
+                if not fileName.isEmpty():
+                    filename = str(fileName)
+                    res = MashupsManager.exportMashup(filename, 
+                                                      self.controller.originalController, 
+                                                      self.controller.mshptrail,
+                                                      self.controller.currentVersion,
+                                                      result)
+                    if not res:
+                        show_warning('VisTrails - Exporting Mashup',
+                    'There was an error and the mashup could not be exported.')
+                        
 ################################################################################
             
 class QMashupsListPanel(QtGui.QWidget):
@@ -329,3 +352,56 @@ class QMashupListPanelItem(QtGui.QListWidgetItem):
         QtGui.QListWidgetItem.__init__(self, tag, parent)
         self.tag = tag
         self.version = version
+        
+################################################################################
+
+class QMashupExportDialog(QtGui.QDialog):
+    FULLTREE = 0
+    MINIMAL = 1
+    LINK = 2
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowTitle('VisTrails - Exporting Mashup')
+        dlgLayout = QtGui.QVBoxLayout()
+        gb = QtGui.QGroupBox("This will export the mashup as a file:")
+        gblayout = QtGui.QVBoxLayout()
+        self.rbMinimal = QtGui.QRadioButton("Include only this mashup\
+ and its original workflow")
+        self.rbMinimal.setChecked(True)
+        self.rbFullTree = QtGui.QRadioButton("Include full tree (this will also\
+ include other mashups)")
+        self.rbLink = QtGui.QRadioButton("As a link (this will work only on\
+ this machine)")
+        gblayout.addWidget(self.rbMinimal)
+        gblayout.addWidget(self.rbFullTree)
+        gblayout.addWidget(self.rbLink)
+        gb.setLayout(gblayout)
+        
+        btnOk = QtGui.QPushButton("OK")
+        btnCancel = QtGui.QPushButton("Cancel")
+        btnLayout = QtGui.QHBoxLayout()
+        btnLayout.addStretch()
+        btnLayout.addWidget(btnOk)
+        btnLayout.addWidget(btnCancel)
+        btnLayout.addStretch()
+        
+        dlgLayout.addWidget(gb)
+        dlgLayout.addLayout(btnLayout)
+        self.setLayout(dlgLayout)
+        
+        self.btnPressed = -1
+        self.connect(btnOk, QtCore.SIGNAL("clicked()"), self.btnOkPressed) 
+        self.connect(btnCancel, QtCore.SIGNAL("clicked()"), self.btnCancelPressed)
+        
+    def btnOkPressed(self):
+        if self.rbFullTree.isChecked():
+            self.btnPressed = self.FULLTREE
+        elif self.rbMinimal.isChecked():
+            self.btnPressed = self.MINIMAL
+        elif self.rbLink.isChecked():
+            self.btnPressed = self.LINK
+        self.accept()
+        
+    def btnCancelPressed(self):
+        self.btnPressed = -1
+        self.reject()

@@ -24,7 +24,7 @@ Example
 
 .. figure:: figures/merging/premerge.png
    :align: center
-   :width: 70%
+   :width: 65%
 
    Merging two vistrails.
 
@@ -32,6 +32,6 @@ Example
 
 .. figure:: figures/merging/postmerge.png
    :align: center
-   :width: 70%
+   :width: 65%
 
    The resultant history tree.

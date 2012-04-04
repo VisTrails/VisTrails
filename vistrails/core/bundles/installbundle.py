@@ -38,10 +38,10 @@ def install(dependency_dictionary):
     """Tries to import a python module. If unsuccessful, tries to install
 the appropriate bundle and then reimport. py_import tries to be smart
 about which system it runs on."""
-
+ 
     if not is_running_gui():
         return False
 
     import gui.bundles.installbundle
-    gui.bundles.installbundle.install(dependency_dictionary)
+    return gui.bundles.installbundle.install(dependency_dictionary)
 

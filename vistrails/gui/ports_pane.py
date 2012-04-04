@@ -37,9 +37,12 @@ import os
 
 from core import debug
 from core.modules.module_registry import get_module_registry
+from core.modules.basic_modules import String
+from core.vistrail.port_spec import PortSpec
 from core.system import vistrails_root_directory
 from gui.modules import get_widget_class
 from gui.common_widgets import QToolWindowInterface
+from gui.port_documentation import QPortDocumentation
 from gui.theme import CurrentTheme
 
 class AliasLabel(QtGui.QLabel):
@@ -196,7 +199,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
         for i, (desc, param) in enumerate(izip(self.port_spec.descriptors(), 
                                                params)):
-            print 'adding desc', desc.name
+            #print 'adding desc', desc.name
             # ps_label = ''
             # if port_spec.labels is not None and len(port_spec.labels) > i:
             #     ps_label = str(port_spec.labels[i])
@@ -298,6 +301,27 @@ class PortItem(QtGui.QTreeWidgetItem):
 
         self.visible_checkbox = QtGui.QCheckBox()
         self.connected_checkbox = QtGui.QCheckBox()
+        
+    def contextMenuEvent(self, event, widget):
+        if self.port_spec is None:
+            return
+        act = QtGui.QAction("View Documentation", widget)
+        act.setStatusTip("View method documentation")
+        QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.view_documentation)
+        menu = QtGui.QMenu(widget)
+        menu.addAction(act)
+        menu.exec_(event.globalPos())
+        
+    def view_documentation(self):
+        descriptor = self.treeWidget().module.module_descriptor
+        port_type = self.treeWidget().port_type
+        widget = QPortDocumentation(descriptor,
+                                    port_type,
+                                    self.port_spec.name)
+        widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        widget.exec_()
 
 class PortsList(QtGui.QTreeWidget):
     def __init__(self, port_type, parent=None):
@@ -425,7 +449,27 @@ class PortsList(QtGui.QTreeWidget):
             #                                << sig))
 
             # self.expandAll()
-            # self.resizeColumnToContents(2)        
+            # self.resizeColumnToContents(2) 
+        # show invalid module attributes
+        if module and not module.is_valid and self.port_type == 'input':
+            for function in module.functions:
+                if function.name in self.port_spec_items:
+                    port_spec, item = self.port_spec_items[function.name]
+                else:
+                    sigstring = "(" + ",".join(
+                        ['edu.utah.sci.vistrails.basic:String'
+                         for i in xrange(len(function.parameters))]) + ")"
+                    port_spec = PortSpec(name=function.name, type='input',
+                                         sigstring=sigstring)
+                    item = PortItem(port_spec,  False, False, False)
+                self.addTopLevelItem(item)
+                self.port_spec_items[port_spec.name] = (port_spec, item)
+                subitem = self.entry_klass(port_spec, function)
+                self.function_map[function.real_id] = subitem
+                item.addChild(subitem)
+                subitem.setFirstColumnSpanned(True)
+                self.setItemWidget(subitem, 0, subitem.get_widget())
+                item.setExpanded(True)
 
     def item_clicked(self, item, col):
         if item.parent() is not None:
@@ -445,6 +489,7 @@ class PortsList(QtGui.QTreeWidget):
                     visible_ports.add(item.port_spec.name)
                 else:
                     visible_ports.discard(item.port_spec.name)
+                self.controller.flush_delayed_actions()
                 self.controller.current_pipeline_view.recreate_module(
                     self.controller.current_pipeline, self.module.id)
         if col == 2:
@@ -458,12 +503,16 @@ class PortsList(QtGui.QTreeWidget):
                 subitem.setFirstColumnSpanned(True)
                 self.setItemWidget(subitem, 0, subitem.get_widget())
                 item.setExpanded(True)
+                # need to find port_spec
+                if len(item.port_spec.descriptors()) == 0:
+                    self.update_method(subitem, item.port_spec.name, [], [])
+
         
     def set_controller(self, controller):
         self.controller = controller
 
     def update_method(self, subitem, port_name, widgets, labels, real_id=-1):
-        print 'updateMethod called', port_name
+        #print 'updateMethod called', port_name
         if self.controller:
             _, item = self.port_spec_items[port_name]
             str_values = []
@@ -472,13 +521,18 @@ class PortsList(QtGui.QTreeWidget):
                 str_values.append(str(w.contents()))
                 if hasattr(w, 'query_method'):
                     query_methods.append(w.query_method())
+            if real_id < 0:
+                should_replace = False
+            else:
+                should_replace = True
             self.controller.update_function(self.module,
                                             port_name,
                                             str_values,
                                             real_id,
                                             [str(label.alias)
                                              for label in labels],
-                                            query_methods)
+                                            query_methods,
+                                            should_replace)
 
             # FIXME need to get the function set on the item somehow
             # HACK for now
@@ -489,7 +543,7 @@ class PortsList(QtGui.QTreeWidget):
                                             
     def delete_method(self, subitem, port_name, real_id=None):
         if real_id is not None and self.controller:
-            print "got to delete"
+            #print "got to delete"
             self.controller.delete_function(real_id, self.module.id)
         _, item = self.port_spec_items[port_name]
         item.removeChild(subitem)
@@ -504,6 +558,9 @@ class PortsList(QtGui.QTreeWidget):
         subitem.setFirstColumnSpanned(True)
         self.setItemWidget(subitem, 0, subitem.get_widget())
         item.setExpanded(True)
+        if len(port_spec.descriptors()) == 0:
+            self.update_method(subitem, port_name, [], [])
+            
         
         # if methodBox.controller:
         #     methodBox.lockUpdate()
@@ -517,6 +574,11 @@ class PortsList(QtGui.QTreeWidget):
             
         #     methodBox.unlockUpdate()
 
+    def contextMenuEvent(self, event):
+        # Just dispatches the menu event to the widget item
+        item = self.itemAt(event.pos())
+        if item:
+            item.contextMenuEvent(event, self)
 
 class QPortsPane(QtGui.QWidget, QToolWindowInterface):
     def __init__(self, port_type, parent=None, flags=QtCore.Qt.Widget):

@@ -183,6 +183,10 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
                      QtGui.QTableWidgetItem(''))
         self.setSortingEnabled(False)
 
+    def editNextAvailableCell(self):
+        item = self.item(self.rowCount()-1, 0)
+        self.editItem(item)
+        
 class QKeyValueDelegate(QtGui.QItemDelegate):
     """    
     QKeyValueDelegate tries to create a special control widget

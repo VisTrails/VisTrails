@@ -283,10 +283,26 @@ Please type a unique name. """ % new_alias)
             self.show_dw_contents(False)
         elif index in [1,2]:
             self.show_dw_contents(True)
+            if self.alias and self.alias.component.type == "Integer":
+                self.set_int_validators()
+            elif self.alias and self.alias.component.type == "Float":
+                self.set_float_validators()
         if self.alias:
             self.alias.component.widget = str(self.dw_combobox.currentText())
             self.aliasChanged.emit(self.alias)
             
+    def set_int_validators(self):
+        validator = QtGui.QIntValidator(self)
+        self.dw_minval_edit.setValidator(validator)
+        self.dw_maxval_edit.setValidator(validator)
+        self.dw_stepsize_edit.setValidator(validator)
+        
+    def set_float_validators(self):
+        validator = QtGui.QDoubleValidator(self)
+        self.dw_minval_edit.setValidator(validator)
+        self.dw_maxval_edit.setValidator(validator)
+        self.dw_stepsize_edit.setValidator(validator)
+        
     def show_dw_contents(self, on=True):
         self.dw_minval_label.setVisible(on)
         self.dw_minval_edit.setVisible(on)
@@ -295,14 +311,31 @@ Please type a unique name. """ % new_alias)
         self.dw_stepsize_label.setVisible(on)
         self.dw_stepsize_edit.setVisible(on)
         
+    def populate_dw_combobox(self):
+        self.dw_combobox.currentIndexChanged.disconnect(self.toggle_dw_combobox)
+        self.dw_combobox.clear()
+        if self.alias is not None:
+            self.dw_combobox.addItem("combobox")
+            if self.alias.component.type in ["Float", "Integer"]:
+                self.dw_combobox.addItem("slider")
+                self.dw_combobox.addItem("numericstepper")
+        self.dw_combobox.currentIndexChanged.connect(self.toggle_dw_combobox)
+        
     def updateContents(self, alias=None, controller=None):
         self.alias = copy.copy(alias)
         self.controller = controller
+        self.populate_dw_combobox()
         self.unplugSignals()
         if alias is not None and controller is not None:
             self.name_edit.setText(self.alias.name)
-            print "widget:", self.alias.component.widget
-            self.dw_combobox.setCurrentIndex(self.dw_combobox.findText(QtCore.QString(self.alias.component.widget)))
+            #print "widget:", self.alias.component.widget
+            wtype = self.alias.component.widget
+            if wtype == 'text':
+                wtype = "combobox"
+            index = self.dw_combobox.findText(QtCore.QString(wtype))
+            if index < 0:
+                index = 0
+            self.dw_combobox.setCurrentIndex(index)
             self.order_spinbox.setRange(0,self.table.topLevelItemCount()-1)
             self.order_spinbox.setValue(self.alias.component.pos)
                 
@@ -334,6 +367,7 @@ Please type a unique name. """ % new_alias)
                                 QtCore.SIGNAL("valuesChanged"),
                                 self.valuesListChanged)
                 self.vl_editor.deleteLater()
+                self.vl_editor = None
            
             self.vl_editor = QValuesListEditor(self.alias,self.controller)
             self.vl_layout.addWidget(self.vl_editor)
@@ -352,6 +386,7 @@ Please type a unique name. """ % new_alias)
                                 QtCore.SIGNAL("contentsChanged"),
                                 self.widgetContentsChanged)
                 self.dv_widget.deleteLater()
+                self.dv_widget = None
                 
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
@@ -359,6 +394,8 @@ Please type a unique name. """ % new_alias)
                                 QtCore.SIGNAL("valuesChanged"),
                                 self.valuesListChanged)
                 self.vl_editor.deleteLater()
+                self.vl_editor = None
+                
             self.setEnabled(False)
         self.plugSignals()
         
@@ -457,7 +494,7 @@ class QValuesListEditor(QtGui.QWidget):
         For example, this will break horribly if the user manually edits
         a list of strings with commas in them."""
 
-        print "values_were_edited"
+        #print "values_were_edited"
         new_text = self.listValues.text()
         t = str(new_text)
         if len(t) < 2:
@@ -483,7 +520,7 @@ class QValuesListEditor(QtGui.QWidget):
         dialog = QListEditDialog(self._alias, self.controller, None)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             values = dialog.getList()
-            print values
+            #print values
             self._alias.component.valueList = copy.copy(values)
             self._str_values = [str(v) for v in values]
             values2 = values
@@ -669,7 +706,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         self.editor = QAliasDetailsWidget.createAliasWidget(self.alias_item, 
                                                             self.controller, 
                                                             parent)
-        print "editor created"
+        #print "editor created"
         return self.editor
 
     def updateEditorGeometry(self, editor, option, index):
@@ -692,7 +729,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         self.editor = None
 
     def finishEditing(self):
-        print "finishEditing"
+        #print "finishEditing"
         if self.editor:
             self.emit(QtCore.SIGNAL('commitData(QWidget*)'), self.editor)
 

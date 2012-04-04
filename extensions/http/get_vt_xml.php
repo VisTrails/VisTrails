@@ -45,9 +45,9 @@ require_once 'functions.php';
 require_once 'config.php';
 
 // set variables with default values
-$host = 'vistrails.org';
-$port = '3306';
-$dbname = 'vistrails';
+$host = $DB_HOST;
+$port = $DB_PORT;
+$dbname = $DB_NAME;
 $vtid = '';
 $username = "vtserver";
 

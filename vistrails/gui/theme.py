@@ -179,6 +179,8 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('light_goldenrod'))))
         self.PERSISTENT_MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('slate_blue'))))
+        self.SUSPENDED_MODULE_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('aureoline_yellow'))))
 
         self.INVALID_MODULE_PEN = QtGui.QPen(QtGui.QBrush(
                 QtGui.QColor(51, 51, 51, 255)), 2)

@@ -161,7 +161,8 @@ class XMLFileLocator(BaseLocator):
         self._name = filename
         self._vnode = kwargs.get('version_node', None)
         self._vtag = kwargs.get('version_tag', '')
-     
+        self._mshptrail = kwargs.get('mashuptrail', None)
+        self._mshpversion = kwargs.get('mashupVersion', None)
         config = core.configuration.get_vistrails_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
@@ -500,7 +501,9 @@ class DBLocator(BaseLocator):
         self._conn_id = self.kwargs.get('connection_id', None)
         self._vnode = self.kwargs.get('version_node', None)
         self._vtag = self.kwargs.get('version_tag', None)
-
+        self._mshptrail = self.kwargs.get('mashuptrail', None)
+        self._mshpversion = self.kwargs.get('mashupVersion', None)
+        
     def _get_host(self):
         return self._host
     host = property(_get_host)
@@ -537,7 +540,7 @@ class DBLocator(BaseLocator):
     def hash(self):
         node = self.to_xml()
         xml_string = ElementTree.tostring(node)
-        print "hash", xml_string
+        #print "hash", xml_string
         return hashlib.sha224(xml_string).hexdigest()
     
     def is_valid(self):
@@ -573,7 +576,7 @@ class DBLocator(BaseLocator):
                   'db': self._db,
                   'user': self._user,
                   'passwd': self._passwd}
-        print "config:", config
+        #print "config:", config
         connection = io.open_db_connection(config)
             
         DBLocator.connections[self._conn_id] = connection
@@ -582,7 +585,7 @@ class DBLocator(BaseLocator):
 
     def load(self, type, tmp_dir=None):
         self._hash = self.hash()
-        print "LLoad Big|type", type
+        #print "LLoad Big|type", type
         if DBLocator.cache.has_key(self._hash):
             save_bundle = DBLocator.cache[self._hash]
             obj = save_bundle.get_primary_obj()
@@ -603,7 +606,7 @@ class DBLocator(BaseLocator):
         save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
         primary_obj = save_bundle.get_primary_obj()
         self._name = primary_obj.db_name
-        print "locator db name:", self._name
+        #print "locator db name:", self._name
         for obj in save_bundle.get_db_objs():
             obj.locator = self
         

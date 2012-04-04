@@ -87,7 +87,7 @@ class VistrailsApplicationInterface(object):
         
         """
         add = command_line.CommandLineParser.add_option
-        """add("-S", "--startup", action="store", type="str", default=None,
+        add("-S", "--startup", action="store", type="str", default=None,
             dest="dotVistrails",
             help="Set startup file (default is ~/.vistrails/startup.py)")
         add("-?", action="help",
@@ -165,7 +165,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-U", "--evolutiongraph", action="store",
             default = None,
             help=("Save evolution graph in specified directory without running "
-                  "any workflow (only valid in console mode)."))"""
+                  "any workflow (only valid in console mode)."))
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -266,18 +266,18 @@ The builder window can be accessed by a spreadsheet menu option.")
         # This is the persistent configuration
         # Setup configuration to default
         self.configuration = core.configuration.default()
-
+        
         self.keyChain = keychain.KeyChain()
         self.setupOptions()
-  
+        
         # self.temp_configuration is the configuration that will be updated 
         # with the command line and custom options dictionary. 
         # We have to do this because we don't want to make these settings 
         # persistent. This is the actual VisTrails current configuration
         self.temp_configuration = copy.copy(self.configuration)
- 
+        
         core.interpreter.default.connect_to_configuration(self.temp_configuration)
-          
+        
         # now we want to open vistrails and point to a specific version
         # we will store the version in temp options as it doesn't
         # need to be persistent. We will do the same to database
@@ -297,18 +297,19 @@ The builder window can be accessed by a spreadsheet menu option.")
         
         if optionsDict and 'dotVistrails' in optionsDict.keys():
             self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
-          
-        # During this initialization, VistrailsStartup will load the
-        # configuration from disk and update both configurations
-        self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration,
-                                                    self.temp_configuration)
-         
+
         # the problem here is that if the user pointed to a new .vistrails
         # folder, the persistent configuration will always point to the 
         # default ~/.vistrails. So we will copy whatever it's on 
         # temp_configuration to the persistent one. In case the configuration
         # that is on disk is different, it will overwrite this one
         self.configuration.dotVistrails = self.temp_configuration.dotVistrails
+        
+        # During this initialization, VistrailsStartup will load the
+        # configuration from disk and update both configurations
+        self.vistrailsStartup = \
+            core.startup.VistrailsStartup(self.configuration,
+                                          self.temp_configuration)
 
         # Starting in version 1.2.1 logging is enabled by default.
         # Users have to explicitly disable it through the command-line
@@ -320,7 +321,8 @@ The builder window can be accessed by a spreadsheet menu option.")
                 setattr(self.temp_configuration, k, v)
                 
         # Command line options override temp_configuration
-        #self.readOptions() DISABLE FOR JYTHON        
+        #self.readOptions() DISABLE FOR JYTHON
+        
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:
@@ -413,7 +415,8 @@ after self.init()"""
                                         obj_type=None,
                                         connection_id=None)
                 if locator:
-                    if hasattr(locator, '_vnode'):
+                    if hasattr(locator, '_vnode') and \
+                            locator._vnode is not None:
                         version = locator._vnode
                     if hasattr(locator,'_vtag'):
                         # if a tag is set, it should be used instead of the
@@ -421,9 +424,18 @@ after self.init()"""
                         if locator._vtag != '':
                             version = locator._vtag
                     execute = self.temp_configuration.executeWorkflows
+                    mashuptrail = None
+                    mashupversion = None
+                    if hasattr(locator, '_mshptrail'):
+                        mashuptrail = locator._mshptrail
+                    if hasattr(locator, '_mshpversion'):
+                        mashupversion = locator._mshpversion
+                    if not self.temp_configuration.showSpreadsheetOnly:
+                        self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
-                                                                    version,
-                                                                    execute)
+                                                                    version, execute,
+                                                                    mashuptrail=mashuptrail, 
+                                                                    mashupVersion=mashupversion)
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
                 
@@ -458,7 +470,7 @@ after self.init()"""
         #print '>>> GLOBAL adding notification', notification_id, method  
         #print id(notifications), notifications
         if notification_id not in notifications:
-            self.create_notification(notification_id, link_view, window, view)
+            self.create_notification(notification_id)
         notifications[notification_id].add(method)
 
     def unregister_notification(self, notification_id, method, *args, **kwargs):
@@ -479,7 +491,10 @@ after self.init()"""
                 except Exception, e:
                     import traceback
                     traceback.print_exc()
-        
+       
+    def showBuilderWindow(self):
+        pass
+ 
 class VistrailsCoreApplication(VistrailsApplicationInterface):
     def __init__(self):
         VistrailsApplicationInterface.__init__(self)
@@ -503,6 +518,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             v = self.get_vistrail()
             self._controller = VistrailController(v)
             self._controller.set_vistrail(v, None)
+            self._controller.change_selected_version(0)
         return self._controller
 
         

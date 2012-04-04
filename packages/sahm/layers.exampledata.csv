@@ -1,0 +1,6 @@
+FileName,LayerName,Group,Source,Categorical
+..\examples\SAHM_example\PredictorLayers\Climate\DAYMET_WGS84\bio_1_wgs84.tif,Annual mean temperature,Climate,"Daymet (1980-1997) Normals, 1km.",N
+..\examples\SAHM_example\PredictorLayers\Climate\DAYMET_WGS84\bio_2_wgs84.tif,Mean diurnal range,Climate,"Daymet (1980-1997) Normals, 1km.",N
+..\examples\SAHM_example\PredictorLayers\Climate\PRISM\ppt_1971_2000_011.img,Average Jan. Precipitation,Climate,"PRISM (1971-2000) Normals, 800 m.",N
+..\examples\SAHM_example\PredictorLayers\NLCD\nlcd01_11.tif,NLCD Landcover,Remote Sensing,NLCD,Y
+..\examples\SAHM_example\PredictorLayers\Elevation\dem.tif,30m EDNA Elevation resampled to 90m,Elevation / Topography,"EDNA, NED",N

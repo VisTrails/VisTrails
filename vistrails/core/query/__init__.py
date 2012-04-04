@@ -441,16 +441,16 @@ class Query5(Query):
            annotation.value = %s""", (name, 'global maximum', '4095'))
         result = []
         all = c.fetchall()
-        print len(all)
+        #print len(all)
         version_module = {}
         for wf_version, module_id in all:
             if not wf_version in version_module:
                 version_module[wf_version] = set([module_id])
             else:
                 version_module[wf_version].add(module_id)
-        print vistrail.get_tagMap()
+        #print vistrail.get_tagMap()
         for wf_version, module_ids in version_module.iteritems():
-            print wf_version
+            #print wf_version
             p = self.pipeline(vistrail, int(wf_version))
             inv_graph = p.graph.inverse()
             s = set()

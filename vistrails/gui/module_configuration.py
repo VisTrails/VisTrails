@@ -124,19 +124,17 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             widget = widgetType(module, self.controller)
-            self.scene.modules[module.id]._old_connection_ids = \
-              self.scene.modules[module.id].dependingConnectionItems()
         
             self.confWidget.setUpWidget(widget)
             self.connect(widget, QtCore.SIGNAL("doneConfigure"),
                          self.configureDone)
             self.connect(widget, QtCore.SIGNAL("stateChanged"),
                          self.stateChanged)
-        # else:
-        #     self.setWindowTitle("Module Configuration")
         self.confWidget.setUpdatesEnabled(True)
         self.confWidget.setVisible(True)
         self.hasChanges = False
+        # we need to reset the title in case there were changes
+        self.setWindowTitle("Module Configuration")
     
     def configureDone(self):
         from gui.vistrails_window import _app

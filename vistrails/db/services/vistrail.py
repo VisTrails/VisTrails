@@ -138,7 +138,7 @@ def synchronize(old_vistrail, new_vistrail, current_action_id):
                 else:
                     # FIXME conflict!
                     # we know that the annotation that was there isn't anymore
-                    print 'possible notes conflict'
+                    #print 'possible notes conflict'
                     if old_action.db_has_annotation_with_key('notes'):
                         old_annotation = \
                             old_action.db_get_annotation_by_key('notes')
@@ -159,7 +159,7 @@ def synchronize(old_vistrail, new_vistrail, current_action_id):
         else:
             # FIXME conflict!
             # we know the tag that was there isn't anymore
-            print 'possible tag conflict'
+            #print 'possible tag conflict'
             # we don't have to do anything here, though
             pass
 
@@ -175,12 +175,12 @@ def synchronize(old_vistrail, new_vistrail, current_action_id):
                 old_tag = old_vistrail.db_tags_name_index[new_tag.db_name]
             except KeyError:
                 # FIXME conflict!
-                print "tag conflict--name already used"
+                #print "tag conflict--name already used"
                 old_vistrail.db_delete_tag(old_tag)
             try:
                 old_tag = old_vistrail.db_tags_id_index[new_tag.db_id]
             except KeyError:
-                print 'possible tag conflict -- WILL NOT GET HERE!'
+                #print 'possible tag conflict -- WILL NOT GET HERE!'
                 old_vistrail.db_delete_tag(old_tag)
             old_vistrail.db_add_tag(new_tag)
 
@@ -216,10 +216,10 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
     checkinId = 0
     if len(app) and next_vt.db_has_annotation_with_key(action_key):
         co = next_vt.db_get_annotation_by_key(action_key)
-        print "found checkin id annotation"
+        #print "found checkin id annotation"
         checkinId = int(co._db_value)
     else:
-        print "calculating checkin id"
+        #print "calculating checkin id"
         # create unique identifiers for all actions
         actions = []
         actionDict = {}
@@ -248,7 +248,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                 checkinId += 1
         if checkinId > 0:
             checkinId = actionDict[actions[checkinId-1]].db_id
-    print "checkinId:", checkinId
+    #print "checkinId:", checkinId
 
     # delete previous checkout annotations in vt
     deletekeys = [action_key,annotation_key,action_annotation_key]
@@ -260,20 +260,20 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
     # check if someone else have changed the annotations
     mergeAnnotations = True
     if len(app) and next_vt.db_has_annotation_with_key(annotation_key):
-        print "found annotationhash"
+        #print "found annotationhash"
         co = next_vt.db_get_annotation_by_key(annotation_key)
         old_hash = co._db_value
         mergeAnnotations = (old_hash != vt.hashAnnotations())
-    print "merge annotations:", mergeAnnotations
+    #print "merge annotations:", mergeAnnotations
 
     # check if someone else have changed the action annotations
     mergeActionAnnotations = True
     if len(app) and next_vt.db_has_annotation_with_key(action_annotation_key):
-        print "found actionannotationhash"
+        #print "found actionannotationhash"
         co = next_vt.db_get_annotation_by_key(action_annotation_key)
         old_hash = co._db_value
         mergeActionAnnotations = (old_hash != vt.hashActionAnnotations())
-    print "merge actionannotations:", mergeActionAnnotations
+    #print "merge actionannotations:", mergeActionAnnotations
 
     ################## merge actions ######################
     for action in next_vt.db_actions:
@@ -411,7 +411,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                 elif v == merge_gui.CHOICE_OTHER:
                                     pass
                                 elif v == merge_gui.CHOICE_RESOLVED:
-                                    print "Tag resolved:", value
+                                    #print "Tag resolved:", value
                                     old_annotation.db_value = value
                                     old_annotation.db_date = \
                                         new_annotation.db_date
@@ -463,7 +463,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                                 elif v == merge_gui.CHOICE_OTHER:
                                     pass
                                 elif v == merge_gui.CHOICE_RESOLVED:
-                                    print "Note resolved:", value
+                                    #print "Note resolved:", value
                                     old_annotation.db_value = value
                                     old_annotation.db_date = \
                                         new_annotation.db_date

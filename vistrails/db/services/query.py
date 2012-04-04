@@ -118,7 +118,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
         select_part += ', NULL'
 
     command = ' '.join([select_part, from_part, where_part, limit_part]) + ';'
-    print command
+    #print command
     try:
         c = db.cursor()
         c.execute(command)
@@ -134,7 +134,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
     if 0 == offset:
         select_part = 'SELECT count(0)'
         command = ' '.join([select_part,from_part,where_part]) +';'
-        print command
+        #print command
         try:
             c = db.cursor()
             c.execute(command)
@@ -229,7 +229,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
             where_part += """ AND %s.completed=%s""" % (alias, mCompleted)
             
     command = ' '.join([select_part, from_part, where_part, limit_part]) + ';'
-    print command
+    #print command
     try:
         c = db.cursor()
         c.execute(command)
@@ -245,7 +245,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
     if 0 == offset:
         select_part = 'SELECT count(0)'
         command = ' '.join([select_part,from_part,where_part]) +';'
-        print command
+        #print command
         try:
             c = db.cursor()
             c.execute(command)

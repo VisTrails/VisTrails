@@ -1,0 +1,73 @@
+CLTools provide a way to wrap command line tools so that they can be used as modules in VisTrails.
+
+
+== Using the Wizard ==
+
+To launch the wizard run:
+python vistrails/package/CLTools/wizard.py
+
+The wizard enables you to create and edit a wrapper for a command line tool. You can create input/output ports or constant arguments and ports for stdin/stdout/stderr pipes. You can view and import flags from man and help pages.
+
+Files should be saved as {modulename}.clt in the directory .vistrails/CLTools/
+
+Supported flags:
+-c    Import a command with arguments automatically
+example:
+create a wrapper for ls with two flags
+"python wizard.py -c ls -l -A"
+
+
+== Creating a standalone package ==
+
+1. Create a new directory in ".vistrails/userpackages/"
+2. Copy "__init__.py" and "init.py" from "vistrails/packages/CLTools" to the new directory.
+3. Update "name", "identifier", and "version" in "__init__.py" to the desired values
+4. Move all desired tools (*.clt files) to the new directory
+5. Test the new package
+
+
+== File Format ==
+
+The wrapper is stored as a JSON file with the following syntax:
+
+ROOT is a dict with the following possible keys:
+* command (required) - value is the command to execute like "cat" or "/home/tommy/cat"
+* stdin - handle stdin - value is a 3-list ["port name", CLASS, OPTIONDICT]
+* stdout - handle stdout - value is a 3-list ["port name", CLASS, OPTIONDICT]
+* stderr - handle stdout - value is a 3-list ["port name", CLASS, OPTIONDICT]
+* args - list of ordered arguments that can either be constants, inputs, or outputs. See ARG.
+* options - a dict of module options - see OPTIONDICT
+OPTIONDICT is a dict with module specific options
+recognized options are:
+std_using_files - connect files to pipes so that they need not be stored in memory. This is useful for large files but may be unsafe since it does not use subprocess.communicate
+ARG is a 4-list containing [TYPE, "name", KLASS, ARGOPTIONDICT]
+TYPE is one of:
+* input - create input port for this arg
+* output - create output port for this arg
+* constant - use "port name" directly as a constant string
+CLASS can either be "File", "String", "Flag", or "List". Unknown types are handled as "String". "Flag" is a boolean with the value specified by option "value". "List" is a list with subtype specified by option "type"
+ARGOPTIONDICT is a dict containing argument options. recognized options are:
+"type": "CLASS" - used by List-types to specify subtype.
+"flag": "name" - Append name as a constant before the specified argument. If type is "List" it is appended before each item
+"prefix": "name" - Append name as a prefix to the final argument. If it is also a list it is appended to each item.
+"required": "" - Makes the port always visible in VisTrails.
+
+
+== EXAMPLE ==
+
+wrap the command "cat" that takes 2 files as input named "first" and "second". Also take a list of files as input named "rest".
+Catch stdout as file, name it "combined".
+Catch stderr as string, name it "stderr".
+Show only "first" and "conbined" by default.
+
+{"command": "cat",
+"args": [["input", "first", "File", {"required":""}],
+         ["input", "second", "File", {}],
+         ["input", "rest", "List", {"type":"File"}]],
+"stdout": ["combined", "File", {"required":""}],
+"stderr": ["stderr", "String", {}]
+}
+
+Save as /home/{username}/.vistrails/CLTools/cat.clt
+Reload CLTools package in VisTrails. Test the new module.
+

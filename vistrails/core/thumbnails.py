@@ -172,7 +172,7 @@ class ThumbnailCache(object):
         image = None
         thumbnail_fnames = self._get_thumbnail_fnames(folder)
         if len(thumbnail_fnames) > 0:
-            image = self._merge_thumbnails(folder)
+            image = self._merge_thumbnails(thumbnail_fnames)
         fname = None
         if image != None and image.width() > 0 and image.height() > 0:
             fname = "%s.png" % str(uuid.uuid1())
@@ -243,7 +243,7 @@ class ThumbnailCache(object):
         width = 0
         pixmaps = []
         for fname in fnames:
-            pix = QtGui.QPixmap(os.path.join(root,f))
+            pix = QtGui.QPixmap(fname)
             if pix.height() > 0 and pix.width() > 0:
                 pixmaps.append(pix)
                 #width += pix.width()

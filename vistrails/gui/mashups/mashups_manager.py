@@ -31,17 +31,30 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import base64
 import copy
+import os
+import tempfile
 import uuid
 from PyQt4 import QtCore, QtGui
 from gui.vistrail_controller import VistrailController
+import core.db.action
 from core.vistrail.controller import VistrailController as BaseVistrailController
 from gui.mashups.controller import MashupController
 from core.mashup.mashup_trail import Mashuptrail
 from core.mashup.mashup import Mashup
 from core.utils import DummyView
+from core.vistrail.vistrail import Vistrail
+from db.services.locator import DBLocator
+from core.db.locator import FileLocator
 import core.system
 from db.domain import IdScope
+from core.system import get_elementtree_library
+from db.services import io
+from db.versions import currentVersion
+
+ElementTree = get_elementtree_library()
+
 ############################################################################
 
 class MashupsManager(object):
@@ -151,7 +164,7 @@ class MashupsManager(object):
             if mshpController.currentVersion == 1L:
                 mshpController.updateCurrentTag("ROOT")
         else:
-            print "----> found mashuptrail ", mashuptrail.currentVersion
+            #print "----> found mashuptrail ", mashuptrail.currentVersion
             mshpController = MashupController(vt_controller, 
                                               newvt_controller, 
                                               version, mashuptrail)
@@ -182,6 +195,8 @@ class MashupsManager(object):
         vistrail = vt_controller.vistrail
         newvt_controller.log = current_log
         newvt_controller.set_vistrail(vistrail, None)
+        for m in vt_controller._mashups:
+            newvt_controller._mashups.append(copy.copy(m))
         return newvt_controller
     
     @staticmethod
@@ -338,3 +353,96 @@ class MashupsManager(object):
                                    controller=mshpController,
                                    version=version)
         return app
+    
+    @staticmethod
+    def exportMashup(filename, vtcontroller, mashuptrail, mashupversion, etype):
+        """exportMashup(filename: str, vtcontroller: VistrailController, 
+                        mashuptrail: Mashuptrail, type: int) -> bool 
+            where etype is 
+              0: include full tree 
+              1: include only workflow and mashup identified by version
+              2: as a link, it will point to a local file.
+        """
+        result = False
+        if vtcontroller is not None and mashuptrail is not None:
+            locator = vtcontroller.locator
+            version = mashuptrail.vtVersion
+            
+            node = ElementTree.Element('vtlink')
+        
+            if isinstance(locator, DBLocator):
+                node.set('host', str(locator.host))
+                node.set('port', str(locator.port))
+                node.set('database', str(locator.db))
+                node.set('vtid', str(locator.obj_id))
+            else:
+                node.set('filename', str(locator.name))
+                
+            node.set('version', str(version))    
+            node.set('execute', "True")
+            node.set('forceDB', "False")
+            node.set('showSpreadsheetOnly', "True")
+            node.set('mashuptrail', str(mashuptrail.id))
+            node.set('mashupVersion', str(mashupversion))
+                
+            if etype in [0,1]:
+                if etype == 1: #minimal
+                    pip = vtcontroller.vistrail.getPipeline(version)
+                    vistrail = Vistrail()
+                    id_remap = {}
+                    action = core.db.action.create_paste_action(pip, 
+                                                        vistrail.idScope,
+                                                        id_remap)
+                    vistrail.add_action(action, 0L, 0)
+                   
+                    tag = vtcontroller.vistrail.get_tag(version)
+                    if tag is None:
+                        tag = "Imported workflow"
+                    vistrail.addTag(tag, action.id)
+                    node.set('version', str(action.id))
+                    id_scope = IdScope(1L)
+                    newmashuptrail = Mashuptrail(
+                                     MashupsManager.getNewMashuptrailId(), 
+                                     action.id, 
+                                     id_scope)
+                    
+                    maction = mashuptrail.actionMap[mashupversion]
+                    mtag = mashuptrail.getTagForActionId(mashupversion)
+                    newmashup = copy.copy(maction.mashup)
+                    newmashup.remapPipelineObjects(id_remap)
+                    currVersion = newmashuptrail.addVersion(
+                                            newmashuptrail.getLatestVersion(),
+                                            newmashup, maction.user, 
+                                            maction.date)
+                    newmashuptrail.currentVersion = currVersion
+                    newmashuptrail.changeTag(currVersion, mtag, maction.user,
+                                             maction.date)
+                    newvtcontroller = BaseVistrailController()
+                    newvtcontroller.set_vistrail(vistrail, None)
+                    MashupsManager.addMashuptrailtoVistrailController(newvtcontroller,
+                                                                      newmashuptrail)
+                    node.set('mashuptrail', str(newmashuptrail.id))
+                    node.set('mashupVersion', str(newmashuptrail.currentVersion))
+                else:
+                    vistrail = vtcontroller.vistrail
+                    newvtcontroller = MashupsManager.copyBaseVistrailController(vtcontroller)
+                
+                #create temporary file
+                (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
+                                          suffix='.vt')
+                os.close(fd)
+                fileLocator = FileLocator(name)
+                newvtcontroller.write_vistrail(fileLocator)
+                contents = open(name).read()
+                vtcontent = base64.b64encode(contents)
+                os.unlink(name)
+                #if not vistrail.db_version:
+                #    vistrail.db_version = currentVersion
+                node.set('vtcontent',vtcontent)
+                
+            xmlstring = ElementTree.tostring(node)
+            file_ = open(filename,'w')
+            file_.write(xmlstring)
+            file_.close()
+            result = True
+        return result

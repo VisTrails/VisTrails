@@ -13,7 +13,7 @@ Version Tree View
    pair: versions;viewing
    single: history
 
-The ``History`` button on the |vistrails| toolbar lets users interact with a workflow history. It consists of a tree view in the center and the ``Properties`` tool container on the right for querying and managing version properties  (see Figure :ref:`In History mode <fig-version_tree_screenshot_labeled>`). Versions are displayed as ellipses in the tree view where the root of the tree is displayed at the top of the view. The nodes of the tree correspond to a version of a workflow while an edge between two nodes indicates that one was derived from the other.
+The ``History`` button on the |vistrails| toolbar lets users interact with a workflow history. It consists of a tree view in the center and the ``Properties`` tool container on the right for querying and managing version properties  (see Figure :ref:`In History mode, you can examine... <fig-version_tree_screenshot_labeled>`). Versions are displayed as ellipses in the tree view where the root of the tree is displayed at the top of the view. The nodes of the tree correspond to a version of a workflow while an edge between two nodes indicates that one was derived from the other.
 
 .. _fig-version_tree_screenshot_labeled:
 
@@ -31,7 +31,7 @@ The nodes are displayed as colored ellipses, and are either blue or orange.  A b
 
 The nodes are connected by a solid line if the child node is a direct descendent of the parent node; that is, if you have made only a single change from the older version to the newer version. By default, only nodes that: are leaves, have more than one child node, are specially tagged (see Section :ref:`sec-adding_deleting_tags`), or are current version will be
 displayed. To save space, other nodes will be "collapsed," or hidden from view.  Collapsed nodes are marked by the appearance of a small expansion button along an edge connecting two nodes. Clicking this button expands the
-version tree to reveal the hidden versions (Figure :ref:`To conserve space <fig-expand_collapse_versions>`). The tree expansion is smoothly
+version tree to reveal the hidden versions (Figure :ref:`To conserve space... <fig-expand_collapse_versions>`). The tree expansion is smoothly
 animated to help you maintain context from one view to the next. Clicking the button a second time collapses the nodes once again. Because most non-trivial changes to a workflow take more than one action, most edges in a the
 version tree will be shown with these expansion buttons.
 
@@ -54,7 +54,7 @@ version tree will be shown with these expansion buttons.
 
 .. topic:: Try it now!
 
-   To see an example of a version tree, load the example vistrail "vtk\_book\_3rd\_p189.vt." All versions will be shown in orange unless your username happens to be "emanuele."  Recall that this tree displays the structure of changes to a workflow, so let's make some changes to see their effect on the version history. In the ``History`` view, select the node tagged ``Almost there``, and then click on the ``Pipeline`` button to switch to a view of the workflow.  Select a connection and delete it.  Now, switch back to the ``History`` view, and notice that there is a new child node connected to ``Almost there``.  In addition, the line connecting the new node to its parent is solid, indicating that only a single change has been made.  If we delete more connections, an expansion button would appear (Figure :ref:`fig-creating_versions`).
+   To see an example of a version tree, load the example vistrail "vtk\_book\_3rd\_p189.vt." All versions will be shown in orange unless your username happens to be "emanuele."  Recall that this tree displays the structure of changes to a workflow, so let's make some changes to see their effect on the version history. In the ``History`` view, select the node tagged ``Almost there``, and then click on the ``Pipeline`` button to switch to a view of the workflow.  Select a connection and delete it.  Now, switch back to the ``History`` view, and notice that there is a new child node connected to ``Almost there``.  In addition, the line connecting the new node to its parent is solid, indicating that only a single change has been made.  If we delete more connections, an expansion button would appear (Figures :ref:`All versions created..., Deleting a connection..., and More interations... <fig-creating_versions>`).
 
 .. _fig-creating_versions:
 
@@ -99,6 +99,26 @@ click inside a selected node and type some meaningful text. The tag is created w
 
 Note that deleting all of the text in the tag field effectively deletes the tag. A second way to delete a tag is to click the 'X' button to the right of the text box. Removing a tag from a node may cause it to not be displayed in the default version tree view if it doesn't satisfy any of the other criteria for display.
 
+Upgrading Versions
+==================
+
+.. index::
+   pair: tags; upgrading
+
+As module packages are continuously updated, with new versions being released periodically, VisTrails is set up to automatically incorporate module upgrades into existing workflows before they are executed.  In other words, VisTrails upgrades the current vistrail's current version after the execute button is pressed, but prior to execution.  When this happens, a new version is created in the version tree and tagged 'Upgrade'.  You are then free to rename this version if desired.   
+
+After an upgrade, you will not be able to select the original version because the focus is passed to the upgraded version.  However, if you right-click on the original version and select 'Display raw pipeline', this version will keep the focus, which allows you to see its pipeline by pressing the ``Pipeline`` button on the toolbar.  See figure :ref:`Original Pipeline... <fig-raw-pipeline>`.
+
+.. _fig-raw-pipeline:
+
+.. figure:: figures/version_tree/raw_pipeline.png
+   :align: center
+   :width: 2.5in
+
+   Original Pipeline - This figure shows how to view the original pipeline after an upgrade has occurred.
+
+Finally, although VisTrails tags the new version with 'Upgrade' by default, some users prefer the original version's name to be transferred to the upgraded version.  VisTrails will do this if you: select ``Preferences`` from the ``VisTrails`` menu, select the ``Expert Configuration`` tab, and change the ``migrateTags`` value to 'True'. 
+
 Adding Version Annotations
 ==========================
 
@@ -130,7 +150,7 @@ Comparing Versions
    single: visual diff; see versions, comparing
    single: diff; see versions, comparing
 
-While selecting versions in the ``History`` view and using the ``Pipeline`` view to examine each version is extremely useful, this approach can be cumbersome when trying to compare two different versions.  To help with such a comparison, |vistrails| provides a ``Version Difference`` mechanism for quickly comparing two versions.  This is done by dragging one version and dropping it onto another, after which a ``Visual Diff`` tab will open (see Figure :ref:`fig-visual_diff`). 
+While selecting versions in the ``History`` view and using the ``Pipeline`` view to examine each version is extremely useful, this approach can be cumbersome when trying to compare two different versions.  To help with such a comparison, |vistrails| provides a ``Version Difference`` mechanism for quickly comparing two versions.  This is done by dragging one version and dropping it onto another, after which a ``Visual Diff`` tab will open (see Figure :ref:`A Visual Diff showing the difference... <fig-visual_diff>`). 
 
 .. index::
    single: legend
@@ -148,6 +168,6 @@ In the new tab, the difference is displayed in a manner that is very similar to 
 
 .. topic:: Try it now!
 
-  To try out this feature, open the "lung.vt" example vistrail, and click the ``History`` button. Within the version tree, click and drag the ``z-space`` version to the ``textureMapper`` version.  After the diff appears, select ``View`` :math:`\rightarrow` ``Diff Properties`` (if the ``Diff Properties`` panel is not visible), and then click on the ``vtkRenderer`` module to see the parameter differences.  We can see that one of the changes from ``z-space`` to ``textureMapper`` was to add a black background. Figure :ref:`fig-visual_diff` shows the result of this comparison.
+  To try out this feature, open the "lung.vt" example vistrail, and click the ``History`` button. Within the version tree, click and drag the ``z-space`` version to the ``textureMapper`` version.  After the diff appears, select ``View`` :math:`\rightarrow` ``Diff Properties`` (if the ``Diff Properties`` panel is not visible), and then click on the ``vtkRenderer`` module to see the parameter differences.  We can see that one of the changes from ``z-space`` to ``textureMapper`` was to add a black background. Figure :ref:`A Visual Diff showing the difference... <fig-visual_diff>` shows the result of this comparison.
 
 .. index:: versions

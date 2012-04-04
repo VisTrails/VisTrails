@@ -38,7 +38,7 @@ To install |vistrails| on Windows, download the installation bundle for
 Windows from the |vistrails| website: http://www.vistrails.org.
 Unzip the file using the decompression program of your choice, then
 double-click the executable to begin installation
-(Figure :ref:`fig-start-windows_installation`). Follow the prompts in
+(Figure :ref:`Installation wizard for Microsoft Windows XP/Vista<fig-start-windows_installation>`). Follow the prompts in
 the installation wizard to complete the installation process.
 
 .. _fig-start-windows_installation:
@@ -58,7 +58,7 @@ To install |vistrails| on Mac OS X, download the installation bundle
 for Mac from the |vistrails| website:
 http://www.vistrails.org. The precompiled binary currently only
 supports Mac OS X 10.5.x or higher. The disk image should be mounted automatically
-(Figure :ref:`fig-start-mac_installation`). Once the disk image is mounted, drag the |vistrails| folder to the Applications
+(Figure :ref:`Installing VisTrails on Mac OS X <fig-start-mac_installation>`). Once the disk image is mounted, drag the |vistrails| folder to the Applications
 folder to install the software.
 
 .. _fig-start-mac_installation:
@@ -194,15 +194,15 @@ Notice that when VisTrails first launches the builder window, both palettes cont
 
 **Buttons**
 
-Notice that there is a button with a dot icon in the upper right corner of each view (see Figure :ref:`Buttons <fig-panel-buttons>`).  This is the pin button.  If you don't want a view to disappear when you change modes, make sure it is pinned.  When the dot in the center of this button is gone, it is unpinned and the view is likely to disappear when you change modes.
+Notice that there is a button with a pin icon in the upper right corner of each view (see Figure :ref:`fig-panel-buttons`).  If you don't want a view to disappear when you change modes, make sure it is pinned.  When the pin points up, it is unpinned and the view is likely to disappear when you change modes.
 
-The other two buttons, the one with the 'X' and the one with the rectangular outlines (see Figure :ref:`Buttons <fig-panel-buttons>`), will either close the view, or undock the view, depending on which one you push.  Alternatively, you may undock a view by clicking on the view's title bar and pulling it out of the palette.  The view can then either remain in its own window, or can be docked by placing it in either palette.
+The other two buttons, the one with the 'X' and the one with the rectangular outlines (see Figure :ref:`fig-panel-buttons`), will either close the view, or undock the view, depending on which one you push.  Alternatively, you may undock a view by clicking on the view's title bar and pulling it out of the palette.  The view can then either remain in its own window, or can be docked by placing it in either palette.
 
 .. _fig-panel-buttons:
 
 .. figure:: /figures/getting_started/panel_buttons.png
    
-   The Close, Detach, and Pin Buttons
+   Buttons - Close, Detach, and Pin
 
 **View Locations**
 

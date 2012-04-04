@@ -1037,7 +1037,7 @@ class Pipeline(DBWorkflow):
             exceptions = set()
             for mid in module_ids:
                 module = pipeline.modules[mid]
-                if module.version == '':
+                if not module.version:
                     module.version = '0'
                 try:
                     # FIXME check for upgrades, otherwise use similar

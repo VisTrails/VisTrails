@@ -199,7 +199,7 @@ def last_minute_changes():
 #####################
 
 # Starting datetime
-DATETIME_START = datetime.datetime.now()
+DATETIME_START = datetime.datetime.now()  - datetime.timedelta(days=1)
 
 # Timestamp for archival operation
 TIMESTAMP = DATETIME_START.strftime(TS_FORMAT)

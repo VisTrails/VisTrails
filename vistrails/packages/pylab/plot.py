@@ -37,9 +37,9 @@ widget
 """
 from core.modules.basic_modules import PythonSource
 from core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from core.modules.module_configure import StandardModuleConfigurationWidget
-from core.modules.source_configure import SourceConfigurationWidget
-from core.modules.python_source_configure import PythonEditor
+from gui.modules.module_configure import StandardModuleConfigurationWidget
+from gui.modules.python_source_configure import PythonEditor
+from gui.modules.source_configure import SourceConfigurationWidget
 import urllib
 
 ############################################################################

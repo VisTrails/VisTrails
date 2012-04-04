@@ -206,6 +206,10 @@ Although |vistrails| is primarily intended to be run as an interactive, graphica
 
 Running |vistrails| in non-interactive mode has little effect, however, without an additional command line argument indicating which vistrail to load. Since we are running |vistrails| as part of a batch process, it only makes sense to execute vistrails whose output is something tangible, such as a file. A vistrail whose only output is an interactive rendering in a ``VTKCell``, for instance, would not be well-suited for running in batch mode.
 
+Consider the following example. The "offscreen.vt" vistrail (included in the "examples" directory) has a variety of output options, depending on which version you select in the ``History`` view (Figure :ref:`The different versions of the offscreen.vt vistrail... <fig-batch-version_tree>`). The version tagged ``only vtk`` displays its output as an interactive VTK rendering. The version tagged ``html`` creates a simple web page in the Spreadsheet. The ``offscreen`` version, however, outputs an image file named "image.png". Since its output (a file) can be easily accessed outside of |vistrails|, this version is an ideal candidate for running in batch mode.  To try it, invoke |vistrails| as shown, specifying both the name of the vistrail file and the desired version:
+
+   ``python vistrails.py -b ../examples/offscreen.vt:offscreen``
+
 .. _fig-batch-version_tree:
 
 .. figure:: figures/batch/offscreen_version_tree.png
@@ -214,13 +218,8 @@ Running |vistrails| in non-interactive mode has little effect, however, without 
 
    The different versions of the "offscreen.vt" vistrail offer various forms of output.
 
-Consider the following example. The "offscreen.vt" vistrail (included in the "examples" directory) has a variety of output options, depending on which version you select in the ``History`` view (Figure :ref:`fig-batch-version_tree`). The version tagged ``only vtk`` displays its output as an interactive VTK rendering. The version tagged ``html`` creates a simple web page in the Spreadsheet. The ``offscreen`` version, however, outputs an image file named "image.png". Since its output (a file) can be easily accessed outside of |vistrails|, this version is an ideal candidate for running in batch mode.  To try it, invoke |vistrails| as shown, specifying both the name of the vistrail file and the desired version:
-
-   ``python vistrails.py -b ../examples/offscreen.vt:offscreen``
-
-
 As you would expect, this command runs to completion without opening any windows. Instead, it silently loads the requested pipeline, executes it, and closes.
-Assuming it ran correctly, this pipeline should have created a file named "image.png" in the current directory.  When you view this file, it should resemble the picture in Figure :ref:`fig-batch-image_png`.
+Assuming it ran correctly, this pipeline should have created a file named "image.png" in the current directory.  When you view this file, it should resemble the picture in Figure :ref:`Running the offscreen version of offscreeen.vt in batch mode... <fig-batch-image_png>`.
 
 .. _fig-batch-image_png:
 
@@ -245,6 +244,17 @@ where pipeline can be a version **tag name** or version **id**.
 
 Running a Workflow with Specific Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+An alias is a name assigned to a parameter that allows you to reference that parameter in batch mode. An alias is created by clicking on the type of an existing parameter in VisTrails, then entering a name for it.
+
+.. _fig-batch-create_alias:
+
+.. figure:: figures/batch/create_alias.png
+   :align: center
+   :width: 50%
+
+   Example of creating an alias
 
 Users can change workflow parameters that have an alias through the command line.
 
@@ -278,11 +288,7 @@ Using the VisTrails server mode, it is possible to execute workflows and control
 
 The way you access the server is by doing XML-RPC calls. In the current VisTrails release, we include a set of PHP scripts that can talk to a VisTrails server instance. They are in "extensions/http" folder. The files are reasonably well documented. Also, it should be not difficult to create python scripts to access the server (just use xmlrpclib module).
 
-Note that the VisTrails server requires the provenance and workflows to be in a database. More detailed instructions on how to setup the server and the database are available here:
-
-http://www.crowdlabs.org/site_media/static/dev_docs/vistrails_server_setup.html
-
-http://www.crowdlabs.org/site_media/static/dev_docs/vistrails_database_setup.html
+Note that the VisTrails server requires the provenance and workflows to be in a database. More detailed instructions on how to setup the server and the database are available in :ref:`chap-vistrails-server` and in :ref:`sec-database-setup`.
 
 If what you want is just to execute a series of workflows in batch mode, a simpler solution would be to use the VisTrails client in batch mode (see Section :ref:`sec-cli-batch`). 
 

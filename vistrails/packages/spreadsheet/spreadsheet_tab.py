@@ -94,6 +94,8 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
         self.addAction(self.sheetTab.tabWidget.newSheetAction())
+        self.addAction(self.sheetTab.tabWidget.openAction())
+        self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
@@ -739,8 +741,8 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                 if (row!=-1 and col!=-1):
                     pipeline = self.setPipelineToLocateAt(row, col, pipeline)
             executePipelineWithProgress(pipeline, 'Execute Cell',
-                                        vistrailLocator=controller.locator,
-                                        currentVersion=versionId,
+                                        locator=controller.locator,
+                                        current_version=versionId,
                                         reason='Drop Version')
         else:
             event.ignore()

@@ -165,8 +165,8 @@ parameters from other instances")
             notifications = self.notifications
         if notification_id not in notifications:
             notifications[notification_id] = set()
-        else:
-            print "already added notification", notification_id
+        # else:
+        #     print "already added notification", notification_id
 
     def register_notification(self, notification_id, method, window=None,
                               view=None):
@@ -221,7 +221,7 @@ parameters from other instances")
     def send_notification(self, notification_id, *args):
         # do global notifications
         if notification_id in self.notifications:
-            print 'global notification ', notification_id
+            # print 'global notification ', notification_id
             for m in self.notifications[notification_id]:
                 try:
                     #print "  m: ", m
@@ -236,19 +236,19 @@ parameters from other instances")
         # do window notifications
         if current_window in self.window_notifications:
             notifications = self.window_notifications[current_window]
-            print 'window notification', notification_id, current_window
+            # print 'window notification', notification_id, current_window
 
         if notification_id in notifications:
-            print "found notification:", notification_id
+            # print "found notification:", notification_id
             for m in notifications[notification_id]:
                 try:
-                    print "  m: ", m
+                    # print "  m: ", m
                     m(*args)
                 except Exception, e:
                     import traceback
                     traceback.print_exc()
-        else:
-            print "no notification...", notifications.keys()
+        # else:
+        #     print "no notification...", notifications.keys()
 
         if current_window is not None:
             current_view = current_window.current_view
@@ -257,7 +257,7 @@ parameters from other instances")
         # do local notifications
         if current_view in self.view_notifications:
             notifications = self.view_notifications[current_view]
-            print 'local notification ', notification_id, current_view
+            # print 'local notification ', notification_id, current_view
                 
         if notification_id in notifications:
             for m in notifications[notification_id]:
@@ -268,6 +268,14 @@ parameters from other instances")
                     import traceback
                     traceback.print_exc()
 
+    def showBuilderWindow(self):
+        # in some systems (Linux and Tiger) we need to make both calls
+        # so builderWindow is activated
+        self.setActiveWindow(self.builderWindow)
+        self.builderWindow.activateWindow()
+        self.builderWindow.show()
+        self.builderWindow.raise_()
+    
     def interactiveMode(self):
         """ interactiveMode() -> None
         Instantiate the GUI for interactive mode
@@ -280,14 +288,8 @@ parameters from other instances")
         self.builderWindow.link_registry()
         
         self.process_interactive_input()
-
         if not self.temp_configuration.showSpreadsheetOnly:
-            # in some systems (Linux and Tiger) we need to make both calls
-            # so builderWindow is activated
-            self.setActiveWindow(self.builderWindow)
-            self.builderWindow.activateWindow()
-            self.builderWindow.show()
-            self.builderWindow.raise_()
+            self.showBuilderWindow()
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
@@ -458,7 +460,7 @@ parameters from other instances")
             if self.local_server:
                 self.local_server.close()
         if system.systemType in ['Darwin']:
-			self.removeEventFilter(self)
+            self.removeEventFilter(self)
         VistrailsApplicationInterface.finishSession(self)
    
     def eventFilter(self, o, event):
@@ -548,7 +550,7 @@ parameters from other instances")
             #it's safe to eval as a list
             args = eval(msg)
             if type(args) == type([]):
-                print "args from another instance %s"%args
+                #print "args from another instance %s"%args
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()
                 interactive = self.temp_configuration.check('interactiveMode')

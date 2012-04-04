@@ -310,6 +310,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
             'Create analogy', None, triggered=self.createAnalogy)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.createAnalogyAction)
+        self.toolWindow().toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
     def createAnalogy(self):
         if not hasattr(self.controller, 'current_diff'):
@@ -404,11 +405,11 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         matching = None
         for ((m1id, m2id), paramMatching) in paramChanged:
             if m1id == module.id:
-                print "found match"
+                #print "found match"
                 matching = paramMatching
                 break
 
-        print "matching:", matching
+        #print "matching:", matching
         # If the module has no parameter changed, just display nothing
         if not matching:          
             return
@@ -463,7 +464,7 @@ class QDiffView(QPipelineView):
             
     def set_to_current(self):
         # change to normal controller hacks
-        print "AAAAA doing set_to_current"
+        #print "AAAAA doing set_to_current"
         if self.controller.current_pipeline_view is not None:
             self.disconnect(self.controller,
                             QtCore.SIGNAL('versionWasChanged'),
@@ -477,10 +478,10 @@ class QDiffView(QPipelineView):
 
     def set_default_layout(self):
         from gui.module_palette import QModulePalette
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
              QtCore.Qt.RightDockWidgetArea: QDiffProperties,
-             }
+             })
         
     def version_changed(self):
         pass

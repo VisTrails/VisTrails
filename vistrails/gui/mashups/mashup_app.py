@@ -64,6 +64,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.mainLayout.setSpacing(5)
         centralWidget.setLayout(self.mainLayout)
         self.setCentralWidget(centralWidget)
+        self.numberOfCells = 0
         #self.resize(100,100)
         self.dumpcells = dumpcells
         self.view = vistrail_view
@@ -153,11 +154,17 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, buttonDock)
         self.controlDocks["__buttons__"] = buttonDock
         
-        self.saveAllAct = QtGui.QAction("S&ave Combined", self, shortcut=QtGui.QKeySequence.SelectAll,
-                statusTip="Save combined images to disk", triggered=self.saveAllEvent)
-        self.saveAct = QtGui.QAction("&Save Each", self, shortcut=QtGui.QKeySequence.Save,
-                statusTip="Save separate images to disk", triggered=self.saveEventAction)
-        
+        self.saveAllAct = QtGui.QAction("S&ave Combined", self, 
+                                        shortcut=QtGui.QKeySequence.SelectAll,
+                                        statusTip="Save combined images to disk", 
+                                        triggered=self.saveAllEvent)
+        self.saveAct = QtGui.QAction("&Save Each", self, 
+                                     shortcut=QtGui.QKeySequence.Save,
+                                     statusTip="Save separate images to disk", 
+                                     triggered=self.saveEventAction)
+        self.showBuilderAct = QtGui.QAction("VisTrails Main Window", self,
+                                            statusTip="Show VisTrails Main Window",
+                                            triggered=self.showBuilderWindow)
         self.createMenus()
         self.lastExportPath = ''
                     
@@ -169,16 +176,21 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.viewMenu = self.menuBar().addMenu("&View")
         self.viewMenu.addAction(self.editingModeAct)
         
+        self.windowMenu = self.menuBar().addMenu("&Window")
+        self.windowMenu.addAction(self.showBuilderAct)
+        
     def runAndGetCellEvents(self, useDefaultValues=False):
         spreadsheetController.setEchoMode(True)        
         #will run to get Spreadsheet Cell events
         cellEvents = []
+        errors = []
         try:
             (res, errors) = self.run(useDefaultValues)
             if res:
                 cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
-            print "Executing pipeline failed: ", str(e)
+            import traceback
+            print "Executing pipeline failed:", str(e), traceback.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
             
@@ -186,9 +198,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
     
     def updateCells(self):
         (cellEvents, errors) = self.runAndGetCellEvents()
+        
         if len(cellEvents) != self.numberOfCells:
             raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
-Pipeline results: %s' % (len(cellEvents), self.numberOfCells), errors)
+Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []
@@ -362,6 +375,10 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells), errors)
             print errors
             return (False, errors)
         return (True, [])
+    
+    def showBuilderWindow(self):
+        from gui.vistrails_window import _app
+        _app.show()
             
 class QCustomDockWidget(QtGui.QDockWidget):
     def __init__(self, title, parent=None):

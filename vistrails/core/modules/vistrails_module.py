@@ -94,6 +94,18 @@ error and the error message as a string."""
         import traceback
         self.errorTrace = traceback.format_exc()
 
+class ModuleSuspended(ModuleError):
+
+    """Exception representing a VisTrails module being suspended. Raising 
+    ModuleSuspended flags that the module is not ready to finish yet and
+    that the workflow should be executed later.  A suspended module does
+    not execute the modules downstream but all modules upstream will be
+    executed. This is useful when executing external jobs where you do not
+    want to block vistrails while waiting for the execution to finish.  """
+    
+    def __init__(self, module, errormsg):
+        ModuleError.__init__(self, module, errormsg)
+
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
     This exception is recognized by the interpreter and allows meaningful
@@ -238,6 +250,8 @@ Designing New Modules
         # computed stores wether the module was computed
         # used for the logging stuff
         self.computed = False
+        
+        self.suspended = False
 
         self.signature = None
 
@@ -266,6 +280,9 @@ context."""
         if port in self.inputPorts:
             for connector in self.inputPorts[port]:
                 connector.obj.update()
+                if hasattr(connector.obj, 'suspended') and \
+                   connector.obj.suspended:
+                    self.suspended = connector.obj.suspended
             for connector in copy.copy(self.inputPorts[port]):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(port, connector)
@@ -280,6 +297,9 @@ context."""
         for connectorList in self.inputPorts.itervalues():
             for connector in connectorList:
                 connector.obj.update()
+                if hasattr(connector.obj, 'suspended') and \
+                   connector.obj.suspended:
+                    self.suspended = connector.obj.suspended
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
@@ -293,6 +313,8 @@ context."""
         """
         self.logging.begin_update(self)
         self.updateUpstream()
+        if self.suspended:
+            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
@@ -304,6 +326,11 @@ context."""
                 raise ModuleBreakpoint(self)
             self.compute()
             self.computed = True
+        except ModuleSuspended, e:
+            self.suspended = e.msg
+            self.logging.end_update(self, e.msg, was_suspended=True)
+            self.logging.signalSuspended(self)
+            return
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
                 raise

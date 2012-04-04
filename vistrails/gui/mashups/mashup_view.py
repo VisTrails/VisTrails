@@ -79,10 +79,10 @@ class QMashupView(QtGui.QMainWindow, BaseView):
     def set_default_layout(self):
         from gui.mashups.mashups_inspector import QMashupsInspector
         from gui.mashups.alias_parameter_view import QAliasParameterView
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
              QtCore.Qt.RightDockWidgetArea: QAliasParameterView,
-             }
+             })
             
     def set_action_links(self):
         self.action_links = \
@@ -106,7 +106,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
 #            self.connect(self.controller,
 #                         QtCore.SIGNAL('versionWasChanged'),
 #                         self.versionChanged)
-        print "      *** mashup view set vtController: ", controller
+        #print "      *** mashup view set vtController: ", controller
         
     def versionChanged(self, version):
         window = self.window()
@@ -115,7 +115,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             window.qactions['mashup'].setEnabled(True)
         else:
             window.qactions['mashup'].setEnabled(False)
-        print "      *** mashup view versionChanged ", self.vtversion
+        #print "      *** mashup view versionChanged ", self.vtversion
         
     def controllerChanged(self, controller):
         from gui.vistrails_window import _app
@@ -151,9 +151,9 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             _app.notify('mshpcontroller_changed', self.mshpController)
     
     def createActions(self):
-        self.saveAction = QtGui.QAction("Keep", self,
+        self.saveAction = QtGui.QAction("Tag", self,
                                         triggered=self.saveTriggered)
-        self.saveAction.setToolTip("Keep current mashup")
+        self.saveAction.setToolTip("Tag current mashup")
         self.saveAction.setEnabled(False)
         self.previewAction = QtGui.QAction("Preview",  self,
                                            triggered=self.previewTriggered,
@@ -290,13 +290,13 @@ Click on No to create a new tag.""" %pname,
                             tag_exists = False
         
     def mshpControllerVistrailChanged(self):
-        print "*** vistrailChanged mashup view ", self.mshpController.vtController.current_version
+        #print "*** vistrailChanged mashup view ", self.mshpController.vtController.current_version
         pipeline = self.mshpController.vtController.current_pipeline
         self.mshpController.updateAliasesFromPipeline(pipeline)
         
     def mshpVersionChanged(self, versionId):
         from gui.vistrails_window import _app
-        print "*** mshpVersionChanged ", versionId
+        #print "*** mshpVersionChanged ", versionId
         self.aliasPanel.updateVersion(versionId)
         if not self.mshpController.versionHasTag(versionId):
             self.saveAction.setEnabled(True)
@@ -313,7 +313,7 @@ Click on No to create a new tag.""" %pname,
                   "Preview: %s"%self.mshpController.getMashupName(view.version))
                 
     def aliasChanged(self, param):
-        print "mashupView aliasChanged", param
+        #print "mashupView aliasChanged", param
         self.mshpController.updateAliasFromParam(param)
         
 ###############################################################################
@@ -328,10 +328,10 @@ class QMashupViewTab(QtGui.QWidget, BaseView):
     def set_default_layout(self):
         from gui.mashups.mashups_inspector import QMashupsInspector
         from gui.mashups.alias_parameter_view import QAliasParameterView
-        self.layout = \
+        self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
              QtCore.Qt.RightDockWidgetArea: QAliasParameterView,
-             }
+             })
     
     def set_action_links(self):
         self.action_links = \

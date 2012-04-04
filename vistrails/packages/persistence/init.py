@@ -542,12 +542,16 @@ class PersistentPath(Module):
         if self.persistent_path is None and not self.hasInputFromPort('value') \
                 and is_input and not (ref.local_path and ref.local_read):
             _, suffix = os.path.splitext(ref.name)
+            if not db_access.ref_exists(ref.id, ref.version):
+                raise ModuleError(self, "Persistent entity '%s' does not "
+                                  "exist in the local repository." % ref.id)
             if ref.version is None:
                 ref.version = self.git_get_latest_version(ref.id)
 
             # get specific ref.uuid, ref.version combo
             path = self.git_get_path(ref.id, ref.version, 
                                      out_suffix=suffix)
+            
         elif self.persistent_path is None:
             # copy path to persistent directory with uuid as name
             if is_input and ref.local_path and ref.local_read:

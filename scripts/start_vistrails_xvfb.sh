@@ -99,6 +99,10 @@ sleep 5
 #try again because sometimes it doesn't quit                                           
 python stop_vistrails_server.py http://$ADDRESS:$PORT
 sleep 5
+
+#finally kill it if it still did not respond because it was hanging
+kill -9 `cat $PID`
+
 python vistrails_server.py -T $ADDRESS -R $PORT -C $CONF_FILE -O$NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
 echo $! > $PID
 

@@ -47,7 +47,7 @@ from core.packagemanager import PackageManager
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 import core.system
-from core.system import vistrails_default_file_type
+
 from core.vistrail.annotation import Annotation
 from core.vistrail.controller import VistrailController as BaseController, \
     vt_action
@@ -102,9 +102,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         """
         QtCore.QObject.__init__(self)
-        BaseController.__init__(self, vistrail)
-        self.name = ''
-        self.file_name = None
+        BaseController.__init__(self, vistrail, auto_save=auto_save)
         self.set_file_name(name)
         # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
         self.current_pipeline_view = None
@@ -117,9 +115,9 @@ class VistrailController(QtCore.QObject, BaseController):
         # if self._auto_save is True, an auto_saving timer will save a temporary
         # file every 2 minutes
         self._auto_save = auto_save
-        self.timer = QtCore.QTimer(self)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
-        self.timer.start(1000 * 60 * 2) # Save every two minutes
+        self.timer = None
+        if self._auto_save:
+            self.setup_timer()
         
         self._previous_graph_layout = None
         self._current_graph_layout = VistrailsTreeLayoutLW()
@@ -142,6 +140,16 @@ class VistrailController(QtCore.QObject, BaseController):
         self.current_pipeline_view.current_pipeline = pipeline
     current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
+    def setup_timer(self):
+        self.timer = QtCore.QTimer(self)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+        self.timer.start(1000 * 60 * 2) # Save every two minutes
+        
+    def stop_timer(self):
+        if self.timer:
+            self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+            self.timer.stop()
+            
     ##########################################################################
     # Signal vistrail relayout / redraw
 
@@ -194,8 +202,8 @@ class VistrailController(QtCore.QObject, BaseController):
         locator = self.get_locator()
         if locator:
             locator.clean_temporaries()
-        self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
-        self.timer.stop()
+        if self._auto_save or self.timer:
+            self.stop_timer()
 
     def set_vistrail(self, vistrail, locator, abstractions=None, 
                      thumbnails=None, mashups=None):
@@ -260,8 +268,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def add_module(self, x, y, identifier, name, namespace='', 
                    internal_version=-1):
-        return BaseController.add_module(identifier, name, namespace, x, y,
-                                         internal_version)
+        return BaseController.add_module(self, identifier, name, namespace, x, y,
+                                         internal_version) # rr4: pass 'self'?
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
                                        name=""):
@@ -979,9 +987,21 @@ class VistrailController(QtCore.QObject, BaseController):
         Returns the list of module ids of added modules
 
         """
+        def remove_duplicate_aliases(pip):
+            aliases = self.current_pipeline.aliases.keys()
+            for a in aliases:
+                if a in pip.aliases:
+                    (type, oId, parentType, parentId, mid) = pip.aliases[a]
+                    pip.remove_alias_by_name(a)
+                    _mod = pip.modules[mid]
+                    _fun = _mod.function_idx[parentId]
+                    _par = _fun.parameter_idx[oId]
+                    _par.alias = ''
+                                    
         self.flush_delayed_actions()
-
         pipeline = core.db.io.unserialize(str, Pipeline)
+        remove_duplicate_aliases(pipeline)
+
         modules = []
         connections = []
         if pipeline:
@@ -1196,13 +1216,9 @@ class VistrailController(QtCore.QObject, BaseController):
         Change the controller file name
         
         """
-        if file_name == None:
-            file_name = ''
-        if self.file_name!=file_name:
-            self.file_name = file_name
-            self.name = os.path.split(file_name)[1]
-            if self.name=='':
-                self.name = 'untitled%s'%vistrails_default_file_type()
+        old_name = self.file_name
+        BaseController.set_file_name(self, file_name)
+        if old_name!=file_name:
             self.emit(QtCore.SIGNAL('stateChanged'))
 
     def write_vistrail(self, locator, version=None):
@@ -1357,11 +1373,16 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
         controller = VistrailController(auto_save=False)
         controller.current_pipeline_view = DummyView().scene()
         controller.set_vistrail(v,locator)
-        controller.change_selected_version(9L)
+        # DAK: version is different because of upgrades
+        # controller.change_selected_version(9L)
+        controller.select_latest_version()
         self.assertNotEqual(controller.current_pipeline, None)
         
-        module_ids = [1, 2, 3]
-        connection_ids = [1, 2, 3]
+        # DAK: changed these because of upgrades...
+        # module_ids = [1, 2, 3]
+        # connection_ids = [1, 2, 3]
+        module_ids = [4, 5, 6]
+        connection_ids = [6, 8, 9]
         
         controller.create_abstraction(module_ids, connection_ids, 
                                       '__TestFloatList')

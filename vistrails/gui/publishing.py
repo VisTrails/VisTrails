@@ -253,11 +253,11 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         path_to_figure = os.path.join(source_dir, 'vistrails_images',
                                       figure_name)
 
-        print 'LOOKING FOR %s' % path_to_figure
+        #print 'LOOKING FOR %s' % path_to_figure
         if os.path.exists(path_to_figure):
             fnames = os.listdir(path_to_figure)
             for fname in fnames:
-                print "FOUND", fname
+                #print "FOUND", fname
                 if fname.endswith('png'):
                     pixmap = QtGui.QPixmap(os.path.join(path_to_figure, fname))
                     if pixmap.width() > pixmap.height():
@@ -336,7 +336,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             fname = opt_dict['filename']
             if not os.path.isabs(fname):
                 source_dir = os.path.dirname(str(self.source_edit.text()))
-                print 'source_dir:', str(self.source_edit.text()), source_dir
+                #print 'source_dir:', str(self.source_edit.text()), source_dir
                 fname = os.path.join(source_dir, fname)
             
             locator = FileLocator(fname)
@@ -397,7 +397,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         selected_items = self.figure_list.selectedItems()
         if self.selected_item is not None:
             self.selected_item.update_opt_dict(self.getFigureInfo())
-            print "NEW OPTIONS:", self.selected_item.opt_dict
+            #print "NEW OPTIONS:", self.selected_item.opt_dict
         if len(selected_items) < 1:
             self.gbEmbedOpt.setEnabled(False)
             self.gbDownOpt.setEnabled(False)
@@ -408,7 +408,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             self.gbDownOpt.setEnabled(True)
             self.def_group.setEnabled(True)
             item = selected_items[0]
-            print "OPTIONS:", item.opt_dict
+            #print "OPTIONS:", item.opt_dict
             self.setFigureInfo(item.opt_dict)
             self.selected_item = item
 

@@ -64,6 +64,7 @@ from core.thumbnails import ThumbnailCache
 from core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
 from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
+from core.system import vistrails_default_file_type
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.action import Action
 from core.vistrail.annotation import Annotation
@@ -96,11 +97,12 @@ def vt_action(f):
     return new_f
 
 class VistrailController(object):
-    def __init__(self, vistrail=None, id_scope=None):
+    def __init__(self, vistrail=None, id_scope=None, auto_save=True):
         self.vistrail = vistrail
         self.id_scope = id_scope
         self.current_session = -1
         self.log = Log()
+        self._auto_save = auto_save
         if vistrail is not None:
             self.id_scope = vistrail.idScope
             self.current_session = vistrail.idScope.getNewId('session')
@@ -108,6 +110,8 @@ class VistrailController(object):
             vistrail.log = self.log
         self._current_pipeline = None
         self.locator = None
+        self.name = ''
+        self.file_name = ''
         self._current_version = -1
         self.changed = False
 
@@ -188,6 +192,7 @@ class VistrailController(object):
         if not self.vistrail.is_abstraction:
             self.unload_abstractions()
         if locator is not None:
+            locator.clean_temporaries()
             locator.close()
             
     def set_id_scope(self, id_scope):
@@ -201,6 +206,19 @@ class VistrailController(object):
         if changed!=self.changed:
             self.changed = changed
         
+    def set_file_name(self, file_name):
+        """ set_file_name(file_name: str) -> None
+        Change the controller file name
+        
+        """
+        if file_name == None:
+            file_name = ''
+        if self.file_name!=file_name:
+            self.file_name = file_name
+            self.name = os.path.split(file_name)[1]
+            if self.name=='':
+                self.name = 'untitled%s'%vistrails_default_file_type()
+                
     def check_alias(self, name):
         """check_alias(alias) -> Boolean 
         Returns True if current pipeline has an alias named name """
@@ -830,10 +848,11 @@ class VistrailController(object):
 
     @vt_action
     def update_function(self, module, function_name, param_values, old_id=-1L,
-                        aliases=[], query_methods=[]):
+                        aliases=[], query_methods=[], should_replace=True):
         op_list = self.update_function_ops(module, function_name, param_values,
                                            old_id, aliases=aliases,
-                                           query_methods=query_methods)
+                                           query_methods=query_methods,
+                                           should_replace=should_replace)
         action = core.db.action.create_action(op_list)
         return action
 
@@ -1169,6 +1188,99 @@ class VistrailController(object):
     def get_downstream_neighbors(pipeline, module):
         return VistrailController.get_neighbors(pipeline, module, False)
 
+    def check_subpipeline_port_names(self):
+        def create_name(base_name, names):
+            if base_name in names:
+                port_name = base_name + '_' + str(names[base_name])
+                names[base_name] += 1
+            else:
+                port_name = base_name
+                names[base_name] = 2
+            return port_name
+
+        in_names = {}
+        out_names = {}
+        in_cur_names = []
+        out_cur_names = []
+        in_process_list = []
+        out_process_list = []
+        pipeline = self.current_pipeline
+        for m in pipeline.module_list:
+            if m.package == basic_pkg and (m.name == 'InputPort' or
+                                           m.name == 'OutputPort'):
+                if m.name == 'InputPort':
+                    neighbors = self.get_downstream_neighbors(pipeline, m)
+                    names = in_names
+                    cur_names = in_cur_names
+                    process_list = in_process_list
+                elif m.name == 'OutputPort':
+                    neighbors = self.get_upstream_neighbors(pipeline, m)
+                    names = out_names
+                    cur_names = out_cur_names
+                    
+                if len(neighbors) < 1:
+                    # print "not adding, no neighbors"
+                    # don't add it!
+                    continue
+
+                name_function = None
+                base_name = None
+                for function in m.functions:
+                    if function.name == 'name':
+                        name_function = function
+                        if len(function.params) > 0:
+                            base_name = function.params[0].strValue
+                if base_name is not None:
+                    cur_names.append(base_name)
+                else:
+                    base_name = neighbors[0][1]
+                    if base_name == 'self':
+                        base_name = neighbors[0][0].name
+                    process_list.append((m, base_name))
+
+        op_list = []
+        for (port_type, names, cur_names, process_list) in \
+                [("input", in_names, in_cur_names, in_process_list), \
+                     ("output", out_names, out_cur_names, out_process_list)]:
+            cur_names.sort()
+            last_name = None
+            for name in cur_names:
+                if name == last_name:
+                    msg = 'Cannot assign the name "%s" to more ' \
+                        'than one %s port' % (name, port_type)
+                    raise Exception(msg)
+                last_name = name
+                idx = name.rfind("_")
+                if idx < 0:
+                    names[name] = 2
+                else:
+                    base_name = None
+                    try:
+                        val = int(name[idx+1:])
+                        base_name = name[:idx]
+                    except ValueError:
+                        pass
+                    if base_name is not None and base_name in names:
+                        cur_val = names[base_name]
+                        if val >= cur_val:
+                            names[base_name] = val + 1
+                    else:
+                        names[name] = 2
+
+            for (m, base_name) in process_list:
+                port_name = create_name(base_name, names)
+                # FIXME use update_function when it is moved to
+                # core (see core_no_gui branch)
+                ops = self.update_function_ops(m, 'name', 
+                                               [port_name])
+                op_list.extend(ops)
+        self.flush_delayed_actions()
+        action = core.db.action.create_action(op_list)
+        if action is not None:
+            self.add_new_action(action)
+            self.perform_action(action)
+        return action
+
     def create_subpipeline(self, full_pipeline, module_ids, connection_ids, 
                            id_remap, id_scope=None):
         if not id_scope:
@@ -1457,9 +1569,9 @@ class VistrailController(object):
                                     namespace=None, module_version=None,
                                     is_global=True, avail_fnames=[]):
         reg = core.modules.module_registry.get_module_registry()
+        cur_namespace = get_cur_abs_namespace(abs_vistrail)
         if namespace is None:
-            namespace = get_cur_abs_namespace(abs_vistrail)
-
+            namespace = cur_namespace
         if module_version is None:
             module_version = -1L
 
@@ -1485,21 +1597,27 @@ class VistrailController(object):
         all_namespaces = get_all_abs_namespaces(abs_vistrail)
 
         old_desc = None
-        if is_global:
+        for ns in all_namespaces:
             try:
-                old_desc = reg.get_similar_descriptor(abstraction_pkg,
-                                                      name,
-                                                      namespace)
-                # print "found old_desc", old_desc.name, old_desc.version
+                desc = reg.get_similar_descriptor(abstraction_pkg,
+                                                  name,
+                                                  ns)
+                if not desc.is_hidden:
+                    old_desc = desc
+                    # print "found old_desc", old_desc.name, old_desc.version
+                    break
             except ModuleRegistryException, e:
                 pass
-
-        hide_descriptor = not is_global or old_desc is not None
-        for namespace in all_namespaces:
+            
+        global_hide = not is_global or old_desc is not None
+        newest_desc = None
+        requested_desc = None
+        for ns in all_namespaces:
+            hide_descriptor = (ns != cur_namespace) or global_hide
             # print '()()() adding abstraction', namespace
             if reg.has_descriptor_with_name(abstraction_pkg, 
                                             name, 
-                                            namespace,
+                                            ns,
                                             abstraction_ver, 
                                             str(module_version)):
                 # don't add something twice
@@ -1507,16 +1625,20 @@ class VistrailController(object):
             new_desc = reg.auto_add_module((abstraction, 
                                             {'package': abstraction_pkg,
                                              'package_version': abstraction_ver,
-                                             'namespace': namespace,
+                                             'namespace': ns,
                                              'version': str(module_version),
                                              'hide_namespace': True,
                                              'hide_descriptor': hide_descriptor,
                                              }))
+            if ns == cur_namespace:
+                newest_desc = new_desc
+            if ns == namespace:
+                requested_desc = new_desc
             reg.auto_add_ports(abstraction)
         if old_desc is not None:
             # print '$$$ calling update_module'
-            reg.update_module(old_desc, new_desc)
-        return new_desc
+            reg.update_module(old_desc, newest_desc)
+        return requested_desc
 
 #         package = reg.get_package_by_name(abstraction_pkg)
 #         for desc in package.descriptor_versions.itervalues():
@@ -1571,18 +1693,18 @@ class VistrailController(object):
         desc = self.get_abstraction_desc(abstraction_pkg, abs_name, 
                                          abstraction_uuid, module_version)
         if desc is None:
-            print "adding version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to registry"
+            #print "adding version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to registry"
             desc = self.add_abstraction_to_registry(abs_vistrail, abs_fname, 
                                                     abs_name, None, 
                                                     module_version, 
                                                     is_global, avail_fnames)
-            if desc.version != module_version:
-                print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
-        else:
-            if upgrade_version is not None:
-                print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
-            else:
-                print "version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry"
+            #if desc.version != module_version:
+                #print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
+#        else:
+#            if upgrade_version is not None:
+#                print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
+#            else:
+#                print "version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry"
         return desc
     
     def unload_abstractions(self):
@@ -1593,7 +1715,7 @@ class VistrailController(object):
             # delete_module over and over?)
             for namespace in get_all_abs_namespaces(abs_vistrail):
                 try:
-                    reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
+                    reg.delete_module(abstraction_pkg, abs_name, namespace)
                 except:
                     pass
         self._loaded_abstractions.clear()
@@ -1732,7 +1854,7 @@ class VistrailController(object):
         # make sure that we don't get an obselete descriptor
         invalid_module._module_descriptor = None
         abs_fname = invalid_module.module_descriptor.module.vt_fname
-        print "&&& abs_fname", abs_fname
+        #print "&&& abs_fname", abs_fname
         (path, prefix, abs_name, abs_namespace, suffix) = \
             self.parse_abstraction_name(abs_fname, True)
         # abs_vistrail = invalid_module.vistrail
@@ -1741,7 +1863,7 @@ class VistrailController(object):
         lookup = {(abs_name, abs_namespace): abs_fname}
         descriptor_info = invalid_module.descriptor_info
         newest_version = str(abs_vistrail.get_latest_version())
-        print '&&& check_abstraction', abs_namespace, newest_version
+        #print '&&& check_abstraction', abs_namespace, newest_version
         d = self.check_abstraction((descriptor_info[0],
                                     descriptor_info[1],
                                     abs_namespace,
@@ -2214,7 +2336,8 @@ class VistrailController(object):
             locator = self.get_locator()
             if locator:
                 locator.clean_temporaries()
-                locator.save_temporary(self.vistrail)
+                if self._auto_save:
+                    locator.save_temporary(self.vistrail)
             view = DummyView()
             return self.execute_workflow_list([(self.locator,
                                                 self.current_version,
@@ -2558,11 +2681,10 @@ class VistrailController(object):
                 except Exception, e:
                     # cannot get the package we need
                     continue
-                debug.warning('** Trying to fix errors in %s' % identifier)
-                for t in ['  ' + str(e) for e in err_list]:
-                    debug.warning(t)
+                details = '\n'.join(str(e) for e in err_list)
+                debug.log('Processing upgrades in package "%s"' %
+                          identifier, details)
                 if pkg.can_handle_all_errors():
-                    debug.warning('  handle_all_errors')
                     try:
                         actions = pkg.handle_all_errors(self, err_list, 
                                                         pipeline)
@@ -2678,9 +2800,10 @@ class VistrailController(object):
             return unhandled_exceptions
 
         left_exceptions = check_exceptions(root_exceptions)
-        for left in left_exceptions:
-            debug.critical('--> %s' % left)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
+            details = '\n'.join(str(e) for e in left_exceptions + \
+                                    new_exceptions)
+            debug.critical("Some exceptions could not be handled", details)
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
@@ -2996,6 +3119,8 @@ class VistrailController(object):
             abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
             is_abstraction = self.vistrail.is_abstraction
             if is_abstraction and self.changed:
+                # first update any names if necessary
+                self.check_subpipeline_port_names()
                 new_namespace = str(uuid.uuid1())
                 annotation_key = get_next_abs_annotation_key(self.vistrail)
                 self.vistrail.set_annotation(annotation_key, new_namespace)
@@ -3072,7 +3197,11 @@ class VistrailController(object):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
                         del self._loaded_abstractions[filename]
-                    self.load_abstraction(filename, True)
+                    # we don't know if the subworkflow should be shown
+                    # if it doesn't currently exist, we don't want to add it
+                    # if it does, we will replace it via upgrade module
+                    # so it is not global
+                    self.load_abstraction(filename, False)
                     
                     # reg = core.modules.module_registry.get_module_registry()
                     # for desc in reg.get_package_by_name('local.abstractions').descriptor_list:
@@ -3086,6 +3215,7 @@ class VistrailController(object):
             if self.log:
                 self.log.delete_all_workflow_execs()
             self.set_changed(False)
+            locator.clean_temporaries()
 
             # delete any temporary subworkflows
             try:
@@ -3121,7 +3251,7 @@ class VistrailController(object):
                                             self.vistrail.db_log_filename)
             else:
                 log = self.log
-            print log
+            #print log
             save_bundle = SaveBundle(log.vtType,log=log)
             locator.save_as(save_bundle)
 

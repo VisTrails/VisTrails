@@ -300,6 +300,9 @@ def close_vistrail(view, quiet=True):
     """
     get_builder_window().close_vistrail(view, quiet=quiet)
 
+def close_all_vistrails(quiet=True):
+    get_builder_window().close_all_vistrails(quiet)
+    
 def new_vistrail():
     # Returns VistrailView - remember to be consistent about it..
     get_vistrails_application().builderWindow.new_vistrail(False)

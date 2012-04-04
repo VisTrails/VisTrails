@@ -177,7 +177,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         if obj_type == 'vistrail':
             f += get_vistrails_configuration().defaultFileType
         else:
-            f += '.' + suffix_map[obj_type][0]
+            f += suffix_map[obj_type][0]
 
     if os.path.isfile(f):
         msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
@@ -204,3 +204,18 @@ def get_autosave_prompt(parent):
                                         QtGui.QMessageBox.Open,
                                         QtGui.QMessageBox.Ignore)
     return result == QtGui.QMessageBox.Open
+
+def ask_to_overwrite_file(parent=None, obj_type='vistrail'):
+    overwrite = True
+    fname = None
+    msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+                            "VisTrails",
+                            "File exists and contains changes. Overwrite?",
+                            (QtGui.QMessageBox.Yes | QtGui.QMessageBox.No),
+                            parent)
+    if msg.exec_() == QtGui.QMessageBox.No:
+        overwrite = False
+        locator = get_save_file_locator_from_gui(parent, obj_type)
+        if locator:
+            fname = locator._name
+    return (overwrite, fname)

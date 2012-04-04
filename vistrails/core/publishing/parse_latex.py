@@ -66,7 +66,7 @@ def build_vt_command(opt_dict):
         full_str = "\\vistrail[%s]{%s}" % (opt_str, args)
     else:
         full_str = "\\vistrail{%s}" % args
-    print '^^ LATEX ^^', opt_dict, full_str
+    #print '^^ LATEX ^^', opt_dict, full_str
     return full_str
 
 def parse_latex_file(fname):
@@ -155,9 +155,9 @@ def parse_latex_file(fname):
     f.close()
 
     # vt_text.append(("", ""))
-    for t, vt in izip(raw_text, vt_text + [("", "")]):
-        print "RAW:", t
-        print "VT:", parse_vt_command(*vt)
+    #for t, vt in izip(raw_text, vt_text + [("", "")]):
+        #print "RAW:", t
+        #print "VT:", parse_vt_command(*vt)
     return (raw_text, vt_text)
 
 if __name__ == '__main__':
@@ -166,4 +166,4 @@ if __name__ == '__main__':
         print "Usage: %s %s <latex-file>" % (sys.executable, sys.argv[0])
         sys.exit(-1)
     
-    parse_vt_file(sys.argv[1])
+    parse_latex_file(sys.argv[1])

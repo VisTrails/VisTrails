@@ -70,10 +70,7 @@ from gui import merge_gui
 from db.services.io import SaveBundle
 from core.thumbnails import ThumbnailCache
 import gui.debug
-<<<<<<< HEAD
-=======
 from gui.mashups.mashups_manager import MashupsManager
->>>>>>> origin/v2.0
 
 ################################################################################
 

@@ -38,6 +38,7 @@ Learning VisTrails By Example
    parameter_exploration
    provenance
    mashups
+   example_guide
    
 
 ############################################
@@ -52,4 +53,5 @@ Intermediate Concepts and VisTrails Packages
    database
    example_webservices
    persistence
+   vistrails_server
    latex

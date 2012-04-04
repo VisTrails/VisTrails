@@ -13,7 +13,7 @@
 ##
 ## If you are unsure which license is appropriate for your use (for
 ## instance, you are interested in developing a commercial derivative
-## of VisTrails), please contact us at vistrails@sci.utah.edu.
+## of VisTrails), please contact us at contact@vistrails.org.
 ##
 ## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.

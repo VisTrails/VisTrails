@@ -42,6 +42,7 @@ from core.thumbnails import ThumbnailCache
 from core import debug
 from core.collection import Collection
 from core.collection.vistrail import VistrailEntity
+from core.collection.workflow_exec import WorkflowExecEntity
 from core.collection import MashupEntity
 from core.collection.search import SearchCompiler, SearchParseError
 from core.db.locator import FileLocator
@@ -50,6 +51,7 @@ from gui.vistrails_palette import QVistrailsPaletteInterface
 from gui.theme import CurrentTheme
 from gui.module_palette import QModuleTreeWidgetItemDelegate
 from gui.vis_diff import QDiffView
+from core.collection.entity import Entity
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
@@ -102,9 +104,9 @@ class QCollectionWidget(QtGui.QTreeWidget):
                                for i in xrange(item.childCount())])
 
     def item_selected(self, widget_item, column):
-        print 'item_selected'
+        #print 'item_selected'
         locator = widget_item.entity.locator()
-        print "locator", locator
+        #print "locator", locator
         import gui.application
 #        if not locator.is_valid():
 #            debug.critical("Locator is not valid:" % locator.to_url())
@@ -129,10 +131,10 @@ class QCollectionWidget(QtGui.QTreeWidget):
             #locator._name = widget_item.entity.parent.parent.name
             
         locator.update_from_gui(self)
-        print '*** opening'
-        print locator.to_url()
-        print locator.name
-        print '***'
+#        print '*** opening'
+#        print locator.to_url()
+#        print locator.name
+#        print '***'
         open_vistrail(locator, **args)
                                                        
     def contextMenuEvent(self, event):
@@ -562,6 +564,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         if self.searchAction.searchMode:
             self.open_list.hide_search_results()
             self.searchAction.searchMode = False
+            self.open_list.searchMode = False
             self.searchAction.setText("Search")
 
             from gui.vistrails_window import _app
@@ -570,15 +573,19 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
             from gui.vistrails_window import _app
             _app.qactions['search'].trigger()
  
-    def updateSearchResults(self, result_list=None):
-        if result_list is None:
+    def updateSearchResults(self, search=None, result_list=None):
+        if search is None:
             self.gotoSearch()
         elif not self.searchAction.searchMode:
             self.open_list.show_search_results()
             self.searchAction.searchMode = True
+            self.open_list.searchMode = True
             self.searchAction.setText("Clear Search")
-        self.open_list.update_search_results(result_list)
+        self.open_list.update_search_results(search, result_list)
 
+    def execution_updated(self):
+        self.open_list.execution_updated()
+       
     def showWorkflowExecutions(self, state):
         """ toggle show executions on/off """
         self.open_list.hideExecutions(not state)
@@ -786,6 +793,8 @@ class QVistrailListLatestItem(QtGui.QTreeWidgetItem):
 class QVistrailList(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
+        self.searchMode = False
+        self.search = None
         self.setColumnCount(1)
         self.setHeaderHidden(True)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
@@ -836,6 +845,11 @@ class QVistrailList(QtGui.QTreeWidget):
         self.addTopLevelItem(self.closedFilesItem)
         closed_entities = self.collection.workspaces['Default']
         for entity in closed_entities:
+            if entity.url.startswith('file://'):
+                if not entity.locator().is_valid():
+                    self.collection.del_from_workspace(entity)
+                    self.collection.delete_entity(entity)
+                    continue
             self.closedFilesItem.addChild(QVistrailListItem(entity))
             
     def show_search_results(self):
@@ -849,7 +863,8 @@ class QVistrailList(QtGui.QTreeWidget):
         self.openFilesItem.setHidden(False)
         self.closedFilesItem.setHidden(False)
 
-    def update_search_results(self, result_list=None):
+    def update_search_results(self, search=None, result_list=None):
+        self.search = search
         self.searchResultsItem.takeChildren()
         if result_list is not None:
             for entity in result_list:
@@ -866,9 +881,16 @@ class QVistrailList(QtGui.QTreeWidget):
         if item and item.parent() == None:
             self.setItemExpanded(item, not self.isItemExpanded(item))
             
+    def search_result_selected(self, view, version):
+        # need to signal the query view to change its version and vistrail
+        from gui.vistrails_window import _app
+        _app.change_view(view)
+        view.query_version_selected(self.search, version)
+
     def item_selected(self, widget_item, column):
-        """ opens or displays the selected item if possible """
+        """ opens or displays the selected item if possible """            
         locator = None
+        entity = None
         if hasattr(widget_item, 'entity') and widget_item.entity is not None:
             entity = widget_item.entity
             locator = entity.locator()
@@ -888,25 +910,52 @@ class QVistrailList(QtGui.QTreeWidget):
         if not locator:
             # assuming an unsaved vistrail - need to use view
             vistrail_widget = widget_item
-            while not hasattr(vistrail_widget, 'window'):
+            view = None
+            while view is None and vistrail_widget is not None:
+                if hasattr(vistrail_widget, 'window'):
+                    view = vistrail_widget.window
+                    break
+                elif (hasattr(vistrail_widget, 'entity') and
+                      hasattr(vistrail_widget.entity, '_window')):
+                    view = vistrail_widget.entity._window
+                    break
                 vistrail_widget = vistrail_widget.parent()
-            view = vistrail_widget.window
+
             if vistrail_widget == widget_item:
                 # do nothing - view is already selected
                 return
+            is_execution = False
+            version = None
             if type(widget_item) == QVistrailListLatestItem:
                 version = view.controller.vistrail.get_latest_version()
             elif hasattr(widget_item, 'entity'):
-                version = widget_item.entity.name
-            if version:
-                if type(version) == str:
-                    try:
-                        version = view.controller.vistrail.get_version_number(version)
-                    except:
-                        version = None
+                if hasattr(widget_item, 'executionList'):
+                    version = widget_item.entity.name
+                else:
+                    is_execution = True
+                    version = widget_item.parent().entity.name
+            if not version:
+                # assume execution
+                version = str(widget_item.parent().text(0))
+            if type(version) == str:
+                try:
+                    version = \
+                        view.controller.vistrail.get_version_number(version)
+                except:
+                    version = None
+            if self.searchMode:
+                self.search_result_selected(view, version)
+            else:
+                # _app.view_changed(view)
+                _app.change_view(view)
                 if version:
                     view.version_selected(version, True, double_click=True)
-                    _app.view_changed(view)
+
+            if is_execution:
+                _app.qactions['provenance'].trigger()
+                workflow_exec = widget_item.entity.name
+                view.log_view.set_exec_by_id(workflow_exec) or \
+                 view.log_view.set_exec_by_date(workflow_exec)
             return
 
         args = {}
@@ -915,10 +964,12 @@ class QVistrailList(QtGui.QTreeWidget):
 
         vistrail_widget = widget_item
         vistrail_entity = entity
+        version = None
         if args['version']:
             vistrail_widget = widget_item.parent()
             vistrail_entity = entity.parent
             locator = vistrail_entity.locator()
+            version = args['version']
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
         if workflow_exec:
@@ -934,25 +985,29 @@ class QVistrailList(QtGui.QTreeWidget):
             # find the latest item (max action id)
             vistrail = widget_item.parent().parent().window.controller.vistrail
             args['version'] = vistrail.get_latest_version()
+            version = vistrail.get_latest_version()
         locator.update_from_gui(self)
         if not locator.is_valid():
             debug.critical("File not found: '%s'. Entry will be deleted." % locator.to_url())
             vistrail_widget.parent().removeChild(vistrail_widget)
             self.collection.delete_entity(vistrail_entity)
             self.collection.commit()
-        
+
         view = _app.ensureVistrail(locator)
-        if view:
-            self.ensureNotDiffView()
-        open_vistrail(locator, **args)
-        if view is None:
-            set_current_locator(locator)
-        if view and isinstance(entity, MashupEntity):
-            # I am assuming that double-clicking a mashup, the user wants to
-            # run the mashup
-            # if it is doubele-clicked without the vistrail being open we 
-            #should open the vistrail
-            self.open_mashup(entity)
+        if self.searchMode:
+            self.search_result_selected(view, version)
+        else:
+            if view:
+                self.ensureNotDiffView()
+            open_vistrail(locator, **args)
+            if view is None or not view.is_abstraction:
+                set_current_locator(locator)
+            if view and isinstance(entity, MashupEntity):
+                # I am assuming that double-clicking a mashup, the user wants to
+                # run the mashup
+                # if it is doubele-clicked without the vistrail being open we 
+                #should open the vistrail
+                self.open_mashup(entity)
 
     def ensureNotDiffView(self):
         """ If current tab is a diff, create a new tab """
@@ -1171,6 +1226,35 @@ class QVistrailList(QtGui.QTreeWidget):
             item.mshp_to_item[tag] = mshp
         self.make_tree(item) if self.isTreeView else self.make_list(item)
 
+    def execution_updated(self):
+        """ Add new executions to workflow """
+        # get view and item
+        from gui.vistrails_window import _app
+        view = _app.get_current_view()
+        if id(view) not in self.items:
+            return
+        item = self.items[id(view)]
+        if not hasattr(item, 'new_log'):
+            item.new_log = {}
+        # get executions
+        # find new execution
+        for e in view.controller.log.workflow_execs:
+            if e not in item.new_log:
+                item.new_log[e] = e
+                wf_id = e.parent_version
+                tagMap = view.controller.vistrail.get_tagMap()
+                if wf_id in tagMap:
+                    e.db_name = tagMap[wf_id]
+                    if e.db_name in item.tag_to_item:
+                        wf_item = item.tag_to_item[e.db_name]
+                        entity = WorkflowExecEntity(e)
+                        e_item = QVistrailListItem(entity)
+                        wf_item.addChild(e_item)
+                        wf_item.executionList.append(e_item)
+                        self.updateHideExecutions()
+
+
+
     def add_vt_window(self, vistrail_window):
         locator = vistrail_window.controller.locator
         entity = None
@@ -1211,6 +1295,11 @@ class QVistrailList(QtGui.QTreeWidget):
             item = old_item
         else:
             self.items[id(vistrail_window)] = item
+            if entity is None:
+                entity = VistrailEntity(vistrail_window.controller.vistrail)
+                self.collection.add_temp_entity(entity)
+            entity.is_open = True
+            entity._window = vistrail_window
             self.openFilesItem.addChild(item)
         self.make_tree(item) if self.isTreeView else self.make_list(item)
         item.workflowsItem.setExpanded(True)
@@ -1227,13 +1316,17 @@ class QVistrailList(QtGui.QTreeWidget):
         delattr(item, 'window')
         index = self.openFilesItem.indexOfChild(item)
         item = self.openFilesItem.takeChild(index)
+        if item.entity is not None:
+            item.entity.is_open = False
+            item.entity._window = None
         item.current_item.parent().removeChild(item.current_item)
         locator = vistrail_window.controller.locator
         # entity may have changed
         entity = None
         if locator:
             entity = self.collection.fromUrl(locator.to_url())
-        if entity:
+        if entity and not self.collection.is_temp_entity(entity) and \
+                not vistrail_window.is_abstraction:
             item = QVistrailListItem(entity)
             self.make_tree(item) if self.isTreeView else self.make_list(item)
             self.closedFilesItem.addChild(item)
@@ -1246,16 +1339,24 @@ class QVistrailList(QtGui.QTreeWidget):
     def setSelected(self, view):
         for item in self.selectedItems():
             item.setSelected(False)
-        for i in xrange(self.openFilesItem.childCount()):
-            item = self.openFilesItem.child(i)
-            font = item.font(0)
-            window = item.window if hasattr(item, 'window') else None
-            font.setBold(view == item.window if window and view else False)
-            item.setFont(0, font)
-            if window:
-                item.setText(0, window.get_name())
-#            item.setSelected(view == item.window if window and view else False)
 
+        def setBold(parent_item):
+            for i in xrange(parent_item.childCount()):
+                item = parent_item.child(i)
+                font = item.font(0)
+                window = item.window if hasattr(item, 'window') else None
+                font.setBold(view == window if window and view else False)
+                item.setFont(0, font)
+                if window:
+                    item.setText(0, window.get_name())
+                # item.setSelected(view == item.window 
+                #                  if window and view else False)
+                
+        if not self.openFilesItem.isHidden():
+            setBold(self.openFilesItem)
+        elif self.searchMode:
+            setBold(self.searchResultsItem)
+            
     def item_changed(self, item, prev_item):
         if not item:
             return
@@ -1265,14 +1366,14 @@ class QVistrailList(QtGui.QTreeWidget):
                 # parent node
                 return
             vistrail = vistrail.parent()
-        print "*** item clicked", id(vistrail.window)
+        #print "*** item clicked", id(vistrail.window)
 
         self.setSelected(vistrail.window)
         self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
                            vistrail.window)
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Delete:
+        if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             items = self.selectedItems()
             if len(items) == 1:
                 item = items[0]
@@ -1287,6 +1388,7 @@ class QVistrailList(QtGui.QTreeWidget):
                     # remove from closed list
                     self.closedFilesItem.removeChild(item)
                     self.collection.del_from_workspace(item.entity)
+                    self.collection.delete_entity(item.entity)
                     self.collection.commit()
         else:
             QtGui.QTreeWidget.keyPressEvent(self, event)

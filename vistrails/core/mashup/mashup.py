@@ -115,7 +115,7 @@ class Mashup(XMLObject):
     @staticmethod
     def fromXml(node):
         if node.tag != 'mashup':
-            print "node.tag != 'mashup'"
+            #print "node.tag != 'mashup'"
             return None
         #read attributes
         data = node.get('id', None)
@@ -167,7 +167,18 @@ class Mashup(XMLObject):
                     alias = Alias(aid, aname, component)
                     self.alias_list.append(alias)
                     pos += 1 
-                    
+                  
+    def remapPipelineObjects(self, id_remap):
+        for alias in self.alias_list:
+            try:
+                new_pid = id_remap[(alias.component.vtparent_type,
+                                    alias.component.vtparent_id)]
+                alias.component.vtparent_id = new_pid
+                new_id = id_remap[(alias.component.vttype,alias.component.vtid)]
+                alias.component.vtid = new_id
+            except:
+                pass
+            
     def validateForPipeline(self, pipeline):
         """validateForPipeline(pipeline) -> None
         This will make sure that the parameters in the alias list are present
@@ -250,8 +261,6 @@ layout='%s' geometry='%s' alias_list='%s')@%X" %
             return False
         for p,q in zip(self.alias_list, other.alias_list):
             if p != q:
-                print p
-                print q
                 return False
         return True
 
@@ -294,10 +303,8 @@ class TestMashup(unittest.TestCase):
         
     def test_serialization(self):
         m1 = self.create_mashup()
-        print m1
         node = m1.toXml()
         m2 = Mashup.fromXml(node)
-        print m2
         self.assertEqual(m1, m2)
         self.assertEqual(m1.id, m2.id)
         

@@ -71,7 +71,9 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         if type(execution) == WorkflowExec:
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
-            if str(execution.completed) == '1':
+            if execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
+            elif execution.completed == 1:
                 brush = CurrentTheme.SUCCESS_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
@@ -83,40 +85,46 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         if type(execution) == ModuleExec:
             for loop_exec in execution.loop_execs:
                 QExecutionItem(loop_exec, self)
-            if execution.completed:
+            if execution.completed == 1:
                 if execution.error:
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
-                    self.wf_execution.completed = False
+                    self.wf_execution.completed = -1
                 elif execution.cached:
                     brush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+            elif execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, '%s' % execution.module_name)
         if type(execution) == GroupExec:
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
-            if execution.completed:
+            if execution.completed == 1:
                 if execution.error:
-                    self.wf_execution.completed = False
+                    self.wf_execution.completed = -1
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
                 elif execution.cached:
                     brush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+            elif execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Group')
         if type(execution) == LoopExec:
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
-            if execution.completed:
+            if execution.completed == 1:
                 if execution.error:
-                    self.wf_execution.completed = False
+                    self.wf_execution.completed = -1
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+            elif execution.completed == -2:
+                brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Loop #%s' % execution.db_iteration)
@@ -136,7 +144,7 @@ class QExecutionListWidget(QtGui.QTreeWidget):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.setColumnCount(3)
-        self.setHeaderLabels(['Type', 'Start', 'End'])
+        self.setHeaderLabels(['Pipeline', 'Start', 'End'])
         self.sortByColumn(1, QtCore.Qt.AscendingOrder)
         self.setSortingEnabled(True)
 
@@ -149,7 +157,9 @@ class QExecutionListWidget(QtGui.QTreeWidget):
         # mark as recent
         workflow_exec.db_name = workflow_exec.db_name + '*' \
                              if workflow_exec.db_name \
-          else 'Version #%s*' % workflow_exec.parent_version
+          else '%s*' % self.controller.get_pipeline_name(
+                        int(workflow_exec.parent_version))[10:]
+        
         self.addTopLevelItem(QExecutionItem(workflow_exec))
        
     
@@ -194,8 +204,9 @@ class QLegendWidget(QtGui.QWidget):
         
         data = [[0, 0, "Successful",      CurrentTheme.SUCCESS_MODULE_BRUSH],
                 [0, 1, "Error",             CurrentTheme.ERROR_MODULE_BRUSH],
+                [0, 2, "Cached",     CurrentTheme.NOT_EXECUTED_MODULE_BRUSH],
                 [1, 0, "Not executed", CurrentTheme.PERSISTENT_MODULE_BRUSH],
-                [1, 1, "Cached",     CurrentTheme.NOT_EXECUTED_MODULE_BRUSH]]
+                [1, 1, "Suspended",     CurrentTheme.SUSPENDED_MODULE_BRUSH]]
 
         for x, y, text, brush in data:         
             self.gridLayout.addWidget(
@@ -238,6 +249,26 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.connect(self.executionList, QtCore.SIGNAL(
          "itemDoubleClicked(QTreeWidgetItem *, int)"),
          self.doubleClick)
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        # Add the open version action
+        self.openVersionAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('go-next'),
+            'Go to this pipeline', None, triggered=self.openVersion)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.openVersionAction)
+
+    def openVersion(self):
+        if not hasattr(self.parentExecution, 'item'):
+            return
+        version = self.parentExecution.item.wf_execution.parent_version
+        from gui.vistrails_window import _app
+        _app.get_current_view().version_selected(version, True)
+        self.controller.recompute_terse_graph()
+        _app.get_current_view().version_view.select_current_version()
+        _app.get_current_view().version_view.scene().setupScene(self.controller)
+        _app.qactions['pipeline'].trigger()
 
     def execution_updated(self):
         for e in self.controller.log.workflow_execs:
@@ -250,7 +281,10 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.executionList.add_workflow_exec(e)
                        
     def set_execution(self):
-        item = self.executionList.selectedItems()[0]
+        item = self.executionList.selectedItems()
+        if not item:
+            return
+        item = item[0]
         if self.isDoubling:
             self.isDoubling = False
             return
@@ -270,20 +304,17 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.isUpdating = False
 
     def set_controller(self, controller):
-        print '@@@@ QLogDetails calling set_controller'
+        #print '@@@@ QLogDetails calling set_controller'
         self.controller = controller
+        self.executionList.controller = self.controller
         if not hasattr(self.controller, 'loaded_workflow_execs'):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
-                # set workflow tag names
-                wf_id = e.parent_version
-                tagMap = controller.vistrail.get_tagMap()
-                if wf_id in tagMap:
-                    e.db_name = tagMap[wf_id]
+                # set workflow names
+                e.db_name = controller.get_pipeline_name(
+                                        e.parent_version)[10:]
                 self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
-        if self.log is not None:
-            print "  @@ len(workflow_execs):", len(self.log)
         self.executionList.set_log(self.log)
 
     def execution_changed(self, wf_execution, execution):
@@ -353,6 +384,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
 class QLogView(QPipelineView):
     def __init__(self, parent=None):
         QPipelineView.__init__(self, parent)
+        self.setReadOnlyMode(True)
         self.set_title("Provenance")
         self.log = None
         self.execution = None
@@ -365,7 +397,7 @@ class QLogView(QPipelineView):
                      self.moduleSelected)
 
     def set_default_layout(self):
-        self.layout = {QtCore.Qt.RightDockWidgetArea: QLogDetails}
+        self.set_palette_layout({QtCore.Qt.RightDockWidgetArea: QLogDetails})
             
     def set_action_links(self):
         self.action_links = { }
@@ -389,21 +421,19 @@ class QLogView(QPipelineView):
 
     def set_controller(self, controller):
         QPipelineView.set_controller(self, controller)
-        print "@@@ set_controller called", id(self.controller), len(self.controller.vistrail.actions)
+        #print "@@@ set_controller called", id(self.controller), len(self.controller.vistrail.actions)
         if not hasattr(self.controller, 'loaded_workflow_execs'):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
-                # set workflow tag names
-                wf_id = e.parent_version
-                tagMap = controller.vistrail.get_tagMap()
-                if wf_id in tagMap:
-                    e.db_name = tagMap[wf_id]
+                # set workflow names
+                e.db_name = controller.get_pipeline_name(
+                                        e.parent_version)[10:]
                 self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
 
     def set_to_current(self):
         # change to normal controller hacks
-        print "AAAAA doing set_to_current"
+        #print "AAAAA doing set_to_current"
         if self.controller.current_pipeline_view is not None:
             self.disconnect(self.controller,
                             QtCore.SIGNAL('versionWasChanged'),
@@ -461,11 +491,6 @@ class QLogView(QPipelineView):
         if type(execution) == WorkflowExec:
             version = execution.parent_version
             # change the current version to this as well
-            from gui.vistrails_window import _app
-            _app.get_current_view().version_selected(version, True)
-            self.controller.recompute_terse_graph()
-            _app.get_current_view().version_view.select_current_version()
-            _app.get_current_view().version_view.scene().setupScene(self.controller)
 
             return self.controller.vistrail.getPipeline(version)
         if type(execution) == GroupExec:
@@ -501,8 +526,8 @@ class QLogView(QPipelineView):
         # self.showExecution()
 
     def update_pipeline(self):
-        print "ACTIONS!"
-        print "#### controller", id(self.controller)
+        #print "ACTIONS!"
+        #print "#### controller", id(self.controller)
         scene = self.scene()
         scene.clearItems()
         self.pipeline.validate(False)
@@ -517,13 +542,15 @@ class QLogView(QPipelineView):
             brush = CurrentTheme.PERSISTENT_MODULE_BRUSH
             if m_id in module_execs:
                 e = module_execs[m_id]
-                if e.completed:
+                if e.completed == 1:
                     if e.error:
                         brush = CurrentTheme.ERROR_MODULE_BRUSH
                     elif e.cached:
                         brush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
                     else:
                         brush = CurrentTheme.SUCCESS_MODULE_BRUSH
+                elif e.completed == -2:
+                    brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
                 else:
                     brush = CurrentTheme.ERROR_MODULE_BRUSH
             module.is_valid = True

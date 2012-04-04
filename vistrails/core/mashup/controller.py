@@ -138,7 +138,7 @@ class MashupController(object):
         change). Position changes are taken care in reorderAliases method. 
         
         """
-        print " controller updateAlias ", alias
+        #print " controller updateAlias ", alias
         new_aliases = []
 
         if self.currentMashup:
@@ -146,7 +146,7 @@ class MashupController(object):
                 if a.id != alias.id:
                     calias = copy.copy(a)
                 else:
-                    print "found alias: ", a
+                    #print "found alias: ", a
                     calias = copy.copy(alias)
                 new_aliases.append(calias)
         return self.createMashupVersion(new_aliases, quiet=False)
@@ -162,7 +162,7 @@ class MashupController(object):
                 new_aliases.append(calias)
                 pos += 1
             else:
-                print "found alias: ", alias
+                #print "found alias: ", alias
                 add_alias = False
                 if param.alias != '':
                     new_alias = copy.copy(alias)
@@ -260,7 +260,7 @@ class MashupController(object):
         
     def updatePipelineAliasesFromCurrentMashup(self):
         self.resetVistrailPipeline()
-        self.vtPipeline = self.vtController.current_pipeline
+        self.vtPipeline = copy.copy(self.vtController.current_pipeline)
         #first we clear all aliases in pipeline
         to_remove = self.vtPipeline.aliases.values()
         for (type, oId, parentType, parentId, mid) in to_remove:
@@ -339,7 +339,7 @@ class MashupController(object):
                                                 date=current_time())
         self.mshptrail.currentVersion = currVersion
         self.currentMashup = mashup
-        print "created new mashup ", currVersion
+        #print "created new mashup ", currVersion
         self.setCurrentVersion(currVersion, quiet)
         self.setChanged(True)
         return currVersion

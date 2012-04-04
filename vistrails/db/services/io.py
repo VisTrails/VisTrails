@@ -201,7 +201,7 @@ def test_db_connection(config):
     Tests a connection raising an exception in case of error.
     
     """
-    print "Testing config", config
+    #print "Testing config", config
     try:
         db_connection = get_db_lib().connect(**config)
         close_db_connection(db_connection)
@@ -385,7 +385,7 @@ def get_matching_abstraction_id(db_connection, abstraction):
         result = c.fetchall()
         c.close()
         if len(result) > 0:
-            print 'got result:', result
+            #print 'got result:', result
             id = result[0][0]
     except get_db_lib().Error, e:
         msg = "Couldn't get object modification time from db (%d : %s)" % \
@@ -422,7 +422,7 @@ def setup_db_tables(db_connection, version=None, old_version=None):
                     cmd = cmd.rstrip()
 #                     if cmd.endswith(engine_str):
 #                         cmd = cmd[:-len(engine_str)] + ';'
-                    print cmd
+                    #print cmd
                     c.execute(cmd)
                     cmd = ""
 
@@ -597,9 +597,12 @@ def open_vistrail_from_xml(filename):
         vistrail = translate_vistrail(vistrail, version)
         db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
-        msg = "This vistrail was created by a newer version of VisTrails "
-        msg += "and cannot be opened."
-        raise VistrailsDBException(msg)
+        if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
+            msg = "This vistrail was created by a newer version of VisTrails "
+            msg += "and cannot be opened."
+            raise VistrailsDBException(msg)
+        raise e
+        
     return vistrail
 
 def open_vistrail_bundle_from_zip_xml(filename):
@@ -922,7 +925,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
     # get saved workflows from db
     workflowIds = get_saved_workflows(vistrail, db_connection)
-    print "Workflows already saved:", workflowIds
+    #print "Workflows already saved:", workflowIds
     dao_list.save_to_db(db_connection, vistrail, do_copy)
     vistrail = translate_vistrail(vistrail, version)
     vistrail.db_currentVersion = current_action
@@ -931,7 +934,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     wfToSave = []
     for id, name in vistrail.get_tagMap().iteritems():
         if id not in workflowIds:
-            print "creating workflow", vistrail.db_id, id, name,
+            #print "creating workflow", vistrail.db_id, id, name,
             workflow = vistrail.getPipeline(id)
             workflow.db_id = None
             workflow.db_vistrail_id = vistrail.db_id
@@ -940,7 +943,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
             workflow.db_name = name
             wfToSave.append(workflow)
-            print "done"
+            #print "done"
     dao_list.save_many_to_db(db_connection, wfToSave, True)
     db_connection.commit()
     return vistrail
@@ -1310,7 +1313,7 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
     if not do_copy:
         match_id = get_matching_abstraction_id(db_connection, abstraction)
         # FIXME remove print
-        print 'match_id:', match_id
+        #print 'match_id:', match_id
         if match_id is not None:
             abstraction.db_id = match_id
             abstraction.is_new = False
@@ -1322,7 +1325,7 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
         if new_time > abstraction.db_last_modified:
             # need synchronization
             # FIXME remove print
-            print '*** doing synchronization ***'
+            #print '*** doing synchronization ***'
             old_abstraction = open_abstraction_from_db(db_connection, 
                                                        abstraction.db_id,
                                                        True)
