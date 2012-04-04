@@ -41,7 +41,7 @@ from db.versions.v1_0_0.domain import DBOpmProcess, \
     IdScope, DBGroupExec, DBLoopExec, DBModuleExec, DBPort, \
     DBConnection, DBGroup, DBPortSpec, DBFunction, \
     DBParameter
-from db.versions.v1_0_0.domain.auto_gen2 import DBOpmArtifact, DBOpmUsed, \
+from db.versions.v1_0_2.domain.auto_gen2 import DBOpmArtifact, DBOpmUsed, \
      DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
      DBOpmArtifactIdCause, DBOpmArtifactIdEffect, DBOpmRole, DBOpmAccountId, \
      DBOpmAccount, DBOpmAccounts, DBOpmArtifacts, DBOpmDependencies, \
