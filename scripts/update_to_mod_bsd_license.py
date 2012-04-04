@@ -3,8 +3,6 @@
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
->>>>>>> origin/v2.0
-## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
