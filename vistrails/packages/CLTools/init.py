@@ -76,7 +76,7 @@ def add_tool(path):
         debug.critical("Package CLTools already added: '%s'" % tool_name)
     try:
         conf = json.load(open(path))
-    except ValueError as exc:
+    except ValueError, exc:
         debug.critical("Package CLTools could not parse '%s'" % path, str(exc))
         return
     def compute(self):
@@ -312,7 +312,7 @@ def initialize(*args, **keywords):
         if path.endswith(SUFFIX):
             try:
                 add_tool(os.path.join(location, path))
-            except Exception as exc:
+            except Exception, exc:
                 import traceback
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), str(exc)),

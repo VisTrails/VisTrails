@@ -68,6 +68,6 @@ if __name__ == "__main__":
 #    try:
 ##        PARC().testing()
 #        sys.exit(PARC().main(sys.argv[1:]))
-#    except Exception as e:
+#    except Exception, e:
 #        print e
 #        sys.exit(1)

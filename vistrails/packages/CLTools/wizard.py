@@ -250,7 +250,7 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         try:
             conf = json.load(open(fileName))
-        except  ValueError as exc:
+        except  ValueError, exc:
             print "Error opening Wrapper '%s': %s" % (fileName, exc)
             return
         self.newFile()

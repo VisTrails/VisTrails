@@ -47,7 +47,7 @@ def getVersionDAO(version=None):
         '.persistence'
     try:
         persistence = __import__(persistence_dir, {}, {}, [''])
-    except ImportError as e:
+    except ImportError, e:
         if str(e).startswith('No module named v'):
             # assume version is not available
             msg = "Cannot find DAO for version '%s'" % version

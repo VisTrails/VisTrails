@@ -799,7 +799,7 @@ class MDSBuilder(Module):
         
         try:
             ourMDSBuilder.run()
-        except TrappedError as e:
+        except TrappedError, e:
             raise ModuleError(self, e.message)
         except:
             utils.informative_untrapped_error(self, "MDSBuilder")
@@ -954,7 +954,7 @@ class PARC(Module):
         writetolog("    workingCSV=" + workingCSV, False, False)
         try:
             ourPARC.parcFiles()
-        except TrappedError as e:
+        except TrappedError, e:
             writetolog(e.message)
             raise ModuleError(self, e.message)
         except:
@@ -1045,7 +1045,7 @@ class RasterFormatConverter(Module):
         
         try:
             ourRFC.run()
-        except TrappedError as e:
+        except TrappedError, e:
             raise ModuleError(self, e.message)
         except:
             utils.informative_untrapped_error(self, "RasterFormatConverter") 
@@ -1378,7 +1378,7 @@ class ProjectionLayers(Module):
 
         try:
             ourPARC.parcFiles()
-        except TrappedError as e:
+        except TrappedError, e:
             raise ModuleError(self, e.message)
         except :
             utils.informative_untrapped_error(self, "PARC")
@@ -1479,7 +1479,7 @@ class MAXENT(Module):
         ourMaxent.logger = utils.getLogger()
         try:
             ourMaxent.run()
-        except TrappedError as e:
+        except TrappedError, e:
             raise ModuleError(self, e.message)  
         except:
             utils.informative_untrapped_error(self, "Maxent")
