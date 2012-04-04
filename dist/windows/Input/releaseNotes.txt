@@ -1,12 +1,13 @@
 RELEASE NOTES
 -------------
-Release Name: v2.0-beta build e50f1c91b3e8 from v2.0 branch
+Release Name: v2.0-beta build 929ddcaa504a from v2.0 branch
 
 Enhancements: 
  - Mashup View: Added float slider (b5d481049666)
  - New module execution state suspended added (cb47d3fc66b7)
 
 Bug fixes: 
+ - Fixed bug in iceCream.vt example (929ddcaa504a)
  - MySQLdb was not being shipped correctly in Mac binary (e50f1c91b3e8)
  - Mashup View: integer slider did not set step size correctly (b5d481049666)
  - Cached interpreter failed when handling wrong input type (b5d481049666)
