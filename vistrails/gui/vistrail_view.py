@@ -861,13 +861,14 @@ class QVistrailView(QtGui.QWidget):
         view.scene().fitToView(view, True)
         self.view_changed()
 
-    def save_vistrail(self, locator_class, force_choose_locator=False):
+    def save_vistrail(self, locator_class, force_choose_locator=False, export=False):
         """
         force_choose_locator=True triggers 'save as' behavior
+        export=True does not update the current controller
 
         """
         locator = self.controller.locator
-        if locator is not None:
+        if locator_class is None and locator is not None:
             locator_class = type(locator)
 
         #print "CALLED SAVE VISTRAIL", locator_class
@@ -889,11 +890,13 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         try:
-            self.controller.write_vistrail(locator)
+            self.controller.write_vistrail(locator, export=export)
         except Exception, e:
             debug.critical('Failed to save vistrail: %s' % str(e))
             raise
             return False
+        if export:
+            return self.controller.locator
         # update collection
         try:
             thumb_cache = ThumbnailCache.getInstance()
@@ -928,6 +931,31 @@ class QVistrailView(QtGui.QWidget):
     def save_vistrail_as(self, locator_class):
         #print "CALLED SAVE AS VISTRAIL", locator_class
         self.save_vistrail(locator_class, force_choose_locator=True)
+
+    def export_vistrail(self, locator_class):
+        """ Exports vistrail without updating the current vistrail """
+        self.save_vistrail(locator_class, force_choose_locator=True, export=True)
+
+    def export_stable(self, locator_class=XMLFileLocator,
+                      force_choose_locator=True):
+        """ save vistrail to previous stable version """
+        self.flush_changes()
+        gui_get = locator_class.save_from_gui
+        if force_choose_locator:
+            locator = gui_get(self, Vistrail.vtType,
+                              self.controller.locator)
+        else:
+            locator = (self.controller.locator or
+                      gui_get(self, Vistrail.vtType, self.controller.locator))
+        if locator == untitled_locator():
+            locator = gui_get(self, Vistrail.vtType,
+                              self.controller.locator)
+        if not locator:
+            return False
+        self.controller.write_vistrail(locator, '1.0.2', True)
+        return True
+
+
 
     # FIXME normalize workflow/log/registry!!!
     def save_workflow(self, locator_class, force_choose_locator=True):
