@@ -518,7 +518,7 @@ class QVistrailViewWindow(QBaseViewWindow):
                       [('exportFile', "To DB...",
                         {'statusTip': "Export the current vistrail to a " \
                              "database",
-                         'enabled': False,
+                         'enabled': True,
                          'callback': \
                              _app.pass_through_locator(self.get_current_view,
                                                        'export_vistrail', 
@@ -1840,7 +1840,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             if locator_klass is not None:
                 obj_method(locator_klass)
             elif self.dbDefault ^ reverse:
-                obj_method(DBLocator())
+                obj_method(DBLocator)
             else:
                 obj_method(FileLocator())
         return method

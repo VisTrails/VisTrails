@@ -594,6 +594,7 @@ class DBLocator(BaseLocator):
             #debug.log("cached time: %s, db time: %s"%(DBLocator.cache_timestamps[self._hash],ts))
             if DBLocator.cache_timestamps[self._hash] == ts:
                 #debug.log("using cached vistrail")
+                self._name = obj.db_name
                 # If thumbnail cache was cleared, get thumbs from db
                 if tmp_dir is not None:
                     for absfname in save_bundle.thumbnails:
