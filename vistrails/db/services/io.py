@@ -53,7 +53,6 @@ import shutil
 import tempfile
 import copy
 
-print sys.path
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
     DBRegistry, DBWorkflowExec, DBOpmGraph
@@ -71,21 +70,20 @@ _db_lib = None
 def get_db_lib():
     global _db_lib
     if _db_lib is None:
-        pass
         # FIXME use core.bundles.py_import here
-        #import MySQLdb
+        import MySQLdb
         # import sqlite3
-        #_db_lib = MySQLdb
-    #return _db_lib
-#def set_db_lib(lib):
-#    global _db_lib
-#    _db_lib = lib
+        _db_lib = MySQLdb
+    return _db_lib
+def set_db_lib(lib):
+    global _db_lib
+    _db_lib = lib
 
 # load MySQLdb early if it exists, o/w don't error out
-#try:
-#    get_db_lib()
-#except ImportError:
-##    pass
+try:
+    get_db_lib()
+except ImportError:
+    pass
 
 class SaveBundle(object):
     """Transient bundle of objects to be saved or loaded.
@@ -354,7 +352,7 @@ def get_db_id_from_name(db_connection, obj_type, name):
     except get_db_lib().Error, e:
         c.close()
         msg = "Connection error when trying to get db id from name"
-        raise VistrailsDBException(msg)
+        raise VisrailsDBException(msg)
 
 def get_matching_abstraction_id(db_connection, abstraction):
     last_action_id = -1
@@ -490,7 +488,7 @@ def save_bundle_to_zip_xml(save_bundle, filename, tmp_dir=None, version=None):
     bundle_type = save_bundle.bundle_type
     if bundle_type == DBVistrail.vtType:
         return save_vistrail_bundle_to_zip_xml(save_bundle, filename, tmp_dir, version)
-    elif bundle_type == 'log':
+    elif bundle_type == DBLog.vtType:
         return save_log_bundle_to_xml(save_bundle, filename, version)
     elif bundle_type == DBWorkflow.vtType:
         return save_workflow_bundle_to_xml(save_bundle, filename, version)
@@ -1295,16 +1293,16 @@ def open_abstraction_from_db(db_connection, id, lock=False):
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
         raise VistrailsDBException(msg)
-    #abstraction = read_sql_objects(db_connection, DBAbstraction.vtType, 
-    #                               id, lock)[0]
+    abstraction = read_sql_objects(db_connection, DBAbstraction.vtType, 
+                                   id, lock)[0]
 
     # not sure where this really should be done...
     # problem is that db reads the add ops, then change ops, then delete ops
     # need them ordered by their id
-    #for db_action in abstraction.db_get_actions():
-    #    db_action.db_operations.sort(key=lambda x: x.db_id)
-    #db.services.abstraction.update_id_scope(abstraction)
-    #return abstraction
+    for db_action in abstraction.db_get_actions():
+        db_action.db_operations.sort(key=lambda x: x.db_id)
+    db.services.abstraction.update_id_scope(abstraction)
+    return abstraction
 
 def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
     db_connection.begin()
@@ -1336,7 +1334,7 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
     if do_copy:
         abstraction.db_id = None
     abstraction.db_last_modified = get_current_time(db_connection)
-    #write_sql_objects(db_connection, [abstraction], do_copy)
+    write_sql_objects(db_connection, [abstraction], do_copy)
     db_connection.commit()
     return abstraction
 

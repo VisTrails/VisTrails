@@ -33,4 +33,3 @@
 ###############################################################################
 
 from db.versions.v1_0_2.domain import *
-from db.versions.v1_0_2.domain.auto_gen2 import DBMachine, DBOpmGraph, DBLog

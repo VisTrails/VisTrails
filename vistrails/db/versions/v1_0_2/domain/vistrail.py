@@ -34,7 +34,7 @@
 
 import copy
 import hashlib
-from auto_gen2 import DBVistrail as _DBVistrail
+from auto_gen import DBVistrail as _DBVistrail
 from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
     DBModule, DBAnnotation, DBActionAnnotation
 from id_scope import IdScope
