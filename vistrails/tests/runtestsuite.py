@@ -271,7 +271,7 @@ if test_examples:
     else:
         print "Examples ran successfully."
 
-import gui
+import gui.application
 
 gui.application.get_vistrails_application().finishSession()
 gui.application.stop_application()

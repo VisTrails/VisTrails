@@ -181,6 +181,6 @@ class BuilderFrame(JFrame):
             self.getContentPane().getComponent(1).repaint()
 
 frame = BuilderFrame()
-frame.open_vistrail("C:/Program Files/VisTrails/examples/basicstring.vt")
+frame.open_vistrail("C:/Program Files/VisTrails/examples/terminator.vt")
 frame.showFrame()
 

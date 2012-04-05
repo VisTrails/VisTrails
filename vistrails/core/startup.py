@@ -123,13 +123,14 @@ class VistrailsStartup(object):
     # startup.xml related
 
     def startup_dom(self):
-        filename = os.path.join(self.temp_configuration.dotVistrails,'startupcached.xml')
+        filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
         return xml.dom.minidom.parse(filename)
 
     def write_startup_dom(self, dom):
         filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
         f = file(filename, 'w')
         f.write(dom.toxml())
+        f.close()
                 
     def load_configuration(self):
         """load_configuration() -> None

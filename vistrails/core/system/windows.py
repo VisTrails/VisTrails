@@ -147,6 +147,8 @@ def executable_is_in_path(filename):
                 [core.system.vistrails_root_directory(),
                  "."])
     for dir in pathlist:
+        if dir.startswith('"') and dir.endswith('"'):
+            dir = dir[1:-1]
         fullpath = os.path.join(dir, filename)
         try:
             st = os.stat(fullpath)

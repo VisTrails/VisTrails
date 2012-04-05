@@ -97,7 +97,10 @@ _system_guesser.add_test(_guess_suse, 'linux-suse')
 
 def _guess_ubuntu():
 #    return os.path.isfile('/etc/apt/apt.conf.d/01ubuntu')
-     return platform.linux_distribution()[0]=='Ubuntu'
+    try:
+        return platform.linux_distribution()[0]=='Ubuntu'
+    except AttributeError:
+        return False
 _system_guesser.add_test(_guess_ubuntu, 'linux-ubuntu')
 
 def _guess_fedora():
