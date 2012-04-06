@@ -57,7 +57,7 @@ if __name__ == '__main__':
     #import gui.requirements
     #gui.requirements.check_pyqt4()
 
-    import core.requirements # rr4: gui.requirements ?
+    import core.requirements
     import gui.bundles.installbundle
     try:
         core.requirements.require_python_module('PyQt4.QtGui')

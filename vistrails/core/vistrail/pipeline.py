@@ -145,17 +145,17 @@ class Pipeline(DBWorkflow):
                                       m_id)
         for connection in self.connection_list:
 
-            self.graph.add_edge(connection.source._db_moduleId,
-                                connection.destination._db_moduleId,
+            self.graph.add_edge(connection.source.db_moduleId,
+                                connection.destination.db_moduleId,
                                 connection.id)
             c = connection
-            source_name = c.source.name
+            source_name = c.source.db_name
             output_ports = self.modules[c.sourceId].connected_output_ports
             if source_name not in output_ports:
                 output_ports[source_name] = 0
             output_ports[source_name] += 1
                 
-            dest_name = c.destination.name
+            dest_name = c.destination.db_name
             input_ports = self.modules[c.destinationId].connected_input_ports
             if dest_name not in input_ports:
                 input_ports[dest_name] = 0
@@ -545,13 +545,13 @@ class Pipeline(DBWorkflow):
                                 connection.destinationId, 
                                 connection.id)
             c = connection
-            source_name = c.source.name
+            source_name = c.source.db_name
             output_ports = self.modules[c.sourceId].connected_output_ports
             if source_name not in output_ports:
                 output_ports[source_name] = 0
             output_ports[source_name] += 1
                 
-            dest_name = c.destination.name
+            dest_name = c.destination.db_name
             input_ports = self.modules[c.destinationId].connected_input_ports
             if dest_name not in input_ports:
                 input_ports[dest_name] = 0
@@ -996,12 +996,12 @@ class Pipeline(DBWorkflow):
                 break
             conn = self.connections[conn_id]
             # print 'checking connection', conn_id, conn.source.moduleId, conn.source.moduleName, conn.source.name, conn.destination.moduleId, conn.destination.moduleName, conn.destination.name
-            src_module = self.modules[conn.source.moduleId]
+            src_module = self.modules[conn.source.db_moduleId]
             if src_module.is_valid:
                 # print 'src_module:', src_module.name, src_module.id
                 find_spec(conn.source)
             
-            dst_module = self.modules[conn.destination.moduleId]
+            dst_module = self.modules[conn.destination.db_moduleId]
             if dst_module.is_valid:
                 # print 'dst_module:', dst_module.name, dst_module.id
                 find_spec(conn.destination)
