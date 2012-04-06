@@ -148,6 +148,8 @@ sys.argv = sys.argv[:1]
 # We need the windows so we can test events, etc.
 #gui.application.start_application({'interactiveMode': True,
 #                                   'nologger': True})
+import core.application
+core.application.init()
 
 print "Test Suite for VisTrails"
 
