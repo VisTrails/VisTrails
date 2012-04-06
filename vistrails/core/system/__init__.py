@@ -51,6 +51,11 @@ import core.requirements
 
 systemType = platform.system()
 
+# Tries to workaround missing standard library features in Jython
+if systemType in ['Java', 'JAVA']:
+    from core.jython_workarounds import setup as jython_setup
+    jython_setup()
+
 if systemType in ['Java', 'JAVA', 'Windows', 'Microsoft']:
     from core.system.windows import guess_total_memory, temporary_directory, \
         list2cmdline, \
