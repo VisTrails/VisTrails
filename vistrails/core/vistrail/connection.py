@@ -183,8 +183,8 @@ class Connection(DBConnection):
     ##########################################################################
     # Properties
 
-    id = 0# DBConnection.db_id
-    ports = 1# DBConnection.db_ports
+    id = 0# DBConnection.db_id #rr4: wrong type!?
+    ports = 1# DBConnection.db_ports #rr4: wrong type!?
     
     def add_port(self, port):
         self.db_add_port(port)
