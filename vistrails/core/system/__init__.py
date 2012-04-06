@@ -110,6 +110,10 @@ __rootDir = os.path.realpath(os.path.join(_thisDir,
                                           '..',
                                           '..'))
 
+# Jython specific
+if _thisDir.startswith("__pyclasspath__") and __rootDir.endswith("__pyclasspath__"):
+    __rootDir = __rootDir[:-16]
+
 __dataDir = os.path.realpath(os.path.join(__rootDir,
                                           'data'))
 __fileDir = os.path.realpath(os.path.join(__rootDir,
