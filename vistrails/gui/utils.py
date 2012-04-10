@@ -223,6 +223,7 @@ def initTheme():
 # vistrails are open
 
 import unittest
+from api import NoGUI
 
 class TestVisTrailsGUI(unittest.TestCase):
 
