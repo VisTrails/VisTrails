@@ -241,17 +241,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         # Create the new connections
         for i in conn_added_set:
             persistent_id = conn_map[i]
-            conn = self._persistent_pipeline.connections[i]
-            if conn.sourceId in tmp_to_persistent_module_map:
-                sourceId = tmp_to_persistent_module_map[conn.sourceId]
-            else:
-                sourceId = conn.sourceId
-            if conn.destinationId in tmp_to_persistent_module_map:
-                destinationId = tmp_to_persistent_module_map[conn.destinationId]
-            else:
-                destinationId = conn.destinationId
-            src = self._objects[sourceId]
-            dst = self._objects[destinationId]
+            conn = self._persistent_pipeline.connections[persistent_id]
+            src = self._objects[conn.sourceId]
+            dst = self._objects[conn.destinationId]
             conn.makeConnection(src, dst)
 
         if self.done_summon_hook:
@@ -367,7 +359,6 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         # views and loggers work on local ids
         def update_progress(obj, percentage=0.0):
-            print "called"
             i = get_remapped_id(obj.id)
             view.set_module_progress(i, percentage)
             
@@ -388,7 +379,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                       name, value))
         def make_change_parameter(obj):
             return lambda *args: change_parameter(obj, *args)
-        
+
         # Update **all** modules in the current pipeline
         for i, obj in tmp_id_to_module_map.iteritems():
             obj.logging = logging_obj
@@ -432,7 +423,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
                 break
-         
+
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
              
@@ -447,8 +438,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         suspends = {}
         caches = {}
 
-        to_delete = [] 
-        
+        to_delete = []
+
         for (tmp_id, obj) in tmp_id_to_module_map.iteritems():
             if clean_pipeline:
                 to_delete.append(obj.id)
@@ -458,7 +449,6 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 if not clean_pipeline:
                     to_delete.append(obj.id)
             if obj.id in executed:
-                print executed[obj.id]
                 execs[tmp_id] = executed[obj.id]
             elif obj.id in suspended:
                 suspends[tmp_id] = suspended[obj.id]
@@ -467,6 +457,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             else:
                 # these modules didn't execute
                 execs[tmp_id] = False
+
         return (to_delete, objs, errs, execs, suspends, caches, parameter_changes)
 
     def finalize_pipeline(self, pipeline, to_delete, objs, errs, execs,
@@ -504,6 +495,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         caching. Caching works by reusing pipelines directly.  This
         means that there exists one global pipeline whose parts get
         executed over and over again. This allows nested execution."""
+
         res = self.setup_pipeline(pipeline, **kwargs)
         modules_added = res[2]
         conns_added = res[3]
@@ -609,7 +601,6 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         logger.start_workflow_execution(vistrail, pipeline, current_version)
         self.annotate_workflow_execution(logger, reason, aliases, params)
         result = self.unlocked_execute(pipeline, **new_kwargs)
-        print result.__str__()
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
         self.parent_execs = [None]
 

@@ -181,6 +181,6 @@ class BuilderFrame(JFrame):
             self.getContentPane().getComponent(1).repaint()
 
 frame = BuilderFrame()
-frame.open_vistrail("C:/Program Files/VisTrails/examples/plot.vt")
+frame.open_vistrail("C:/Program Files/Vistrails/examples/test-strings.vt")
 frame.showFrame()
 

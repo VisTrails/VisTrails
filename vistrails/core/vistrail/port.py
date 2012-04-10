@@ -125,19 +125,19 @@ class Port(DBPort):
     def convert(_port):
         if _port.__class__ == Port:
             return
-        #_port.__class__ = Port.__class__
-        #_port._spec = None
-        #_port._descriptors = None
-        #_port.set_defaults()
+        _port.__class__ = Port
+        _port._spec = None
+        _port._descriptors = None
+        _port.set_defaults()
 
     ##########################################################################
     # Properties
     
-    id = 1 #DBPort.db_id MODIFIED FOR JYTHON
-    moduleId = 1 #DBPort.db_moduleId MODIFIED FOR JYTHON
-    moduleName = "uh" #DBPort.db_moduleName MODIFIED FOR JYTHON
-    name = "uhuh" #DBPort.db_name MODIFIED FOR JYTHON
-    type = "a" #DBPort.db_type MODIFIED FOR JYTHON
+    id = DBPort.db_id
+    moduleId = DBPort.db_moduleId
+    moduleName = DBPort.db_moduleName
+    name = DBPort.db_name
+    type = DBPort.db_type
 
     def _get_endPoint(self):
         if self.db_type in PortSpec.end_point_map:

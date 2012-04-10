@@ -118,13 +118,13 @@ class ModuleParam(DBParameter):
 
     ##########################################################################
 
-    id = 0 #DBParameter.db_pos
-    pos = 0 # DBParameter.db_pos
-    real_id = 0 #DBParameter.db_id
-    name = 0 #DBParameter.db_name
-    typeStr =0 # DBParameter.db_type
-    strValue = 0 #DBParameter.db_val
-    alias = 0 #DBParameter.db_alias
+    id = DBParameter.db_pos
+    pos = DBParameter.db_pos
+    real_id = DBParameter.db_id
+    name = DBParameter.db_name
+    typeStr = DBParameter.db_type
+    strValue = DBParameter.db_val
+    alias = DBParameter.db_alias
 
     def parse_db_type(self):
         if self.db_type:

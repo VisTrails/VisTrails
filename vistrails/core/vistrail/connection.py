@@ -117,9 +117,6 @@ class Connection(DBConnection):
         cp = DBConnection.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Connection
         cp.makeConnection = moduleConnection(cp)
-        if isinstance(cp.ports, int):
-            tempPort = cp.ports
-            cp.ports = [tempPort]
         for port in cp.ports:
             Port.convert(port)
         return cp
@@ -132,10 +129,6 @@ class Connection(DBConnection):
         if _connection.__class__ == Connection:
             return
         _connection.__class__ = Connection
-
-        if isinstance(_connection.ports, int):
-            temp_ports = _connection.ports
-            _connection.ports = [temp_ports]
 
         for port in _connection.ports:
             Port.convert(port)
@@ -183,8 +176,8 @@ class Connection(DBConnection):
     ##########################################################################
     # Properties
 
-    id = 0# DBConnection.db_id #rr4: wrong type!?
-    ports = 1# DBConnection.db_ports #rr4: wrong type!?
+    id = DBConnection.db_id
+    ports = DBConnection.db_ports
     
     def add_port(self, port):
         self.db_add_port(port)
@@ -195,7 +188,7 @@ class Connection(DBConnection):
         use sourceId property: c.sourceId 
 
         """
-        return self.source._db_moduleId
+        return self.source.moduleId
 
     def _set_sourceId(self, id):
         """ _set_sourceId(id : int) -> None 
@@ -214,7 +207,7 @@ class Connection(DBConnection):
         use sourceId property: c.destinationId 
 
         """
-        return self.destination._db_moduleId
+        return self.destination.moduleId
 
     def _set_destinationId(self, id):
         """ _set_destinationId(id : int) -> None 

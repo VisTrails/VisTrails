@@ -545,13 +545,13 @@ class Pipeline(DBWorkflow):
                                 connection.destinationId, 
                                 connection.id)
             c = connection
-            source_name = c.source.db_name
+            source_name = c.source.name
             output_ports = self.modules[c.sourceId].connected_output_ports
             if source_name not in output_ports:
                 output_ports[source_name] = 0
             output_ports[source_name] += 1
                 
-            dest_name = c.destination.db_name
+            dest_name = c.destination.name
             input_ports = self.modules[c.destinationId].connected_input_ports
             if dest_name not in input_ports:
                 input_ports[dest_name] = 0
@@ -993,7 +993,7 @@ class Pipeline(DBWorkflow):
             connection_ids = self.connections.iterkeys()
         for conn_id in connection_ids:
             if conn_id < 0:
-                break
+                continue
             conn = self.connections[conn_id]
             # print 'checking connection', conn_id, conn.source.moduleId, conn.source.moduleName, conn.source.name, conn.destination.moduleId, conn.destination.moduleName, conn.destination.name
             src_module = self.modules[conn.source.db_moduleId]

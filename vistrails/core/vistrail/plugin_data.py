@@ -63,8 +63,8 @@ class PluginData(DBPluginData):
     ##########################################################################
     # Properties
 
-    id = 0# DBPluginData.db_id
-    data = 0# DBPluginData.db_data
+    id = DBPluginData.db_id
+    data = DBPluginData.db_data
 
     ##########################################################################
     # Operators

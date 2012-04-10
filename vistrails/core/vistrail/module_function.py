@@ -100,10 +100,10 @@ class ModuleFunction(DBFunction):
     ##########################################################################
     # Properties
 
-    id = 0 # DBFunction.db_pos
-    pos = 0 # DBFunction.db_pos
-    real_id = 0 #= DBFunction.db_id
-    name = 0 #DBFunction.db_name   
+    id = DBFunction.db_pos
+    pos = DBFunction.db_pos
+    real_id = DBFunction.db_id
+    name = DBFunction.db_name   
 
     def _get_sigstring(self):
         return '(' + ','.join(p.typeStr for p in self.params) + ')'

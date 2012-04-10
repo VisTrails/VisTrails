@@ -172,9 +172,9 @@ class VistrailController(object):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
-            #self.current_session = self.vistrail.idScope.getNewId("session")
-            #self.vistrail.current_session = self.current_session
-            #self.vistrail.log = self.log
+            self.current_session = self.vistrail.idScope.getNewId("session")
+            self.vistrail.current_session = self.current_session
+            self.vistrail.log = self.log
             if abstractions is not None:
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
@@ -2286,7 +2286,6 @@ class VistrailController(object):
                       'reason': reason,
                       'extra_info': extra_info,
                       }
-            print interpreter.__class__    
             result = interpreter.execute(pipeline, **kwargs)
             
             thumb_cache = ThumbnailCache.getInstance()

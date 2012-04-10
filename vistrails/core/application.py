@@ -293,7 +293,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # Read only new .vistrails folder option if passed in the command line
         # or in the optionsDict because this may affect the configuration file 
         # VistrailsStartup will load. This updates self.temp_configuration
-        #self.read_dotvistrails_option() DISABLE FOR JYTHON
+        self.read_dotvistrails_option()
         
         if optionsDict and 'dotVistrails' in optionsDict.keys():
             self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
@@ -321,7 +321,7 @@ The builder window can be accessed by a spreadsheet menu option.")
                 setattr(self.temp_configuration, k, v)
                 
         # Command line options override temp_configuration
-        #self.readOptions() DISABLE FOR JYTHON
+        self.readOptions()
         
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
