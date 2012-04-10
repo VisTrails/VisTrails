@@ -84,39 +84,90 @@ import operator
 #   time than we expected. Watch out for that in the future.
 
 ##############################################################################
-# QGraphicsPortItem
+# QAbstractGraphicsPortItem
 
-class QGraphicsPortItem(QtGui.QGraphicsRectItem):
+class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
     """
-    QGraphicsPortItem is a small port shape drawing on top (a child)
-    of QGraphicsModuleItem, it can either be rectangle or rounded
+    QAbstractGraphicsPortItem represents a port shape drawing on top
+    (a child) of QGraphicsModuleItem, it must be implemented by a
+    specific qgraphicsitem type.
     
     """
-    def __init__(self, x, y, ghosted, parent=None, optional=False):
-        """ QGraphicsPortItem(parent: QGraphicsItem,
-                              optional: bool)
-                              -> QGraphicsPortItem
+    def __init__(self, port, x, y, ghosted, parent=None):
+        """ QAbstractGraphicsPortItem(port: PortSpec,
+                                      x: float,
+                                      y: float,
+                                      ghosted: bool,
+                                      parent: QGraphicsItem)
+                                      -> QAbstractGraphicsPortItem
         Create the shape, initialize its pen and brush accordingly
         
         """
         # local lookups are faster than global lookups..
-        _rect = CurrentTheme.PORT_RECT
-        QtGui.QGraphicsRectItem.__init__(self, _rect.translated(x, y), parent)
+        self._rect = CurrentTheme.PORT_RECT.translated(x,y)
+        QtGui.QAbstractGraphicsShapeItem.__init__(self, parent)
         self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-        if not optional:
-            self.paint = self.paintRect
-        else:
-            self.paint = self.paintEllipse
         self.controller = None
-        self.port = None
+        self.port = port
         self.dragging = False
         self.connection = None
-        self.ghosted = None
-        self.invalid = None
-        self.setGhosted(ghosted)
-        self.setInvalid(False)
+
+        self._min_conns = port.min_conns
+        self._max_conns = port.max_conns
+        self.optional = port.optional
+        self._connected = 0
+        self._selected = False
+        self.ghosted = ghosted
+        self.invalid = False
+        self.setPainterState()
+
         self.createActions()
+
+    def getRect(self):
+        return self._rect
+
+    def boundingRect(self):
+        return self._boundingRect
+
+    def computeBoundingRect(self):
+        halfpw = self.pen().widthF() / 2
+        self._boundingRect = self.getRect().adjusted(-halfpw, -halfpw, 
+                                                      halfpw, halfpw)
+
+    def setPainterState(self):
+        if self._selected:
+            self._pen_color = CurrentTheme.PORT_PEN_COLOR_SELECTED
+        elif self.ghosted:
+            self._pen_color = CurentTheme.PORT_PEN_COLOR_GHOSTED
+            # self.setPen(CurrentTheme.GHOSTED_PORT_PEN)
+            self.setBrush(CurrentTheme.GHOSTED_PORT_BRUSH)
+        elif self.invalid:
+            self._pen_color = CurrentTheme.PORT_PEN_COLOR_INVALID
+            # self.setPen(CurrentTheme.INVALID_PORT_PEN)
+            self.setBrush(CurrentTheme.INVALID_PORT_BRUSH)
+        elif self._max_conns >= 0 and self._connected >= self._max_conns:
+            self._pen_color = CurrentTheme.PORT_PEN_COLOR_FULL
+            self.setBrush(CurrentTheme.PORT_BRUSH)
+        else:
+            self._pen_color = CurrentTheme.PORT_PEN_COLOR_NORMAL
+            # self.setPen(CurrentTheme.PORT_PEN)
+            self.setBrush(CurrentTheme.PORT_BRUSH)
+        if self._connected > 0:
+            self.setBrush(CurrentTheme.PORT_CONNECTED_BRUSH)
+        elif self._connected < self._min_conns:
+            self.setBrush(CurrentTheme.PORT_MANDATORY_BRUSH)
+        else:
+            self.setBrush(CurrentTheme.PORT_BRUSH)
+        if self._selected:
+            self._pen_width = CurrentTheme.PORT_PEN_WIDTH_SELECTED
+        elif self._min_conns > 0 and self._connected < self._min_conns:
+            self._pen_width = CurrentTheme.PORT_PEN_WIDTH_MANDATORY
+        else:
+            self._pen_width = CurrentTheme.PORT_PEN_WIDTH_NORMAL
+        self.setPen(CurrentTheme.PORT_PENS[(self._pen_color, 
+                                            self._pen_width)])
+        self.computeBoundingRect()
 
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
@@ -125,42 +176,46 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         """
         if self.ghosted <> ghosted:
             self.ghosted = ghosted
-            if ghosted:
-                self.setPen(CurrentTheme.GHOSTED_PORT_PEN)
-                self.setBrush(CurrentTheme.GHOSTED_PORT_BRUSH)
-            else:
-                self.setPen(CurrentTheme.PORT_PEN)
-                self.setBrush(CurrentTheme.PORT_BRUSH)
+            self.setPainterState()
 
     def setInvalid(self, invalid):
         if self.invalid != invalid:
             self.invalid = invalid
-            if not self.ghosted:
-                if invalid:
-                    self.setPen(CurrentTheme.INVALID_PORT_PEN)
-                    self.setBrush(CurrentTheme.INVALID_PORT_BRUSH)
-                else:
-                    self.setPen(CurrentTheme.PORT_PEN)
-                    self.setBrush(CurrentTheme.PORT_BRUSH)
+            self.setPainterState()
 
-    def paintEllipse(self, painter, option, widget=None):
-        """ paintEllipse(painter: QPainter, option: QStyleOptionGraphicsItem,
-                  widget: QWidget) -> None
-        Peform actual painting of the optional port
-        
-        """
-        painter.setBrush(self.brush())
-        painter.setPen(self.pen())
-        painter.drawEllipse(self.rect())
+    def setOptional(self, optional):
+        if self.optional != optional:
+            self.optional = optional
+            self.setPainterState()
 
-    def paintRect(self, painter, option, widget=None):
-        """ paintRect(painter: QPainter, option: QStyleOptionGraphicsItem,
-                  widget: QWidget) -> None
-        Peform actual painting of the regular port
-        
-        """
-        QtGui.QGraphicsRectItem.paint(self, painter, option, widget)
+    def setSelected(self, selected):
+        # QtGui.QAbstractGraphicsShapeItem.setSelected(self, selected)
+        if self._selected != selected:
+            self._selected = selected
+            self.setPainterState()
+
+    def disconnect(self):
+        self._connected -= 1
+        # print "disconnecting", self._connected, self._min_conns, self._max_conns
+        if self._connected == 0 or self._connected+1 == self._min_conns or \
+                (self._max_conns >= 0 and self._connected+1 == self._max_conns):
+            self.setPainterState()
     
+    def connect(self):
+        self._connected += 1
+        # print "connecting", self._connected, self._min_conns, self._max_conns
+        if self._connected == 1 or self._connected == self._min_conns or \
+                (self._max_conns >= 0 and self._connected == self._max_conns):
+            self.setPainterState()
+
+    def draw(self, painter, option, widget=None):
+        raise Exception("Must implement draw method")
+
+    def paint(self, painter, option, widget=None):
+        painter.setPen(self.pen())
+        painter.setBrush(self.brush())
+        self.draw(painter, option, widget)
+
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
         Captures context menu event.
@@ -188,7 +243,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         
     def removeVars(self):
         # Unhighlight the port
-        self.setBrush(CurrentTheme.PORT_BRUSH)
+        self.disconnect()
         # Get all connections to vistrail variables for this port
         remove_connections = []
         remove_modules = set()
@@ -264,15 +319,13 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         if (self.controller and event.buttons() & QtCore.Qt.LeftButton
             and not self.scene().read_only_mode):
             self.dragging = True
-            self.setPen(CurrentTheme.PORT_SELECTED_PEN);
+            self.setSelected(True)
             event.accept()
-        QtGui.QGraphicsRectItem.mousePressEvent(self, event)
-        # super(QGraphicsPortItem, self).mousePressEvent(event)
+        QtGui.QAbstractGraphicsShapeItem.mousePressEvent(self, event)
 
     def add_connection_event(self, event):
         """Adds a new connection from a mouseReleaseEvent"""
         snapModuleId = self.connection.snapPort.parentItem().id
-        # if self.port.endPoint==PortEndPoint.Source:
         if self.port.type == 'output':
             conn_info = (self.parentItem().id, self.port,
                          snapModuleId, self.connection.snapPort.port)
@@ -283,7 +336,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         scene = self.scene()
         scene.addConnection(conn)
         scene.removeItem(self.connection)
-        self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
+        self.connection.snapPort.setSelected(False)
         self.connection = None
         scene.reset_module_colors()
         # controller changed pipeline: update ids on scene
@@ -302,9 +355,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.scene().removeItem(self.connection)
             self.connection = None
         self.dragging = False
-        self.setPen(CurrentTheme.PORT_PEN)
-        QtGui.QGraphicsRectItem.mouseReleaseEvent(self, event)
-        # super(QGraphicsPortItem, self).mouseReleaseEvent(event)
+        self.setSelected(False)
+        QtGui.QAbstractGraphicsShapeItem.mouseReleaseEvent(self, event)
         
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None
@@ -324,7 +376,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             endPos = event.scenePos()
             # Return connected port to unselected color
             if (self.connection.snapPort):
-                self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
+                self.connection.snapPort.setSelected(False)
             # Find new connected port
             self.connection.snapPort = self.findSnappedPort(endPos)
             if self.connection.snapPort:
@@ -332,15 +384,13 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                 QtGui.QToolTip.showText(event.screenPos(),
                                         self.connection.snapPort.toolTip())
                 # Change connected port to selected color
-                self.connection.snapPort.setPen(
-                    CurrentTheme.PORT_SELECTED_PEN)
+                self.connection.snapPort.setSelected(True)
             else:
                 QtGui.QToolTip.hideText()
             self.connection.prepareGeometryChange()
             self.connection.setLine(startPos.x(), startPos.y(),
                                     endPos.x(), endPos.y())
-        QtGui.QGraphicsRectItem.mouseMoveEvent(self, event)
-        # super(QGraphicsPortItem, self).mouseMoveEvent(event)
+        QtGui.QAbstractGraphicsShapeItem.mouseMoveEvent(self, event)
         
     def findModuleUnder(self, pos, scene=None):
         """ findModuleUnder(pos: QPoint) -> QGraphicsItem
@@ -378,8 +428,121 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         """
         if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
             return QtCore.QVariant(False)
-        return QtGui.QGraphicsRectItem.itemChange(self, change, value)
+        return QtGui.QAbstractGraphicsShapeItem.itemChange(self, change, value)
 
+##############################################################################
+# QGraphicsPortItem
+
+class QGraphicsPortRectItem(QAbstractGraphicsPortItem):
+    def draw(self, painter, option, widget=None):
+        painter.drawRect(self.getRect())
+
+class QGraphicsPortEllipseItem(QAbstractGraphicsPortItem):
+    def draw(self, painter, option, widget=None):
+        painter.drawEllipse(self.getRect())
+
+class QGraphicsPortTriangleItem(QAbstractGraphicsPortItem):
+    def __init__(self, *args, **kwargs):
+        if 'angle' in kwargs:
+            angle = kwargs['angle']
+            del kwargs['angle']
+        else:
+            angle = 0
+            
+        QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
+        angle = angle % 360
+        if angle not in set([0,90,180,270]):
+            raise Exception("Triangle item limited to angles 0,90,180,270.")
+        rect = self.getRect()
+        if angle == 0 or angle == 180:
+            width = rect.width()
+            height = width * math.sqrt(3)/2.0
+            if height > rect.height():
+                height = rect.height()
+                width = height * 2.0/math.sqrt(3)
+        else:
+            height = rect.height()
+            width = height * math.sqrt(3)/2.0
+            if width > rect.width():
+                width = rect.width()
+                height = width * 2.0/math.sqrt(3)
+        left_x = (rect.width() - width)/2.0 + rect.x()
+        right_x = (rect.width() + width) / 2.0 + rect.x()
+        mid_x = rect.width() / 2.0 + rect.x()
+        top_y = (rect.height() - height)/2.0 + rect.y()
+        bot_y = (rect.height() + height)/2.0 + rect.y()
+        mid_y = rect.height() / 2.0 + rect.y()
+        if angle == 0:
+            self._polygon = QtGui.QPolygonF([QtCore.QPointF(left_x, bot_y),
+                                             QtCore.QPointF(mid_x, top_y),
+                                             QtCore.QPointF(right_x, bot_y)])
+        elif angle == 90:
+            self._polygon = QtGui.QPolygonF([QtCore.QPointF(left_x, bot_y),
+                                             QtCore.QPointF(left_x, top_y),
+                                             QtCore.QPointF(right_x, mid_y)])
+        elif angle == 180:
+            self._polygon = QtGui.QPolygonF([QtCore.QPointF(left_x, top_y),
+                                             QtCore.QPointF(right_x, top_y),
+                                             QtCore.QPointF(mid_x, bot_y)])
+        elif angle == 270:
+            self._polygon = QtGui.QPolygonF([QtCore.QPointF(left_x, mid_y),
+                                             QtCore.QPointF(right_x, top_y),
+                                             QtCore.QPointF(right_x, bot_y)])
+
+    def draw(self, painter, option, widget=None):
+        painter.drawConvexPolygon(self._polygon)
+
+class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
+    def __init__(self, *args, **kwargs):
+        if 'points' in kwargs:
+            points = kwargs['points']
+            del kwargs['points']
+        else:
+            points = None
+        if points is None or len(points) < 3:
+            raise Exception("Must have at least three points")
+        QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
+        rect = self.getRect()
+        new_points = []
+        for p in points:
+            if p[0] is None:
+                x = rect.x() + rect.width()
+            elif p[0] != 0 and p[0] != 1 and p[0] > 0 and p[0] < 1:
+                x = rect.x() + rect.width() * p[0]
+            elif p[0] < 0:
+                x = rect.x() + rect.width() + p[0]
+            else:
+                x = rect.x() + p[0]
+            if p[1] is None:
+                y = rect.y() + rect.height()
+            elif p[1] != 0 and p[1] != 1 and p[1] > 0 and p[1] < 1:
+                y = rect.y() + rect.height() * p[1]
+            elif p[1] < 0:
+                y = rect.y() + rect.height() + p[1]
+            else:
+                y = rect.y() + p[1]
+
+            print "adding point", x, y
+            if x < rect.x():
+                x = rect.x()
+            elif x > (rect.x() + rect.width()):
+                x = rect.x() + rect.width()
+            if y < rect.y():
+                y = rect.y()
+            elif y > (rect.y() + rect.height()):
+                y = rect.y() + rect.height()
+            print "Adding point", x, y
+            new_points.append(QtCore.QPointF(x,y))
+        self._polygon = QtGui.QPolygonF(new_points)
+    
+    def draw(self, painter, option, widget=None):
+        painter.drawPolygon(self._polygon)
+
+class QGraphicsPortDiamondItem(QGraphicsPortPolygonItem):
+    def __init__(self, *args, **kwargs):
+        kwargs['points'] = [(0, 0.5), (0.5, 0.999999), 
+                            (0.999999, 0.5), (0.5, 0)]
+        QGraphicsPortPolygonItem.__init__(self, *args, **kwargs)
 
 ################################################################################
 # QGraphicsConfigureItem
@@ -959,10 +1122,17 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 return True            
             return False
 
+        def module_functions_have_changed(m1, m2):
+            f1_names = set([f.name for f in m1.functions])
+            f2_names = set([f.name for f in m2.functions])
+            return (len(f1_names ^ f2_names) > 0)
+
         if self.scenePos().x() != core_module.center.x or \
                 -self.scenePos().y() != core_module.center.y:
             return True
         elif module_text_has_changed(self.module, core_module):
+            return True
+        elif module_functions_have_changed(self.module, core_module):
             return True
         else:
             # Check for changed ports
@@ -1308,6 +1478,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     self.set_module_shape(self.create_shape_from_fringe(fringe))
             except ModuleRegistryException, e:
                 error = e
+
+            for function in module.functions:
+                f_spec = PortSpec(id=-1,
+                                  name=function.name,
+                                  type=PortSpec.port_type_map['input'],
+                                  sigstring=function.sigstring)
+                item = self.getPortItem(f_spec, 'input')
+                item.connect()                
         else:
             self.setInvalid(True)
             
@@ -1349,7 +1527,48 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Create a item from the port spec
         
         """
-        portShape = QGraphicsPortItem(x, y, self.ghosted, self, port.optional)
+        # pts = [(0,2),(0,-2), (2,None), (-2,None),
+        #        (None,-2), (None,2), (-2,0), (2,0)]
+        # pts = [(0,0.2), (0, 0.8), (0.2, None), (0.8, None), 
+        #        (None, 0.8), (None, 0.2), (0.8,0), (0.2, 0)]
+        # portShape = QGraphicsPortPolygonItem(x, y, self.ghosted, self, 
+        #                                      port.optional, port.min_conns,
+        #                                      port.max_conns, points=pts)
+        # portShape = QGraphicsPortTriangleItem(x, y, self.ghosted, self, 
+        #                                       port.optional, port.min_conns,
+        #                                       port.max_conns, angle=0)
+        # portShape = QGraphicsPortDiamondItem(x, y, self.ghosted, self, 
+        #                                      port.optional, port.min_conns,
+        #                                      port.max_conns)
+    
+        port_klass = QGraphicsPortRectItem
+        kwargs = {}
+        shape = port.shape()
+        if shape is not None:
+            if isinstance(shape, basestring):
+                if shape.startswith("triangle"):
+                    port_klass = QGraphicsPortTriangleItem
+                    try:
+                        kwargs['angle'] = int(shape[8:])
+                    except:
+                        kwargs['angle'] = 0
+                elif shape == "diamond":
+                    port_klass = QGraphicsPortDiamondItem
+                elif shape == "circle" or shape == "ellipse":
+                    port_klass = QGraphicsPortEllipseItem
+            else:
+                is_iterable = False
+                try:
+                    shape.__iter__()
+                    is_iterable = True
+                    port_klass = QGraphicsPortPolygonItem
+                    kwargs['points'] = shape
+                except:
+                    pass
+
+        portShape = port_klass(port, x, y, self.ghosted, self, **kwargs)
+        # portShape = QGraphicsPortRectItem(port, x, y, self.ghosted, self)
+
         portShape.controller = self.controller
         portShape.port = port
         if not port.is_valid:
@@ -1375,6 +1594,53 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             return configureShape
         return None
 
+    def getPortItem(self, port, port_type=None, port_dict=None, 
+                    optional_ports=None):
+        print 'looking for port', port.name, port.type, port_type
+        if port_type == 'input':
+            port_dict = self.inputPorts
+            optional_ports = self.optionalInputPorts
+        elif port_type == 'output':
+            port_dict = self.outputPorts
+            optional_ports = self.optionalOutputPorts
+        if port_dict is None or optional_ports is None:
+            raise Exception("Must provide either port_type or both "
+                            "port_dict and optional_ports")
+            
+        registry = get_module_registry()
+
+        # if we haven't validated pipeline, don't try to use the registry
+        if self.module.is_valid:
+            # check enabled ports
+            for (p, item) in port_dict.iteritems():
+                if registry.port_and_port_spec_match(port, p):
+                    return item
+                
+            # check optional ports
+            for p in optional_ports:
+                if registry.port_and_port_spec_match(port, p):
+                    item = self.createPortItem(p, *next_pos)
+                    port_dict[p] = item
+                    next_pos[0] = next_op(next_pos[0], 
+                                          (CurrentTheme.PORT_WIDTH +
+                                           CurrentTheme.MODULE_PORT_SPACE))
+                    return item
+        
+        # FIXME Raise Error!
+        # else not available for some reason, just draw port and raise error?
+        # can also decide to use Variant/Module types
+        # or use types from the signature
+        # port_descs = port.descriptors()
+                
+        # first, check if we've already added the port
+        for (p, item) in port_dict.iteritems():
+            if (PortSpec.port_type_map.inverse[port.type] == p.type and
+                port.name == p.name and 
+                port.sigstring == p.sigstring):
+                return item
+
+        return None
+
     def getPortPosition(self, port, port_dict, optional_ports, next_pos, 
                         next_op, default_sig):
         """ getPortPosition(port: Port,
@@ -1388,37 +1654,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Return the scene position of a port matched 'port' in port_dict
         
         """
-        registry = get_module_registry()
-
-        # if we haven't validated pipeline, don't try to use the registry
-        if self.module.is_valid:
-            # check enabled ports
-            for (p, item) in port_dict.iteritems():
-                if registry.port_and_port_spec_match(port, p):
-                    return item.sceneBoundingRect().center()
-                
-            # check optional ports
-            for p in optional_ports:
-                if registry.port_and_port_spec_match(port, p):
-                    item = self.createPortItem(p, *next_pos)
-                    port_dict[p] = item
-                    next_pos[0] = next_op(next_pos[0], 
-                                          (CurrentTheme.PORT_WIDTH +
-                                           CurrentTheme.MODULE_PORT_SPACE))
-                    return item.sceneBoundingRect().center()
-        
-        # FIXME Raise Error!
-        # else not available for some reason, just draw port and raise error?
-        # can also decide to use Variant/Module types
-        # or use types from the signature
-        # port_descs = port.descriptors()
-                
-        # first, check if we've already added the port
-        for (p, item) in port_dict.iteritems():
-            if (PortSpec.port_type_map.inverse[port.type] == p.type and
-                port.name == p.name and 
-                port.sigstring == p.sigstring):
-                return item.sceneBoundingRect().center()
+        item = self.getPortItem(port, port_dict=port_dict, 
+                                optional_ports=optional_ports)
+        if item is not None:
+            return item.sceneBoundingRect().center()
         
         debug.log("PORT SIG:" + port.signature)
         if not port.signature or port.signature == '()':
@@ -1475,10 +1714,23 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                     operator.sub,
                                     '(edu.utah.sci.vistrails.basic:Module)')
 
+
     def addConnectionItem(self, item):
         self.connectionItems[item.connection.id] = item
 
     def removeConnectionItem(self, item):
+        if item.connection.source.moduleId == self.module.id:
+            srcItem = self.getPortItem(item.connection.source, 'output')
+            if srcItem is not None:
+                srcItem.disconnect()
+            else:
+                print 'output', item.connection.source.name, 'is null'
+        if item.connection.destination.moduleId == self.module.id:
+            dstItem = self.getPortItem(item.connection.destination, 'input')
+            if dstItem is not None:
+                dstItem.disconnect()
+            else:
+                print 'input', item.connection.destination.name, 'is null'
         del self.connectionItems[item.connection.id]
 
     # returns a dictionary of (id, connection) key-value pairs!
@@ -1681,9 +1933,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         dstModule = self.modules[connection.destination.moduleId]
         srcPoint = srcModule.getOutputPortPosition(connection.source)
         dstPoint = dstModule.getInputPortPosition(connection.destination)
+        srcPortItem = srcModule.getPortItem(connection.source, 'output')
+        dstPortItem = dstModule.getPortItem(connection.destination, 'input')
         connectionItem = QGraphicsConnectionItem(srcPoint, dstPoint,
                                                  srcModule, dstModule,
                                                  connection)
+        srcPortItem.connect()
+        dstPortItem.connect()
         connectionItem.id = connection.id
         connectionItem.connection = connection
         if connectionBrush:
@@ -1695,7 +1951,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             var_uuid = srcModule.module.get_annotation_by_key('__vistrail_var__').value
             var_name = self.controller.get_vistrail_variable_name_by_uuid(var_uuid)
             port_item = dstModule.inputPorts[connection.destination.spec]
-            port_item.setBrush(CurrentTheme.PORT_FILLED_BRUSH)
+            port_item.connect()
             # Update the tooltip for this version
             try:
                 tooltip = port_item.toolTip() + '\nVistrail Variable: "%s"'%var_name
@@ -1784,13 +2040,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
             [c_id for c_id in self.modules[m_id].dependingConnectionItems()]
         # old_depending_connections = self.modules[m_id]._old_connection_ids
         
-        self.remove_module(m_id)
-        
         #when configuring a python source, maybe connections were deleted
         # but are not in the current pipeline. So we need to check the depending
         # connections of the module just before the configure. 
         for c_id in depending_connections:
             self.remove_connection(c_id)
+
+        self.remove_module(m_id)
         
         self.addModule(pipeline.modules[m_id])
         for c_id in depending_connections:
@@ -1939,16 +2195,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 return
             elif hasattr(data, 'variableData'):
                 # Find nearest suitable port
-                tmp_port = QGraphicsPortItem(0, 0, False)
+                tmp_port = QAbstractGraphicsPortItem(0, 0, False)
                 tmp_port.port = data.variableData[0]
                 nearest_port = tmp_port.findSnappedPort(event.scenePos(), self)
                 # Unhighlight previous nearest port
                 if self._var_selected_port is not None:
-                    self._var_selected_port.setPen(CurrentTheme.PORT_PEN)
+                    self._var_selected_port.setSelected(False)
                 self._var_selected_port = nearest_port
                 # Highlight new nearest port
                 if nearest_port is not None:
-                    nearest_port.setPen(CurrentTheme.PORT_SELECTED_PEN)
+                    nearest_port.setSelected(True)
                     QtGui.QToolTip.showText(event.screenPos(), nearest_port.toolTip())
                     event.accept()
                     return
@@ -2014,7 +2270,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             elif hasattr(data, 'variableData'):
                 if self._var_selected_port is not None:
                     # Unhighlight selected port and get var data
-                    self._var_selected_port.setPen(CurrentTheme.PORT_PEN)
+                    self._var_selected_port.setSelected(False)
                     output_portspec = data.variableData[0]
                     var_uuid = data.variableData[1]
                     var_name = data.variableData[2]

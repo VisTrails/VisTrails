@@ -541,16 +541,29 @@ class PortsList(QtGui.QTreeWidget):
                 if function.real_id not in self.function_map:
                     self.function_map[function.real_id] = subitem
                     subitem.function = function
+
+            # make the scene display the fact that we have a parameter
+            # by dimming the port
+            self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_view.recreate_module(
+                self.controller.current_pipeline, self.module.id)
                                             
     def delete_method(self, subitem, port_name, real_id=None):
+        _, item = self.port_spec_items[port_name]
+        item.removeChild(subitem)
+
         if real_id is not None and self.controller:
             #print "got to delete"
             self.controller.delete_function(real_id, self.module.id)
-        _, item = self.port_spec_items[port_name]
-        item.removeChild(subitem)
+
+            # make the scene display the fact that we have lost the
+            # parameter by undimming the port
+            self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_view.recreate_module(
+                self.controller.current_pipeline, self.module.id)
+
         # how to delete items...x
         # subitem.deleteLater()
-            
 
     def add_method(self, port_name):
         port_spec, item = self.port_spec_items[port_name]

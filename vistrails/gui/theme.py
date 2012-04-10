@@ -215,27 +215,41 @@ class DefaultTheme(object):
                                           QtCore.Qt.DashLine)
 
         # Brush and pen to draw a port shape at regular state
-        self.PORT_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('black')))), 1)
-        self.PORT_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('light_grey'))))
-        self.PORT_FILLED_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium'))))
-        self.PORT_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
-        self.PORT_OPTIONAL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('lamp_black')))), 1)
-        self.PORT_OPTIONAL_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('titanium_white'))))
-        
-        # Pen and brush for drawing ports of ghosted modules
-        self.GHOSTED_PORT_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
+        self.PORT_PEN_WIDTH_MANDATORY = 'mandatory'
+        self.PORT_PEN_WIDTH_NORMAL = 'normal'
+        self.PORT_PEN_WIDTH_SELECTED = 'selected'
+        self.PORT_PEN_WIDTHS = {self.PORT_PEN_WIDTH_MANDATORY: 1.5, 
+                                self.PORT_PEN_WIDTH_NORMAL: 1.0, 
+                                self.PORT_PEN_WIDTH_SELECTED: 3.0}
+        self.PORT_PEN_COLOR_NORMAL = 'normal'
+        self.PORT_PEN_COLOR_FULL = 'full'
+        self.PORT_PEN_COLOR_INVALID = 'invalid'
+        self.PORT_PEN_COLOR_GHOSTED = 'ghosted'
+        self.PORT_PEN_COLOR_SELECTED = 'selected'
+        self.PORT_PEN_COLORS = \
+            {self.PORT_PEN_COLOR_NORMAL: \
+                 QtGui.QColor(*(ColorByName.get_int('black'))),
+             self.PORT_PEN_COLOR_FULL: \
+                 QtGui.QColor(*(ColorByName.get_int('dark_dim_grey'))),
+             self.PORT_PEN_COLOR_INVALID: QtGui.QColor(51, 51, 51, 255),
+             self.PORT_PEN_COLOR_GHOSTED: \
+                 QtGui.QColor(*(ColorByName.get_int('dark_dim_grey'))),
+             self.PORT_PEN_COLOR_SELECTED: \
+                 QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))
+             }
+            
+        self.PORT_PENS = {}
+        for (color_type, color) in self.PORT_PEN_COLORS.iteritems():
+            for (width_type, width) in self.PORT_PEN_WIDTHS.iteritems():
+                self.PORT_PENS[(color_type, width_type)] = \
+                    QtGui.QPen(QtGui.QBrush(color), width)
+
+        self.PORT_CONNECTED_BRUSH = QtGui.QBrush(
+            QtGui.QColor(0,0,0,60))
+        self.PORT_BRUSH = QtGui.QBrush(QtCore.Qt.NoBrush)
+        self.PORT_MANDATORY_BRUSH = QtGui.QBrush(QtGui.QColor(255,255,255,180))
         self.GHOSTED_PORT_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
-
-        self.INVALID_PORT_PEN = QtGui.QPen(QtGui.QBrush(
-                QtGui.QColor(51, 51, 51, 255)), 2)
         self.INVALID_PORT_BRUSH = QtGui.QBrush(
             QtGui.QColor(125, 92, 92, 255))
 
