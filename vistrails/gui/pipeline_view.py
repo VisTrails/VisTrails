@@ -1596,7 +1596,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
     def getPortItem(self, port, port_type=None, port_dict=None, 
                     optional_ports=None):
-        print 'looking for port', port.name, port.type, port_type
+        # print 'looking for port', port.name, port.type, port_type
         if port_type == 'input':
             port_dict = self.inputPorts
             optional_ports = self.optionalInputPorts
