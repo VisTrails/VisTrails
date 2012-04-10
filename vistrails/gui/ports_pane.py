@@ -315,9 +315,10 @@ class PortItem(QtGui.QTreeWidgetItem):
         menu.exec_(event.globalPos())
         
     def view_documentation(self):
-        descriptor = self.treeWidget().module.module_descriptor
+        # descriptor = self.treeWidget().module.module_descriptor
+        module = self.treeWidget().module
         port_type = self.treeWidget().port_type
-        widget = QPortDocumentation(descriptor,
+        widget = QPortDocumentation(module,
                                     port_type,
                                     self.port_spec.name)
         widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)

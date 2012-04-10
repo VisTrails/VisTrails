@@ -308,7 +308,9 @@ class DBPortSpecXMLDAOBase(XMLDAO):
                          sort_key=sort_key,
                          sigstring=sigstring,
                          labels=labels,
-                         defaults=defaults)
+                         defaults=defaults,
+                         min_conns=min_conns,
+                         max_conns=max_conns)
         obj.is_dirty = False
         return obj
     

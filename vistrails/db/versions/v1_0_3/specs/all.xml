@@ -1655,6 +1655,16 @@
       <sql type="varchar(4095)"/>
     </property>
 
+    <property name="min_conns" type="int">
+      <xml name="minConns" nodeType="xs:attribtue" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="max_conns" type="int">
+      <xml name="maxConns" nodeType="xs:attribtue" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
     <property name="parentType" type="str" inverse="true">
       <sql column="parent_type" type="char(32)"/>
     </property>

@@ -736,7 +736,7 @@ class DBPortSpec(object):
 
     vtType = 'portSpec'
 
-    def __init__(self, id=None, name=None, type=None, optional=None, sort_key=None, sigstring=None, labels=None, defaults=None):
+    def __init__(self, id=None, name=None, type=None, optional=None, sort_key=None, sigstring=None, labels=None, defaults=None, min_conns=None, max_conns=None):
         self._db_id = id
         self._db_name = name
         self._db_type = type
@@ -745,6 +745,8 @@ class DBPortSpec(object):
         self._db_sigstring = sigstring
         self._db_labels = labels
         self._db_defaults = defaults
+        self._db_min_conns = min_conns
+        self._db_max_conns = max_conns
         self.is_dirty = True
         self.is_new = True
     
@@ -759,7 +761,9 @@ class DBPortSpec(object):
                         sort_key=self._db_sort_key,
                         sigstring=self._db_sigstring,
                         labels=self._db_labels,
-                        defaults=self._db_defaults)
+                        defaults=self._db_defaults,
+                        min_conns=self._db_min_conns,
+                        max_conns=self._db_max_conns)
         
         # set new ids
         if new_ids:
@@ -823,6 +827,16 @@ class DBPortSpec(object):
             new_obj.db_defaults = res
         elif hasattr(old_obj, 'db_defaults') and old_obj.db_defaults is not None:
             new_obj.db_defaults = old_obj.db_defaults
+        if 'min_conns' in class_dict:
+            res = class_dict['min_conns'](old_obj, trans_dict)
+            new_obj.db_min_conns = res
+        elif hasattr(old_obj, 'db_min_conns') and old_obj.db_min_conns is not None:
+            new_obj.db_min_conns = old_obj.db_min_conns
+        if 'max_conns' in class_dict:
+            res = class_dict['max_conns'](old_obj, trans_dict)
+            new_obj.db_max_conns = res
+        elif hasattr(old_obj, 'db_max_conns') and old_obj.db_max_conns is not None:
+            new_obj.db_max_conns = old_obj.db_max_conns
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -939,6 +953,32 @@ class DBPortSpec(object):
         self._db_defaults = defaults
     def db_delete_defaults(self, defaults):
         self._db_defaults = None
+    
+    def __get_db_min_conns(self):
+        return self._db_min_conns
+    def __set_db_min_conns(self, min_conns):
+        self._db_min_conns = min_conns
+        self.is_dirty = True
+    db_min_conns = property(__get_db_min_conns, __set_db_min_conns)
+    def db_add_min_conns(self, min_conns):
+        self._db_min_conns = min_conns
+    def db_change_min_conns(self, min_conns):
+        self._db_min_conns = min_conns
+    def db_delete_min_conns(self, min_conns):
+        self._db_min_conns = None
+    
+    def __get_db_max_conns(self):
+        return self._db_max_conns
+    def __set_db_max_conns(self, max_conns):
+        self._db_max_conns = max_conns
+        self.is_dirty = True
+    db_max_conns = property(__get_db_max_conns, __set_db_max_conns)
+    def db_add_max_conns(self, max_conns):
+        self._db_max_conns = max_conns
+    def db_change_max_conns(self, max_conns):
+        self._db_max_conns = max_conns
+    def db_delete_max_conns(self, max_conns):
+        self._db_max_conns = None
     
     def getPrimaryKey(self):
         return self._db_id

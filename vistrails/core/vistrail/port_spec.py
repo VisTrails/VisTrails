@@ -74,6 +74,19 @@ class PortSpec(DBPortSpec):
             else:
                 raise VistrailsInternalError("Cannot parse 'optional' kw "
                                              "-- must be an int or bool")
+        if 'min_conns' not in kwargs:
+            kwargs['min_conns'] = 0
+        elif kwargs['optional'] == 1 and kwargs['min_conns'] > 0:
+            raise VistrailsInternalError("A mandatory port cannot be set "
+                                         "to optional")
+        if 'max_conns' not in kwargs:
+            kwargs['max_conns'] = -1
+        if kwargs['min_conns'] >= 0 and kwargs['max_conns'] >= 0 and \
+                kwargs['min_conns'] > kwargs['max_conns']:
+            raise VistrailsInternalError("Minimum number of connections "
+                                         "cannot be greater than maximum "
+                                         "number of connections")
+            
         if 'sort_key' not in kwargs:
             kwargs['sort_key'] = -1
         if 'id' not in kwargs:
@@ -83,6 +96,18 @@ class PortSpec(DBPortSpec):
             del kwargs['tooltip']
         else:
             self._tooltip = None
+
+        if 'docstring' in kwargs:
+            self._docstring = kwargs['docstring']
+            del kwargs['docstring']
+        else:
+            self._docstring = None
+        if 'shape' in kwargs:
+            self._shape = kwargs['shape']
+            del kwargs['shape']
+        else:
+            self._shape = None
+            
         DBPortSpec.__init__(self, *args, **kwargs)
 
         self._entries = None
@@ -169,6 +194,11 @@ class PortSpec(DBPortSpec):
     optional = DBPortSpec.db_optional
     sort_key = DBPortSpec.db_sort_key
     sigstring = DBPortSpec.db_sigstring
+    min_conns = DBPortSpec.db_min_conns
+    max_conns = DBPortSpec.db_max_conns
+
+    def is_mandatory(self):
+        return (min_conns > 0)
 
     def _get_labels(self):
         if self._labels is None:
@@ -222,6 +252,12 @@ class PortSpec(DBPortSpec):
         if self._tooltip is None:
             self.create_tooltip()
         return self._tooltip
+
+    def shape(self):
+        return self._shape
+    
+    def docstring(self):
+        return self._docstring
 
     ##########################################################################
     # Methods

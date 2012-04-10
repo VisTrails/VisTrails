@@ -440,8 +440,6 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.scene().clearSelection()
         self.parentItem().setSelected(True)
         self.contextMenuEvent(event)
-        event.accept()
-        self.ungrabMouse()
         
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
