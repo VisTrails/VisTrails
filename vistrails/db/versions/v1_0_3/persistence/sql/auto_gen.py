@@ -1657,7 +1657,7 @@ class DBMachineSQLDAOBase(SQLDAO):
             os = self.convertFromDB(row[2], 'str', 'varchar(255)')
             architecture = self.convertFromDB(row[3], 'str', 'varchar(255)')
             processor = self.convertFromDB(row[4], 'str', 'varchar(255)')
-            ram = self.convertFromDB(row[5], 'int', 'int')
+            ram = self.convertFromDB(row[5], 'int', 'bigint')
             vistrailId = self.convertFromDB(row[6], 'long', 'int')
             log = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
@@ -1692,7 +1692,7 @@ class DBMachineSQLDAOBase(SQLDAO):
             os = self.convertFromDB(row[2], 'str', 'varchar(255)')
             architecture = self.convertFromDB(row[3], 'str', 'varchar(255)')
             processor = self.convertFromDB(row[4], 'str', 'varchar(255)')
-            ram = self.convertFromDB(row[5], 'int', 'int')
+            ram = self.convertFromDB(row[5], 'int', 'bigint')
             vistrailId = self.convertFromDB(row[6], 'long', 'int')
             log = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
@@ -1745,7 +1745,7 @@ class DBMachineSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_processor, 'str', 'varchar(255)')
         if hasattr(obj, 'db_ram') and obj.db_ram is not None:
             columnMap['ram'] = \
-                self.convertToDB(obj.db_ram, 'int', 'int')
+                self.convertToDB(obj.db_ram, 'int', 'bigint')
         if hasattr(obj, 'db_vistrailId') and obj.db_vistrailId is not None:
             columnMap['vt_id'] = \
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
@@ -1794,7 +1794,7 @@ class DBMachineSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_processor, 'str', 'varchar(255)')
         if hasattr(obj, 'db_ram') and obj.db_ram is not None:
             columnMap['ram'] = \
-                self.convertToDB(obj.db_ram, 'int', 'int')
+                self.convertToDB(obj.db_ram, 'int', 'bigint')
         if hasattr(obj, 'db_vistrailId') and obj.db_vistrailId is not None:
             columnMap['vt_id'] = \
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
@@ -2389,7 +2389,7 @@ class DBParameterSQLDAOBase(SQLDAO):
             pos = self.convertFromDB(row[1], 'long', 'int')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            val = self.convertFromDB(row[4], 'str', 'varchar(8191)')
+            val = self.convertFromDB(row[4], 'str', 'mediumtext')
             alias = self.convertFromDB(row[5], 'str', 'varchar(255)')
             parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
@@ -2424,7 +2424,7 @@ class DBParameterSQLDAOBase(SQLDAO):
             pos = self.convertFromDB(row[1], 'long', 'int')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            val = self.convertFromDB(row[4], 'str', 'varchar(8191)')
+            val = self.convertFromDB(row[4], 'str', 'mediumtext')
             alias = self.convertFromDB(row[5], 'str', 'varchar(255)')
             parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
@@ -2481,7 +2481,7 @@ class DBParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')
         if hasattr(obj, 'db_val') and obj.db_val is not None:
             columnMap['val'] = \
-                self.convertToDB(obj.db_val, 'str', 'varchar(8191)')
+                self.convertToDB(obj.db_val, 'str', 'mediumtext')
         if hasattr(obj, 'db_alias') and obj.db_alias is not None:
             columnMap['alias'] = \
                 self.convertToDB(obj.db_alias, 'str', 'varchar(255)')
@@ -2530,7 +2530,7 @@ class DBParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')
         if hasattr(obj, 'db_val') and obj.db_val is not None:
             columnMap['val'] = \
-                self.convertToDB(obj.db_val, 'str', 'varchar(8191)')
+                self.convertToDB(obj.db_val, 'str', 'mediumtext')
         if hasattr(obj, 'db_alias') and obj.db_alias is not None:
             columnMap['alias'] = \
                 self.convertToDB(obj.db_alias, 'str', 'varchar(255)')
@@ -3733,7 +3733,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
             key = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[2], 'str', 'varchar(8191)')
+            value = self.convertFromDB(row[2], 'str', 'mediumtext')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
@@ -3762,7 +3762,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
             key = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[2], 'str', 'varchar(8191)')
+            value = self.convertFromDB(row[2], 'str', 'mediumtext')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
@@ -3833,7 +3833,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_key, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'varchar(8191)')
+                self.convertToDB(obj.db_value, 'str', 'mediumtext')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
@@ -3873,7 +3873,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_key, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'varchar(8191)')
+                self.convertToDB(obj.db_value, 'str', 'mediumtext')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')

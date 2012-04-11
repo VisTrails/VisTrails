@@ -48,18 +48,22 @@ def translateVistrail(_vistrail):
     vars = {}
     for var in _vistrail.db_vistrailVariables:
         descriptor =(var.db_package, var.db_module, var.db_namespace)
-        vars[var.db_name] = (var.db_uuid, var.db_descriptor, var.db_value)
+        vars[var.db_name] = (var.db_uuid, descriptor, var.db_value)
 
-    new_id = id_scope.getNewId(DBAnnotation.vtType)
-    annotation = DBAnnotation(id=new_id, key=key, value=str(var))
-    vistrail.db_add_annotation(annotation)
+    if vars:
+        new_id = id_scope.getNewId(DBAnnotation.vtType)
+        annotation = DBAnnotation(id=new_id, key=key, value=str(vars))
+        vistrail.db_add_annotation(annotation)
 
     vistrail.db_version = '1.0.2'
     return vistrail
 
 def translateWorkflow(_workflow):
-    translate_dict = {}
+    def update_workflow(old_obj, translate_dict):
+        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
+    translate_dict = {'DBGroup': {'workflow': update_workflow}}
     workflow = DBWorkflow.update_version(_workflow, translate_dict)
+
     workflow.db_version = '1.0.2'
     return workflow
 

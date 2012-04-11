@@ -78,7 +78,7 @@
       <xs:attribute name="os" type="xs:string"/>
       <xs:attribute name="architecture" type="xs:string"/>
       <xs:attribute name="processor" type="xs:string"/>
-      <xs:attribute name="ram" type="xs:int"/>
+      <xs:attribute name="ram" type="xs:long"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="annotation">
