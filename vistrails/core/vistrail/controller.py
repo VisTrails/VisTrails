@@ -3110,7 +3110,7 @@ class VistrailController(object):
         """write_vistrail(locator,version) -> Boolean
         It will return a boolean that tells if the tree needs to be 
         invalidated
-        export means you should not update the current controller"""
+        export=True means you should not update the current controller"""
         result = False 
         if self.vistrail and (self.changed or self.locator != locator):
             # FIXME create this on-demand?
@@ -3123,7 +3123,12 @@ class VistrailController(object):
                 annotation_key = get_next_abs_annotation_key(self.vistrail)
                 self.vistrail.set_annotation(annotation_key, new_namespace)
             save_bundle = SaveBundle(self.vistrail.vtType)
-            save_bundle.vistrail = self.vistrail
+            if export:
+                save_bundle.vistrail = self.vistrail.do_copy()
+                if type(locator) == core.db.locator.DBLocator:
+                    save_bundle.vistrail.db_log_filename = None
+            else:
+                save_bundle.vistrail = self.vistrail
             if self.log and len(self.log.workflow_execs) > 0:
                 save_bundle.log = self.log
             abstractions = self.find_abstractions(self.vistrail, True)
@@ -3165,10 +3170,9 @@ class VistrailController(object):
                     self.locator = locator
                 save_bundle = locator.save_as(save_bundle, version)
                 new_vistrail = save_bundle.vistrail
-                if export:
-                    # reset locator after save
-                    self.vistrail.locator = old_locator
-
+                if type(locator) == core.db.locator.DBLocator:
+                    new_vistrail.db_log_filename = None
+                    locator.kwargs['obj_id'] = new_vistrail.db_id
                 if not export:
                     # DAK don't think is necessary since we have a new
                     # namespace for an abstraction on each save
@@ -3177,9 +3181,6 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
-                    if type(self.locator) == core.db.locator.DBLocator:
-                        new_vistrail.db_log_filename = None
-                        locator.kwargs['obj_id'] = new_vistrail.db_id
                     self.set_file_name(locator.name)
                     if old_locator and not export:
                         old_locator.clean_temporaries()
@@ -3210,7 +3211,6 @@ class VistrailController(object):
                     # reg = core.modules.module_registry.get_module_registry()
                     # for desc in reg.get_package_by_name('local.abstractions').descriptor_list:
                     #     print desc.name, desc.namespace, desc.version
-                        
             if not export:
                 if id(self.vistrail) != id(new_vistrail):
                     new_version = new_vistrail.db_currentVersion
