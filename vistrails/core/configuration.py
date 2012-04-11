@@ -254,7 +254,7 @@ def default_shell():
             'font_face': 'Fixed',
             'font_size': 12,
             }
-    elif system.systemType in ['Windows', 'Microsoft', 'Java']:
+    elif system.systemType in ['Windows', 'Microsoft', 'Java', 'JAVA']:
         shell_dir = {
             'font_face': 'Courier New',
             'font_size': 8,

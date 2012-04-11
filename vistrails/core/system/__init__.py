@@ -56,7 +56,7 @@ if systemType in ['Java', 'JAVA']:
     from core.jython_workarounds import setup as jython_setup
     jython_setup()
 
-if systemType in ['Java', 'JAVA', 'Windows', 'Microsoft']:
+if systemType in ['Windows', 'Microsoft']:
     from core.system.windows import guess_total_memory, temporary_directory, \
         list2cmdline, \
         home_directory, remote_copy_program, remote_shell_program, \
@@ -80,6 +80,15 @@ elif systemType in ['Darwin']:
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
         link_or_copy, executable_is_in_path, executable_is_in_pythonpath, \
         execute_cmdline, get_executable_path, execute_piped_cmdlines, TestMacOSX
+
+elif systemType in ['Java', 'JAVA']:
+    from core.system.jython import guess_total_memory, temporary_directory, \
+        list2cmdline, \
+        home_directory, remote_copy_program, remote_shell_program, \
+        graph_viz_dot_command_line, remove_graph_viz_temporaries, \
+        link_or_copy,executable_is_in_path, executable_is_in_pythonpath, \
+        execute_cmdline, get_executable_path, execute_piped_cmdlines, TestJython
+
 else:
     debug.critical("VisTrails could not detect your operating system.")
     sys.exit(1)
@@ -418,5 +427,3 @@ class TestSystem(unittest.TestCase):
                 raise
             except:
                 pass
-            
-            
