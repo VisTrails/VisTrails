@@ -103,8 +103,8 @@ def show_info(title, message):
 
 def show_question(title,
                   message,
-                  buttons = None,
-                  default = None):
+                  buttons = [OK_BUTTON],
+                  default = NOBUTTON_BUTTON):
     """ show_question(title: str,
                       message: str,
                       buttons: list of buttons (defined above),
@@ -126,7 +126,7 @@ def show_question(title,
         return show_custom(title,message,None,buttons)
 
 def build_custom_window(title, message, icon=None,
-                buttons = [None], default=None, escape=-1,
+                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1,
                 modal=True, parent=None):
     """ show_custom(title: str,
                     message: str,
@@ -223,7 +223,6 @@ def initTheme():
 # vistrails are open
 
 import unittest
-from api import NoGUI
 
 class TestVisTrailsGUI(unittest.TestCase):
 

@@ -77,9 +77,9 @@ class TreeLW:
         return newNode
 
     def changeParentOfNodeWithNoParent(self, parentNode, childNode):
+        print "rr4: si ceci ne plante pas, enlever le print (tree_layout_lw 1)"
         if childNode.parent != None:
-            pass
-            #raise Exception()
+            raise Exception()
 
         #
         parentNode.addChild(childNode)        

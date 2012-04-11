@@ -341,10 +341,7 @@ def current_machine():
     return socket.getfqdn()
 
 def current_architecture():
-    try:
-        bit_string = platform.architecture()[0]
-    except:
-        bit_string = 'byt'
+    bit_string = platform.architecture()[0]
     if bit_string.endswith('bit'):
         return int(bit_string[:-3])
     else:
