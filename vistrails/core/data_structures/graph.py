@@ -854,10 +854,8 @@ class TestGraph(unittest.TestCase):
              g.add_edge(v1, v2, i)
          sinkResult = [None for i in g.sinks() if g.out_degree(i) == 0]
          sourceResult = [None for i in g.sources() if g.in_degree(i) == 0]
-         if len(sinkResult) <> len(g.sinks()):
-             assert False
-         if len(sourceResult) <> len(g.sources()):
-             assert False
+         self.assertEqual(len(sinkResult), len(g.sinks()))
+         self.assertEqual(len(sourceResult), len(g.sources()))
 
      def test_remove_vertices(self):
          g = self.make_linear(5)
@@ -876,7 +874,7 @@ class TestGraph(unittest.TestCase):
 
          g = self.make_linear(10)
          r = g.vertices_topological_sort()
-         assert r == [0,1,2,3,4,5,6,7,8,9]
+         self.assertEqual(r, [0,1,2,3,4,5,6,7,8,9])
 
          g = Graph()
          g.add_vertex('a')
@@ -884,7 +882,7 @@ class TestGraph(unittest.TestCase):
          g.add_vertex('c')
          g.add_edge('a', 'b')
          g.add_edge('b', 'c')
-         assert g.vertices_topological_sort() == ['a', 'b', 'c']
+         self.assertEqual(g.vertices_topological_sort(), ['a', 'b', 'c'])
 
      def test_limited_DFS(self):
          """Test DFS on graph using a limited set of starting vertices."""
@@ -948,43 +946,43 @@ class TestGraph(unittest.TestCase):
          """Test subgraph routines."""
          g = self.make_complete(5)
          sub = g.subgraph([0,1])
-         assert 0 in sub.vertices
-         assert 1 in sub.vertices
-         assert (1,1) in sub.adjacency_list[0]
-         assert (0,1) in sub.inverse_adjacency_list[1]
+         self.assertTrue(0 in sub.vertices)
+         self.assertTrue(1 in sub.vertices)
+         self.assertTrue((1,1) in sub.adjacency_list[0])
+         self.assertTrue((0,1) in sub.inverse_adjacency_list[1])
 
          g = self.make_linear(3)
          sub = g.subgraph([0, 2])
-         assert 0 in sub.vertices
-         assert 2 in sub.vertices
-         assert sub.adjacency_list[0] == []
-         assert sub.adjacency_list[2] == []
+         self.assertTrue(0 in sub.vertices)
+         self.assertTrue(2 in sub.vertices)
+         self.assertEqual(sub.adjacency_list[0], [])
+         self.assertEqual(sub.adjacency_list[2], [])
          
      def test_connections_to_subgraph(self):
          """Test connections_to_subgraph."""
          g = self.make_linear(5)
          sub = g.subgraph([3])
-         assert len(g.connections_to_subgraph(sub)) == 1
+         self.assertEqual(len(g.connections_to_subgraph(sub)), 1)
          g = self.make_linear(5, True)
          sub = g.subgraph([3])
-         assert len(g.connections_to_subgraph(sub)) == 2
+         self.assertEqual(len(g.connections_to_subgraph(sub)), 2)
 
      def test_connections_from_subgraph(self):
          """Test connections_from_subgraph."""
          g = self.make_linear(5)
          sub = g.subgraph([3])
-         assert len(g.connections_from_subgraph(sub)) == 1
+         self.assertEqual(len(g.connections_from_subgraph(sub)), 1)
          g = self.make_linear(5, True)
          sub = g.subgraph([3])
-         assert len(g.connections_from_subgraph(sub)) == 2
+         self.assertEqual(len(g.connections_from_subgraph(sub)), 2)
 
      def test_topologically_contractible(self):
          """Test topologically_contractible."""
          g = self.make_linear(5)
          sub = g.subgraph([1, 2])
-         assert g.topologically_contractible(sub)
+         self.assertTrue(g.topologically_contractible(sub))
          sub = g.subgraph([1, 3])
-         assert not g.topologically_contractible(sub)
+         self.assertFalse(g.topologically_contractible(sub))
 
          g = Graph()
          g.add_vertex(0)
@@ -997,38 +995,38 @@ class TestGraph(unittest.TestCase):
              s = []
              for j in xrange(4):
                  if i & (1 << j): s.append(j)
-             assert g.topologically_contractible(g.subgraph(s))
+             self.assertTrue(g.topologically_contractible(g.subgraph(s)))
 
      def test_iter_vertices(self):
          g = self.get_default_graph()
          l = list(g.iter_vertices())
          l.sort()
-         assert l == [0,1,2,3,4]
+         self.assertEqual(l, [0,1,2,3,4])
 
      def test_iter_edges(self):
          g = self.get_default_graph()
          l = [v for v in g.iter_all_edges()]
          l.sort()
-         assert l == [(0,1,0), (0,3,2), (1, 2, 1), (2, 4, 4), (3, 2, 3)]
+         self.assertEqual(l, [(0,1,0), (0,3,2), (1, 2, 1), (2, 4, 4), (3, 2, 3)])
 
      def test_iter_edges_empty(self):
          """Test iterators on empty parts of the graph."""
          g = Graph()
          for a in g.iter_vertices():
-             assert False
+             self.fail("iterating over empty graph!")
          g.add_vertex(0)
          for a in g.iter_edges_from(0):
-             assert False
+             self.fail("iterating over empty graph!")
          for a in g.iter_edges_to(0):
-             assert False
+             self.fail("iterating over empty graph!")
          for a in g.iter_all_edges():
-             assert False
+             self.fail("iterating over empty graph!")
 
      def test_get_edge_none(self):
          g = Graph()
          g.add_vertex(0)
          g.add_vertex(1)
-         assert g.get_edge(0, 1) == None
+         self.assertEqual(g.get_edge(0, 1), None)
 
      def test_dfs_before(self):
          g = self.make_linear(10)
@@ -1039,100 +1037,100 @@ class TestGraph(unittest.TestCase):
          g.dfs(vertex_set=[0],
                enter_vertex=before,
                leave_vertex=after)
-         assert inc == [0,1,2,3,4,5,6,7,8,9]
-         assert inc == list(reversed(dec))
-         assert all(a < b for a, b in izip(inc[:-1], inc[1:]))
-         assert all(a > b for a, b in izip(dec[:-1], dec[1:]))
+         self.assertEqual(inc, [0,1,2,3,4,5,6,7,8,9])
+         self.assertEqual(inc, list(reversed(dec)))
+         self.assertTrue(all(a < b for a, b in izip(inc[:-1], inc[1:])))
+         self.assertTrue(all(a > b for a, b in izip(dec[:-1], dec[1:])))
 
      def test_parent_source(self):
          g = self.make_linear(10)
          self.assertRaises(g.VertexHasNoParentError,
                            lambda: g.parent(0))
          for i in xrange(1, 10):
-             assert g.parent(i) == i-1
+             self.assertEqual(g.parent(i), i-1)
 
      def test_rename_vertex(self):
          g = self.make_linear(10)
          self.assertRaises(g.RenameVertexError,
                            lambda: g.rename_vertex(0, 1))
-         assert g.get_edge(0, 1) is not None
-         assert g.get_edge(0, 11) is None
+         self.assertNotEqual(g.get_edge(0, 1), None)
+         self.assertEqual(g.get_edge(0, 11), None)
          g.rename_vertex(1, 11)
-         assert g.get_edge(0, 1) is None
-         assert g.get_edge(0, 11) is not None
+         self.assertEqual(g.get_edge(0, 1), None)
+         self.assertNotEqual(g.get_edge(0, 11), None)
          g.rename_vertex(11, 1)
-         assert g.get_edge(0, 1) is not None
-         assert g.get_edge(0, 11) is None
+         self.assertNotEqual(g.get_edge(0, 1), None)
+         self.assertEqual(g.get_edge(0, 11), None)
 
      def test_delete_get_edge(self):
          g = self.make_linear(10)
          self.assertRaises(GraphException, lambda: g.delete_edge(7, 9))
-         assert g.has_edge(7, 8)
+         self.assertTrue(g.has_edge(7, 8))
          g.delete_edge(7, 8)
-         assert not g.has_edge(7, 8)
+         self.assertFalse(g.has_edge(7, 8))
 
      def test_bfs(self):
          g = self.make_linear(5)
          lst = g.bfs(0).items()
          lst.sort()
-         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
+         self.assertEqual(lst, [(1, 0), (2, 1), (3, 2), (4, 3)])
          lst = g.bfs(2).items()
          lst.sort()
-         assert lst == [(3, 2), (4, 3)]
+         self.assertEqual(lst, [(3, 2), (4, 3)])
 
      def test_undirected(self):
          g = self.make_linear(5).undirected_immutable()
          lst = g.bfs(0).items()
          lst.sort()
-         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
+         self.assertEqual(lst, [(1, 0), (2, 1), (3, 2), (4, 3)])
          lst = g.bfs(2).items()
          lst.sort()
-         assert lst == [(0, 1), (1, 2), (3, 2), (4, 3)]
+         self.assertEqual(lst, [(0, 1), (1, 2), (3, 2), (4, 3)])
 
      def test_closest_vertex(self):
          g = self.make_linear(10)
          g.delete_edge(7, 8)
          g = g.undirected_immutable()
          self.assertRaises(GraphException, lambda: g.closest_vertex(1, [9]))
-         assert g.closest_vertex(3, [2, 6, 7]) == 2
-         assert g.closest_vertex(3, [2, 3, 6, 7]) == 3
+         self.assertEqual(g.closest_vertex(3, [2, 6, 7]), 2)
+         self.assertEqual(g.closest_vertex(3, [2, 3, 6, 7]), 3)
          # Test using dictionary as target_list
 
          d1 = {2:True, 6:True, 7:False}
          d2 = {2:True, 6:True, 7:False, 3:False}
          d3 = {9:True}
          self.assertRaises(GraphException, lambda: g.closest_vertex(1, d3))
-         assert g.closest_vertex(3, d1) == 2
-         assert g.closest_vertex(3, d2) == 3
+         self.assertEqual(g.closest_vertex(3, d1), 2)
+         self.assertEqual(g.closest_vertex(3, d2), 3)
 
      def test_copy_not_share(self):
          g = self.make_linear(10)
          g2 = copy.copy(g)
          for v in g.vertices:
-             assert id(g.adjacency_list[v]) <> id(g2.adjacency_list[v])
-             assert id(g.inverse_adjacency_list[v]) <> id(g2.inverse_adjacency_list[v])
+             self.assertNotEqual(id(g.adjacency_list[v]), id(g2.adjacency_list[v]))
+             self.assertNotEqual(id(g.inverse_adjacency_list[v]), id(g2.inverse_adjacency_list[v]))
 
      def test_copy_works(self):
          g = self.make_linear(10)
          g2 = copy.copy(g)
          for v in g.vertices:
-             assert v in g2.vertices
-             assert g2.adjacency_list[v] == g.adjacency_list[v]
-             assert g2.inverse_adjacency_list[v] == g.inverse_adjacency_list[v]
+             self.assertTrue(v in g2.vertices)
+             self.assertEqual(g2.adjacency_list[v], g.adjacency_list[v])
+             self.assertEqual(g2.inverse_adjacency_list[v], g.inverse_adjacency_list[v])
 
      def test_equals(self):
          g = self.make_linear(5)
-         assert copy.copy(g) == g
+         self.assertEqual(copy.copy(g), g)
          g2 = copy.copy(g)
          g2.add_vertex(10)
-         assert g2 <> g
+         self.assertNotEqual(g2, g)
 
      def test_map_vertices(self):
          g = self.make_linear(5)
          m = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
-         assert g == Graph.map_vertices(g, m)
+         self.assertEqual(g, Graph.map_vertices(g, m))
          m = {0: 5, 1: 6, 2: 7, 3: 8, 4: 9}
-         assert g <> Graph.map_vertices(g, m)
+         self.assertNotEqual(g, Graph.map_vertices(g, m))
          
 if __name__ == '__main__':
     unittest.main()
