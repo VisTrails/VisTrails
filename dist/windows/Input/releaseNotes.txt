@@ -1,14 +1,34 @@
 RELEASE NOTES
 -------------
-Release Name: v2.0-beta build e29a873af4a1 from v2.0 branch
+Release Name: v2.0-beta build 716501f8b2fd from v2.0 branch
+
+Enhancements: 
+ - Mashup View: Added float slider (b5d481049666)
+ - New module execution state suspended added (cb47d3fc66b7)
 
 Bug fixes: 
+ - Parameter Exploration: Changed call to update the progress bar to be 
+   thread safe (716501f8b2fd)
+ - Fixed bug in iceCream.vt example (929ddcaa504a)
+ - MySQLdb was not being shipped correctly in Mac binary (e50f1c91b3e8)
+ - Mashup View: integer slider did not set step size correctly (b5d481049666)
+ - Cached interpreter failed when handling wrong input type (b5d481049666)
+ - Mashup View: failure when handling errors in execution that does not use the spreadsheet (b5d481049666)
+ - Fixed qt.conf problem in installer script files on Windows. (a01fabd12456)
+ - Fixed arguments of get_wf_graph_png rpc call (7cc451bdb606)
+ - updateUpstream* failed when modules did not contain the suspended attribute (256f4b4dd8a5)
+ - Mediawiki extension: fixed undefined variable  (334083cc69e1)
+ - WorkflowExecution.completed were set to False in the vis_log, it
+ should be an int. (cb47d3fc66b7)
+
+
+From Release: v2.0-beta build 10836452c19a from v2.0 branch
+
+Bug fixes: 
+ - Fix issue with deleting modules and connections (10836452c19a)
  - VTK package: fix problem when upgrading vtkCellArray.InsertNextCell input port (e29a873af4a1)
  - Ticket #525: The create analogy button is too small (bf61e06b0a50)
- - The create analogy button is too small (bf61e06b0a50)
  - Ticket #526: "Show raw pipeline" and "construct from root" commands should switch to the pipeline view (3ada5972d872)
- - "Show raw pipeline" and "construct from root" commands should
- switch to the pipeline view (3ada5972d872)
 
 From Release: v2.0-beta build b074d3a4eb44 from v2.0 branch
 
