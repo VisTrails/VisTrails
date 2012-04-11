@@ -1010,6 +1010,98 @@ class DBOpmAgentsXMLDAOBase(XMLDAO):
         
         return node
 
+class DBMashupXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'mashup':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('name', None)
+        name = self.convertFromStr(data, 'str')
+        data = node.get('version', None)
+        version = self.convertFromStr(data, 'long')
+        data = node.get('type', None)
+        type = self.convertFromStr(data, 'str')
+        data = node.get('vtid', None)
+        vtid = self.convertFromStr(data, 'long')
+        data = node.get('has_seq', None)
+        has_seq = self.convertFromStr(data, 'int')
+        
+        aliases = []
+        layout = None
+        geometry = None
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'alias':
+                _data = self.getDao('mashup_alias').fromXML(child)
+                aliases.append(_data)
+            elif child_tag == 'layout':
+                _data = self.convertFromStr(child.text,'str')
+                layout = _data
+            elif child_tag == 'geometry':
+                _data = self.convertFromStr(child.text,'str')
+                geometry = _data
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBMashup(id=id,
+                       name=name,
+                       version=version,
+                       aliases=aliases,
+                       type=type,
+                       vtid=vtid,
+                       layout=layout,
+                       geometry=geometry,
+                       has_seq=has_seq)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, mashup, node=None):
+        if node is None:
+            node = ElementTree.Element('mashup')
+        
+        # set attributes
+        node.set('id',self.convertToStr(mashup.db_id, 'long'))
+        node.set('name',self.convertToStr(mashup.db_name, 'str'))
+        node.set('version',self.convertToStr(mashup.db_version, 'long'))
+        node.set('type',self.convertToStr(mashup.db_type, 'str'))
+        node.set('vtid',self.convertToStr(mashup.db_vtid, 'long'))
+        node.set('has_seq',self.convertToStr(mashup.db_has_seq, 'int'))
+        
+        # set elements
+        aliases = mashup.db_aliases
+        for alias in aliases:
+            childNode = ElementTree.SubElement(node, 'alias')
+            self.getDao('mashup_alias').toXML(alias, childNode)
+        layout = mashup.db_layout
+        childNode = ElementTree.SubElement(node, 'layout')
+        childNode.text = self.convertToStr(layout, 'str')
+        geometry = mashup.db_geometry
+        childNode = ElementTree.SubElement(node, 'geometry')
+        childNode.text = self.convertToStr(geometry, 'str')
+        
+        return node
+
 class DBOpmProcessIdCauseXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -1040,6 +1132,66 @@ class DBOpmProcessIdCauseXMLDAOBase(XMLDAO):
         
         # set attributes
         node.set('id',self.convertToStr(opm_process_id_cause.db_id, 'str'))
+        
+        return node
+
+class DBMashupAliasXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'alias':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('name', None)
+        name = self.convertFromStr(data, 'str')
+        
+        mashup_component = None
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'component':
+                _data = self.getDao('mashup_component').fromXML(child)
+                mashup_component = _data
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBMashupAlias(id=id,
+                            name=name,
+                            mashup_component=mashup_component)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, mashup_alias, node=None):
+        if node is None:
+            node = ElementTree.Element('alias')
+        
+        # set attributes
+        node.set('id',self.convertToStr(mashup_alias.db_id, 'long'))
+        node.set('name',self.convertToStr(mashup_alias.db_name, 'str'))
+        
+        # set elements
+        mashup_component = mashup_alias.db_mashup_component
+        if mashup_component is not None:
+            childNode = ElementTree.SubElement(node, 'component')
+            self.getDao('mashup_component').toXML(mashup_component, childNode)
         
         return node
 
@@ -2043,6 +2195,74 @@ class DBOpmArtifactIdCauseXMLDAOBase(XMLDAO):
         
         return node
 
+class DBMashupActionXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'action':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('prevId', None)
+        prevId = self.convertFromStr(data, 'long')
+        data = node.get('date', None)
+        date = self.convertFromStr(data, 'datetime')
+        data = node.get('user', None)
+        user = self.convertFromStr(data, 'str')
+        
+        mashup = None
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'mashup':
+                _data = self.getDao('mashup').fromXML(child)
+                mashup = _data
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBMashupAction(id=id,
+                             prevId=prevId,
+                             date=date,
+                             user=user,
+                             mashup=mashup)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, mashup_action, node=None):
+        if node is None:
+            node = ElementTree.Element('action')
+        
+        # set attributes
+        node.set('id',self.convertToStr(mashup_action.db_id, 'long'))
+        node.set('prevId',self.convertToStr(mashup_action.db_prevId, 'long'))
+        node.set('date',self.convertToStr(mashup_action.db_date, 'datetime'))
+        node.set('user',self.convertToStr(mashup_action.db_user, 'str'))
+        
+        # set elements
+        mashup = mashup_action.db_mashup
+        if mashup is not None:
+            childNode = ElementTree.SubElement(node, 'mashup')
+            self.getDao('mashup').toXML(mashup, childNode)
+        
+        return node
+
 class DBOpmArtifactValueXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -2215,6 +2435,79 @@ class DBOpmGraphXMLDAOBase(XMLDAO):
         
         return node
 
+class DBMashuptrailXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'mashuptrail':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'str')
+        data = node.get('version', None)
+        version = self.convertFromStr(data, 'str')
+        data = node.get('vtVersion', None)
+        vtVersion = self.convertFromStr(data, 'long')
+        
+        mashup_actions = []
+        mashup_actionAnnotations = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'action':
+                _data = self.getDao('mashup_action').fromXML(child)
+                mashup_actions.append(_data)
+            elif child_tag == 'actionAnnotation':
+                _data = self.getDao('mashup_actionAnnotation').fromXML(child)
+                mashup_actionAnnotations.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBMashuptrail(id=id,
+                            version=version,
+                            vtVersion=vtVersion,
+                            mashup_actions=mashup_actions,
+                            mashup_actionAnnotations=mashup_actionAnnotations)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, mashuptrail, node=None):
+        if node is None:
+            node = ElementTree.Element('mashuptrail')
+        
+        # set attributes
+        node.set('id',self.convertToStr(mashuptrail.db_id, 'str'))
+        node.set('version',self.convertToStr(mashuptrail.db_version, 'str'))
+        node.set('vtVersion',self.convertToStr(mashuptrail.db_vtVersion, 'long'))
+        
+        # set elements
+        mashup_actions = mashuptrail.db_mashup_actions
+        for mashup_action in mashup_actions:
+            childNode = ElementTree.SubElement(node, 'action')
+            self.getDao('mashup_action').toXML(mashup_action, childNode)
+        mashup_actionAnnotations = mashuptrail.db_mashup_actionAnnotations
+        for mashup_actionAnnotation in mashup_actionAnnotations:
+            childNode = ElementTree.SubElement(node, 'actionAnnotation')
+            self.getDao('mashup_actionAnnotation').toXML(mashup_actionAnnotation, childNode)
+        
+        return node
+
 class DBRegistryXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -2331,6 +2624,103 @@ class DBOpmAccountXMLDAOBase(XMLDAO):
         value = opm_account.db_value
         childNode = ElementTree.SubElement(node, 'value')
         childNode.text = self.convertToStr(value, 'str')
+        
+        return node
+
+class DBMashupComponentXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'component':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('vtid', None)
+        vtid = self.convertFromStr(data, 'long')
+        data = node.get('vttype', None)
+        vttype = self.convertFromStr(data, 'str')
+        data = node.get('vtparent_type', None)
+        vtparent_type = self.convertFromStr(data, 'str')
+        data = node.get('vtparent_id', None)
+        vtparent_id = self.convertFromStr(data, 'long')
+        data = node.get('vtpos', None)
+        vtpos = self.convertFromStr(data, 'long')
+        data = node.get('vtmid', None)
+        vtmid = self.convertFromStr(data, 'long')
+        data = node.get('pos', None)
+        pos = self.convertFromStr(data, 'long')
+        data = node.get('type', None)
+        type = self.convertFromStr(data, 'str')
+        data = node.get('val', None)
+        val = self.convertFromStr(data, 'str')
+        data = node.get('minVal', None)
+        minVal = self.convertFromStr(data, 'str')
+        data = node.get('maxVal', None)
+        maxVal = self.convertFromStr(data, 'str')
+        data = node.get('stepSize', None)
+        stepSize = self.convertFromStr(data, 'str')
+        data = node.get('valueList', None)
+        strvaluelist = self.convertFromStr(data, 'str')
+        data = node.get('widget', None)
+        widget = self.convertFromStr(data, 'str')
+        data = node.get('seq', None)
+        seq = self.convertFromStr(data, 'int')
+        data = node.get('parent', None)
+        parent = self.convertFromStr(data, 'str')
+        
+        obj = DBMashupComponent(id=id,
+                                vtid=vtid,
+                                vttype=vttype,
+                                vtparent_type=vtparent_type,
+                                vtparent_id=vtparent_id,
+                                vtpos=vtpos,
+                                vtmid=vtmid,
+                                pos=pos,
+                                type=type,
+                                val=val,
+                                minVal=minVal,
+                                maxVal=maxVal,
+                                stepSize=stepSize,
+                                strvaluelist=strvaluelist,
+                                widget=widget,
+                                seq=seq,
+                                parent=parent)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, mashup_component, node=None):
+        if node is None:
+            node = ElementTree.Element('component')
+        
+        # set attributes
+        node.set('id',self.convertToStr(mashup_component.db_id, 'long'))
+        node.set('vtid',self.convertToStr(mashup_component.db_vtid, 'long'))
+        node.set('vttype',self.convertToStr(mashup_component.db_vttype, 'str'))
+        node.set('vtparent_type',self.convertToStr(mashup_component.db_vtparent_type, 'str'))
+        node.set('vtparent_id',self.convertToStr(mashup_component.db_vtparent_id, 'long'))
+        node.set('vtpos',self.convertToStr(mashup_component.db_vtpos, 'long'))
+        node.set('vtmid',self.convertToStr(mashup_component.db_vtmid, 'long'))
+        node.set('pos',self.convertToStr(mashup_component.db_pos, 'long'))
+        node.set('type',self.convertToStr(mashup_component.db_type, 'str'))
+        node.set('val',self.convertToStr(mashup_component.db_val, 'str'))
+        node.set('minVal',self.convertToStr(mashup_component.db_minVal, 'str'))
+        node.set('maxVal',self.convertToStr(mashup_component.db_maxVal, 'str'))
+        node.set('stepSize',self.convertToStr(mashup_component.db_stepSize, 'str'))
+        node.set('valueList',self.convertToStr(mashup_component.db_strvaluelist, 'str'))
+        node.set('widget',self.convertToStr(mashup_component.db_widget, 'str'))
+        node.set('seq',self.convertToStr(mashup_component.db_seq, 'int'))
+        node.set('parent',self.convertToStr(mashup_component.db_parent, 'str'))
         
         return node
 
@@ -3174,6 +3564,59 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         
         return node
 
+class DBMashupActionAnnotationXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'actionAnnotation':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('key', None)
+        key = self.convertFromStr(data, 'str')
+        data = node.get('value', None)
+        value = self.convertFromStr(data, 'str')
+        data = node.get('action_id', None)
+        action_id = self.convertFromStr(data, 'long')
+        data = node.get('date', None)
+        date = self.convertFromStr(data, 'datetime')
+        data = node.get('user', None)
+        user = self.convertFromStr(data, 'str')
+        
+        obj = DBMashupActionAnnotation(id=id,
+                                       key=key,
+                                       value=value,
+                                       action_id=action_id,
+                                       date=date,
+                                       user=user)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, mashup_actionAnnotation, node=None):
+        if node is None:
+            node = ElementTree.Element('actionAnnotation')
+        
+        # set attributes
+        node.set('id',self.convertToStr(mashup_actionAnnotation.db_id, 'long'))
+        node.set('key',self.convertToStr(mashup_actionAnnotation.db_key, 'str'))
+        node.set('value',self.convertToStr(mashup_actionAnnotation.db_value, 'str'))
+        node.set('action_id',self.convertToStr(mashup_actionAnnotation.db_action_id, 'long'))
+        node.set('date',self.convertToStr(mashup_actionAnnotation.db_date, 'datetime'))
+        node.set('user',self.convertToStr(mashup_actionAnnotation.db_user, 'str'))
+        
+        return node
+
 class DBConnectionXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -3884,8 +4327,12 @@ class XMLDAOListBase(dict):
             self['log'] = DBLogXMLDAOBase(self)
         if 'opm_agents' not in self:
             self['opm_agents'] = DBOpmAgentsXMLDAOBase(self)
+        if 'mashup' not in self:
+            self['mashup'] = DBMashupXMLDAOBase(self)
         if 'opm_process_id_cause' not in self:
             self['opm_process_id_cause'] = DBOpmProcessIdCauseXMLDAOBase(self)
+        if 'mashup_alias' not in self:
+            self['mashup_alias'] = DBMashupAliasXMLDAOBase(self)
         if 'machine' not in self:
             self['machine'] = DBMachineXMLDAOBase(self)
         if 'add' not in self:
@@ -3916,16 +4363,22 @@ class XMLDAOListBase(dict):
             self['workflow'] = DBWorkflowXMLDAOBase(self)
         if 'opm_artifact_id_cause' not in self:
             self['opm_artifact_id_cause'] = DBOpmArtifactIdCauseXMLDAOBase(self)
+        if 'mashup_action' not in self:
+            self['mashup_action'] = DBMashupActionXMLDAOBase(self)
         if 'opm_artifact_value' not in self:
             self['opm_artifact_value'] = DBOpmArtifactValueXMLDAOBase(self)
         if 'opm_artifact_id_effect' not in self:
             self['opm_artifact_id_effect'] = DBOpmArtifactIdEffectXMLDAOBase(self)
         if 'opm_graph' not in self:
             self['opm_graph'] = DBOpmGraphXMLDAOBase(self)
+        if 'mashuptrail' not in self:
+            self['mashuptrail'] = DBMashuptrailXMLDAOBase(self)
         if 'registry' not in self:
             self['registry'] = DBRegistryXMLDAOBase(self)
         if 'opm_account' not in self:
             self['opm_account'] = DBOpmAccountXMLDAOBase(self)
+        if 'mashup_component' not in self:
+            self['mashup_component'] = DBMashupComponentXMLDAOBase(self)
         if 'annotation' not in self:
             self['annotation'] = DBAnnotationXMLDAOBase(self)
         if 'change' not in self:
@@ -3946,6 +4399,8 @@ class XMLDAOListBase(dict):
             self['workflow_exec'] = DBWorkflowExecXMLDAOBase(self)
         if 'loop_exec' not in self:
             self['loop_exec'] = DBLoopExecXMLDAOBase(self)
+        if 'mashup_actionAnnotation' not in self:
+            self['mashup_actionAnnotation'] = DBMashupActionAnnotationXMLDAOBase(self)
         if 'connection' not in self:
             self['connection'] = DBConnectionXMLDAOBase(self)
         if 'opm_process' not in self:

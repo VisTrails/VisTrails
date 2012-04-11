@@ -142,6 +142,27 @@ CREATE TABLE log_tbl(
     vistrail_id int
 ) engine=InnoDB;
 
+CREATE TABLE mashup(
+    id int not null auto_increment primary key,
+    name varchar(255),
+    version int,
+    type varchar(255),
+    vtid int,
+    layout mediumtext,
+    geometry mediumtext,
+    has_seq int,
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE mashup_alias(
+    id int,
+    name varchar(255),
+    parent_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
 CREATE TABLE machine(
     id int,
     name varchar(255),
@@ -255,6 +276,26 @@ CREATE TABLE workflow(
     parent_id int
 ) engine=InnoDB;
 
+CREATE TABLE mashup_action(
+    id int,
+    prev_id int,
+    date datetime,
+    user varchar(255),
+    parent_id char(36),
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE mashuptrail(
+    id char(36),
+    version char(16),
+    vt_version int,
+    vtVersion int,
+    last_modified datetime,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
 CREATE TABLE registry(
     id int not null auto_increment primary key,
     entity_type char(16),
@@ -262,6 +303,27 @@ CREATE TABLE registry(
     root_descriptor_id int,
     name varchar(255),
     last_modified datetime
+) engine=InnoDB;
+
+CREATE TABLE mashup_component(
+    id int,
+    vtid int,
+    vttype varchar(255),
+    vtparent_type char(32),
+    vtparent_id int,
+    vtpos int,
+    vtmid int,
+    pos int,
+    type varchar(255),
+    val mediumtext,
+    minVal varchar(255),
+    maxVal varchar(255),
+    stepSize varchar(255),
+    strvaluelist mediumtext,
+    widget varchar(255),
+    seq int,
+    parent varchar(255),
+    alias_id int
 ) engine=InnoDB;
 
 CREATE TABLE annotation(
@@ -345,6 +407,18 @@ CREATE TABLE loop_exec(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE mashup_action_annotation(
+    id int,
+    akey varchar(255),
+    value varchar(8191),
+    action_id int,
+    date datetime,
+    user varchar(255),
+    parent_id char(36),
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE connection_tbl(
