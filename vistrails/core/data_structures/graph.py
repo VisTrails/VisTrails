@@ -1036,7 +1036,8 @@ class TestGraph(unittest.TestCase):
          dec = []
          def before(id): inc.append(id)
          def after(id): dec.append(id)
-         g.dfs(enter_vertex=before,
+         g.dfs(vertex_set=[0],
+               enter_vertex=before,
                leave_vertex=after)
          assert inc == [0,1,2,3,4,5,6,7,8,9]
          assert inc == list(reversed(dec))
