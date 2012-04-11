@@ -36,6 +36,37 @@ import uuid
 from datetime import date, datetime
 from time import strptime
 ################################################################################                           
+
+def conv_to_bool(x):
+    if type(x) == str:
+        s = str(x).upper()
+        if s == 'TRUE':
+            return True
+        if s == 'FALSE':
+            return False
+    elif type(x) == int:
+        if x == 0:
+            return False
+        else:
+            return True
+    elif type(x) == bool:
+        return x
+        
+def conv_from_bool(x):
+    if type(x) == bool:
+        if x == True:
+            return 1
+        else:
+            return 0
+    elif type(x) == int:
+        return x
+    
+def convert_symbols(val):
+    val = val.replace("&lt;", "<")
+    val = val.replace("&gt;", ">")
+    val = val.replace("&amp;","&")
+    return val
+
 currentVersion = "0.1.0"
 
 class XMLObject(object):
