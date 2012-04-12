@@ -630,26 +630,29 @@ class VistrailController(object):
         # shouldn't be replaced
         if should_replace and old_id >= 0:
             function = module.function_idx[old_id]
-            for i, new_param_value in enumerate(param_values):
-                old_param = function.params[i]
-                if ((len(aliases) > i and old_param.alias != aliases[i]) or
-                    (len(query_methods) > i and 
-                     old_param.queryMethod != query_methods[i]) or
-                    (old_param.strValue != new_param_value)):
-                    if len(aliases) > i:
-                        alias = aliases[i]
-                    else:
-                        alias = ''
-                    if len(query_methods) > i:
-                        query_method = query_methods[i]
-                    else:
-                        query_method = None
-                    new_param = self.create_param(port_spec, i, 
-                                                  new_param_value, alias,
-                                                  query_method)
-                    op_list.append(('change', old_param, new_param,
-                                    function.vtType, function.real_id))
-        else:
+            if param_values is None:
+                op_list.append(('delete', function, module.vtType, module.id))
+            else:
+                for i, new_param_value in enumerate(param_values):
+                    old_param = function.params[i]
+                    if ((len(aliases) > i and old_param.alias != aliases[i]) or
+                        (len(query_methods) > i and 
+                         old_param.queryMethod != query_methods[i]) or
+                        (old_param.strValue != new_param_value)):
+                        if len(aliases) > i:
+                            alias = aliases[i]
+                        else:
+                            alias = ''
+                        if len(query_methods) > i:
+                            query_method = query_methods[i]
+                        else:
+                            query_method = None
+                        new_param = self.create_param(port_spec, i, 
+                                                      new_param_value, alias,
+                                                      query_method)
+                        op_list.append(('change', old_param, new_param,
+                                        function.vtType, function.real_id))
+        elif param_values is not None:
             new_function = self.create_function(module, function_name,
                                                 param_values, aliases,
                                                 query_methods)
@@ -942,7 +945,10 @@ class VistrailController(object):
     @vt_action
     def update_functions(self, module, functions):
         op_list = self.update_functions_ops(module, functions)
-        action = core.db.action.create_action(op_list)
+        if len(op_list) > 0:
+            action = core.db.action.create_action(op_list)
+        else:
+            action = None
         return action
 
     @vt_action
