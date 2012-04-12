@@ -140,7 +140,9 @@ class TestTraceMethod(unittest.TestCase):
         _output_file.close()
         _output_file = sys.stderr
 
-        output = "".join(file(name, 'r').readlines())
+        input = file(name, 'r')
+        output = "".join(input.readlines())
+        input.close()
         self.assertEquals(output,
                           'test_fun.enter\n' +
                           'test_fun.exit\n')
@@ -158,7 +160,9 @@ class TestTraceMethod(unittest.TestCase):
         _output_file.close()
         _output_file = sys.stderr
 
-        output = "".join(file(name, 'r').readlines())
+        input = file(name, 'r')
+        output = "".join(input.readlines())
+        input.close()
         self.assertEquals(output,
                           'test_fun_2.enter\n' +
                           'test_fun_2.1\n' +
