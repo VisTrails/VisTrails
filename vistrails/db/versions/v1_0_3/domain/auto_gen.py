@@ -3679,12 +3679,11 @@ class DBMashupAlias(object):
 
     vtType = 'mashup_alias'
 
-    def __init__(self, id=None, name=None, mashup_component=None, entity_type=None):
+    def __init__(self, id=None, name=None, component=None):
         self._db_id = id
         self._db_name = name
-        self.db_deleted_mashup_component = []
-        self._db_mashup_component = mashup_component
-        self._db_entity_type = entity_type
+        self.db_deleted_component = []
+        self._db_component = component
         self.is_dirty = True
         self.is_new = True
     
@@ -3693,10 +3692,9 @@ class DBMashupAlias(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBMashupAlias(id=self._db_id,
-                           name=self._db_name,
-                           entity_type=self._db_entity_type)
-        if self._db_mashup_component is not None:
-            cp._db_mashup_component = self._db_mashup_component.do_copy(new_ids, id_scope, id_remap)
+                           name=self._db_name)
+        if self._db_component is not None:
+            cp._db_component = self._db_component.do_copy(new_ids, id_scope, id_remap)
         
         # set new ids
         if new_ids:
@@ -3730,43 +3728,38 @@ class DBMashupAlias(object):
             new_obj.db_name = res
         elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
-        if 'mashup_component' in class_dict:
-            res = class_dict['mashup_component'](old_obj, trans_dict)
-            new_obj.db_mashup_component = res
-        elif hasattr(old_obj, 'db_mashup_component') and old_obj.db_mashup_component is not None:
-            obj = old_obj.db_mashup_component
-            new_obj.db_add_mashup_component(DBMashupComponent.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_mashup_component') and hasattr(new_obj, 'db_deleted_mashup_component'):
-            for obj in old_obj.db_deleted_mashup_component:
+        if 'component' in class_dict:
+            res = class_dict['component'](old_obj, trans_dict)
+            new_obj.db_component = res
+        elif hasattr(old_obj, 'db_component') and old_obj.db_component is not None:
+            obj = old_obj.db_component
+            new_obj.db_add_component(DBMashupComponent.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_component') and hasattr(new_obj, 'db_deleted_component'):
+            for obj in old_obj.db_deleted_component:
                 n_obj = DBMashupComponent.update_version(obj, trans_dict)
-                new_obj.db_deleted_mashup_component.append(n_obj)
-        if 'entity_type' in class_dict:
-            res = class_dict['entity_type'](old_obj, trans_dict)
-            new_obj.db_entity_type = res
-        elif hasattr(old_obj, 'db_entity_type') and old_obj.db_entity_type is not None:
-            new_obj.db_entity_type = old_obj.db_entity_type
+                new_obj.db_deleted_component.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
-        if self._db_mashup_component is not None:
-            children.extend(self._db_mashup_component.db_children((self.vtType, self.db_id), orphan))
+        if self._db_component is not None:
+            children.extend(self._db_component.db_children((self.vtType, self.db_id), orphan))
             if orphan:
-                self._db_mashup_component = None
+                self._db_component = None
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_mashup_component)
+        children.extend(self.db_deleted_component)
         if remove:
-            self.db_deleted_mashup_component = []
+            self.db_deleted_component = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        if self._db_mashup_component is not None and self._db_mashup_component.has_changes():
+        if self._db_component is not None and self._db_component.has_changes():
             return True
         return False
     def __get_db_id(self):
@@ -3795,33 +3788,20 @@ class DBMashupAlias(object):
     def db_delete_name(self, name):
         self._db_name = None
     
-    def __get_db_mashup_component(self):
-        return self._db_mashup_component
-    def __set_db_mashup_component(self, mashup_component):
-        self._db_mashup_component = mashup_component
+    def __get_db_component(self):
+        return self._db_component
+    def __set_db_component(self, component):
+        self._db_component = component
         self.is_dirty = True
-    db_mashup_component = property(__get_db_mashup_component, __set_db_mashup_component)
-    def db_add_mashup_component(self, mashup_component):
-        self._db_mashup_component = mashup_component
-    def db_change_mashup_component(self, mashup_component):
-        self._db_mashup_component = mashup_component
-    def db_delete_mashup_component(self, mashup_component):
+    db_component = property(__get_db_component, __set_db_component)
+    def db_add_component(self, component):
+        self._db_component = component
+    def db_change_component(self, component):
+        self._db_component = component
+    def db_delete_component(self, component):
         if not self.is_new:
-            self.db_deleted_mashup_component.append(self._db_mashup_component)
-        self._db_mashup_component = None
-    
-    def __get_db_entity_type(self):
-        return self._db_entity_type
-    def __set_db_entity_type(self, entity_type):
-        self._db_entity_type = entity_type
-        self.is_dirty = True
-    db_entity_type = property(__get_db_entity_type, __set_db_entity_type)
-    def db_add_entity_type(self, entity_type):
-        self._db_entity_type = entity_type
-    def db_change_entity_type(self, entity_type):
-        self._db_entity_type = entity_type
-    def db_delete_entity_type(self, entity_type):
-        self._db_entity_type = None
+            self.db_deleted_component.append(self._db_component)
+        self._db_component = None
     
     def getPrimaryKey(self):
         return self._db_id
@@ -7368,32 +7348,31 @@ class DBMashuptrail(object):
 
     vtType = 'mashuptrail'
 
-    def __init__(self, id=None, version=None, vtVersion=None, vtVersion=None, last_modified=None, mashup_actions=None, mashup_actionAnnotations=None):
+    def __init__(self, id=None, version=None, vtVersion=None, last_modified=None, actions=None, annotations=None):
         self._db_id = id
         self._db_version = version
         self._db_vtVersion = vtVersion
-        self._db_vtVersion = vtVersion
         self._db_last_modified = last_modified
-        self.db_deleted_mashup_actions = []
-        self.db_mashup_actions_id_index = {}
-        if mashup_actions is None:
-            self._db_mashup_actions = []
+        self.db_deleted_actions = []
+        self.db_actions_id_index = {}
+        if actions is None:
+            self._db_actions = []
         else:
-            self._db_mashup_actions = mashup_actions
-            for v in self._db_mashup_actions:
-                self.db_mashup_actions_id_index[v.db_id] = v
-        self.db_deleted_mashup_actionAnnotations = []
-        self.db_mashup_actionAnnotations_id_index = {}
-        self.db_mashup_actionAnnotations_action_id_index = {}
-        self.db_mashup_actionAnnotations_key_index = {}
-        if mashup_actionAnnotations is None:
-            self._db_mashup_actionAnnotations = []
+            self._db_actions = actions
+            for v in self._db_actions:
+                self.db_actions_id_index[v.db_id] = v
+        self.db_deleted_annotations = []
+        self.db_annotations_id_index = {}
+        self.db_annotations_action_id_index = {}
+        self.db_annotations_key_index = {}
+        if annotations is None:
+            self._db_annotations = []
         else:
-            self._db_mashup_actionAnnotations = mashup_actionAnnotations
-            for v in self._db_mashup_actionAnnotations:
-                self.db_mashup_actionAnnotations_id_index[v.db_id] = v
-                self.db_mashup_actionAnnotations_action_id_index[(v.db_action_id,v.db_key)] = v
-                self.db_mashup_actionAnnotations_key_index[(v.db_key,v.db_value)] = v
+            self._db_annotations = annotations
+            for v in self._db_annotations:
+                self.db_annotations_id_index[v.db_id] = v
+                self.db_annotations_action_id_index[(v.db_action_id,v.db_key)] = v
+                self.db_annotations_key_index[(v.db_key,v.db_value)] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -7404,16 +7383,15 @@ class DBMashuptrail(object):
         cp = DBMashuptrail(id=self._db_id,
                            version=self._db_version,
                            vtVersion=self._db_vtVersion,
-                           vtVersion=self._db_vtVersion,
                            last_modified=self._db_last_modified)
-        if self._db_mashup_actions is None:
-            cp._db_mashup_actions = []
+        if self._db_actions is None:
+            cp._db_actions = []
         else:
-            cp._db_mashup_actions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_mashup_actions]
-        if self._db_mashup_actionAnnotations is None:
-            cp._db_mashup_actionAnnotations = []
+            cp._db_actions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actions]
+        if self._db_annotations is None:
+            cp._db_annotations = []
         else:
-            cp._db_mashup_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_mashup_actionAnnotations]
+            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         
         # set new ids
         if new_ids:
@@ -7425,10 +7403,10 @@ class DBMashuptrail(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.db_mashup_actions_id_index = dict((v.db_id, v) for v in cp._db_mashup_actions)
-        cp.db_mashup_actionAnnotations_id_index = dict((v.db_id, v) for v in cp._db_mashup_actionAnnotations)
-        cp.db_mashup_actionAnnotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_mashup_actionAnnotations)
-        cp.db_mashup_actionAnnotations_key_index = dict(((v.db_key,v.db_value), v) for v in cp._db_mashup_actionAnnotations)
+        cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
+        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict(((v.db_key,v.db_value), v) for v in cp._db_annotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -7456,38 +7434,33 @@ class DBMashuptrail(object):
             new_obj.db_vtVersion = res
         elif hasattr(old_obj, 'db_vtVersion') and old_obj.db_vtVersion is not None:
             new_obj.db_vtVersion = old_obj.db_vtVersion
-        if 'vtVersion' in class_dict:
-            res = class_dict['vtVersion'](old_obj, trans_dict)
-            new_obj.db_vtVersion = res
-        elif hasattr(old_obj, 'db_vtVersion') and old_obj.db_vtVersion is not None:
-            new_obj.db_vtVersion = old_obj.db_vtVersion
         if 'last_modified' in class_dict:
             res = class_dict['last_modified'](old_obj, trans_dict)
             new_obj.db_last_modified = res
         elif hasattr(old_obj, 'db_last_modified') and old_obj.db_last_modified is not None:
             new_obj.db_last_modified = old_obj.db_last_modified
-        if 'mashup_actions' in class_dict:
-            res = class_dict['mashup_actions'](old_obj, trans_dict)
+        if 'actions' in class_dict:
+            res = class_dict['actions'](old_obj, trans_dict)
             for obj in res:
-                new_obj.db_add_mashup_action(obj)
-        elif hasattr(old_obj, 'db_mashup_actions') and old_obj.db_mashup_actions is not None:
-            for obj in old_obj.db_mashup_actions:
-                new_obj.db_add_mashup_action(DBMashupAction.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_mashup_actions') and hasattr(new_obj, 'db_deleted_mashup_actions'):
-            for obj in old_obj.db_deleted_mashup_actions:
+                new_obj.db_add_action(obj)
+        elif hasattr(old_obj, 'db_actions') and old_obj.db_actions is not None:
+            for obj in old_obj.db_actions:
+                new_obj.db_add_action(DBMashupAction.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_actions') and hasattr(new_obj, 'db_deleted_actions'):
+            for obj in old_obj.db_deleted_actions:
                 n_obj = DBMashupAction.update_version(obj, trans_dict)
-                new_obj.db_deleted_mashup_actions.append(n_obj)
-        if 'mashup_actionAnnotations' in class_dict:
-            res = class_dict['mashup_actionAnnotations'](old_obj, trans_dict)
+                new_obj.db_deleted_actions.append(n_obj)
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
-                new_obj.db_add_mashup_actionAnnotation(obj)
-        elif hasattr(old_obj, 'db_mashup_actionAnnotations') and old_obj.db_mashup_actionAnnotations is not None:
-            for obj in old_obj.db_mashup_actionAnnotations:
-                new_obj.db_add_mashup_actionAnnotation(DBMashupActionAnnotation.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_mashup_actionAnnotations') and hasattr(new_obj, 'db_deleted_mashup_actionAnnotations'):
-            for obj in old_obj.db_deleted_mashup_actionAnnotations:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBMashupActionAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
                 n_obj = DBMashupActionAnnotation.update_version(obj, trans_dict)
-                new_obj.db_deleted_mashup_actionAnnotations.append(n_obj)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -7495,36 +7468,36 @@ class DBMashuptrail(object):
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         to_del = []
-        for child in self.db_mashup_actions:
+        for child in self.db_actions:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
             if orphan:
                 to_del.append(child)
         for child in to_del:
-            self.db_delete_mashup_action(child)
+            self.db_delete_action(child)
         to_del = []
-        for child in self.db_mashup_actionAnnotations:
+        for child in self.db_annotations:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
             if orphan:
                 to_del.append(child)
         for child in to_del:
-            self.db_delete_mashup_actionAnnotation(child)
+            self.db_delete_annotation(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_mashup_actions)
-        children.extend(self.db_deleted_mashup_actionAnnotations)
+        children.extend(self.db_deleted_actions)
+        children.extend(self.db_deleted_annotations)
         if remove:
-            self.db_deleted_mashup_actions = []
-            self.db_deleted_mashup_actionAnnotations = []
+            self.db_deleted_actions = []
+            self.db_deleted_annotations = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        for child in self._db_mashup_actions:
+        for child in self._db_actions:
             if child.has_changes():
                 return True
-        for child in self._db_mashup_actionAnnotations:
+        for child in self._db_annotations:
             if child.has_changes():
                 return True
         return False
@@ -7567,19 +7540,6 @@ class DBMashuptrail(object):
     def db_delete_vtVersion(self, vtVersion):
         self._db_vtVersion = None
     
-    def __get_db_vtVersion(self):
-        return self._db_vtVersion
-    def __set_db_vtVersion(self, vtVersion):
-        self._db_vtVersion = vtVersion
-        self.is_dirty = True
-    db_vtVersion = property(__get_db_vtVersion, __set_db_vtVersion)
-    def db_add_vtVersion(self, vtVersion):
-        self._db_vtVersion = vtVersion
-    def db_change_vtVersion(self, vtVersion):
-        self._db_vtVersion = vtVersion
-    def db_delete_vtVersion(self, vtVersion):
-        self._db_vtVersion = None
-    
     def __get_db_last_modified(self):
         return self._db_last_modified
     def __set_db_last_modified(self, last_modified):
@@ -7593,106 +7553,106 @@ class DBMashuptrail(object):
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
     
-    def __get_db_mashup_actions(self):
-        return self._db_mashup_actions
-    def __set_db_mashup_actions(self, mashup_actions):
-        self._db_mashup_actions = mashup_actions
+    def __get_db_actions(self):
+        return self._db_actions
+    def __set_db_actions(self, actions):
+        self._db_actions = actions
         self.is_dirty = True
-    db_mashup_actions = property(__get_db_mashup_actions, __set_db_mashup_actions)
-    def db_get_mashup_actions(self):
-        return self._db_mashup_actions
-    def db_add_mashup_action(self, mashup_action):
+    db_actions = property(__get_db_actions, __set_db_actions)
+    def db_get_actions(self):
+        return self._db_actions
+    def db_add_action(self, action):
         self.is_dirty = True
-        self._db_mashup_actions.append(mashup_action)
-        self.db_mashup_actions_id_index[mashup_action.db_id] = mashup_action
-    def db_change_mashup_action(self, mashup_action):
+        self._db_actions.append(action)
+        self.db_actions_id_index[action.db_id] = action
+    def db_change_action(self, action):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_mashup_actions)):
-            if self._db_mashup_actions[i].db_id == mashup_action.db_id:
-                self._db_mashup_actions[i] = mashup_action
+        for i in xrange(len(self._db_actions)):
+            if self._db_actions[i].db_id == action.db_id:
+                self._db_actions[i] = action
                 found = True
                 break
         if not found:
-            self._db_mashup_actions.append(mashup_action)
-        self.db_mashup_actions_id_index[mashup_action.db_id] = mashup_action
-    def db_delete_mashup_action(self, mashup_action):
+            self._db_actions.append(action)
+        self.db_actions_id_index[action.db_id] = action
+    def db_delete_action(self, action):
         self.is_dirty = True
-        for i in xrange(len(self._db_mashup_actions)):
-            if self._db_mashup_actions[i].db_id == mashup_action.db_id:
-                if not self._db_mashup_actions[i].is_new:
-                    self.db_deleted_mashup_actions.append(self._db_mashup_actions[i])
-                del self._db_mashup_actions[i]
+        for i in xrange(len(self._db_actions)):
+            if self._db_actions[i].db_id == action.db_id:
+                if not self._db_actions[i].is_new:
+                    self.db_deleted_actions.append(self._db_actions[i])
+                del self._db_actions[i]
                 break
-        del self.db_mashup_actions_id_index[mashup_action.db_id]
-    def db_get_mashup_action(self, key):
-        for i in xrange(len(self._db_mashup_actions)):
-            if self._db_mashup_actions[i].db_id == key:
-                return self._db_mashup_actions[i]
+        del self.db_actions_id_index[action.db_id]
+    def db_get_action(self, key):
+        for i in xrange(len(self._db_actions)):
+            if self._db_actions[i].db_id == key:
+                return self._db_actions[i]
         return None
-    def db_get_mashup_action_by_id(self, key):
-        return self.db_mashup_actions_id_index[key]
-    def db_has_mashup_action_with_id(self, key):
-        return key in self.db_mashup_actions_id_index
+    def db_get_action_by_id(self, key):
+        return self.db_actions_id_index[key]
+    def db_has_action_with_id(self, key):
+        return key in self.db_actions_id_index
     
-    def __get_db_mashup_actionAnnotations(self):
-        return self._db_mashup_actionAnnotations
-    def __set_db_mashup_actionAnnotations(self, mashup_actionAnnotations):
-        self._db_mashup_actionAnnotations = mashup_actionAnnotations
+    def __get_db_annotations(self):
+        return self._db_annotations
+    def __set_db_annotations(self, annotations):
+        self._db_annotations = annotations
         self.is_dirty = True
-    db_mashup_actionAnnotations = property(__get_db_mashup_actionAnnotations, __set_db_mashup_actionAnnotations)
-    def db_get_mashup_actionAnnotations(self):
-        return self._db_mashup_actionAnnotations
-    def db_add_mashup_actionAnnotation(self, mashup_actionAnnotation):
+    db_annotations = property(__get_db_annotations, __set_db_annotations)
+    def db_get_annotations(self):
+        return self._db_annotations
+    def db_add_annotation(self, annotation):
         self.is_dirty = True
-        self._db_mashup_actionAnnotations.append(mashup_actionAnnotation)
-        self.db_mashup_actionAnnotations_id_index[mashup_actionAnnotation.db_id] = mashup_actionAnnotation
-        self.db_mashup_actionAnnotations_action_id_index[(mashup_actionAnnotation.db_action_id,mashup_actionAnnotation.db_key)] = mashup_actionAnnotation
-        self.db_mashup_actionAnnotations_key_index[(mashup_actionAnnotation.db_key,mashup_actionAnnotation.db_value)] = mashup_actionAnnotation
-    def db_change_mashup_actionAnnotation(self, mashup_actionAnnotation):
+        self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_action_id_index[(annotation.db_action_id,annotation.db_key)] = annotation
+        self.db_annotations_key_index[(annotation.db_key,annotation.db_value)] = annotation
+    def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_mashup_actionAnnotations)):
-            if self._db_mashup_actionAnnotations[i].db_id == mashup_actionAnnotation.db_id:
-                self._db_mashup_actionAnnotations[i] = mashup_actionAnnotation
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                self._db_annotations[i] = annotation
                 found = True
                 break
         if not found:
-            self._db_mashup_actionAnnotations.append(mashup_actionAnnotation)
-        self.db_mashup_actionAnnotations_id_index[mashup_actionAnnotation.db_id] = mashup_actionAnnotation
-        self.db_mashup_actionAnnotations_action_id_index[(mashup_actionAnnotation.db_action_id,mashup_actionAnnotation.db_key)] = mashup_actionAnnotation
-        self.db_mashup_actionAnnotations_key_index[(mashup_actionAnnotation.db_key,mashup_actionAnnotation.db_value)] = mashup_actionAnnotation
-    def db_delete_mashup_actionAnnotation(self, mashup_actionAnnotation):
+            self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_action_id_index[(annotation.db_action_id,annotation.db_key)] = annotation
+        self.db_annotations_key_index[(annotation.db_key,annotation.db_value)] = annotation
+    def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_mashup_actionAnnotations)):
-            if self._db_mashup_actionAnnotations[i].db_id == mashup_actionAnnotation.db_id:
-                if not self._db_mashup_actionAnnotations[i].is_new:
-                    self.db_deleted_mashup_actionAnnotations.append(self._db_mashup_actionAnnotations[i])
-                del self._db_mashup_actionAnnotations[i]
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                if not self._db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self._db_annotations[i])
+                del self._db_annotations[i]
                 break
-        del self.db_mashup_actionAnnotations_id_index[mashup_actionAnnotation.db_id]
-        del self.db_mashup_actionAnnotations_action_id_index[(mashup_actionAnnotation.db_action_id,mashup_actionAnnotation.db_key)]
+        del self.db_annotations_id_index[annotation.db_id]
+        del self.db_annotations_action_id_index[(annotation.db_action_id,annotation.db_key)]
         try:
-            del self.db_mashup_actionAnnotations_key_index[(mashup_actionAnnotation.db_key,mashup_actionAnnotation.db_value)]
+            del self.db_annotations_key_index[(annotation.db_key,annotation.db_value)]
         except KeyError:
             pass
-    def db_get_mashup_actionAnnotation(self, key):
-        for i in xrange(len(self._db_mashup_actionAnnotations)):
-            if self._db_mashup_actionAnnotations[i].db_id == key:
-                return self._db_mashup_actionAnnotations[i]
+    def db_get_annotation(self, key):
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == key:
+                return self._db_annotations[i]
         return None
-    def db_get_mashup_actionAnnotation_by_id(self, key):
-        return self.db_mashup_actionAnnotations_id_index[key]
-    def db_has_mashup_actionAnnotation_with_id(self, key):
-        return key in self.db_mashup_actionAnnotations_id_index
-    def db_get_mashup_actionAnnotation_by_action_id(self, key):
-        return self.db_mashup_actionAnnotations_action_id_index[key]
-    def db_has_mashup_actionAnnotation_with_action_id(self, key):
-        return key in self.db_mashup_actionAnnotations_action_id_index
-    def db_get_mashup_actionAnnotation_by_key(self, key):
-        return self.db_mashup_actionAnnotations_key_index[key]
-    def db_has_mashup_actionAnnotation_with_key(self, key):
-        return key in self.db_mashup_actionAnnotations_key_index
+    def db_get_annotation_by_id(self, key):
+        return self.db_annotations_id_index[key]
+    def db_has_annotation_with_id(self, key):
+        return key in self.db_annotations_id_index
+    def db_get_annotation_by_action_id(self, key):
+        return self.db_annotations_action_id_index[key]
+    def db_has_annotation_with_action_id(self, key):
+        return key in self.db_annotations_action_id_index
+    def db_get_annotation_by_key(self, key):
+        return self.db_annotations_key_index[key]
+    def db_has_annotation_with_key(self, key):
+        return key in self.db_annotations_key_index
     
     def getPrimaryKey(self):
         return self._db_id

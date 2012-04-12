@@ -2941,19 +2941,15 @@
       <sql column="vt_version" type="int"/>
     </property>
 
-    <property name="vtVersion" type="long">
-      <sql type="int"/>
-    </property>
-
     <property name="last_modified" type="datetime">
       <sql type="datetime"/>
     </property>
 
-    <property ref="true" object="mashup_action" type="list" mapping="one-to-many">
+    <property name="action" ref="true" object="mashup_action" type="list" mapping="one-to-many">
       <xml nodeType="xs:element"/>
     </property>
 
-    <property ref="true" object="mashup_actionAnnotation" type="list" 
+    <property name="annotation" ref="true" object="mashup_actionAnnotation" type="list" 
 	      mapping="one-to-many" index="action_id:key !key:value">
       <xml nodeType="xs:element"/>
     </property>
@@ -2987,7 +2983,7 @@
       <sql type="varchar(255)"/>
     </property>
 
-    <property ref="true" object="mashup_component" type="object" mapping="one-to-one">
+    <property name="component" ref="true" object="mashup_component" type="object" mapping="one-to-one">
       <xml nodeType="xs:element"/>
     </property>
     
@@ -2996,8 +2992,8 @@
 	<sql column="parent_id" type="int"/>
       </property>
     
-    <property name="entity_type" type="str">
-      <sql type="char(16)" global="true" globalName="entity_type"/>
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
     </property>
     
   </object>

@@ -33,13 +33,13 @@
 ###############################################################################
 
 from db.domain import IdScope
-from core.mashup import XMLObject
+from db.domain import DBMashup
 from core.mashup.alias import Alias
 from core.mashup.component import Component
 from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 
-class Mashup(XMLObject):
+class Mashup(DBMashup):
     def __init__(self, id, name, vtid=None, version=None, alias_list=None, 
                  t='vistrail', has_seq=None, layout='', geometry='', id_scope=IdScope()):
         self.id = id

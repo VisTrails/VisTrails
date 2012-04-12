@@ -290,7 +290,6 @@ CREATE TABLE mashuptrail(
     id char(36),
     version char(16),
     vt_version int,
-    vtVersion int,
     last_modified datetime,
     entity_id int,
     entity_type char(16)

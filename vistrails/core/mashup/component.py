@@ -45,7 +45,7 @@ class Component(DBMashupComponent):
         widget can be: text, slider, combobox, numericstepper, checkbox
 
         """
-        DBMashupComponent.__init__(self, id, vtid, vttype, parent_vttype, 
+        DBMashupComponent.__init__(self, id, param_id, vttype, parent_vttype, 
                                    parent_id, p_pos, mid, pos, type, value, 
                                    minVal, maxVal, stepSize, strvaluelist, 
                                    widget, seq, parent)

@@ -1157,7 +1157,7 @@ class DBMashupAliasXMLDAOBase(XMLDAO):
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
         
-        mashup_component = None
+        component = None
         
         # read children
         for child in node.getchildren():
@@ -1167,7 +1167,7 @@ class DBMashupAliasXMLDAOBase(XMLDAO):
                 child_tag = child.tag
             if child_tag == 'component':
                 _data = self.getDao('mashup_component').fromXML(child)
-                mashup_component = _data
+                component = _data
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -1175,7 +1175,7 @@ class DBMashupAliasXMLDAOBase(XMLDAO):
         
         obj = DBMashupAlias(id=id,
                             name=name,
-                            mashup_component=mashup_component)
+                            component=component)
         obj.is_dirty = False
         return obj
     
@@ -1188,10 +1188,10 @@ class DBMashupAliasXMLDAOBase(XMLDAO):
         node.set('name',self.convertToStr(mashup_alias.db_name, 'str'))
         
         # set elements
-        mashup_component = mashup_alias.db_mashup_component
-        if mashup_component is not None:
+        component = mashup_alias.db_component
+        if component is not None:
             childNode = ElementTree.SubElement(node, 'component')
-            self.getDao('mashup_component').toXML(mashup_component, childNode)
+            self.getDao('mashup_component').toXML(component, childNode)
         
         return node
 
@@ -2459,8 +2459,8 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
         data = node.get('vtVersion', None)
         vtVersion = self.convertFromStr(data, 'long')
         
-        mashup_actions = []
-        mashup_actionAnnotations = []
+        actions = []
+        annotations = []
         
         # read children
         for child in node.getchildren():
@@ -2470,10 +2470,10 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
                 child_tag = child.tag
             if child_tag == 'action':
                 _data = self.getDao('mashup_action').fromXML(child)
-                mashup_actions.append(_data)
+                actions.append(_data)
             elif child_tag == 'actionAnnotation':
                 _data = self.getDao('mashup_actionAnnotation').fromXML(child)
-                mashup_actionAnnotations.append(_data)
+                annotations.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -2482,8 +2482,8 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
         obj = DBMashuptrail(id=id,
                             version=version,
                             vtVersion=vtVersion,
-                            mashup_actions=mashup_actions,
-                            mashup_actionAnnotations=mashup_actionAnnotations)
+                            actions=actions,
+                            annotations=annotations)
         obj.is_dirty = False
         return obj
     
@@ -2497,14 +2497,14 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
         node.set('vtVersion',self.convertToStr(mashuptrail.db_vtVersion, 'long'))
         
         # set elements
-        mashup_actions = mashuptrail.db_mashup_actions
-        for mashup_action in mashup_actions:
+        actions = mashuptrail.db_actions
+        for action in actions:
             childNode = ElementTree.SubElement(node, 'action')
-            self.getDao('mashup_action').toXML(mashup_action, childNode)
-        mashup_actionAnnotations = mashuptrail.db_mashup_actionAnnotations
-        for mashup_actionAnnotation in mashup_actionAnnotations:
+            self.getDao('mashup_action').toXML(action, childNode)
+        annotations = mashuptrail.db_annotations
+        for annotation in annotations:
             childNode = ElementTree.SubElement(node, 'actionAnnotation')
-            self.getDao('mashup_actionAnnotation').toXML(mashup_actionAnnotation, childNode)
+            self.getDao('mashup_actionAnnotation').toXML(annotation, childNode)
         
         return node
 

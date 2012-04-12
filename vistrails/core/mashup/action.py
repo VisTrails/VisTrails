@@ -31,72 +31,93 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from db.domain import DBMashupAlias
-from core.mashup.component import Component
 
-################################################################################
-class Alias(DBMashupAlias):
-    def __init__(self, id, name, component=None):
-        DBMashupAlias.__init__(self, id, name, component)
+from datetime import date, datetime
+from time import strptime
+from db.domain import DBMashupAction
+
+class Action(DBMashupAction):
     
-    id = DBMashupAlias.db_id
-    name = DBMashupAlias.db_name
-    component = DBMashupAlias.db_component
-    
+    def __init__(self, id, prevId, user='', mashup=None, date=None):
+        DBMashupAction.__init__(self, id, prevId, date, user, mashup)
+        
+    id = DBMashupAction.db_id
+    prevId = DBMashupAction.db_prevId
+    parent_id = DBMashupAction.db_prevId
+    user = DBMashupAction.db_user
+    mashup = DBMashupAction.db_mashup
+        
+    def _get_date(self):
+        if self.db_date is not None:
+            return self.db_date.strftime('%d %b %Y %H:%M:%S')
+        return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
+
+    def _set_date(self, date):
+        if type(date) == datetime:
+            self.db_date = date
+        elif type(date) == type('') and date.strip() != '':
+            newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
+            self.db_date = newDate
+    date = property(_get_date, _set_date)
+         
     def __copy__(self):
-        return Alias.do_copy(self)
+        return Action.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBMashupAlias.do_copy(self, new_ids, id_scope, id_remap)
-        cp.__class__ = Alias
+        cp = DBMashupAction.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = Action
         return cp
     
-    ##########################################################################
-    # Serialization / Unserialization
-        
 #    def toXml(self, node=None):
 #        """toXml(node: ElementTree.Element) -> ElementTree.Element
-#            writes itself to xml
+#           writes itself to xml
 #        """
-#        if node is None:
-#            node = ElementTree.Element('alias')
 #
+#        if node is None:
+#            node = ElementTree.Element('action')
+#        
 #        #set attributes
 #        node.set('id', self.convert_to_str(self.id,'long'))
-#        node.set('name', self.convert_to_str(self.name,'str'))
-#        child_ = ElementTree.SubElement(node, 'component')
-#        self.component.toXml(child_)
-#
+#        node.set('parent_id', self.convert_to_str(self.parent_id,'long'))
+#        node.set('user', self.convert_to_str(self.user,'str'))
+#        node.set('date', self.convert_to_str(self._date,'datetime'))
+#        mnode = ElementTree.SubElement(node, 'mashup')
+#        self.mashup.toXml(mnode)
 #        return node
-#
+#    
 #    @staticmethod
 #    def fromXml(node):
-#        if node.tag != 'alias':
+#        if node.tag != 'action':
+#            debug.debug("node.tag != 'action'")
 #            return None
-#
 #        #read attributes
 #        data = node.get('id', None)
-#        id = Alias.convert_from_str(data, 'long')
-#        data = node.get('name', None)
-#        name = Alias.convert_from_str(data, 'str')
-#        for child in node.getchildren():
-#            if child.tag == "component":
-#                component = Component.fromXml(child)
-#        alias = Alias(id,name,component)
-#        return alias
-    
+#        id = Action.convert_from_str(data, 'long')
+#        data = node.get('parent_id', None)
+#        parent_id = Action.convert_from_str(data, 'long')
+#        data = node.get('user', None)
+#        user = Action.convert_from_str(data, 'str')
+#        data = node.get('date', None)
+#        date = Action.convert_from_str(data, 'datetime')
+#        child = node.getchildren()[0]
+#        if child.tag == 'mashup':
+#            mashup = Mashup.fromXml(child)
+#        return Action(id=id, parent_id=parent_id, mashup=mashup, user=user,
+#                      date=date)
+        
     ##########################################################################
     # Operators
     
     def __str__(self):
         """ __str__() -> str - Returns a string representation of itself """
         
-        return ("(Alias id='%s' name='%s' component=%s)@%X" %
-                    (self.id,
-                     self.name,
-                     self.component,
-                     id(self)))
-
+        msg = "<<type='%s' id='%s' parent_id='%s' date='%s' user='%s'>>"
+        return msg % (type(self),
+                      self.id,
+                      self.prevId,
+                      self.db_date,
+                      self.user)
+        
     def __eq__(self, other):
         """ __eq__(other: Alias) -> boolean
         Returns True if self and other have the same attributes. Used by == 
@@ -105,9 +126,7 @@ class Alias(DBMashupAlias):
         """
         if type(self) != type(other):
             return False
-        if self.name != other.name:
-            return False
-        if self.component != other.component:
+        if self.mashup != other.mashup:
             return False
         return True
 
@@ -118,40 +137,49 @@ class Alias(DBMashupAlias):
         
         """
         return not self.__eq__(other)
-
 ################################################################################
-
+            
 import unittest
 from db.domain import IdScope
 import copy
 
-class TestAlias(unittest.TestCase):
-    def create_alias(self, id_scope=IdScope()):
+class TestAction(unittest.TestCase):
+    def create_action(self, id_scope=IdScope()):
+        from core.mashup.component import Component
+        from core.mashup.alias import Alias
+        from core.mashup.mashup import Mashup
         c1 = Component(id=id_scope.getNewId('component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
         a1 = Alias(id=id_scope.getNewId('alias'), name='alias1', component=c1)
-        return a1
+        
+        m = Mashup(id=id_scope.getNewId('mashup'), name='mashup1', vtid='empty.vt', 
+                   version=15L, alias_list=[a1])
+        action = Action(id=id_scope.getNewId('action'),
+                        parent_id=0L,
+                        date=datetime(2007,11,18),
+                        mashup=m)
+        return action
     
     def test_copy(self):
         id_scope = IdScope()
-        a1 = self.create_alias(id_scope)
+        a1 = self.create_action(id_scope)
         a2 = copy.copy(a1)
-        self.assertEqual(a1,a2)
-        self.assertEqual(a1.id, a2.id)
-        a3 = a2.doCopy(True, id_scope, {})
-        self.assertEqual(a1,a3)
-        self.assertNotEqual(a1.id, a3.id)
-        
+        self.assertEquals(a1, a2)
+        self.assertEquals(a1.id, a2.id)
+        a3 = a1.doCopy(True, id_scope, {})
+        self.assertEquals(a1, a3)
+        self.assertNotEquals(a1.id, a3.id)
+
 #    def test_serialization(self):
-#        a1 = self.create_alias()
+#        a1 = self.create_action()
 #        node = a1.toXml()
-#        a2 = Alias.fromXml(node)
-#        self.assertEqual(a1, a2)
-#        self.assertEqual(a1.id, a2.id)
+#        a2 = Action.fromXml(node)
+#        self.assertEquals(a1, a2)
+#        self.assertEquals(a1.id, a2.id)
         
     def test_str(self):
-        a1 = self.create_alias()
+        a1 = self.create_action()
         str(a1)
