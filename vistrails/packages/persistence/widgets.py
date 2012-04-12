@@ -713,7 +713,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.ref_widget = self.existing_group.ref_widget
         self.connect(self.ref_widget,
                      QtCore.SIGNAL("clicked(QModelIndex)"),
-                     self.stateChange)
+                     self.ref_changed)
         layout.addWidget(self.existing_group)
 
         self.keep_local = QtGui.QCheckBox("Keep Local Version")
@@ -794,6 +794,8 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.stateChange()
         self.new_group.setEnabled(checked)
         self.existing_group.setEnabled(not checked)
+        if not checked and self.keep_local.isChecked():
+            self.keep_local.setChecked(False)
 
     def existing_toggle(self, checked):
         self.stateChange()
@@ -814,6 +816,11 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.local_path.set_path(new_file)
         self.r_priority_local.setChecked(True)
         self.write_managed_checkbox.setChecked(False)
+
+    def ref_changed(self, index):
+        self.stateChange()
+        if self.keep_local.isChecked():
+            self.keep_local.setChecked(False)
 
     def set_values(self):
         from core.modules.module_registry import get_module_registry
@@ -910,8 +917,13 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
                                        'PersistentRef').module
 
         functions = []
-        if self.new_file and self.new_file.get_path():
+        if self.new_file and self.new_file.get_path() and \
+                self.managed_new.isChecked():
+        # if self.new_file and self.new_file.get_path():
             functions.append(('value', [self.new_file.get_path()]))
+        else:
+            functions.append(('value', None))
+            pass
         ref = PersistentRef()
         if self.managed_new.isChecked():
             if self.existing_ref and not self.existing_ref._exists:
@@ -937,7 +949,10 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
 #             ref.local_writeback = self.write_managed_checkbox.isChecked()
         else:
             ref.local_path = None
-            
+            # functions.append(('localPath', None))
+            functions.append(('readLocal', None))
+            functions.append(('writeLocal', None))
+            pass
         functions.append(('ref', [PersistentRef.translate_to_string(ref)]))
         self.controller.update_functions(self.module, functions)
 
