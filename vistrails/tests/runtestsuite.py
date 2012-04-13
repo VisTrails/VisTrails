@@ -191,7 +191,8 @@ for (p, subdirs, files) in os.walk(root_directory):
         print 'module ' + module
         s = open('successimport.log', 'a')
         f = open('failedimport.log', 'a') 
-        err = open('errorimport.log', 'a')   
+        err = open('errorimport.log', 'a')
+        m = None
         try:
             if module.startswith('api') or module.startswith('core'):
                 m = __import__(module, globals(), locals(), ['foo'])
@@ -212,15 +213,16 @@ for (p, subdirs, files) in os.walk(root_directory):
             err.write("\n")
             continue
 
-        test_cases = get_test_cases(m)
-        for test_case in test_cases:
-            suite = unittest.TestLoader().loadTestsFromTestCase(test_case)
-            main_test_suite.addTests(suite)
+        if m is not None:
+            test_cases = get_test_cases(m)
+            for test_case in test_cases:
+                suite = unittest.TestLoader().loadTestsFromTestCase(test_case)
+                main_test_suite.addTests(suite)
 
-        if not test_cases and verbose >= 1:
-            print msg, "WARNING: %s has no tests!" % filename
-        elif verbose >= 2:
-            print msg, "Ok: %s test cases." % len(test_cases)
+            if not test_cases and verbose >= 1:
+                print msg, "WARNING: %s has no tests!" % filename
+            elif verbose >= 2:
+                print msg, "Ok: %s test cases." % len(test_cases)
 print 'pikachu'
 unittest.TextTestRunner().run(main_test_suite)
 print 'pikachu2'

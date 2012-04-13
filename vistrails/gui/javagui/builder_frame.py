@@ -48,6 +48,7 @@ from view_manager import JViewManager
 from core.db.locator import ZIPFileLocator
 from core.modules.module_registry import ModuleRegistry
 from core.packagemanager import PackageManager
+import core.application
 import core.modules
 import core.system
 import sys
@@ -70,10 +71,6 @@ class BuilderFrame(JFrame):
         self.currentVersion = "-1"
         self.clickedVersionNodeId = -1
         core.application.init()
-        configuration = core.configuration.default()
-        """self.vistrailsStartup = core.startup.VistrailsStartup(
-             configuration)
-        self.vistrailsStartup.set_registry()"""
 
     
     def showFrame(self):
