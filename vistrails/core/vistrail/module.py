@@ -142,6 +142,11 @@ class Module(DBModule):
         _module.set_defaults()
 
     ##########################################################################
+    # CONSTANTS
+        
+    VISTRAIL_VAR_ANNOTATION = '__vistrail_var__'
+
+    ##########################################################################
 
     id = DBModule.db_id
     cache = DBModule.db_cache
@@ -183,6 +188,11 @@ class Module(DBModule):
         self.is_breakpoint = not self.is_breakpoint
     def toggle_watched(self):
         self.is_watched = not self.is_watched
+
+    def is_vistrail_var(self):
+        return self.has_annotation_with_key(Module.VISTRAIL_VAR_ANNOTATION)
+    def get_vistrail_var(self):
+        return self.get_annotation_by_key(Module.VISTRAIL_VAR_ANNOTATION).value
 
     def _get_port_specs(self):
         return self.db_portSpecs_id_index
@@ -343,12 +353,13 @@ class Module(DBModule):
             if self.namespace:
                 return self.namespace + '|' + self.name
             return self.name
-        return ("(Module '%s:%s' id=%s functions:%s port_specs:%s)@%X" %
+        return ("(Module '%s:%s' id=%s functions:%s port_specs:%s annotations:%s)@%X" %
                 (self.package,
                  get_name(),
                  self.id,
                  [str(f) for f in self.functions],
                  [str(port_spec) for port_spec in self.db_portSpecs],
+                 [str(a) for a in self.annotations],
                  id(self)))
 
     def __eq__(self, other):

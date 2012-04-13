@@ -1082,12 +1082,12 @@ class Pipeline(DBWorkflow):
         var_uuids = [var.uuid for var in vistrail_vars]
         exceptions = set()
         for module in self.modules.itervalues():
-            if module.has_annotation_with_key('__vistrail_var__'):
-                var_uuid = module.get_annotation_by_key('__vistrail_var__').value
+            if module.is_vistrail_var():
+                var_uuid = module.get_vistrail_var()
                 if var_uuid not in var_uuids:
-                    e = MissingVistrailVariable(var_uuid, module.package, module.name, module.namespace)
+                    e = MissingVistrailVariable(var_uuid, module.package, 
+                                                module.name, module.namespace)
                     exceptions.add(e)
-    
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)
 

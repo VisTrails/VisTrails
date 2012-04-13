@@ -206,13 +206,14 @@ class BaseInterpreter(object):
                     debug.debug("Problem when updating params: %s"%str(e))
 
     def resolve_variables(self, controller, pipeline):
-        var_modules = [m for m in pipeline.module_list if m.has_annotation_with_key('__vistrail_var__')]
-        for var_mod in var_modules:
-            uuid = var_mod.get_annotation_by_key('__vistrail_var__').value
-            strValue = controller.vistrail.db_get_vistrailVariable_by_uuid(uuid).value
-            for func in var_mod.functions:
-                if func.name == 'value':
-                    func.params[0].strValue = strValue
+        for m in pipeline.module_list:
+            if m.is_vistrail_var():
+                vistrail_var = controller.get_vistrail_variable_by_uuid(
+                    m.get_vistrail_var())
+                strValue = vistrail_var.value
+                for func in m.functions:
+                    if func.name == 'value':
+                        func.params[0].strValue = strValue
 
     def set_done_summon_hook(self, hook):
         """ set_done_summon_hook(hook: function(pipeline, objects)) -> None

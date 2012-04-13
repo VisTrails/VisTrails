@@ -249,7 +249,7 @@ class VistrailController(QtCore.QObject, BaseController):
             return action.db_id
         return None
 
-    def add_new_action(self, action):
+    def add_new_action(self, action, description=None):
         """add_new_action(action) -> None
 
         Call this function to add a new action to the vistrail being
@@ -260,7 +260,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         """
         if action is not None:
-            BaseController.add_new_action(self, action)
+            BaseController.add_new_action(self, action, description)
             self.emit(QtCore.SIGNAL("new_action"), action)
             self.recompute_terse_graph()
 
