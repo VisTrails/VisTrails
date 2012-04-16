@@ -359,6 +359,8 @@ class UnuMinmax(Teem):
             mx = float(f.readline().split()[-1])
         except:
             raise ModuleError(self, 'Could not read result')
+        finally:
+            f.close()
         self.setResult('range', (mn, mx))
 
     _input_ports = [('input_file', [(basic.File, 'the input file')]),

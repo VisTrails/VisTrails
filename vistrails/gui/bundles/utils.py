@@ -34,6 +34,7 @@
 
 """Utility functions for core.bundles"""
 
+from __future__ import with_statement
 from core import debug
 import core.system
 import os
@@ -89,7 +90,8 @@ _system_guesser = System_guesser()
 
 def _guess_suse():
     try:
-        tokens = file('/etc/SuSE-release').readline()[-1].split()
+        with file('/etc/SuSE-release') as f:
+            tokens = f.readline()[-1].split()
         return tokens[0] == 'SUSE'
     except:
         return False

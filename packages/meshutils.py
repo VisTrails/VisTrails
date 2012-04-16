@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import core.modules
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
@@ -27,7 +28,8 @@ class MeshArea(Module):
         if result != 0:
             raise ModuleError(self, "execution failed")
         try:
-            l = file(text_output.name).readlines()[-1]
+            with file(text_output.name) as out:
+                l = out.readlines()[-1]
             v = float(l)
         except:
             raise ModuleError(self, "Expected a float, got '%s'" % l)

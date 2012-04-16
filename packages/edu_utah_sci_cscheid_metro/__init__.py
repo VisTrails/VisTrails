@@ -10,6 +10,7 @@
 # 	* First release
 ##############################################################################
 
+from __future__ import with_statement
 import core.modules
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
@@ -99,8 +100,8 @@ class Metro(Module):
         result = os.system(cmdline)
         if result != 0:
             raise ModuleError(self, "Execution failed")
-        l = [x for x in file(metro_output.name).readlines()
-             if x.startswith('Hausdorff')][0]
+        with file(metro_output.name) as out:
+            l = [x for x in out.readlines() if x.startswith('Hausdorff')][0]
         regexp = re.compile(r'Hausdorff distance: ([0123456789.]+) \(([0123456789.]+)  wrt bounding box diagonal\)')
         results = regexp.match(l).groups()
         

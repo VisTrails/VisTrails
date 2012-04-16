@@ -494,6 +494,7 @@ class EigenPipelineSimilarity2(EigenBase):
             write_debug_pipeline_positions(self._p1, self._g1_vertex_map, out)
             write_debug_pipeline_positions(self._p2, self._g2_vertex_map, out)
             self.print_s8ys()
+            out.close()
             
         self._debug_matrix_file = 'input_matrix'
         r_in  = self.solve_v(self._input_vertex_s8y)

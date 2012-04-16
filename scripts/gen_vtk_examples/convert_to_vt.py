@@ -84,6 +84,7 @@ class ConvertVTKToVT(object):
         print >>out_file, 'else:'
         print >>out_file, '    out_filename = None'
         print >>out_file, 'vtk.to_vt(out_filename)'
+        in_file.close()
         out_file.close()
             
 

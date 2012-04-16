@@ -50,3 +50,4 @@ for l in f:
     for (s, re_obj) in re_list:
         l = re_obj.sub("val='" + sys.argv[2] + s + "'", l)
     print l[:-1]
+f.close()

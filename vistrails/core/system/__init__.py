@@ -102,7 +102,7 @@ def touch(file_name):
     if os.path.isfile(file_name):
         os.utime(file_name, None)
     else:
-        file(file_name, 'w')
+        file(file_name, 'w').close()
 
 def mkdir(dir_name):
     """mkdir(dir_name) -> None Equivalent to 'mkdir' in a shell except

@@ -417,6 +417,7 @@ by startup.py. This should only be called after init()."""
                     old_path = copy.copy(sys.path)
                     sys.path.append(self.temp_configuration.dotVistrails)
                     exec dotVistrails in localsDir
+                    dotVistrails.close()
                     sys.path = old_path
                     del localsDir['addPackage']
                     del localsDir['addStartupHook']

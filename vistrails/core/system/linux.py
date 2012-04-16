@@ -31,6 +31,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import with_statement
 import os
 import shutil
 from ctypes import CDLL, c_void_p
@@ -46,18 +47,19 @@ def parse_meminfo():
     Parses /proc/meminfo and returns appropriate dictionary. Only available on
     Linux."""
     result = {}
-    for line in file('/proc/meminfo'):
-        (key, value) = line.split(':')
-        value = value[:-1]
-        if value.endswith(' kB'):
-            value = int(int(value[:-3]) /1024) * 1L
-        else:
-            try:
-                value = int(value) *1L
-            except ValueError:
-                raise VistrailsInternalError("I was expecting '%s' to be int" %
-                        value)
-        result[key] = value
+    with file('/proc/meminfo') as meminfo:
+        for line in meminfo:
+            (key, value) = line.split(':')
+            value = value[:-1]
+            if value.endswith(' kB'):
+                value = int(int(value[:-3]) /1024) * 1L
+            else:
+                try:
+                    value = int(value) *1L
+                except ValueError:
+                    raise VistrailsInternalError("I was expecting '%s' to be int" %
+                            value)
+            result[key] = value
     return result
 
 def guess_total_memory():

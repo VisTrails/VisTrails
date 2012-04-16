@@ -120,6 +120,7 @@ class LocalPackageRepository(PackageRepository):
                 self.create_directory(codepath, l)
             elif file_type == 'F':
                 self.copy_file(codepath, l, os.path.join(self._path, codepath, l))
+        f.close()
 
 ##############################################################################
 

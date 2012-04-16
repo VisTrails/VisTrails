@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import core.modules
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
@@ -102,11 +103,12 @@ class PDBParser(ProteinDataBank):
 
         p = Protein()
 
-        for l in file(f.name):
-            l = l.strip()
-            toks = l.split()
-            if hasattr(self, 'parse_' + toks[0]):
-                getattr(self, 'parse_' + toks[0])(toks[1:], p)
+        with file(f.name) as input:
+            for l in input:
+                l = l.strip()
+                toks = l.split()
+                if hasattr(self, 'parse_' + toks[0]):
+                    getattr(self, 'parse_' + toks[0])(toks[1:], p)
 
         self.setResult("Protein", p)
 
