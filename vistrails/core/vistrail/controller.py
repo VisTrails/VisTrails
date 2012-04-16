@@ -2485,7 +2485,7 @@ class VistrailController(object):
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
         if not pkg and identifier.startswith('SUDS#'):
-            self.handleMissingSUDSWebServicePackage(identifier)
+            return self.handleMissingSUDSWebServicePackage(identifier)
         if not pm.has_package(identifier) and pkg:
             deps = pm.all_dependencies(identifier, dep_graph)[:-1]
             if identifier in self._asked_packages:
@@ -2806,8 +2806,8 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            details = '\n'.join(str(e) for e in left_exceptions + \
-                                    new_exceptions)
+            details = '\n'.join(set(str(e) for e in left_exceptions + \
+                                    new_exceptions))
             debug.critical("Some exceptions could not be handled", details)
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
