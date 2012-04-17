@@ -176,7 +176,7 @@ class VistrailsTreeLayoutLW(object):
             newNode.width = v.width
             newNode.height = v.height
             newNode.id = id
-            newNode.label = tag 
+            # newNode.label = tag 
             self.nodes[id] = newNode
 
         # keep track of the bounding box 

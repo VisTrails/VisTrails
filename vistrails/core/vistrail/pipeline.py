@@ -981,12 +981,12 @@ class Pipeline(DBWorkflow):
         for conn_id in connection_ids:
             conn = self.connections[conn_id]
             # print 'checking connection', conn_id, conn.source.moduleId, conn.source.moduleName, conn.source.name, conn.destination.moduleId, conn.destination.moduleName, conn.destination.name
-            src_module = self.modules[conn.source.db_moduleId]
+            src_module = self.modules[conn.source.moduleId]
             if src_module.is_valid:
                 # print 'src_module:', src_module.name, src_module.id
                 find_spec(conn.source)
             
-            dst_module = self.modules[conn.destination.db_moduleId]
+            dst_module = self.modules[conn.destination.moduleId]
             if dst_module.is_valid:
                 # print 'dst_module:', dst_module.name, dst_module.id
                 find_spec(conn.destination)
