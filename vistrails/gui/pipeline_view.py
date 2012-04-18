@@ -954,7 +954,12 @@ else:
 
             displacement = QtCore.QPointF(0.0, v)
             self._control_1 = startPos + displacement
-            self._control_2 = endPos - displacement
+            # !!! MAC OS X BUG !!!
+            # the difference between startPos.y and control_1.y cannot be
+            # equal to the difference between control_2.y and endPos.y
+            self._control_2 = self.endPos - displacement + QtCore.QPointF(0.0, 1e-11)
+            # self._control_2 = endPos - displacement
+
 
             path = QtGui.QPainterPath(self.startPos)
             path.cubicTo(self._control_1, self._control_2, self.endPos)
@@ -1647,6 +1652,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                 optional_ports=optional_ports)
         if item is not None:
             return item.sceneBoundingRect().center()
+
+        registry = get_module_registry()
         
         registry = get_module_registry()
         
@@ -1659,7 +1666,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     next_pos[0] = next_op(next_pos[0], 
                                           (CurrentTheme.PORT_WIDTH +
                                            CurrentTheme.MODULE_PORT_SPACE))
-                    return item
+                    return item.sceneBoundingRect().center()
 
         debug.log("PORT SIG:" + port.signature)
         if not port.signature or port.signature == '()':
