@@ -142,24 +142,30 @@ class QVariableDropBox(QtGui.QScrollArea):
         Construct input forms for a controller's variables
         
         """
-        self.controller = controller
-        if self.updateLocked: return
-        self.vWidget.clear()
-        if controller:
-            reg = module_registry.get_module_registry()
-            for var in controller.vistrail.vistrail_vars:
-                try:
-                    descriptor = reg.get_descriptor_by_name(var.package,
-                                                    var.module, var.namespace)
-                except module_registry.ModuleRegistryException:
-                    debug.critical("Missing Module Descriptor for VisTrail \
-                    Variable %s\nPackage: %s\nType: %s\nNamespace: %s"%(
-                            var.name, var.package, var.module, var.namespace))
-                    continue
-                self.vWidget.addVariable(var.uuid, var.name, descriptor, var.value)
-            self.vWidget.showPromptByChildren()
-        else:
-            self.vWidget.showPrompt(False)
+        # we shouldn't do this whenver the controller changes...
+        if self.controller != controller:
+            self.controller = controller
+            if self.updateLocked: return
+            self.vWidget.clear()
+            if controller:
+                reg = module_registry.get_module_registry()
+                for var in controller.vistrail.vistrail_vars:
+                    try:
+                        descriptor = reg.get_descriptor_by_name(var.package,
+                                                                var.module, 
+                                                                var.namespace)
+                    except module_registry.ModuleRegistryException:
+                        debug.critical("Missing Module Descriptor for vistrail"
+                                       " variable %s\nPackage: %s\nType: %s"
+                                       "\nNamespace: %s" % \
+                                           (var.name, var.package, var.module, 
+                                            var.namespace))
+                        continue
+                    self.vWidget.addVariable(var.uuid, var.name, descriptor, 
+                                             var.value)
+                self.vWidget.showPromptByChildren()
+            else:
+                self.vWidget.showPrompt(False)
 
     def lockUpdate(self):
         """ lockUpdate() -> None
@@ -219,6 +225,8 @@ class QVerticalWidget(QPromptWidget):
         self.setEnabled(False)
         for v in self._variable_widgets:
             self.layout().removeWidget(v)
+            v.hide()
+            v.setParent(None)
             v.deleteLater()
         self._variable_widgets = []
         self.setEnabled(True)
@@ -228,6 +236,8 @@ class QVerticalWidget(QPromptWidget):
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
         self._variable_widgets.remove(input_form)
+        input_form.hide()
+        input_form.setParent(None)
         input_form.deleteLater()
         self.showPromptByChildren()
 

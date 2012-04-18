@@ -143,6 +143,8 @@ class PortSpec(DBPortSpec):
         cp._labels = self._labels
         cp._defaults = self._defaults
         cp._tooltip = self._tooltip
+        cp._shape = self._shape
+        cp._docstring = self._docstring
         cp.is_valid = self.is_valid
         cp.__class__ = PortSpec
         if cp._entries is not None:
@@ -162,6 +164,8 @@ class PortSpec(DBPortSpec):
         _port_spec._labels = None
         _port_spec._defaults = None
         _port_spec._tooltip = None
+        _port_spec._shape = None
+        _port_spec._docstring = None
         _port_spec.is_valid = True
         # FIXME probably can just let validation take care of this...
         if module_registry_loaded():
