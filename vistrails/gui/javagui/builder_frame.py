@@ -178,6 +178,22 @@ class BuilderFrame(JFrame):
             self.getContentPane().getComponent(1).repaint()
 
 frame = BuilderFrame()
+
+def load_module_if_req(codepath):
+    package_manager = core.packagemanager.get_package_manager()
+    try:
+        package_manager.get_package_by_codepath(codepath)
+    except core.packagemanager.MissingPackage:
+        print "Loading package '%s'..." % codepath
+        try:
+            package_manager.late_enable_package(codepath)
+        except core.packagemanager.MissingPackage, e:
+            sys.stderr.write("Unable to load package '%s':" % codepath, str(e), "\n")
+    else:
+        print "Package '%s' had already been loaded automatically" % codepath
+
+load_module_if_req('obvioustest')
+
 frame.open_vistrail("C:/Program Files/Vistrails/examples/test-strings.vt")
 frame.showFrame()
 

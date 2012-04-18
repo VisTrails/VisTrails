@@ -40,7 +40,6 @@ headers.
 """
 
 
-from PyQt4 import QtGui
 from core.modules.vistrails_module import ModuleError
 from core.configuration import get_vistrails_persistent_configuration
 from gui.utils import show_warning
