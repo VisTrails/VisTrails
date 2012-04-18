@@ -1648,6 +1648,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if item is not None:
             return item.sceneBoundingRect().center()
         
+        registry = get_module_registry()
+        
         # check optional ports
         if self.module.is_valid:
             for p in optional_ports:
