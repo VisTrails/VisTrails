@@ -41,7 +41,7 @@ from core.system import get_elementtree_library, temporary_directory,\
 from core.utils import Chdir
 from core.log.log import Log
 from core.mashup.mashup_trail import Mashuptrail
-from core.mashup import currentVersion as currentMashupVersion
+
 
 import core.requirements
 ElementTree = get_elementtree_library()
@@ -55,7 +55,7 @@ import copy
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
-    DBRegistry, DBWorkflowExec, DBOpmGraph
+    DBRegistry, DBWorkflowExec, DBOpmGraph, DBMashuptrail
 import db.services.abstraction
 import db.services.log
 import db.services.opm
@@ -352,7 +352,7 @@ def get_db_id_from_name(db_connection, obj_type, name):
     except get_db_lib().Error, e:
         c.close()
         msg = "Connection error when trying to get db id from name"
-        raise VisrailsDBException(msg)
+        raise VistrailsDBException(msg)
 
 def get_matching_abstraction_id(db_connection, abstraction):
     last_action_id = -1
@@ -1472,9 +1472,21 @@ def open_mashuptrail_from_xml(filename):
     """open_mashuptrail_from_xml(filename) -> Mashuptrail"""
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
+    # this is here because initially the version in the mashuptrail file was 
+    # independent of VisTrails schema version. So if the version was "0.1.0" we
+    # can safely upgrade it directly to 1.0.3 as it was the first version when
+    # the mashuptrail started to use the same vistrails schema version
+    old_version = version
+    if version == "0.1.0":
+        version = "1.0.3"
     try:
-        #ignoring version for now 
-        mashuptrail = Mashuptrail.fromXml(tree.getroot())
+        daoList = getVersionDAO(version)
+        mashuptrail = daoList.open_from_xml(filename, DBMashuptrail.vtType, tree)
+        if old_version == "0.1.0":
+            mashuptrail.db_version = version
+        Mashuptrail.convert(mashuptrail)
+        mashuptrail.currentVersion = mashuptrail.getLatestVersion()
+        mashuptrail.updateIdScope()
     except VistrailsDBException, e:
         msg = "There was a problem when reading mashups from the xml file: "
         msg += str(e)
@@ -1486,14 +1498,18 @@ def save_mashuptrail_to_xml(mashuptrail, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/mashup.xsd'
             }
     if version is None:
-        version = currentMashupVersion
-    root = mashuptrail.toXml()
-    root.set('version', version)
-    for k, v in tags.iteritems():
-        root.set(k, v)
-    tree = ElementTree.ElementTree(root)
-    Mashuptrail.indent(tree.getroot())
-    tree.write(filename)
+        version = currentVersion
+    
+    if not mashuptrail.db_version:
+        mashuptrail.db_version = version
+   
+    #FIXME: This must be enabled at some point
+    #mashuptrail = translate_mashuptrail(mashuptrail, mashuptrail.db_version, version)
+
+    daoList = getVersionDAO(version)
+    daoList.save_to_xml(mashuptrail, filename, tags, version)
+    #FIXME: This must be enabled at some point
+    #mashuptrail = translate_mashuptrail(mashuptrail, version)
     return mashuptrail
 
 ##############################################################################

@@ -95,6 +95,10 @@ class Component(DBMashupComponent):
         self.strvaluelist = ",".join(q)
     valueList = property(_get_valuelist,_set_valuelist)
 
+    @staticmethod
+    def convert(_component):
+        _component.__class__ = Component
+        
     def __copy__(self):
         return Component.do_copy(self)
     

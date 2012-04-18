@@ -43,6 +43,11 @@ class Alias(DBMashupAlias):
     name = DBMashupAlias.db_name
     component = DBMashupAlias.db_component
     
+    @staticmethod
+    def convert(_alias):
+        _alias.__class__ = Alias
+        Component.convert(_alias.component)
+        
     def __copy__(self):
         return Alias.do_copy(self)
 

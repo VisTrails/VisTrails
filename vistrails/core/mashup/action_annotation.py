@@ -58,6 +58,10 @@ class ActionAnnotation(DBMashupActionAnnotation):
             self.db_date = newDate
     date = property(_get_date, _set_date)
     
+    @staticmethod
+    def convert(_annotation):
+        _annotation.__class__ = ActionAnnotation
+        
     def __copy__(self):
         return ActionAnnotation.do_copy(self)
     

@@ -44,13 +44,14 @@ class Mashuptrail(DBMashuptrail):
     """ MashupTrail is a class that stores versions of Mashups.
     For now it keeps a linear history."""
     def __init__(self, id, vt_version):
-        DBMashuptrail.__init__(self, id, version="", vt_version)
+        DBMashuptrail.__init__(self, id, version="", vtVersion=vt_version)
         self.db_actions = []
         self.currentVersion = -1
         self.db_annotations = []
         self.id_scope = IdScope(1L)
         
     id = DBMashuptrail.db_id
+    vtVersion = DBMashuptrail.db_vtVersion
     actions = DBMashuptrail.db_actions
     annotations = DBMashuptrail.db_annotations
     
@@ -58,6 +59,18 @@ class Mashuptrail(DBMashuptrail):
         return self.db_actions_id_index
     actionMap = property(_get_actionMap)
     
+    @staticmethod
+    def convert(_mtrail):
+        _mtrail.__class__ = Mashuptrail
+
+        for action in _mtrail.actions:
+            Action.convert(action)
+
+        for annotation in _mtrail.annotations:
+            ActionAnnotation.convert(annotation)
+        _mtrail.id_scope = IdScope(1L)
+        _mtrail.updateIdScope()
+            
     def addVersion(self, parent_id, mashup, user, date):
         id = self.getLatestVersion() + 1
         mashup.id_scope = self.id_scope

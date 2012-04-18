@@ -74,6 +74,13 @@ class Mashup(DBMashup):
         self.db_has_seq = conv_from_bool(s)
     has_seq = property(_get_has_seq,_set_has_seq)
     
+    @staticmethod
+    def convert(_mashup):
+        _mashup.__class__ = Mashup
+
+        for alias in _mashup.alias_list:
+            Alias.convert(alias)
+            
     def __copy__(self):
         return Mashup.do_copy(self)
     

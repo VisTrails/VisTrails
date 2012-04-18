@@ -35,6 +35,7 @@
 from datetime import date, datetime
 from time import strptime
 from db.domain import DBMashupAction
+from core.mashup.mashup import Mashup
 
 class Action(DBMashupAction):
     
@@ -59,6 +60,13 @@ class Action(DBMashupAction):
             newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
+        
+    @staticmethod
+    def convert(_action):
+        if _action.__class__ == Action:
+            return
+        _action.__class__ = Action
+        Mashup.convert(_action.mashup)
          
     def __copy__(self):
         return Action.do_copy(self)

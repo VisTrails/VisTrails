@@ -67,63 +67,63 @@ def convert_symbols(val):
     val = val.replace("&amp;","&")
     return val
 
-currentVersion = "0.1.0"
 
-class XMLObject(object):
-    """Base class for mashup classes"""
-    @staticmethod
-    def convert_from_str(value, type):
-        def bool_conv(x):
-            s = str(x).upper()
-            if s == 'TRUE':
-                return True
-            if s == 'FALSE':
-                return False
 
-        if value is not None:
-            if type == 'str':
-                return str(value)
-            elif value.strip() != '':
-                if type == 'long':
-                    return long(value)
-                elif type == 'float':
-                    return float(value)
-                elif type == 'int':
-                    return int(value)
-                elif type == 'bool':
-                    return bool_conv(value)
-                elif type == 'date':
-                    return date(*strptime(value, '%Y-%m-%d')[0:3])
-                elif type == 'datetime':
-                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
-                elif type == 'uuid':
-                    return uuid.UUID(value)
-        return None
-
-    @staticmethod
-    def convert_to_str(value,type):
-        if value is not None:
-            if type == 'date':
-                return value.isoformat()
-            elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                return str(value)
-        return ''
-    
-    @staticmethod
-    def indent(elem, level=0):
-        i = "\n" + level*"  "
-        if len(elem):
-            if not elem.text or not elem.text.strip():
-                elem.text = i + "  "
-            if not elem.tail or not elem.tail.strip():
-                elem.tail = i
-            for elem in elem:
-                XMLObject.indent(elem, level+1)
-            if not elem.tail or not elem.tail.strip():
-                elem.tail = i
-        else:
-            if level and (not elem.tail or not elem.tail.strip()):
-                elem.tail = i
+#class XMLObject(object):
+#    """Base class for mashup classes"""
+#    @staticmethod
+#    def convert_from_str(value, type):
+#        def bool_conv(x):
+#            s = str(x).upper()
+#            if s == 'TRUE':
+#                return True
+#            if s == 'FALSE':
+#                return False
+#
+#        if value is not None:
+#            if type == 'str':
+#                return str(value)
+#            elif value.strip() != '':
+#                if type == 'long':
+#                    return long(value)
+#                elif type == 'float':
+#                    return float(value)
+#                elif type == 'int':
+#                    return int(value)
+#                elif type == 'bool':
+#                    return bool_conv(value)
+#                elif type == 'date':
+#                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+#                elif type == 'datetime':
+#                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+#                elif type == 'uuid':
+#                    return uuid.UUID(value)
+#        return None
+#
+#    @staticmethod
+#    def convert_to_str(value,type):
+#        if value is not None:
+#            if type == 'date':
+#                return value.isoformat()
+#            elif type == 'datetime':
+#                return value.strftime('%Y-%m-%d %H:%M:%S')
+#            else:
+#                return str(value)
+#        return ''
+#    
+#    @staticmethod
+#    def indent(elem, level=0):
+#        i = "\n" + level*"  "
+#        if len(elem):
+#            if not elem.text or not elem.text.strip():
+#                elem.text = i + "  "
+#            if not elem.tail or not elem.tail.strip():
+#                elem.tail = i
+#            for elem in elem:
+#                XMLObject.indent(elem, level+1)
+#            if not elem.tail or not elem.tail.strip():
+#                elem.tail = i
+#        else:
+#            if level and (not elem.tail or not elem.tail.strip()):
+#                elem.tail = i
 ################################################################################
