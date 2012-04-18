@@ -300,6 +300,10 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         labels = self.convertFromStr(data, 'str')
         data = node.get('defaults', None)
         defaults = self.convertFromStr(data, 'str')
+        data = node.get('minConns', None)
+        min_conns = self.convertFromStr(data, 'int')
+        data = node.get('maxConns', None)
+        max_conns = self.convertFromStr(data, 'int')
         
         obj = DBPortSpec(id=id,
                          name=name,
@@ -327,6 +331,8 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         node.set('sigstring',self.convertToStr(portSpec.db_sigstring, 'str'))
         node.set('labels',self.convertToStr(portSpec.db_labels, 'str'))
         node.set('defaults',self.convertToStr(portSpec.db_defaults, 'str'))
+        node.set('minConns',self.convertToStr(portSpec.db_min_conns, 'int'))
+        node.set('maxConns',self.convertToStr(portSpec.db_max_conns, 'int'))
         
         return node
 

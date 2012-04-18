@@ -1656,12 +1656,12 @@
     </property>
 
     <property name="min_conns" type="int">
-      <xml name="minConns" nodeType="xs:attribtue" type="xs:int"/>
+      <xml name="minConns" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
     </property>
 
     <property name="max_conns" type="int">
-      <xml name="maxConns" nodeType="xs:attribtue" type="xs:int"/>
+      <xml name="maxConns" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
     </property>
 

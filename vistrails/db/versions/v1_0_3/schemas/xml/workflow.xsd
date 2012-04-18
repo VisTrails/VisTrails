@@ -169,6 +169,8 @@
       <xs:attribute name="sigstring" type="xs:string"/>
       <xs:attribute name="labels" type="xs:string"/>
       <xs:attribute name="defaults" type="xs:string"/>
+      <xs:attribute name="minConns" type="xs:int"/>
+      <xs:attribute name="maxConns" type="xs:int"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="parameter">
