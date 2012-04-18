@@ -69,7 +69,9 @@ class JVistrailView(JPanel):
 
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
+        print "-----"
         print results[0].__str__()
+        print "- - -"
         self.executed = results[0].executed
         SwingUtilities.invokeLater(CustomRunner(self.invalidate))
         SwingUtilities.invokeLater(CustomRunner(self.revalidate))
