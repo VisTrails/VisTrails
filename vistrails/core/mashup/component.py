@@ -49,6 +49,8 @@ class Component(DBMashupComponent):
                                    parent_id, p_pos, mid, pos, type, value, 
                                    minVal, maxVal, stepSize, strvaluelist, 
                                    widget, seq, parent)
+        if type(seq) == bool:
+            self.seq = seq
 
     id = DBMashupComponent.db_id
     vttype = DBMashupComponent.db_vttype
@@ -292,7 +294,7 @@ class TestComponent(unittest.TestCase):
         c2 = copy.copy(c1)
         self.assertEqual(c1, c2)
         self.assertEqual(c1.id, c2.id)
-        c3 = c2.doCopy(True, id_scope, {})
+        c3 = c2.do_copy(True, id_scope, {})
         self.assertEqual(c1,c3)
         self.assertNotEqual(c1.id, c3.id)
         

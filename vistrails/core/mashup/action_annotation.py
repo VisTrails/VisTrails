@@ -156,7 +156,7 @@ class TestActionAnnotation(unittest.TestCase):
         a2 = copy.copy(a1)
         self.assertEquals(a1, a2)
         self.assertEquals(a1.id, a2.id)
-        a3 = a1.doCopy(True, id_scope, {})
+        a3 = a1.do_copy(True, id_scope, {})
         self.assertEquals(a1, a3)
         self.assertNotEquals(a1.id, a3.id)
 

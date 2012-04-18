@@ -141,7 +141,7 @@ class TestAlias(unittest.TestCase):
         a2 = copy.copy(a1)
         self.assertEqual(a1,a2)
         self.assertEqual(a1.id, a2.id)
-        a3 = a2.doCopy(True, id_scope, {})
+        a3 = a2.do_copy(True, id_scope, {})
         self.assertEqual(a1,a3)
         self.assertNotEqual(a1.id, a3.id)
         

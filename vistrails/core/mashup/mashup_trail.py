@@ -73,7 +73,7 @@ class Mashuptrail(DBMashuptrail):
         return Mashuptrail.do_copy(self)
     
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        """doCopy() -> Mashuptrail 
+        """do_copy() -> Mashuptrail 
         returns a clone of itself"""
         cp = DBMashuptrail.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Mashuptrail        
