@@ -1221,9 +1221,10 @@ class VistrailController(QtCore.QObject, BaseController):
         if old_name!=file_name:
             self.emit(QtCore.SIGNAL('stateChanged'))
 
-    def write_vistrail(self, locator, version=None):
-        need_invalidate = BaseController.write_vistrail(self, locator, version)
-        if need_invalidate:
+    def write_vistrail(self, locator, version=None, export=False):
+        need_invalidate = BaseController.write_vistrail(self, locator,
+                                                        version, export)
+        if need_invalidate and not export:
             self.invalidate_version_tree(False)
             self.set_changed(False)
 

@@ -73,6 +73,7 @@ from gui.vistrails_palette import QVistrailsPaletteInterface
 from gui.mashups.mashup_app import QMashupAppMainWindow
 from db.services.io import SaveBundle
 import db.services.vistrail
+from db import VistrailsDBException
 
 class QBaseViewWindow(QtGui.QMainWindow):
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
@@ -518,7 +519,7 @@ class QVistrailViewWindow(QBaseViewWindow):
                       [('exportFile', "To DB...",
                         {'statusTip': "Export the current vistrail to a " \
                              "database",
-                         'enabled': False,
+                         'enabled': True,
                          'callback': \
                              _app.pass_through_locator(self.get_current_view,
                                                        'export_vistrail', 
@@ -1508,6 +1509,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         # except ModuleRegistryException, e:
         #     debug.critical("Module registry error for %s" %
         #                    str(e.__class__.__name__), str(e))
+        except VistrailsDBException, e:
+            import traceback
+            debug.critical(str(e), traceback.format_exc())
+            return
         except Exception, e:
             # debug.critical('An error has occurred', str(e))
             #print "An error has occurred", str(e)
@@ -1840,7 +1845,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             if locator_klass is not None:
                 obj_method(locator_klass)
             elif self.dbDefault ^ reverse:
-                obj_method(DBLocator())
+                obj_method(DBLocator)
             else:
                 obj_method(FileLocator())
         return method
