@@ -78,7 +78,7 @@ class TreeLW:
 
     def changeParentOfNodeWithNoParent(self, parentNode, childNode):
         if childNode.parent != None:
-            pass#raise Exception() # rr4: crashes, called from javagui
+            raise Exception()
 
         #
         parentNode.addChild(childNode)        

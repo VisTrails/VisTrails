@@ -56,7 +56,7 @@ class Port(DBPort):
     
     def __init__(self, *args, **kwargs):
         """The preferred way to create a port is to pass a PortSpec with
-        new information.  The construcotr pulls name, type, and signature 
+        new information.  The constructor pulls name, type, and signature
         info from the PortSpec.
         
         Example: Port(id=<id>, spec=<port_spec>, moduleId=<id>, 

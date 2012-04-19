@@ -1,33 +1,33 @@
 ###############################################################################
 ##
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: vistrails@sci.utah.edu
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the University of Utah nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -36,20 +36,23 @@ from vistrail_controller import JVistrailController
 
 from java.lang import Runnable
 from javax.swing import JPanel
-from javax.swing import JLabel
 from javax.swing import SwingUtilities
-from java.awt import Font
-from java.awt import Graphics
 from java.awt import Color
 from java.awt import Polygon
 
-from core.data_structures.graph import Graph
-from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
-
 import core.db.io
 
+
+PORT_WIDTH = 5
+PORT_HEIGHT = 5
+
+SPACING_X = 5
+SPACING_Y = 5
+
+
 class JVistrailView(JPanel):
-    
+    """This panel is the main view, that draws a pipeline using Swing.
+    """
     def __init__(self, vistrail, locator, builderFrame):
         self.full_tree = True
         self.builderFrame = builderFrame
@@ -59,9 +62,9 @@ class JVistrailView(JPanel):
         self.current_version = self.builderFrame.currentVersion
         self.set_vistrail(vistrail, locator)
         self.executed = {} #list of executed modules
-    
+
     def set_vistrail(self, vistrail, locator, abstraction_files=None,
-                          thumbnail_files=None, version=None):
+                     thumbnail_files=None, version=None):
         self.vistrail = vistrail
         self.locator = locator
         self.controller.set_vistrail(vistrail, locator)
@@ -69,14 +72,12 @@ class JVistrailView(JPanel):
 
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
-        print "-----"
         print results[0].__str__()
-        print "- - -"
         self.executed = results[0].executed
         SwingUtilities.invokeLater(CustomRunner(self.invalidate))
         SwingUtilities.invokeLater(CustomRunner(self.revalidate))
         SwingUtilities.invokeLater(CustomRunner(self.repaint))
-        
+
     def define_modules_color(self):
         self.colorModules = {}
         if self.executed == {}:
@@ -91,148 +92,128 @@ class JVistrailView(JPanel):
                         self.colorModules[module] = Color.RED
                 else:
                     self.colorModules[module] = Color.ORANGE
-  
+
     def set_graph(self):
-
-        self._current_graph_layout = VistrailsTreeLayoutLW()
-        if (self.current_version == -1 or self.current_version > self.vistrail.get_latest_version()):
+        if (self.current_version == -1 or
+                self.current_version > self.vistrail.get_latest_version()):
             self.current_version = self.vistrail.get_latest_version()
-        self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail,
-                                                                   self.current_version)
 
-        tersedPipelineGraph = Graph()
+        self.controller.current_pipeline = core.db.io.get_workflow(
+                self.vistrail, self.current_version)
+
         for module in self.controller.current_pipeline._get_modules():
-            tersedPipelineGraph.add_vertex(module, self.controller.current_pipeline.modules[module])
-            #Not  nice lines, just here to force value of string module while module information panels are not implemented
+            # FIXME : Replaces information panels by providing test values
+            # Should be done before each execution!
             if self.controller.current_pipeline.modules[module]._get_module_descriptor().module().__str__() == "<<<class 'core.modules.vistrails_module.String'>>>":
                 self.controller.current_pipeline.modules[module]._get_module_descriptor().module().setValue("testString")
-        edgeId = 0   
-        for connection in self.controller.current_pipeline.connections:
-            sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
-            targetId = self.controller.current_pipeline.connections[connection]._get_destinationId()
-            self.controller.current_pipeline.connections[connection].id = edgeId
-            tersedPipelineGraph.add_edge(sourceId, targetId, edgeId)
-            edgeId = edgeId + 1
-        self.pipelineGraph = tersedPipelineGraph    
-        self._current_graph_layout.layout_from(self.vistrail,
-                                               self.pipelineGraph)
-        
+
     def paintComponent(self, graphics):
-        font = Font("FontDialog", Font.PLAIN, 14)
-        fontRenderContext = graphics.getFontRenderContext()
-        self.define_modules_color() #compute modules colors
-        #draw the pipeline tree
-        nodesToDim = {}
+        # Compute modules colors
+        self.define_modules_color()
+
+        modules = self.controller.current_pipeline.modules
+        connections = self.controller.current_pipeline.connections
+
+        # Draw the pipeline using their stored position
         if graphics is not None:
-            #drawing the nodes
-            for node in self._current_graph_layout.nodes.iteritems():
-                #Defining name of the module and coordinates
-                try:
-                    jLabel = JLabel(self.controller.current_pipeline.modules[node[1].id].name)
-                except:
-                    print "except catch"
-                    jLabel = JLabel("ERROR NULNODE")
-                if jLabel is None or jLabel == "":
-                    jLabel = JLabel("TREE ROOT")
-                fontRect = font.getStringBounds(jLabel.getText(), fontRenderContext)
-                xNode = int(node[1].p.x)
-                yNode = int(node[1].p.y)
-                #Checking for overlapping of nodes, if so correct it
-                overlapBoolean = True
-                while overlapBoolean:
-                    overlapBoolean = False
-                    for nodeId in nodesToDim:
-                        if nodesToDim[nodeId]["x"] == xNode and nodesToDim[nodeId]["y"] == yNode:
-                            xNode = xNode + 10 + nodesToDim[nodeId]["width"]
-                            overlapBoolean = True
-                dim = {}
-                if jLabel.getText() != "ERROR NULNODE":
-                    graphics.setColor(self.colorModules[node[0]])
-                    graphics.fillRect(xNode, yNode,
-                                  int(fontRect.getWidth()), 2*int(fontRect.getHeight()))
-                    graphics.setColor(Color.black)
-                    graphics.drawString(jLabel.getText(), xNode,
-                                    yNode + 3 * int(fontRect.getHeight()) / 2)
-                    #parameters to draw ports
-                    currentPortCount = 0 #
-                    offsetDestinationY = 5
-                    offsetDestinationX = 15
-                    portHeight = 5
-                    portWidth = 5
-                    #
-                    destinationPorts = {}
-                    sourcePorts = {}
-                    dim["destinationPorts"] = destinationPorts
-                    dim["sourcePorts"] = sourcePorts
-                    #drawing destination ports
-                    for port in self.controller.current_pipeline.modules[node[1].id].destinationPorts():
-                        graphics.fillRect(xNode + offsetDestinationY + ((currentPortCount) * offsetDestinationX),
-                                          yNode + offsetDestinationY, portWidth, portHeight)
-                        port = {}
-                        destinationPorts[currentPortCount] = port
-                        port["used"] = False
-                        port["x"] = xNode + offsetDestinationY + ((currentPortCount) * offsetDestinationX)
-                        port["y"] = yNode + offsetDestinationY
-                        currentPortCount = currentPortCount + 1
-                    #drawing source ports
-                    #reset the counter, it nows points to the current number of source ports
-                    currentPortCount = 0
-                    for port in self.controller.current_pipeline.modules[node[1].id].sourcePorts():
-                        if port.name != "self":
-                            graphics.fillRect(xNode + int(fontRect.getWidth()) - offsetDestinationY
-                                              - ((currentPortCount) * offsetDestinationX),
-                                              yNode + 2 * int(fontRect.getHeight()) - offsetDestinationY,
-                                              portWidth, portHeight)
-                            port = {}
-                            sourcePorts[currentPortCount] = port
-                            port["used"] = False
-                            port["x"] = xNode + int(fontRect.getWidth()) - offsetDestinationY - ((currentPortCount) * offsetDestinationX)
-                            port["y"] = yNode + 2 * int(fontRect.getHeight()) - offsetDestinationY
-                            currentPortCount = currentPortCount + 1
-                    #drawing the triangle on the top right corner of the module
-                    shape = Polygon([xNode + int(fontRect.getWidth()) - offsetDestinationY,
-                                    xNode + int(fontRect.getWidth()) - offsetDestinationY,
-                                    xNode + int(fontRect.getWidth())],
-                                    [yNode + offsetDestinationY, yNode + 2 * offsetDestinationY,
-                                     yNode + (3 * offsetDestinationY / 2)],
-                                    3)
-                    graphics.fill(shape)
-                #storing the dimension of the nodes to easily draw edges
-                dim["x"] = xNode
-                dim["y"] = yNode
-                dim["height"] = 2 * int(fontRect.getHeight())
-                dim["width"] = int(fontRect.getWidth())
-                nodesToDim[node[1].id] = dim
-            #drawing edges 
-            for connection in self.controller.current_pipeline.connections:
-                sourceId = self.controller.current_pipeline.connections[connection]._get_sourceId()
-                targetId = self.controller.current_pipeline.connections[connection]._get_destinationId() 
-                for port in nodesToDim[sourceId]["sourcePorts"]:
-                    if nodesToDim[sourceId]["sourcePorts"][port]["used"] == False:
-                        xSource = nodesToDim[sourceId]["sourcePorts"][port]["x"]
-                        ySource = nodesToDim[sourceId]["sourcePorts"][port]["y"]
-                        nodesToDim[sourceId]["sourcePorts"][port]["used"] = True
-                        break
-                for port in nodesToDim[targetId]["destinationPorts"]:
-                    if nodesToDim[targetId]["destinationPorts"][port]["used"] == False:
-                        xTarget = nodesToDim[targetId]["destinationPorts"][port]["x"]
-                        yTarget = nodesToDim[targetId]["destinationPorts"][port]["y"]
-                        nodesToDim[targetId]["destinationPorts"][port]["used"] = True
-                        break
-                sourceWidth = nodesToDim[sourceId]["width"]
-                sourceHeight = nodesToDim[sourceId]["height"]
-                targetWidth = nodesToDim[targetId]["width"]
-                graphics.drawLine(xSource, # + sourceWidth/2 ,
-                  ySource, #+ sourceHeight,
-                  xTarget, # +  targetWidth/2,
-                  yTarget)
+            font = graphics.getFont()
+            fontRenderContext = graphics.getFontRenderContext()
+
+            module_geometries = {}
+
+            for id, mod in modules.iteritems():
+                name = mod.name
+                # These are the position of the center of the text
+                x = mod.location.x
+                y = -mod.location.y
+
+                fontRect = font.getStringBounds(name, fontRenderContext)
+                w = fontRect.getWidth() + 2 * SPACING_X
+                h = fontRect.getHeight() + 2 * SPACING_Y
+
+                # These are the position of the upper-right corner of the
+                # rectangle
+                mod_x = x - w/2
+                mod_y = y - h/2
+
+                inputPorts = mod.destinationPorts()
+                inputPorts = filter(lambda p: p.name != "self", inputPorts)
+                outputPorts = mod.sourcePorts()
+                outputPorts = filter(lambda p: p.name != "self", outputPorts)
+
+                if inputPorts:
+                    h += SPACING_Y + PORT_HEIGHT
+                    mod_y -= SPACING_Y + PORT_HEIGHT
+                    n = len(inputPorts) + 1
+                    w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
+                if outputPorts:
+                    h += SPACING_Y + PORT_HEIGHT
+                    n = len(inputPorts)
+                    w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
+
+                # Draw the rectangle
+                graphics.setColor(self.colorModules[id])
+                graphics.fillRect(int(mod_x), int(mod_y), int(w), int(h))
+
+                # Store the geometry to be recalled when drawing connections
+                module_geometries[id] = [
+                        mod_x, mod_y, w, h,
+                        [p.name for p in inputPorts],
+                        [p.name for p in outputPorts]]
+
+                # Draw the caption
+                graphics.setColor(Color.black)
+                graphics.drawString(
+                        name,
+                        int(x - fontRect.getWidth()/2),
+                        int(y - fontRect.getY() - fontRect.getHeight()/2))
+
+                # Draw the ports
+                p_x = int(mod_x + SPACING_X)
+                p_y = int(mod_y + SPACING_Y)
+                for port in inputPorts:
+                    graphics.fillRect(
+                        p_x, p_y,
+                        PORT_WIDTH, PORT_HEIGHT)
+                    p_x += PORT_WIDTH + SPACING_X
+                p_x = int(mod_x + w - SPACING_X - PORT_WIDTH)
+                p_y = int(mod_y + h - SPACING_Y - PORT_HEIGHT)
+                for port in outputPorts:
+                    graphics.fillRect(
+                        p_x, p_y,
+                        PORT_WIDTH, PORT_HEIGHT)
+                    p_x -= PORT_WIDTH + SPACING_X
+
+                # Draw a triangle in the top-right corner of the module
+                p_x = int(mod_x + w - SPACING_X - PORT_WIDTH)
+                p_y = int(mod_y + SPACING_Y)
+                shape = Polygon(
+                        [p_x, p_x + PORT_WIDTH, p_x],
+                        [p_y, p_y + PORT_HEIGHT/2, p_y + PORT_HEIGHT],
+                        3)
+                graphics.fill(shape)
+
+            # Draw the edges
+            for id, connection in connections.iteritems():
+                source = module_geometries[connection.source.moduleId]
+                # Find the source port in the source module's output ports
+                iport_num = source[5].index(connection.source.name)
+                sx = source[0] + source[2] - (iport_num+1) * (SPACING_X + PORT_WIDTH) + PORT_WIDTH/2
+                sy = source[1] + source[3] - SPACING_Y - PORT_WIDTH/2
+
+                destination = module_geometries[connection.destination.moduleId]
+                # Find the destination port in the destination module's input
+                # ports
+                oport_num = destination[4].index(connection.destination.name)
+                dx = destination[0] + (oport_num+1) * (SPACING_X + PORT_WIDTH) - PORT_WIDTH/2
+                dy = destination[1] + SPACING_Y + PORT_WIDTH/2
+
+                graphics.drawLine(int(sx), int(sy), int(dx), int(dy))
 
 
 class CustomRunner(Runnable):
-    
     def __init__(self, func):
         self.runner = func;
-        
+
     def run(self):
         self.runner()
-                           
