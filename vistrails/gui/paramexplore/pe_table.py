@@ -447,6 +447,7 @@ class QParameterExplorationTable(QPromptWidget):
                         old_param = self.pipeline.db_get_object(pType,pId)
                         pName = old_param.name
                         pAlias = old_param.alias
+                        pIdentifier = old_param.identifier
                         actions = []
                         tmp_id = -1L
                         for v in values:
@@ -463,7 +464,8 @@ class QParameterExplorationTable(QPromptWidget):
                                                     name=pName,
                                                     alias=pAlias,
                                                     val=str_value,
-                                                    type=paramInfo.type
+                                                    type=paramInfo.type,
+                                                    identifier=pIdentifier
                                                     )
                             action_spec = ('change', old_param, new_param,
                                            parentType, function.real_id)
