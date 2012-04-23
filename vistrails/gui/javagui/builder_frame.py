@@ -195,6 +195,6 @@ def load_module_if_req(codepath):
 
 load_module_if_req('obvioustest')
 
-frame.open_vistrail("C:/Program Files/Vistrails/examples/test-strings.vt")
+frame.open_vistrail("C:/Documents and Settings/remirampin/Mes documents/obvious.vt")
 frame.showFrame()
 
