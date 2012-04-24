@@ -32,15 +32,11 @@
 ##
 ###############################################################################
 
-from vistrail_controller import JVistrailController
-
 from java.lang import Runnable
 from javax.swing import JPanel
 from javax.swing import SwingUtilities
 from java.awt import Color
 from java.awt import Polygon
-
-import core.db.io
 
 
 PORT_WIDTH = 5
@@ -50,25 +46,14 @@ SPACING_X = 5
 SPACING_Y = 5
 
 
-class JVistrailView(JPanel):
-    """This panel is the main view, that draws a pipeline using Swing.
-    """
-    def __init__(self, vistrail, locator, builderFrame):
-        self.full_tree = True
-        self.builderFrame = builderFrame
-        self.refine = False
-        self.controller = JVistrailController()
-        self.idScope = self.controller.id_scope
-        self.current_version = self.builderFrame.currentVersion
-        self.set_vistrail(vistrail, locator)
-        self.executed = {} #list of executed modules
-
-    def set_vistrail(self, vistrail, locator, abstraction_files=None,
-                     thumbnail_files=None, version=None):
+class JPipelineView(JPanel):
+    """The pipeline view."""
+    def __init__(self, vistrail, locator, controller,
+            abstraction_files=None, thumbnail_files=None):
+        self.controller = controller
+        self.executed = {} # List of executed modules, useful for coloring
         self.vistrail = vistrail
         self.locator = locator
-        self.controller.set_vistrail(vistrail, locator)
-        self.set_graph()
 
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
@@ -92,20 +77,6 @@ class JVistrailView(JPanel):
                         self.colorModules[module] = Color.RED
                 else:
                     self.colorModules[module] = Color.ORANGE
-
-    def set_graph(self):
-        if (self.current_version == -1 or
-                self.current_version > self.vistrail.get_latest_version()):
-            self.current_version = self.vistrail.get_latest_version()
-
-        self.controller.current_pipeline = core.db.io.get_workflow(
-                self.vistrail, self.current_version)
-
-        for module in self.controller.current_pipeline._get_modules():
-            # FIXME : Replaces information panels by providing test values
-            # Should be done before each execution!
-            if self.controller.current_pipeline.modules[module]._get_module_descriptor().module().__str__() == "<<<class 'core.modules.vistrails_module.String'>>>":
-                self.controller.current_pipeline.modules[module]._get_module_descriptor().module().setValue("testString")
 
     def paintComponent(self, graphics):
         # Compute modules colors
