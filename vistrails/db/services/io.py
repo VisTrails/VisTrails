@@ -929,8 +929,12 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     vistrail.db_currentVersion = current_action
 
     # update all missing tagged workflows
+    tagMap = {}
+    for annotation in vistrail.db_actionAnnotations:
+        if annotation.db_key == '__tag__':
+            tagMap[annotation.db_action_id] = annotation.db_value
     wfToSave = []
-    for id, name in vistrail.get_tagMap().iteritems():
+    for id, name in tagMap.iteritems():
         if id not in workflowIds:
             #print "creating workflow", vistrail.db_id, id, name,
             workflow = vistrail.getPipeline(id)
