@@ -33,10 +33,11 @@
 ###############################################################################
 
 from java.lang import Runnable
-from javax.swing import JPanel
 from javax.swing import SwingUtilities
-from java.awt import Color
-from java.awt import Polygon
+from java.awt import Color, Polygon, Font, FontMetrics, Point
+from java.awt.geom import Rectangle2D
+
+from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
 
 
 PORT_WIDTH = 5
@@ -46,7 +47,183 @@ SPACING_X = 5
 SPACING_Y = 5
 
 
-class JPipelineView(JPanel):
+# FontMetrics is declared abstract even though it has no abstract method
+class FontMetricsImpl(FontMetrics):
+    pass
+
+
+# We have to pass something implementing Runnable to invokeLater()
+# This class is used to wrap a Python method as a Runnable
+class CustomRunner(Runnable):
+    def __init__(self, func):
+        self.runner = func;
+
+    def run(self):
+        self.runner()
+
+
+class PModule(PNode):
+    """A module to be shown in the pipeline view.
+
+    This class represent a module. Instances of this class are created from the
+    Module's contained in the Controller and are added to a PCanvas to be
+    displayed through Piccolo.
+
+    """
+
+    # We use this to measure text in the constructor
+    font = Font("Dialog", Font.BOLD, 14)
+    fontMetrics = FontMetricsImpl(font)
+
+    def __init__(self, module):
+        super(PNode, self).__init__()
+
+        self.name = module.name
+
+        # These are the position of the center of the text, in the global
+        # coordinate system
+        self.center_x = module.location.x
+        self.center_y = -module.location.y
+        self.translate(self.center_x, self.center_y)
+
+        # Compute the size of the module from the text
+        self.fontRect = PModule.fontMetrics.getStringBounds(self.name, None)
+        w = self.fontRect.getWidth() + 2 * SPACING_X
+        h = self.fontRect.getHeight() + 2 * SPACING_Y
+
+        # These are the position of the upper-left corner of the
+        # rectangle, in this object's coordinate system
+        self.mod_x = int(-w/2)
+        self.mod_y = int(-h/2)
+
+        self.inputPorts = module.destinationPorts()
+        self.outputPorts = module.sourcePorts()
+
+        # Filter out 'self' ports
+        # FIXME : Should we do this?
+        self.inputPorts = filter(lambda p: p.name != 'self', self.inputPorts)
+        self.outputPorts = filter(lambda p: p.name != 'self', self.outputPorts)
+
+        # Update the module size with the ports
+        if self.inputPorts:
+            h += SPACING_Y + PORT_HEIGHT
+            self.mod_y -= SPACING_Y + PORT_HEIGHT
+            n = len(self.inputPorts) + 1
+            w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
+        if self.outputPorts:
+            h += SPACING_Y + PORT_HEIGHT
+            n = len(self.inputPorts)
+            w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
+
+        self.module_width = int(w)
+        self.module_height = int(h)
+
+        self.setBounds(self.mod_x, self.mod_y,
+                       self.module_width, self.module_height)
+
+        self.inputConnections = set()
+        self.outputConnections = set()
+
+    def paint(self, paintContext):
+        graphics = paintContext.getGraphics()
+
+        # Draw the rectangle
+        graphics.setColor(self.color)
+        graphics.fillRect(self.mod_x, self.mod_y,
+                          self.module_width, self.module_height)
+
+        # Draw the caption
+        graphics.setColor(Color.black)
+        graphics.drawString(
+                self.name,
+                int(-self.fontRect.getWidth()/2),
+                int(-self.fontRect.getY() - self.fontRect.getHeight()/2))
+
+        # Draw the ports
+        p_x = int(self.mod_x + SPACING_X)
+        p_y = int(self.mod_y + SPACING_Y)
+        for port in self.inputPorts:
+            graphics.fillRect(
+                p_x, p_y,
+                PORT_WIDTH, PORT_HEIGHT)
+            p_x += PORT_WIDTH + SPACING_X
+        p_x = int(self.mod_x + self.module_width - SPACING_X - PORT_WIDTH)
+        p_y = int(self.mod_y + self.module_height - SPACING_Y - PORT_HEIGHT)
+        for port in self.outputPorts:
+            graphics.fillRect(
+                p_x, p_y,
+                PORT_WIDTH, PORT_HEIGHT)
+            p_x -= PORT_WIDTH + SPACING_X
+
+        # Draw a triangle in the top-right corner of the module
+        p_x = int(self.mod_x + self.module_width - SPACING_X - PORT_WIDTH)
+        p_y = int(self.mod_y + SPACING_Y)
+        shape = Polygon(
+                [p_x, p_x + PORT_WIDTH, p_x],
+                [p_y, p_y + PORT_HEIGHT/2, p_y + PORT_HEIGHT],
+                3)
+        graphics.fill(shape)
+
+    def inputport_position(self, iport):
+        """Returns the position of one of this module's input port, in the
+        global coordinate system.
+        """
+        if isinstance(iport, str):
+            iport = self.inputport_number(iport)
+        return (self.center_x + self.mod_x + (iport+1) * (SPACING_X + PORT_WIDTH) - PORT_WIDTH/2,
+                self.center_y + self.mod_y + SPACING_Y + PORT_HEIGHT/2)
+
+    def outputport_position(self, oport):
+        """Returns the position of one of this module's output port, in the
+        global coordinate system.
+        """
+        if isinstance(oport, str):
+            oport = self.outputport_number(oport)
+        return (self.center_x + self.mod_x + self.module_width - (oport+1) * (SPACING_X + PORT_WIDTH) + PORT_WIDTH/2,
+                self.center_y + self.mod_y + self.module_height - SPACING_Y - PORT_HEIGHT/2)
+
+    def inputport_number(self, iport):
+            return [p.name for p in self.inputPorts].index(iport)
+
+    def outputport_number(self, oport):
+            return [p.name for p in self.outputPorts].index(oport)
+
+
+class PConnection(PNode):
+    def __init__(self, source, oport, destination, iport):
+        super(PNode, self).__init__()
+
+        if isinstance(oport, str):
+            oport = source.outputport_number(oport)
+        if isinstance(iport, str):
+            iport = destination.inputport_number(iport)
+
+        self.source = source
+        self.oport = oport
+        self.destination = destination
+        self.iport = iport
+
+        b = Rectangle2D.Double()
+        sx, sy = source.outputport_position(oport)
+        b.add(Point(int(sx), int(sy)))
+        dx, dy = destination.inputport_position(iport)
+        b.add(Point(int(dx), int(dy)))
+        self.setBounds(b)
+
+        source.outputConnections.add(self)
+        destination.inputConnections.add(self)
+
+    def paint(self, paintContext):
+        graphics = paintContext.getGraphics()
+
+        sx, sy = self.source.outputport_position(self.oport)
+        dx, dy = self.destination.inputport_position(self.iport)
+
+        graphics.setColor(Color.black)
+        graphics.drawLine(int(sx), int(sy), int(dx), int(dy))
+
+
+class JPipelineView(PCanvas):
     """The pipeline view."""
     def __init__(self, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None):
@@ -55,10 +232,17 @@ class JPipelineView(JPanel):
         self.vistrail = vistrail
         self.locator = locator
 
+        # Create the scene
+        self.setupScene(self.controller.current_pipeline)
+
+        # Compute modules colors
+        self.define_modules_color()
+
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
         print results[0].__str__()
         self.executed = results[0].executed
+        self.define_modules_color()
         SwingUtilities.invokeLater(CustomRunner(self.invalidate))
         SwingUtilities.invokeLater(CustomRunner(self.revalidate))
         SwingUtilities.invokeLater(CustomRunner(self.repaint))
@@ -67,124 +251,37 @@ class JPipelineView(JPanel):
         self.colorModules = {}
         if self.executed == {}:
             for module in self.controller.current_pipeline._get_modules():
-                self.colorModules[module] = Color.WHITE
+                self.modules[module].color = Color.gray
         else:
             for module in self.controller.current_pipeline._get_modules():
                 if module in self.executed:
                     if self.executed[module] == True:
-                        self.colorModules[module] = Color.GREEN
+                        self.modules[module].color = Color.green
                     else:
-                        self.colorModules[module] = Color.RED
+                        self.modules[module].color = Color.red
                 else:
-                    self.colorModules[module] = Color.ORANGE
+                    self.modules[module].color = Color.orange
 
-    def paintComponent(self, graphics):
-        # Compute modules colors
-        self.define_modules_color()
+    def setupScene(self, pipeline):
+        self.modules = {}
 
-        modules = self.controller.current_pipeline.modules
-        connections = self.controller.current_pipeline.connections
+        module_layer = self.getLayer()
+        edge_layer = PLayer()
+        module_layer.addChild(edge_layer)
+        self.getCamera().addLayer(edge_layer)
 
         # Draw the pipeline using their stored position
-        if graphics is not None:
-            font = graphics.getFont()
-            fontRenderContext = graphics.getFontRenderContext()
+        module_geometries = {}
 
-            module_geometries = {}
+        for id, module in pipeline.modules.iteritems():
+            pmod = PModule(module)
+            self.modules[id] = pmod
+            module_layer.addChild(pmod)
 
-            for id, mod in modules.iteritems():
-                name = mod.name
-                # These are the position of the center of the text
-                x = mod.location.x
-                y = -mod.location.y
-
-                fontRect = font.getStringBounds(name, fontRenderContext)
-                w = fontRect.getWidth() + 2 * SPACING_X
-                h = fontRect.getHeight() + 2 * SPACING_Y
-
-                # These are the position of the upper-right corner of the
-                # rectangle
-                mod_x = x - w/2
-                mod_y = y - h/2
-
-                inputPorts = mod.destinationPorts()
-                inputPorts = filter(lambda p: p.name != "self", inputPorts)
-                outputPorts = mod.sourcePorts()
-                outputPorts = filter(lambda p: p.name != "self", outputPorts)
-
-                if inputPorts:
-                    h += SPACING_Y + PORT_HEIGHT
-                    mod_y -= SPACING_Y + PORT_HEIGHT
-                    n = len(inputPorts) + 1
-                    w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
-                if outputPorts:
-                    h += SPACING_Y + PORT_HEIGHT
-                    n = len(inputPorts)
-                    w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
-
-                # Draw the rectangle
-                graphics.setColor(self.colorModules[id])
-                graphics.fillRect(int(mod_x), int(mod_y), int(w), int(h))
-
-                # Store the geometry to be recalled when drawing connections
-                module_geometries[id] = [
-                        mod_x, mod_y, w, h,
-                        [p.name for p in inputPorts],
-                        [p.name for p in outputPorts]]
-
-                # Draw the caption
-                graphics.setColor(Color.black)
-                graphics.drawString(
-                        name,
-                        int(x - fontRect.getWidth()/2),
-                        int(y - fontRect.getY() - fontRect.getHeight()/2))
-
-                # Draw the ports
-                p_x = int(mod_x + SPACING_X)
-                p_y = int(mod_y + SPACING_Y)
-                for port in inputPorts:
-                    graphics.fillRect(
-                        p_x, p_y,
-                        PORT_WIDTH, PORT_HEIGHT)
-                    p_x += PORT_WIDTH + SPACING_X
-                p_x = int(mod_x + w - SPACING_X - PORT_WIDTH)
-                p_y = int(mod_y + h - SPACING_Y - PORT_HEIGHT)
-                for port in outputPorts:
-                    graphics.fillRect(
-                        p_x, p_y,
-                        PORT_WIDTH, PORT_HEIGHT)
-                    p_x -= PORT_WIDTH + SPACING_X
-
-                # Draw a triangle in the top-right corner of the module
-                p_x = int(mod_x + w - SPACING_X - PORT_WIDTH)
-                p_y = int(mod_y + SPACING_Y)
-                shape = Polygon(
-                        [p_x, p_x + PORT_WIDTH, p_x],
-                        [p_y, p_y + PORT_HEIGHT/2, p_y + PORT_HEIGHT],
-                        3)
-                graphics.fill(shape)
-
-            # Draw the edges
-            for id, connection in connections.iteritems():
-                source = module_geometries[connection.source.moduleId]
-                # Find the source port in the source module's output ports
-                iport_num = source[5].index(connection.source.name)
-                sx = source[0] + source[2] - (iport_num+1) * (SPACING_X + PORT_WIDTH) + PORT_WIDTH/2
-                sy = source[1] + source[3] - SPACING_Y - PORT_WIDTH/2
-
-                destination = module_geometries[connection.destination.moduleId]
-                # Find the destination port in the destination module's input
-                # ports
-                oport_num = destination[4].index(connection.destination.name)
-                dx = destination[0] + (oport_num+1) * (SPACING_X + PORT_WIDTH) - PORT_WIDTH/2
-                dy = destination[1] + SPACING_Y + PORT_WIDTH/2
-
-                graphics.drawLine(int(sx), int(sy), int(dx), int(dy))
-
-
-class CustomRunner(Runnable):
-    def __init__(self, func):
-        self.runner = func;
-
-    def run(self):
-        self.runner()
+        # Draw the edges
+        for id, connection in pipeline.connections.iteritems():
+            edge_layer.addChild(PConnection(
+                    self.modules[connection.source.moduleId],
+                    connection.source.name,
+                    self.modules[connection.destination.moduleId],
+                    connection.destination.name))

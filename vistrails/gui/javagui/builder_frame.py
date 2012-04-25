@@ -32,6 +32,21 @@
 ##
 ###############################################################################
 
+import sys
+
+# This can't stay here
+sys.path.append('../../piccolo/piccolo2d-core-1.3.1.jar')
+sys.path.append('../../piccolo/piccolo2d-extras-1.3.1.jar')
+
+from vistrail_controller import JVistrailController
+from pipeline_view import JPipelineView
+from version_view import JVersionVistrailView
+from core.db.locator import ZIPFileLocator
+from core.db.io import load_vistrail
+import core.packagemanager
+import core.application
+import core.system
+
 from javax.swing import ImageIcon
 from javax.swing import JFileChooser
 from javax.swing import JFrame
@@ -44,15 +59,6 @@ from javax.swing import JPanel
 from javax.swing import SwingConstants
 from java.awt import BorderLayout
 
-from vistrail_controller import JVistrailController
-from pipeline_view import JPipelineView
-from version_view import JVersionVistrailView
-from core.db.locator import ZIPFileLocator
-from core.db.io import load_vistrail
-import core.packagemanager
-import core.application
-import core.system
-import sys
 
 class BuilderFrame(JFrame):
     """The window, used to edit a vistrail.
