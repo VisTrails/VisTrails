@@ -1133,6 +1133,7 @@ class QVistrailList(QtGui.QTreeWidget):
     def make_list(self, item):
         """ construct a list from the tagged workflows in a loaded vistrail
         """
+        self.setSortingEnabled(False)
         if not (hasattr(item, 'tag_to_item') or hasattr(item, 'mshp_to_item')): 
             return
         for tag, wf in item.tag_to_item.iteritems():
@@ -1144,11 +1145,13 @@ class QVistrailList(QtGui.QTreeWidget):
             mshp = mshp.parent().takeChild(index)
             item.mashupsItem.addChild(mshp)
         self.updateHideExecutions()
+        self.setSortingEnabled(True)
 
 
     def make_tree(self, item):
         """ construct a tree from the tagged workflows in a loaded vistrail
         """
+        self.setSortingEnabled(False)
         if not hasattr(item, 'window'):
             return
         am = item.window.controller.vistrail.actionMap
@@ -1176,6 +1179,8 @@ class QVistrailList(QtGui.QTreeWidget):
                 wf = wf.parent().takeChild(index)
                 parent_wf.addChild(wf)
         self.updateHideExecutions()
+        self.setSortingEnabled(True)
+
 
     def state_changed(self, view):
         """ update tags and mashups """
