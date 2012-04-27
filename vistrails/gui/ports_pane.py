@@ -186,6 +186,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         layout = QtGui.QGridLayout()
         layout.setMargin(5)
         layout.setSpacing(5)
+        layout.setColumnStretch(1,1)
         self.group_box.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.group_box.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                      QtGui.QSizePolicy.Fixed)
@@ -200,9 +201,10 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         for i, (desc, param) in enumerate(izip(self.port_spec.descriptors(), 
                                                params)):
             #print 'adding desc', desc.name
-            # ps_label = ''
-            # if port_spec.labels is not None and len(port_spec.labels) > i:
-            #     ps_label = str(port_spec.labels[i])
+            ps_label = ''
+            if self.port_spec.labels is not None and \
+                    len(self.port_spec.labels) > i:
+                ps_label = str(self.port_spec.labels[i])
             # label = QHoverAliasLabel(p.alias, p.type, ps_label)
 
             widget_class = widget_accessor(desc.module)
@@ -211,7 +213,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             else:
                 obj = Parameter(desc)
             if with_alias:
-                label = AliasLabel(obj.alias, obj.type)
+                label = AliasLabel(obj.alias, obj.type, ps_label)
                 self.my_labels.append(label)
             else:
                 label = QtGui.QLabel(obj.type)
