@@ -600,14 +600,16 @@ Returns true if given package identifier is present."""
                 pkg = self.get_package_by_codepath(codepath)
             except self.MissingPackage:
                 pkg = self.look_at_available_package(codepath)
-                try:
-                    pkg.load()
-                except pkg.LoadFailed:
-                    pass
-                except pkg.InitializationFailed:
-                    pass
+            try:
+                pkg.load()
                 if pkg.identifier == identifier:
                     return pkg
+            except pkg.LoadFailed:
+                pass
+            except pkg.InitializationFailed:
+                pass
+            except Exception, e:
+                pass
         return None
 
     def available_package_names_list(self):
