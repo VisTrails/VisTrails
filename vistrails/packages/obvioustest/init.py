@@ -19,7 +19,7 @@ from prefuse_network_viz import PrefuseNetworkViz
 from prefuse_view import PrefuseView
 
 
-# We need to create module to represent our data types that are used by ports
+# We need to create modules to represent our data types that are used by ports
 import data
 
 

@@ -41,6 +41,7 @@ sys.path.append('../../piccolo/piccolo2d-extras-1.3.1.jar')
 from vistrail_controller import JVistrailController
 from pipeline_view import JPipelineView
 from version_view import JVersionVistrailView
+from module_palette import JModulePalette
 from core.db.locator import ZIPFileLocator
 from core.db.io import load_vistrail
 import core.packagemanager
@@ -64,7 +65,6 @@ class BuilderFrame(JFrame):
     """The window, used to edit a vistrail.
 
     It is the main class of the GUI, it creates and updates the views.
-
     """
     def __init__(self):
         self.title = "Vistrails running on Jython"
@@ -78,11 +78,48 @@ class BuilderFrame(JFrame):
         fileMenu.add(self.openItem)
         menuBar.add(fileMenu)
         self.setJMenuBar(menuBar)
+        self.current_view = None
+        
+        self.contentPanel = JPanel(BorderLayout())
+        self.setContentPane(self.contentPanel)
+        root = str(core.system.vistrails_root_directory())
+        toolBar = JToolBar()
+
+        # Create and add the different buttons
+        def addButton(image, tooltip, text):
+            iconFile = root + "/gui/resources/images/" + image
+            icon = ImageIcon(iconFile)
+            button = JButton(icon)
+            button.actionPerformed = self.buttonClicked
+            button.setToolTipText(tooltip)
+            button.setVerticalTextPosition(SwingConstants.BOTTOM)
+            button.setHorizontalTextPosition(SwingConstants.CENTER)
+            button.setText(text)
+            toolBar.add(button)
+            return button
+
+        self.openButton = addButton('open_vistrail.png', "Open", "Open")
+        self.executeButton = addButton(
+                'execute.png', "Execute the current pipeline", "Execute")
+        self.pipelineButton = addButton('pipeline.png',
+                                        "Switch to pipeline view", "Pipeline")
+        self.historyButton = addButton('history.png',
+                                       "Switch to version view", "Version")
+
+        self.contentPanel.add(toolBar, BorderLayout.NORTH)
+        
+        # Create the module palette
+        self.modulepalette = JModulePalette()
+        self.contentPanel.add(self.modulepalette, BorderLayout.WEST)
+        # TODO : scrollbar for the palette!
 
     def showFrame(self):
         self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
         self.setSize(300, 300)
-        self.show()
+        self.setVisible(True)
+    
+    def link_registry(self):
+        self.modulepalette.link_registry()
 
     def open_vistrail(self, fileName):
         # This part is identical with the Python/Qt version
@@ -109,7 +146,6 @@ class BuilderFrame(JFrame):
             self.repaint()
 
     def open_vistrail_without_prompt(self, locator, version = None):
-        self.current_view = None
         self.controller = JVistrailController()
         self.currentVersion = "-1"
 
@@ -132,50 +168,7 @@ class BuilderFrame(JFrame):
                 abstractions, thumbnails)
 
         # Setup the view (pipeline by default)
-        self.contentPanel = JPanel(BorderLayout())
         self.set_current_view(self.pipelineView)
-        toolBar = JToolBar()
-        root = str(core.system.vistrails_root_directory())
-
-        # Create and add the different buttons
-        openIconFile = root + "/gui/resources/images/open_vistrail.png"
-        openIcon = ImageIcon(openIconFile)
-        self.openButton = JButton(openIcon)
-        self.openButton.actionPerformed = self.buttonClicked
-        self.openButton.setToolTipText("Open")
-        self.openButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-        self.openButton.setHorizontalTextPosition(SwingConstants.CENTER);
-        self.openButton.setText("Open")
-        executeIconFile = root + "/gui/resources/images/execute.png"
-        executeIcon = ImageIcon(executeIconFile)
-        self.executeButton = JButton(executeIcon)
-        self.executeButton.actionPerformed = self.buttonClicked
-        self.executeButton.setToolTipText("Execute the current pipeline")
-        self.executeButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-        self.executeButton.setHorizontalTextPosition(SwingConstants.CENTER);
-        self.executeButton.setText("Execute")
-        pipelineIconFile = root + "/gui/resources/images/pipeline.png"
-        pipelineIcon = ImageIcon(pipelineIconFile)
-        self.pipelineButton = JButton(pipelineIcon)
-        self.pipelineButton.actionPerformed = self.buttonClicked
-        self.pipelineButton.setToolTipText("Switch to pipeline view")
-        self.pipelineButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-        self.pipelineButton.setHorizontalTextPosition(SwingConstants.CENTER);
-        self.pipelineButton.setText("Pipeline")
-        historyIconFile = root + "/gui/resources/images/history.png"
-        historyIcon = ImageIcon(historyIconFile)
-        self.historyButton = JButton(historyIcon)
-        self.historyButton.setToolTipText("Switch to version view")
-        self.historyButton.actionPerformed = self.buttonClicked
-        self.historyButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-        self.historyButton.setHorizontalTextPosition(SwingConstants.CENTER);
-        self.historyButton.setText("Version")
-        toolBar.add(self.openButton)
-        toolBar.add(self.executeButton)
-        toolBar.add(self.pipelineButton)
-        toolBar.add(self.historyButton)
-        self.contentPanel.add(toolBar, BorderLayout.NORTH)
-        self.setContentPane(self.contentPanel)
 
     def buttonClicked(self, event):
         if (event.getSource() == self.pipelineButton):

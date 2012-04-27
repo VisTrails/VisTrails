@@ -39,15 +39,9 @@ initializations to the theme, packages and the builder...
 
 from core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
-from core import command_line
 from core import debug
 from core import system
-from core.db.locator import FileLocator, DBLocator
 import core.requirements
-from db import VistrailsDBException
-import db.services.io
-import os.path
-import getpass
 import sys
 
 ################################################################################
@@ -72,11 +66,6 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         VistrailsApplicationInterface.__init__(self)
 
         self.builderWindow = None
-        # local notifications
-        self.window_notifications = {}
-        self.view_notifications = {}
-
-        self._is_running = False
 
     def init(self, optionsDict=None):
         """ VistrailsJavaApplicationSingleton(optionDict: dict)
@@ -88,10 +77,17 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
 
         self.vistrailsStartup.init()
         
-        self.createWindows()
+        interactive = self.temp_configuration.check('interactiveMode')
+        if interactive:
+            self.createWindows()
 
         self._initialized = True
 
+        if interactive:
+            self.interactiveMode()
+        else:
+            r = self.noninteractiveMode()
+            return r
         return True
 
     def is_running_gui(self):
@@ -101,14 +97,6 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         traceback.print_stack()
         sys.stderr.write("javagui.application:VistrailsJavaApplicationSingleton#is_running_gui()\n- - -\n")
         return False
-
-    def showBuilderWindow(self):
-        # in some systems (Linux and Tiger) we need to make both calls
-        # so builderWindow is activated
-        self.setActiveWindow(self.builderWindow)
-        self.builderWindow.activateWindow()
-        self.builderWindow.show()
-        self.builderWindow.raise_()
 
     def setupSplashScreen(self):
         """ setupSplashScreen() -> None
@@ -124,21 +112,19 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         if hasattr(self, "splashScreen"):
             # TODO : display splash message
             pass
-
-    def createWindows(self):
-        """ createWindows() -> None
-        Create and configure all GUI widgets including the builder
-
-        """
-        print "createWindows"
         
-        self.setupSplashScreen()
-
-        # This is so that we don't import too many things before we
-        # have to. Otherwise, requirements are checked too late.
-        from gui.javagui.builder_frame import BuilderFrame
-
-        self.builderWindow = BuilderFrame()
+    def noninteractiveMode(self):
+        # TODO : application#noninteractiveMode()
+        sys.stderr.write("Error: non-interactive mode is not implemented!")
+        
+    def interactiveMode(self):
+        if self.temp_configuration.check('showSplash'):
+            pass #self.splashScreen.finish(self.builderWindow) FIXME
+        self.builderWindow.link_registry()
+        
+        #self.builderWindow.create_first_vistrail()
+        
+        # Debug code -- load some modules and a test vistrail
         
         def load_module_if_req(codepath):
             package_manager = core.packagemanager.get_package_manager()
@@ -157,7 +143,22 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         load_module_if_req('javaspreadsheet')
         load_module_if_req('obvioustest')
 
-        self.builderWindow.open_vistrail("C:/Documents and Settings/remirampin/Mes documents/obvious.vt")
+        self.builderWindow.open_vistrail("C:/Users/User_2/Documents/obvioustest.vt")
+
+    def createWindows(self):
+        """ createWindows() -> None
+        Create and configure all GUI widgets including the builder
+
+        """
+        print "createWindows"
+        
+        self.setupSplashScreen()
+
+        # This is so that we don't import too many things before we
+        # have to. Otherwise, requirements are checked too late.
+        from gui.javagui.builder_frame import BuilderFrame
+
+        self.builderWindow = BuilderFrame()
         
         if not self.temp_configuration.showSpreadsheetOnly:
             self.builderWindow.showFrame()
@@ -166,9 +167,6 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         if self.builderWindow:
             self.builderWindow.setVisible(False)
         VistrailsApplicationInterface.finishSession(self)
-
-    def is_running(self):
-        return self._is_running
 
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
@@ -181,15 +179,6 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsJavaApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    if VistrailsApplication.is_running():
-        debug.critical("Found another instance of VisTrails running")
-        msg = str(sys.argv[1:])
-        debug.critical("Will send parameters to main instance %s" % msg)
-        res = VistrailsApplication.send_message(msg)
-        if res:
-            sys.exit(0)
-        else:
-            sys.exit(1)
     try:
         core.requirements.check_all_vistrails_requirements()
     except core.requirements.MissingRequirement, e:
