@@ -217,6 +217,7 @@ def load_module_if_req(codepath):
     else:
         print "Package '%s' had already been loaded automatically" % codepath
 
+load_module_if_req('javaspreadsheet')
 load_module_if_req('obvioustest')
 
 frame.open_vistrail("C:/Documents and Settings/remirampin/Mes documents/obvious.vt")

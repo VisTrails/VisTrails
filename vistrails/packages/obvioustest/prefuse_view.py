@@ -1,9 +1,5 @@
 from core.modules.vistrails_module import Module, NotCacheable
 
-from java.lang import Class
-
-from javax.swing import JFrame
-
 import prefuse
 from prefuse.controls import DragControl, PanControl, ZoomControl
 from obvious.prefuse.view import PrefuseObviousControl, PrefuseObviousView as View
@@ -12,7 +8,7 @@ from obvious.prefuse.view import PrefuseObviousControl, PrefuseObviousView as Vi
 # The view shouldn't be cached - we want the frame to be shown after each
 # execution
 class PrefuseView(NotCacheable, Module):
-    """This module displays a visualization in a swing Frame.
+    """This module displays a visualization as a swing component.
     """
     def compute(self):
         visualization = self.getInputFromPort('visualization')
@@ -20,14 +16,11 @@ class PrefuseView(NotCacheable, Module):
         preView.addListener(PrefuseObviousControl(ZoomControl()))
         preView.addListener(PrefuseObviousControl(PanControl()))
         preView.addListener(PrefuseObviousControl(DragControl()))
-        
-        frame = JFrame()
-        frame.setContentPane(preView.getViewJComponent())
-        frame.pack()
-        frame.setVisible(True)
-        
+
+        view = preView.getViewJComponent()
+
         # This seems to be required by Prefuse
         realPreViz = visualization.getUnderlyingImpl(prefuse.Visualization)
         realPreViz.run('color')
         realPreViz.run('layout')
-        self.setResult('frame', frame)
+        self.setResult('view', view)

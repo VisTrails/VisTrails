@@ -1,10 +1,9 @@
 # VisTrails module imports
-from core.modules.vistrails_module import Module
 from core.modules.module_registry import get_module_registry
 from core.modules import basic_modules
 
-# Java standard library
-from javax.swing import JFrame
+# This represents a swing component, that may be added to a spreadsheet cell
+from packages.javaspreadsheet.component import Component
 
 # Set up the path so we can load from the bundled JAR's
 import sys
@@ -21,27 +20,15 @@ from prefuse_view import PrefuseView
 
 
 # We need to create module to represent our data types that are used by ports
-# obvious.viz.Visualization
-class Data_ObviousVisualization(Module):
-    def compute(self):
-        pass
-# obvious.data.Network
-class Data_ObviousNetwork(Module):
-    def compute(self):
-        pass
-# JFrame
-class Data_JFrame(Module):
-    def compute(self):
-        pass
+import data
 
 
 def initialize(*args, **keywords):
     reg = get_module_registry()
 
     # Data types for ports
-    reg.add_module(Data_ObviousNetwork)
-    reg.add_module(Data_ObviousVisualization)
-    reg.add_module(Data_JFrame)
+    reg.add_module(data.ObviousNetwork)
+    reg.add_module(data.ObviousVisualization)
 
     # PrefuseGridNetwork
     reg.add_module(PrefuseGridNetwork)
@@ -54,22 +41,22 @@ def initialize(*args, **keywords):
             (basic_modules.Integer, "height of the grid"))
     reg.add_output_port(
              PrefuseGridNetwork, 'network',
-             (Data_ObviousNetwork, "an obvious network"))
+             (data.ObviousNetwork, "an obvious network"))
 
     # PrefuseNetworkViz
     reg.add_module(PrefuseNetworkViz)
     reg.add_input_port(
             PrefuseNetworkViz, 'network',
-            (Data_ObviousNetwork, "an obvious network"))
+            (data.ObviousNetwork, "an obvious network"))
     reg.add_output_port(
-             PrefuseNetworkViz, 'visualization',
-             (Data_ObviousVisualization, "an obvious network visualization"))
+            PrefuseNetworkViz, 'visualization',
+            (data.ObviousVisualization, "an obvious network visualization"))
 
     # PrefuseView
     reg.add_module(PrefuseView)
     reg.add_input_port(
-             PrefuseView, 'visualization',
-             (Data_ObviousVisualization, "an obvious prefuse visualization"))
+            PrefuseView, 'visualization',
+            (data.ObviousVisualization, "an obvious prefuse visualization"))
     reg.add_output_port(
-            PrefuseView, 'frame',
-            (Data_JFrame, "a JFrame containing the view"))
+            PrefuseView, 'view',
+            (Component, "the view as a swing component"))
