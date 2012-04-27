@@ -502,7 +502,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         validLabel = True
         if tag is None:
             label = ''
-            validLabel=False
+            validLabel = False
         else:
             label = tag
 
@@ -518,9 +518,9 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             textToDraw=self.descriptionLabel
         
         if (ThumbnailCache.getInstance().conf.mouseHover and
-            action and action.thumbnail is not None):
+                action and action.thumbnail is not None):
             fname = ThumbnailCache.getInstance().get_abs_name_entry(action.thumbnail)
-            self.setToolTip('<img src="%s" height="128" border="1"/>'%fname)
+            self.setToolTip('<img src="%s" height="128" border="1"/>' % fname)
         else:
             self.setToolTip('')    
         self.text.changed(node.p.x, node.p.y, textToDraw, validLabel)

@@ -78,7 +78,6 @@ class BuilderFrame(JFrame):
         fileMenu.add(self.openItem)
         menuBar.add(fileMenu)
         self.setJMenuBar(menuBar)
-        core.application.init()
 
     def showFrame(self):
         self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
@@ -200,25 +199,3 @@ class BuilderFrame(JFrame):
             self.getContentPane().getComponent(1).invalidate()
             self.getContentPane().getComponent(1).revalidate()
             self.getContentPane().getComponent(1).repaint()
-
-frame = BuilderFrame()
-
-def load_module_if_req(codepath):
-    package_manager = core.packagemanager.get_package_manager()
-    try:
-        package_manager.get_package_by_codepath(codepath)
-    except core.packagemanager.PackageManager.MissingPackage:
-        print "Loading package '%s'..." % codepath
-        try:
-            package_manager.late_enable_package(codepath)
-            print "Loading complete"
-        except core.packagemanager.PackageManager.MissingPackage, e:
-            sys.stderr.write("Unable to load package '%s':" % codepath, str(e), "\n")
-    else:
-        print "Package '%s' had already been loaded automatically" % codepath
-
-load_module_if_req('javaspreadsheet')
-load_module_if_req('obvioustest')
-
-frame.open_vistrail("C:/Documents and Settings/remirampin/Mes documents/obvious.vt")
-frame.showFrame()
