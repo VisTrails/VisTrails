@@ -37,7 +37,7 @@ from datetime import datetime
 from core import debug
 from core.bundles import py_import
 from core.system import get_elementtree_library, temporary_directory,\
-     execute_cmdline, systemType
+     execute_cmdline, systemType, get_executable_path
 from core.utils import Chdir
 from core.log.log import Log
 from core.mashup.mashup_trail import Mashuptrail
@@ -352,7 +352,7 @@ def get_db_id_from_name(db_connection, obj_type, name):
     except get_db_lib().Error, e:
         c.close()
         msg = "Connection error when trying to get db id from name"
-        raise VisrailsDBException(msg)
+        raise VistrailsDBException(msg)
 
 def get_matching_abstraction_id(db_connection, abstraction):
     last_action_id = -1
@@ -839,7 +839,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     # running from the binary install
     zipcmd = 'zip'
     if systemType in ['Windows', 'Microsoft']:
-        zipcmd = os.path.join(os.getcwd(),'zip.exe')
+        zipcmd = get_executable_path('zip.exe')
         if not os.path.exists(zipcmd):
             zipcmd = 'zip.exe' #assume zip is in path
     cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
