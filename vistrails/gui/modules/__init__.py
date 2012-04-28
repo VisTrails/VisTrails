@@ -32,13 +32,13 @@
 ##
 ###############################################################################
 
-from constant_configuration import StandardConstantWidget
+from constant_configuration import StandardConstantWidgetBase
 from query_configuration import BaseQueryWidget
 
 def get_widget_class(module_klass):
     klass = module_klass.get_widget_class()
     if klass is None:
-        return StandardConstantWidget
+        return StandardConstantWidgetBase
     if type(klass) == tuple:
         (path, klass_name) = klass
         module = __import__(path, globals(), locals(), [klass_name])

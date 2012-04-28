@@ -736,15 +736,20 @@ class DBPortSpec(object):
 
     vtType = 'portSpec'
 
-    def __init__(self, id=None, name=None, type=None, optional=None, sort_key=None, sigstring=None, labels=None, defaults=None, min_conns=None, max_conns=None):
+    def __init__(self, id=None, name=None, type=None, optional=None, sort_key=None, portSpecItems=None, min_conns=None, max_conns=None):
         self._db_id = id
         self._db_name = name
         self._db_type = type
         self._db_optional = optional
         self._db_sort_key = sort_key
-        self._db_sigstring = sigstring
-        self._db_labels = labels
-        self._db_defaults = defaults
+        self.db_deleted_portSpecItems = []
+        self.db_portSpecItems_id_index = {}
+        if portSpecItems is None:
+            self._db_portSpecItems = []
+        else:
+            self._db_portSpecItems = portSpecItems
+            for v in self._db_portSpecItems:
+                self.db_portSpecItems_id_index[v.db_id] = v
         self._db_min_conns = min_conns
         self._db_max_conns = max_conns
         self.is_dirty = True
@@ -759,11 +764,12 @@ class DBPortSpec(object):
                         type=self._db_type,
                         optional=self._db_optional,
                         sort_key=self._db_sort_key,
-                        sigstring=self._db_sigstring,
-                        labels=self._db_labels,
-                        defaults=self._db_defaults,
                         min_conns=self._db_min_conns,
                         max_conns=self._db_max_conns)
+        if self._db_portSpecItems is None:
+            cp._db_portSpecItems = []
+        else:
+            cp._db_portSpecItems = [v.do_copy() for v in self._db_portSpecItems]
         
         # set new ids
         if new_ids:
@@ -775,6 +781,7 @@ class DBPortSpec(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
+        cp.db_portSpecItems_id_index = dict((v.db_id, v) for v in cp._db_portSpecItems)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -812,21 +819,17 @@ class DBPortSpec(object):
             new_obj.db_sort_key = res
         elif hasattr(old_obj, 'db_sort_key') and old_obj.db_sort_key is not None:
             new_obj.db_sort_key = old_obj.db_sort_key
-        if 'sigstring' in class_dict:
-            res = class_dict['sigstring'](old_obj, trans_dict)
-            new_obj.db_sigstring = res
-        elif hasattr(old_obj, 'db_sigstring') and old_obj.db_sigstring is not None:
-            new_obj.db_sigstring = old_obj.db_sigstring
-        if 'labels' in class_dict:
-            res = class_dict['labels'](old_obj, trans_dict)
-            new_obj.db_labels = res
-        elif hasattr(old_obj, 'db_labels') and old_obj.db_labels is not None:
-            new_obj.db_labels = old_obj.db_labels
-        if 'defaults' in class_dict:
-            res = class_dict['defaults'](old_obj, trans_dict)
-            new_obj.db_defaults = res
-        elif hasattr(old_obj, 'db_defaults') and old_obj.db_defaults is not None:
-            new_obj.db_defaults = old_obj.db_defaults
+        if 'portSpecItems' in class_dict:
+            res = class_dict['portSpecItems'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_portSpecItem(obj)
+        elif hasattr(old_obj, 'db_portSpecItems') and old_obj.db_portSpecItems is not None:
+            for obj in old_obj.db_portSpecItems:
+                new_obj.db_add_portSpecItem(DBPortSpecItem.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_portSpecItems') and hasattr(new_obj, 'db_deleted_portSpecItems'):
+            for obj in old_obj.db_deleted_portSpecItems:
+                n_obj = DBPortSpecItem.update_version(obj, trans_dict)
+                new_obj.db_deleted_portSpecItems.append(n_obj)
         if 'min_conns' in class_dict:
             res = class_dict['min_conns'](old_obj, trans_dict)
             new_obj.db_min_conns = res
@@ -845,10 +848,16 @@ class DBPortSpec(object):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
+        children.extend(self.db_deleted_portSpecItems)
+        if remove:
+            self.db_deleted_portSpecItems = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
+        for child in self._db_portSpecItems:
+            if child.has_changes():
+                return True
         return False
     def __get_db_id(self):
         return self._db_id
@@ -915,44 +924,47 @@ class DBPortSpec(object):
     def db_delete_sort_key(self, sort_key):
         self._db_sort_key = None
     
-    def __get_db_sigstring(self):
-        return self._db_sigstring
-    def __set_db_sigstring(self, sigstring):
-        self._db_sigstring = sigstring
+    def __get_db_portSpecItems(self):
+        return self._db_portSpecItems
+    def __set_db_portSpecItems(self, portSpecItems):
+        self._db_portSpecItems = portSpecItems
         self.is_dirty = True
-    db_sigstring = property(__get_db_sigstring, __set_db_sigstring)
-    def db_add_sigstring(self, sigstring):
-        self._db_sigstring = sigstring
-    def db_change_sigstring(self, sigstring):
-        self._db_sigstring = sigstring
-    def db_delete_sigstring(self, sigstring):
-        self._db_sigstring = None
-    
-    def __get_db_labels(self):
-        return self._db_labels
-    def __set_db_labels(self, labels):
-        self._db_labels = labels
+    db_portSpecItems = property(__get_db_portSpecItems, __set_db_portSpecItems)
+    def db_get_portSpecItems(self):
+        return self._db_portSpecItems
+    def db_add_portSpecItem(self, portSpecItem):
         self.is_dirty = True
-    db_labels = property(__get_db_labels, __set_db_labels)
-    def db_add_labels(self, labels):
-        self._db_labels = labels
-    def db_change_labels(self, labels):
-        self._db_labels = labels
-    def db_delete_labels(self, labels):
-        self._db_labels = None
-    
-    def __get_db_defaults(self):
-        return self._db_defaults
-    def __set_db_defaults(self, defaults):
-        self._db_defaults = defaults
+        self._db_portSpecItems.append(portSpecItem)
+        self.db_portSpecItems_id_index[portSpecItem.db_id] = portSpecItem
+    def db_change_portSpecItem(self, portSpecItem):
         self.is_dirty = True
-    db_defaults = property(__get_db_defaults, __set_db_defaults)
-    def db_add_defaults(self, defaults):
-        self._db_defaults = defaults
-    def db_change_defaults(self, defaults):
-        self._db_defaults = defaults
-    def db_delete_defaults(self, defaults):
-        self._db_defaults = None
+        found = False
+        for i in xrange(len(self._db_portSpecItems)):
+            if self._db_portSpecItems[i].db_id == portSpecItem.db_id:
+                self._db_portSpecItems[i] = portSpecItem
+                found = True
+                break
+        if not found:
+            self._db_portSpecItems.append(portSpecItem)
+        self.db_portSpecItems_id_index[portSpecItem.db_id] = portSpecItem
+    def db_delete_portSpecItem(self, portSpecItem):
+        self.is_dirty = True
+        for i in xrange(len(self._db_portSpecItems)):
+            if self._db_portSpecItems[i].db_id == portSpecItem.db_id:
+                if not self._db_portSpecItems[i].is_new:
+                    self.db_deleted_portSpecItems.append(self._db_portSpecItems[i])
+                del self._db_portSpecItems[i]
+                break
+        del self.db_portSpecItems_id_index[portSpecItem.db_id]
+    def db_get_portSpecItem(self, key):
+        for i in xrange(len(self._db_portSpecItems)):
+            if self._db_portSpecItems[i].db_id == key:
+                return self._db_portSpecItems[i]
+        return None
+    def db_get_portSpecItem_by_id(self, key):
+        return self.db_portSpecItems_id_index[key]
+    def db_has_portSpecItem_with_id(self, key):
+        return key in self.db_portSpecItems_id_index
     
     def __get_db_min_conns(self):
         return self._db_min_conns
@@ -3380,6 +3392,237 @@ class DBOpmProcessIdCause(object):
         self._db_id = None
     
 
+
+class DBPortSpecItem(object):
+
+    vtType = 'portSpecItem'
+
+    def __init__(self, id=None, pos=None, module=None, package=None, namespace=None, label=None, default=None, values=None, entry_type=None):
+        self._db_id = id
+        self._db_pos = pos
+        self._db_module = module
+        self._db_package = package
+        self._db_namespace = namespace
+        self._db_label = label
+        self._db_default = default
+        self._db_values = values
+        self._db_entry_type = entry_type
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBPortSpecItem.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBPortSpecItem(id=self._db_id,
+                            pos=self._db_pos,
+                            module=self._db_module,
+                            package=self._db_package,
+                            namespace=self._db_namespace,
+                            label=self._db_label,
+                            default=self._db_default,
+                            values=self._db_values,
+                            entry_type=self._db_entry_type)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBPortSpecItem()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'pos' in class_dict:
+            res = class_dict['pos'](old_obj, trans_dict)
+            new_obj.db_pos = res
+        elif hasattr(old_obj, 'db_pos') and old_obj.db_pos is not None:
+            new_obj.db_pos = old_obj.db_pos
+        if 'module' in class_dict:
+            res = class_dict['module'](old_obj, trans_dict)
+            new_obj.db_module = res
+        elif hasattr(old_obj, 'db_module') and old_obj.db_module is not None:
+            new_obj.db_module = old_obj.db_module
+        if 'package' in class_dict:
+            res = class_dict['package'](old_obj, trans_dict)
+            new_obj.db_package = res
+        elif hasattr(old_obj, 'db_package') and old_obj.db_package is not None:
+            new_obj.db_package = old_obj.db_package
+        if 'namespace' in class_dict:
+            res = class_dict['namespace'](old_obj, trans_dict)
+            new_obj.db_namespace = res
+        elif hasattr(old_obj, 'db_namespace') and old_obj.db_namespace is not None:
+            new_obj.db_namespace = old_obj.db_namespace
+        if 'label' in class_dict:
+            res = class_dict['label'](old_obj, trans_dict)
+            new_obj.db_label = res
+        elif hasattr(old_obj, 'db_label') and old_obj.db_label is not None:
+            new_obj.db_label = old_obj.db_label
+        if 'default' in class_dict:
+            res = class_dict['default'](old_obj, trans_dict)
+            new_obj.db_default = res
+        elif hasattr(old_obj, 'db_default') and old_obj.db_default is not None:
+            new_obj.db_default = old_obj.db_default
+        if 'values' in class_dict:
+            res = class_dict['values'](old_obj, trans_dict)
+            new_obj.db_values = res
+        elif hasattr(old_obj, 'db_values') and old_obj.db_values is not None:
+            new_obj.db_values = old_obj.db_values
+        if 'entry_type' in class_dict:
+            res = class_dict['entry_type'](old_obj, trans_dict)
+            new_obj.db_entry_type = res
+        elif hasattr(old_obj, 'db_entry_type') and old_obj.db_entry_type is not None:
+            new_obj.db_entry_type = old_obj.db_entry_type
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_pos(self):
+        return self._db_pos
+    def __set_db_pos(self, pos):
+        self._db_pos = pos
+        self.is_dirty = True
+    db_pos = property(__get_db_pos, __set_db_pos)
+    def db_add_pos(self, pos):
+        self._db_pos = pos
+    def db_change_pos(self, pos):
+        self._db_pos = pos
+    def db_delete_pos(self, pos):
+        self._db_pos = None
+    
+    def __get_db_module(self):
+        return self._db_module
+    def __set_db_module(self, module):
+        self._db_module = module
+        self.is_dirty = True
+    db_module = property(__get_db_module, __set_db_module)
+    def db_add_module(self, module):
+        self._db_module = module
+    def db_change_module(self, module):
+        self._db_module = module
+    def db_delete_module(self, module):
+        self._db_module = None
+    
+    def __get_db_package(self):
+        return self._db_package
+    def __set_db_package(self, package):
+        self._db_package = package
+        self.is_dirty = True
+    db_package = property(__get_db_package, __set_db_package)
+    def db_add_package(self, package):
+        self._db_package = package
+    def db_change_package(self, package):
+        self._db_package = package
+    def db_delete_package(self, package):
+        self._db_package = None
+    
+    def __get_db_namespace(self):
+        return self._db_namespace
+    def __set_db_namespace(self, namespace):
+        self._db_namespace = namespace
+        self.is_dirty = True
+    db_namespace = property(__get_db_namespace, __set_db_namespace)
+    def db_add_namespace(self, namespace):
+        self._db_namespace = namespace
+    def db_change_namespace(self, namespace):
+        self._db_namespace = namespace
+    def db_delete_namespace(self, namespace):
+        self._db_namespace = None
+    
+    def __get_db_label(self):
+        return self._db_label
+    def __set_db_label(self, label):
+        self._db_label = label
+        self.is_dirty = True
+    db_label = property(__get_db_label, __set_db_label)
+    def db_add_label(self, label):
+        self._db_label = label
+    def db_change_label(self, label):
+        self._db_label = label
+    def db_delete_label(self, label):
+        self._db_label = None
+    
+    def __get_db_default(self):
+        return self._db_default
+    def __set_db_default(self, default):
+        self._db_default = default
+        self.is_dirty = True
+    db_default = property(__get_db_default, __set_db_default)
+    def db_add_default(self, default):
+        self._db_default = default
+    def db_change_default(self, default):
+        self._db_default = default
+    def db_delete_default(self, default):
+        self._db_default = None
+    
+    def __get_db_values(self):
+        return self._db_values
+    def __set_db_values(self, values):
+        self._db_values = values
+        self.is_dirty = True
+    db_values = property(__get_db_values, __set_db_values)
+    def db_add_values(self, values):
+        self._db_values = values
+    def db_change_values(self, values):
+        self._db_values = values
+    def db_delete_values(self, values):
+        self._db_values = None
+    
+    def __get_db_entry_type(self):
+        return self._db_entry_type
+    def __set_db_entry_type(self, entry_type):
+        self._db_entry_type = entry_type
+        self.is_dirty = True
+    db_entry_type = property(__get_db_entry_type, __set_db_entry_type)
+    def db_add_entry_type(self, entry_type):
+        self._db_entry_type = entry_type
+    def db_change_entry_type(self, entry_type):
+        self._db_entry_type = entry_type
+    def db_delete_entry_type(self, entry_type):
+        self._db_entry_type = None
+    
+    def getPrimaryKey(self):
+        return self._db_id
 
 class DBMachine(object):
 

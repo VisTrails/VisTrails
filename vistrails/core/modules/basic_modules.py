@@ -922,7 +922,8 @@ class SmartSource(NotCacheable, Module):
                     
                     if spec:
                         # See explanation of algo in doc/smart_source_resolution_algo.txt
-                        port_vistrail_base_class = spec.types()[0]
+                        # changed from spec.types()[0]
+                        port_vistrail_base_class = spec.descriptors()[0].module
                         mro = get_mro(type(v))
                         source_types = self.registry.python_source_types
                         found = False

@@ -1098,7 +1098,8 @@ class Pipeline(DBWorkflow):
             try:
                 for port_spec in module.port_specs.itervalues():
                     try:
-                        port_spec.create_entries_and_descriptors()
+                        # port_spec.create_entries_and_descriptors()
+                        port_spec.descriptors()
                     except ModuleRegistryException, e:
                         e = PortMismatch(module.package, module.name,
                                          module.namespace, port_spec.name,

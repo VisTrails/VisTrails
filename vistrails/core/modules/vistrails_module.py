@@ -375,8 +375,51 @@ Makes sure input port 'name' is filled."""
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         return self.inputPorts[inputPort][0]
 
-    def getInputFromPort(self, inputPort):
-        if not self.inputPorts.has_key(inputPort):
+    def getDefaultValue(self, inputPort):
+        reg = self.registry
+
+        d = None
+        try:
+            d = reg.get_descriptor(self.__class__)
+        except:
+            pass
+        if not d:
+            return None
+
+        ps = None
+        try:
+            ps = reg.get_port_spec_from_descriptor(d, inputPort, 'input')
+        except:
+            pass
+        if not ps:
+            return None
+
+        if len(ps.port_spec_items) == 1:
+            psi = ps.port_spec_items[0]
+            if psi.default is not None:
+                m_klass = psi.descriptor.module
+                return m_klass.translate_to_python(psi.default)
+        else:
+            default_val = []
+            default_valid = True
+            for psi in ps.port_spec_items:
+                if psi.default is None:
+                    default_valid = False
+                    break
+                m_klass = psi.descriptor.module
+                default_val.append(
+                    m_klass.translate_to_python(psi.default))
+            if default_valid:
+                return tuple(default_val)
+
+        return None
+
+    def getInputFromPort(self, inputPort, allowDefault=True):
+        if inputPort not in self.inputPorts:
+            if allowDefault and self.registry:
+                defaultValue = self.getDefaultValue(inputPort)
+                if defaultValue is not None:
+                    return defaultValue
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         # Cannot resolve circular reference here, need to be fixed later
         from core.modules.sub_module import InputPort

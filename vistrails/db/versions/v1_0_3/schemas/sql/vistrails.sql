@@ -62,9 +62,6 @@ CREATE TABLE port_spec(
     type varchar(255),
     optional int,
     sort_key int,
-    sigstring varchar(4095),
-    labels varchar(4095),
-    defaults varchar(4095),
     min_conns int,
     max_conns int,
     parent_type char(32),
@@ -140,6 +137,21 @@ CREATE TABLE log_tbl(
     name varchar(255),
     last_modified datetime,
     vistrail_id int
+) engine=InnoDB;
+
+CREATE TABLE port_spec_item(
+    id int,
+    pos int,
+    module varchar(255),
+    package varchar(255),
+    namespace varchar(255),
+    label varchar(4095),
+    default varchar(4095),
+    values varchar(65536),
+    entry_type varchar(255),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE machine(

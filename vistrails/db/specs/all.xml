@@ -1640,19 +1640,9 @@
       <sql type="int"/>
     </property>
 
-    <property name="sigstring" type="str">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(4095)"/>
-    </property>
-
-    <property name="labels" type="str">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(4095)"/>
-    </property>
-
-    <property name="defaults" type="str">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(4095)"/>
+    <property ref="true" object="portSpecItem" type="list" 
+	      mapping="one-to-many" expand="false">
+      <xml nodeType="xs:element"/>
     </property>
 
     <property name="min_conns" type="int">
@@ -1693,6 +1683,75 @@
       <sql type="char(16)"/>
     </property>
 
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PORTSPECITEM ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="portSpecItem">
+    <layout>
+      <xml name="portSpecItem" nodeType="xs:element"/>
+      <sql table="port_spec_item"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="pos" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="module" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="label" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(4095)"/>
+    </property>
+
+    <property name="default" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(4095)"/>
+    </property>
+
+    <property name="values" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(65536)"/>
+    </property>
+
+    <property name="entry_type" type="str">
+      <xml name="entryType" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" type="long" object="portSpec" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
   </object>
 
   <!--++++++++++++++++++++++++++-->

@@ -33,6 +33,7 @@
 ###############################################################################
 
 import copy
+from itertools import izip
 import os
 import uuid
 import shutil
@@ -775,11 +776,25 @@ class VistrailController(object):
                     op_list.append(('change', old_param, new_param,
                                     function.vtType, function.real_id))
         else:
-            new_function = self.create_function(module, function_name,
-                                                param_values, aliases,
-                                                query_methods)
-            op_list.append(('add', new_function,
-                            module.vtType, module.id))        
+            if len(param_values) < 1:
+                new_function = self.create_function(module, function_name,
+                                                    param_values, aliases,
+                                                    query_methods)
+                op_list.append(('add', new_function,
+                                module.vtType, module.id))        
+            else:
+                psis = port_spec.port_spec_items
+                found = False
+                for param_value, psi in izip(param_values, psis):
+                    if param_value != psi.default:
+                        found = True
+                        break
+                if found:
+                    new_function = self.create_function(module, function_name,
+                                                        param_values, aliases,
+                                                        query_methods)
+                    op_list.append(('add', new_function,
+                                    module.vtType, module.id))
         return op_list
 
     def update_functions_ops(self, module, functions):
@@ -978,8 +993,10 @@ class VistrailController(object):
                                            old_id, aliases=aliases,
                                            query_methods=query_methods,
                                            should_replace=should_replace)
-        action = core.db.action.create_action(op_list)
-        return action
+        if len(op_list) > 0:
+            action = core.db.action.create_action(op_list)
+            return action
+        return None
 
     @vt_action
     def update_parameter(self, function, old_param_id, new_value):

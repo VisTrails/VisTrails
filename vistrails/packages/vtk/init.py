@@ -456,7 +456,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
             if is_class_allowed(class_):
                 port_name = 'Get'+name
                 registry.add_output_port(module, port_name, class_, True,
-                                         module.get_doc(port_name))
+                                         docstring=module.get_doc(port_name))
         if len(setterSig) > 1:
             prune_signatures(module, 'Set%s'%name, setterSig)
         for ix, setter in enumerate(setterSig):
@@ -466,7 +466,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 registry.add_input_port(module, n,
                                         typeMap(setter[1][0]),
                                         setter[1][0] in typeMapDict,
-                                        module.get_doc(n))
+                                        docstring=module.get_doc(n))
             else:
                 classes = [typeMap(i) for i in setter[1]]
 

@@ -144,6 +144,9 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self._boundingRect = self.getRect().adjusted(-halfpw, -halfpw, 
                                                       halfpw, halfpw)
 
+    def getPosition(self):
+        return self.sceneBoundingRect().center()
+
     def setPainterState(self):
         if self._selected:
             self._pen_color = CurrentTheme.PORT_PEN_COLOR_SELECTED
@@ -750,311 +753,174 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 ##############################################################################
 # QGraphicsConnectionItem
 
-# set this to True to have old sine-wave connections
-__old_connection = False
-if __old_connection:
-    class QGraphicsConnectionItem(QGraphicsItemInterface,
-                                  QtGui.QGraphicsPolygonItem):
-        """
-        QGraphicsConnectionItem is a connection shape connecting two port items
+class QGraphicsConnectionItem(QGraphicsItemInterface,
+                              QtGui.QGraphicsPathItem):
+    """
+    QGraphicsConnectionItem is a connection shape connecting two port items
+
+    """
+
+    def __init__(self,
+                 srcPortItem, dstPortItem,
+                 srcModule, dstModule,
+                 connection,
+                 parent=None):
+        """ QGraphicsConnectionItem(
+                srcPortItem, dstPortItem: QAbstractGraphicsPortItem
+                srcModule, dstModule: QGraphicsModuleItem
+                connection: core.vistrail.connection.Connection
+                parent: QGraphicsItem
+                ) -> QGraphicsConnectionItem
+        Create the shape, initialize its pen and brush accordingly
 
         """
-        def __init__(self, srcPoint, dstPoint, srcModule, dstModule,
-                     connection, parent=None):
-            """ QGraphicsConnectionItem(srcPoint, dstPoint: QPointF
-            srcModule, dstModule: QGraphicsModuleItem
-            connection
-            parent: QGraphicsItem)
-                                        -> QGraphicsConnectionItem
-            Create the shape, initialize its pen and brush accordingly
+        path = self.create_path(srcPortItem.getPosition(), 
+                                dstPortItem.getPosition())
+        QtGui.QGraphicsPathItem.__init__(self, path, parent)
+        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        # Bump it slightly higher than the highest module
+        self.setZValue(max(srcModule.id,
+                           dstModule.id) + 0.1)
+        self.srcPortItem = srcPortItem
+        self.dstPortItem = dstPortItem
+        self.connectionPen = CurrentTheme.CONNECTION_PEN
+        self.connectingModules = (srcModule, dstModule)
+        self.ghosted = False
+        self.connection = connection
+        self.id = connection.id
+        # Keep a flag for changing selection state during module selection
+        self.useSelectionRules = True
 
-            """
-            QtGui.QGraphicsPolygonItem.__init__(self, parent)
-            self.startPos = QtCore.QPointF()
-            self.endPos = QtCore.QPointF()
-            self.visualPolygon = QtGui.QPolygonF()
-            self.setupConnection(srcPoint, dstPoint)
-            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-            # Bump it slightly higher than the highest module
-            self.setZValue(max(srcModule.id,
-                               dstModule.id) + 0.1)
+    def setGhosted(self, ghosted):
+        """ setGhosted(ghosted: True) -> None
+        Set this link to be ghosted or not
+
+        """
+        self.ghosted = ghosted
+        if ghosted:
+            self.connectionPen = CurrentTheme.GHOSTED_CONNECTION_PEN
+        else:
             self.connectionPen = CurrentTheme.CONNECTION_PEN
-            
-            self.connectingModules = (srcModule, dstModule)
-            self.id = connection.id
-            self.ghosted = False
-            self.connection = connection
-            # Keep a flag for changing selection state during module selection
-            self.useSelectionRules = True
 
-        def setupConnection(self, startPos, endPos):
-            """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
-            Setup curve ends and store info
+    def set_custom_brush(self, brush):
+        self.connectionPen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
+        self.connectionPen.setBrush(brush)
 
-            """
-            self.startPos = startPos
-            self.endPos = endPos
-
-            # Generate the polygon passing through two points
-            steps = CurrentTheme.CONNECTION_CONTROL_POINTS
-            polygon = QtGui.QPolygonF()
-            self.visualPolygon = QtGui.QPolygonF()
-            p1 = self.startPos
-            p2 = self.endPos
-            r = p2-p1
-            horizontal = False        
-            if p2.y() > p1.y() and p2.x() > p1.x():
-                horizontal = True
-            p1x = p1.x()
-            p1y = p1.y()
-            rx = r.x()
-            ry = r.y()
-            points = []
-            for i in xrange(steps):
-                t = float(i)/float(steps-1)
-                s = (0.5+math.sin(math.pi*(t-0.5))*0.5)
-                if horizontal:
-                    x = p1x+rx*t
-                    y = p1y+ry*s
-                    polygon.append(QtCore.QPointF(x,y-2))
-                    self.visualPolygon.append(QtCore.QPointF(x,y))
-                    points.append(QtCore.QPointF(x, y+2))
-                else:
-                    x = p1x+rx*s
-                    y = p1y+ry*t
-                    polygon.append(QtCore.QPointF(x-2, y))
-                    self.visualPolygon.append(QtCore.QPointF(x, y))
-                    points.append(QtCore.QPointF(x+2, y))
-
-            for p in reversed(points):
-                polygon.append(p)
-            polygon.append(polygon.at(0))
-            self.setPolygon(polygon)
-
-        def setGhosted(self, ghosted):
-            """ setGhosted(ghosted: True) -> None
-            Set this link to be ghosted or not
-
-            """
-            self.ghosted = ghosted
-            if ghosted:
-                self.connectionPen = CurrentTheme.GHOSTED_CONNECTION_PEN
-            else:
-                self.connectionPen = CurrentTheme.CONNECTION_PEN
-
-        def set_custom_brush(self, brush):
-            self.connectionPen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
-            self.connectionPen.setBrush(brush)
-
-        def paint(self, painter, option, widget=None):
-            """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
-                      widget: QWidget) -> None
-            Peform actual painting of the connection
-
-            """
-            if self.isSelected():
-                painter.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
-            else:
-                painter.setPen(self.connectionPen)
-            painter.drawPolyline(self.visualPolygon)
-
-        def itemChange(self, change, value):
-            """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
-            Do not allow connection to be selected unless both modules 
-            are selected
-
-            """
-            # Selection rules to be used only when a module isn't forcing 
-            # the update
-            if (change==QtGui.QGraphicsItem.ItemSelectedChange and 
-                self.useSelectionRules):
-                # Check for a selected module
-                selectedItems = self.scene().selectedItems()
-                selectedModules = False
-                for item in selectedItems:
-                    if type(item)==QGraphicsModuleItem:
-                        selectedModules = True
-                        break
-                if selectedModules:
-                    # Don't allow a connection between selected
-                    # modules to be deselected
-                    if (self.connectingModules[0].isSelected() and
-                        self.connectingModules[1].isSelected()):
-                        if not value.toBool():
-                            return QtCore.QVariant(True)
-                    # Don't allow a connection to be selected if
-                    # it is not between selected modules
-                    else:
-                        if value.toBool():
-                            return QtCore.QVariant(False)
-            self.useSelectionRules = True
-            return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
-else:
-    class QGraphicsConnectionItem(QGraphicsItemInterface,
-                                  QtGui.QGraphicsPathItem):
-        """
-        QGraphicsConnectionItem is a connection shape connecting two port items
+    def paint(self, painter, option, widget=None):
+        """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
+                  widget: QWidget) -> None
+        Peform actual painting of the connection
 
         """
+        if self.isSelected():
+            painter.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
+        else:
+            painter.setPen(self.connectionPen)
+        painter.drawPath(self.path())
 
-        def create_path(self, startPos, endPos):
-            self.startPos = startPos
-            self.endPos = endPos
+    def setupConnection(self, startPos, endPos):
+        path = self.create_path(startPos, endPos)
+        self.setPath(path)
 
-            dx = abs(self.endPos.x() - self.startPos.x())
-            dy = (self.startPos.y() - self.endPos.y())
+    def create_path(self, startPos, endPos):
+        self.startPos = startPos
+        self.endPos = endPos
 
-            # This is reasonably ugly logic to get reasonably nice
-            # curves. Here goes: we use a cubic bezier p0,p1,p2,p3, where:
+        dx = abs(self.endPos.x() - self.startPos.x())
+        dy = (self.startPos.y() - self.endPos.y())
 
-            # p0 is the source port center
-            # p3 is the destination port center
-            # p1 is a control point displaced vertically from p0
-            # p2 is a control point displaced vertically from p3
+        # This is reasonably ugly logic to get reasonably nice
+        # curves. Here goes: we use a cubic bezier p0,p1,p2,p3, where:
 
-            # We want most curves to be "straight": they shouldn't bend
-            # much.  However, we want "inverted" connections (connections
-            # that go against the natural up-down flow) to bend a little
-            # as they go out of the ports. So the logic is:
+        # p0 is the source port center
+        # p3 is the destination port center
+        # p1 is a control point displaced vertically from p0
+        # p2 is a control point displaced vertically from p3
 
-            # As dy/dx -> oo, we want the control point displacement to go
-            # to max(dy/2, m) (m is described below)
+        # We want most curves to be "straight": they shouldn't bend
+        # much.  However, we want "inverted" connections (connections
+        # that go against the natural up-down flow) to bend a little
+        # as they go out of the ports. So the logic is:
 
-            # As dy/dx -> 0, we want the control point displacement to go
-            # to m 
+        # As dy/dx -> oo, we want the control point displacement to go
+        # to max(dy/2, m) (m is described below)
 
-            # As dy/dx -> -oo, we want the control point displacement to go
-            # to max(-dy/2, m)
+        # As dy/dx -> 0, we want the control point displacement to go
+        # to m 
 
-            # On points away from infinity, we want some smooth transition.
-            # I'm using f(x) = 2/pi arctan (x) as the mapping, since:
+        # As dy/dx -> -oo, we want the control point displacement to go
+        # to max(-dy/2, m)
 
-            # f(-oo) = -1
-            # f(0) = 0
-            # f(oo) = 1
+        # On points away from infinity, we want some smooth transition.
+        # I'm using f(x) = 2/pi arctan (x) as the mapping, since:
 
-            # m is the monotonicity breakdown point: this is the minimum
-            # displacement when dy/dx is low
-            m = float(CurrentTheme.MODULE_LABEL_MARGIN[0]) * 3.0
+        # f(-oo) = -1
+        # f(0) = 0
+        # f(oo) = 1
 
-            # positive_d and negative_d are the displacements when dy/dx is
-            # large positive and large negative
-            positive_d = max(m/3.0, dy / 2.0)
-            negative_d = max(m/3.0, -dy / 4.0)
+        # m is the monotonicity breakdown point: this is the minimum
+        # displacement when dy/dx is low
+        m = float(CurrentTheme.MODULE_LABEL_MARGIN[0]) * 3.0
 
-            if dx == 0.0:
-                v = 0.0
+        # positive_d and negative_d are the displacements when dy/dx is
+        # large positive and large negative
+        positive_d = max(m/3.0, dy / 2.0)
+        negative_d = max(m/3.0, -dy / 4.0)
+
+        if dx == 0.0:
+            v = 0.0
+        else:
+            w = math.atan(dy/dx) * (2 / math.pi)
+            if w < 0:
+                w = -w
+                v = w * negative_d + (1.0 - w) * m
             else:
-                w = math.atan(dy/dx) * (2 / math.pi)
-                if w < 0:
-                    w = -w
-                    v = w * negative_d + (1.0 - w) * m
+                v = w * positive_d + (1.0 - w) * m
+
+        displacement = QtCore.QPointF(0.0, v)
+        self._control_1 = startPos + displacement
+        # !!! MAC OS X BUG !!!
+        # the difference between startPos.y and control_1.y cannot be
+        # equal to the difference between control_2.y and endPos.y
+        self._control_2 = self.endPos - displacement + QtCore.QPointF(0.0, 1e-11)
+        # self._control_2 = endPos - displacement
+
+
+        path = QtGui.QPainterPath(self.startPos)
+        path.cubicTo(self._control_1, self._control_2, self.endPos)
+        return path
+
+    def itemChange(self, change, value):
+        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        If modules are selected, only allow connections between 
+        selected modules 
+
+        """
+        # Selection rules to be used only when a module isn't forcing 
+        # the update
+        if (change==QtGui.QGraphicsItem.ItemSelectedChange and 
+            self.useSelectionRules):
+            # Check for a selected module
+            selectedItems = self.scene().selectedItems()
+            selectedModules = False
+            for item in selectedItems:
+                if type(item)==QGraphicsModuleItem:
+                    selectedModules = True
+                    break
+            if selectedModules:
+                # Don't allow a connection between selected
+                # modules to be deselected
+                if (self.connectingModules[0].isSelected() and
+                    self.connectingModules[1].isSelected()):
+                    if not value.toBool():
+                        return QtCore.QVariant(True)
+                # Don't allow a connection to be selected if
+                # it is not between selected modules
                 else:
-                    v = w * positive_d + (1.0 - w) * m
-
-            displacement = QtCore.QPointF(0.0, v)
-            self._control_1 = startPos + displacement
-            # !!! MAC OS X BUG !!!
-            # the difference between startPos.y and control_1.y cannot be
-            # equal to the difference between control_2.y and endPos.y
-            self._control_2 = self.endPos - displacement + QtCore.QPointF(0.0, 1e-11)
-            # self._control_2 = endPos - displacement
-
-
-            path = QtGui.QPainterPath(self.startPos)
-            path.cubicTo(self._control_1, self._control_2, self.endPos)
-            return path
-            
-        def __init__(self,
-                     srcPoint, dstPoint,
-                     srcModule, dstModule,
-                     connection,
-                     parent=None):
-            """ QGraphicsConnectionItem(
-            srcPoint, dstPoint: QPointF
-            srcModule, dstModule: QGraphicsModuleItem
-            connection
-            parent: QGraphicsItem)
-                                        -> QGraphicsConnectionItem
-            Create the shape, initialize its pen and brush accordingly
-
-            """
-            path = self.create_path(srcPoint, dstPoint)
-            QtGui.QGraphicsPolygonItem.__init__(self, path, parent)
-            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-            # Bump it slightly higher than the highest module
-            self.setZValue(max(srcModule.id,
-                               dstModule.id) + 0.1)
-            self.connectionPen = CurrentTheme.CONNECTION_PEN
-            self.connectingModules = (srcModule, dstModule)
-            self.ghosted = False
-            self.connection = connection
-            self.id = connection.id
-            # Keep a flag for changing selection state during module selection
-            self.useSelectionRules = True
-
-        def setGhosted(self, ghosted):
-            """ setGhosted(ghosted: True) -> None
-            Set this link to be ghosted or not
-
-            """
-            self.ghosted = ghosted
-            if ghosted:
-                self.connectionPen = CurrentTheme.GHOSTED_CONNECTION_PEN
-            else:
-                self.connectionPen = CurrentTheme.CONNECTION_PEN
-
-        def set_custom_brush(self, brush):
-            self.connectionPen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
-            self.connectionPen.setBrush(brush)
-
-        def paint(self, painter, option, widget=None):
-            """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
-                      widget: QWidget) -> None
-            Peform actual painting of the connection
-
-            """
-            if self.isSelected():
-                painter.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
-            else:
-                painter.setPen(self.connectionPen)
-            painter.drawPath(self.path())
-
-        def setupConnection(self, startPos, endPos):
-            path = self.create_path(startPos, endPos)
-            self.setPath(path)
-            
-        def itemChange(self, change, value):
-            """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
-            If modules are selected, only allow connections between 
-            selected modules 
-
-            """
-            # Selection rules to be used only when a module isn't forcing 
-            # the update
-            if (change==QtGui.QGraphicsItem.ItemSelectedChange and 
-                self.useSelectionRules):
-                # Check for a selected module
-                selectedItems = self.scene().selectedItems()
-                selectedModules = False
-                for item in selectedItems:
-                    if type(item)==QGraphicsModuleItem:
-                        selectedModules = True
-                        break
-                if selectedModules:
-                    # Don't allow a connection between selected
-                    # modules to be deselected
-                    if (self.connectingModules[0].isSelected() and
-                        self.connectingModules[1].isSelected()):
-                        if not value.toBool():
-                            return QtCore.QVariant(True)
-                    # Don't allow a connection to be selected if
-                    # it is not between selected modules
-                    else:
-                        if value.toBool():
-                            return QtCore.QVariant(False)
-            self.useSelectionRules = True
-            return QtGui.QGraphicsPathItem.itemChange(self, change, value)    
+                    if value.toBool():
+                        return QtCore.QVariant(False)
+        self.useSelectionRules = True
+        return QtGui.QGraphicsPathItem.itemChange(self, change, value)    
 
 ##############################################################################
 # QGraphicsModuleItem
@@ -1116,6 +982,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.progress = 0.0
         self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
         self.connectionItems = {}
+        self._cur_function_names = set()
 
     def moduleHasChanged(self, core_module):
         def module_text_has_changed(m1, m2):
@@ -1129,18 +996,18 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 return True            
             return False
 
-        def module_functions_have_changed(m1, m2):
-            f1_names = set([f.name for f in m1.functions])
-            f2_names = set([f.name for f in m2.functions])
-            return (len(f1_names ^ f2_names) > 0)
+        # def module_functions_have_changed(m1, m2):
+        #     f1_names = set([f.name for f in m1.functions])
+        #     f2_names = set([f.name for f in m2.functions])
+        #     return (len(f1_names ^ f2_names) > 0)
 
         if self.scenePos().x() != core_module.center.x or \
                 -self.scenePos().y() != core_module.center.y:
             return True
         elif module_text_has_changed(self.module, core_module):
             return True
-        elif module_functions_have_changed(self.module, core_module):
-            return True
+        # elif module_functions_have_changed(self.module, core_module):
+        #     return True
         else:
             # Check for changed ports
             # _db_name because this shows up in the profile.
@@ -1163,7 +1030,61 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             if cip <> new_ip or cop <> new_op:
                 return True
         return False
+
+    def moduleFunctionsHaveChanged(self, core_module):
+        m1 = self.module
+        m2 = core_module
+        f1_names = set([f.name for f in m1.functions])
+        f2_names = set([f.name for f in m2.functions])
+        return (len(f1_names ^ f2_names) > 0)
+
+    def update_function_ports(self, core_module=None):
+        if core_module is None:
+            core_module = self.module
+            added_functions = set(f.name for f in self.module.functions)
+            deleted_functions = set()
+            self._cur_function_names = copy.copy(added_functions)
+        else:
+            before_names = self._cur_function_names
+            after_names = set([f.name for f in core_module.functions])
+            # print "before_names:", before_names
+            # print "after_names:", after_names
+            added_functions = after_names - before_names
+            deleted_functions = before_names - after_names
+            self._cur_function_names = copy.copy(after_names)
+
+        # print "added_functions:", added_functions
+        # print "deleted_functions:", deleted_functions
+        if len(deleted_functions) > 0:
+            for function_name in deleted_functions:
+                try:
+                    r_spec = self.module.get_port_spec(function_name, 'input')
+                    f_spec = PortSpec(id=-1,
+                                      name=function_name,
+                                      type=PortSpec.port_type_map['input'],
+                                      sigstring=r_spec.sigstring)
+                    item = self.getInputPortItem(f_spec)
+                    if item is not None:
+                        item.disconnect()
+                except:
+                    # import traceback
+                    # traceback.print_exc()
+                    pass
+
+        if len(added_functions) > 0:
+            for function in core_module.functions:
+                if function.name not in added_functions:
+                    continue
+                added_functions.remove(function.name)
+                f_spec = PortSpec(id=-1,
+                                  name=function.name,
+                                  type=PortSpec.port_type_map['input'],
+                                  sigstring=function.sigstring)
+                item = self.getInputPortItem(f_spec)
+                if item is not None:
+                    item.connect()
         
+        self.module = core_module
 
     def setProgress(self, progress):
         self.progress = progress
@@ -1486,14 +1407,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             except ModuleRegistryException, e:
                 error = e
 
-            for function in module.functions:
-                f_spec = PortSpec(id=-1,
-                                  name=function.name,
-                                  type=PortSpec.port_type_map['input'],
-                                  sigstring=function.sigstring)
-                item = self.getPortItem(f_spec, 'input')
-                if item is not None:
-                    item.connect()
+            self.update_function_ports()
         else:
             self.setInvalid(True)
             
@@ -1598,18 +1512,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             return configureShape
         return None
 
-    def getPortItem(self, port, port_type=None, port_dict=None, 
-                    optional_ports=None):
+    def getPortItem(self, port, port_dict=None):
         # print 'looking for port', port.name, port.type, port_type
-        if port_type == 'input':
-            port_dict = self.inputPorts
-            optional_ports = self.optionalInputPorts
-        elif port_type == 'output':
-            port_dict = self.outputPorts
-            optional_ports = self.optionalOutputPorts
-        if port_dict is None or optional_ports is None:
-            raise Exception("Must provide either port_type or both "
-                            "port_dict and optional_ports")
             
         registry = get_module_registry()
 
@@ -1635,26 +1539,18 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         return None
 
-    def getPortPosition(self, port, port_dict, optional_ports, next_pos, 
-                        next_op, default_sig):
-        """ getPortPosition(port: Port,
-                            port_dict: {PortSpec: QGraphicsPortItem},
-                            optional_ports: [PortSpec],
-                            next_pos: [float, float],
-                            next_op: operator (operator.add, operator.sub),
-                            default_sig: str
-                            )
-                            -> QPointF
+    def buildPortItem(self, port, port_dict, optional_ports, next_pos, 
+                       next_op, default_sig):
+        """buildPortItem(port: Port,
+                         port_dict: {PortSpec: QGraphicsPortItem},
+                         optional_ports: [PortSpec],
+                         next_pos: [float, float],
+                         next_op: operator (operator.add, operator.sub),
+                         default_sig: str
+                         ) -> QPointF
         Return the scene position of a port matched 'port' in port_dict
         
         """
-        item = self.getPortItem(port, port_dict=port_dict, 
-                                optional_ports=optional_ports)
-        if item is not None:
-            return item.sceneBoundingRect().center()
-
-        registry = get_module_registry()
-        
         registry = get_module_registry()
         
         # check optional ports
@@ -1666,7 +1562,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     next_pos[0] = next_op(next_pos[0], 
                                           (CurrentTheme.PORT_WIDTH +
                                            CurrentTheme.MODULE_PORT_SPACE))
-                    return item.sceneBoundingRect().center()
+                    return item
 
         debug.log("PORT SIG:" + port.signature)
         if not port.signature or port.signature == '()':
@@ -1699,43 +1595,40 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         next_pos[0] = next_op(next_pos[0], 
                               (CurrentTheme.PORT_WIDTH +
                                CurrentTheme.MODULE_PORT_SPACE))
-        return item.sceneBoundingRect().center()
+        return item
 
-    def getInputPortPosition(self, port):
-        """ getInputPortPosition(port: Port) -> QPointF
-        Just an overload function of getPortPosition to get from input ports
-        
-        """        
-        return self.getPortPosition(port, self.inputPorts, 
-                                    self.optionalInputPorts,
-                                    self.nextInputPortPos,
-                                    operator.add,
-                                    '(edu.utah.sci.vistrails.basic:Variant)')
-        
-    def getOutputPortPosition(self, port):
-        """ getOutputPortPosition(port: Port} -> QRectF
-        Just an overload function of getPortPosition to get from output ports
-        
-        """
-        return self.getPortPosition(port, self.outputPorts,
-                                    self.optionalOutputPorts,
-                                    self.nextOutputPortPos,
-                                    operator.sub,
-                                    '(edu.utah.sci.vistrails.basic:Module)')
+    def getInputPortItem(self, port, do_create=False):
+        item = self.getPortItem(port, self.inputPorts)
+        if not item and do_create:
+            item = self.buildPortItem(port,
+                                      self.inputPorts,
+                                      self.optionalInputPorts,
+                                      self.nextInputPortPos,
+                                      operator.add,
+                                      '(edu.utah.sci.vistrails.basic:Variant)')
+        return item
 
+    def getOutputPortItem(self, port, do_create=False):
+        item = self.getPortItem(port, self.outputPorts)
+        if not item and do_create:
+            item = self.buildPortItem(port,
+                                      self.outputPorts,
+                                      self.optionalOutputPorts,
+                                      self.nextOutputPortPos,
+                                      operator.sub,
+                                      '(edu.utah.sci.vistrails.basic:Module)')
+        return item
 
     def addConnectionItem(self, item):
         self.connectionItems[item.connection.id] = item
 
     def removeConnectionItem(self, item):
-        if item.connection.source.moduleId == self.module.id:
-            srcItem = self.getPortItem(item.connection.source, 'output')
-            if srcItem is not None:
-                srcItem.disconnect()
-        if item.connection.destination.moduleId == self.module.id:
-            dstItem = self.getPortItem(item.connection.destination, 'input')
-            if dstItem is not None:
-                dstItem.disconnect()
+        if item.connectingModules[0].id == self.module.id:
+            if item.srcPortItem is not None:
+                item.srcPortItem.disconnect()
+        if item.connectingModules[1].id == self.module.id:
+            if item.dstPortItem is not None:
+                item.dstPortItem.disconnect()
         del self.connectionItems[item.connection.id]
 
     # returns a dictionary of (id, connection) key-value pairs!
@@ -1938,11 +1831,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         srcModule = self.modules[connection.source.moduleId]
         dstModule = self.modules[connection.destination.moduleId]
-        srcPoint = srcModule.getOutputPortPosition(connection.source)
-        dstPoint = dstModule.getInputPortPosition(connection.destination)
-        srcPortItem = srcModule.getPortItem(connection.source, 'output')
-        dstPortItem = dstModule.getPortItem(connection.destination, 'input')
-        connectionItem = QGraphicsConnectionItem(srcPoint, dstPoint,
+        srcPortItem = srcModule.getOutputPortItem(connection.source, True)
+        dstPortItem = dstModule.getInputPortItem(connection.destination, True)
+        connectionItem = QGraphicsConnectionItem(srcPortItem, dstPortItem,
                                                  srcModule, dstModule,
                                                  connection)
         srcPortItem.connect()
@@ -1958,9 +1849,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         dstModule.addConnectionItem(connectionItem)
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
-            port_item = dstModule.getPortItem(connection.destination, 'input')
             var_uuid = srcModule.module.get_vistrail_var()
-            port_item.addVistrailVar(
+            dstPortItem.addVistrailVar(
                 self.controller.get_vistrail_variable_by_uuid(var_uuid))
         return connectionItem
 
@@ -2056,6 +1946,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if selected:
             self.modules[m_id].setSelected(True)
             
+    def update_module_functions(self, pipeline, m_id):
+        self.modules[m_id].update_function_ports(pipeline.modules[m_id])
+
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
         Construct the scene to view a pipeline
@@ -2121,6 +2014,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 nm = pipeline.modules[m_id]
                 if tm_item.moduleHasChanged(nm):
                     self.recreate_module(pipeline, m_id)
+                elif tm_item.moduleFunctionsHaveChanged(nm):
+                    tm_item.update_ports()
                 if tm_item.isSelected():
                     selected_modules.append(m_id)
                 if self.controller and self.controller.search:

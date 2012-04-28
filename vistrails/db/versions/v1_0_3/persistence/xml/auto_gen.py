@@ -294,25 +294,33 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         optional = self.convertFromStr(data, 'int')
         data = node.get('sortKey', None)
         sort_key = self.convertFromStr(data, 'int')
-        data = node.get('sigstring', None)
-        sigstring = self.convertFromStr(data, 'str')
-        data = node.get('labels', None)
-        labels = self.convertFromStr(data, 'str')
-        data = node.get('defaults', None)
-        defaults = self.convertFromStr(data, 'str')
         data = node.get('minConns', None)
         min_conns = self.convertFromStr(data, 'int')
         data = node.get('maxConns', None)
         max_conns = self.convertFromStr(data, 'int')
+        
+        portSpecItems = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'portSpecItem':
+                _data = self.getDao('portSpecItem').fromXML(child)
+                portSpecItems.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
         
         obj = DBPortSpec(id=id,
                          name=name,
                          type=type,
                          optional=optional,
                          sort_key=sort_key,
-                         sigstring=sigstring,
-                         labels=labels,
-                         defaults=defaults,
+                         portSpecItems=portSpecItems,
                          min_conns=min_conns,
                          max_conns=max_conns)
         obj.is_dirty = False
@@ -328,11 +336,14 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         node.set('type',self.convertToStr(portSpec.db_type, 'str'))
         node.set('optional',self.convertToStr(portSpec.db_optional, 'int'))
         node.set('sortKey',self.convertToStr(portSpec.db_sort_key, 'int'))
-        node.set('sigstring',self.convertToStr(portSpec.db_sigstring, 'str'))
-        node.set('labels',self.convertToStr(portSpec.db_labels, 'str'))
-        node.set('defaults',self.convertToStr(portSpec.db_defaults, 'str'))
         node.set('minConns',self.convertToStr(portSpec.db_min_conns, 'int'))
         node.set('maxConns',self.convertToStr(portSpec.db_max_conns, 'int'))
+        
+        # set elements
+        portSpecItems = portSpec.db_portSpecItems
+        for portSpecItem in portSpecItems:
+            childNode = ElementTree.SubElement(node, 'portSpecItem')
+            self.getDao('portSpecItem').toXML(portSpecItem, childNode)
         
         return node
 
@@ -1046,6 +1057,71 @@ class DBOpmProcessIdCauseXMLDAOBase(XMLDAO):
         
         # set attributes
         node.set('id',self.convertToStr(opm_process_id_cause.db_id, 'str'))
+        
+        return node
+
+class DBPortSpecItemXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'portSpecItem':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('pos', None)
+        pos = self.convertFromStr(data, 'long')
+        data = node.get('module', None)
+        module = self.convertFromStr(data, 'str')
+        data = node.get('package', None)
+        package = self.convertFromStr(data, 'str')
+        data = node.get('namespace', None)
+        namespace = self.convertFromStr(data, 'str')
+        data = node.get('label', None)
+        label = self.convertFromStr(data, 'str')
+        data = node.get('default', None)
+        default = self.convertFromStr(data, 'str')
+        data = node.get('values', None)
+        values = self.convertFromStr(data, 'str')
+        data = node.get('entryType', None)
+        entry_type = self.convertFromStr(data, 'str')
+        
+        obj = DBPortSpecItem(id=id,
+                             pos=pos,
+                             module=module,
+                             package=package,
+                             namespace=namespace,
+                             label=label,
+                             default=default,
+                             values=values,
+                             entry_type=entry_type)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, portSpecItem, node=None):
+        if node is None:
+            node = ElementTree.Element('portSpecItem')
+        
+        # set attributes
+        node.set('id',self.convertToStr(portSpecItem.db_id, 'long'))
+        node.set('pos',self.convertToStr(portSpecItem.db_pos, 'long'))
+        node.set('module',self.convertToStr(portSpecItem.db_module, 'str'))
+        node.set('package',self.convertToStr(portSpecItem.db_package, 'str'))
+        node.set('namespace',self.convertToStr(portSpecItem.db_namespace, 'str'))
+        node.set('label',self.convertToStr(portSpecItem.db_label, 'str'))
+        node.set('default',self.convertToStr(portSpecItem.db_default, 'str'))
+        node.set('values',self.convertToStr(portSpecItem.db_values, 'str'))
+        node.set('entryType',self.convertToStr(portSpecItem.db_entry_type, 'str'))
         
         return node
 
@@ -3892,6 +3968,8 @@ class XMLDAOListBase(dict):
             self['opm_agents'] = DBOpmAgentsXMLDAOBase(self)
         if 'opm_process_id_cause' not in self:
             self['opm_process_id_cause'] = DBOpmProcessIdCauseXMLDAOBase(self)
+        if 'portSpecItem' not in self:
+            self['portSpecItem'] = DBPortSpecItemXMLDAOBase(self)
         if 'machine' not in self:
             self['machine'] = DBMachineXMLDAOBase(self)
         if 'add' not in self:

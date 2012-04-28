@@ -59,7 +59,11 @@ class AliasLabel(QtGui.QLabel):
         QtGui.QLabel.__init__(self, parent)
         self.alias = alias
         self.caption = text
-        self.default_label = default_label
+        # catch None
+        if default_label:
+            self.default_label = default_label
+        else:
+            self.default_label = ""
         self.updateText()
         self.setAttribute(QtCore.Qt.WA_Hover)
         self.setCursor(QtCore.Qt.PointingHandCursor)
@@ -127,6 +131,7 @@ class Parameter(object):
         self.strValue = ''
         self.alias = ''
         self.queryMethod = None
+        self.port_spec_item = None
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
@@ -198,22 +203,16 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         else:
             params = [None,] * len(self.port_spec.descriptors())
 
-        for i, (desc, param) in enumerate(izip(self.port_spec.descriptors(), 
-                                               params)):
-            #print 'adding desc', desc.name
-            ps_label = ''
-            if self.port_spec.labels is not None and \
-                    len(self.port_spec.labels) > i:
-                ps_label = str(self.port_spec.labels[i])
-            # label = QHoverAliasLabel(p.alias, p.type, ps_label)
-
-            widget_class = widget_accessor(desc.module)
+        for i, (psi, param) in enumerate(izip(self.port_spec.port_spec_items, 
+                                              params)):
+            widget_class = widget_accessor(psi.descriptor.module)
             if param is not None:
                 obj = param
             else:
-                obj = Parameter(desc)
+                obj = Parameter(psi.descriptor)
+            obj.port_spec_item = psi
             if with_alias:
-                label = AliasLabel(obj.alias, obj.type, ps_label)
+                label = AliasLabel(obj.alias, obj.type, psi.label)
                 self.my_labels.append(label)
             else:
                 label = QtGui.QLabel(obj.type)
@@ -546,8 +545,8 @@ class PortsList(QtGui.QTreeWidget):
 
             # make the scene display the fact that we have a parameter
             # by dimming the port
-            self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.recreate_module(
+            # self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_view.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
                                             
     def delete_method(self, subitem, port_name, real_id=None):
@@ -560,8 +559,8 @@ class PortsList(QtGui.QTreeWidget):
 
             # make the scene display the fact that we have lost the
             # parameter by undimming the port
-            self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.recreate_module(
+            # self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_view.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
 
         # how to delete items...x
