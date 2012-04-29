@@ -390,13 +390,13 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
         tooltip += '</html>'
         self.setToolTip(0, tooltip)
 
-    def __lt__(self, other):
-        sort_col = self.treeWidget().sortColumn()
-        if sort_col in set([4]):
-            return int(self.text(sort_col)) < int(other.text(sort_col))
-        elif sort_col in set([2,3]):
-            return datetime(*strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
-        return QtGui.QTreeWidgetItem.__lt__(self, other)
+    #def __lt__(self, other):
+    #    sort_col = self.treeWidget().sortColumn()
+    #    if sort_col in set([4]):
+    #        return int(self.text(sort_col)) < int(other.text(sort_col))
+    #    elif sort_col in set([2,3]):
+    #        return datetime(*strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
+    #    return QtGui.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):
         Collection.getInstance().updateVistrail(self.entity.url)
