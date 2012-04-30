@@ -225,7 +225,7 @@ Name: {app}\vistrails\geotiff.dll; Type: files
 Name: {app}\examples\gridfieldexample.vt; Type: files
 Name: {app}\vistrails\vistrails; Type: filesandordirs
 Name: {app}\vistrails\packages\gridfield; Type: filesandordirs
-
+Name: {app}\vistrails\lib\site-packages; Type: filesandordirs
 [Run]
 Filename: {tmp}\vcredist_x86.exe; Parameters: /Q; Components: ; Tasks: 
 
