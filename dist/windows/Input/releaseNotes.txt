@@ -1,6 +1,31 @@
 RELEASE NOTES
 -------------
-Release Name: v2.0-beta build 716501f8b2fd from v2.0 branch
+Release Name: v2.0 build 18531d5fb280 from v2.0 branch
+
+Bug fixes: 
+ - Decreased level of debug message when removing elements from Thumbnails cache (18531d5fb280)
+ - Ticket #534: Mashups hang with auto-update on (1472b6ba7f32)
+ - Ticket #550: Workspace state_changed is slow (1ed823ecbb96) (b75607ea9271)
+ - Ticket #556: Path to zip.exe not set correctly (d0389bec6df6)
+ - Fix logic in identifier checks in package manager (1882ed36cd76)
+ - Ticket #554: Port labels not displayed (a9454abc238a)
+ - Add missing port labels to ports panel (a9454abc238a)
+ - Ticket #553: Suspended module does not execute on second run even when notcacheable (3e22759385d3)
+ - Ticket #549: update_db.py script does not work (fb5ad0eb480a)
+ - Parameter Exploration only worked on parameters from the Basic Modules package (99969b93ece2)
+ - Autoloading a SUDS Web Service no longer produce error messages (c079bd9c52db)
+ - Ticket #513: Add detachHistoryView back (08bec17e40e6)
+ - Ticket #543: Changes to persistence module configuration doesn't work (d03382c67e1d)
+ - Fix issue where reconfiguring persistent modules caused unexpected behavior. (d03382c67e1d)
+ - Show error message when trying to open a vistrail with a newer schema version (32f47804b6c7)
+ - db_log_filename was not unset correctly for db cache (8fccb74ecab3)
+ - Ticket #531: Export To Stable Version menu does not work (1b742a9f70cc)
+ - Export to DB did not work (1b742a9f70cc)
+ - Reloading a vistrail from the database gave it the name "None"
+ (1b742a9f70cc)
+
+
+From Release: v2.0-beta build 716501f8b2fd from v2.0 branch
 
 Enhancements: 
  - Mashup View: Added float slider (b5d481049666)
