@@ -1630,10 +1630,18 @@ class ModuleRegistry(DBRegistry):
                 if self.is_method(spec)]
 
     def port_and_port_spec_match(self, port, port_spec):
-        """port_and_port_spec_match(port: Port, port_spec: PortSpec) -> bool
+        """port_and_port_spec_match(port: Port | PortSpec, 
+                                    port_spec: PortSpec
+                                    ) -> bool
         Checks if port is similar to port_spec or not.  These ports must
         have the same name and type"""
-        if PortSpec.port_type_map.inverse[port.type] != port_spec.type:
+        if port.type in PortSpec.port_type_map:
+            port_type = port.type
+        elif port.type in PortSpec.port_type_map.inverse:
+            port_type = PortSpec.port_type_map.inverse[port.type]
+        else:
+            raise Exception('Port type "%s" invalid' % str(port.type))
+        if port_type != port_spec.type:
             return False
         if port.name != port_spec.name:
             return False
