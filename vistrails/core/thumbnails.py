@@ -136,8 +136,8 @@ class ThumbnailCache(object):
         elements = self.elements.values()
         elements.sort(key=lambda obj: obj.time)
         num = min(n,len(elements))
-        debug.critical("Will remove %s elements from cache..."%num)
-        debug.critical("Cache has %s elements and %s bytes"%(len(elements),
+        debug.debug("Will remove %s elements from cache..."%num)
+        debug.debug("Cache has %s elements and %s bytes"%(len(elements),
                                                              self.size()))
         for i in range(num):
             try:
