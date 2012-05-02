@@ -604,6 +604,9 @@ Returns true if given package identifier is present."""
                 pkg.load()
                 if pkg.identifier == identifier:
                     return pkg
+                if hasattr(pkg._module, "can_handle_identifier") and \
+                    pkg._module.can_handle_identifier(identifier):
+                    return pkg
             except pkg.LoadFailed:
                 pass
             except pkg.InitializationFailed:

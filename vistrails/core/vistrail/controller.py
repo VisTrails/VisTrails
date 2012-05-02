@@ -2595,18 +2595,6 @@ class VistrailController(object):
         """callback for try_to_enable_package"""
         return True
        
-    def handleMissingSUDSWebServicePackage(self, identifier):
-        pm = get_package_manager()
-        suds_i = 'edu.utah.sci.vistrails.sudswebservices'
-        pkg = pm.identifier_is_available(suds_i)
-        if pkg:
-            pm.late_enable_package(pkg.codepath)
-        package = pm.get_package_by_identifier(suds_i)
-        if not package or \
-           not hasattr(package._init_module, 'load_from_signature'):
-            return False
-        return package._init_module.load_from_signature(identifier)
-
     def try_to_enable_package(self, identifier, dep_graph, confirmed=False):
         """try_to_enable_package(identifier: str,
                                  dep_graph: Graph,
@@ -2620,35 +2608,46 @@ class VistrailController(object):
 
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
-        if not pkg and identifier.startswith('SUDS#'):
-            self.handleMissingSUDSWebServicePackage(identifier)
-        if not pm.has_package(identifier) and pkg:
+        if not pm.has_package(pkg.identifier) and pkg:
             deps = pm.all_dependencies(identifier, dep_graph)[:-1]
-            if identifier in self._asked_packages:
+            if pkg.identifier in self._asked_packages:
                 return False
             if not confirmed and \
-                    not self.enable_missing_package(identifier, deps):
-                self._asked_packages.add(identifier)
+                    not self.enable_missing_package(pkg.identifier, deps):
+                self._asked_packages.add(pkg.identifier)
                 return False
             # Ok, user wants to late-enable it. Let's give it a shot
             try:
                 pm.late_enable_package(pkg.codepath)
+                pkg = pm.get_package_by_codepath(pkg.codepath)
+                if pkg.identifier != identifier:
+                    # pkg is probably a parent of the "identifier" package
+                    # try to load it
+                    if hasattr(pkg.module, "can_handle_identifier") and \
+                        pkg.module.can_handle_identifier(identifier):
+                        pkg.init_module.load_from_identifier(identifier)
             except pkg.MissingDependency, e:
                 for dependency in e.dependencies:
                     print 'MISSING DEPENDENCY:', dependency
                     if not self.try_to_enable_package(dependency[0], dep_graph,
                                                       True):
                         return False
-                return self.try_to_enable_package(identifier, dep_graph, True)
+                return self.try_to_enable_package(pkg.identifier, dep_graph, True)
             except pkg.InitializationFailed:
-                self._asked_packages.add(identifier)
+                self._asked_packages.add(pkg.identifier)
                 raise
             # there's a new package in the system, so we retry
             # changing the version by recursing, since other
             # packages/modules might still be needed.
-            self._asked_packages.add(identifier)
+            self._asked_packages.add(pkg.identifier)
             return True
-
+        # identifier may refer to a subpackage
+        if pkg and pkg.identifier != identifier and \
+           hasattr(pkg.module, "can_handle_identifier") and \
+           pkg.module.can_handle_identifier(identifier) and \
+           hasattr(pkg.init_module, "load_from_identifier"):
+            pkg.init_module.load_from_identifier(identifier)
+            return True
         # Package is not available, let's try to fetch it
         rep = core.packagerepository.get_repository()
         if rep:

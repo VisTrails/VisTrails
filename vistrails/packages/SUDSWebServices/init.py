@@ -294,6 +294,10 @@ class Service:
                           identifier=self.signature,
                           version=self.wsdlHash,
                           )
+        suds_package = reg.get_package_by_name(identifier)
+        package._module = suds_package.module
+        package._init_module = suds_package.init_module
+        
         self.package = package
         reg.add_package(package)
         self.module = new_module(Module, str(self.signature))
@@ -701,6 +705,29 @@ def handle_missing_module(controller, module_id, pipeline):
     else:
         # v1.1 new style
         wsdl = toAddress(m.name)
+    
+    wsdlList = []
+    if configuration.check('wsdlList'):
+        wsdlList = configuration.wsdlList.split(";")
+    if wsdl in wsdlList:
+        # it is already loaded
+        return True
+
+    service = Service(wsdl)
+    if not service.service:
+        return False
+
+    webServicesDict[wsdl] = service
+    wsdlList.append(wsdl)
+    configuration.wsdlList = ';'.join(wsdlList)
+    return True
+
+def load_from_identifier(service_identifier):
+    """ Loads a web service from its package identifier """
+    global webServicesDict
+    global package_cache
+
+    wsdl = toAddress(service_identifier)
     
     wsdlList = []
     if configuration.check('wsdlList'):
