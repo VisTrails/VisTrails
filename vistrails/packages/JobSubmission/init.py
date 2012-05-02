@@ -147,36 +147,38 @@ class JobOperation(NotCacheable,Module):
     pass
 
 def joboperation_compute(self):
-    job = self.getInputFromPort('job')
-    queue = job.queue
+    if self.hasInputFromPort("job"):
+        job = self.getInputFromPort('job')
+        queue = job.queue
 #    print "TERMINAL ID", id(queue.terminal), id(queue.local_terminal)
-    self.anno_counter = 1
-    self.anno_dict = {}
-    def annotate(fncself, *args, **kwargs):
-        if len(args) == 1:
-            self.anno_dict.update( {"note%d"%self.anno_counter: args[0]} )
-        elif len(kwargs) == 0:
-            self.anno_dict.update( {"note%d"%self.anno_counter:" ".join(args)} )
-        else:
-            self.anno_dict.updateself.annotate( kwargs )
-        self.anno_counter +=1
-        return None
-    function = getattr(queue, self.function_name)
-    pnt = function.Qprint
-    function.Qprint = annotate
-    ret = function().val()
-    function.Qprint = pnt 
+        self.anno_counter = 1
+        self.anno_dict = {}
+        def annotate(fncself, *args, **kwargs):
+            if len(args) == 1:
+                self.anno_dict.update( {"note%d"%self.anno_counter: args[0]} )
+            elif len(kwargs) == 0:
+                self.anno_dict.update( {"note%d"%self.anno_counter:" ".join(args)} )
+            else:
+                self.anno_dict.updateself.annotate( kwargs )
+            self.anno_counter +=1
+            return None
+        function = getattr(queue, self.function_name)
+        pnt = function.Qprint
+        function.Qprint = annotate
+        ret = function().val()
+        function.Qprint = pnt 
+        
+        ## TODO: annotate does not seem to work
+        self.annotate(self.anno_dict)
 
-    ## TODO: annotate does not seem to work
-    self.annotate(self.anno_dict)
+        if isinstance(ret, FunctionMessage) and ret.code != 0:
+            raise ModuleSuspended(self, ret.message) if ret.code > 0 \
+                else ModuleError(self,ret.message)
 
-    if isinstance(ret, FunctionMessage) and ret.code != 0:
-        raise ModuleSuspended(self, ret.message) if ret.code > 0 \
-            else ModuleError(self,ret.message)
-
-    self.setResult("job", job)
-    self.setResult("result", ret)
-    self.setResult("string", str(ret))
+        self.setResult("job", job)
+        self.setResult("result", ret)
+        self.setResult("string", str(ret))
+    self.setResult("operation", self)
 
 _modules+=[(JobOperation,{'abstract':True})]
 
@@ -211,6 +213,7 @@ for name in operations.iterkeys():
                 descriptive_name = "Get" + remove_underscore("",name)
 
         if not operations_highlevel[name]:
+            dct['_output_ports'].append( ('operation', '(org.comp-phys.batchq:JobOperation)') )
             cls = ( type(name_formatter(descriptive_name), 
                          (JobOperation,),dct), 
                     {'namespace': namespace} )
@@ -289,10 +292,13 @@ _modules.append((CollectiveOperation, {'abstract':True}))
 def collective_compute(self):
     job = self.getInputFromPort('job')
     operation = self.getInputFromPort('operation')
-    col = Collection() + job
-    col2 = getattr(col, collection_name)()
+    col = Collection() 
+    col += job.queue
+
+    col2 = getattr(col, self.collection_name)()
     rets = getattr(col2, operation.function_name)().as_list()
-    self.setResult('job', rets[0])
+    ## TODO: ad results
+    self.setResult('job', job)
 
 collective = dict([(name,getattr(Collection, name)) for name in dir(Collection) if isinstance(getattr(Collection, name),Exportable)])
 members = [ ('_input_ports', [('operation', '(org.comp-phys.batchq:JobOperation)'),('job', '(org.comp-phys.batchq:Job)')] ),
