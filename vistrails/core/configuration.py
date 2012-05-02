@@ -179,6 +179,7 @@ def default():
     base_dir = {
         'abstractionsDirectory': (None, str),
         'alwaysShowDebugPopup': False,
+        'autoConnect': True,
         'autosave': True,
         'dataDirectory': (None, str),
         'dbDefault': False,
