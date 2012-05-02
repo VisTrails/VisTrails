@@ -45,6 +45,12 @@ configuration = ConfigurationObject(wsdlList=(None, str),
                                     proxy_http=(None, str),
                                     cache_days=(None, int))
 
+
+def can_handle_identifier(identifier):
+    """ This package handles packages where identifier starts with SUDS#
+    """
+    return identifier.startswith('SUDS#')
+    
 #def package_dependencies():
 #    return ['edu.utah.sci.vistrails.http']
     
