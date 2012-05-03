@@ -1,18 +1,20 @@
 from core import get_vistrails_application
 from core.modules.module_registry import get_module_registry
 
-from javax.swing import JPanel, JTree
+from javax.swing import JScrollPane, JTree
 from javax.swing.tree import DefaultMutableTreeNode
 
 
-class JModulePalette(JPanel):
-    """The module palette, that allows the addition of module to the pipeline.
+class JModulePalette(JScrollPane):
+    """The module palette, that allows the addition of modules to the pipeline.
     """
     def __init__(self):
         self.root = DefaultMutableTreeNode("Available modules")
         self.tree = JTree(self.root)
         self.tree.expandRow(0)
-        self.add(self.tree)
+        self.setViewportView(self.tree)
+        self.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS)
+        self.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
         
         self.packages = {}
         
