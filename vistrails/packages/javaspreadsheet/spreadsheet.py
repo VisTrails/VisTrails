@@ -1,4 +1,4 @@
-from itertools import izip, repeat
+from core.utils import product
 
 from java.awt import Color
 
@@ -40,20 +40,17 @@ class SpreadsheetModel(DefaultTableModel):
         return self.nbColumns
 
     # @Override
-    def getValueAt(self, row, column):
+    def getValueAt(self, row, column, create=False):
         try:
             return self.cells[(row, column)]
         except KeyError:
-            c = Cell(self)
-            self.cells[(row, column)] = c
-            self.cellpositions[c] = (row, column)
-            return c
-
-    def cellExists(self, row, column):
-        try:
-            return self.cells[(row, column)] and True
-        except KeyError:
-            return False
+            if create:
+                c = Cell(self)
+                self.cells[(row, column)] = c
+                self.cellpositions[c] = (row, column)
+                return c
+            else:
+                return None
 
     # @Override
     def setValueAt(self, value, row, column):
@@ -140,10 +137,10 @@ class Sheet(JScrollPane):
             self.model.changeSize(
                     newrowcount or self.model.getRowCount(),
                     newcolumncount or self.model.getColumnCount())
-
+        
         row, column = Sheet.findCell(self.model, row, column)
 
-        return self.model.getValueAt(row, column)
+        return self.model.getValueAt(row, column, create=True)
 
     @staticmethod
     def findCell(model, row, column):
@@ -152,16 +149,16 @@ class Sheet(JScrollPane):
         rows = xrange(0, model.getRowCount())
         columns = xrange(0, model.getColumnCount())
         if row and not column:
-            cells = izip(repeat(row), columns)
+            cells = product([row], columns)
             first = row, 0
         elif column and not row:
-            cells = izip(rows, repeat(column))
+            cells = product(rows, [column])
             first = 0, column
         else:
-            cells = izip(rows, columns)
+            cells = product(rows, columns)
             first = 0, 0
         for row, column in cells:
-            if not model.cellExists(row, column):
+            if not model.getValueAt(row, column, create=False):
                 return row, column
         return first
 
