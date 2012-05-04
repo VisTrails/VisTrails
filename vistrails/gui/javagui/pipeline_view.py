@@ -40,6 +40,7 @@ from java.io import IOException
 from java.awt.datatransfer import UnsupportedFlavorException
 
 from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
+from edu.umd.cs.piccolo.event import PBasicInputEventHandler
 
 from module_palette import moduleData
 
@@ -66,21 +67,36 @@ class CustomRunner(Runnable):
         self.runner()
 
 
+class ModuleDraggingEventHandler(PBasicInputEventHandler):
+    # @Override
+    def mousePressed(self, event):
+        event.setHandled(True)
+
+    # @Override
+    def mouseDragged(self, event):
+        node = event.getPickedNode()
+        delta = event.getDeltaRelativeTo(node)
+        node.dragBy(delta.width, delta.height)
+        event.setHandled(True)
+
+    # @Override
+    def mouseReleased(self, event):
+        event.setHandled(True)
+
+
 class PModule(PNode):
     """A module to be shown in the pipeline view.
 
     This class represent a module. Instances of this class are created from the
     Module's contained in the Controller and are added to a PCanvas to be
     displayed through Piccolo.
-
     """
-
     # We use this to measure text in the constructor
     font = Font("Dialog", Font.BOLD, 14)
     fontMetrics = FontMetricsImpl(font)
 
     def __init__(self, module):
-        super(PNode, self).__init__()
+        PNode.__init__(self)
 
         self.name = module.name
 
@@ -128,6 +144,7 @@ class PModule(PNode):
         self.inputConnections = set()
         self.outputConnections = set()
 
+    # @Override
     def paint(self, paintContext):
         graphics = paintContext.getGraphics()
 
@@ -192,10 +209,20 @@ class PModule(PNode):
     def outputport_number(self, oport):
             return [p.name for p in self.outputPorts].index(oport)
 
+    def dragBy(self, dx, dy):
+        self.center_x += dx
+        self.center_y += dy
+        self.translate(dx, dy)
+
+        for conn in self.inputConnections:
+            conn.endpointChanged()
+        for conn in self.outputConnections:
+            conn.endpointChanged()
+
 
 class PConnection(PNode):
     def __init__(self, source, oport, destination, iport):
-        super(PNode, self).__init__()
+        PNode.__init__(self)
 
         if isinstance(oport, str):
             oport = source.outputport_number(oport)
@@ -207,16 +234,12 @@ class PConnection(PNode):
         self.destination = destination
         self.iport = iport
 
-        b = Rectangle2D.Double()
-        sx, sy = source.outputport_position(oport)
-        b.add(Point(int(sx), int(sy)))
-        dx, dy = destination.inputport_position(iport)
-        b.add(Point(int(dx), int(dy)))
-        self.setBounds(b)
+        self.computeBounds()
 
         source.outputConnections.add(self)
         destination.inputConnections.add(self)
 
+    # @Override
     def paint(self, paintContext):
         graphics = paintContext.getGraphics()
 
@@ -225,6 +248,17 @@ class PConnection(PNode):
 
         graphics.setColor(Color.black)
         graphics.drawLine(int(sx), int(sy), int(dx), int(dy))
+
+    def computeBounds(self):
+        sx, sy = self.source.outputport_position(self.oport)
+        dx, dy = self.destination.inputport_position(self.iport)
+        b = Rectangle2D.Double(int(sx), int(sy), 1, 1)
+        b.add(Point(int(dx), int(dy)))
+        self.setBounds(self.globalToLocal(b))
+
+    def endpointChanged(self):
+        self.computeBounds()
+        self.invalidatePaint()
 
 
 class TargetTransferHandler(TransferHandler):
@@ -284,6 +318,20 @@ class JPipelineView(PCanvas):
         self.vistrail = vistrail
         self.locator = locator
 
+        # Setup the layers
+        module_layer = self.getLayer()
+        # We override fullPick() for edge_layer to ensure that nodes are picked
+        # first
+        class CustomPickingLayer(PLayer):
+            # @Override
+            def fullPick(self, pickPath):
+                return (module_layer.fullPick(pickPath) or
+                        PLayer.fullPick(self, pickPath))
+        edge_layer = CustomPickingLayer()
+        self.getCamera().addLayer(edge_layer)
+
+        module_layer.addInputEventListener(ModuleDraggingEventHandler())
+
         # Create the scene
         self.setupScene(self.controller.current_pipeline)
 
@@ -320,10 +368,8 @@ class JPipelineView(PCanvas):
     def setupScene(self, pipeline):
         self.modules = {}
 
-        module_layer = self.getLayer()
-        edge_layer = PLayer()
-        module_layer.addChild(edge_layer)
-        self.getCamera().addLayer(edge_layer)
+        module_layer = self.getCamera().getLayer(0)
+        edge_layer = self.getCamera().getLayer(1)
 
         # Draw the pipeline using their stored position
         for id, module in pipeline.modules.iteritems():
