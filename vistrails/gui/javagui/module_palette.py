@@ -1,8 +1,82 @@
 from core import get_vistrails_application
 from core.modules.module_registry import get_module_registry
 
-from javax.swing import JScrollPane, JTree
+from javax.swing import JScrollPane, JTree, TransferHandler
 from javax.swing.tree import DefaultMutableTreeNode
+from java.awt.datatransfer import DataFlavor, Transferable
+from java.lang import Object as JavaObject
+
+
+moduleData = DataFlavor(
+        JavaObject,
+        'X-Vistrails-Module; class=<java.lang.Object>')
+
+
+class ModuleTransferable(Transferable):
+    """The data that is dragged and dropped from the palette to the pipeline.
+    """
+    def __init__(self, descriptor):
+        self.descriptor = descriptor
+    
+    # @Override
+    def getTransferData(self, flavor):
+        if flavor == moduleData:
+            return self.descriptor
+        else:
+            return None
+    
+    # @Override
+    def getTransferDataFlavors(self):
+        return [moduleData]
+    
+    # @Override
+    def isDataFlavorSupported(self, flavor):
+        return flavor == moduleData
+
+
+class ModuleTreeNode(DefaultMutableTreeNode):
+    """A custom tree node that holds the module descriptor.
+    """
+    def __init__(self, descriptor):
+        self.descriptor = descriptor
+    
+    # @Override
+    def getAllowsChildren(self):
+        return False
+    
+    # @Override
+    def isLeaf(self):
+        return True
+    
+    # @Override
+    def toString(self):
+        return self.descriptor.name
+
+
+class PackageTreeNode(DefaultMutableTreeNode):
+    """A custom tree node for packages.
+    """
+    # @Override
+    def getAllowsChildren(self):
+        return True
+    
+    # @Override
+    def isLeaf(self):
+        return False
+
+
+class SourceTransferHandler(TransferHandler):
+    # @Override
+    def getSourceActions(self, c):
+        return TransferHandler.COPY
+    
+    # @Override
+    def createTransferable(self, tree):
+        node = tree.getSelectionPath().getLastPathComponent()
+        if isinstance(node, ModuleTreeNode):
+            return ModuleTransferable(node.descriptor)
+        else:
+            return None
 
 
 class JModulePalette(JScrollPane):
@@ -11,7 +85,10 @@ class JModulePalette(JScrollPane):
     def __init__(self):
         self.root = DefaultMutableTreeNode("Available modules")
         self.tree = JTree(self.root)
-        self.tree.expandRow(0)
+        
+        self.tree.setDragEnabled(True)
+        self.tree.setTransferHandler(SourceTransferHandler())
+        
         self.setViewportView(self.tree)
         self.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS)
         self.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
@@ -32,7 +109,7 @@ class JModulePalette(JScrollPane):
         if registry is None:
             registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
-        package_item = DefaultMutableTreeNode(package_name)
+        package_item = PackageTreeNode(package_name)
         self.packages[package_identifier] = package_item
         if prepend:
             self.root.insert(package_item, 0)
@@ -60,7 +137,7 @@ class JModulePalette(JScrollPane):
                 parent_item = \
                         package_item.get_namespace(namespace.split('|'))
             
-            item = DefaultMutableTreeNode(descriptor.name)
+            item = ModuleTreeNode(descriptor)
             parent_item.add(item)
         if recurse:
             for child in descriptor.children:

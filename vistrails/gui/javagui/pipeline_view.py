@@ -33,11 +33,15 @@
 ###############################################################################
 
 from java.lang import Runnable
-from javax.swing import SwingUtilities
+from javax.swing import SwingUtilities, TransferHandler
 from java.awt import Color, Polygon, Font, FontMetrics, Point
 from java.awt.geom import Rectangle2D
+from java.io import IOException
+from java.awt.datatransfer import UnsupportedFlavorException
 
 from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
+
+from module_palette import moduleData
 
 
 PORT_WIDTH = 5
@@ -223,10 +227,55 @@ class PConnection(PNode):
         graphics.drawLine(int(sx), int(sy), int(dx), int(dy))
 
 
+class TargetTransferHandler(TransferHandler):
+    # @Override
+    def canImport(self, *args):
+        if len(args) == 1:
+            # canImport(TransferSupport support)
+            support = args[0]
+            if not support.isDrop():
+                return False
+            if not support.isDataFlavorSupported(moduleData):
+                return False
+            if (support.getSourceDropActions() & TransferHandler.COPY) == TransferHandler.COPY:
+                support.setDropAction(TransferHandler.COPY)
+                return True
+            return False
+        else:
+            # canImport(JComponent comp, DataFlavor[] transferFlavors)
+            return TransferHandler.canImport(self, args[0], args[1])
+    
+    # @Override
+    def importData(self, *args):
+        if len(args) == 1:
+            # importData(TransferSupport support)
+            support = args[0]
+            if not self.canImport(support):
+                return False
+            
+            loc = support.getDropLocation().getDropPoint()
+            
+            try:
+                module = support.getTransferable().getTransferData(moduleData)
+            except UnsupportedFlavorException:
+                return False
+            except IOException:
+                return False
+            
+            # TODO : Add the module to the pipeline
+            print "dropped %s @ %d, %d" % (module, loc.x, loc.y)
+            
+            return True
+        else:
+            # importData(JComponent comp, Transferable t)
+            return TransferHandler.importData(self, args[0], args[1])
+
+
 class JPipelineView(PCanvas):
     """The pipeline view."""
     def __init__(self, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None):
+        PCanvas.__init__(self)
         self.controller = controller
         self.executed = {} # List of executed modules, useful for coloring
         self.vistrail = vistrail
@@ -237,6 +286,9 @@ class JPipelineView(PCanvas):
 
         # Compute modules colors
         self.define_modules_color()
+        
+        # Setup dropping of modules from the palette
+        self.setTransferHandler(TargetTransferHandler())
 
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
