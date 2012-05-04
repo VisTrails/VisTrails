@@ -33,7 +33,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails x64
-AppVerName=VisTrails x64 2.0 beta
+AppVerName=VisTrails x64 2.0
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
@@ -46,6 +46,7 @@ RestartIfNeededByRun=false
 ChangesAssociations=true
 LicenseFile=Input\license.txt
 ArchitecturesInstallIn64BitMode=x64
+OutputBaseFilename=vistrails-x64-setup
 
 [Files]
 Source: C:\Python27_64\LICENSE.txt; DestDir: {app}\vistrails\Python27_64
@@ -142,7 +143,7 @@ Source: I:\emanuele\src\vtk\vtk-5.8.0\build64\bin\Release\*.pyd; DestDir: {app}\
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-;Source: Input\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: Input\x64\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs

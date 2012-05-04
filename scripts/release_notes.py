@@ -48,10 +48,10 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "716501f8b2fd" # hash of version used on last release notes
+commit_start = "2d428fbd26cc" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.0" # git branch to be used
-release_name = "2.0-beta" 
+release_name = "2.0" 
 clonepath = None # set this to the complete path of a vistrails clone to be used
                  # if None, the remote repository will be cloned to a temporary
                  # folder and removed at the end of the script

@@ -98,10 +98,12 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         """clean_non_cacheable_modules() -> None
 
         Removes all modules that are not cacheable from the persistent
-        pipeline, and the modules that depend on them."""
+        pipeline, and the modules that depend on them, and 
+        previously suspended modules """
         non_cacheable_modules = [i for
                                  (i, mod) in self._objects.iteritems()
-                                 if not mod.is_cacheable()]
+                                 if not mod.is_cacheable() or \
+                                 mod.suspended]
         self.clean_modules(non_cacheable_modules)
         
 

@@ -33,19 +33,20 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.0 beta
+AppVerName=VisTrails 2.0
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
-WizardImageBackColor=$9d5942
+WizardImageBackColor=$009D5942
 DefaultDirName={code:CustomAppDir}\VisTrails
 SetupIconFile=resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
 InfoAfterFile=Input\releaseNotes.txt
-DisableDirPage=false
 PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
 LicenseFile=Input\license.txt
+OutputBaseFilename=vistrails-setup
+
 [Files]
 Source: C:\Python27\w9xpopen.exe; DestDir: {app}\vistrails\Python27
 Source: C:\Python27\LICENSE.txt; DestDir: {app}\vistrails\Python27
@@ -142,7 +143,7 @@ Source: I:\emanuele\src\vtk\vtk-5.8.0\build\bin\Release\*.pyd; DestDir: {app}\vi
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-Source: Input\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: Input\x86\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
@@ -225,7 +226,7 @@ Name: {app}\vistrails\geotiff.dll; Type: files
 Name: {app}\examples\gridfieldexample.vt; Type: files
 Name: {app}\vistrails\vistrails; Type: filesandordirs
 Name: {app}\vistrails\packages\gridfield; Type: filesandordirs
-
+Name: {app}\vistrails\lib\site-packages; Type: filesandordirs
 [Run]
 Filename: {tmp}\vcredist_x86.exe; Parameters: /Q; Components: ; Tasks: 
 
@@ -336,7 +337,6 @@ end;
 [InnoIDE_Settings]
 LogFile=Output\build.log
 LogFileOverwrite=false
-
 
 [InnoIDE_PreCompile]
 Name: C:\Python27\python.exe; Parameters: I:\emanuele\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 
