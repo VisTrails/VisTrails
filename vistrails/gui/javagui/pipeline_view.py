@@ -228,6 +228,10 @@ class PConnection(PNode):
 
 
 class TargetTransferHandler(TransferHandler):
+    def __init__(self, pipelineview):
+        TransferHandler.__init__(self)
+        self.view = pipelineview
+
     # @Override
     def canImport(self, *args):
         if len(args) == 1:
@@ -244,7 +248,7 @@ class TargetTransferHandler(TransferHandler):
         else:
             # canImport(JComponent comp, DataFlavor[] transferFlavors)
             return TransferHandler.canImport(self, args[0], args[1])
-    
+
     # @Override
     def importData(self, *args):
         if len(args) == 1:
@@ -252,19 +256,18 @@ class TargetTransferHandler(TransferHandler):
             support = args[0]
             if not self.canImport(support):
                 return False
-            
+
             loc = support.getDropLocation().getDropPoint()
-            
+
             try:
                 module = support.getTransferable().getTransferData(moduleData)
             except UnsupportedFlavorException:
                 return False
             except IOException:
                 return False
-            
-            # TODO : Add the module to the pipeline
-            print "dropped %s @ %d, %d" % (module, loc.x, loc.y)
-            
+
+            self.view.droppedModule(module, loc)
+
             return True
         else:
             # importData(JComponent comp, Transferable t)
@@ -286,9 +289,9 @@ class JPipelineView(PCanvas):
 
         # Compute modules colors
         self.define_modules_color()
-        
+
         # Setup dropping of modules from the palette
-        self.setTransferHandler(TargetTransferHandler())
+        self.setTransferHandler(TargetTransferHandler(self))
 
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
@@ -323,8 +326,6 @@ class JPipelineView(PCanvas):
         self.getCamera().addLayer(edge_layer)
 
         # Draw the pipeline using their stored position
-        module_geometries = {}
-
         for id, module in pipeline.modules.iteritems():
             pmod = PModule(module)
             self.modules[id] = pmod
@@ -337,3 +338,17 @@ class JPipelineView(PCanvas):
                     connection.source.name,
                     self.modules[connection.destination.moduleId],
                     connection.destination.name))
+
+    def addModule(self, module):
+        pmod = PModule(module)
+        pmod.color = Color.gray
+        self.modules[module.id] = pmod
+        module_layer = self.getCamera().getLayer(0)
+        module_layer.addChild(pmod)
+
+    def droppedModule(self, descriptor, location):
+        pos = self.getCamera().localToView(location)
+        module = self.controller.create_module_from_descriptor(
+                descriptor,
+                pos.x, -pos.y)
+        self.addModule(module)
