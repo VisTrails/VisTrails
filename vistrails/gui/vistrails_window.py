@@ -75,6 +75,8 @@ from db.services.io import SaveBundle
 import db.services.vistrail
 from db import VistrailsDBException
 
+from extras.core.db.gui.locator import QtLocatorHelperProvider
+
 class QBaseViewWindow(QtGui.QMainWindow):
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
@@ -1292,7 +1294,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         if self.get_current_view():
             return
         if not self.dbDefault and untitled_locator().has_temporaries():
-            if not FileLocator().prompt_autosave(self):
+            if not FileLocator().prompt_autosave(
+                    QtLocatorHelperProvider(self)):
                 untitled_locator().clean_temporaries()
         self._first_view = None
         self.new_vistrail(True)
@@ -1558,10 +1561,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         Prompt user for information to get to a vistrail in different ways,
         depending on the locator class given.
         """
-        locator = locator_class.load_from_gui(self, Vistrail.vtType)
+        locator = locator_class.load_from_gui(
+                QtLocatorHelperProvider(self), Vistrail.vtType)
         if locator:
             if locator.has_temporaries():
-                if not locator_class.prompt_autosave(self):
+                if not locator_class.prompt_autosave(
+                        QtLocatorHelperProvider(self)):
                     locator.clean_temporaries()
             if hasattr(locator, '_vnode'):
                 version = locator._vnode
@@ -1597,7 +1602,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         
         """
         if not locator.is_valid():
-            ok = locator.update_from_gui(self)
+            ok = locator.update_from_gui(QtLocatorHelperProvider(self))
         else:
             ok = True
         if ok:
@@ -1643,10 +1648,12 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.open_vistrail_from_locator(DBLocator)
 
     def import_workflow(self, locator_class):
-        locator = locator_class.load_from_gui(self, Pipeline.vtType)
+        locator = locator_class.load_from_gui(QtLocatorHelperProvider(self),
+                                              Pipeline.vtType)
         if locator:
             if not locator.is_valid():
-                ok = locator.update_from_gui(self, Pipeline.vtType)
+                ok = locator.update_from_gui(QtLocatorHelperProvider(self),
+                                             Pipeline.vtType)
             else:
                 ok = True
             if ok:

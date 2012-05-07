@@ -57,6 +57,8 @@ from core.modules.module_registry import ModuleRegistry, \
     ModuleRegistryException
 import copy
 
+from extras.core.db.gui.locator import QtLocatorHelperProvider
+
 ################################################################################
 class QDetachedView(QtGui.QStackedWidget):
     """
@@ -479,14 +481,17 @@ class QViewManager(QtGui.QTabWidget):
             gui_get = locator_class.save_from_gui
             # get a locator to write to
             if force_choose_locator:
-                locator = gui_get(self, Vistrail.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Vistrail.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, Vistrail.vtType,
+                           gui_get(QtLocatorHelperProvider(self),
+                                   Vistrail.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, Vistrail.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Vistrail.vtType,
                                   vistrailView.controller.locator)
             # if couldn't get one, ignore the request
             if not locator:
@@ -564,14 +569,17 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.flush_changes()
             gui_get = locator_class.save_from_gui
             if force_choose_locator:
-                locator = gui_get(self, Pipeline.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Pipeline.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, Pipeline.vtType,
+                           gui_get(QtLocatorHelperProvider(self),
+                                   Pipeline.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, Pipeline.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Pipeline.vtType,
                                   vistrailView.controller.locator)
             if not locator:
                 return False
@@ -586,14 +594,17 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.flush_changes()
             gui_get = locator_class.save_from_gui
             if force_choose_locator:
-                locator = gui_get(self, Log.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Log.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, Log.vtType,
+                           gui_get(QtLocatorHelperProvider(self),
+                                   Log.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, Log.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Log.vtType,
                                   vistrailView.controller.locator)
             if not locator:
                 return False
@@ -608,14 +619,17 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.flush_changes()
             gui_get = locator_class.save_from_gui
             if force_choose_locator:
-                locator = gui_get(self, ModuleRegistry.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  ModuleRegistry.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, ModuleRegistry.vtType,
+                           gui_get(QtLocatorHelperProvider(self),
+                                   ModuleRegistry.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, ModuleRegistry.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  ModuleRegistry.vtType,
                                   vistrailView.controller.locator)
             if not locator:
                 return False
@@ -631,14 +645,17 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.flush_changes()
             gui_get = locator_class.save_from_gui
             if force_choose_locator:
-                locator = gui_get(self, OpmGraph.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  OpmGraph.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, OpmGraph.vtType,
+                           gui_get(QtLocatorHelperProvider(self),
+                                   OpmGraph.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, OpmGraph.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  OpmGraph.vtType,
                                   vistrailView.controller.locator)
             if not locator:
                 return False
@@ -655,14 +672,17 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.flush_changes()
             gui_get = locator_class.save_from_gui
             if force_choose_locator:
-                locator = gui_get(self, Vistrail.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Vistrail.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, Vistrail.vtType,
+                           gui_get(QtLocatorHelperProvider(self),
+                                   Vistrail.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, Vistrail.vtType,
+                locator = gui_get(QtLocatorHelperProvider(self),
+                                  Vistrail.vtType,
                                   vistrailView.controller.locator)
             if not locator:
                 return False

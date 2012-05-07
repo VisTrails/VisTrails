@@ -64,6 +64,8 @@ from gui.mashups.mashup_view import QMashupView
 from gui.ports_pane import ParameterEntry
 from gui.query_view import QueryEntry
 
+from extras.core.db.gui.locator import QtLocatorHelperProvider
+
 ################################################################################
 
 class QVistrailView(QtGui.QWidget):
@@ -878,14 +880,17 @@ class QVistrailView(QtGui.QWidget):
         gui_get = locator_class.save_from_gui
         # get a locator to write to
         if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Vistrail.vtType,
                               self.controller.locator)
         else:
             locator = (self.controller.locator or
-                       gui_get(self, Vistrail.vtType,
+                       gui_get(QtLocatorHelperProvider(self),
+                               Vistrail.vtType,
                                self.controller.locator))
         if locator == untitled_locator():
-            locator = gui_get(self, Vistrail.vtType,
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Vistrail.vtType,
                               self.controller.locator)
         # if couldn't get one, ignore the request
         if not locator:
@@ -945,14 +950,16 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Vistrail.vtType,
                               self.controller.locator)
         else:
             locator = (self.controller.locator or
-                      gui_get(self, Vistrail.vtType, self.controller.locator))
+                      gui_get(QtLocatorHelperProvider(self),
+                              Vistrail.vtType, self.controller.locator))
         if locator == untitled_locator():
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Vistrail.vtType, self.controller.locator)
         if not locator:
             return False
         self.controller.write_vistrail(locator, '1.0.2', True)
@@ -965,13 +972,15 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         if force_choose_locator:
-            locator = gui_get(self, Pipeline.vtType, self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Pipeline.vtType, self.controller.locator)
         else:
             locator = (self.controller.locator or
-                       gui_get(self, Pipeline.vtType,
-                               self.controller.locator))
+                       gui_get(QtLocatorHelperProvider(self),
+                               Pipeline.vtType, self.controller.locator))
         if locator == untitled_locator():
-            locator = gui_get(self, Pipeline.vtType, self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Pipeline.vtType, self.controller.locator)
         if not locator:
             return False
         self.controller.write_workflow(locator)
@@ -980,15 +989,15 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         if force_choose_locator:
-            locator = gui_get(self, Log.vtType,
-                              self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Log.vtType, self.controller.locator)
         else:
             locator = (self.controller.locator or
-                       gui_get(self, Log.vtType,
-                               self.controller.locator))
+                       gui_get(QtLocatorHelperProvider(self),
+                               Log.vtType, self.controller.locator))
         if locator == untitled_locator():
-            locator = gui_get(self, Log.vtType,
-                              self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              Log.vtType, self.controller.locator)
         if not locator:
             return False
         self.controller.write_log(locator)
@@ -997,15 +1006,16 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         if force_choose_locator:
-            locator = gui_get(self, ModuleRegistry.vtType,
-                              self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              ModuleRegistry.vtType, self.controller.locator)
         else:
             locator = (self.controller.locator or
-                       gui_get(self, ModuleRegistry.vtType,
+                       gui_get(QtLocatorHelperProvider(self),
+                               ModuleRegistry.vtType,
                                self.controller.locator))
         if locator == untitled_locator():
-            locator = gui_get(self, ModuleRegistry.vtType,
-                              self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              ModuleRegistry.vtType, self.controller.locator)
         if not locator:
             return False
         self.controller.write_registry(locator)
@@ -1016,15 +1026,15 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         if force_choose_locator:
-            locator = gui_get(self, OpmGraph.vtType,
-                              self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              OpmGraph.vtType, self.controller.locator)
         else:
             locator = (self.controller.locator or
-                       gui_get(self, OpmGraph.vtType,
-                               self.controller.locator))
+                       gui_get(QtLocatorHelperProvider(self),
+                               OpmGraph.vtType, self.controller.locator))
         if locator == untitled_locator():
-            locator = gui_get(self, OpmGraph.vtType,
-                              self.controller.locator)
+            locator = gui_get(QtLocatorHelperProvider(self),
+                              OpmGraph.vtType, self.controller.locator)
         if not locator:
             return False
         self.controller.write_opm(locator)

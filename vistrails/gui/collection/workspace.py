@@ -53,6 +53,8 @@ from gui.module_palette import QModuleTreeWidgetItemDelegate
 from gui.vis_diff import QDiffView
 from core.collection.entity import Entity
 
+from extras.core.db.gui.locator import QtLocatorHelperProvider
+
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
     a core.collection.Collection object
@@ -126,11 +128,11 @@ class QCollectionWidget(QtGui.QTreeWidget):
         if workflow_exec:
             args['workflow_exec'] = workflow_exec
             locator = widget_item.entity.parent.parent.locator()
-            locator.update_from_gui(self)
+            locator.update_from_gui(QtLocatorHelperProvider(self))
             # set vistrail name
             #locator._name = widget_item.entity.parent.parent.name
             
-        locator.update_from_gui(self)
+        locator.update_from_gui(QtLocatorHelperProvider(self))
 #        print '*** opening'
 #        print locator.to_url()
 #        print locator.name
@@ -206,7 +208,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
         items = [self.topLevelItem(i) 
                  for i in xrange(self.topLevelItemCount())]
         for item in items:
-            item.entity.locator().update_from_gui(self)
+            item.entity.locator().update_from_gui(
+                    QtLocatorHelperProvider(self))
             if not self.collection.urlExists(item.entity.url):
                 self.collection.delete_entity(item.entity) 
         self.collection.commit()
@@ -977,7 +980,7 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail_widget = widget_item.parent().parent()
             vistrail_entity = entity.parent.parent
             locator = vistrail_entity.locator()
-            locator.update_from_gui(self)
+            locator.update_from_gui(QtLocatorHelperProvider(self))
             # set vistrail name
             #locator._name = widget_item.entity.parent.parent.name
             
@@ -986,7 +989,7 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail = widget_item.parent().parent().window.controller.vistrail
             args['version'] = vistrail.get_latest_version()
             version = vistrail.get_latest_version()
-        locator.update_from_gui(self)
+        locator.update_from_gui(QtLocatorHelperProvider(self))
         if not locator.is_valid():
             debug.critical("File not found: '%s'. Entry will be deleted." % locator.to_url())
             vistrail_widget.parent().removeChild(vistrail_widget)

@@ -45,6 +45,8 @@ from gui.theme import initializeCurrentTheme
 from gui.palette_container import PaletteContainer
 from gui.vistrails_window import QVistrailsWindow
 
+from extras.core.db.gui.locator import QtLocatorHelperProvider
+
 class VisTrailsApp(QtGui.QMainWindow):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         global _app
@@ -290,10 +292,12 @@ class VisTrailsApp(QtGui.QMainWindow):
         Prompt user for information to get to a vistrail in different ways,
         depending on the locator class given.
         """
-        locator = locator_class.load_from_gui(self, Vistrail.vtType)
+        locator = locator_class.load_from_gui(
+                QtLocatorHelperProvider(self), Vistrail.vtType)
         if locator:
             if locator.has_temporaries():
-                if not locator_class.prompt_autosave(self):
+                if not locator_class.prompt_autosave(
+                        QtLocatorHelperProvider(self)):
                     locator.clean_temporaries()
             if hasattr(locator, '_vnode'):
                 version = locator._vnode
@@ -317,7 +321,7 @@ class VisTrailsApp(QtGui.QMainWindow):
         If is_abstraction is True, the vistrail is flagged as abstraction
         """
         if not locator.is_valid():
-            ok = locator.update_from_gui(self)
+            ok = locator.update_from_gui(QtLocatorHelperProvider(self))
         else:
             ok = True
         if ok:

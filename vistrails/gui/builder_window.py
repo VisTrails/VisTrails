@@ -72,6 +72,8 @@ from core.thumbnails import ThumbnailCache
 import gui.debug
 from gui.mashups.mashups_manager import MashupsManager
 
+from extras.core.db.gui.locator import QtLocatorHelperProvider
+
 ################################################################################
 
 class QBuilderWindow(QtGui.QMainWindow):
@@ -148,7 +150,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         # FIXME: when interactive and non-interactive modes are separated,
         # this autosave code can move to the viewManager
         if not self.dbDefault and untitled_locator().has_temporaries():
-            if not FileLocator().prompt_autosave(self):
+            if not FileLocator().prompt_autosave(QtLocatorHelperProvider(self)):
                 untitled_locator().clean_temporaries()
         if self.viewManager.newVistrail(True):
             self.viewModeChanged(0)
@@ -1081,10 +1083,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         Prompt user for information to get to a vistrail in different ways,
         depending on the locator class given.
         """
-        locator = locator_class.load_from_gui(self, Vistrail.vtType)
+        locator = locator_class.load_from_gui(
+                QtLocatorHelperProvider(self), Vistrail.vtType)
         if locator:
             if locator.has_temporaries():
-                if not locator_class.prompt_autosave(self):
+                if not locator_class.prompt_autosave(
+                        QtLocatorHelperProvider(self)):
                     locator.clean_temporaries()
             if hasattr(locator, '_vnode'):
                 version = locator._vnode
@@ -1109,7 +1113,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         If workflow_exec is True, the logged execution will be displayed
         """
         if not locator.is_valid():
-            ok = locator.update_from_gui(self)
+            ok = locator.update_from_gui(QtLocatorHelperProvider(self))
         else:
             ok = True
         if ok:
@@ -1291,10 +1295,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.save_log(True)
 
     def import_workflow(self, locator_class):
-        locator = locator_class.load_from_gui(self, Pipeline.vtType)
+        locator = locator_class.load_from_gui(
+                QtLocatorHelperProvider(self), Pipeline.vtType)
         if locator:
             if not locator.is_valid():
-                ok = locator.update_from_gui(self, Pipeline.vtType)
+                ok = locator.update_from_gui(QtLocatorHelperProvider(self),
+                                             Pipeline.vtType)
             else:
                 ok = True
             if ok:

@@ -53,6 +53,8 @@ import os.path
 import getpass
 import sys
 
+from extras.core.db.gui.locator import QtLocatorHelperProvider
+
 ################################################################################
 
 class VistrailsApplicationSingleton(VistrailsApplicationInterface,
@@ -344,7 +346,8 @@ parameters from other instances")
                         #command line with VisTrails already running, we need
                         #to update from the gui
                         if hasattr(self, 'builderWindow'):
-                            ok = locator.update_from_gui(self.builderWindow)
+                            ok = locator.update_from_gui(
+                                    QtLocatorHelperProvider(self.builderWindow))
                         else:
                             ok = locator.update_from_console()
                         if not ok:
