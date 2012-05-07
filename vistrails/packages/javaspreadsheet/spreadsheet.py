@@ -48,6 +48,7 @@ class SpreadsheetModel(DefaultTableModel):
                 c = Cell(self)
                 self.cells[(row, column)] = c
                 self.cellpositions[c] = (row, column)
+                self.fireTableCellUpdated(row, column)
                 return c
             else:
                 return None
@@ -55,6 +56,8 @@ class SpreadsheetModel(DefaultTableModel):
     # @Override
     def setValueAt(self, value, row, column):
         self.cells[(row, column)] = value
+        self.cellpositions[value] = (row, column)
+        self.fireTableCellUpdated(row, column)
 
     # @Override
     def getColumnName(self, column):
@@ -68,7 +71,7 @@ class SpreadsheetModel(DefaultTableModel):
 
     def repainted(self, cell):
         pos = self.cellpositions[cell]
-        self.fireTableCellUpdated(pos[1], pos[0])
+        self.fireTableCellUpdated(pos[0], pos[1])
 
 
 class SpreadsheetRenderer(DefaultTableCellRenderer):
@@ -167,6 +170,7 @@ class Spreadsheet(JFrame):
     """The spreadsheet window, that contains several sheets.
     """
     def __init__(self):
+        self.title = "Java Spreadsheet Window"
         self.tabbedPane = JTabbedPane(JTabbedPane.BOTTOM)
         self.setContentPane(self.tabbedPane)
         self.sheets = {}
