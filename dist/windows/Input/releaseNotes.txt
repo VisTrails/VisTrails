@@ -1,8 +1,16 @@
 RELEASE NOTES
 -------------
-Release Name: v2.0 build 18531d5fb280 from v2.0 branch
+Release Name: v2.0 build 4ef2b8639b6d from v2.0 branch
+
+Enhancements: 
+ - Ticket #559: Persistent modules do not work in groups (4ef2b8639b6d)
+ - Allow modules in subpipelines to be cached (4ef2b8639b6d)
+ - Added alps package to VisTrails 64-bit Windows Binary  (519d862a63f5)
 
 Bug fixes: 
+ - Ticket #558: Group signatures cannot be based only on interface (4ef2b8639b6d)
+ - Fix issue with caching group modules (4ef2b8639b6d)
+ - Fix initial layout of matplotlib cells (3a8d5c7c3d62)
  - Decreased level of debug message when removing elements from Thumbnails cache (18531d5fb280)
  - Ticket #534: Mashups hang with auto-update on (1472b6ba7f32)
  - Ticket #550: Workspace state_changed is slow (1ed823ecbb96) (b75607ea9271)
