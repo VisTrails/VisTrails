@@ -268,8 +268,9 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         QtGui.QGraphicsTextItem.__init__(self, parent, scene)
-        self.parent = parent
-        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.timer = None
+        self.isEditable = None
+        self.setEditable(False)
         self.setFont(CurrentTheme.VERSION_FONT)
         self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
         self.centerX = 0.0
@@ -277,6 +278,28 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.label = ''
         self.isTag = True
         self.updatingTag = False
+
+    def setEditable(self, editable=True):
+        if self.timer:
+            self.timer.stop()
+            self.timer = None
+        if editable == self.isEditable:
+            return
+        self.isEditable = editable
+        if editable:
+            self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        else:
+            if self.textCursor():
+                c = self.textCursor()
+                c.clearSelection()
+                self.setTextCursor(c)
+            self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+
+    def setEditableLater(self):
+        self.timer = QtCore.QTimer(self)
+        self.timer.setSingleShot(True)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.setEditable)
+        self.timer.start(QtGui.QApplication.doubleClickInterval() + 5)
 
     def changed(self, x, y, label, tag=True):
         """ changed(x: float, y: float, label: str) -> None
@@ -300,6 +323,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         self.setPlainText(self.label)
+        self.setEditable(False)
         if (len(str(self.label)) > 0):
             self.setTextWidth(-1)
         else:
@@ -310,7 +334,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         else:
             self.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)  
         self.updatePos()
-        self.parent.updateWidthFromLabel()
+        self.parentItem().updateWidthFromLabel()
 
     def updatePos(self):
         """ updatePos() -> None
@@ -334,13 +358,12 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
             self.updatingTag = False
             event.ignore()
             self.clearFocus()
-            self.hide()
             return
         qt_super(QGraphicsVersionTextItem, self).keyPressEvent(event)
         if (len(str(self.toPlainText())) > 0):
             self.setTextWidth(-1)
         self.updatePos()
-        self.parent.updateWidthFromLabel()
+        self.parentItem().updateWidthFromLabel()
 
     def focusOutEvent(self, event):
         """ focusOutEvent(event: QEvent) -> None
@@ -354,7 +377,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
                 self.reset()
             self.updatingTag = False
-      
+
 ##############################################################################
 # QGraphicsVersionItem
 
@@ -374,15 +397,16 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         QtGui.QGraphicsEllipseItem.__init__(self, parent, scene)
         self.setZValue(1)
         self.setAcceptDrops(True)
-        self.versionPen = CurrentTheme.VERSION_PEN
-        self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
-        self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self._versionPenNormal = CurrentTheme.VERSION_PEN
+        self._versionPen = CurrentTheme.VERSION_PEN
+        self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
         self.id = -1
         self.label = ''
         self.descriptionLabel = ''
         self.dragging = False
         self.ghosted = False
+        self.updatePainterState()
 
         # self.rank is a positive number that determines the
         # saturation of the node. Two version nodes might have the
@@ -393,7 +417,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         
         # Editable text item that remains hidden unless the version is selected
         self.text = QGraphicsVersionTextItem(self)
-        self.text.hide()
 
         # Need a timer to start a drag to avoid stalls on QGraphicsView
         self.dragTimer = QtCore.QTimer()
@@ -404,6 +427,31 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
         self.dragPos = QtCore.QPoint()
 
+    def _get_versionPen(self):
+        return self._versionPen
+    def _set_versionPen(self, pen):
+        self._versionPen = pen
+        self.updatePainterState()
+    versionPen = property(_get_versionPen, _set_versionPen)
+
+    def _get_versionBrush(self):
+        return self._versionBrush
+    def _set_versionBrush(self, brush):
+        self._versionBrush = brush
+        self.updatePainterState()
+    versionBrush = property(_get_versionBrush, _set_versionBrush)
+
+    def itemChange(self, change, value):
+        if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
+            if self.isSelected():
+                self.versionPen = CurrentTheme.VERSION_SELECTED_PEN
+                self.text.setEditableLater()
+            else:
+                self.versionPen = self._versionPenNormal
+                self.text.setEditable(False)
+            self.updatePainterState()
+        return QtGui.QGraphicsItem.itemChange(self, change, value)
+
     def setGhosted(self, ghosted=True):
         """ setGhosted(ghosted: True) -> None
         Set this version to be ghosted or not
@@ -412,13 +460,12 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if self.ghosted <> ghosted:
             self.ghosted = ghosted
             if ghosted:
-                self.versionPen = CurrentTheme.GHOSTED_VERSION_PEN
-                self.versionLabelPen = CurrentTheme.GHOSTED_VERSION_LABEL_PEN
-                self.versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
+                self._versionPenNormal = CurrentTheme.GHOSTED_VERSION_PEN
+                self._versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
             else:
-                self.versionPen = CurrentTheme.VERSION_PEN
-                self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
-                self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
+                self._versionPenNormal = CurrentTheme.VERSION_PEN
+                self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
+            self.updatePainterState()
 
     def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
         """ update_color(isThisUs: bool,
@@ -533,32 +580,12 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         return self.rect().adjusted(-2, -2, 2, 2)
 
     def paint(self, painter, option, widget=None):
-        """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
-                  widget: QWidget) -> None
-        Peform actual painting of the version shape
-        
-        """
-        if self.isSelected():
-            painter.setPen(CurrentTheme.VERSION_SELECTED_PEN)
-        else:
-            painter.setPen(self.versionPen)
-        painter.setBrush(self.versionBrush)
-        painter.drawEllipse(self.rect())
-        
-        # Only draw text if editable text item is not present
-        if not self.text.isVisible():
-            if self.isSelected() and not self.ghosted:
-                painter.setPen(CurrentTheme.VERSION_LABEL_SELECTED_PEN)
-            else:
-                painter.setPen(self.versionLabelPen)
+        option.state &= ~QtGui.QStyle.State_Selected
+        QtGui.QGraphicsEllipseItem.paint(self, painter, option, widget)
 
-            if self.label == '' and self.descriptionLabel != '':
-                # Draw description text if available
-                painter.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)
-                painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.descriptionLabel)
-            else:
-                painter.setFont(CurrentTheme.VERSION_FONT)
-                painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.label)
+    def updatePainterState(self):
+        self.setPen(self._versionPen)
+        self.setBrush(self._versionBrush)
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
@@ -607,7 +634,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         
         """
         self.dragging = False
-        qt_super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
+        QtGui.QGraphicsEllipseItem.mouseReleaseEvent(self, event)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -695,6 +722,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         menu.exec_(event.screenPos())
 
     def mouseDoubleClickEvent(self, event):
+        # QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
+        event.accept()
         self.scene().double_click(self.id)
 
 
@@ -1035,19 +1064,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             return
 
         selected_items = self.selectedItems()
-        # print 'selected_items:', [x.id for x in selected_items]
-        for item in self.versions.itervalues():
-            if item.id != 0:
-                item.text.hide()
         if len(selected_items) == 1:
             # emit versionSelected selected_id
             self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
                       selected_items[0].id, self.select_by_click, 
                       True, False, False)
-            if selected_items[0].id != 0:
-                selected_items[0].text.show()
         else:
             # emit versionSelected -1
+            for item in selected_items:
+                if item.text.isEditable:
+                    item.text.setEditable(False)
             self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
                       -1, self.select_by_click, True, False, False)
 
@@ -1057,6 +1083,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 selected_items[0].id, selected_items[1].id)
 
     def double_click(self, version_id):
+        self.mouseGrabberItem().ungrabMouse()
         self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
                   version_id, self.select_by_click, True, False, True)
 
@@ -1157,13 +1184,12 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
             br = self.selectionBox.sceneBoundingRect()
         else:
             br = QtCore.QRectF(self.startSelectingPos,
-                              self.startSelectingPos)
+                               self.startSelectingPos)
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
                 if type(item) == gui.version_view.QGraphicsVersionItem:
                     item.text.clearFocus()
-                    item.text.hide()
         qt_super(QVersionTreeView, self).selectModules()
                 
     def set_title(self, title):
