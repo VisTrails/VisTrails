@@ -787,7 +787,12 @@ else:
 
             displacement = QtCore.QPointF(0.0, v)
             self._control_1 = startPos + displacement
-            self._control_2 = endPos - displacement
+            # !!! MAC OS X BUG !!!
+            # the difference between startPos.y and control_1.y cannot be
+            # equal to the difference between control_2.y and endPos.y
+            self._control_2 = self.endPos - displacement + \
+                QtCore.QPointF(0.0, 1e-10)
+            # self._control_2 = endPos - displacement
 
             path = QtGui.QPainterPath(self.startPos)
             path.cubicTo(self._control_1, self._control_2, self.endPos)
