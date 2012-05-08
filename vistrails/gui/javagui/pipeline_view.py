@@ -262,6 +262,8 @@ class PConnection(PNode):
 
 
 class TargetTransferHandler(TransferHandler):
+    """This is the drag and drop target, accepting module descriptors.
+    """
     def __init__(self, pipelineview):
         TransferHandler.__init__(self)
         self.view = pipelineview
@@ -309,7 +311,12 @@ class TargetTransferHandler(TransferHandler):
 
 
 class JPipelineView(PCanvas):
-    """The pipeline view."""
+    """The pipeline view.
+
+    This view represents all the modules and their connections. It can be used
+    to change the pipeline, and accepts drag and drops of module descriptors
+    from the palette.
+    """
     def __init__(self, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None):
         PCanvas.__init__(self)
@@ -366,6 +373,8 @@ class JPipelineView(PCanvas):
                     self.modules[module].color = Color.orange
 
     def setupScene(self, pipeline):
+        """Create all the graphical objects from the vistrail.
+        """
         self.modules = {}
 
         module_layer = self.getCamera().getLayer(0)
@@ -386,6 +395,8 @@ class JPipelineView(PCanvas):
                     connection.destination.name))
 
     def addModule(self, module):
+        """Add a module to the view.
+        """
         pmod = PModule(module)
         pmod.color = Color.gray
         self.modules[module.id] = pmod
@@ -393,8 +404,43 @@ class JPipelineView(PCanvas):
         module_layer.addChild(pmod)
 
     def droppedModule(self, descriptor, location):
+        """Called when a module descriptor has been dropped onto the view.
+
+        This method creates a new module at the location of the drop.
+        """
         pos = self.getCamera().localToView(location)
         module = self.controller.create_module_from_descriptor(
                 descriptor,
                 pos.x, -pos.y)
         self.addModule(module)
+
+    MOVE_DELTA = 0.5
+
+    @staticmethod
+    def float_eq(a, b):
+        return (abs(a.x - b.x) <= JPipelineView.MOVE_DELTA and
+                abs(a.y - b.y) <= JPipelineView.MOVE_DELTA)
+
+    def flushMoveActions(self):
+        """Flush the pending moves from the view into the vistrails.
+
+        This method creates a move action in the vistrail for each module that
+        has been moved. A move action does not happen every time a module is
+        dragged to save space and keep a concise version tree.
+        """
+        moves = []
+        modules = self.controller.current_pipeline.modules
+        for id, pmod in self.modules.iteritems():
+            module = modules[id]
+            ploc = pmod.getOffset()
+            ploc.y = -ploc.y
+            if not JPipelineView.float_eq(ploc, module.center):
+                print "%f, %f -> %f, %f" % (module.center.x, module.center.y, ploc.x, ploc.y)
+                moves.append((id, ploc.x, ploc.y))
+        if moves:
+            self.controller.quiet = True
+            self.controller.move_module_list(moves)
+            self.controller.quiet = False
+            print "wrote %d move actions to vistrail" % len(moves)
+            return True
+        return False

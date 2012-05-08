@@ -42,10 +42,12 @@ from vistrail_controller import JVistrailController
 from pipeline_view import JPipelineView
 from version_view import JVersionVistrailView
 from module_palette import JModulePalette
-from core.db.locator import ZIPFileLocator
+from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
+        untitled_locator
 from core.db.io import load_vistrail
-import core.packagemanager
-import core.application
+from core.vistrail.vistrail import Vistrail
+from core import debug
+from core.thumbnails import ThumbnailCache
 import core.system
 
 from javax.swing import ImageIcon
@@ -60,6 +62,8 @@ from javax.swing import JPanel
 from javax.swing import SwingConstants
 from java.awt import BorderLayout
 
+from extras.core.db.javagui.locator import JavaLocatorHelperProvider
+
 
 class BuilderFrame(JFrame):
     """The window, used to edit a vistrail.
@@ -71,6 +75,7 @@ class BuilderFrame(JFrame):
         self.setTitle(self.title)
         self.filename = ""
         self.currentLocator = None
+        self.dbDefault = False
         menuBar = JMenuBar()
         fileMenu = JMenu("File")
         self.openItem = JMenuItem("Open a file")
@@ -79,7 +84,7 @@ class BuilderFrame(JFrame):
         menuBar.add(fileMenu)
         self.setJMenuBar(menuBar)
         self.current_view = None
-        
+
         self.contentPanel = JPanel(BorderLayout())
         self.setContentPane(self.contentPanel)
         root = str(core.system.vistrails_root_directory())
@@ -98,6 +103,10 @@ class BuilderFrame(JFrame):
             toolBar.add(button)
             return button
 
+        self.saveButton = addButton('save_vistrail.png',
+                                    "Save changes", "Save")
+        self.saveAsButton = addButton('save_vistrail.png',
+                                    "Select a file to save to", "Save as...")
         self.openButton = addButton('open_vistrail.png', "Open", "Open")
         self.executeButton = addButton(
                 'execute.png', "Execute the current pipeline", "Execute")
@@ -107,7 +116,7 @@ class BuilderFrame(JFrame):
                                        "Switch to version view", "Version")
 
         self.contentPanel.add(toolBar, BorderLayout.NORTH)
-        
+
         # Create the module palette
         self.modulepalette = JModulePalette()
         self.contentPanel.add(self.modulepalette, BorderLayout.WEST)
@@ -117,7 +126,7 @@ class BuilderFrame(JFrame):
         self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
         self.setSize(300, 300)
         self.setVisible(True)
-    
+
     def link_registry(self):
         self.modulepalette.link_registry()
 
@@ -145,6 +154,9 @@ class BuilderFrame(JFrame):
             self.contentPanel.revalidate() # Needed when using remove()
             self.repaint()
 
+    def flush_changes(self):
+        self.pipelineView.flushMoveActions()
+
     def open_vistrail_without_prompt(self, locator, version = None):
         self.controller = JVistrailController()
         self.currentVersion = "-1"
@@ -171,18 +183,24 @@ class BuilderFrame(JFrame):
         self.set_current_view(self.pipelineView)
 
     def buttonClicked(self, event):
-        if (event.getSource() == self.pipelineButton):
+        if event.getSource() == self.pipelineButton:
             self.set_current_view(self.pipelineView)
-        elif (event.getSource() == self.historyButton):
+        elif event.getSource() == self.historyButton:
             self.set_current_view(self.versionView)
-        elif (event.getSource() == self.executeButton):
+        elif event.getSource() == self.executeButton:
             self.pipelineView.execute_workflow()
             return
-        elif (event.getSource() == self.openButton):
-            self.openAction(event)
+        elif event.getSource() == self.openButton:
+            self.openAction()
+            return
+        elif event.getSource() == self.saveButton:
+            self.saveAction()
+            return
+        elif event.getSource() == self.saveAsButton:
+            self.saveAsAction()
             return
 
-    def openAction(self, event):
+    def openAction(self):
         fileChooser = JFileChooser()
         returnedValue = fileChooser.showOpenDialog(self.openItem)
         if (returnedValue == JFileChooser.APPROVE_OPTION):
@@ -192,3 +210,77 @@ class BuilderFrame(JFrame):
             self.getContentPane().getComponent(1).invalidate()
             self.getContentPane().getComponent(1).revalidate()
             self.getContentPane().getComponent(1).repaint()
+
+    def saveAction(self):
+        if self.dbDefault:
+            self.save_vistrail(DBLocator)
+        else:
+            self.save_vistrail(FileLocator())
+
+    def saveAsAction(self):
+        if self.dbDefault:
+            locator = self.save_vistrail(DBLocator,
+                                         force_choose_locator=True)
+        else:
+            locator = self.save_vistrail(FileLocator(),
+                                         force_choose_locator=True)
+
+        self.currentLocator = locator
+
+    def save_vistrail(self, locator_class, force_choose_locator=False):
+        self.flush_changes()
+        if force_choose_locator:
+            locator = locator_class.save_from_gui(
+                    JavaLocatorHelperProvider(self),
+                    Vistrail.vtType,
+                    self.controller.locator)
+        else:
+            locator = self.controller.locator or \
+                    locator_class.save_from_gui(
+                            JavaLocatorHelperProvider(self),
+                            Vistrail.vtType,
+                            self.controller.locator)
+
+        if locator == untitled_locator():
+            locator = locator_class.save_from_gui(
+                    JavaLocatorHelperProvider(self),
+                    Vistrail.vtType,
+                    self.controller.locator)
+
+        # if couldn't get one, ignore the request
+        if not locator:
+            return False
+
+        # update collection
+        try:
+            self.controller.write_vistrail(locator)
+        except Exception, e:
+            debug.critical('An error has occurred', str(e))
+            raise
+            return False
+        try:
+            from core.collection import Collection
+            thumb_cache = ThumbnailCache.getInstance()
+            self.controller.vistrail.thumbnails = \
+                self.controller.find_thumbnails(
+                    tags_only=thumb_cache.conf.tagsOnly)
+            self.controller.vistrail.abstractions = \
+                self.controller.find_abstractions(
+                    self.controller.vistrail, True)
+
+            collection = Collection.getInstance()
+            url = locator.to_url()
+            # create index if not exist
+            entity = collection.fromUrl(url)
+            if entity:
+                # find parent vistrail
+                while entity.parent:
+                    entity = entity.parent
+            else:
+                entity = collection.updateVistrail(url, self.controller.vistrail)
+            # add to relevant workspace categories
+            collection.add_to_workspace(entity)
+            collection.commit()
+        except Exception, e:
+            debug.critical('Failed to index vistrail', str(e))
+        return locator

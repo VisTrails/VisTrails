@@ -84,13 +84,13 @@ class DebugPrint:
     getInstance = DebugPrintSingleton()
     
     def make_logger(self, f=None):
-        self.fhandler = None
         """self.make_logger_240(file) -> logger. Creates a logging object to
         be used within the DebugPrint class that sends the debugging
         output to file.
         We will configure log so it outputs to both stderr and a file. 
         
         """
+        self.fhandler = None
         self.logger = logging.getLogger("VisLog")
         self.logger.setLevel(logging.INFO)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
