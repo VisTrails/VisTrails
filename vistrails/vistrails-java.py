@@ -34,6 +34,9 @@
 """Alternate main file for the VisTrails distribution that uses Java."""
 
 if __name__ == '__main__':
+    import core.system
+    core.system.set_configuration_suffix('java')
+
     import gui.javagui.application
     import sys
     import os

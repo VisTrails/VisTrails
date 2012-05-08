@@ -298,7 +298,7 @@ by startup.py. This should only be called after init()."""
         def install_default_startup():
             debug.log('Will try to create default startup script')
             try:
-                root_dir = core.system.vistrails_root_directory()
+                root_dir = system.vistrails_root_directory()
                 default_file = os.path.join(root_dir,'core','resources',
                                             'default_vistrails_startup')
                 user_file = os.path.join(self.temp_configuration.dotVistrails,
@@ -315,7 +315,7 @@ by startup.py. This should only be called after init()."""
         def install_default_startupxml_if_needed():
             fname = os.path.join(self.temp_configuration.dotVistrails,
                                  'startup.xml')
-            root_dir = core.system.vistrails_root_directory() 
+            root_dir = system.vistrails_root_directory() 
             origin = os.path.join(root_dir, 'core','resources',
                                   'default_vistrails_startup_xml')
             def skip():
@@ -424,10 +424,12 @@ by startup.py. This should only be called after init()."""
                     return localsDir
                 except IOError:
                     if tried_once:
-                        debug.critical("""Still cannot find default file.
-                        Something has gone wrong. Please make sure ~/.vistrails
-                        exists, is writable, and ~/.vistrails/startup.py does
-                        not exist.""")
+                        debug.critical(
+                                """Still cannot find default file.
+                                Something has gone wrong. Please make sure
+                                %(dir)s exists, is writable,
+                                and %(dir)s/startup.py does not exist.""" %
+                                {'dir': system.readable_dot_vistrails_name()})
                         sys.exit(1)
                     debug.critical('%s not found' % startup)
                     debug.critical('Will try to install default '

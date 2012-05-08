@@ -89,7 +89,8 @@ class VistrailsApplicationInterface(object):
         add = command_line.CommandLineParser.add_option
         add("-S", "--startup", action="store", type="str", default=None,
             dest="dotVistrails",
-            help="Set startup file (default is ~/.vistrails/startup.py)")
+            help="Set startup file (default is %s/startup.py)" %
+                    system.readable_dot_vistrails_name())
         add("-?", action="help",
             help="show this help message and exit")
         add("-v", "--version", action="callback",

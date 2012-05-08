@@ -225,19 +225,29 @@ def resource_directory():
     return os.path.join(vistrails_root_directory(),
                         'gui', 'resources')
 
+_config_suffix = ''
+
+def set_configuration_suffix(suffix):
+    global _config_suffix
+    _config_suffix = suffix
+
 def default_options_file():
     """ default_options_file() -> str 
     Returns vistrails default options file
 
     """
-    return os.path.join(home_directory(), ".vistrailsrc")
+    return os.path.join(home_directory(), '.vistrails%src' % _config_suffix)
 
 def default_dot_vistrails():
     """ default_dot_vistrails() -> str 
     Returns VisTrails per-user directory.
 
     """
-    return os.path.join(home_directory(), '.vistrails')
+    return os.path.join(home_directory(), '.vistrails%s' % _config_suffix)
+
+def readable_dot_vistrails_name():
+    return '~/.vistrails%s' % _config_suffix
+
 def default_connections_file():
     """ default_connections_file() -> str
     Returns default Vistrails per-user connections file
