@@ -390,7 +390,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         item = self.scene().itemAt(scenePos)
         buttons = self.translateButton(e)
         if buttons == QtCore.Qt.LeftButton:
-            if item==None:
+            if item is None:
                 if self.scene():
                     self.scene().multiSelecting = True
                     self.scene().addItem(self.selectionBox)
@@ -406,8 +406,11 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         else:
             if buttons & QtCore.Qt.RightButton:
-                self.setCursorState(2)
-                self.computeScale()
+                if item is None:
+                    self.setCursorState(2)
+                    self.computeScale()
+                else:
+                    QtGui.QGraphicsView.mousePressEvent(self, e)
             elif buttons & QtCore.Qt.MidButton:
                 self.setCursorState(3)
                 self.startScroll = (self.horizontalScrollBar().value(),
