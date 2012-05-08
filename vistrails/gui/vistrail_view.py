@@ -786,7 +786,7 @@ class QVistrailView(QtGui.QWidget):
         def module_selected(module_id, selection = []):
             from gui.vistrails_window import _app
             pipeline = view.scene().current_pipeline
-            if module_id in pipeline.modules:
+            if pipeline is not None and module_id in pipeline.modules:
                 module = pipeline.modules[module_id]
                 _app.notify('module_changed', module)
             else:
