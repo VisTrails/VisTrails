@@ -32,7 +32,7 @@
 ##
 ###############################################################################
 
-from gui.application import get_vistrails_application
+from core.application import get_vistrails_application
 
 ##############################################################################
 # Exceptions
