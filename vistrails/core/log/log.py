@@ -97,3 +97,7 @@ class Log(DBLog):
         self.db_vistrail_id = id
     vistrail_id = property(_get_vistrail_id, _set_vistrail_id)
 
+    def get_last_workflow_exec_id(self):
+        if len(self.workflow_execs) < 1:
+            return -1
+        return max(wf_exec.id for wf_exec in self.workflow_execs)

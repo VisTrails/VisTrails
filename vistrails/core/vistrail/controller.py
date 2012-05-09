@@ -168,13 +168,14 @@ class VistrailController(object):
         return self.locator
     
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None):
+                     thumbnails=None, mashups=None, set_log_on_vt=True):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
             self.vistrail.current_session = self.current_session
-            self.vistrail.log = self.log
+            if set_log_on_vt:
+                self.vistrail.log = self.log
             if abstractions is not None:
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
@@ -3272,7 +3273,7 @@ class VistrailController(object):
         """ Returns the saved log from zip or DB
         
         """
-        return self.vistrail.get_log()
+        return self.vistrail.get_persisted_log()
  
     def write_registry(self, locator):
         registry = core.modules.module_registry.get_module_registry()
