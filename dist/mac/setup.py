@@ -63,7 +63,7 @@ OPTIONS = {'argv_emulation': True,
                         shelve, uuid, gridfield, gridfield.core, \
                         gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
                         sine,st,Numeric,pexpect,psycopg2,sqlite3,suds,shapelib, dbflib,mpl_toolkits.mplot3d,_mysql_exceptions',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,Scientific,distutils,h5py',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,Scientific,distutils,h5py,batchq',
            'excludes': 'mpl_toolkits.basemap',
            'plist': plist,
            }
