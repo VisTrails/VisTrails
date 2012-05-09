@@ -56,6 +56,7 @@ class VistrailEntity(Entity):
         self.mshp_entity_map = {}
         self.wf_exec_entity_map = {}
         self._vt_tag_map = {}
+        self._mshp_tag_map = {}
         # self._last_wf_exec_id = None
         self.reload(vistrail)
 
@@ -209,6 +210,32 @@ class VistrailEntity(Entity):
                 entity.parent = self.wf_entity_map[action.id]
         return self.wf_entity_map[version_id]
 
+    def add_mashup_entity(self, mashuptrail, version_id, tag=None):
+        if not hasattr(self.vistrail, 'mashups'):
+            return
+        if mashuptrail not in self.vistrail.mashups:
+            return
+        action = mashuptrail.actionMap[version_id]
+        mashup = mashuptrail.getMashup(version_id)
+        if tag:
+            mashup.name = tag
+        mashup.id = action.id
+        entity_key = (mashuptrail.id,version_id)
+        self.mshp_entity_map[entity_key] = \
+                   self.create_mashup_entity(mashuptrail.id, mashup, action)
+        # get thumbnail for the workflow it points
+        thumb_version = mashuptrail.vtVersion
+        thumbnail = self.vistrail.get_thumbnail(thumb_version)
+        if thumbnail is not None:
+            cache = ThumbnailCache.getInstance()
+            path = cache.get_abs_name_entry(thumbnail)
+            if path:
+                entity = ThumbnailEntity(path)
+                mshp_entity = self.mshp_entity_map[entity_key]
+                mshp_entity.children.append(entity)
+                entity.parent = mshp_entity
+        return self.mshp_entity_map[entity_key]
+       
     def add_wf_exec_entity(self, wf_exec, add_to_map=False):
         version_id = wf_exec.parent_version
         is_new = False
@@ -244,12 +271,14 @@ class VistrailEntity(Entity):
                         
     def add_mashup_entities_from_mashuptrail(self, mashuptrail):
         added_entry_keys = set()
+        inv_tag_map = {}
         tagMap = mashuptrail.getTagMap()
         tags = tagMap.keys()
         if len(tags) > 0:
             tags.sort()
             for tag in tags:
                 version_id = tagMap[tag]
+                inv_tag_map[version_id] = tag
                 action = mashuptrail.actionMap[version_id]
                 mashup = mashuptrail.getMashup(version_id)
                 mashup.name = tag
@@ -270,7 +299,7 @@ class VistrailEntity(Entity):
                         mshp_entity = self.mshp_entity_map[entity_key]
                         mshp_entity.children.append(entity)
                         entity.parent = mshp_entity
-        return added_entry_keys
+        return inv_tag_map
 
     def reload(self, vistrail):
         if vistrail is not None:
@@ -281,8 +310,10 @@ class VistrailEntity(Entity):
             
             #mashups
             if hasattr(self.vistrail, 'mashups'):
+                self._mshp_tag_map = {}
                 for mashuptrail in self.vistrail.mashups:
-                    self.add_mashup_entities_from_mashuptrail(mashuptrail)
+                    self._mshp_tag_map[mashuptrail.id] = \
+                         self.add_mashup_entities_from_mashuptrail(mashuptrail)
                 
             # read persisted log entries
             try:
@@ -370,21 +401,43 @@ class VistrailEntity(Entity):
         return (added_workflows, added_wf_execs)
 
     def update_mashups(self):
-        # FIXME make this more efficient
-        # currently, we drop everything and add it all back
         added_mashups = []
         deleted_mashups = []
-        for key, mashup in self.mshp_entity_map.iteritems():
-            deleted_mashups.append(mashup)
-        self.mshp_entity_map = {}
-
         if hasattr(self.vistrail, 'mashups'):
             for mashuptrail in self.vistrail.mashups:
-                new_mashup_keys.update(
-                    self.add_mashup_entities_from_mashuptrail(mashuptrail))
-        for key, mashup in self.mshp_entity_map.iteritems():
-            added_mashups.append(mashup)
+                if mashuptrail.id not in self._mshp_tag_map:
+                    self._mshp_tag_map[mashuptrail.id] = {}
+                mashup_tag_map = self._mshp_tag_map[mashuptrail.id]
+                tagMap = mashuptrail.getTagMap()
+                #mashups tag map is inverted map[tag] -> version
+                new_mshp_map = {}
+                for tag, version_id in tagMap.iteritems():
+                    new_mshp_map[version_id] = tag
+                    if version_id not in mashup_tag_map:
+                        added_mashups.append(self.add_mashup_entity(mashuptrail, version_id, tag))
+                    elif tag != mashup_tag_map[version_id]:
+                        deleted_mashups.append(self.mshp_entity_map[(mashuptrail.id,
+                                                                     version_id)])
+                        added_mashups.append(self.add_mashup_entity(mashuptrail, version_id, tag))
+                for version_id, tag in mashup_tag_map.iteritems():
+                    if version_id not in tagMap.values():
+                        deleted_mashups.append(self.mshp_entity_map[(mashuptrail.id,
+                                                                     version_id)])
+                        del self.mshp_entity_map[(mashuptrail.id, version_id)]
+                self._mshp_tag_map[mashuptrail.id] = new_mshp_map
         return (added_mashups, deleted_mashups)
+                
+#        for key, mashup in self.mshp_entity_map.iteritems():
+#            deleted_mashups.append(mashup)
+#        self.mshp_entity_map = {}
+#
+#        if hasattr(self.vistrail, 'mashups'):
+#            for mashuptrail in self.vistrail.mashups:
+#                self.mshp_entity_map.update(
+#                    self.add_mashup_entities_from_mashuptrail(mashuptrail))
+#        for key, mashup in self.mshp_entity_map.iteritems():
+#            added_mashups.append(mashup)
+#        return (added_mashups, deleted_mashups)
                 
 #     # returns string
 #     def get_name(self):
