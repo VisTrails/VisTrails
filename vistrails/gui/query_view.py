@@ -424,14 +424,16 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.vt_controller.current_pipeline_view = \
             self.workflow_result_view.scene()
         # self.vt_controller.vistrail_view.set_controller(self.vt_controller)
-        self.vt_controller.set_vistrail(controller.vistrail, None)
+        self.vt_controller.set_vistrail(controller.vistrail, None,
+                                        set_log_on_vt=False)
         self.vt_controller.change_selected_version(controller.current_version)
         self.version_result_view.set_controller(self.vt_controller)
         self.workflow_result_view.set_controller(self.vt_controller)
         self.query_controller.set_vistrail_controller(controller)
 
     def update_controller(self):
-        self.vt_controller.set_vistrail(self.controller.vistrail, None)
+        self.vt_controller.set_vistrail(self.controller.vistrail, None,
+                                        set_log_on_vt=False)
         self.vt_controller.change_selected_version(
             self.controller.current_version)
 

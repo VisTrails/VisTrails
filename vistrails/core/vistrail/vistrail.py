@@ -1077,7 +1077,7 @@ class Vistrail(DBVistrail):
 
         raise Exception("not finished")
     
-    def get_log(self):
+    def get_persisted_log(self):
         """
         Returns the log object for this vistrail if available
         """

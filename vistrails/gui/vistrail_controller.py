@@ -206,14 +206,15 @@ class VistrailController(QtCore.QObject, BaseController):
             self.stop_timer()
 
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None):
+                     thumbnails=None, mashups=None, set_log_on_vt=True):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         # self.vistrail = vistrail
         BaseController.set_vistrail(self, vistrail, locator, abstractions,
-                                    thumbnails, mashups)
+                                    thumbnails, mashups, 
+                                    set_log_on_vt=set_log_on_vt)
         if locator != None:
             self.set_file_name(locator.name)
         else:
@@ -1210,8 +1211,9 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         BaseController.set_changed(self, changed)
-        # FIXME: emit different signal in the future
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        if changed:
+            # FIXME: emit different signal in the future
+            self.emit(QtCore.SIGNAL('stateChanged'))
 
     def set_file_name(self, file_name):
         """ set_file_name(file_name: str) -> None
