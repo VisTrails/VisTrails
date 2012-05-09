@@ -37,6 +37,22 @@ if __name__ == '__main__':
     import core.system
     core.system.set_configuration_suffix('java')
 
+    from core import debug
+
+    try:
+        import PyQt4
+    except ImportError:
+        from sys import stderr
+        stderr.write("Unable to import PyQt4!\n"
+                     "While this shouldn't be necessary in order to run the "
+                     "Jython version of\nVistrails, based on swing, there "
+                     "are still a lot of import dependancies on\nunavailable "
+                     "modules.\nYou might want to download the stub modules:\n"
+                     "  http://dl.dropbox.com/u/13131521/"
+                     "jython-fake-site-packages.zip\n"
+                     "and extract them in your jython/Lib/site-packages "
+                     "directory.\n\n")
+
     import javagui.application
     import sys
     import os
