@@ -1282,6 +1282,7 @@ class QVistrailList(QtGui.QTreeWidget):
         locator = vistrail_window.controller.locator
         entity = None
         entity_was_none = False
+        item_reused = False
         if locator:
             entity = self.collection.fromUrl(locator.to_url())
         if entity is None:
@@ -1300,29 +1301,41 @@ class QVistrailList(QtGui.QTreeWidget):
         item.current_item = QVistrailListLatestItem()
         item.workflowsItem.addChild(item.current_item)
         if id(vistrail_window) in self.items:
-            # window already exist so reuse the current item 
+            # window already exists  
             old_item = self.items[id(vistrail_window)]
-            if hasattr(item, 'entity'):
-                old_item.entity = item.entity
-            old_item.window = item.window
-            old_item.current_item = item.current_item
-            old_item.workflowsItem = item.workflowsItem
-            old_item.mashupsItem = item.mashupsItem
-            old_item.tag_to_item = item.tag_to_item
-            old_item.mshp_to_item = item.mshp_to_item
-            old_item.setText(0, item.text(0))
-            while old_item.childCount():
-                child = old_item.child(0)
-                index = old_item.indexOfChild(child)
-                old_item.takeChild(index)
-            while item.childCount():
-                child = item.child(0)
-                index = item.indexOfChild(child)
-                child = item.takeChild(index)
-                old_item.addChild(child)
-            item = old_item
-        else:
-            self.items[id(vistrail_window)] = item
+            url = None
+            if old_item.entity is not None:
+                url = old_item.entity.url
+            # if there was a change in the locator, we need to remove the old 
+            # item and put in the closed vistrails area
+            
+            if url != vistrail_window.controller.locator.to_url():
+                self.remove_vt_window(vistrail_window)
+            else:
+                # we will reuse the item
+                if hasattr(item, 'entity'):
+                    old_item.entity = item.entity
+                old_item.window = item.window
+                old_item.current_item = item.current_item
+                old_item.workflowsItem = item.workflowsItem
+                old_item.mashupsItem = item.mashupsItem
+                old_item.tag_to_item = item.tag_to_item
+                old_item.mshp_to_item = item.mshp_to_item
+                old_item.setText(0, item.text(0))
+                while old_item.childCount():
+                    child = old_item.child(0)
+                    index = old_item.indexOfChild(child)
+                    old_item.takeChild(index)
+                while item.childCount():
+                    child = item.child(0)
+                    index = item.indexOfChild(child)
+                    child = item.takeChild(index)
+                    old_item.addChild(child)
+                item = old_item
+                item_reused = True
+        
+        if not item_reused:
+            self.items[id(vistrail_window)] = item        
             if entity_was_none:
                 # why is this all the way down here?!?
                 # moving the create stmt up much earlier so it is set
@@ -1347,15 +1360,21 @@ class QVistrailList(QtGui.QTreeWidget):
         delattr(item, 'window')
         index = self.openFilesItem.indexOfChild(item)
         item = self.openFilesItem.takeChild(index)
+        url = None
         if item.entity is not None:
             item.entity.is_open = False
-            item.entity._window = None
+            item.entity._window = None 
+            url = item.entity.url
         item.current_item.parent().removeChild(item.current_item)
-        locator = vistrail_window.controller.locator
         # entity may have changed
         entity = None
-        if locator:
-            entity = self.collection.fromUrl(locator.to_url())
+        if url is None:
+            locator = vistrail_window.controller.locator
+            if locator:
+                entity = self.collection.fromUrl(locator.to_url())
+        else:
+            entity = self.collection.fromUrl(url)
+            
         if entity and not self.collection.is_temp_entity(entity) and \
                 not vistrail_window.is_abstraction:
             item = QVistrailEntityItem(entity)
