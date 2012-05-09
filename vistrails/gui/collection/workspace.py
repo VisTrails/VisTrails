@@ -1243,9 +1243,9 @@ class QVistrailList(QtGui.QTreeWidget):
         for mshp_entity in added_mshps:
             if not mshp_entity.name.startswith('Version #'):
                 childItem = QMashupEntityItem(mshp_entity)
-                self.mashupsItem.addChild(childItem)
+                item.mashupsItem.addChild(childItem)
                 # keep list of tagged workflows
-                self.mshp_to_item[mshp_entity.name] = childItem
+                item.mshp_to_item[mshp_entity.name] = childItem
 
         self.make_tree(item) if self.isTreeView else self.make_list(item)
 
