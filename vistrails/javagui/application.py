@@ -156,7 +156,7 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
 
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.
-        from gui.javagui.builder_frame import BuilderFrame
+        from javagui.builder_frame import BuilderFrame
 
         self.builderWindow = BuilderFrame()
         

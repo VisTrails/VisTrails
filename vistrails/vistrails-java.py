@@ -37,24 +37,24 @@ if __name__ == '__main__':
     import core.system
     core.system.set_configuration_suffix('java')
 
-    import gui.javagui.application
+    import javagui.application
     import sys
     import os
     try:
-        v = gui.javagui.application.start_application()
+        v = javagui.application.start_application()
         if v != 0:
-            app = gui.javagui.application.get_vistrails_application()
+            app = javagui.application.get_vistrails_application()
             if app:
                 app.finishSession()
             sys.exit(v)
-        app = gui.javagui.application.get_vistrails_application()()
+        app = javagui.application.get_vistrails_application()()
     except SystemExit, e:
-        app = gui.javagui.application.get_vistrails_application()
+        app = javagui.application.get_vistrails_application()
         if app:
             app.finishSession()
         sys.exit(e)
     except Exception, e:
-        app = gui.javagui.application.get_vistrails_application()
+        app = javagui.application.get_vistrails_application()
         if app:
             app.finishSession()
         print "Uncaught exception on initialization: %s" % e
