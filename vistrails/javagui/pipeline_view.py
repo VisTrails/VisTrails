@@ -40,13 +40,14 @@ from java.io import IOException
 from java.awt.datatransfer import UnsupportedFlavorException
 
 from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
+from edu.umd.cs.piccolo.nodes import PPath
 from edu.umd.cs.piccolo.event import PBasicInputEventHandler
 
 from module_palette import moduleData
 
 
-PORT_WIDTH = 5
-PORT_HEIGHT = 5
+PORT_WIDTH = 7
+PORT_HEIGHT = 7
 
 SPACING_X = 5
 SPACING_Y = 5
@@ -68,20 +69,89 @@ class CustomRunner(Runnable):
 
 
 class ModuleDraggingEventHandler(PBasicInputEventHandler):
+    def __init__(self):
+        self.dragging = None
+
     # @Override
     def mousePressed(self, event):
-        event.setHandled(True)
+        # Only the left mouse button may be used
+        if event.getButton() == 1:
+            node = event.getPickedNode()
+            if node is not None:
+                self.dragging = node
+        event.setHandled(self.dragging is not None)
 
     # @Override
     def mouseDragged(self, event):
-        node = event.getPickedNode()
-        delta = event.getDeltaRelativeTo(node)
-        node.dragBy(delta.width, delta.height)
-        event.setHandled(True)
+        # Only the left mouse button may be used
+        if self.dragging:
+            node = event.getPickedNode()
+            delta = event.getDeltaRelativeTo(node)
+            node.dragBy(delta.width, delta.height)
+            event.setHandled(True)
 
     # @Override
     def mouseReleased(self, event):
-        event.setHandled(True)
+        # Only the left mouse button may be used
+        if event.getButton() == 1:
+            event.setHandled(True)
+            self.dragging = None
+
+
+class ConnectionDrawingEventHandler(PBasicInputEventHandler):
+    def __init__(self, edge_layer):
+        PBasicInputEventHandler.__init__(self)
+        self.edge_layer = edge_layer
+        self.drawing = False
+
+    # @Override
+    def mousePressed(self, event):
+        # Only the left mouse button may be used
+        if event.getButton() == 1:
+            node = event.getPickedNode()
+            if not isinstance(node, PModule):
+                return
+            pos = event.getPosition()
+            portnum, input, p_pos = node.pick_port(pos.x, pos.y)
+            if portnum is not None:
+                self.drawing = True
+                self.drawing_from = p_pos
+                self.drawing_from_module = node
+                self.drawing_from_port = portnum
+                self.drawing_from_input = input
+                self.drawing_line = PPath()
+                self.edge_layer.addChild(self.drawing_line)
+    
+                self.drawing_line.setPathToPolyline(
+                        [self.drawing_from[0], pos.x],
+                        [self.drawing_from[1], pos.y])
+        event.setHandled(self.drawing)
+
+    # @Override
+    def mouseDragged(self, event):
+        if self.drawing:
+            event.setHandled(True)
+            pos = event.getPosition()
+            self.drawing_line.setPathToPolyline(
+                    [self.drawing_from[0], pos.x],
+                    [self.drawing_from[1], pos.y])
+            
+            # FIXME : This workaround is needed for unknown reasons
+            self.edge_layer.removeChild(self.drawing_line)
+            # Seriously, Piccolo?
+            self.edge_layer.addChild(self.drawing_line)
+        else:
+            event.setHandled(False)
+
+    # @Override
+    def mouseReleased(self, event):
+        if event.getButton() == 1 and self.drawing:
+            event.setHandled(True)
+            self.edge_layer.removeChild(self.drawing_line)
+            self.drawing_line = None
+            self.drawing = False
+        else:
+            event.setHandled(False)
 
 
 class PModule(PNode):
@@ -152,6 +222,9 @@ class PModule(PNode):
         graphics.setColor(self.color)
         graphics.fillRect(self.mod_x, self.mod_y,
                           self.module_width, self.module_height)
+        graphics.setColor(Color.black)
+        graphics.drawRect(self.mod_x, self.mod_y,
+                          self.module_width, self.module_height)
 
         # Draw the caption
         graphics.setColor(Color.black)
@@ -164,14 +237,14 @@ class PModule(PNode):
         p_x = int(self.mod_x + SPACING_X)
         p_y = int(self.mod_y + SPACING_Y)
         for port in self.inputPorts:
-            graphics.fillRect(
+            graphics.drawRect(
                 p_x, p_y,
                 PORT_WIDTH, PORT_HEIGHT)
             p_x += PORT_WIDTH + SPACING_X
         p_x = int(self.mod_x + self.module_width - SPACING_X - PORT_WIDTH)
         p_y = int(self.mod_y + self.module_height - SPACING_Y - PORT_HEIGHT)
         for port in self.outputPorts:
-            graphics.fillRect(
+            graphics.drawRect(
                 p_x, p_y,
                 PORT_WIDTH, PORT_HEIGHT)
             p_x -= PORT_WIDTH + SPACING_X
@@ -204,10 +277,10 @@ class PModule(PNode):
                 self.center_y + self.mod_y + self.module_height - SPACING_Y - PORT_HEIGHT/2)
 
     def inputport_number(self, iport):
-            return [p.name for p in self.inputPorts].index(iport)
+        return [p.name for p in self.inputPorts].index(iport)
 
     def outputport_number(self, oport):
-            return [p.name for p in self.outputPorts].index(oport)
+        return [p.name for p in self.outputPorts].index(oport)
 
     def dragBy(self, dx, dy):
         self.center_x += dx
@@ -218,6 +291,29 @@ class PModule(PNode):
             conn.endpointChanged()
         for conn in self.outputConnections:
             conn.endpointChanged()
+
+    def pick_port(self, x, y):
+        x -= self.center_x + self.mod_x
+        y -= self.center_y + self.mod_y
+        up = SPACING_Y
+        if up <= y < up + PORT_HEIGHT:
+            # Input port
+            portnum = int(x/(SPACING_X + PORT_WIDTH))
+            if portnum < len(self.inputPorts):
+                left = portnum * (SPACING_X + PORT_WIDTH) + SPACING_X
+                if left <= x < left + PORT_WIDTH:
+                    return portnum, True, self.inputport_position(portnum)
+            return None, True, None
+        down = self.module_height - SPACING_Y
+        if down - PORT_HEIGHT <= y < down:
+            # Output port
+            portnum = int((self.module_width - x)/(SPACING_X + PORT_WIDTH))
+            if portnum < len(self.outputPorts):
+                left = self.module_width - (portnum+1) * (SPACING_X + PORT_WIDTH)
+                if left <= x < left + PORT_WIDTH:
+                    return portnum, False, self.outputport_position(portnum)
+            return None, False, None
+        return None, None, None
 
 
 class PConnection(PNode):
@@ -338,6 +434,8 @@ class JPipelineView(PCanvas):
         self.getCamera().addLayer(edge_layer)
 
         module_layer.addInputEventListener(ModuleDraggingEventHandler())
+        module_layer.addInputEventListener(ConnectionDrawingEventHandler(
+                edge_layer))
 
         # Create the scene
         self.setupScene(self.controller.current_pipeline)
@@ -435,7 +533,6 @@ class JPipelineView(PCanvas):
             ploc = pmod.getOffset()
             ploc.y = -ploc.y
             if not JPipelineView.float_eq(ploc, module.center):
-                print "%f, %f -> %f, %f" % (module.center.x, module.center.y, ploc.x, ploc.y)
                 moves.append((id, ploc.x, ploc.y))
         if moves:
             self.controller.quiet = True
