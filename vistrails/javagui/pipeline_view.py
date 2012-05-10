@@ -34,7 +34,7 @@
 
 from java.lang import Runnable
 from javax.swing import SwingUtilities, TransferHandler
-from java.awt import Color, Polygon, Font, FontMetrics, Point
+from java.awt import Color, Polygon, Font, FontMetrics, Point, BasicStroke
 from java.awt.geom import Rectangle2D
 from java.io import IOException
 from java.awt.datatransfer import UnsupportedFlavorException
@@ -51,6 +51,9 @@ PORT_HEIGHT = 7
 
 SPACING_X = 5
 SPACING_Y = 5
+
+CONNECTION_OK_COLOR = Color(0, 0, 100)
+NO_CONNECTION_COLOR = Color(100, 0, 0)
 
 
 # FontMetrics is declared abstract even though it has no abstract method
@@ -115,7 +118,8 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
             portnum, input, p_pos = node.pick_port(pos.x, pos.y)
             if portnum is not None:
                 self.drawing = True
-                self.drawing_from = p_pos
+                self.drawing_accepted = False
+                self.drawing_from = Point(int(p_pos[0]), int(p_pos[1]))
                 self.drawing_from_module = node
                 self.drawing_from_port = portnum
                 self.drawing_from_input = input
@@ -123,8 +127,9 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
                 self.edge_layer.addChild(self.drawing_line)
     
                 self.drawing_line.setPathToPolyline(
-                        [self.drawing_from[0], pos.x],
-                        [self.drawing_from[1], pos.y])
+                        [self.drawing_from.x, pos.x],
+                        [self.drawing_from.y, pos.y])
+                self.drawing_line.setStroke(BasicStroke(2))
         event.setHandled(self.drawing)
 
     # @Override
@@ -132,9 +137,29 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
         if self.drawing:
             event.setHandled(True)
             pos = event.getPosition()
+
+            self.drawing_accepted = False
+            path = event.getInputManager().getMouseOver()
+            if path:
+                node = path.getPickedNode()
+                if (isinstance(node, PModule) and
+                        node != self.drawing_from_module):
+                    # We picked a module; let's find the closest port we could
+                    # connect to
+                    portnum, p_pos = node.closest_port(
+                            pos.x, pos.y,
+                            not self.drawing_from_input)
+                    if portnum is not None:
+                        pos = Point(int(p_pos[0]), int(p_pos[1])) # Snapping
+                        self.drawing_accepted = True
+
+            if self.drawing_accepted:
+                self.drawing_line.setStrokePaint(CONNECTION_OK_COLOR)
+            else:
+                self.drawing_line.setStrokePaint(NO_CONNECTION_COLOR)
             self.drawing_line.setPathToPolyline(
-                    [self.drawing_from[0], pos.x],
-                    [self.drawing_from[1], pos.y])
+                    [self.drawing_from.x, pos.x],
+                    [self.drawing_from.y, pos.y])
             
             # FIXME : This workaround is needed for unknown reasons
             self.edge_layer.removeChild(self.drawing_line)
@@ -314,6 +339,30 @@ class PModule(PNode):
                     return portnum, False, self.outputport_position(portnum)
             return None, False, None
         return None, None, None
+
+    def closest_port(self, x, y, input):
+        if input:
+            ports = xrange(len(self.inputPorts))
+            f_pos = self.inputport_position
+        else:
+            ports = xrange(len(self.outputPorts))
+            f_pos = self.outputport_position
+
+        m = None
+        min = 1E9
+        for iport in ports:
+            pos = f_pos(iport)
+            dx = x - pos[0]
+            dy = y - pos[1]
+            sl = dx*dx + dy*dy
+            if sl < min:
+                min = sl
+                m = iport
+                mpos = pos
+        if m is not None:
+            return m, mpos
+        else:
+            return None, None
 
 
 class PConnection(PNode):
