@@ -1227,12 +1227,13 @@ class QVistrailList(QtGui.QTreeWidget):
         for wf_exec_entity in added_wf_execs:
             parent_version = wf_exec_entity.workflow_exec.parent_version
             wf_entity = entity.wf_entity_map[parent_version]
-            assert(wf_entity.name in item.tag_to_item)
-            wf_item = item.tag_to_item[wf_entity.name]
-            child = QWorkflowExecEntityItem(wf_exec_entity)
-            wf_item.addChild(child)
-            wf_item.executionList.append(child)
-            self.updateHideExecutions()
+            if not wf_entity.name.startswith('Version #'):
+                assert(wf_entity.name in item.tag_to_item)
+                wf_item = item.tag_to_item[wf_entity.name]
+                child = QWorkflowExecEntityItem(wf_exec_entity)
+                wf_item.addChild(child)
+                wf_item.executionList.append(child)
+        self.updateHideExecutions()
     
         for mshp_entity in deleted_mshps:
             assert(mshp_entity.name in item.mshp_to_item)
@@ -1271,12 +1272,13 @@ class QVistrailList(QtGui.QTreeWidget):
         for wf_exec_entity in added_wf_execs:
             parent_version = wf_exec_entity.workflow_exec.parent_version
             wf_entity = entity.wf_entity_map[parent_version]
-            assert(wf_entity.name in item.tag_to_item)
-            wf_item = item.tag_to_item[wf_entity.name]
-            child = QWorkflowExecEntityItem(wf_exec_entity)
-            wf_item.addChild(child)
-            wf_item.executionList.append(child)
-            self.updateHideExecutions()
+            if not wf_entity.name.startswith('Version #'):
+                assert(wf_entity.name in item.tag_to_item)
+                wf_item = item.tag_to_item[wf_entity.name]
+                child = QWorkflowExecEntityItem(wf_exec_entity)
+                wf_item.addChild(child)
+                wf_item.executionList.append(child)
+        self.updateHideExecutions()
 
     def add_vt_window(self, vistrail_window):
         locator = vistrail_window.controller.locator
