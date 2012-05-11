@@ -285,6 +285,11 @@ class DefaultTheme(object):
         self.VERSION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 4)
 
+        self.VERSION_LABEL_COLOR = \
+            QtGui.QColor(*(ColorByName.get_int('black')))
+        self.GHOSTED_VERSION_LABEL_COLOR = \
+            QtGui.QColor(*(ColorByName.get_int('light_grey')))
+
         # Brush to draw version belongs to the current user
         self.VERSION_USER_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('desatcornflower'))))
