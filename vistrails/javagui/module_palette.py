@@ -105,9 +105,8 @@ class JModulePalette(JScrollPane):
         app.register_notification('reg_hide_module', self.hideModule)
         app.register_notification('reg_module_updated', self.switchDescriptors)
 
-    def newPackage(self, package_identifier, prepend=False, registry=None):
-        if registry is None:
-            registry = get_module_registry()
+    def newPackage(self, package_identifier, prepend=False):
+        registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
         package_item = PackageTreeNode(package_name)
         self.packages[package_identifier] = package_item
@@ -116,14 +115,14 @@ class JModulePalette(JScrollPane):
         else:
             self.root.add(package_item)
 
-    def newModule(self, descriptor, recurse=False, registry=None):
+    def newModule(self, descriptor, recurse=False):
         registry = get_module_registry()
         if not descriptor.module_abstract():
             package_identifier = (
                     descriptor.ghost_identifier or
                     descriptor.identifier)
             if package_identifier not in self.packages:
-                package_item = self.newPackage(package_identifier, True, registry)
+                package_item = self.newPackage(package_identifier, True)
             else:
                 package_item = self.packages[package_identifier]
                 
@@ -165,5 +164,5 @@ class JModulePalette(JScrollPane):
     def updateFromModuleRegistry(self):
         registry = get_module_registry()
         for package in registry.package_list:
-            self.newPackage(package.identifier, registry=registry)
+            self.newPackage(package.identifier)
         self.newModule(registry.root_descriptor, True)
