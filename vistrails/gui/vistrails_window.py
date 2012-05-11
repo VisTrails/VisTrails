@@ -2322,11 +2322,12 @@ class QVistrailsWindow(QVistrailViewWindow):
                         filename = desc.module.vt_fname
                         self.openAbstraction(filename)
                     else:
-                        show_info('Package SubWorkflow is Read-Only',
-                                  "This SubWorkflow is from a package and "
-                                  "cannot be modified.  You can create an "
-                                  "editable copy in 'My SubWorkflows' using "
-                                  "'Edit->Import SubWorkflow'")
+                        debug.critical('Subworkflow is from a package and is '
+                                       'read-only',
+                                       "This subworkflow is from a package and "
+                                       "cannot be modified.  You can create an "
+                                       "editable copy in 'My Subworkflows' "
+                                       "using 'Edit->Import Subworkflow'")
     def merge_vistrail(self):
         action = self.sender()
         if action:
