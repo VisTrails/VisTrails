@@ -32,6 +32,8 @@
 ##
 ###############################################################################
 
+from core.modules.module_registry import get_module_registry
+
 from java.lang import Runnable
 from javax.swing import SwingUtilities, TransferHandler
 from java.awt import Color, Polygon, Font, FontMetrics, Point, BasicStroke
@@ -102,9 +104,10 @@ class ModuleDraggingEventHandler(PBasicInputEventHandler):
 
 
 class ConnectionDrawingEventHandler(PBasicInputEventHandler):
-    def __init__(self, edge_layer):
+    def __init__(self, edge_layer, scene):
         PBasicInputEventHandler.__init__(self)
         self.edge_layer = edge_layer
+        self.scene = scene
         self.drawing = False
 
     # @Override
@@ -122,10 +125,14 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
                 self.drawing_from = Point(int(p_pos[0]), int(p_pos[1]))
                 self.drawing_from_module = node
                 self.drawing_from_port = portnum
+                if input:
+                    self.drawing_from_portspec = node.inputPorts[portnum]
+                else:
+                    self.drawing_from_portspec = node.outputPorts[portnum]
                 self.drawing_from_input = input
                 self.drawing_line = PPath()
                 self.edge_layer.addChild(self.drawing_line)
-    
+
                 self.drawing_line.setPathToPolyline(
                         [self.drawing_from.x, pos.x],
                         [self.drawing_from.y, pos.y])
@@ -148,10 +155,12 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
                     # connect to
                     portnum, p_pos = node.closest_port(
                             pos.x, pos.y,
-                            not self.drawing_from_input)
+                            not self.drawing_from_input,
+                            self.drawing_from_portspec)
                     if portnum is not None:
                         pos = Point(int(p_pos[0]), int(p_pos[1])) # Snapping
                         self.drawing_accepted = True
+                        self.drawing_to = (node, portnum)
 
             if self.drawing_accepted:
                 self.drawing_line.setStrokePaint(CONNECTION_OK_COLOR)
@@ -160,7 +169,7 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
             self.drawing_line.setPathToPolyline(
                     [self.drawing_from.x, pos.x],
                     [self.drawing_from.y, pos.y])
-            
+
             # FIXME : This workaround is needed for unknown reasons
             self.edge_layer.removeChild(self.drawing_line)
             # Seriously, Piccolo?
@@ -175,6 +184,19 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
             self.edge_layer.removeChild(self.drawing_line)
             self.drawing_line = None
             self.drawing = False
+
+            # If we drew an acceptable connection, add it
+            if self.drawing_accepted:
+                if self.drawing_from_input:
+                    self.scene.addConnection(
+                            self.drawing_to[0], self.drawing_to[1],
+                            self.drawing_from_module, self.drawing_from_port,
+                            updatedb=True)
+                else:
+                    self.scene.addConnection(
+                            self.drawing_from_module, self.drawing_from_port,
+                            self.drawing_to[0], self.drawing_to[1],
+                            updatedb=True)
         else:
             event.setHandled(False)
 
@@ -193,7 +215,7 @@ class PModule(PNode):
     def __init__(self, module):
         PNode.__init__(self)
 
-        self.name = module.name
+        self.module = module
 
         # These are the position of the center of the text, in the global
         # coordinate system
@@ -202,7 +224,8 @@ class PModule(PNode):
         self.translate(self.center_x, self.center_y)
 
         # Compute the size of the module from the text
-        self.fontRect = PModule.fontMetrics.getStringBounds(self.name, None)
+        self.fontRect = PModule.fontMetrics.getStringBounds(self.module.name,
+                                                            None)
         w = self.fontRect.getWidth() + 2 * SPACING_X
         h = self.fontRect.getHeight() + 2 * SPACING_Y
 
@@ -254,7 +277,7 @@ class PModule(PNode):
         # Draw the caption
         graphics.setColor(Color.black)
         graphics.drawString(
-                self.name,
+                self.module.name,
                 int(-self.fontRect.getWidth()/2),
                 int(-self.fontRect.getY() - self.fontRect.getHeight()/2))
 
@@ -340,24 +363,35 @@ class PModule(PNode):
             return None, False, None
         return None, None, None
 
-    def closest_port(self, x, y, input):
+    def closest_port(self, x, y, input, srcport=None):
+        registry = get_module_registry()
         if input:
             ports = xrange(len(self.inputPorts))
             f_pos = self.inputport_position
+            if srcport is not None:
+                def check(p):
+                    return registry.ports_can_connect(self.inputPorts[p],
+                                                      srcport)
         else:
             ports = xrange(len(self.outputPorts))
             f_pos = self.outputport_position
+            if srcport is not None:
+                def check(p):
+                    return registry.ports_can_connect(srcport,
+                                                      self.outputPorts[p])
 
         m = None
         min = 1E9
-        for iport in ports:
-            pos = f_pos(iport)
+        for port in ports:
+            if srcport is not None and not check(port):
+                continue
+            pos = f_pos(port)
             dx = x - pos[0]
             dy = y - pos[1]
             sl = dx*dx + dy*dy
             if sl < min:
                 min = sl
-                m = iport
+                m = port
                 mpos = pos
         if m is not None:
             return m, mpos
@@ -484,7 +518,7 @@ class JPipelineView(PCanvas):
 
         module_layer.addInputEventListener(ModuleDraggingEventHandler())
         module_layer.addInputEventListener(ConnectionDrawingEventHandler(
-                edge_layer))
+                edge_layer, self))
 
         # Create the scene
         self.setupScene(self.controller.current_pipeline)
@@ -525,7 +559,6 @@ class JPipelineView(PCanvas):
         self.modules = {}
 
         module_layer = self.getCamera().getLayer(0)
-        edge_layer = self.getCamera().getLayer(1)
 
         # Draw the pipeline using their stored position
         for id, module in pipeline.modules.iteritems():
@@ -535,11 +568,23 @@ class JPipelineView(PCanvas):
 
         # Draw the edges
         for id, connection in pipeline.connections.iteritems():
-            edge_layer.addChild(PConnection(
+            self.addConnection(
                     self.modules[connection.source.moduleId],
                     connection.source.name,
                     self.modules[connection.destination.moduleId],
-                    connection.destination.name))
+                    connection.destination.name)
+
+    def addConnection(self, imodule, iport, omodule, oport, updatedb=False):
+        edge_layer = self.getCamera().getLayer(1)
+        edge_layer.addChild(PConnection(
+                imodule, iport,
+                omodule, oport))
+        if updatedb:
+            # Notice that we connect an *output port* of the input module
+            # to an *input port* of the output module
+            self.controller.add_connection(
+                    omodule.module.id, omodule.inputPorts[oport],
+                    imodule.module.id, imodule.outputPorts[iport])
 
     def addModule(self, module):
         """Add a module to the view.
