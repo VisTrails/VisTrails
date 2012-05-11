@@ -238,6 +238,16 @@ class ThumbnailCache(object):
         Generates a single image formed by all the images in the fnames list.
         
         """
+
+        # This relies on Qt and should never happen in a core module! It has to
+        # be moved somewhere safe!
+        # It _will_ break if Qt is not available!
+        # We check that Jython is not being used, but anything else, you're on
+        # your own
+        import platform
+        if platform.system() in ['Java', 'JAVA']:
+            return None
+
         from PyQt4 import QtCore, QtGui
         height = 0
         width = 0

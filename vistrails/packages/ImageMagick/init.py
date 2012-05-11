@@ -107,7 +107,7 @@ indicated by the appropriate ports (geometry or width and height)"""
         elif self.hasInputFromPort("width"):
             w = self.getInputFromPort("width")
             h = self.getInputFromPort("height")
-            return "'%sx%s'" % (w, h)
+            return "%sx%s" % (w, h)
         else:
             raise ModuleError(self, "Needs geometry or width/height")
 
