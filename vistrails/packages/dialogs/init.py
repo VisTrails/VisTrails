@@ -46,9 +46,14 @@ class Dialog(Module):
     pass
 
 class TextDialog(Dialog):
+    password = False
+
+    def __init__(self, *args, **kwargs):
+        super(TextDialog,self).__init__(*args, **kwargs)
+        self.cacheable_dialog = False
 
     def is_cacheable(self):
-        return False
+        return self.cacheable_dialog
 
     def compute(self):
         if self.hasInputFromPort('title'):
@@ -59,17 +64,34 @@ class TextDialog(Dialog):
             label = self.getInputFromPort('label')
         else:
             label = ''
+            if self.password:
+                label = 'Password'
+
         if self.hasInputFromPort('default'):
             default = QtCore.QString(self.getInputFromPort('default'))
         else:
             default = QtCore.QString('')
             
+        if self.hasInputFromPort('cacheable') and self.getInputFromPort('cacheable'):
+            self.cacheable_dialog = True
+        else:
+            self.cacheable_dialog = False
+
+        mode =  QtGui.QLineEdit.Normal
+        if self.password:
+            mode = QtGui.QLineEdit.Password
+
         (result, ok) = QtGui.QInputDialog.getText(None, title, label,
-                                                  QtGui.QLineEdit.Normal,
+                                                  mode,
                                                   default)
         if not ok:
             raise ModuleError(self, "Canceled")
         self.setResult('result', str(result))
+
+
+class PasswordDialog(TextDialog):
+    password = True
+
 
 ##############################################################################
 
@@ -82,5 +104,7 @@ def initialize(*args, **keywords):
     reg.add_input_port(TextDialog, "title", basic.String)
     reg.add_input_port(TextDialog, "label", basic.String)
     reg.add_input_port(TextDialog, "default", basic.String)
+    reg.add_input_port(TextDialog, "cacheable", basic.Boolean)
     reg.add_output_port(TextDialog, "result", basic.String)
     
+    reg.add_module(PasswordDialog)
