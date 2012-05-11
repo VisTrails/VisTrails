@@ -60,7 +60,6 @@ class QueryController(object):
 
     def __init__(self, query_view=None):
         self.query_view = query_view
-        self.refine = False
         self.search = None
         self.search_str = None
         self.search_pipeline = None
@@ -161,12 +160,7 @@ class QueryController(object):
         Set the refine state to True or False
         
         """
-        if self.refine != refine:
-            self.refine = refine
-            # need to recompute the graph because the refined items might
-            # have changed since last time
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(True)
+        self.query_view.version_result_view.controller.set_refine(refine)
 
     def reset_search(self):
         self.search = None
@@ -207,6 +201,8 @@ class QueryController(object):
 
     def update_version_tree(self):
         result_view = self.query_view.version_result_view
+        if result_view.controller.refine:
+            result_view.controller.recompute_terse_graph()
         result_view.controller.invalidate_version_tree()
 
     def show_vistrail_matches(self, *args, **kwargs):
@@ -214,6 +210,8 @@ class QueryController(object):
             self.set_level(QueryController.LEVEL_VISTRAIL)
         self.query_view.set_to_result_mode()
         result_view = self.query_view.version_result_view
+        if result_view.controller.refine:
+            result_view.controller.recompute_terse_graph()
         result_view.controller.invalidate_version_tree(*args, **kwargs)        
 
     def show_workflow_matches(self):
