@@ -273,6 +273,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.setEditable(False)
         self.setFont(CurrentTheme.VERSION_FONT)
         self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
+        self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
         self.centerX = 0.0
         self.centerY = 0.0
         self.label = ''
@@ -300,6 +301,12 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.timer.setSingleShot(True)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.setEditable)
         self.timer.start(QtGui.QApplication.doubleClickInterval() + 5)
+
+    def setGhosted(self, ghosted):
+        if ghosted:
+            self.setDefaultTextColor(CurrentTheme.GHOSTED_VERSION_LABEL_COLOR)
+        else:
+            self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
 
     def changed(self, x, y, label, tag=True):
         """ changed(x: float, y: float, label: str) -> None
@@ -459,12 +466,15 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         if self.ghosted <> ghosted:
             self.ghosted = ghosted
+            self.text.setGhosted(ghosted)
             if ghosted:
                 self._versionPenNormal = CurrentTheme.GHOSTED_VERSION_PEN
                 self._versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
             else:
                 self._versionPenNormal = CurrentTheme.VERSION_PEN
                 self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
+            if not self.isSelected():
+                self._versionPen = self._versionPenNormal
             self.updatePainterState()
 
     def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
@@ -841,6 +851,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
                               max_rank, ghosted)
+        for (version_from, version_to), link in self.edges.iteritems():
+            if self.versions[version_from].ghosted and \
+                    self.versions[version_to].ghosted:
+                link.setGhosted(True)
+            else:
+                link.setGhosted(False)
 
     def update_scene_single_node_change(self, controller, old_version, new_version):
         """ update_scene_single_node_change(controller: VistrailController,
