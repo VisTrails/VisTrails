@@ -357,7 +357,8 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
                 path = cache.get_abs_name_entry(child.name)
                 if path:
                     pixmap = QtGui.QPixmap(path)
-                    self.setIcon(0, QtGui.QIcon(pixmap.scaled(16, 16)))
+                    if pixmap and not pixmap.isNull():
+                        self.setIcon(0, QtGui.QIcon(pixmap.scaled(16, 16)))
                     tooltip += """<br/><img border=0 src='%(path)s'/>
                         """ % {'path':path}
             elif child.type_id == WorkflowEntity.type_id:
