@@ -82,6 +82,9 @@ class GUIInstallProgress(InstallProgress):
     def pulse(self):
         QtGui.qApp.processEvents()
         return InstallProgress.pulse(self)
+    def finishUpdate(self):
+        InstallProgress.finishUpdate(self)
+        self.quit()
     def conffile(self,current,new):
         print "WARNING: conffile prompt: %s %s" % (current,new)
     def error(self, errorstr):
