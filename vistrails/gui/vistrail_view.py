@@ -811,7 +811,7 @@ class QVistrailView(QtGui.QWidget):
             view = self.stack.widget(
                             self.tab_to_stack_idx[self.tabs.currentIndex()])
         if view and by_click:
-            self.controller.change_selected_version(version_id, by_click, 
+            self.controller.change_selected_version(version_id, True, 
                                                     do_validate, from_root)
 
             view.scene().fitToView(view, True)
@@ -821,7 +821,7 @@ class QVistrailView(QtGui.QWidget):
                 # view.set_to_current()
                 # self.tabs.setCurrentWidget(view.parent())
                 window.qactions['pipeline'].trigger()
-            self.version_view.redo_stack = []
+            self.controller.reset_redo_stack()
         if view and not isinstance(view, QDiffView):
             if view not in self.detached_views:
                 view.set_title(self.controller.get_pipeline_name())
@@ -1105,7 +1105,7 @@ class QVistrailView(QtGui.QWidget):
     ##########################################################################
     # Undo/redo
         
-    def set_pipeline_selection(self, old_action, new_action, optype):
+    def set_pipeline_selection(self, old_action, new_action):
         # need to check if anything on module changed or
         # any connections changed
         module_types = set(['module', 'group', 'abstraction'])
@@ -1177,29 +1177,16 @@ class QVistrailView(QtGui.QWidget):
         connection_change()
         
     def undo(self):
-        """Performs one undo step, moving up the version tree."""
-        action_map = self.controller.vistrail.actionMap
-        old_action = action_map.get(self.controller.current_version, None)
-        self.version_view.redo_stack.append(self.controller.current_version)
-        self.controller.show_parent_version()
-        new_action = action_map.get(self.controller.current_version, None)
-        self.set_pipeline_selection(old_action, new_action, 'undo')
-        return self.controller.current_version
-        
+        (old_action, new_action) = self.controller.undo()
+        self.set_pipeline_selection(old_action, new_action)
+        if new_action is not None:
+            return new_action.id
+        return 0
+    
     def redo(self):
-        """Performs one redo step if possible, moving down the version tree."""
-        action_map = self.controller.vistrail.actionMap
-        old_action = action_map.get(self.controller.current_version, None)
-        if not self.version_view.can_redo(None):
-            critical("Redo on an empty redo stack. Ignoring.")
-            return
-        next_version = self.version_view.redo_stack[-1]
-        self.version_view.redo_stack = self.version_view.redo_stack[:-1]
-        self.controller.show_child_version(next_version)
-        new_action = action_map[self.controller.current_version]
-        self.set_pipeline_selection(old_action, new_action, 'redo')
-        return next_version
-
+        (old_action, new_action) = self.controller.redo()
+        self.set_pipeline_selection(old_action, new_action)
+        return new_action.id
 
     # def updateCursorState(self, mode):
     #     """ updateCursorState(mode: Int) -> None 

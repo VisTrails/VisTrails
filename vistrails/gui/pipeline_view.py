@@ -2554,7 +2554,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              'publishWeb' : ('pipeline_changed', self.check_publish_db),
              'publishPaper' : ('pipeline_changed', self.pipeline_non_empty),
              'controlFlowAssist': ('pipeline_changed', self.pipeline_non_empty),
+             'redo': ('version_changed', self.can_redo),
+             'undo': ('version_changed', self.can_undo),
              }
+
+    def can_redo(self, versionId):
+        return self.controller and self.controller.can_redo()
+
+    def can_undo(self, versionId):
+        return self.controller and self.controller.can_undo()
     
     def set_action_defaults(self):
         self.action_defaults.update(
