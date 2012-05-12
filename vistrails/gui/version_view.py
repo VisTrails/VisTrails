@@ -1171,8 +1171,10 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         return pipeline is not None and len(pipeline.modules) > 0
     
     def execute(self):
-        self.controller.execute_current_workflow()
+        res = self.controller.execute_current_workflow()
         from gui.vistrails_window import _app
+        if len(res[0][0].errors) > 0:
+            _app.qactions['pipeline'].trigger()
         _app.notify('execution_updated')
         
     def publish_to_web(self):
