@@ -1776,6 +1776,7 @@ class QVistrailsWindow(QVistrailViewWindow):
        
     def get_current_view(self):
         from packages.spreadsheet.spreadsheet_window import SpreadsheetWindow
+        from gui.common_widgets import QToolWindow
         if self.isActiveWindow():
             return self.stack.currentWidget()
         else:
@@ -1792,7 +1793,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return window.view
             elif (window is None or isinstance(window,SpreadsheetWindow)
                   or isinstance(window, QtGui.QMessageBox)
-                  or isinstance(window, QtGui.QMenu)):
+                  or isinstance(window, QtGui.QMenu)
+                  or isinstance(window, QToolWindow)):
+                #in this case we should return the current view (if valid)
+                #or the immediate previous view. If both are invalid we return
+                #the first valid view we find
                 if self.current_view is not None:
                     return self.current_view
                 elif self._previous_vt_view is not None:
