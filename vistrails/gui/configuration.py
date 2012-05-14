@@ -38,7 +38,9 @@ import os.path
 from PyQt4 import QtGui, QtCore
 
 from core import debug
-from core.configuration import ConfigurationObject
+from core.configuration import ConfigurationObject, \
+                               get_vistrails_configuration
+
 from core.thumbnails import ThumbnailCache
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
 from gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
@@ -194,6 +196,16 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         if item.flags() & QtCore.Qt.ItemIsEditable:
             new_value = self.indexFromItem(item, col).data().toString()
             item.change_value(new_value)
+            # option-specific code
+            if item._name == 'dbDefault':
+                # Update the state of the icons if changing between db and
+                # file support
+                print "dbDefault", new_value 
+                dbState = getattr(get_vistrails_configuration(), 'dbDefault')
+                if new_value != dbState:
+                    from gui.vistrails_window import _app
+                    _app.setDBDefault(dbState)
+
             self.emit(QtCore.SIGNAL('configuration_changed'),
                       item, new_value)
         

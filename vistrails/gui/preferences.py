@@ -259,6 +259,8 @@ class QPackagesWidget(QtGui.QWidget):
         app = get_vistrails_application()
         app.register_notification("pm_reloading_package", 
                                   self.reload_current_package_finisher)
+        app.register_notification("package_added", self.package_added)
+        app.register_notification("package_removed", self.package_removed)
         
         self.populate_lists()
 
@@ -375,6 +377,30 @@ class QPackagesWidget(QtGui.QWidget):
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(True)
             palette.treeWidget.expandAll()
+            self.erase_cache = True
+            self.select_package_after_update(codepath)
+
+    def package_added(self, codepath):
+        # package was added, we need to update list
+        av = self._available_packages_list
+        inst = self._enabled_packages_list
+        for item in av.findItems(codepath, QtCore.Qt.MatchExactly):
+            pos = av.indexFromItem(item).row()
+            av.takeItem(pos)
+            inst.addItem(item)
+            inst.sortItems()
+            self.erase_cache = True
+            self.select_package_after_update(codepath)
+
+    def package_removed(self, codepath):
+        # package was removed, we need to update list
+        av = self._available_packages_list
+        inst = self._enabled_packages_list
+        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
+            pos = inst.indexFromItem(item).row()
+            inst.takeItem(pos)
+            av.addItem(item)
+            av.sortItems()
             self.erase_cache = True
             self.select_package_after_update(codepath)
 
@@ -547,18 +573,7 @@ class QPreferencesDialog(QtGui.QDialog):
         l.addWidget(self._status_bar)
 
     def close_dialog(self):
-        # pm = get_package_manager()
-        # self.disconnect(pm,
-        #                 pm.reloading_package_signal,
-        #                 self._packages_tab.reload_current_package_finisher)
-        app = get_vistrails_application()
-        app.unregister_notification("pm_reloading_package", 
-                                    self._packages_tab.reload_current_package_finisher)
-
-        retval = 0
-        if self._packages_tab.erase_cache:
-            retval = 1
-        self.done(retval)
+        self.done(0)
 
     def create_general_tab(self):
         """ create_general_tab() -> QGeneralConfiguration

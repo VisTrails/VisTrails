@@ -194,6 +194,8 @@ To do so, call initialize_packages()"""
         package = self._registry.create_package(codepath)
         if add_to_package_list:
             self.add_to_package_list(codepath, package)
+        app = get_vistrails_application()
+        app.send_notification("package_added", codepath)
         return package
 
     def add_to_package_list(self, codepath, package):
@@ -218,6 +220,8 @@ To do so, call initialize_packages()"""
         pkg.finalize()
         del self._package_list[codepath]
         self._registry.remove_package(pkg)
+        app = get_vistrails_application()
+        app.send_notification("package_removed", codepath)
 
     def has_package(self, identifier, version=None):
         """has_package(identifer: string) -> Boolean.
