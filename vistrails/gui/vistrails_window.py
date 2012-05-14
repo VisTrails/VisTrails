@@ -842,6 +842,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                      QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
                      self.applicationFocusChanged)
 
+        self.preferencesDialog = QPreferencesDialog(self)
+
         if get_vistrails_configuration().detachHistoryView:
             self.history_view = QBaseViewWindow(parent=None)
             self.history_view.resize(800, 600)
@@ -2070,21 +2072,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         Display Preferences dialog
 
         """
-        dialog = QPreferencesDialog(self)
-        retval = dialog.exec_()
-        if retval != 0:
-            self.flush_cache()
-            currentView = self.get_current_view()
-            if currentView:
-                current_pipeline = currentView.controller.current_pipeline
-                if current_pipeline:
-                    current_pipeline.validate()
-            
-        # Update the state of the icons if changing between db and file
-        # support
-        dbState = getattr(get_vistrails_configuration(), 'dbDefault')
-        if self.dbDefault != dbState:
-            self.setDBDefault(dbState)
+        self.preferencesDialog.show()
 
     def new_diff(self):
         selected_items = \
