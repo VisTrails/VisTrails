@@ -7,7 +7,7 @@ from component import Component
 from spreadsheet import Spreadsheet
 from references import SheetReference, CellLocation
 
-from javax.swing import JFrame
+from javax.swing import JFrame, JPanel, BoxLayout
 
 
 # Create a Spreadsheet object where we will store everything
@@ -47,8 +47,11 @@ class Frame(Module):
     def compute(self):
         widgets = self.getInputListFromPort('widget')
         frame = JFrame()
+        top = JPanel()
+        top.setLayout(BoxLayout(top, BoxLayout.PAGE_AXIS))
+        frame.setContentPane(top)
         for widget in widgets:
-            frame.add(widget)
+            top.add(widget)
         frame.pack()
         frame.setVisible(True)
 

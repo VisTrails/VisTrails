@@ -42,6 +42,7 @@ from vistrail_controller import JVistrailController
 from pipeline_view import JPipelineView
 from version_view import JVersionVistrailView
 from module_palette import JModulePalette
+from preference_window import PreferenceWindow
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
         untitled_locator
 from core.db.io import load_vistrail
@@ -61,6 +62,7 @@ from javax.swing import JButton
 from javax.swing import JPanel
 from javax.swing import SwingConstants
 from java.awt import BorderLayout
+from java.lang import System
 
 from extras.core.db.javagui.locator import JavaLocatorHelperProvider
 
@@ -78,12 +80,23 @@ class BuilderFrame(JFrame):
         self.dbDefault = False
         menuBar = JMenuBar()
         fileMenu = JMenu("File")
-        self.openItem = JMenuItem("Open a file")
-        self.openItem.actionPerformed = self.openAction
-        fileMenu.add(self.openItem)
+        openItem = JMenuItem("Open a file")
+        openItem.actionPerformed = self.openAction
+        fileMenu.add(openItem)
+        fileMenu.addSeparator()
+        quitItem = JMenuItem("Quit")
+        quitItem.actionPerformed = self.quitAction
+        fileMenu.add(quitItem)
         menuBar.add(fileMenu)
+        editMenu = JMenu("Edit")
+        preferencesItem = JMenuItem("Preferences...")
+        preferencesItem.actionPerformed = self.showPreferences
+        editMenu.add(preferencesItem)
+        menuBar.add(editMenu)
         self.setJMenuBar(menuBar)
         self.current_view = None
+
+        self.preferenceWindow = PreferenceWindow(self)
 
         self.contentPanel = JPanel(BorderLayout())
         self.setContentPane(self.contentPanel)
@@ -200,9 +213,9 @@ class BuilderFrame(JFrame):
             self.saveAsAction()
             return
 
-    def openAction(self):
+    def openAction(self, event=None):
         fileChooser = JFileChooser()
-        returnedValue = fileChooser.showOpenDialog(self.openItem)
+        returnedValue = fileChooser.showOpenDialog(self)
         if (returnedValue == JFileChooser.APPROVE_OPTION):
             filename = fileChooser.getSelectedFile()
             print filename.getAbsolutePath()
@@ -211,13 +224,13 @@ class BuilderFrame(JFrame):
             self.getContentPane().getComponent(1).revalidate()
             self.getContentPane().getComponent(1).repaint()
 
-    def saveAction(self):
+    def saveAction(self, event=None):
         if self.dbDefault:
             self.save_vistrail(DBLocator)
         else:
             self.save_vistrail(FileLocator())
 
-    def saveAsAction(self):
+    def saveAsAction(self, event=None):
         if self.dbDefault:
             locator = self.save_vistrail(DBLocator,
                                          force_choose_locator=True)
@@ -284,3 +297,9 @@ class BuilderFrame(JFrame):
         except Exception, e:
             debug.critical('Failed to index vistrail', str(e))
         return locator
+
+    def quitAction(self, event=None):
+        System.exit(0)
+
+    def showPreferences(self, event=None):
+        self.preferenceWindow.setVisible(True)
