@@ -182,11 +182,11 @@ class PreferenceWindow(JDialog, ActionListener):
         manager to populate the JList's
         """
         pm = get_package_manager()
-        enabled_pkgs = set(pm.enabled_package_list())
+        enabled_pkgs = set(p.codepath for p in pm.enabled_package_list())
 
         self.enabled_model.clear()
         for pkg in enabled_pkgs:
-            self.enabled_model.addElement(pkg.codepath)
+            self.enabled_model.addElement(pkg)
 
         self.disabled_model.clear()
         for pkg in pm.available_package_names_list():
@@ -194,11 +194,56 @@ class PreferenceWindow(JDialog, ActionListener):
                 self.disabled_model.addElement(pkg)
 
     # @Override
-    def actionPerformed(self, e):
+    def actionPerformed(self, e):        
         if e.getActionCommand() == 'en':
-            pass
+            codepath = self.list_disabled.getSelectedValue()
+            if codepath is not None:
+                pm = get_package_manager()
+                dependency_graph = pm.dependency_graph()
+                pkg = pm.look_at_available_package(codepath)
+                new_deps = pkg.dependencies()
+                
+                from core.modules.basic_modules import identifier as basic_modules_identifier
+                if pkg.identifier != basic_modules_identifier:
+                    new_deps.append(basic_modules_identifier)
+                    
+                try:
+                    pm.check_dependencies(pkg, new_deps)
+                except pkg.MissingDependency, e:
+                    debug.critical("Missing dependencies", str(e))
+                else:
+                    try:
+                        pm.late_enable_package(codepath)
+                    except pkg.InitializationFailed, e:
+                        debug.critical("Initialization of package '%s' failed" %
+                                       codepath, str(e))
+                        raise
+                    self.disabled_model.removeElement(codepath)
+                    self.enabled_model.addElement(codepath)
+                    self.list_disabled.clearSelection()
+                    self.update_infos(None)
         elif e.getActionCommand() == 'dis':
-            pass
+            codepath = self.list_enabled.getSelectedValue()
+            if codepath is not None:
+                pm = get_package_manager()
+                dependency_graph = pm.dependency_graph()
+                identifier = pm.get_package_by_codepath(codepath).identifier
+
+                if dependency_graph.in_degree(identifier) > 0:
+                    rev_deps = dependency_graph.inverse_adjacency_list[identifier]
+                    debug.critical("Missing dependency",
+                                   ("There are other packages that depend on this:\n %s" +
+                                    "Please disable those first.") % rev_deps)
+                else:
+                    pm.late_disable_package(codepath)
+                    self.enabled_model.removeElement(codepath)
+                    self.disabled_model.addElement(codepath)
+                    self.list_enabled.clearSelection()
+                    self.update_infos(None)
+                    self.button_enable.setEnabled(False)
+                    self.button_disable.setEnabled(False)
+                    self.button_configure.setEnabled(False)
+                    self.button_reload.setEnabled(False)
         elif e.getActionCommand() == 'conf':
             pass
         elif e.getActionCommand() == 'rel':
@@ -213,45 +258,55 @@ class PreferenceWindow(JDialog, ActionListener):
             self.button_disable.setEnabled(True)
 
             codepath = self.list_enabled.getSelectedValue()
-            self.update_infos(pm.get_package_by_codepath(codepath))
+            if codepath is not None:
+                self.update_infos(pm.get_package_by_codepath(codepath))
         else:
             self.list_enabled.clearSelection()
             self.button_disable.setEnabled(False)
             self.button_enable.setEnabled(True)
 
             codepath = self.list_disabled.getSelectedValue()
-            self.update_infos(pm.look_at_available_package(codepath))
+            if codepath is not None:
+                self.update_infos(pm.look_at_available_package(codepath))
 
     def update_infos(self, pkg):
         """Update the labels to show the details of the selected package.
         """
-        try:
-            pkg.load()
-        except Exception, e:
-            msg = '<html>ERROR: Could not load package.</html>'
-            self.package_full_name.setText(msg)
-            self.package_id.setText(msg)
-            self.package_version.setText(msg)
-            self.package_deps.setText(msg)
-            self.package_rev_deps.setText(msg)
-            self.package_desc.setText(msg)
-            debug.critical('Cannot load package', str(e))
+        if pkg is None:
+            self.package_full_name.setText("")
+            self.package_id.setText("")
+            self.package_version.setText("")
+            self.package_deps.setText("")
+            self.package_rev_deps.setText("")
+            self.package_desc.setText("")
         else:
-            self.package_full_name.setText(pkg.name)
-            deps = ', '.join(str(d) for d in pkg.dependencies()) or \
-                'No package dependencies.'
-            deps = '<html>' + deps + '</html>'
             try:
-                pm = get_package_manager()
-                reverse_deps = \
-                    (', '.join(pm.reverse_dependencies(pkg.identifier)) or
-                     'No reverse dependencies.')
-                reverse_deps = '<html>' + reverse_deps + '</html>'
-            except KeyError:
-                reverse_deps = ("Reverse dependencies only " +
-                                "available for enabled packages.")
-            self.package_id.setText(pkg.identifier)
-            self.package_version.setText(pkg.version)
-            self.package_deps.setText(deps)
-            self.package_rev_deps.setText(reverse_deps)
-            self.package_desc.setText(pkg.description)
+                pkg.load()
+            except Exception, e:
+                msg = '<html>ERROR: Could not load package.</html>'
+                self.package_full_name.setText(msg)
+                self.package_id.setText(msg)
+                self.package_version.setText(msg)
+                self.package_deps.setText(msg)
+                self.package_rev_deps.setText(msg)
+                self.package_desc.setText(msg)
+                debug.critical('Cannot load package', str(e))
+            else:
+                self.package_full_name.setText(pkg.name)
+                deps = ', '.join(str(d) for d in pkg.dependencies()) or \
+                    'No package dependencies.'
+                deps = '<html>' + deps + '</html>'
+                try:
+                    pm = get_package_manager()
+                    reverse_deps = \
+                        (', '.join(pm.reverse_dependencies(pkg.identifier)) or
+                         'No reverse dependencies.')
+                    reverse_deps = '<html>' + reverse_deps + '</html>'
+                except KeyError:
+                    reverse_deps = ("Reverse dependencies only " +
+                                    "available for enabled packages.")
+                self.package_id.setText(pkg.identifier)
+                self.package_version.setText(pkg.version)
+                self.package_deps.setText(deps)
+                self.package_rev_deps.setText(reverse_deps)
+                self.package_desc.setText(pkg.description)
