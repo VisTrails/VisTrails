@@ -2054,7 +2054,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 if tm_item.moduleHasChanged(nm):
                     self.recreate_module(pipeline, m_id)
                 elif tm_item.moduleFunctionsHaveChanged(nm):
-                    tm_item.update_ports()
+                    tm_item.update_function_ports(pipeline.modules[m_id])
                 if tm_item.isSelected():
                     selected_modules.append(m_id)
                 if self.controller and self.controller.search:
