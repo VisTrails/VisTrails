@@ -413,7 +413,7 @@ class QCLToolsWizard(QtGui.QWidget):
         try:
             text, stderr = subprocess.Popen(args,
                                     stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE).communicate()
+                                    stderr=subprocess.PIPE, shell=True).communicate()
             if not (text and len(text)):
                 text = stderr
                 if not (text and len(text)) or (text and text.beginswith('No ')):
@@ -429,7 +429,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        text = self.runProcess(['man', command])
+        text = self.runProcess(['-c', 'man %s | col -b' % command])
         if not text:
             QtGui.QMessageBox.warning(self, "Man page not found",
                                       "For command '%s'" % command)
@@ -482,7 +482,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        text = self.runProcess(['man', command])
+        text = self.runProcess(['-c', 'man %s | col -b' % command])
         if not text:
             QtGui.QMessageBox.warning(self, "Man page not found",
                                       "For command '%s'" % command)
