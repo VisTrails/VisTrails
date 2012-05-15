@@ -713,6 +713,13 @@ class FileLocator(CoreLocator):
                              mashuptrail=mashuptrail, 
                              mashupVersion=mashupVersion)
         elif vtname is not None:
+            if os.path.dirname(vtname) == '':
+                #check if file exists in the same directory as the .vtl file
+                dirname = os.path.dirname(filename)
+                newvtname = os.path.join(dirname,vtname)
+                if os.path.exists(newvtname):
+                    vtname = newvtname
+            print vtname, version, tag, mashuptrail,mashupVersion
             return FileLocator(vtname, version_node=version, versin_tag=tag,
                                mashuptrail=mashuptrail, 
                                mashupVersion=mashupVersion)
