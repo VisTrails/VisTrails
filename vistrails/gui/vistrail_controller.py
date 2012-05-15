@@ -432,8 +432,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
 #                msg_box.setDetailedText(str(e))
 #                msg_box.exec_()
-                text = "The current workflow could not be validated."
-                debug.critical('%s\n%s' % (text, str(e)))
+                # text = "The current workflow could not be validated."
+                # debug.critical('%s\n%s' % (text, str(e)))
+                debug.critical(str(e))
 
 #                 print 'got to exception set'
 #                 # Process all errors as usual
@@ -1290,6 +1291,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
         (a, b) = self.analogy[analogy_name]
         c = analogy_target
+        if self.current_version != c:
+            self.change_selected_version(c)
 
         try:
             pipeline_a = self.vistrail.getPipeline(a)
