@@ -176,11 +176,18 @@ def vistrails_root_directory():
     return __rootDir
 
 def vistrails_file_directory():
-    """ vistrails_directory() -> str 
+    """ vistrails_file_directory() -> str 
     Returns vistrails examples directory
 
     """
     return __fileDir
+
+def vistrails_data_directory():
+    """ vistrails_data_directory() -> str 
+    Returns vistrails data directory
+
+    """
+    return __dataDir
 
 def vistrails_default_file_type():
     """ vistrails_default_file_type() -> str
