@@ -41,6 +41,7 @@ except ImportError:
     _analogies_available = False
 
 import math
+import operator
 from pipeline_utils import *
 
 from core.utils import append_to_dict_of_lists
@@ -77,9 +78,9 @@ class EigenBase(object):
                  pipeline2):
         self._p1 = pipeline1
         self._p2 = pipeline2
+        self._debug = False
         self.init_vertex_similarity()
         self.init_edge_similarity()
-        self._debug = False
 
     def init_vertex_similarity(self):
         num_verts_p1 = len(self._p1.graph.vertices)
@@ -212,9 +213,19 @@ class EigenBase(object):
         c2 = self._p2.connections[p2_id]
 
         # FIXME: Make this softer in the future
+        if self._debug:
+            print "COMPARING %s:%s -> %s:%s with %s:%s -> %s:%s" % \
+                (self._p1.modules[c1.sourceId].name, c1.source.name,
+                 self._p1.modules[c1.destinationId].name, c1.destination.name,
+                 self._p2.modules[c2.sourceId].name, c2.source.name,
+                 self._p2.modules[c2.destinationId].name, c2.destination.name),
         if c1.source.name != c2.source.name:
+            if self._debug:
+                print 0.0
             return 0.0
         if c1.destination.name != c2.destination.name:
+            if self._debug:
+                print 0.0
             return 0.0
 
         m_c1_sid = self._g1_vertex_map[c1.sourceId]
@@ -222,8 +233,11 @@ class EigenBase(object):
         m_c2_sid = self._g2_vertex_map[c2.sourceId]
         m_c2_did = self._g2_vertex_map[c2.destinationId]
 
-        return (self._output_vertex_s8y[m_c1_sid, m_c2_sid] *
-                self._input_vertex_s8y[m_c1_did, m_c2_did])
+        if self._debug:
+            print (self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
+                    self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0
+        return (self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
+                self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0
 
 
     ##########################################################################
@@ -247,11 +261,10 @@ class EigenBase(object):
     def pv(v, digits=5, left_digits=None):
         # FIXME - some scipy indexing seems to be currently
         # inconsistent across different deployed versions. Fix this.
-        return
         if type(v) == scipy.matrix:
             v = scipy.array(v)[0]
         (c,) = v.shape
-        # print "[ ",
+        print "[ ",
         for j in xrange(c):
             if left_digits != None:
                 d = left_digits[0,j]
@@ -260,8 +273,8 @@ class EigenBase(object):
             fmt = ("%" +
                    str(d + digits + 1) + 
                    "." + str(digits) + "f ")
-            # print (fmt % v[j]),
-        # print "]"
+            print (fmt % v[j]),
+        print "]"
 
     def print_s8ys(self):
         print "Input s8y"
@@ -409,7 +422,7 @@ class EigenPipelineSimilarity2(EigenBase):
         def ix(a,b): return num_verts_p2 * a + b
         # h is the raw substochastic matrix
         from scipy import sparse
-        h = sparse.csr_matrix((n, n))
+        h = sparse.lil_matrix((n, n))
         # a is the dangling node vector
         a = mzeros(n)
         for i in xrange(num_verts_p1):
@@ -519,6 +532,13 @@ class EigenPipelineSimilarity2(EigenBase):
         r_out = r_out * 0.9 + r_combined * 0.1
 
         if self._debug:
+            print "== G1 =="
+            for (k,v) in sorted(self._g1_vertex_map.iteritems(), key=operator.itemgetter(1)):
+                print v, k, self._p1.modules[k].name
+            print "== G2 =="
+            for (k,v) in sorted(self._g2_vertex_map.iteritems(), key=operator.itemgetter(1)):
+                print v, k, self._p2.modules[k].name
+            
             print "input similarity"
             self.pm(r_in, digits=3)
             print "output similarity"

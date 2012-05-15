@@ -1342,14 +1342,9 @@ class ModuleRegistry(DBRegistry):
 
     def get_port_spec(self, package, module_name, namespace, 
                       port_name, port_type):
-        try:
-            desc = self.get_descriptor_by_name(package, module_name, namespace)
-            return self.get_port_spec_from_descriptor(desc, port_name, 
-                                                      port_type)
-        except ModuleRegistryException, e:
-            debug.critical(str(e))
-            raise
-        return None
+        desc = self.get_descriptor_by_name(package, module_name, namespace)
+        return self.get_port_spec_from_descriptor(desc, port_name, 
+                                                  port_type)
 
     def has_port_spec_from_descriptor(self, desc, port_name, port_type):
         for d in self.get_module_hierarchy(desc):
@@ -1359,14 +1354,9 @@ class ModuleRegistry(DBRegistry):
 
     def has_port_spec(self, package, module_name, namespace,
                       port_name, port_type):
-        try:
-            desc = self.get_descriptor_by_name(package, module_name, namespace)
-            return self.has_port_spec_from_descriptor(desc, port_name, 
-                                                      port_type)
-        except ModuleRegistryException, e:
-            debug.critical(str(e))
-            raise
-        return None        
+        desc = self.get_descriptor_by_name(package, module_name, namespace)
+        return self.has_port_spec_from_descriptor(desc, port_name, 
+                                                  port_type)
 
     def add_port(self, descriptor, port_name, port_type, port_sig=None, 
                  port_sigstring=None, optional=False, sort_key=-1,

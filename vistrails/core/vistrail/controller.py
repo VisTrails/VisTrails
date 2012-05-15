@@ -2946,9 +2946,9 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            details = '\n'.join(str(e) for e in left_exceptions + \
-                                    new_exceptions)
-            debug.critical("Some exceptions could not be handled", details)
+            details = '\n'.join(set(str(e) for e in left_exceptions + \
+                                    new_exceptions))
+            # debug.critical("Some exceptions could not be handled", details)
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
