@@ -678,10 +678,11 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     def perform_analogy(self):
         sender = self.scene().sender()
         analogy_name = str(sender.text())
-        selectedItems = self.scene().selectedItems()
+        # selectedItems = self.scene().selectedItems()
         controller = self.scene().controller
-        for item in selectedItems:
-            controller.perform_analogy(analogy_name, item.id)
+        print "calling perform analogy", analogy_name, self.id
+        # for item in selectedItems:
+        controller.perform_analogy(analogy_name, self.id)
 
     def show_raw_pipeline(self):
         self.scene().emit_selection = False

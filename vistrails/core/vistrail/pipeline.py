@@ -970,7 +970,7 @@ class Pipeline(DBWorkflow):
                                             port_type_map.inverse[port.type])
                 # print 'got spec', spec, spec.sigstring
             except ModuleRegistryException, e:
-                debug.critical('CONNECTION EXCEPTION: %s' % e)
+                # debug.critical('CONNECTION EXCEPTION: %s' % e)
                 exceptions.add(e)
             else:
                 if port.spec.is_valid:
