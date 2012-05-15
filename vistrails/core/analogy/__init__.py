@@ -47,10 +47,10 @@ from core.vistrail.pipeline import Pipeline
 
 from eigen import *
 
-_debug = True
+_debug = False
 
 def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c, 
-                                pipeline_a=None, pipeline_c=None, alpha=0.85):
+                                pipeline_a=None, pipeline_c=None, alpha=0.15):
     """perform_analogy(vistrail, version_a, version_b, version_c,
                        pipeline_a=None, pipeline_c=None, alpha=0.15): action
     Creates a new action version_d to the vistrail such that the difference
