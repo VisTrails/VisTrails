@@ -245,7 +245,7 @@ class SpreadsheetCell(NotCacheable, Module):
         QtCore.QCoreApplication.processEvents()
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         if spreadsheetWindow.echoMode == False:
-            spreadsheetWindow.configShow()
+            spreadsheetWindow.configShow(show=True)
         return spreadsheetWindow.displayCellEvent(e)
 
 class SingleCellSheetReference(SheetReference):
