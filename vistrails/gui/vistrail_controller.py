@@ -1300,11 +1300,13 @@ class VistrailController(QtCore.QObject, BaseController):
         except InvalidPipeline, e:
             (_, pipeline_a) = \
                 self.handle_invalid_pipeline(e, a, Vistrail())
+            self._delayed_actions = []
         try:
             pipeline_c = self.vistrail.getPipeline(c)
             self.validate(pipeline_c)
         except InvalidPipeline, e:
             (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
+            self._delayed_actions = []
                                                      
         action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
                                                           a, b, c, 
@@ -1314,9 +1316,11 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.change_description("Analogy", action.id)
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
                                           action.id)
-        self.perform_action(action)
-        self.validate(self.current_pipeline, False)
-        self.current_pipeline_view.setupScene(self.current_pipeline)
+        
+        # make sure that the output from the analogy is as up-to-date
+        # as we can make it
+        self.change_selected_version(action.id, from_root=True)
+        self.flush_delayed_actions()
     
 ################################################################################
 # Testing
