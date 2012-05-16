@@ -1757,7 +1757,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Removes module from scene, updating appropriate data structures.
 
         """
-        self.removeItem(self.modules[m_id])
+        core_module = self.modules[m_id].module
+        if not core_module.has_annotation_with_key('__vistrail_var__'):
+            self.removeItem(self.modules[m_id])
         del self.modules[m_id]
         self._old_module_ids.remove(m_id)
 
@@ -1772,7 +1774,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         (srcModule, dstModule) = connItem.connectingModules
         srcModule.removeConnectionItem(connItem)
         dstModule.removeConnectionItem(connItem)
-        self.removeItem(self.connections[c_id])
+        if not srcModule.module.has_annotation_with_key('__vistrail_var__'):
+            self.removeItem(self.connections[c_id])
         del self.connections[c_id]
         self._old_connection_ids.remove(c_id)
         
