@@ -143,6 +143,9 @@ class Pipeline(DBWorkflow):
                                       fun.vtType,
                                       fun.real_id,
                                       m_id)
+            module.connected_input_ports = {}
+            module.connected_output_ports = {}
+
         for connection in self.connection_list:
             self.graph.add_edge(connection.source.moduleId,
                                 connection.destination.moduleId,
