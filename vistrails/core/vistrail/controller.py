@@ -2990,7 +2990,7 @@ class VistrailController(object):
             if self.current_version != -1 and not self.current_pipeline:
                 debug.warning("current_version is not -1 and "
                               "current_pipeline is None")
-            if version != self.current_pipeline:
+            if version != self.current_version:
                 # clear delayed actions
                 # FIXME: invert the delayed actions and integrate them into
                 # the general_action_chain?
