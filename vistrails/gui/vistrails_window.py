@@ -1814,7 +1814,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             #please do not remove this warning. It is necessary to know
             #what type of window is causing the get_current_view to return
             # a wrong value -- Emanuele.
-            debug.warning("[invalid view] get_current_view() -> %s"%window)
+            debug.debug("[invalid view] get_current_view() -> %s"%window)
+            #instead of returning the current widget lets try to return any 
+            #previous view
+            if self.current_view is not None:
+                return self.current_view
+            elif self._previous_vt_view is not None:
+                return self._previous_vt_view
             return self.stack.currentWidget()
         
     def get_current_controller(self):
