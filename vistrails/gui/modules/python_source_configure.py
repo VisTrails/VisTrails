@@ -209,10 +209,10 @@ def NewPythonEditor(parent):
             """
             return self.text()
     
-        def focusOutEvent(self, event):
-            if self.parent():
-                QtCore.QCoreApplication.sendEvent(self.parent(), event)
-            QsciScintilla.focusOutEvent(self, event)
+#        def focusOutEvent(self, event):
+#            if self.parent():
+#                QtCore.QCoreApplication.sendEvent(self.parent(), event)
+#            QsciScintilla.focusOutEvent(self, event)
 
     return _PythonEditor(parent)
 
@@ -242,10 +242,10 @@ class OldPythonEditor(QtGui.QTextEdit):
             # super(PythonEditor, self).keyPressEvent(event)
             QtGui.QTextEdit.keyPressEvent(self, event)
             
-    def focusOutEvent(self, event):
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QTextEdit.focusOutEvent(self, event)
+#    def focusOutEvent(self, event):
+#        if self.parent():
+#            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+#        QtGui.QTextEdit.focusOutEvent(self, event)
 
 class PythonSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
