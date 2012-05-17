@@ -65,8 +65,8 @@ class PortTable(QtGui.QTableWidget):
         self.connect(self.delegate, QtCore.SIGNAL("modelDataChanged"),
                      self, QtCore.SIGNAL("contentsChanged"))
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMouseTracking(True)
-        self.mouseOver = False
+        #self.setMouseTracking(True)
+        #self.mouseOver = False
         
     def sizeHint(self):
         return QtCore.QSize()
@@ -130,10 +130,10 @@ class PortTable(QtGui.QTableWidget):
                 ports.append((name, '(' + sigstring + ')', i))
         return ports
         
-    def focusOutEvent(self, event):
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QTableWidget.focusOutEvent(self, event)
+#    def focusOutEvent(self, event):
+#        if self.parent():
+#            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+#        QtGui.QTableWidget.focusOutEvent(self, event)
         
 class PortTableItemDelegate(QtGui.QItemDelegate):
 
@@ -361,14 +361,14 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
                      self.updateState)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMouseTracking(True)
-        self.mouseOver = False
-        
-    def enterEvent(self, event):
-        self.mouseOver = True
-        
-    def leaveEvent(self, event):
-        self.mouseOver = False
+        #self.setMouseTracking(True)
+        #self.mouseOver = False
+#        
+#    def enterEvent(self, event):
+#        self.mouseOver = True
+#        
+#    def leaveEvent(self, event):
+#        self.mouseOver = False
         
 
     def updateVistrail(self):
@@ -413,10 +413,10 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
             self.state_changed = True
             self.emit(QtCore.SIGNAL("stateChanged"))
             
-    def focusOutEvent(self, event):
-        if not self.mouseOver:
-            self.askToSaveChanges()
-        QtGui.QWidget.focusOutEvent(self, event)
+#    def focusOutEvent(self, event):
+        #if not self.mouseOver:
+        #    self.askToSaveChanges()
+#        QtGui.QWidget.focusOutEvent(self, event)
                 
 class UntupleConfigurationWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -472,8 +472,8 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
                      self.updateState)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMouseTracking(True)
-        self.mouseOver = False
+        #self.setMouseTracking(True)
+        #self.mouseOver = False
         
     def updateVistrail(self):
         """ updateVistrail() -> None
@@ -508,16 +508,16 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
             self.state_changed = True
             self.emit(QtCore.SIGNAL("stateChanged"))
             
-    def focusOutEvent(self, event):
-        if not self.mouseOver:
-            self.askToSaveChanges()
-        QtGui.QWidget.focusOutEvent(self, event)
-        
-    def enterEvent(self, event):
-        self.mouseOver = True
-        
-    def leaveEvent(self, event):
-        self.mouseOver = False
+#    def focusOutEvent(self, event):
+#        #if not self.mouseOver:
+#        #    self.askToSaveChanges()
+#        QtGui.QWidget.focusOutEvent(self, event)
+#        
+#    def enterEvent(self, event):
+#        self.mouseOver = True
+#        
+#    def leaveEvent(self, event):
+#        self.mouseOver = False
     
     def resetTriggered(self, checked = False):
         self.portTable.clearContents()

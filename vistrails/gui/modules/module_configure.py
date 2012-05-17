@@ -35,6 +35,7 @@ from PyQt4 import QtCore, QtGui
 from core.utils import VistrailsInternalError
 from core.vistrail.port import PortEndPoint
 from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
+from gui.common_widgets import QPromptWidget
 
 class StandardModuleConfigurationWidget(QtGui.QWidget):
 
@@ -70,9 +71,29 @@ class StandardModuleConfigurationWidget(QtGui.QWidget):
     def resetTriggered(self):
         msg = "Must implement saveTriggered in subclass"
         raise VistrailsInternalError(msg)
-    
-class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 
+class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
+    def __init__(self, module, controller, parent=None):
+        StandardModuleConfigurationWidget.__init__(self, module, controller, 
+                                                   parent)
+        self.prompt = QPromptWidget()
+        self.prompt.setPromptText("Please use the visibility icon (an eye) in" 
+                                  " the Module Information panel to show or"
+                                  " hide a port.")
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.prompt)
+        self.setLayout(layout)
+        self.prompt.showPrompt()
+        
+    def saveTriggered(self):
+        pass
+    
+    def resetTriggered(self):
+        pass
+    
+class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
+    """ This is the Default ModuleConfigurationWidget that shows a list of
+        ports to be enabled or disabled """
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module, controller, 
                                                    parent)
@@ -110,7 +131,7 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
         self.adjustSize()
-        self.mouseOver = False
+#        self.mouseOver = False
         self.state_changed = False
         
     ###########################################################################
@@ -127,15 +148,15 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     #
     # DAK -- seems to be ok when in the palette window...
 
-    def focusOutEvent(self, event):
-        self.askToSaveChanges()
-        QtGui.QWidget.focusOutEvent(self, event)
-        
-    def enterEvent(self, event):
-        self.mouseOver = True
-        
-    def leaveEvent(self, event):
-        self.mouseOver = False
+#    def focusOutEvent(self, event):
+#        #self.askToSaveChanges()
+#        QtGui.QWidget.focusOutEvent(self, event)
+#        
+#    def enterEvent(self, event):
+#        self.mouseOver = True
+#        
+#    def leaveEvent(self, event):
+#        self.mouseOver = False
         
     def checkBoxFromPort(self, port, input_=False):
         checkBox = QtGui.QCheckBox(port.name)
