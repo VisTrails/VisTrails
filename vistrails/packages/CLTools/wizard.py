@@ -59,8 +59,6 @@ def default_dir():
         os.mkdir(default_dir)
     return default_dir
     
-    
-
 class QCLToolsWizard(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
@@ -71,27 +69,26 @@ class QCLToolsWizard(QtGui.QWidget):
 
         self.toolBar = QtGui.QToolBar()
         self.layout().addWidget(self.toolBar)
-        p = os.path.dirname(__file__) + "/%s"
         self.newFileAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-new.png'), 'New', self)
+            self.get_icon('document-new'), 'New', self)
         self.newFileAction.setToolTip('Start on a new Wrapper')
         self.connect(self.newFileAction, QtCore.SIGNAL('triggered()'),
                      self.newFile)
         self.toolBar.addAction(self.newFileAction)
         self.openFileAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-open.png'), 'Open', self)
+            self.get_icon('document-open'), 'Open', self)
         self.openFileAction.setToolTip('Open an existing wrapper')
         self.connect(self.openFileAction, QtCore.SIGNAL('triggered()'),
                      self.openFile)
         self.toolBar.addAction(self.openFileAction)
         self.saveFileAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-save.png'), 'Save', self)
+            self.get_icon('document-save'), 'Save', self)
         self.saveFileAction.setToolTip('Save wrapper')
         self.connect(self.saveFileAction, QtCore.SIGNAL('triggered()'),
                      self.save)
         self.toolBar.addAction(self.saveFileAction)
         self.saveFileAsAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-save-as.png'), 'Save As', self)
+            self.get_icon('document-save-as'), 'Save As', self)
         self.saveFileAsAction.setToolTip('Save wrapper as a new file')
         self.connect(self.saveFileAsAction, QtCore.SIGNAL('triggered()'),
                      self.saveAs)
@@ -99,25 +96,25 @@ class QCLToolsWizard(QtGui.QWidget):
         
         self.toolBar.addSeparator()
         self.addAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/list-add.png'), 'Add', self)
+            self.get_icon('list-add'), 'Add', self)
         self.addAction.setToolTip('Add a new argument')
         self.connect(self.addAction, QtCore.SIGNAL('triggered()'),
                      self.addArgument)
         self.toolBar.addAction(self.addAction)
         self.removeAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/list-remove.png'), 'Remove', self)
+            self.get_icon('list-remove'), 'Remove', self)
         self.removeAction.setToolTip('Remove the selected argument')
         self.connect(self.removeAction, QtCore.SIGNAL('triggered()'),
                      self.removeArgument)
         self.toolBar.addAction(self.removeAction)
         self.upAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/go-up.png'), 'Move up', self)
+            self.get_icon('go-up'), 'Move up', self)
         self.upAction.setToolTip('Move argument up one position')
         self.connect(self.upAction, QtCore.SIGNAL('triggered()'),
                      self.moveUp)
         self.toolBar.addAction(self.upAction)
         self.downAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/go-down.png'), 'Move down', self)
+            self.get_icon('go-down'), 'Move down', self)
         self.downAction.setToolTip('Move argument down one position')
         self.connect(self.downAction, QtCore.SIGNAL('triggered()'),
                      self.moveDown)
@@ -217,6 +214,10 @@ class QCLToolsWizard(QtGui.QWidget):
         self.argList = QtGui.QListWidget()
         self.layout().addWidget(self.argList)
 
+    def get_icon(self, name):
+        return QtGui.QIcon(os.path.join(os.path.dirname(__file__),
+                                        "icons",
+                                        "%s.png" % name))
     def setTitle(self, file=None):
         self.parent().setWindowTitle("CLTools Wizard - " + (file if file else "untitled"))
 

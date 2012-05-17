@@ -317,7 +317,26 @@ def initialize(*args, **keywords):
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), str(exc)),
                    traceback.format_exc())
-                
+wizards_list = []
+
+def menu_items():
+    """menu_items() -> tuple of (str,function)
+    It returns a list of pairs containing text for the menu and a
+    callback function that will be executed when that menu item is selected.
+    
+    """
+    # if wizard.py does not exist, assume it is a standalone package and abort
+    try:
+        from wizard import QCLToolsWizardWindow
+    except:
+        return
+    def open_wizard():
+        window = QCLToolsWizardWindow()
+        wizards_list.append(window)
+        window.show()
+    lst = []
+    lst.append(("Open CLTools Wizard", open_wizard))
+    return tuple(lst)
         
 def finalize():
     _file_pool.cleanup()
