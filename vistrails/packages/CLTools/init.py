@@ -77,6 +77,7 @@ def _eintr_retry_call(func, *args):
             raise
 
 def add_tool(path):
+    global cl_tools
     # first create classes
     tool_name = os.path.basename(path)
     if not tool_name.endswith(SUFFIX):
@@ -270,7 +271,7 @@ def add_tool(path):
                                            "tool_name": tool_name,
                                            "__doc__": d})
     reg = core.modules.module_registry.get_module_registry()
-    reg.add_module(M)
+    reg.add_module(M, package=identifier, package_version=version)
 
     def to_vt_type(s):
         # add recognized types here - default is String
@@ -319,7 +320,7 @@ def initialize(*args, **keywords):
     
 
     reg = core.modules.module_registry.get_module_registry()
-    reg.add_module(CLTools, **{'hide_descriptor':True})
+    reg.add_module(CLTools, hide_descriptor=True)
     for path in os.listdir(location):
         if path.endswith(SUFFIX):
             try:
@@ -329,6 +330,40 @@ def initialize(*args, **keywords):
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), str(exc)),
                    traceback.format_exc())
+
+def reload_scripts():
+    global cl_tools
+    reg = core.modules.module_registry.get_module_registry()
+    for tool_name in cl_tools.keys():
+        reg.delete_module(identifier, tool_name)
+        del cl_tools[tool_name]
+    if "CLTools" == name:
+        # this is the original package 
+        location = os.path.join(core.system.default_dot_vistrails(),
+                                     "CLTools")
+        # make sure dir exist
+        if not os.path.isdir(location):
+            try:
+                debug.log("Creating CLTools directory...")
+                os.mkdir(location)
+            except:
+                debug.critical("""Could not create CLTools directory. Make
+ sure '%s' does not exist and parent directory is writable""" % location)
+                sys.exit(1)
+    else:
+        # this is a standalone package so modules are placed in this directory
+        location = os.path.dirname(__file__)
+    
+    for path in os.listdir(location):
+        if path.endswith(SUFFIX):
+            try:
+                add_tool(os.path.join(location, path))
+            except Exception as exc:
+                import traceback
+                debug.critical("Package CLTools failed to create module "
+                   "from '%s': %s" % (os.path.join(location, path), str(exc)),
+                   traceback.format_exc())
+
 wizards_list = []
 
 def menu_items():
@@ -342,12 +377,14 @@ def menu_items():
         from wizard import QCLToolsWizardWindow
     except:
         return
-    def open_wizard():
-        window = QCLToolsWizardWindow()
-        wizards_list.append(window)
-        window.show()
     lst = []
-    lst.append(("Open CLTools Wizard", open_wizard))
+    if "CLTools" == name:
+        def open_wizard():
+            window = QCLToolsWizardWindow()
+            wizards_list.append(window)
+            window.show()
+        lst.append(("Open Wizard", open_wizard))
+    lst.append(("Reload All Scripts", reload_scripts))
     return tuple(lst)
         
 def finalize():
