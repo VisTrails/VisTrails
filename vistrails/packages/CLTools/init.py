@@ -34,9 +34,8 @@
 import os
 import sys
 import json
-import tempfile
 import subprocess
-import time
+import errno
 
 import core.system
 import core.modules.module_registry
@@ -64,6 +63,18 @@ class CLTools(Module):
 
 SUFFIX = '.clt'
 TEMPSUFFIX = '.cltoolsfile'
+
+def _eintr_retry_call(func, *args):
+    # Fixes OSErrors and IOErrors
+    #From: http://code.google.com/p/seascope/source/detail?spec=svn8dbe5e23d41db673727ce90fd338e9a43f8877e8&name=8dbe5e23d41d&r=8dbe5e23d41db673727ce90fd338e9a43f8877e8
+    # IOError added
+    while True:
+        try:
+            return func(*args)
+        except (OSError, IOError), e:
+            if e.errno == errno.EINTR:
+                continue
+            raise
 
 def add_tool(path):
     # first create classes
@@ -210,7 +221,8 @@ def add_tool(path):
         else:
             #if stdin:
             #    print "stdin:", len(stdin), stdin[:30]
-            stdout, stderr = process.communicate(stdin)
+            stdout, stderr = _eintr_retry_call(process.communicate, stdin)
+            #stdout, stderr = process.communicate(stdin)
             #if stdout:
             #    print "stdout:", len(stdout), stdout[:30]
             #if stderr:
