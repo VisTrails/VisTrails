@@ -727,38 +727,51 @@ class PersistentOutputFile(PersistentFile):
     def compute(self):
         PersistentFile.compute(self, False)
     
-def persistent_ref_hasher(p):
-    h = Hasher.parameter_signature(p)
-    hasher = sha_hash()
-    hasher.update(h)
-    ref = None
-    # print "ref hashing:", p.strValue
-    if p.strValue:
-        ref = PersistentRef.translate_to_python(p.strValue)
-    if ref and db_access.ref_exists(ref.id, ref.version):
-        if ref.version is None:
-            git_util = PersistentPath()
-            ref.version = git_util.git_get_latest_version(ref.id)
-        # print "ref exists:", ref.id, ref.version
-        hasher.update(str(ref.id))
-        hasher.update(str(ref.version))
-    return hasher.digest()
+#def persistent_ref_hasher(p):
+#    return Hasher.parameter_signature(p)
 
-_modules = [(PersistentRef, {'constantSignatureCallable': \
-                                 persistent_ref_hasher}),
-            PersistentPath, PersistentFile, PersistentDir,
-            (PersistentInputFile, {'configureWidgetType': \
-                                    PersistentInputFileConfiguration}),
-            (PersistentOutputFile, {'configureWidgetType': \
-                                     PersistentOutputFileConfiguration}),
-            (PersistentIntermediateFile, {'configureWidgetType': \
-                                           PersistentOutputFileConfiguration}),
-            (PersistentInputDir, {'configureWidgetType': \
-                                   PersistentInputDirConfiguration}),
-            (PersistentOutputDir, {'configureWidgetType': \
-                                    PersistentOutputDirConfiguration}),
-            (PersistentIntermediateDir, {'configureWidgetType': \
-                                          PersistentOutputDirConfiguration}),]
+def persistent_module_hasher(pipeline, module, chm):
+    current_hash = Hasher.module_signature(module, chm)
+    ref = None
+    read_local = False
+    for function in module.functions:
+        if function.name == "ref":
+            ref = PersistentRef.translate_to_python(function.params[0].strValue)
+        if function.name == 'readLocal':
+            read_local = \
+                Boolean.translate_to_python(function.params[0].strValue)
+    if ref and not read_local and db_access.ref_exists(ref.id, ref.version):
+        if ref.version is None:
+            ref.version = PersistentPath.git_get_latest_version(ref.id)
+        return Hasher.compound_signature([current_hash, str(ref.id),
+                                          str(ref.version)])
+    return current_hash
+
+_modules = [PersistentRef, PersistentPath, PersistentFile, PersistentDir,
+           (PersistentInputFile, {'configureWidgetType': \
+                                      PersistentInputFileConfiguration,
+                                  'signatureCallable': \
+                                      persistent_module_hasher}),
+           (PersistentOutputFile, {'configureWidgetType': \
+                                       PersistentOutputFileConfiguration,
+                                   'signatureCallable': \
+                                       persistent_module_hasher}),
+           (PersistentIntermediateFile, {'configureWidgetType': \
+                                             PersistentOutputFileConfiguration,
+                                         'signatureCallable': \
+                                             persistent_module_hasher}),
+           (PersistentInputDir, {'configureWidgetType': \
+                                     PersistentInputDirConfiguration,
+                                 'signatureCallable': \
+                                     persistent_module_hasher}),
+           (PersistentOutputDir, {'configureWidgetType': \
+                                      PersistentOutputDirConfiguration,
+                                  'signatureCallable': \
+                                      persistent_module_hasher}),
+           (PersistentIntermediateDir, {'configureWidgetType': \
+                                            PersistentOutputDirConfiguration,
+                                        'signatureCallable': \
+                                            persistent_module_hasher})]
 
 def git_init(dir):
     global git_bin
