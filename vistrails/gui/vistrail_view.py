@@ -1049,11 +1049,12 @@ class QVistrailView(QtGui.QWidget):
         self.is_executing = True
 
         view = self.get_current_tab()
-        if hasattr(view, 'execute'):
-            view.setFocus(QtCore.Qt.MouseFocusReason)
-            view.execute()
-
-        self.is_executing = False
+        try:
+            if hasattr(view, 'execute'):
+                view.setFocus(QtCore.Qt.MouseFocusReason)
+                view.execute()
+        finally:
+            self.is_executing = False
 
     def publish_to_web(self):
         view = self.get_current_tab()

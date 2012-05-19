@@ -319,6 +319,9 @@ class Service:
                           identifier=self.signature,
                           version=self.wsdlHash,
                           )
+        suds_package = reg.get_package_by_name(identifier)
+        package._module = suds_package.module
+        package._init_module = suds_package.init_module
         self.package = package
         reg.add_package(package)
         self.module = new_module(Module, str(self.signature))
