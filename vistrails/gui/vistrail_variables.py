@@ -55,6 +55,7 @@ class QVistrailVariables(QVariableDropBox, QVistrailsPaletteInterface):
         """
         QVariableDropBox.__init__(self, parent)
         self.setWindowTitle('Vistrail Variables')
+        self.setToolWindowAcceptDrops(True)
 
     def sizeHint(self):
         """ sizeHint() -> None
