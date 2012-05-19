@@ -35,11 +35,13 @@
 from PyQt4 import QtGui, QtCore
 from core import get_vistrails_application
 from core.packagemanager import get_package_manager
+from core.utils import InvalidPipeline
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
                                QThumbnailConfiguration)
 from gui.module_palette import QModulePalette
+from gui.pipeline_view import QPipelineView
 from core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
 from core import debug
@@ -322,6 +324,7 @@ class QPackagesWidget(QtGui.QWidget):
             inst.sortItems()
             self.erase_cache = True
             self.select_package_after_update(codepath)
+            self.invalidate_current_pipeline()
 
     def disable_current_package(self):
         av = self._available_packages_list
@@ -346,6 +349,7 @@ class QPackagesWidget(QtGui.QWidget):
             av.sortItems()
             self.erase_cache = True
             self.select_package_after_update(codepath)
+            self.invalidate_current_pipeline()
 
     def configure_current_package(self):
         dlg = QPackageConfigurationDialog(self, self._current_package)
@@ -379,6 +383,7 @@ class QPackagesWidget(QtGui.QWidget):
             palette.treeWidget.expandAll()
             self.erase_cache = True
             self.select_package_after_update(codepath)
+            self.invalidate_current_pipeline()
 
     def package_added(self, codepath):
         # package was added, we need to update list
@@ -510,8 +515,38 @@ class QPackagesWidget(QtGui.QWidget):
         self.set_package_information()
         self._available_packages_list.setFocus()
 
+    def invalidate_current_pipeline(self):
+        # Reconstruct the current pipelines from root
+        from core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.flush()
+        def reload_view(view):
+            view.version_selected(view.controller.current_version,
+                                  True, from_root=True)
+        #    def reload_tab(tab):
+        #        scene = tab.scene()
+        #        if scene.current_pipeline:
+        #            scene.current_pipeline.is_valid = False
+        #            scene.current_pipeline= \
+        #                view.controller.vistrail.getPipeline(
+        #                                                scene.current_version)
+        #            view.controller.validate(scene.current_pipeline)
+        #            scene.setupScene(scene.current_pipeline)
+        #
+        #    for i in xrange(view.stack.count()):
+        #        tab = view.stack.widget(i)
+        #        if isinstance(tab, QPipelineView):
+        #            reload_tab(tab)
+        #    for tab in view.detached_views:
+        #        if isinstance(tab, QPipelineView):
+        #            reload_tab(tab)
 
-
+        from gui.vistrails_window import _app
+        for i in xrange(_app.stack.count()):
+            view = _app.stack.widget(i)
+            reload_view(view)
+        for view in _app.windows:
+            reload_view(view)
+        
 class QPreferencesDialog(QtGui.QDialog):
 
     def __init__(self, parent):
