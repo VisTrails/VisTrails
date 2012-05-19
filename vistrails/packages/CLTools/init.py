@@ -333,6 +333,9 @@ def initialize(*args, **keywords):
 
 def reload_scripts():
     global cl_tools
+    from core.interpreter.cached import CachedInterpreter
+    CachedInterpreter.flush()
+
     reg = core.modules.module_registry.get_module_registry()
     for tool_name in cl_tools.keys():
         reg.delete_module(identifier, tool_name)
@@ -363,7 +366,6 @@ def reload_scripts():
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), str(exc)),
                    traceback.format_exc())
-
 wizards_list = []
 
 def menu_items():
