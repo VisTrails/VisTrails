@@ -1965,6 +1965,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # Workaround: On a Mac, dropEvent isn't called if dragMoveEvent is ignored
             event.ignore()
 
+    def dragLeaveEvent(self, event):
+        if type(event.source()) == QDragVariableLabel:
+            data = event.mimeData()
+            if hasattr(data, 'variableData'):
+                if self._var_selected_port is not None:
+                    self._var_selected_port.setPen(CurrentTheme.PORT_PEN)
+                    self._var_selected_port = None
+                event.accept()
+
     def unselect_all(self):
         self.clearSelection()
         if self.pipeline_tab:
@@ -2066,6 +2075,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     # Update the version view node to fit text properly
                     version_item = self.controller.vistrail_view.version_view.scene().versions[self.controller.current_version]
                     version_item.updateWidthFromLabel()
+                    self._var_selected_port = None
                     event.accept()
                     return
         # Ignore if not accepted and returned by this point
