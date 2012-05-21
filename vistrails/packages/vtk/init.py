@@ -76,8 +76,11 @@ warnings.filterwarnings("ignore",
                         message="integer argument expected, got float")
 
 ################################################################################
-
-if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
+v = vtk.vtkVersion()
+version = [v.GetVTKMajorVersion(),
+           v.GetVTKMinorVersion(),
+           v.GetVTKBuildVersion()]
+if version < [5, 0, 4]:
     def get_description_class(klass):
         """Because sometimes we need to patch VTK classes, the klass that
         has the methods is different than the klass we want to
@@ -1052,7 +1055,11 @@ def createAllModules(g):
     Traverse the VTK class tree and add all modules into the module registry
     
     """
-    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+    v = vtk.vtkVersion()
+    version = [v.GetVTKMajorVersion(),
+               v.GetVTKMinorVersion(),
+               v.GetVTKBuildVersion()]
+    if version < [5, 7, 0]:
         assert len(g.tree[0]) == 1
         base = g.tree[0][0]
         assert base.name == 'vtkObjectBase'
@@ -1061,7 +1068,7 @@ def createAllModules(g):
     vtkObjectBase.vtkClass = vtk.vtkObjectBase
     registry = get_module_registry()
     registry.add_module(vtkObjectBase)
-    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+    if version < [5, 7, 0]:
         for child in base.children:
             if child.name in disallowed_classes:
                 continue
