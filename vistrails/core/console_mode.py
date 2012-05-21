@@ -132,28 +132,31 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
     
     """
     result = []
-    for locator, workflow in w_list:
-        try:
-            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-            controller = VistrailController()
-            controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                    mashups)
-            if type(workflow) == type("str"):
-                version = v.get_version_number(workflow)
-            elif type(workflow) in [ type(1), long]:
-                version = workflow
-            elif workflow is None:
-                version = controller.get_latest_version_in_graph()
-            else:
-                msg = "Invalid version tag or number: %s" % workflow
-                raise VistrailsInternalError(msg)
-            controller.change_selected_version(version)
-        
-            if (workflow_info is not None and 
-                controller.current_pipeline is not None):
-                if is_running_gui():
+    if is_running_gui():
+        from gui.vistrail_controller import VistrailController as \
+             GUIVistrailController
+        for locator, workflow in w_list:
+            try:
+                (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
+                controller = GUIVistrailController()
+                if type(workflow) == type("str"):
+                    version = v.get_version_number(workflow)
+                elif type(workflow) in [ type(1), long]:
+                    version = workflow
+                elif workflow is None:
+                    version = controller.get_latest_version_in_graph()
+                else:
+                    msg = "Invalid version tag or number: %s" % workflow
+                    raise VistrailsInternalError(msg)
+                controller.change_selected_version(version)
+            
+                if (workflow_info is not None and 
+                    controller.current_pipeline is not None):
                     from gui.pipeline_view import QPipelineView
                     pipeline_view = QPipelineView()
+                    controller.current_pipeline_view = pipeline_view.scene()
+                    controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                        mashups)
                     pipeline_view.scene().setupScene(controller.current_pipeline)
                     if pdf:
                         base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
@@ -165,14 +168,13 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                         pipeline_view.scene().saveToPNG(filename)
                     del pipeline_view
                     result.append((True, ""))
-                else:
-                    error_str = "Cannot save pipeline figure when not " \
-                        "running in gui mode"
-                    debug.critical(error_str)
-                    result.append((False, error_str))
-                    
-        except Exception, e:
-            result.append((False, str(e)))
+            except Exception, e:
+                result.append((False, str(e)))
+    else:
+        error_str = "Cannot save pipeline figure when not " \
+            "running in gui mode"
+        debug.critical(error_str)
+        result.append((False, error_str))
     return result
 
 ################################################################################
@@ -183,34 +185,39 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
     
     """
     result = []
-    for locator in vt_list:
-        try:
-            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-            controller = VistrailController()
-            controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                    mashups)
-            if tree_info is not None:
-                if is_running_gui():
-                    from gui.version_view import QVersionTreeView
-                    version_view = QVersionTreeView()
-                    version_view.scene().setupScene(controller)
-                    if pdf:
-                        base_fname = "graph_%s.pdf" % locator.short_name
-                        filename = os.path.join(tree_info, base_fname)
-                        version_view.scene().saveToPDF(filename)
-                    else:
-                        base_fname = "graph_%s.png" % locator.short_name
-                        filename = os.path.join(tree_info, base_fname)
-                        version_view.scene().saveToPNG(filename)
-                    del version_view
-                    result.append((True, ""))
-                else:
-                    error_str = "Cannot save version tree figure when not " \
-                        "running in gui mode"
-                    debug.critical(error_str)
-                    result.append((False, error_str))
-        except Exception, e:
-            result.append((False, str(e)))
+    if is_running_gui():
+        from gui.vistrail_controller import VistrailController as \
+             GUIVistrailController
+        for locator in vt_list:
+            try:
+                (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
+                controller = GUIVistrailController()
+                if tree_info is not None:
+                        from gui.version_view import QVersionTreeView
+                        version_view = QVersionTreeView()
+                        from gui.pipeline_view import QPipelineView
+                        pipeline_view = QPipelineView()
+                        controller.current_pipeline_view = pipeline_view.scene()
+                        controller.set_vistrail(v, locator, abstractions, thumbnails,
+                                        mashups)
+                        version_view.scene().setupScene(controller)
+                        if pdf:
+                            base_fname = "graph_%s.pdf" % locator.short_name
+                            filename = os.path.join(tree_info, base_fname)
+                            version_view.scene().saveToPDF(filename)
+                        else:
+                            base_fname = "graph_%s.png" % locator.short_name
+                            filename = os.path.join(tree_info, base_fname)
+                            version_view.scene().saveToPNG(filename)
+                        del version_view
+                        result.append((True, ""))
+            except Exception, e:
+                result.append((False, str(e)))
+    else:
+        error_str = "Cannot save version tree figure when not " \
+            "running in gui mode"
+        debug.critical(error_str)
+        result.append((False, error_str))
     return result
 
 ################################################################################

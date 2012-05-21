@@ -93,6 +93,8 @@ echo "copying LICENSE file..."
 cp Input/LICENSE dist/
 echo "copying VisTrails.command file..."
 cp Input/VisTrails.command dist/
+echo "copying CLToolsWizard.command file..."
+cp Input/CLToolsWizard.command dist/
 echo "adding extension files..."
 cp -r ../../extensions dist/extensions
 echo "adding script files..."

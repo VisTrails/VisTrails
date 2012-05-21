@@ -163,6 +163,9 @@ class QToolWindowInterface(object):
             if self.parent()!=self._toolWindow:
                 self._toolWindow.setParent(self.parent())
 
+    def setToolWindowAcceptDrops(self, value):
+        self.toolWindow().setAcceptDrops(value)
+
 ###############################################################################
 
 class QDockContainer(QtGui.QMainWindow):

@@ -41,6 +41,7 @@ constants.
 from PyQt4 import QtCore, QtGui
 from core.utils import any, expression
 from core import system
+
 ############################################################################
 
 class ConstantWidgetMixin(object):
@@ -199,10 +200,11 @@ class PathChooserToolButton(QtGui.QToolButton):
             self.parent().update_parent()
     
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getOpenFileName(self,
                                                  'Use Filename '
                                                  'as Value...',
-                                                 self.lineEdit.text(),
+                                                 text,
                                                  'All files '
                                                  '(*.*)')
 
@@ -278,10 +280,11 @@ class FileChooserToolButton(PathChooserToolButton):
                                        "Open a file chooser")
         
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getOpenFileName(self,
                                                  'Use Filename '
                                                  'as Value...',
-                                                 self.lineEdit.text(),
+                                                 text,
                                                  'All files '
                                                  '(*.*)')
 
@@ -294,12 +297,13 @@ class DirectoryChooserToolButton(PathChooserToolButton):
     def __init__(self, parent=None, lineEdit=None):
         PathChooserToolButton.__init__(self, parent, lineEdit, 
                                        "Open a directory chooser")
-        
+
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getExistingDirectory(self,
                                                       'Use Directory '
                                                       'as Value...',
-                                                      self.lineEdit.text())
+                                                      text)
 
 class DirectoryChooserWidget(PathChooserWidget):
     def create_browse_button(self):
@@ -311,9 +315,10 @@ class OutputPathChooserToolButton(PathChooserToolButton):
                                        "Open a path chooser")
     
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getSaveFileName(self,
                                                  'Save Path',
-                                                 self.lineEdit.text(),
+                                                 text,
                                                  'All files (*.*)')
 
 class OutputPathChooserWidget(PathChooserWidget):

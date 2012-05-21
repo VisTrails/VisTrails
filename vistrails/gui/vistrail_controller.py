@@ -206,14 +206,15 @@ class VistrailController(QtCore.QObject, BaseController):
             self.stop_timer()
 
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None):
+                     thumbnails=None, mashups=None, set_log_on_vt=True):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         # self.vistrail = vistrail
         BaseController.set_vistrail(self, vistrail, locator, abstractions,
-                                    thumbnails, mashups)
+                                    thumbnails, mashups, 
+                                    set_log_on_vt=set_log_on_vt)
         if locator != None:
             self.set_file_name(locator.name)
         else:
@@ -431,8 +432,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
 #                msg_box.setDetailedText(str(e))
 #                msg_box.exec_()
-                text = "The current workflow could not be validated."
-                debug.critical('%s\n%s' % (text, str(e)))
+                # text = "The current workflow could not be validated."
+                # debug.critical('%s\n%s' % (text, str(e)))
+                debug.critical(str(e))
 
 #                 print 'got to exception set'
 #                 # Process all errors as usual
@@ -1208,8 +1210,9 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         BaseController.set_changed(self, changed)
-        # FIXME: emit different signal in the future
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        if changed:
+            # FIXME: emit different signal in the future
+            self.emit(QtCore.SIGNAL('stateChanged'))
 
     def set_file_name(self, file_name):
         """ set_file_name(file_name: str) -> None
@@ -1286,6 +1289,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
         (a, b) = self.analogy[analogy_name]
         c = analogy_target
+        if self.current_version != c:
+            self.change_selected_version(c)
 
         try:
             pipeline_a = self.vistrail.getPipeline(a)
@@ -1293,11 +1298,13 @@ class VistrailController(QtCore.QObject, BaseController):
         except InvalidPipeline, e:
             (_, pipeline_a) = \
                 self.handle_invalid_pipeline(e, a, Vistrail())
+            self._delayed_actions = []
         try:
             pipeline_c = self.vistrail.getPipeline(c)
             self.validate(pipeline_c)
         except InvalidPipeline, e:
             (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
+            self._delayed_actions = []
                                                      
         action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
                                                           a, b, c, 
@@ -1307,9 +1314,11 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.change_description("Analogy", action.id)
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
                                           action.id)
-        self.perform_action(action)
-        self.validate(self.current_pipeline, False)
-        self.current_pipeline_view.setupScene(self.current_pipeline)
+        
+        # make sure that the output from the analogy is as up-to-date
+        # as we can make it
+        self.change_selected_version(action.id, from_root=True)
+        self.flush_delayed_actions()
     
 ################################################################################
 # Testing

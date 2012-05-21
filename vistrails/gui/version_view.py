@@ -273,6 +273,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.setEditable(False)
         self.setFont(CurrentTheme.VERSION_FONT)
         self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
+        self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
         self.centerX = 0.0
         self.centerY = 0.0
         self.label = ''
@@ -300,6 +301,12 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.timer.setSingleShot(True)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.setEditable)
         self.timer.start(QtGui.QApplication.doubleClickInterval() + 5)
+
+    def setGhosted(self, ghosted):
+        if ghosted:
+            self.setDefaultTextColor(CurrentTheme.GHOSTED_VERSION_LABEL_COLOR)
+        else:
+            self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
 
     def changed(self, x, y, label, tag=True):
         """ changed(x: float, y: float, label: str) -> None
@@ -459,12 +466,15 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         if self.ghosted <> ghosted:
             self.ghosted = ghosted
+            self.text.setGhosted(ghosted)
             if ghosted:
                 self._versionPenNormal = CurrentTheme.GHOSTED_VERSION_PEN
                 self._versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
             else:
                 self._versionPenNormal = CurrentTheme.VERSION_PEN
                 self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
+            if not self.isSelected():
+                self._versionPen = self._versionPenNormal
             self.updatePainterState()
 
     def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
@@ -668,10 +678,11 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     def perform_analogy(self):
         sender = self.scene().sender()
         analogy_name = str(sender.text())
-        selectedItems = self.scene().selectedItems()
+        # selectedItems = self.scene().selectedItems()
         controller = self.scene().controller
-        for item in selectedItems:
-            controller.perform_analogy(analogy_name, item.id)
+        print "calling perform analogy", analogy_name, self.id
+        # for item in selectedItems:
+        controller.perform_analogy(analogy_name, self.id)
 
     def show_raw_pipeline(self):
         self.scene().emit_selection = False
@@ -841,6 +852,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
                               max_rank, ghosted)
+        for (version_from, version_to), link in self.edges.iteritems():
+            if self.versions[version_from].ghosted and \
+                    self.versions[version_to].ghosted:
+                link.setGhosted(True)
+            else:
+                link.setGhosted(False)
 
     def update_scene_single_node_change(self, controller, old_version, new_version):
         """ update_scene_single_node_change(controller: VistrailController,
@@ -1107,10 +1124,6 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
 
-        # the redo stack stores the undone action ids 
-        # (undo is automatic with us, through the version tree)
-        self.redo_stack = []
-
     def set_default_layout(self):
         from gui.collection.workspace import QWorkspaceWindow
         from gui.version_prop import QVersionProp
@@ -1150,17 +1163,19 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         return versionId > 0 
 
     def can_redo(self, versionId):
-        return len(self.redo_stack) > 0
+        return self.controller and self.controller.can_redo()
 
     def can_undo(self, versionId):
-        return versionId > 0
+        return self.controller and self.controller.can_undo()
     
     def can_execute(self, pipeline):
         return pipeline is not None and len(pipeline.modules) > 0
     
     def execute(self):
-        self.controller.execute_current_workflow()
+        res = self.controller.execute_current_workflow()
         from gui.vistrails_window import _app
+        if len(res[0][0].errors) > 0:
+            _app.qactions['pipeline'].trigger()
         _app.notify('execution_updated')
         
     def publish_to_web(self):

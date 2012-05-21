@@ -138,6 +138,10 @@ class VistrailController(object):
         # This will just store the mashups in memory and send them to SaveBundle
         # when writing the vistrail
         self._mashups = []
+
+        # the redo stack stores the undone action ids 
+        # (undo is automatic with us, through the version tree)
+        self.redo_stack = []
         
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
@@ -168,13 +172,14 @@ class VistrailController(object):
         return self.locator
     
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None):
+                     thumbnails=None, mashups=None, set_log_on_vt=True):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
             self.vistrail.current_session = self.current_session
-            self.vistrail.log = self.log
+            if set_log_on_vt:
+                self.vistrail.log = self.log
             if abstractions is not None:
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
@@ -237,7 +242,8 @@ class VistrailController(object):
         Returns True if vistrail variable was changed """
         if self.vistrail:
             changed = self.vistrail.set_vistrail_var(name, value)
-            self.set_changed(changed)
+            if changed:
+                self.set_changed(changed)
             return changed
         return False
     
@@ -2808,7 +2814,7 @@ class VistrailController(object):
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
             details = '\n'.join(set(str(e) for e in left_exceptions + \
                                     new_exceptions))
-            debug.critical("Some exceptions could not be handled", details)
+            # debug.critical("Some exceptions could not be handled", details)
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
@@ -2850,7 +2856,7 @@ class VistrailController(object):
             if self.current_version != -1 and not self.current_pipeline:
                 debug.warning("current_version is not -1 and "
                               "current_pipeline is None")
-            if version != self.current_pipeline:
+            if version != self.current_version:
                 # clear delayed actions
                 # FIXME: invert the delayed actions and integrate them into
                 # the general_action_chain?
@@ -3272,7 +3278,7 @@ class VistrailController(object):
         """ Returns the saved log from zip or DB
         
         """
-        return self.vistrail.get_log()
+        return self.vistrail.get_persisted_log()
  
     def write_registry(self, locator):
         registry = core.modules.module_registry.get_module_registry()
@@ -3281,3 +3287,38 @@ class VistrailController(object):
 
     def update_checkout_version(self, app=''):
         self.vistrail.update_checkout_version(app)
+
+    def reset_redo_stack(self):
+        self.redo_stack = []
+
+    def undo(self):
+        """Performs one undo step, moving up the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        self.redo_stack.append(self.current_version)
+        self.show_parent_version()
+        new_action = action_map.get(self.current_version, None)
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'undo')
+        # return self.current_version
+
+    def redo(self):
+        """Performs one redo step if possible, moving down the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        if len(self.redo_stack) < 1:
+            debug.critical("Redo on an empty redo stack. Ignoring.")
+            return
+        next_version = self.redo_stack[-1]
+        self.redo_stack = self.redo_stack[:-1]
+        self.show_child_version(next_version)
+        new_action = action_map[self.current_version]
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'redo')
+        # return next_version
+
+    def can_redo(self):
+        return (len(self.redo_stack) > 0)
+
+    def can_undo(self):
+        return self.current_version > 0

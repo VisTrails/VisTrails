@@ -27,3 +27,9 @@ import sys
 version = '0.2'
 identifier = 'org.comp-phys.batchq'
 name = 'Job Submission'
+
+def package_requirements():
+    import core.requirements
+    if not core.requirements.python_module_exists('batchq'):
+        raise core.requirements.MissingRequirement('batchq')
+

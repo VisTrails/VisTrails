@@ -34,7 +34,8 @@
 
 from core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
-from core.modules.module_registry import get_module_registry
+from core.modules.module_registry import get_module_registry, \
+    ModuleRegistryException
 import core.db.io
 from core.requirements import MissingRequirement
 from core.vistrail.module import Module
@@ -47,10 +48,10 @@ from core.vistrail.pipeline import Pipeline
 
 from eigen import *
 
-_debug = True
+_debug = False
 
 def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c, 
-                                pipeline_a=None, pipeline_c=None, alpha=0.85):
+                                pipeline_a=None, pipeline_c=None, alpha=0.15):
     """perform_analogy(vistrail, version_a, version_b, version_c,
                        pipeline_a=None, pipeline_c=None, alpha=0.15): action
     Creates a new action version_d to the vistrail such that the difference
@@ -104,6 +105,10 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
     input_module_name_remap = name_remap(input_module_remap)
     output_module_name_remap = name_remap(output_module_remap)
 
+    if _debug:
+        print 'Name remap'
+        print module_name_remap
+
     # find connection remap
     connection_remap = {}
     for a_connect in pipeline_a.connections.itervalues():
@@ -120,7 +125,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                     break
         if match is not None:
             connection_remap[a_connect.id] = c_connect.id
-        else:
+        elif _debug:
             print "failed to find connection match", a_connect.id, a_source, \
                 a_dest
 
@@ -323,9 +328,13 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                             def remap():
                                 port_type = \
                                     PortSpec.port_type_map.inverse[port.type]
-                                pspec = reg.get_port_spec(m.package, m.name,
-                                                          m.namespace,
-                                                          port.name, port_type)
+                                try:
+                                    pspec = reg.get_port_spec(m.package, m.name,
+                                                              m.namespace,
+                                                              port.name, 
+                                                              port_type)
+                                except ModuleRegistryException:
+                                    return False
                                 all_ports = reg.all_source_ports(d)
                                 # print "pspec", pspec
                                 # First try to find a perfect match
@@ -361,10 +370,15 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                             def remap():
                                 port_type = \
                                     PortSpec.port_type_map.inverse[port.type]
-                                pspec = reg.get_port_spec(m.package, m.name,
-                                                          m.namespace,
-                                                          port.name, port_type)
-#                                 print "This is the spec", port.spec, port.db_spec
+                                try:
+                                    pspec = reg.get_port_spec(m.package, m.name,
+                                                              m.namespace,
+                                                              port.name, 
+                                                              port_type)
+                                    # print "This is the spec", port.spec, \
+                                    #     port.db_spec
+                                except ModuleRegistryException:
+                                    return False
                                 all_ports = reg.all_destination_ports(d)
                                 # First try to find a perfect match
                                 for (klass_name, ports) in all_ports:

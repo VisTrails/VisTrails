@@ -106,6 +106,7 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
 
     def updateModule(self, module):
         if self.updateLocked: return
+        self.check_need_save_changes()
         self.module = module
         self.confWidget.setUpdatesEnabled(False)    
         self.confWidget.setVisible(False)
@@ -177,3 +178,9 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
             self.show()
         self.activateWindow()
         self.confWidget.activate()
+        
+    def check_need_save_changes(self):
+        if self.confWidget:
+            self.lockUpdate()
+            self.confWidget.askToSaveChanges()
+            self.unlockUpdate()

@@ -199,7 +199,7 @@ class InvalidPipeline(Exception):
         self._version = version
 
     def __str__(self):
-        return "Pipeline cannot be instantiated:\n  " + \
+        return "Pipeline has errors. Please see the detailed message for more information.\n  " + \
             '\n  '.join(line for e in self._exception_set
                         for line in str(e).splitlines())
 

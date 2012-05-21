@@ -1757,7 +1757,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Removes module from scene, updating appropriate data structures.
 
         """
-        self.removeItem(self.modules[m_id])
+        core_module = self.modules[m_id].module
+        if not core_module.has_annotation_with_key('__vistrail_var__'):
+            self.removeItem(self.modules[m_id])
         del self.modules[m_id]
         self._old_module_ids.remove(m_id)
 
@@ -1772,7 +1774,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         (srcModule, dstModule) = connItem.connectingModules
         srcModule.removeConnectionItem(connItem)
         dstModule.removeConnectionItem(connItem)
-        self.removeItem(self.connections[c_id])
+        if not srcModule.module.has_annotation_with_key('__vistrail_var__'):
+            self.removeItem(self.connections[c_id])
         del self.connections[c_id]
         self._old_connection_ids.remove(c_id)
         
@@ -1962,6 +1965,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # Workaround: On a Mac, dropEvent isn't called if dragMoveEvent is ignored
             event.ignore()
 
+    def dragLeaveEvent(self, event):
+        if type(event.source()) == QDragVariableLabel:
+            data = event.mimeData()
+            if hasattr(data, 'variableData'):
+                if self._var_selected_port is not None:
+                    self._var_selected_port.setPen(CurrentTheme.PORT_PEN)
+                    self._var_selected_port = None
+                event.accept()
+
     def unselect_all(self):
         self.clearSelection()
         if self.pipeline_tab:
@@ -2063,6 +2075,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     # Update the version view node to fit text properly
                     version_item = self.controller.vistrail_view.version_view.scene().versions[self.controller.current_version]
                     version_item.updateWidthFromLabel()
+                    self._var_selected_port = None
                     event.accept()
                     return
         # Ignore if not accepted and returned by this point
@@ -2554,7 +2567,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
              'publishWeb' : ('pipeline_changed', self.check_publish_db),
              'publishPaper' : ('pipeline_changed', self.pipeline_non_empty),
              'controlFlowAssist': ('pipeline_changed', self.pipeline_non_empty),
+             'redo': ('version_changed', self.can_redo),
+             'undo': ('version_changed', self.can_undo),
              }
+
+    def can_redo(self, versionId):
+        return self.controller and self.controller.can_redo()
+
+    def can_undo(self, versionId):
+        return self.controller and self.controller.can_undo()
     
     def set_action_defaults(self):
         self.action_defaults.update(

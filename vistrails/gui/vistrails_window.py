@@ -845,6 +845,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                      QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
                      self.applicationFocusChanged)
 
+        self.preferencesDialog = QPreferencesDialog(self)
+
         if get_vistrails_configuration().detachHistoryView:
             self.history_view = QBaseViewWindow(parent=None)
             self.history_view.resize(800, 600)
@@ -1783,6 +1785,7 @@ class QVistrailsWindow(QVistrailViewWindow):
        
     def get_current_view(self):
         from packages.spreadsheet.spreadsheet_window import SpreadsheetWindow
+        from gui.common_widgets import QToolWindow
         if self.isActiveWindow():
             return self.stack.currentWidget()
         else:
@@ -1799,7 +1802,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return window.view
             elif (window is None or isinstance(window,SpreadsheetWindow)
                   or isinstance(window, QtGui.QMessageBox)
-                  or isinstance(window, QtGui.QMenu)):
+                  or isinstance(window, QtGui.QMenu)
+                  or isinstance(window, QToolWindow)):
+                #in this case we should return the current view (if valid)
+                #or the immediate previous view. If both are invalid we return
+                #the first valid view we find
                 if self.current_view is not None:
                     return self.current_view
                 elif self._previous_vt_view is not None:
@@ -1814,7 +1821,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             #please do not remove this warning. It is necessary to know
             #what type of window is causing the get_current_view to return
             # a wrong value -- Emanuele.
-            debug.warning("[invalid view] get_current_view() -> %s"%window)
+            debug.debug("[invalid view] get_current_view() -> %s"%window)
+            #instead of returning the current widget lets try to return any 
+            #previous view
+            if self.current_view is not None:
+                return self.current_view
+            elif self._previous_vt_view is not None:
+                return self._previous_vt_view
             return self.stack.currentWidget()
         
     def get_current_controller(self):
@@ -2082,21 +2095,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         Display Preferences dialog
 
         """
-        dialog = QPreferencesDialog(self)
-        retval = dialog.exec_()
-        if retval != 0:
-            self.flush_cache()
-            currentView = self.get_current_view()
-            if currentView:
-                current_pipeline = currentView.controller.current_pipeline
-                if current_pipeline:
-                    current_pipeline.validate()
-            
-        # Update the state of the icons if changing between db and file
-        # support
-        dbState = getattr(get_vistrails_configuration(), 'dbDefault')
-        if self.dbDefault != dbState:
-            self.setDBDefault(dbState)
+        self.preferencesDialog.show()
 
     def new_diff(self):
         selected_items = \
@@ -2329,11 +2328,12 @@ class QVistrailsWindow(QVistrailViewWindow):
                         filename = desc.module.vt_fname
                         self.openAbstraction(filename)
                     else:
-                        show_info('Package SubWorkflow is Read-Only',
-                                  "This SubWorkflow is from a package and "
-                                  "cannot be modified.  You can create an "
-                                  "editable copy in 'My SubWorkflows' using "
-                                  "'Edit->Import SubWorkflow'")
+                        debug.critical('Subworkflow is from a package and is '
+                                       'read-only',
+                                       "This subworkflow is from a package and "
+                                       "cannot be modified.  You can create an "
+                                       "editable copy in 'My Subworkflows' "
+                                       "using 'Edit->Import Subworkflow'")
     def merge_vistrail(self):
         action = self.sender()
         if action:
