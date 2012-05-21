@@ -386,6 +386,30 @@ class JavaParser(object):
 
 
 def parse_jar(filename, dir):
+    """Parses all the class files in a JAR.
+
+    Returns a dictionary {full classname: CLASSDICT}
+    Where CLASSDICT is a dictionary:
+        'name': short class name
+        'fullname': full class name
+        'filename', 'line': where this class was declared
+        'interface': True if this is an interface
+        'template': True if this class accepts template parameters
+        'modifiers': a set containing the modifiers of this class
+        'extends': the class this one extends or None
+        'implements': a set containing the interfaces this class implements
+        'methods': METHODLIST
+    Where the modifiers may be:
+        'public', 'private', 'protected', 'static', 'final', 'abstract',
+        'native', 'synchronized', 'transient', 'volatile'
+    And METHODLIST is a list of dictionaries:
+        'name': the name of the method (might not ne unique in the list, because
+            Java supports overloading)
+        'modifiers': a set containing the modifiers for this method plus
+            'template' if this method has template parameters
+        'type': the short name of the return type
+        'params' the list of parameter names
+    """
     if dir and not dir.endswith('/'):
         dir = dir + '/'
     zip = ZipFile(filename)
@@ -430,6 +454,7 @@ def parse_jar(filename, dir):
             finally:
                 f.close()
     zip.close()
+    return parsed_classes
 
 
 if __name__ == '__main__':
