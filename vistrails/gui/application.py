@@ -90,7 +90,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
             self.timeout = 10000
-            self._unique_key = "vistrails-single-instance-check-%s"%getpass.getuser()
+            self._unique_key = os.path.join(system.home_directory(),
+                                            "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
             self.local_server = None
             if self.shared_memory.attach():
