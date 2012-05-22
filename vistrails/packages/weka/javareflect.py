@@ -3,14 +3,18 @@ from java.util.zip import ZipInputStream
 from java.lang import Class
 from java.lang import Exception as JavaException
 from java.net import URLClassLoader
+from java.lang.reflect import Method, Modifier
 
-import sys
+from itertools import izip
 
 from core import debug
 
 
-# Iterates on the .class files in a JAR
 class JarIterator(object):
+    """Iterates on the .class files in a JAR.
+
+    Nested classes (SomeClass$InnerClass) are ignored.
+    """
     def _findNextClass(self):
         try:
             entry = self._zip.getNextEntry()
@@ -25,9 +29,10 @@ class JarIterator(object):
             e.printStackTrace() # FIXME : This is a Java method
         return None
 
-    def __init__(self, f):
-        if isinstance(f, str):
-            f = File(f)
+    def __init__(self, filename):
+        if not isinstance(filename, str):
+            raise TypeError('filename must be a string')
+        f = File(filename)
         self._zip = ZipInputStream(FileInputStream(f))
         self._nextEntry = self._findNextClass()
 
@@ -42,29 +47,80 @@ class JarIterator(object):
         return self
 
 
-def format_type(t):
-    if not Class.isArray(t):
-        return Class.getName(t)
-    else:
-        return format_type(Class.getComponentType(t)) + '[]'
+class JavaAnalyzer(object):
+    """Analyzes Java classes into the parseResult structure.
+    """
+    def __init__(self, sources=None):
+        self._sources = sources
+        self.classes = {}
 
+    @staticmethod
+    def _format_type(t):
+        if not Class.isArray(t):
+            return Class.getName(t)
+        else:
+            return JavaAnalyzer._format_type(Class.getComponentType(t)) + '[]'
 
-def analyse_class(c):
-    from sys import stdout
-    methods = c.getMethods()
-    for m in methods:
-        stdout.write("  %s %s(" % (format_type(m.getReturnType()), m.getName()))
-        params = m.getParameterTypes()
-        first = True
-        i = 0
-        for p in params:
-            i += 1
-            if first:
-                first = False
-            else:
-                stdout.write(", ")
-            stdout.write(format_type(p))
-        stdout.write(")\n")
+    def process(self, c):
+        status = 'ok'
+
+        # We're not interested in interfaces
+        if c.isInterface():
+            return 'skipped (interface)'
+
+        # Get the class info that was retrieved from the sources
+        if self._sources:
+            try:
+                sourceClass = self._sources[Class.getName(c)]
+
+                if sourceClass['template']:
+                    # We can't handle that just yet
+                    return 'skipped (template)'
+            except KeyError:
+                sourceClass = None
+
+        superclass = Class.getName(Class.getSuperclass(c))
+        if not superclass.startswith('weka.'):
+            superclass = None
+
+        readClass = {
+                'fullname': Class.getName(c),
+                'extends': superclass}
+
+        readMethods = []
+
+        methods = c.getMethods()
+        for m in methods:
+            mods = m.getModifiers()
+            if Modifier.isAbstract(mods) or Modifier.isStatic(mods) or not Modifier.isPublic(mods):
+                continue
+            readParams = []
+            params = m.getParameterTypes()
+
+            # Find the parameter names from the parsed source
+            sourceParams = None
+            if sourceClass:
+                for sourceMethod in sourceClass['methods']:
+                    if (sourceMethod['name'] == m.getName() and
+                            len(sourceMethod['params']) ==
+                            len(m.getParameterTypes())):
+                        sourceParams = sourceMethod['params']
+                        break
+            if sourceParams is None:
+                status = "parameter names not available"
+                sourceParams = ["arg%d" % i for i in xrange(len(params))]
+
+            for p, n in izip(params, sourceParams):
+                readParams.append((p, n))
+            readMethods.append({
+                    'name': m.getName(),
+                    'returnType': m.getReturnType(),
+                    'params': readParams})
+        readClass['methods'] = readMethods
+
+        self.classes[readClass['fullname']] = readClass
+
+        return status
 
 
 IGNORED_CLASSES = set([
@@ -72,6 +128,15 @@ IGNORED_CLASSES = set([
 
 
 def parse_jar(filename, parsed_sources):
+    """Parse all the .class files in a JAR into the parseResult structure.
+
+    The parseResult will be cached on disk. It is used to emit the VisTrails
+    Module's through module_generator:generate().
+
+    If the parsed sources are available, they will be used to provide the name
+    of the method parameters, as they are not included in the compiled class
+    files.
+    """
     # Because the path used by the java ClassLoader and the Python path are
     # separate, we cannot just add the JAR to the path here
     # We will use another ClassLoader so we can access the classes through
@@ -80,24 +145,33 @@ def parse_jar(filename, parsed_sources):
     url = File(filename).toURI().toURL()
     classLoader = URLClassLoader([url])
 
+    analyzer = JavaAnalyzer(parsed_sources)
+
     iterator = JarIterator(filename)
-    ok, err = 0, 0
+    status = {'ok': 0}
     for classname in iterator:
         if classname in IGNORED_CLASSES:
             continue
         try:
             c = classLoader.loadClass(classname)
-            print classname
-            analyse_class(c)
-            ok += 1
+            ret = analyzer.process(c)
         except JavaException, e:
-            print e
-            err += 1
+            ret = 'exception'
+        try:
+            status[ret] += 1
+        except KeyError:
+            status[ret] = 1
 
-    debug.warning("ok: %d, err: %d" % (ok, err))
+    msg = "analyzing weka.jar through java reflection:\n"
+    for ret, nb in status.iteritems():
+        msg += "  %4d %s\n" % (nb, ret)
+    debug.warning(msg)
+
+    return analyzer.classes
 
 
 if __name__ == '__main__':
     debug.DebugPrint.getInstance().set_message_level(debug.DebugPrint.Log)
 
-    parse_jar('C:\\Program Files (x86)\\Weka-3-6\\weka.jar', set())
+    from pprint import pprint
+    pprint(parse_jar('C:\\Program Files (x86)\\Weka-3-6\\weka.jar', dict()))

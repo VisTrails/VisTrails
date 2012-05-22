@@ -3,7 +3,11 @@ from core import debug
 
 
 class JavaParser(object):
-    """This class parses a Java source file to find the method signatures.
+    """The class that does the actual parsing of Java source files.
+
+    Yes, this was written by hand. Should work, however because the Java
+    grammar is rather complex and the official grammar rules were not used,
+    some particular cases might cause errors.
     """
     class Error(Exception):
         pass
@@ -386,7 +390,7 @@ class JavaParser(object):
 
 
 def parse_jar(filename, dir):
-    """Parses all the class files in a JAR.
+    """Parses all the .java files in a JAR.
 
     Returns a dictionary {full classname: CLASSDICT}
     Where CLASSDICT is a dictionary:

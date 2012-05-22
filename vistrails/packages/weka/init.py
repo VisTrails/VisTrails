@@ -24,7 +24,16 @@ from core.configuration import get_vistrails_configuration
 from core.system import default_dot_vistrails
 
 
+class WekaConfigurationError(Exception):
+    pass
+
+
 def hashfile(filename, hash=hashlib.md5()):
+    """Computes the hash of a file, given its path.
+
+    Opens the file in binary mode and wraps the appropriate calls to
+    hash.update(). hash defaults to MD5.
+    """
     block_size = hash.block_size
     with open(filename, 'rb') as f:
         chunk = f.read(block_size)
@@ -35,7 +44,22 @@ def hashfile(filename, hash=hashlib.md5()):
 
 
 def initialize():
+    """Entry point for this module.
+
+    This function create the VisTrails Module's from the JARs. It attempts to
+    load the package configuration from a cache file, or regenerates it by
+    parsing the source JAR (for method parameter names) and the class JAR.
+
+    Related configuration options:
+      'wekaDirectory': where to find the JARs
+      'wekaJar': the class JAR (default: weka.jar). May be relative to
+          'wekaDirectory'
+      'wekaSrcJar': the source JAR (default: weka-src.jar). May be relative to
+          'wekaDirectory'
+    """
     configuration = get_vistrails_configuration()
+    # FIXME : Debug
+    configuration = {'wekaDirectory': 'C:\\Program Files (x86)\\Weka-3-6'}
 
     try:
         weka_jar = configuration['wekaJar']
@@ -58,9 +82,9 @@ def initialize():
         weka_dir = ''
 
     if not os.path.isfile(weka_jar):
-        raise Exception("Couldn't find weka.jar")
+        raise WekaConfigurationError("Couldn't find weka.jar")
     if not os.path.isfile(weka_jar):
-        raise Exception("Couldn't find weka-src.jar")
+        raise WekaConfigurationError("Couldn't find weka-src.jar")
 
     parseResultFilename = os.path.join(
             default_dot_vistrails(),
@@ -69,7 +93,7 @@ def initialize():
     # Attempt to load the cached result
     try:
         parseResultFile = file(parseResultFilename)
-        parseResult = json.load(parseResultFile)
+        raise IOError #parseResult = json.load(parseResultFile)
         parseResultFile.close()
     # If it fails, rebuild everything
     except IOError:
@@ -80,12 +104,16 @@ def initialize():
             parseResult = None
 
     if parseResult is None:
+        debug.warning("couldn't find the Weka interface cache file\n"
+                      "Parsing the Weka JARs now - could take a few minutes")
         import javaparser, javareflect
         parsed_classes = javaparser.parse_jar(weka_src, 'src/main/java')
         parseResult = javareflect.parse_jar(weka_jar, parsed_classes)
         try:
             parseResultFile = file(parseResultFilename, 'w')
-            json.dump(parseResult, parseResultFile)
+            #json.dump(parseResult, parseResultFile)
+            #from pprint import pprint
+            #pprint(parseResult)
             parseResultFile.close()
         except IOError:
             debug.warning("couldn't write the weka reflection cache file\n"
@@ -93,3 +121,7 @@ def initialize():
 
     import module_generator
     module_generator.generate(parseResult)
+
+
+if __name__ == '__main__':
+    initialize()
