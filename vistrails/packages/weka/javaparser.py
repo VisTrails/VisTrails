@@ -7,7 +7,7 @@ class JavaParser(object):
     """
     class Error(Exception):
         pass
-    
+
     def __init__(self, file, filename):
         self._file = file
         self.filename = filename
@@ -178,7 +178,7 @@ class JavaParser(object):
     ################
     # Parser stuff
     #
-    
+
     def _skip_statement(self):
         # A statement might contain blocks, because of anonymous classes...
         n = self._next_token(throw=True, full_types=False)
@@ -248,7 +248,7 @@ class JavaParser(object):
             elif token == 'class' or token == 'interface':
                 interface = (token == 'interface')
                 classname = self._next_token(throw=True)
-                
+
                 # Fix the class name: remove template parameters
                 try:
                     pos = classname.index('<')
@@ -258,7 +258,7 @@ class JavaParser(object):
                 else:
                     classname = classname[:pos]
                     template = True
-                
+
                 if not stack:
                     if package + '.' + classname == self.name and interface:
                         return dict()
