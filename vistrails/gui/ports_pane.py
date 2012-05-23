@@ -500,15 +500,7 @@ class PortsList(QtGui.QTreeWidget):
             elif item.childCount() > 0:
                 item.setExpanded(True)
             elif item.childCount() == 0 and item.is_constant():
-                subitem = self.entry_klass(item.port_spec)
-                item.addChild(subitem)
-                subitem.setFirstColumnSpanned(True)
-                self.setItemWidget(subitem, 0, subitem.get_widget())
-                item.setExpanded(True)
-                # need to find port_spec
-                if len(item.port_spec.descriptors()) == 0:
-                    self.update_method(subitem, item.port_spec.name, [], [])
-
+                self.do_add_method(item.port_spec, item)
         
     def set_controller(self, controller):
         self.controller = controller
@@ -552,30 +544,33 @@ class PortsList(QtGui.QTreeWidget):
         # how to delete items...x
         # subitem.deleteLater()
             
+    def do_add_method(self, port_spec, item):
+        """do_add_method(port_spec: PortSpec,
+                         item:      PortItem) -> None
 
-    def add_method(self, port_name):
-        port_spec, item = self.port_spec_items[port_name]
+        Displays a new method for the port.
+        """
+
         subitem = self.entry_klass(port_spec)
         item.addChild(subitem)
         subitem.setFirstColumnSpanned(True)
         self.setItemWidget(subitem, 0, subitem.get_widget())
         item.setExpanded(True)
         if len(port_spec.descriptors()) == 0:
-            self.update_method(subitem, port_name, [], [])
-            
-        
-        # if methodBox.controller:
-        #     methodBox.lockUpdate()
-        #     methodBox.controller.update_function(methodBox.module,
-        #                                          self.function.name,
-        #                                          [str(w.contents()) 
-        #                                           for w in self.widgets],
-        #                                          self.function.real_id,
-        #                                          [str(label.alias)
-        #                                           for label in self.labels])
-            
-        #     methodBox.unlockUpdate()
+            self.update_method(subitem, port_spec.name, [], [])
+        elif port_spec.defaults is not None:
+            self.controller.update_function(self.module,
+                                            port_spec.name, port_spec.defaults,
+                                            -1, [], [], True)
+            for i, w in enumerate(subitem.my_widgets):
+                if i >= len(port_spec.defaults):
+                    break
+                w.setContents(port_spec.defaults[i])
 
+    def add_method(self, port_name):
+        port_spec, item = self.port_spec_items[port_name]
+        self.do_add_method(port_spec, item)
+        
     def contextMenuEvent(self, event):
         # Just dispatches the menu event to the widget item
         item = self.itemAt(event.pos())
