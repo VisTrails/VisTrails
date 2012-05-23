@@ -325,7 +325,7 @@ def initialize(*args, **keywords):
         if path.endswith(SUFFIX):
             try:
                 add_tool(os.path.join(location, path))
-            except Exception as exc:
+            except Exception, exc:
                 import traceback
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), str(exc)),
