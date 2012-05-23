@@ -219,17 +219,17 @@ class QVerticalWidget(QPromptWidget):
         for v in self._variable_widgets:
             self.layout().removeWidget(v)
             v.deleteLater()
-            del v
         self._variable_widgets = []
         self.setEnabled(True)
 
     def delete_form(self, input_form):
+        self.connect(input_form, QtCore.SIGNAL('deleted(QWidget*)'), 
+                     self.delete_form)
         var_name = input_form.var_name
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
         self._variable_widgets.remove(input_form)
         input_form.deleteLater()
-        del input_form
         self.showPromptByChildren()
 
         if variableBox.controller:
