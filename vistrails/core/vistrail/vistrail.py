@@ -1090,6 +1090,18 @@ class Vistrail(DBVistrail):
             log = open_vt_log_from_db(connection, self.db_id)
         Log.convert(log)
         return log
+    
+    def get_used_packages(self):
+        package_list = {}
+        for action in self.actions:
+            for op in action.operations:
+                try:
+                    if type(op) == AddOp and op.what == 'module':
+                        package_list[op.data.package] = op.data.package
+                except:
+                    pass
+        return package_list
+                    
 
 ##############################################################################
 

@@ -50,6 +50,13 @@ def can_handle_identifier(identifier):
     """ This package handles packages where identifier starts with SUDS#
     """
     return identifier.startswith('SUDS#')
+
+def can_handle_vt_file(name):
+    """ This package handles file in zipped .vt files that ends with
+        "-wsdl-px"
+        They are cached web service instances 
+    """
+    return name.endswith("-wsdl.px")
     
 #def package_dependencies():
 #    return ['edu.utah.sci.vistrails.http']
