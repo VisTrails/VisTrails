@@ -9,3 +9,7 @@ from core.configuration import ConfigurationObject
 name = 'Weka'
 identifier = "edu.utah.sci.vistrails.weka"
 version = "0.1.0"
+configuration = ConfigurationObject(
+        wekaDirectory='',
+        wekaJar='weka.jar',
+        wekaSrcJar='weka-src.jar')

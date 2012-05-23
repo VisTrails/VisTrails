@@ -245,7 +245,9 @@ class PreferenceWindow(JDialog, ActionListener):
                     self.button_configure.setEnabled(False)
                     self.button_reload.setEnabled(False)
         elif e.getActionCommand() == 'conf':
-            pass
+            debug.warning("configuration dialog requested for package %s\n"
+                          "not yet implemented" %
+                          self.list_enabled.getSelectedValue())
         elif e.getActionCommand() == 'rel':
             pass
 
@@ -302,6 +304,7 @@ class PreferenceWindow(JDialog, ActionListener):
                         (', '.join(pm.reverse_dependencies(pkg.identifier)) or
                          'No reverse dependencies.')
                     reverse_deps = '<html>' + reverse_deps + '</html>'
+                    self.button_configure.setEnabled(pkg.configuration is not None)
                 except KeyError:
                     reverse_deps = ("Reverse dependencies only " +
                                     "available for enabled packages.")

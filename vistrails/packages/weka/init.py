@@ -20,7 +20,7 @@ import json
 import hashlib
 
 from core import debug
-from core.configuration import get_vistrails_configuration
+from core import configuration
 from core.system import default_dot_vistrails
 
 
@@ -57,22 +57,12 @@ def initialize():
       'wekaSrcJar': the source JAR (default: weka-src.jar). May be relative to
           'wekaDirectory'
     """
-    configuration = get_vistrails_configuration()
-    # FIXME : Debug
-    configuration = {'wekaDirectory': 'C:\\Program Files (x86)\\Weka-3-6'}
+    weka_jar = getattr(configuration, 'wekaJar', 'weka.jar')
+    weka_src = getattr(configuration, 'wekaSrcJar', 'weka-src.jar')
 
     try:
-        weka_jar = configuration['wekaJar']
-    except KeyError:
-        weka_jar = 'weka.jar'
-
-    try:
-        weka_src = configuration['wekaSrcJar']
-    except KeyError:
-        weka_src = 'weka-src.jar'
-
-    try:
-        weka_dir = os.path.abspath(configuration['wekaDirectory'])
+        #weka_dir = os.path.abspath(getattr(configuration, 'wekaDirectory', ''))
+        weka_dir = 'C:\\Users\\User_2\\Desktop\\fakeweka' # DEBUG
         if not os.path.isdir(weka_dir):
             debug.warning("specified wekaDirectory is not a directory:\n"
                           "%s" % weka_dir)
@@ -92,7 +82,7 @@ def initialize():
 
     # Attempt to load the cached result
     try:
-        parseResultFile = file(parseResultFilename)
+        parseResultFile = open(parseResultFilename, 'r')
         raise IOError #parseResult = json.load(parseResultFile)
         parseResultFile.close()
     # If it fails, rebuild everything
@@ -110,7 +100,7 @@ def initialize():
         parsed_classes = javaparser.parse_jar(weka_src, 'src/main/java')
         parseResult = javareflect.parse_jar(weka_jar, parsed_classes)
         try:
-            parseResultFile = file(parseResultFilename, 'w')
+            parseResultFile = open(parseResultFilename, 'w')
             #json.dump(parseResult, parseResultFile)
             #from pprint import pprint
             #pprint(parseResult)
