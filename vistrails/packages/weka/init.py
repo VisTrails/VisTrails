@@ -16,7 +16,7 @@ startup, as Weka is a pretty big library.
 from __future__ import with_statement
 
 import os
-import json
+import pickle
 import hashlib
 
 from core import debug
@@ -78,12 +78,12 @@ def initialize():
 
     parseResultFilename = os.path.join(
             default_dot_vistrails(),
-            'weka-methods.json')
+            'weka-methods.pickle')
 
     # Attempt to load the cached result
     try:
-        parseResultFile = open(parseResultFilename, 'r')
-        raise IOError #parseResult = json.load(parseResultFile)
+        parseResultFile = open(parseResultFilename, 'rb')
+        raise IOError #parseResult = pickle.load(parseResultFile)
         parseResultFile.close()
     # If it fails, rebuild everything
     except IOError:
@@ -100,10 +100,8 @@ def initialize():
         parsed_classes = javaparser.parse_jar(weka_src, 'src/main/java')
         parseResult = javareflect.parse_jar(weka_jar, parsed_classes)
         try:
-            parseResultFile = open(parseResultFilename, 'w')
-            #json.dump(parseResult, parseResultFile)
-            #from pprint import pprint
-            #pprint(parseResult)
+            parseResultFile = open(parseResultFilename, 'wb')
+            #pickle.dump(parseResult, parseResultFile, pickle.HIGHEST_PROTOCOL)
             parseResultFile.close()
         except IOError:
             debug.warning("couldn't write the weka reflection cache file\n"
