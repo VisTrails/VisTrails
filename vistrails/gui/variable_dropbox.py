@@ -217,9 +217,9 @@ class QVerticalWidget(QPromptWidget):
         """
         self.setEnabled(False)
         for v in self._variable_widgets:
-            v.hide()
             self.layout().removeWidget(v)
             v.deleteLater()
+            del v
         self._variable_widgets = []
         self.setEnabled(True)
 
@@ -228,8 +228,8 @@ class QVerticalWidget(QPromptWidget):
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
         self._variable_widgets.remove(input_form)
-        input_form.hide()
         input_form.deleteLater()
+        del input_form
         self.showPromptByChildren()
 
         if variableBox.controller:
