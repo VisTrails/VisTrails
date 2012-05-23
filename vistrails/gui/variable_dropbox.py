@@ -223,7 +223,7 @@ class QVerticalWidget(QPromptWidget):
         self.setEnabled(True)
 
     def delete_form(self, input_form):
-        self.connect(input_form, QtCore.SIGNAL('deleted(QWidget*)'), 
+        self.disconnect(input_form, QtCore.SIGNAL('deleted(QWidget*)'), 
                      self.delete_form)
         var_name = input_form.var_name
         variableBox = self.parent().parent()
