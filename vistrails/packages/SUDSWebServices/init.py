@@ -790,8 +790,8 @@ def saveVistrailFileHook(vistrail, temp_dir):
             name = "suds-%s-wsdl.px" % abs(hash(address))
             cached = os.path.join(package_cache.location, name)
             vt_cached = os.path.join(temp_dir, name)
-        if os.path.exists(cached):
-            shutil.copyfile(cached, vt_cached)
+            if os.path.exists(cached):
+                shutil.copyfile(cached, vt_cached)
 
 def loadVistrailFileHook(vistrail, temp_dir):
     """ This is called when a vistrail is saved
