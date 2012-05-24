@@ -343,6 +343,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.scene().removeItem(self.tmp_connection_item)
             self.tmp_connection_item = None
         self.dragging = False
+        self.setSelected(False)
         QtGui.QAbstractGraphicsShapeItem.mouseReleaseEvent(self, event)
         
     def mouseMoveEvent(self, event):
