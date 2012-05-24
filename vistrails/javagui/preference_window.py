@@ -12,6 +12,8 @@ import springutilities
 from core.packagemanager import get_package_manager
 from core import debug
 
+from package_configuration import PackageConfigurationWindow
+
 
 class SortedListModel(DefaultListModel):
     def findInsertionPoint(self, element):
@@ -245,9 +247,12 @@ class PreferenceWindow(JDialog, ActionListener):
                     self.button_configure.setEnabled(False)
                     self.button_reload.setEnabled(False)
         elif e.getActionCommand() == 'conf':
-            debug.warning("configuration dialog requested for package %s\n"
-                          "not yet implemented" %
-                          self.list_enabled.getSelectedValue())
+            pm = get_package_manager()
+            codepath = self.list_enabled.getSelectedValue()
+            dlg = PackageConfigurationWindow(
+                    self,
+                    pm.get_package_by_codepath(codepath))
+            dlg.setVisible(True)
         elif e.getActionCommand() == 'rel':
             pass
 
