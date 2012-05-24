@@ -312,7 +312,11 @@ class QVTKWidget(QCellWidget):
                     if isinstance(QtGui.QX11Info.display(),QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
                         vp = '_%s_void_p' % (hex(display)[2:])
-                if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+                v = vtk.vtkVersion()
+                version = [v.GetVTKMajorVersion(),
+                           v.GetVTKMinorVersion(),
+                           v.GetVTKBuildVersion()]
+                if version < [5, 7, 0]:
                     vp = vp + '\0x00'                
                 self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)

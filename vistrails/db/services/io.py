@@ -654,7 +654,15 @@ def open_vistrail_bundle_from_zip_xml(filename):
                     mashup = open_mashuptrail_from_xml(mashup_file)
                     mashups.append(mashup)
                 else:
-                    unknown_files.append(os.path.join(root, fname))
+                    handled = False
+                    from core.packagemanager import get_package_manager
+                    pm = get_package_manager()
+                    for package in pm.enabled_package_list():
+                        if package.can_handle_vt_file(fname):
+                            handled = True
+                            continue
+                    if not handled:
+                        unknown_files.append(os.path.join(root, fname))
     except OSError, e:
         raise VistrailsDBException("Error when reading vt file")
     if len(unknown_files) > 0:
@@ -663,6 +671,12 @@ def open_vistrail_bundle_from_zip_xml(filename):
     if vistrail is None:
         raise VistrailsDBException("vt file does not contain vistrail")
     vistrail.db_log_filename = log_fname
+
+    # call package hooks
+    from core.packagemanager import get_package_manager
+    pm = get_package_manager()
+    for package in pm.enabled_package_list():
+        package.loadVistrailFileHook(vistrail, vt_save_dir)
 
     save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
                              abstractions=abstraction_files, 
@@ -831,10 +845,17 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'when saving mashup: %s'%str(e))
 
+    # call package hooks
+    from core.packagemanager import get_package_manager
+    pm = get_package_manager()
+    for package in pm.enabled_package_list():
+        package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
+
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
     output = []
     rel_vt_save_dir = os.path.split(vt_save_dir)[1]
+
     # on windows, we assume zip.exe is in the current directory when
     # running from the binary install
     zipcmd = 'zip'

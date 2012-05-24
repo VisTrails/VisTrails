@@ -913,44 +913,25 @@ class ModuleRegistry(DBRegistry):
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        if hasattr(module, '_input_ports'):
-            for port_info in module._input_ports:
-                added = False
-                if len(port_info) >= 2:
-                    port_name, port_sig = port_info[:2]
-                    if len(port_info) > 2 and type(port_info[2]) == dict:
-                        kwargs = port_info[2]
-                        self.add_input_port(module, port_name, port_sig, 
-                                            **kwargs)
-                        added = True
-                    else:
-                        args = port_info[2:]
-                        self.add_input_port(module, port_name, port_sig, 
-                                            *args)
-                        added = True
-                if not added:
-                    raise TypeError("Expected (port_name, port_signature, "
-                                    "kwargs_dict) or (port_name, "
-                                    "port_signature, *args)")
-        if hasattr(module, '_output_ports'):
-            for port_info in module._output_ports:
-                added = False
-                if len(port_info) >= 2:
-                    port_name, port_sig = port_info[:2]
-                    if len(port_info) > 2 and type(port_info[2]) == dict:
-                        kwargs = port_info[2]
-                        self.add_output_port(module, port_name, port_sig, 
-                                             **kwargs)
-                        added = True
-                    else:
-                        args = port_info[2:]
-                        self.add_output_port(module, port_name, port_sig, 
-                                             *args)
-                        added = True
-                if not added:
-                    raise TypeError("Expected (port_name, port_signature, "
-                                    "kwargs_dict) or (port_name, "
-                                    "port_signature, *args)")
+        for (port_key, adder_f) in [('_input_ports', self.add_input_port),
+                                    ('_output_ports', self.add_output_port)]:
+            if port_key in module.__dict__:
+                for port_info in module.__dict__[port_key]:
+                    added = False
+                    if len(port_info) >= 2:
+                        port_name, port_sig = port_info[:2]
+                        if len(port_info) > 2 and type(port_info[2]) == dict:
+                            kwargs = port_info[2]
+                            adder_f(module, port_name, port_sig, **kwargs)
+                            added = True
+                        else:
+                            args = port_info[2:]
+                            adder_f(module, port_name, port_sig, *args)
+                            added = True
+                    if not added:
+                        raise TypeError("Expected (port_name, port_signature, "
+                                        "kwargs_dict) or (port_name, "
+                                        "port_signature, *args)")
 
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module

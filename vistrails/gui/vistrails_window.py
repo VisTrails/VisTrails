@@ -2416,6 +2416,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         from gui.modules.constant_configuration import ConstantWidgetMixin
         from gui.paramexplore.pe_view import QParamExploreView
         from gui.mashups.alias_inspector import QAliasInspector
+        from gui.mashups.mashup_view import QMashupViewTab
         from packages.spreadsheet.spreadsheet_cell import QCellWidget
         def is_or_has_parent_of_types(widget, types):
             while widget is not None:
@@ -2433,7 +2434,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             allowed_widgets = [ConstantWidgetMixin,
                                QParamExploreView,
                                QAliasInspector,
-                               QCellWidget]
+                               QCellWidget,
+                               QMashupViewTab]
             if (self.isAncestorOf(current) or 
                 owner in self.windows.values()):
                 view = self.get_current_view()

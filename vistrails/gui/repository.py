@@ -340,7 +340,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
             if self.unsupported_packages:
                 self.repository_supports_vt = False
                 self._repository_status['details'] += \
-                        "Packages uncompatible with web repository: %s\n\n" % \
+                        "Packages incompatible with web repository: %s\n\n" % \
                         (', '.join(self.unsupported_packages)[:-2])
 
             # display unsupported data modules

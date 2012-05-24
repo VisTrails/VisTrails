@@ -53,8 +53,11 @@ class vtkImagePlaneWidget_fixed(vtk.vtkImagePlaneWidget):
     def SetLookupTable(self, lookup_table):
         self.UserControlledLookupTableOn()
         vtk.vtkImagePlaneWidget.SetLookupTable(self, lookup_table)
-
-if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
+v = vtk.vtkVersion()
+version = [v.GetVTKMajorVersion(),
+           v.GetVTKMinorVersion(),
+           v.GetVTKBuildVersion()]
+if version < [5, 0, 4]:
     description[vtkImagePlaneWidget_fixed] = vtk.vtkImagePlaneWidget
 else:
     description[id(vtkImagePlaneWidget_fixed)] = vtk.vtkImagePlaneWidget

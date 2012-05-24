@@ -1319,6 +1319,7 @@ class VistrailController(QtCore.QObject, BaseController):
         # as we can make it
         self.change_selected_version(action.id, from_root=True)
         self.flush_delayed_actions()
+        self.invalidate_version_tree()
     
 ################################################################################
 # Testing
