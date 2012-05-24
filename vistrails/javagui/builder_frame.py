@@ -53,6 +53,8 @@ import core.system
 
 from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
 from javax.swing import JMenu, JMenuBar, JMenuItem, JButton, SwingConstants
+from javax.swing import JSplitPane
+
 from java.awt import BorderLayout
 from java.lang import System
 
@@ -90,8 +92,8 @@ class BuilderFrame(JFrame):
 
         self.preferenceWindow = PreferenceWindow(self)
 
-        self.contentPanel = JPanel(BorderLayout())
-        self.setContentPane(self.contentPanel)
+        top = JPanel(BorderLayout())
+        self.setContentPane(top)
         root = str(core.system.vistrails_root_directory())
         toolBar = JToolBar()
 
@@ -120,12 +122,15 @@ class BuilderFrame(JFrame):
         self.historyButton = addButton('history.png',
                                        "Switch to version view", "Version")
 
-        self.contentPanel.add(toolBar, BorderLayout.NORTH)
+        top.add(toolBar, BorderLayout.NORTH)
+        
+        self.contentPanel = JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+        top.add(self.contentPanel)
 
         # Create the module palette
         self.modulepalette = JModulePalette()
-        self.contentPanel.add(self.modulepalette, BorderLayout.WEST)
-        # TODO : scrollbar for the palette!
+        self.contentPanel.setLeftComponent(self.modulepalette)
+        self.contentPanel.setDividerLocation(200)
 
     def showFrame(self):
         self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
@@ -151,9 +156,7 @@ class BuilderFrame(JFrame):
 
     def set_current_view(self, view):
         if view != self.current_view:
-            if self.current_view != None:
-                self.contentPanel.remove(self.current_view)
-            self.contentPanel.add(view, BorderLayout.CENTER)
+            self.contentPanel.setRightComponent(view)
             self.current_view = view
 
             self.contentPanel.revalidate() # Needed when using remove()
