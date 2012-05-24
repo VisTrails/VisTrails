@@ -62,7 +62,7 @@ def initialize():
 
     try:
         #weka_dir = os.path.abspath(getattr(configuration, 'wekaDirectory', ''))
-        weka_dir = 'C:\\Users\\User_2\\Desktop\\fakeweka' # DEBUG
+        weka_dir = 'C:\\Program Files (x86)\\Weka-3-6' # DEBUG
         if not os.path.isdir(weka_dir):
             debug.warning("specified wekaDirectory is not a directory:\n"
                           "%s" % weka_dir)
@@ -73,8 +73,6 @@ def initialize():
 
     if not os.path.isfile(weka_jar):
         raise WekaConfigurationError("Couldn't find weka.jar")
-    if not os.path.isfile(weka_jar):
-        raise WekaConfigurationError("Couldn't find weka-src.jar")
 
     parseResultFilename = os.path.join(
             default_dot_vistrails(),
@@ -83,25 +81,30 @@ def initialize():
     # Attempt to load the cached result
     try:
         parseResultFile = open(parseResultFilename, 'rb')
-        raise IOError #parseResult = pickle.load(parseResultFile)
+        parseResult = pickle.load(parseResultFile)
         parseResultFile.close()
     # If it fails, rebuild everything
     except IOError:
         parseResult = None
     else:
         # Check that we are still using the same Weka library
-        if parseResult['weka_md5'] != hashfile(weka_jar):
-            parseResult = None
+        pass
+        # TODO : store the hash somewhere
+        #if parseResult['weka_md5'] != hashfile(weka_jar):
+        #    parseResult = None
 
     if parseResult is None:
         debug.warning("couldn't find the Weka interface cache file\n"
                       "Parsing the Weka JARs now - could take a few minutes")
         import javaparser, javareflect
-        parsed_classes = javaparser.parse_jar(weka_src, 'src/main/java')
+        if os.path.isfile(weka_src):
+            parsed_classes = javaparser.parse_jar(weka_src, 'src/main/java')
+        else:
+            parsed_classes = None
         parseResult = javareflect.parse_jar(weka_jar, parsed_classes)
         try:
             parseResultFile = open(parseResultFilename, 'wb')
-            #pickle.dump(parseResult, parseResultFile, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(parseResult, parseResultFile, pickle.HIGHEST_PROTOCOL)
             parseResultFile.close()
         except IOError:
             debug.warning("couldn't write the weka reflection cache file\n"

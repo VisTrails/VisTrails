@@ -3,11 +3,16 @@ from java.util.zip import ZipInputStream
 from java.lang import Class
 from java.lang import Exception as JavaException
 from java.net import URLClassLoader
-from java.lang.reflect import Method, Modifier
+from java.lang.reflect import Method, Modifier, Constructor
 
 from itertools import izip
 
 from core import debug
+
+
+# Note that ClassName.methodName(object) is used throughout this file instead
+# of object.methodName() for the classes Class, Method and Constructor, as
+# there seems to be a bug in Jython
 
 
 class JarIterator(object):
@@ -26,7 +31,7 @@ class JarIterator(object):
                         return name
                 entry = self._zip.getNextEntry()
         except IOException, e:
-            e.printStackTrace() # FIXME : This is a Java method
+            e.printStackTrace() # Note : This is a Java method
         return None
 
     def __init__(self, filename):
@@ -65,10 +70,11 @@ class JavaAnalyzer(object):
         status = 'ok'
 
         # We're not interested in interfaces
-        if c.isInterface():
+        if Class.isInterface(c):
             return 'skipped (interface)'
 
         # Get the class info that was retrieved from the sources
+        sourceClass = None
         if self._sources:
             try:
                 sourceClass = self._sources[Class.getName(c)]
@@ -77,33 +83,42 @@ class JavaAnalyzer(object):
                     # We can't handle that just yet
                     return 'skipped (template)'
             except KeyError:
-                sourceClass = None
+                pass
 
+        # TODO : Nested classes are currently ignored
+
+        # Find the superclass
         superclass = Class.getName(Class.getSuperclass(c))
         if not superclass.startswith('weka.'):
             superclass = None
 
         readClass = {
                 'fullname': Class.getName(c),
-                'extends': superclass}
+                'extends': superclass,
+                'abstract': Modifier.isAbstract(Class.getModifiers(c))}
 
+        # Read the methods
         readMethods = []
 
-        methods = c.getMethods()
-        for m in methods:
-            mods = m.getModifiers()
-            if Modifier.isAbstract(mods) or Modifier.isStatic(mods) or not Modifier.isPublic(mods):
+        for m in Class.getDeclaredMethods(c):
+            if Method.getName(m) == 'getClass':
+                continue
+
+            mods = Method.getModifiers(m)
+            if (Modifier.isAbstract(mods) or
+                    Modifier.isStatic(mods) or
+                    not Modifier.isPublic(mods)):
                 continue
             readParams = []
-            params = m.getParameterTypes()
+            params = Method.getParameterTypes(m)
 
             # Find the parameter names from the parsed source
             sourceParams = None
             if sourceClass:
                 for sourceMethod in sourceClass['methods']:
-                    if (sourceMethod['name'] == m.getName() and
+                    if (sourceMethod['name'] == Method.getName(m) and
                             len(sourceMethod['params']) ==
-                            len(m.getParameterTypes())):
+                            len(Method.getParameterTypes(m))):
                         sourceParams = sourceMethod['params']
                         break
             if sourceParams is None:
@@ -111,12 +126,42 @@ class JavaAnalyzer(object):
                 sourceParams = ["arg%d" % i for i in xrange(len(params))]
 
             for p, n in izip(params, sourceParams):
-                readParams.append((p, n))
+                readParams.append((JavaAnalyzer._format_type(p), n))
             readMethods.append({
-                    'name': m.getName(),
-                    'returnType': m.getReturnType(),
+                    'name': Method.getName(m),
+                    'returnType': JavaAnalyzer._format_type(
+                            Method.getReturnType(m)),
                     'params': readParams})
         readClass['methods'] = readMethods
+
+        # Read the constructors
+        readConstructors = []
+
+        for m in Class.getConstructors(c):
+            mods = Constructor.getModifiers(m)
+            if not Modifier.isPublic(mods):
+                continue
+            readParams = []
+            params = Constructor.getParameterTypes(m)
+
+            # Find the parameter names from the parsed source
+            sourceParams = None
+            if sourceClass:
+                for sourceMethod in sourceClass['methods']:
+                    if (sourceMethod['name'] == Constructor.getName(m) and
+                            len(sourceMethod['params']) ==
+                            len(Method.getParameterTypes(m))):
+                        sourceParams = sourceMethod['params']
+                        break
+            if sourceParams is None:
+                status = "parameter names not available"
+                sourceParams = ["arg%d" % i for i in xrange(len(params))]
+
+            for p, n in izip(params, sourceParams):
+                readParams.append((JavaAnalyzer._format_type(p), n))
+            readConstructors.append({
+                    'params': readParams})
+        readClass['constructors'] = readConstructors
 
         self.classes[readClass['fullname']] = readClass
 
@@ -127,7 +172,7 @@ IGNORED_CLASSES = set([
         'weka.gui.MacArffOpenFilesHandler'])
 
 
-def parse_jar(filename, parsed_sources):
+def parse_jar(filename, parsed_sources=None):
     """Parse all the .class files in a JAR into the parseResult structure.
 
     The parseResult will be cached on disk. It is used to emit the VisTrails

@@ -454,7 +454,6 @@ def parse_jar(filename, dir):
                                         prev['filename'], prev['line']))
                     except KeyError:
                         parsed_classes[name] = klass
-                print("parsed %s" % filename)
             finally:
                 f.close()
     zip.close()
