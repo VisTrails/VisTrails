@@ -1,18 +1,9 @@
 from java.awt import Dialog
-from java.awt.event import KeyEvent
 from java.awt.event import KeyListener
-from java.util import Vector
 
-from javax.swing import BoxLayout
-from javax.swing import JDialog
-from javax.swing import JFrame
-from javax.swing import JPanel
-from javax.swing import JScrollPane
-from javax.swing import JTable
-from javax.swing import JTextField
+from javax.swing import BoxLayout, JDialog, JPanel, JScrollPane
+from javax.swing import JTable, JTextField
 from javax.swing.table import DefaultTableModel
-
-from java.lang import System
 
 
 class Line(object):

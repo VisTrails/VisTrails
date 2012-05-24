@@ -51,16 +51,8 @@ from core import debug
 from core.thumbnails import ThumbnailCache
 import core.system
 
-from javax.swing import ImageIcon
-from javax.swing import JFileChooser
-from javax.swing import JFrame
-from javax.swing import JMenu
-from javax.swing import JMenuBar
-from javax.swing import JMenuItem
-from javax.swing import JToolBar
-from javax.swing import JButton
-from javax.swing import JPanel
-from javax.swing import SwingConstants
+from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
+from javax.swing import JMenu, JMenuBar, JMenuItem, JButton, SwingConstants
 from java.awt import BorderLayout
 from java.lang import System
 

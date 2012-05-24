@@ -1,4 +1,4 @@
-from java.awt import Component, Dialog, Dimension
+from java.awt import Dialog, Dimension
 from java.awt.event import ActionListener
 
 from javax.swing import Box, BoxLayout, DefaultListModel, JButton, JDialog

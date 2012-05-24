@@ -32,17 +32,10 @@
 ##
 ###############################################################################
 
-from vistrail_controller import JVistrailController
-
 from javax.swing import JPanel
-from javax.swing import JLabel
-from java.awt import Font
-from java.awt import Graphics
 from java.awt.event import MouseListener
 from java.awt import Rectangle
-from core.data_structures.graph import Graph
 from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
-from core.vistrail.pipeline import Pipeline
 from java.awt import Color
 import core.db.io
 
