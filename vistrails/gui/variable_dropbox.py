@@ -217,6 +217,8 @@ class QVerticalWidget(QPromptWidget):
         """
         self.setEnabled(False)
         for v in self._variable_widgets:
+            self.disconnect(v, QtCore.SIGNAL('deleted(QWidget*)'), 
+                         self.delete_form)
             self.layout().removeWidget(v)
             v.deleteLater()
         self._variable_widgets = []
