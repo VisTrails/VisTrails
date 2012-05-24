@@ -298,7 +298,9 @@ class Service:
         """ 
         cached = os.path.join(package_cache.location,
                               "suds-%s-wsdl.px" % abs(hash(self.address)))
-        backup = cached + ".bak"
+        backup = os.path.join(package_cache.location,
+                              "suds-%s-wsdl.px" % hashlib.md5(self.address
+                                                              ).hexdigest())
         if os.path.exists(cached):
             shutil.copyfile(cached, backup)
 
@@ -306,7 +308,9 @@ class Service:
         """ Restore from backup into cache with reset cache time""" 
         cached = os.path.join(package_cache.location,
                               "suds-%s-wsdl.px" % abs(hash(self.address)))
-        backup = cached + ".bak"
+        backup = os.path.join(package_cache.location,
+                              "suds-%s-wsdl.px" % hashlib.md5(self.address
+                                                              ).hexdigest())
         if not os.path.exists(cached) and os.path.exists(backup):
             shutil.copyfile(backup, cached)
             return True
@@ -755,7 +759,7 @@ def handle_missing_module(controller, module_id, pipeline):
         wsdl = get_wsdl_from_namespace(m_namespace)
     else:
         # v1.1 new style
-        wsdl = toAddress(m.name)
+        wsdl = toAddress(m.package)
     
     wsdlList = []
     if configuration.check('wsdlList'):
@@ -810,11 +814,18 @@ def saveVistrailFileHook(vistrail, temp_dir):
     """ This is called when a vistrail is loaded
         We should copy all used Web Services in temp_dir to .vistrails
         """
+
+    
     packages = vistrail.get_used_packages()
+    # clear old files
+    for name in os.listdir(temp_dir):
+        if name.endswith("-wsdl.px"):
+            os.remove(os.path.join(temp_dir, name))
+
     for package in packages:
         if package.startswith("SUDS#"):
             address = toAddress(package)
-            name = "suds-%s-wsdl.px" % abs(hash(address))
+            name = "suds-%s-wsdl.px" % hashlib.md5(address).hexdigest()
             cached = os.path.join(package_cache.location, name)
             vt_cached = os.path.join(temp_dir, name)
             if os.path.exists(cached):
