@@ -159,9 +159,13 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         from javagui.builder_frame import BuilderFrame
 
         self.builderWindow = BuilderFrame()
-        
-        if not self.temp_configuration.showSpreadsheetOnly:
-            self.builderWindow.showFrame()
+        self.builderWindow.showFrame()
+
+    def wait_finish(self):
+        """Wait for the user to close the window.
+        """
+        if self.builderWindow:
+            self.builderWindow.waitClose()
 
     def finishSession(self):
         if self.builderWindow:

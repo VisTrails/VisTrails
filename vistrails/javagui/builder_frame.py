@@ -33,6 +33,7 @@
 ###############################################################################
 
 import sys
+import threading
 
 # This can't stay here
 sys.path.append('../../piccolo/piccolo2d-core-1.3.1.jar')
@@ -52,13 +53,28 @@ from core.thumbnails import ThumbnailCache
 import core.system
 
 from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
-from javax.swing import JMenu, JMenuBar, JMenuItem, JButton, SwingConstants
-from javax.swing import JSplitPane
+from javax.swing import JMenu, JMenuBar, JMenuItem, JButton, JSplitPane
+from javax.swing import SwingConstants, SwingUtilities
 
 from java.awt import BorderLayout
-from java.lang import System
+from java.awt.event import WindowAdapter
 
 from extras.core.db.javagui.locator import JavaLocatorHelperProvider
+
+
+class CloseListener(WindowAdapter):
+    def __init__(self, frame):
+        self._frame = frame
+
+    # @Override
+    def windowClosing(self, e):
+        self._frame.setVisible(False)
+        self.closed()
+
+    def closed(self):
+        self._frame._visibleCond.acquire()
+        self._frame._visibleCond.notifyAll()
+        self._frame._visibleCond.release()
 
 
 class BuilderFrame(JFrame):
@@ -132,8 +148,12 @@ class BuilderFrame(JFrame):
         self.contentPanel.setLeftComponent(self.modulepalette)
         self.contentPanel.setDividerLocation(200)
 
+        self._visibleCond = threading.Condition()
+
+        self._windowCloseListener = CloseListener(self)
+        self.addWindowListener(self._windowCloseListener)
+
     def showFrame(self):
-        self.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
         self.setSize(300, 300)
         self.setVisible(True)
 
@@ -285,7 +305,8 @@ class BuilderFrame(JFrame):
                 while entity.parent:
                     entity = entity.parent
             else:
-                entity = collection.updateVistrail(url, self.controller.vistrail)
+                entity = collection.updateVistrail(url,
+                                                   self.controller.vistrail)
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
@@ -294,7 +315,18 @@ class BuilderFrame(JFrame):
         return locator
 
     def quitAction(self, event=None):
-        System.exit(0)
+        self.setVisible(False)
+        self._windowCloseListener.closed()
 
     def showPreferences(self, event=None):
         self.preferenceWindow.setVisible(True)
+
+    def waitClose(self):
+        """Wait for the window to close.
+        """
+        assert not SwingUtilities.isEventDispatchThread()
+        self._visibleCond.acquire()
+        self._visibleCond.wait()
+        while self.isVisible():
+            self._visibleCond.wait()
+        self._visibleCond.release()

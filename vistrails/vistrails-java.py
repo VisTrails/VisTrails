@@ -63,7 +63,7 @@ if __name__ == '__main__':
             if app:
                 app.finishSession()
             sys.exit(v)
-        app = javagui.application.get_vistrails_application()()
+        app = javagui.application.get_vistrails_application()
     except SystemExit, e:
         app = javagui.application.get_vistrails_application()
         if app:
@@ -77,3 +77,6 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(255)
+
+    v = app.wait_finish()
+    sys.exit(v)
