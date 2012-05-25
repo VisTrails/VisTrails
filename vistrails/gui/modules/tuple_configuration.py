@@ -41,7 +41,8 @@ is also a QWidget.
 from PyQt4 import QtCore, QtGui
 from core import debug
 from core.utils import VistrailsInternalError
-from core.modules.module_registry import get_module_registry
+from core.modules.module_registry import get_module_registry, \
+    ModuleRegistryException
 from core.utils import PortAlreadyExists
 from gui.modules.module_configure import StandardModuleConfigurationWidget
 from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
@@ -214,8 +215,6 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
         self.module : the Module object int the pipeline        
-        self.module_descriptor: the descriptor for the type registered in the registry,
-                          i.e. Tuple
         self.controller: the current vistrail controller
                                        
         """
@@ -282,7 +281,14 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
             getter = registry.source_ports_from_descriptor
         else:
             raise VistrailsInternalError("Unrecognized port type '%s'", type)
-        return [(p.name, p.sigstring) for p in getter(self.module_descriptor)]
+
+        ports = []
+        try:
+            ports = [(p.name, p.sigstring) 
+                     for p in getter(self.module.module_descriptor)] 
+        except ModuleRegistryException:
+            pass
+        return ports
         
     def registryChanges(self, old_ports, new_ports):
         deleted_ports = [p for p in old_ports if p not in new_ports]
@@ -319,8 +325,6 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
         self.module : the Module object int the pipeline        
-        self.module_descriptor: the descriptor for the type registered in 
-           the registry, i.e. Tuple
         self.controller: the current vistrail controller
                                        
         """
@@ -430,8 +434,6 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
         self.module : the Module object int the pipeline        
-        self.module_descriptor: the descriptor for the type registered in the registry,
-                          i.e. Tuple
         self.controller: the current vistrail controller
                                        
         """
