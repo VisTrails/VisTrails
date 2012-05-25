@@ -321,6 +321,7 @@ class QPackagesWidget(QtGui.QWidget):
                 palette.treeWidget.expandAll()
             # the old code that used to be here to update the lists
             # has been moved to package_added
+            self.invalidate_current_pipeline()
 
     def disable_current_package(self):
         av = self._available_packages_list
@@ -340,6 +341,7 @@ class QPackagesWidget(QtGui.QWidget):
                             "Please disable those first.") % rev_deps)
         else:
             pm.late_disable_package(codepath)
+            self.invalidate_current_pipeline()
             # the old code that used to be here to update the lists
             # has been moved to package_removed
 
