@@ -319,12 +319,8 @@ class QPackagesWidget(QtGui.QWidget):
             finally:
                 palette.setUpdatesEnabled(True)
                 palette.treeWidget.expandAll()
-            av.takeItem(pos)
-            inst.addItem(item)
-            inst.sortItems()
-            self.erase_cache = True
-            self.select_package_after_update(codepath)
-            self.invalidate_current_pipeline()
+            # the old code that used to be here to update the lists
+            # has been moved to package_added
 
     def disable_current_package(self):
         av = self._available_packages_list
@@ -344,12 +340,8 @@ class QPackagesWidget(QtGui.QWidget):
                             "Please disable those first.") % rev_deps)
         else:
             pm.late_disable_package(codepath)
-            inst.takeItem(pos)
-            av.addItem(item)
-            av.sortItems()
-            self.erase_cache = True
-            self.select_package_after_update(codepath)
-            self.invalidate_current_pipeline()
+            # the old code that used to be here to update the lists
+            # has been moved to package_removed
 
     def configure_current_package(self):
         dlg = QPackageConfigurationDialog(self, self._current_package)
@@ -389,7 +381,13 @@ class QPackagesWidget(QtGui.QWidget):
         # package was added, we need to update list
         av = self._available_packages_list
         inst = self._enabled_packages_list
-        for item in av.findItems(codepath, QtCore.Qt.MatchExactly):
+        items = av.findItems(codepath, QtCore.Qt.MatchExactly)
+        if len(items) < 1:
+            # this is required for basic_modules and abstraction since
+            # they are not in available_package_names_list initially
+            self.populate_lists()
+            items = av.findItems(codepath, QtCore.Qt.MatchExactly)
+        for item in items:
             pos = av.indexFromItem(item).row()
             av.takeItem(pos)
             inst.addItem(item)
