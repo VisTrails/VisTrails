@@ -187,7 +187,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         
         """
         self.pipeline = pipeline
-        if self.pipeline:
+        if self.pipeline and self.pipeline.is_valid:
             self.inspector.inspect_spreadsheet_cells(self.pipeline)
             self.inspector.inspect_ambiguous_modules(self.pipeline)
             cells = []
