@@ -194,8 +194,6 @@ To do so, call initialize_packages()"""
         package = self._registry.create_package(codepath)
         if add_to_package_list:
             self.add_to_package_list(codepath, package)
-        app = get_vistrails_application()
-        app.send_notification("package_added", codepath)
         return package
 
     def add_to_package_list(self, codepath, package):
@@ -399,6 +397,8 @@ Returns true if given package identifier is present."""
                 pass
             raise e
         self.add_menu_items(pkg)
+        app = get_vistrails_application()
+        app.send_notification("package_added", package_codepath)
 
     def late_disable_package(self, package_codepath):
         """late_disable_package disables a package 'late', that is,
@@ -545,6 +545,9 @@ Returns true if given package identifier is present."""
                     pkg.remove_py_deps(existing_paths)
                     existing_paths.update(pkg.get_py_deps())
                     self.add_menu_items(pkg)
+                    app = get_vistrails_application()
+                    app.send_notification("package_added", pkg.codepath)
+
 
     def add_menu_items(self, pkg):
         """add_menu_items(pkg: Package) -> None
@@ -624,7 +627,7 @@ Returns true if given package identifier is present."""
         code-paths is described in doc/package_system.txt
         """
 
-        lst = []
+        pkg_name_set = set()
 
         def is_vistrails_package(path):
             return ((path.endswith('.py') and
@@ -638,7 +641,7 @@ Returns true if given package identifier is present."""
                 if is_vistrails_package(os.path.join(dirname, name)):
                     if name.endswith('.py'):
                         name = name[:-3]
-                    lst.append(name)
+                    pkg_name_set.add(name)
             # We want a shallow walk, so we prune the names list
             del names[:]
 
@@ -648,7 +651,8 @@ Returns true if given package identifier is present."""
         userpackages = self.import_user_packages_module()
         os.path.walk(os.path.dirname(userpackages.__file__), visit, None)
 
-        return lst
+        pkg_name_set.update(self._package_list)
+        return list(pkg_name_set)
 
     def dependency_graph(self):
         """dependency_graph() -> Graph.  Returns a graph with package
