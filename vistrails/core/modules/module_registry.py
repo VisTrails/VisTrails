@@ -416,6 +416,22 @@ class DuplicateIdentifier(ModuleRegistryException):
         return "There is already a module %s in package %s" % \
             (self._module_name, self._package_name)
 
+class InvalidPortSpec(ModuleRegistryException):
+    def __init__(self, descriptor, port_name, port_type, exc):
+        ModuleRegistryException.__init__(self,
+                                         descriptor.identifier,
+                                         descriptor.name,
+                                         descriptor.namespace)
+        self._port_name = port_name
+        self._port_type = port_type[0].capitalize() + port_type[1:]
+        self._exc = exc
+        
+    def __str__(self):
+        return ('%s port "%s" from module %s in package %s '
+                'has bad specification\n  %s' % \
+            (self._port_type, self._port_name, self._module_name,
+             self._package_name, str(self._exc)))
+
 class MissingBaseClass(Exception):
     def __init__(self, base):
         Exception.__init__(self)
@@ -1350,8 +1366,10 @@ class ModuleRegistry(DBRegistry):
                                      min_conns, max_conns)
 
         # need to check if the spec is valid
-        # if spec._entries is None:
-        #     spec.create_entries_and_descriptors()
+        try:
+            spec.descriptors()
+        except ModuleRegistryException, e:
+            raise InvalidPortSpec(descriptor, port_name, port_type, e)
 
         descriptor.add_port_spec(spec)
         if port_type == 'input':
