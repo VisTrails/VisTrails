@@ -34,10 +34,11 @@
 
 from core.modules.module_registry import get_module_registry
 
-from java.lang import Runnable
-from javax.swing import SwingUtilities, TransferHandler
+from java.lang import Runnable, System
+from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
 from java.awt import Color, Polygon, Font, FontMetrics, Point, BasicStroke
 from java.awt.geom import Rectangle2D
+from java.awt.event import MouseEvent
 from java.io import IOException
 from java.awt.datatransfer import UnsupportedFlavorException
 
@@ -109,6 +110,7 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
         self.edge_layer = edge_layer
         self.scene = scene
         self.drawing = False
+        self.drawing_from_module = None
 
     # @Override
     def mousePressed(self, event):
@@ -140,7 +142,13 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
         event.setHandled(self.drawing)
 
     # @Override
+    def mouseMoved(self, event):
+        self.updateToolTip(event)
+
+    # @Override
     def mouseDragged(self, event):
+        self.updateToolTip(event)
+
         if self.drawing:
             event.setHandled(True)
             pos = event.getPosition()
@@ -181,9 +189,6 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
     def mouseReleased(self, event):
         if event.getButton() == 1 and self.drawing:
             event.setHandled(True)
-            self.edge_layer.removeChild(self.drawing_line)
-            self.drawing_line = None
-            self.drawing = False
 
             # If we drew an acceptable connection, add it
             if self.drawing_accepted:
@@ -197,8 +202,24 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
                             self.drawing_from_module, self.drawing_from_port,
                             self.drawing_to[0], self.drawing_to[1],
                             updatedb=True)
+
+            self.edge_layer.removeChild(self.drawing_line)
+            self.drawing_line = None
+            self.drawing = False
+            self.drawing_from_module = None
         else:
             event.setHandled(False)
+
+    def updateToolTip(self, event):
+        hover = event.getPickedNode()
+        if (hover is not self.drawing_from_module and
+                isinstance(hover, PModule)):
+            pos = event.getPosition()
+            portnum, input, p_pos = hover.pick_port(pos.x, pos.y)
+            if portnum is not None:
+                self.scene.showToolTip(hover.port_tooltip(portnum, input))
+                return
+        self.scene.hideToolTip()
 
 
 class PModule(PNode):
@@ -397,6 +418,12 @@ class PModule(PNode):
             return m, mpos
         else:
             return None, None
+
+    def port_tooltip(self, portnum, input):
+        if input:
+            return self.inputPorts[portnum].toolTip()
+        else:
+            return self.outputPorts[portnum].toolTip()
 
 
 class PConnection(PNode):
@@ -635,3 +662,31 @@ class JPipelineView(PCanvas):
             print "wrote %d move actions to vistrail" % len(moves)
             return True
         return False
+
+    def showToolTip(self, msg):
+        msg = msg.replace('<', '&lt;').replace('>', '&gt;')
+        msg = '<html>' + msg.replace('\n', '<br>') + '</html>'
+        self.setToolTipText(msg)
+        phantom = MouseEvent(
+                self,
+                MouseEvent.MOUSE_MOVED,
+                System.currentTimeMillis(),
+                0,
+                0,
+                0,
+                0,
+                False)
+        ToolTipManager.sharedInstance().mouseMoved(phantom)
+
+    def hideToolTip(self):
+        self.setToolTipText(None)
+        phantom = MouseEvent(
+                self,
+                MouseEvent.MOUSE_PRESSED,
+                System.currentTimeMillis(),
+                0,
+                0,
+                0,
+                0,
+                False)
+        ToolTipManager.sharedInstance().mousePressed(phantom)
