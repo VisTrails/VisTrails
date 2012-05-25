@@ -1480,8 +1480,8 @@ class ModuleRegistry(DBRegistry):
                         self.auto_add_ports(descriptor.module)
                         added_descriptors.add(descriptor)
         except Exception, e:
-            raise package.InitializationFailed(package, e, 
-                                               traceback.format_exc())
+            raise package.InitializationFailed(package, 
+                                               [traceback.format_exc()])
 
         # The package might have decided to rename itself, let's store that
         self.set_current_package(None)
