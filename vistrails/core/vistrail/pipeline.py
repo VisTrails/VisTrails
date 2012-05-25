@@ -965,6 +965,7 @@ class Pipeline(DBWorkflow):
         # print 'ensure_connection_specs:', sorted(self.modules.keys())
 
         def find_spec(port):
+            port.is_valid = False
             module = self.get_module_by_id(port.moduleId)
             port_type_map = PortSpec.port_type_map
             try:
@@ -1025,6 +1026,7 @@ class Pipeline(DBWorkflow):
             exceptions = set()
             for mid in module_ids:
                 module = pipeline.modules[mid]
+                module.is_valid = False
                 if not module.version:
                     module.version = '0'
                 try:
