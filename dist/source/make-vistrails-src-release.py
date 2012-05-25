@@ -39,13 +39,13 @@ GIT_URL = "git://www.vistrails.org/vistrails.git"
 GIT_ARGS = ""
 
 # VisTrails Release Version
-VT_VERSION = '2.0-alpha'
+VT_VERSION = '2.0'
 
 # Branch to be used to build release
 VT_BRANCH = 'v2.0'
 
 # Hash used in the release
-VT_HASH = 'c4e3600b64814e5d9dc27f6eb6f58e1a70273363'
+VT_HASH = '240bcab5bbcdb51758709ba8f8f4c016d9ba5df8'
 
 # Prefix of target git export dir (also used as prefix for log files)
 EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
@@ -169,7 +169,7 @@ def last_minute_changes():
         destfile = "RELEASE"
         info("Copying '%s' to export base dir ..." % srcfile)
         try:
-            shutil.copy(os.path.join(EXPORT_DIRNAME, srcfile), os.path.join(EXPORT_DIRNAME, destfile))
+            shutil.copy(os.path.join("../..", srcfile), os.path.join(EXPORT_DIRNAME, destfile))
         except:
             error("Couldn't copy '%s' to export base dir.")
             raise
