@@ -35,10 +35,26 @@
 """module responsible for smartly importing python modules, checking
 for necessary installs."""
 
+import traceback
+
 import core.bundles.installbundle
 from core import debug
 
 ##############################################################################
+
+class PyImportException(Exception):
+    def __init__(self, py_module_name, traceback_str):
+        self.py_module_name = py_module_name
+        self.traceback_str = traceback_str
+    def __str__(self):
+        return ("Installation of python package '%s' failed.\n%s" % \
+                    (self.py_module_name, self.traceback_str))
+
+class PyImportBug(PyImportException):
+    def __str__(self):
+        return ("Installation of package '%s' successful, "
+                "but import still failed.\n%s" % \
+                    (self.py_module_name, self.traceback_str))
 
 def _vanilla_import(module_name):
     return __import__(module_name, globals(), locals(), [])
@@ -55,22 +71,17 @@ about which system it runs on."""
         return result
     except ImportError, e:
         pass
-    debug.warning("Import failed. Will try to install bundle.")
+    debug.warning("Import of python module '%s' failed. "
+                  "Will try to install bundle." % module_name)
 
     success = core.bundles.installbundle.install(dependency_dictionary)
 
     if not success:
-        debug.critical("Package installation failed.")
-        debug.critical("Package might not be available in the provided repositories.")
-        raise e
-
+        raise PyImportException(module_name, traceback.format_exc())
     try:
         result = _vanilla_import(module_name)
         return result
     except ImportError, e:
-        debug.critical("Package installation successful, but import still failed.")
-        debug.critical("This means py_import was called with bad arguments.")
-        debug.critical("Please report this bug to the package developer.")
-        raise e
+        raise PyImportBug(module_name, traceback.format_exc())
 
 ##############################################################################

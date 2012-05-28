@@ -36,7 +36,8 @@ the user selects a module's "Edit Configuration"
 
 """
 from PyQt4 import QtCore, QtGui
-from core.modules.module_registry import get_module_registry
+from core.modules.module_registry import get_module_registry, \
+    ModuleRegistryException
 from gui.modules.module_configure import DefaultModuleConfigurationWidget
 from gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -121,7 +122,12 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
             # self.setWindowTitle(title)
             registry = get_module_registry()
             getter = registry.get_configuration_widget
-            widgetType = getter(module.package, module.name, module.namespace)
+            widgetType = None
+            try:
+                widgetType = \
+                    getter(module.package, module.name, module.namespace)
+            except ModuleRegistryException:
+                pass
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             widget = widgetType(module, self.controller)
