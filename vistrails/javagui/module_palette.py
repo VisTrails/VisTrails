@@ -114,9 +114,9 @@ class JModulePalette(JScrollPane):
             self.root.insert(package_item, 0)
         else:
             self.root.add(package_item)
+        return package_item
 
     def newModule(self, descriptor, recurse=False):
-        registry = get_module_registry()
         if not descriptor.module_abstract():
             package_identifier = (
                     descriptor.ghost_identifier or
