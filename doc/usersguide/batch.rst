@@ -109,6 +109,9 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
      -e \emph{dir} & -$\,$-dumpcells=\emph{dir} &
                            Set directory to dump spreadsheet cells before exiting (non-interactive mode only). \\
    \hline
+     -g & -$\,$-noSingleInstance &
+                           Run VisTrails without the single instance restriction. \\
+   \hline
      -t \emph{host} & -$\,$-host=\emph{host} & Set hostname or IP address of database server. \\
    \hline
      -r \emph{port} & -$\,$-port=\emph{port} & Set database port. \\
