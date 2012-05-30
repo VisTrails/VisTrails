@@ -70,15 +70,14 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
    \hline
      -V \emph{num} &  -$\,$-verbose=\emph{num} &
                            Set verboseness level (0--2, default=0, higher means
-                           more verbose).
-   %% (NOT WORKING) 
-   \\
+                           more verbose). \\
    \hline
      -b & -$\,$-noninteractive & Run in non-interactive (batch) mode. \\
    \hline
-     -n & -$\,$-nosplash &       Do not display splash screen on startup.
-   %% NOT WORKING. I know the fix, I'm just waiting for my Qt license to come in.
-   \\
+     -n & -$\,$-nosplash &       Do not display splash screen on startup. \\
+    \hline
+     -q \emph{file} & -$\,$-quickstart=\emph{file} &
+                             Start VisTrails using the specified static registry. \\
    \hline
      -c \emph{num} & -$\,$-cache=\emph{num} &
                            Enable/disable caching (0 to disable, nonzero to enable. Default is enabled). \\
@@ -92,22 +91,30 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
                            screens (if available).
    \\
    \hline
-     -x & -$\,$-maximized &      Maximize Builder and Spreadsheet windows at startup.
-   \\
+     -x & -$\,$-maximized &      Maximize Builder and Spreadsheet windows at startup. \\
    \hline
-     -l & -$\,$-nologger &       Disable logging.
-   %% KNOWN ISSUES
-   \\
+     -D & -$\,$-detachHistoryView &  Detach the history view from the builder window. \\
    \hline
-     -d & -$\,$-debugsignals &   Debug Qt Signals.
-   %% currently unused... no one checks this in the code.
-   \\
+     -l & -$\,$-nologger &       Disable logging. \\
+   \hline
+     -d & -$\,$-debugsignals &   Debug Qt Signals. \\
    \hline
      -a \emph{params} & -$\,$-parameters=\emph{params} &
                            Set workflow parameters (non-interactive mode only). \\
    \hline
      -e \emph{dir} & -$\,$-dumpcells=\emph{dir} &
                            Set directory to dump spreadsheet cells before exiting (non-interactive mode only). \\
+   \hline
+     -G & -$\,$-workflowgraph &
+                           Save workflow graph in specified directory without running 
+			   the workflow (non-interactive mode only).
+   \hline
+     -U & -$\,$-evolutiongraph &
+                           Save evolution graph in specified directory without running
+			   any workflowDump images in pdf format (non-interactive mode only).
+  \hline
+     -p & -$\,$-pdf &
+                           Dump images in pdf format (non-interactive mode only).
    \hline
      -g & -$\,$-noSingleInstance &
                            Run VisTrails without the single instance restriction. \\
@@ -139,14 +146,20 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
    -V *num*, --verbose=\ *num*, "Set verboseness level (0--2, default=0, higher means more verbose)."
    -b, --noninteractive, Run in non-interactive (batch) mode.
    -n, --nosplash, Do not display splash screen on startup.
+   -q *file*, --quickstart=\ *file*, Start VisTrails using the specified static registry. 
    -c *num*, --cache=\ *num*, "Enable/disable caching (0 to disable, nonzero to enable. Default is enabled)."
    -m *num*, --movies=\ *num*, "Set automatic movie creation on spreadsheet (0 or 1, default=1). Set this to zero to work around VTK bug with offscreen renderer and OpenGL texture3D mappers."
    -s, --multiheads, Display the Builder and Spreadsheet on different screens (if available).
    -x, --maximized, Maximize Builder and Spreadsheet windows at startup.
+   -D, --detachHistoryView, Detach the history view from the builder window.
    -l, --nologger, Disable logging.
    -d, --debugsignals, Debug Qt Signals.
    -a *params*, --parameters=\ *params*, Set workflow parameters (non-interactive mode only).
    -e *dir*, --dumpcells=\ *dir*, Set directory to dump spreadsheet cells before exiting (non-interactive mode only).
+   -G, --workflowgraph, Save workflow graph in specified directory without running the workflow (non-interactive mode only).
+   -U, --evolutiongraph, Save evolution graph in specified directory without running any workflow (non-interactive mode only).
+   -p, --pdf, Dump images in pdf format (non-interactive mode only).
+   -g, --noSingleInstance, Run VisTrails without the single instance restriction. 
    -t *host*, --host=\ *host*, Set hostname or IP address of database server.
    -r *port*, --port=\ *port*, Set database port.
    -f *dbName*, --db=\ *dbName*, Set database name.
