@@ -298,6 +298,8 @@ class VistrailController(QtCore.QObject, BaseController):
     def execute_workflow_list(self, vistrails):
         old_quiet = self.quiet
         self.quiet = True
+        self.current_pipeline_view.reset_module_colors()
+        self.current_pipeline_view.update()
         (results, changed) = BaseController.execute_workflow_list(self, 
                                                                   vistrails)        
         self.quiet = old_quiet

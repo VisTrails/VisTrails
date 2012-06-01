@@ -338,6 +338,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             logger.start_execution(obj, i, module_name,
                                    parent_execs=self.parent_execs,
                                    cached=1)
+            view.set_module_not_executed(i)
             num_pops = logger.finish_execution(obj,'', self.parent_execs)
 
         # views and loggers work on local ids
