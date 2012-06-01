@@ -5,6 +5,25 @@ from core.modules.basic_modules import Boolean, Float, Integer, String
 
 
 class WekaBaseModule(Module):
+    """Base Module from which all Weka modules inherit.
+    """
+
+
+class GetterModuleMixin(object):
+    """The mixin implementing the logic for the *_get Module.
+
+    Uses the _getters attribute.
+    """
+    def compute(self):
+        # TODO
+        pass
+
+
+class ConstructorModuleMixin(object):
+    """The mixin implemting the logic for the *_N Module.
+
+    Uses the _getters, _setters and _ctor_params attributes.
+    """
     def compute(self):
         # TODO
         pass
@@ -24,13 +43,16 @@ class ModuleCreator(object):
     Java class.
     The structure is as follow:
       - An abstract module is created for the class, which represents this
-          datatype. It also has all the setters (converted into input
-          ports) and getters (output ports), a 'self' output port, and
-          inherits from the abstract module associated with the parent
+          datatype. It also has all the getters (converted into output ports),
+          and inherits from the abstract module associated with the parent
           class, or WekaBaseModule.
-      - For each constructor, a concrete module is created. It inherits
-          from the abstract module, so it has all the setters/getters
-          ports, and has ports for the constructor.
+      - A concrete module used to call getters. It inherits from the abstract
+          module, so it has the getter ports, and has a single input port
+          'self'.
+          The module name is appended '_get'.
+      - For each constructor, a concrete module is created. It inherits from
+          the abstract module, so it has all the getter ports, and has an input
+          port for each constructor parameter. It also has the setters.
           The module name is appended an underscore and a number.
       - For each static method, a concrete module is created. It inherits
           from the WekaBaseModule directly, not from the abstract module.
@@ -38,8 +60,8 @@ class ModuleCreator(object):
 
     _create_module is used to create all the abstract modules, creating the
     parent first if it exists.
-    Then, _populate_modules is used to add the ports to the abstract modules
-    and to create the concrete modules.
+    Then, _populate_modules is used to add the getter ports to the abstract
+    modules and to create the concrete modules.
     This is done in two steps because the modules might be referenced as a
     datatype by a port on another module.
     """
@@ -108,28 +130,25 @@ class ModuleCreator(object):
 
         # Create the abstract module
         mod = type(name, (parent,), dict())
-        self._module_registry.add_module(mod, abstract=c['abstract'])
+        self._module_registry.add_module(mod, abstract=True)
         self._created_modules[c['fullname']] = mod
 
     def _populate_modules(self, c):
         mod = self._created_modules[c['fullname']]
         name = mod.__name__
 
-        # We add input ports to the abstract module for the setters, and output
-        # ports for the getters
-        setters = set()
+        # We identify the input ports for the setters, and the output ports for
+        # the getters
+        # Note that we only add the getters as ports of the Module!
+        setters = dict()
         getters = set()
         for m in c['methods']:
             # Setters
             if (m['name'].startswith('set') and
                     len(m['params']) == 1):
-                setters.add(m['name'])
-                self._module_registry.add_input_port(
-                        mod, m['name'],
-                        (
-                                self._get_type_module(m['params'][0][0]),
-                                m['params'][0][1]),
-                        optional=True)
+                setters[m['name']] = (
+                        self._get_type_module(m['params'][0][0]),
+                        m['params'][0][1])
                 self._used_methods += 1
             # Getters
             elif (m['name'].startswith('get') and
@@ -143,26 +162,45 @@ class ModuleCreator(object):
                 self._used_methods += 1
             else:
                 self._ignored_methods += 1
-        mod._setters = setters
+        mod._setters = set(setters.keys())
         mod._getters = getters
-        # The 'self' output port, that returns the created object
-        self._module_registry.add_output_port(
-                mod, 'self',
-                (mod, 'the created object'))
+
+        # Create the getter module
+        if getters:
+            cname = '%s_get' % name
+            cmod = type(cname, (GetterModuleMixin, mod), dict())
+            self._module_registry.add_module(cmod)
+            self._module_registry.add_input_port(
+                    cmod, 'self',
+                    (mod, 'the object to call getters on'))
 
         # Now, we need to create a new concrete module for each constructor
-        i = 0
-        for m in c['constructors']:
-            i += 1
-            cname = '%s_%d' % (name, i)
-            cmod = type(cname, (mod,), dict())
-            self._module_registry.add_module(cmod)
-            for t, n in m['params']:
-                self._module_registry.add_input_port(
-                        cmod, ("cstr_%s" % n),
-                        (
-                                self._get_type_module(t),
-                                t))
+        if not c['abstract']:
+            i = 0
+            for m in c['constructors']:
+                i += 1
+                cname = '%s_%d' % (name, i)
+                cmod = type(
+                        cname,
+                        (ConstructorModuleMixin, mod),
+                        dict(_ctor_params=len(m['params'])))
+                self._module_registry.add_module(cmod)
+                # Constructor parameters
+                for t, n in m['params']:
+                    self._module_registry.add_input_port(
+                            cmod, ("ctor_%s" % n),
+                            (
+                                    self._get_type_module(t),
+                                    t))
+                # Setters
+                for sname, (t, n) in setters.iteritems():
+                    self._module_registry.add_input_port(
+                            cmod, sname,
+                            (t, n))
+                # The 'self' output port, that returns the created object
+                self._module_registry.add_output_port(
+                        cmod, 'self',
+                        (mod, 'the created object'))
 
         # TODO : static methods
 
@@ -186,7 +224,7 @@ def generate(parseResult):
     object or the cache file.
     """
     reg = get_module_registry()
-    reg.add_module(WekaBaseModule)
+    reg.add_module(WekaBaseModule, abstract=True)
 
     creator = ModuleCreator(parseResult)
     creator.create_all_modules()

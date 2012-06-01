@@ -258,11 +258,6 @@ class PModule(PNode):
         self.inputPorts = module.destinationPorts()
         self.outputPorts = module.sourcePorts()
 
-        # Filter out 'self' ports
-        # FIXME : Should we do this?
-        self.inputPorts = filter(lambda p: p.name != 'self', self.inputPorts)
-        self.outputPorts = filter(lambda p: p.name != 'self', self.outputPorts)
-
         # Update the module size with the ports
         if self.inputPorts:
             h += SPACING_Y + PORT_HEIGHT

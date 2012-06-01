@@ -2,6 +2,21 @@ from zipfile import ZipFile
 from core import debug
 
 
+def shortname(name):
+    """Return the last component of a name.
+
+    >>> shortname('java.lang.String')
+    'String'
+    >>> shortname('long')
+    'long'
+    """
+    try:
+        pos = name.rindex('.')
+        return name[pos+1:]
+    except ValueError:
+        return name
+
+
 class JavaParser(object):
     """The class that does the actual parsing of Java source files.
 
@@ -19,21 +34,6 @@ class JavaParser(object):
         self._stored = None
         self._line = 1
         self._last = None
-
-    @staticmethod
-    def _shortname(name):
-        """Return the last component of a name.
-
-        >>> JavaParser._shortname('java.lang.String')
-        'String'
-        >>> JavaParser._shortname('long')
-        'long'
-        """
-        try:
-            pos = name.rindex('.')
-            return name[pos+1:]
-        except ValueError:
-            return name
 
 
     ################
@@ -286,9 +286,9 @@ class JavaParser(object):
                     elif mode == 'e':
                         if extends is not None:
                             raise JavaParser.Error("Multiple parent classes")
-                        extends = JavaParser._shortname(token)
+                        extends = shortname(token)
                     elif mode == 'i':
-                        implements.add(JavaParser._shortname(token))
+                        implements.add(shortname(token))
                     token = self._next_token(throw=True)
                 stack.append({'name': classname,
                               'fullname': fullclassname,
@@ -356,7 +356,7 @@ class JavaParser(object):
                 if m_name is not None:
                     params = self._read_params()
                     if m_type is not None:
-                        m_type = JavaParser._shortname(m_type)
+                        m_type = shortname(m_type)
                     stack[-1]['methods'].append({
                             'name': m_name,
                             'modifiers': modifiers,

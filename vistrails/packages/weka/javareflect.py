@@ -9,6 +9,8 @@ from itertools import izip
 
 from core import debug
 
+import javaparser
+
 
 # Note that ClassName.methodName(object) is used throughout this file instead
 # of object.methodName() for the classes Class, Method and Constructor, as
@@ -123,7 +125,7 @@ class JavaAnalyzer(object):
                         break
             if sourceParams is None:
                 status = "parameter names not available"
-                sourceParams = ["arg%d" % i for i in xrange(len(params))]
+                sourceParams = ['arg%d' % i for i in xrange(len(params))]
 
             for p, n in izip(params, sourceParams):
                 readParams.append((JavaAnalyzer._format_type(p), n))
@@ -147,15 +149,16 @@ class JavaAnalyzer(object):
             # Find the parameter names from the parsed source
             sourceParams = None
             if sourceClass:
+                cname = javaparser.shortname(Constructor.getName(m))
                 for sourceMethod in sourceClass['methods']:
-                    if (sourceMethod['name'] == Constructor.getName(m) and
+                    if (sourceMethod['name'] == cname and
                             len(sourceMethod['params']) ==
-                            len(Method.getParameterTypes(m))):
+                            len(Constructor.getParameterTypes(m))):
                         sourceParams = sourceMethod['params']
                         break
             if sourceParams is None:
                 status = "parameter names not available"
-                sourceParams = ["arg%d" % i for i in xrange(len(params))]
+                sourceParams = ['arg%d' % i for i in xrange(len(params))]
 
             for p, n in izip(params, sourceParams):
                 readParams.append((JavaAnalyzer._format_type(p), n))
