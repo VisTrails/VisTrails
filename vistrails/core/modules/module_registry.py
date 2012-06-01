@@ -1302,7 +1302,9 @@ class ModuleRegistry(DBRegistry):
 
     def create_port_spec(self, name, type, signature=None, sigstring=None,
                          optional=False, sort_key=-1, labels=None, 
-                         defaults=None):
+                         defaults=None, values=None, entry_types=None,
+                         docstring=None, shape=None, 
+                         min_conns=0, max_conns=-1):
         if signature is None and sigstring is None:
             raise VistrailsInternalError("create_port_spec: one of signature "
                                          "and sigstring must be specified")
@@ -1315,7 +1317,13 @@ class ModuleRegistry(DBRegistry):
                         optional=optional,
                         sort_key=sort_key,
                         labels=labels,
-                        defaults=defaults)
+                        defaults=defaults,
+                        values=values,
+                        entry_types=entry_types,
+                        docstring=docstring,
+                        shape=shape,
+                        min_conns=min_conns,
+                        max_conns=max_conns)
         return spec
 
     def add_port_spec(self, descriptor, port_spec):
@@ -1349,17 +1357,19 @@ class ModuleRegistry(DBRegistry):
 
     def add_port(self, descriptor, port_name, port_type, port_sig=None, 
                  port_sigstring=None, optional=False, sort_key=-1,
-                 labels=None, defaults=None):
+                 labels=None, defaults=None, values=None, entry_types=None, 
+                 docstring=None, shape=None, min_conns=0, max_conns=-1):
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
-                                     labels, defaults)
+                                     labels, defaults, values, entry_types,
+                                     docstring, shape,
+                                     min_conns, max_conns)
 
         # need to check if the spec is valid
-        if spec._entries is None:
-            try:
-                spec.create_entries_and_descriptors()
-            except ModuleRegistryException, e:
-                raise InvalidPortSpec(descriptor, port_name, port_type, e)
+        try:
+            spec.descriptors()
+        except ModuleRegistryException, e:
+            raise InvalidPortSpec(descriptor, port_name, port_type, e)
 
         descriptor.add_port_spec(spec)
         if port_type == 'input':
@@ -1370,14 +1380,22 @@ class ModuleRegistry(DBRegistry):
                                              descriptor.name, port_name, spec)
 
     def add_input_port(self, module, portName, portSignature, optional=False, 
-                       sort_key=-1, labels=None, defaults=None):
+                       sort_key=-1, labels=None, defaults=None, values=None,
+                       entry_types=None, docstring=None, shape=None, 
+                       min_conns=0, max_conns=-1):
         """add_input_port(module: class,
                           portName: string,
                           portSignature: string,
-                          optional=False,
-                          sort_key=-1,
-                          labels=None,
-                          defaults=None) -> None
+                          optional: bool,
+                          sort_key: int,
+                          labels: tuple(string),
+                          defaults: tuple(string),
+                          values: list(list(string)),
+                          entry_types: list(string),
+                          docstring: string,
+                          shape: tuple,
+                          min_conns: int,
+                          max_conns: int) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
@@ -1387,19 +1405,26 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor(module)
         if type(portSignature) == type(""):
             self.add_port(descriptor, portName, 'input', None, portSignature, 
-                          optional, sort_key, labels, defaults)
+                          optional, sort_key, labels, defaults, values,
+                          entry_types, docstring, shape, min_conns, max_conns)
         else:
             self.add_port(descriptor, portName, 'input', portSignature, None, 
-                          optional, sort_key, labels, defaults)
+                          optional, sort_key, labels, defaults, values,
+                          entry_types, docstring, shape, min_conns, max_conns)
 
 
     def add_output_port(self, module, portName, portSignature, optional=False, 
-                       sort_key=-1):
+                        sort_key=-1, docstring=None, shape=None, 
+                        min_conns=0, max_conns=-1):
         """add_output_port(module: class,
                            portName: string,
                            portSignature: string,
-                           optional=False,
-                           sort_key=-1) -> None
+                           optional: bool,
+                           sort_key: int,
+                           docstring: string,
+                           shape: tuple,
+                           min_conns: int,
+                           max_conns: int) -> None
 
         Registers a new output port with VisTrails. Receives the
         module that will now have a certain port, a string
@@ -1409,10 +1434,12 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor(module)
         if type(portSignature) == type(""):
             self.add_port(descriptor, portName, 'output', None, portSignature, 
-                          optional, sort_key)
+                          optional, sort_key, None, None, None, None, 
+                          docstring, shape, min_conns, max_conns)
         else:
             self.add_port(descriptor, portName, 'output', portSignature, None, 
-                          optional, sort_key)
+                          optional, sort_key, None, None, None, None, 
+                          docstring, shape, min_conns, max_conns)
 
     def create_package(self, codepath, load_configuration=True):
         package_id = self.idScope.getNewId(Package.vtType)
@@ -1592,10 +1619,18 @@ class ModuleRegistry(DBRegistry):
                 if self.is_method(spec)]
 
     def port_and_port_spec_match(self, port, port_spec):
-        """port_and_port_spec_match(port: Port, port_spec: PortSpec) -> bool
+        """port_and_port_spec_match(port: Port | PortSpec, 
+                                    port_spec: PortSpec
+                                    ) -> bool
         Checks if port is similar to port_spec or not.  These ports must
         have the same name and type"""
-        if PortSpec.port_type_map.inverse[port.type] != port_spec.type:
+        if port.type in PortSpec.port_type_map:
+            port_type = port.type
+        elif port.type in PortSpec.port_type_map.inverse:
+            port_type = PortSpec.port_type_map.inverse[port.type]
+        else:
+            raise Exception('Port type "%s" invalid' % str(port.type))
+        if port_type != port_spec.type:
             return False
         if port.name != port_spec.name:
             return False

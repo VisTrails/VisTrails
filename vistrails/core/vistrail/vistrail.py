@@ -49,6 +49,7 @@ from core.utils import VistrailsInternalError, \
      InvalidPipeline
 from core.vistrail.action import Action
 from core.vistrail.action_annotation import ActionAnnotation
+from core.vistrail.vistrailvariable import VistrailVariable
 from core.vistrail.annotation import Annotation
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
@@ -126,6 +127,9 @@ class Vistrail(DBVistrail):
         for annotation in _vistrail.action_annotations:
             ActionAnnotation.convert(annotation)
 
+        for variable in _vistrail.vistrail_variables:
+            VistrailVariable.convert(variable)
+
         _vistrail.set_defaults()
 
     ##########################################################################
@@ -137,7 +141,7 @@ class Vistrail(DBVistrail):
     THUMBNAIL_ANNOTATION = '__thumb__'
     PRUNE_ANNOTATION = '__prune__'
     UPGRADE_ANNOTATION = '__upgrade__'
-    VARIABLES_ANNOTATION = '__vistrail_vars__'
+#    VARIABLES_ANNOTATION = '__vistrail_vars__'
 
     ##########################################################################
     # Properties
@@ -147,6 +151,7 @@ class Vistrail(DBVistrail):
     tags = DBVistrail.db_tags # This is now read-write
     annotations = DBVistrail.db_annotations
     action_annotations = DBVistrail.db_actionAnnotations
+    vistrail_variables = DBVistrail.db_vistrailVariables
     
     def _get_actionMap(self):
         return self.db_actions_id_index
@@ -194,39 +199,28 @@ class Vistrail(DBVistrail):
     database_info = property(_get_database_info, _set_database_info)
     
     def _get_vistrail_vars(self):
-        annotation = self.get_annotation(Vistrail.VARIABLES_ANNOTATION)
-        if annotation is not None:
-            return dict(eval(annotation.value))
-        else:
-            return {}
+        return self.vistrail_variables
     
-    def _set_vistrail_vars(self, value):
-        if type(value) == type('') and value.strip() == '':
-            value = '{}'
-        return self.set_annotation(Vistrail.VARIABLES_ANNOTATION, str(value))
+    def _set_vistrail_vars(self, vars):
+        self.vistrail_variables = vars
     vistrail_vars = property(_get_vistrail_vars, _set_vistrail_vars)
     
     def has_vistrail_var(self, name):
-        return name in self.vistrail_vars
+        return self.db_has_vistrailVariable_with_name(name)
     
     def get_vistrail_var(self, name):
-        if name in self.vistrail_vars:
-            return self.vistrail_vars[name]
+        if self.has_vistrail_var(name):
+            return self.db_get_vistrailVariable_by_name(name)
         return None
     
-    def set_vistrail_var(self, name, value):
-        vardict = self.vistrail_vars
-        if name in vardict:
-            if vardict[name] == value:
+    def set_vistrail_var(self, name, var):
+        if self.db_has_vistrailVariable_with_name(name):
+            old_var = self.db_get_vistrailVariable_by_name(name)
+            if var and old_var == var:
                 return False
-            if value is None:
-                del vardict[name]
-                self.vistrail_vars = vardict
-                return True
-        if value is None:
-            return False
-        vardict[name] = value
-        self.vistrail_vars = vardict
+            self.db_delete_vistrailVariable(old_var)
+        if var:
+            self.db_add_vistrailVariable(var)
         return True
 
     def getVersionName(self, version):

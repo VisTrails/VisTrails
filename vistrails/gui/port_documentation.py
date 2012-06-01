@@ -46,34 +46,44 @@ class QPortDocumentation(QtGui.QDialog):
     QPortDocumentation is a dialog for showing port documentation. duh.
 
     """
-    def __init__(self, descriptor, port_type, port_name, parent=None):
+    def __init__(self, module, port_type, port_name, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        self.descriptor = descriptor
-        self.setModal(True)
-        if port_type == 'output':
-            call_ = descriptor.module.provide_output_port_documentation
-        elif port_type == 'input':
-            call_ = descriptor.module.provide_input_port_documentation
+
+        if not module.has_port_spec(port_name, port_type):
+            doc = None
         else:
-            raise VistrailsInternalError("Invalid port type")
+            port_spec = module.get_port_spec(port_name, port_type)
+            doc = port_spec.docstring()
+            if doc is None:
+                descriptor = module.module_descriptor
+                # try the old method of accessing documentation
+                if port_type == 'output':
+                    call_ = descriptor.module.provide_output_port_documentation
+                elif port_type == 'input':
+                    call_ = descriptor.module.provide_input_port_documentation
+                else:
+                    raise VistrailsInternalError("Invalid port type")
+                doc = call_(port_name)
+                
         self.setWindowTitle('Documentation for %s port %s in "%s"' %
-                            (port_type, port_name, descriptor.name))
-        self.setLayout(QtGui.QVBoxLayout())
-        self.layout().addStrut(600)
-        self.layout().addWidget(QtGui.QLabel("Port name: %s" % port_name))
-        self.layout().addWidget(QtGui.QLabel("Module name: %s" % descriptor.name))
-        package = descriptor.module_package()
-        self.layout().addWidget(QtGui.QLabel("Module package: %s" % package))
-        self.closeButton = QtGui.QPushButton('Ok', self)
+                            (port_type, port_name, module.name))
+
+
+        layout = QtGui.QVBoxLayout()
+        layout.addStrut(600)
+        layout.addWidget(QtGui.QLabel("Port name: %s" % port_name))
+        layout.addWidget(QtGui.QLabel("Module name: %s" % module.name))
+        layout.addWidget(QtGui.QLabel("Module package: %s" % \
+                                                 module.package))
         self.textEdit = QtGui.QTextEdit(self)
-        self.layout().addWidget(self.textEdit, 1)
-        doc = call_(port_name)
+        layout.addWidget(self.textEdit, 1)
         if doc:
             self.textEdit.insertPlainText(doc)
         else:
             self.textEdit.insertPlainText("Documentation not available.")
         self.textEdit.setReadOnly(True)
         self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))
-        self.layout().addWidget(self.closeButton)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), self.close)
-        self.closeButton.setShortcut('Enter')
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+        layout.addWidget(self.buttonBox)
+        self.setLayout(layout)
+        self.connect(self.buttonBox, QtCore.SIGNAL('accepted()'), self.accept)

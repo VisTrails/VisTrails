@@ -309,6 +309,25 @@ class QModuleTreeWidget(QSearchTreeWidget):
                     
             item.contextMenuEvent(event, self)
 
+    def startDrag(self, actions):
+        indexes = self.selectedIndexes()
+        if len(indexes) > 0:
+            mime_data = self.model().mimeData(indexes)
+            drag = QtGui.QDrag(self)
+            drag.setMimeData(mime_data)
+            item = mime_data.items[0]
+            
+            app = get_vistrails_application()
+            pipeline_view = app.builderWindow.get_current_view().get_current_tab()
+            module_item = pipeline_view.scene().add_tmp_module(item.descriptor)
+            pixmap = pipeline_view.paintModuleToPixmap(module_item)
+
+            drag.setPixmap(pixmap)
+            drag.setHotSpot(QtCore.QPoint(pixmap.width()/2, pixmap.height()/2))
+            drag.exec_(actions)
+            pipeline_view.scene().delete_tmp_module()
+
+
 class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
     """    
     QModuleTreeWidgetItemDelegate will override the original

@@ -404,15 +404,19 @@ def addAlgorithmPorts(module):
             except TypeError:
                 pass
             else:
-                registry = get_module_registry()
-                des = registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
+                reg = get_module_registry()
+                des = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
                                                       'vtkAlgorithmOutput')
                 for i in xrange(0,instance.GetNumberOfInputPorts()):
-                    registry.add_input_port(module, 'SetInputConnection%d'%i, 
-                                            des.module)
+                    reg.add_input_port(module, 'SetInputConnection%d'%i,
+                                       des.module, 
+                                       docstring=\
+                                           module.get_doc('SetInputConnection'))
                 for i in xrange(0,instance.GetNumberOfOutputPorts()):
-                    registry.add_output_port(module, 'GetOutputPort%d'%i, 
-                                    des.module)
+                    reg.add_output_port(module, 'GetOutputPort%d'%i, 
+                                        des.module, 
+                                        docstring=\
+                                            module.get_doc('GetOutputPort'))
 
 disallowed_set_get_ports = set(['ReferenceCount',
                                 'InputConnection',
@@ -453,7 +457,9 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 continue
             class_ = typeMap(getter[0][0])
             if is_class_allowed(class_):
-                registry.add_output_port(module, 'Get'+name, class_, True)
+                port_name = 'Get'+name
+                registry.add_output_port(module, port_name, class_, True,
+                                         docstring=module.get_doc(port_name))
         if len(setterSig) > 1:
             prune_signatures(module, 'Set%s'%name, setterSig)
         for ix, setter in enumerate(setterSig):
@@ -462,16 +468,19 @@ def addSetGetPorts(module, get_set_dict, delayed):
             if len(setter[1]) == 1 and is_class_allowed(typeMap(setter[1][0])):
                 registry.add_input_port(module, n,
                                         typeMap(setter[1][0]),
-                                        setter[1][0] in typeMapDict)
+                                        setter[1][0] in typeMapDict,
+                                        docstring=module.get_doc(n))
             else:
                 classes = [typeMap(i) for i in setter[1]]
 
                 if all(is_class_allowed(x) for x in classes):
-                    registry.add_input_port(module, n, classes, True)
+                    registry.add_input_port(module, n, classes, True, 
+                                            docstring=module.get_doc(n))
 
 
             # Wrap SetFileNames for VisTrails file access
             if file_name_pattern.match(name):
+                # FIXME add documentation...
                 registry.add_input_port(module, 'Set' + name[:-4], 
                                         (File, 'input file'), False)
             # Wrap SetRenderWindow for exporters
@@ -487,8 +496,10 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
                                        'SpreadsheetCell'):
                     from vtkcell import VTKCell
+                    # FIXME add documentation
                     delayed.add_input_port.append((module, 'SetVTKCell', VTKCell, False))
             # Wrap color methods for VisTrails GUI facilities
+            # FIXME add documentation for all of these!
             elif name == 'DiffuseColor':
                 registry.add_input_port(module, 'SetDiffuseColorWidget',
                                         (Color, 'color'), True)
@@ -527,8 +538,12 @@ def addTogglePorts(module, toggle_dict):
     for name in toggle_dict.iterkeys():
         if name in disallowed_toggle_ports:
             continue
-        registry.add_input_port(module, name+'On', [], True)
-        registry.add_input_port(module, name+'Off', [], True)
+        port_name = name+'On'
+        registry.add_input_port(module, port_name, [], True,
+                                docstring=module.get_doc(port_name))
+        port_name = name+'Off'
+        registry.add_input_port(module, port_name, [], True,
+                                docstring=module.get_doc(port_name))
 
 disallowed_state_ports = set(['SetInputArrayToProcess'])
 def addStatePorts(module, state_dict):
@@ -549,7 +564,8 @@ def addStatePorts(module, state_dict):
             if field in disallowed_state_ports:
                 continue
             if not registry.has_input_port(module, field):
-                registry.add_input_port(module, field, [], True)
+                registry.add_input_port(module, field, [], True,
+                                        docstring=module.get_doc(field))
 
         # Now create the port Set foo with parameter
         if hasattr(klass, 'Set%s'%name):
@@ -564,11 +580,13 @@ def addStatePorts(module, state_dict):
                 tm = typeMap(setter[1][0])
                 if len(setter[1]) == 1 and is_class_allowed(tm):
                     registry.add_input_port(module, n, tm,
-                                            setter[1][0] in typeMapDict)
+                                            setter[1][0] in typeMapDict,
+                                            docstring=module.get_doc(n))
                 else:
                     classes = [typeMap(i) for i in setter[1]]
                     if all(is_class_allowed(x) for x in classes):
-                        registry.add_input_port(module, n, classes, True)
+                        registry.add_input_port(module, n, classes, True,
+                                                docstring=module.get_doc(n))
 
 disallowed_other_ports = set(
     [
@@ -577,13 +595,6 @@ disallowed_other_ports = set(
      'FastDelete',
      'HasObserver',
      'HasExecutive',
-     'INPUT_ARRAYS_TO_PROCESS',
-     'INPUT_CONNECTION',
-     'INPUT_IS_OPTIONAL',
-     'INPUT_IS_REPEATABLE',
-     'INPUT_PORT',
-     'INPUT_REQUIRED_DATA_TYPE',
-     'INPUT_REQUIRED_FIELDS',
      'InvokeEvent',
      'IsA',
      'Modified',
@@ -599,7 +610,29 @@ disallowed_other_ports = set(
      'UpdateInformation',
      'UpdateProgress',
      'UpdateWholeExtent',
+     # DAK: These are taken care of by s.upper() == s test
+     # 'GUI_HIDE',
+     # 'INPUT_ARRAYS_TO_PROCESS',
+     # 'INPUT_CONNECTION',
+     # 'INPUT_IS_OPTIONAL',
+     # 'INPUT_IS_REPEATABLE',
+     # 'INPUT_PORT',
+     # 'INPUT_REQUIRED_DATA_TYPE',
+     # 'INPUT_REQUIRED_FIELDS',
+     # 'IS_INTERNAL_VOLUME',
+     # 'IS_EXTERNAL_SURFACE',
+     # 'MANAGES_METAINFORMATION',
+     # 'POINT_DATA',
+     # 'POINTS',
+     # 'PRESERVES_ATTRIBUTES',
+     # 'PRESERVES_BOUNDS',
+     # 'PRESERVES_DATASET',
+     # 'PRESERVES_GEOMETRY',
+     # 'PRESERVES_RANGES',
+     # 'PRESERVES_TOPOLOGY',
      ])
+
+
 
 force_not_optional_port = set(
     ['ApplyViewTheme',
@@ -620,6 +653,7 @@ def addOtherPorts(module, other_list):
     registry = get_module_registry()
     for name in other_list:
         if name=='CopyImportVoidPointer':
+            # FIXME add documentation
             registry.add_input_port(module, 'CopyImportVoidString', (String, 'value'), False)
         if name[:3] in ['Add','Set'] or name[:6]=='Insert':
             if name in disallowed_other_ports:
@@ -649,11 +683,14 @@ def addOtherPorts(module, other_list):
                     n = resolve_overloaded_name(name, ix, signatures)
                     if len(types)<=1:
                         registry.add_input_port(module, n, types[0],
-                                                types[0] in typeMapDictValues)
+                                                types[0] in typeMapDictValues,
+                                                docstring=module.get_doc(n))
                     else:
-                        registry.add_input_port(module, n, types, True)
+                        registry.add_input_port(module, n, types, True,
+                                                docstring=module.get_doc(n))
         else:
-            if name in disallowed_other_ports:
+            # DAK: check for static methods as name.upper() == name
+            if name in disallowed_other_ports or name.upper() == name:
                 continue
             method = getattr(klass, name)
             signatures = ""
@@ -679,8 +716,14 @@ def addOtherPorts(module, other_list):
                     continue
                 if types==[] or (result==None):
                     n = resolve_overloaded_name(name, ix, signatures)
-                    registry.add_input_port(module, n, types,
-                                            not (n in force_not_optional_port))
+                    # print module.vtkClass.__name__, n
+                    try:
+                        doc = module.get_doc(n)
+                        registry.add_input_port(module, n, types,
+                                                not (n in force_not_optional_port),
+                                                docstring=module.get_doc(n))
+                    except:
+                        print "&*& ERROR WITH ", module.vtkClass.__name__, n
 
 disallowed_get_ports = set([
     'GetClassName',
@@ -710,7 +753,8 @@ def addGetPorts(module, get_list):
                     n = name + "_" + str(ix+1)
                 else:
                     n = name
-                registry.add_output_port(module, n, class_, True)
+                registry.add_output_port(module, n, class_, True,
+                                         docstring=module.get_doc(n))
     
 def addPorts(module, delayed):
     """ addPorts(module: VTK module inherited from Module,
@@ -734,6 +778,7 @@ def addPorts(module, delayed):
     addStatePorts(module, parser.get_state_methods())
     addOtherPorts(module, parser.get_other_methods())             
     # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
+    # FIXME Add documentation
     if klass==vtk.vtkAlgorithm:
         registry.add_input_port(module, 'AddInputConnection',
                                 typeMap('vtkAlgorithmOutput'))
@@ -1164,6 +1209,7 @@ def initialize():
     # to go after vtkAlgorithmOutput
     getter = registry.get_descriptor_by_name
     registry.add_module(tf_widget.vtkScaledTransferFunction)
+    # FIXME Add documentation
     registry.add_input_port(tf_widget.vtkScaledTransferFunction,
                             'Input', getter('edu.utah.sci.vistrails.vtk',
                                             'vtkAlgorithmOutput').module)

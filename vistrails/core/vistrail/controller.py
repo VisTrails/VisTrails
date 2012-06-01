@@ -33,6 +33,7 @@
 ###############################################################################
 
 import copy
+from itertools import izip
 import os
 import uuid
 import shutil
@@ -86,15 +87,24 @@ from db.services.io import SaveBundle, open_vt_log_from_db
 from db.services.vistrail import getSharedRoot
 from core.utils import any
 
-def vt_action(f):
-    def new_f(self, *args, **kwargs):
-        self.flush_delayed_actions()
-        action = f(self, *args, **kwargs)
-        if action is not None:
-            self.add_new_action(action)
-            self.perform_action(action)
-        return action
-    return new_f
+def vt_action(description_or_f=None):
+    def get_f(f, description=None):
+        def new_f(self, *args, **kwargs):
+            self.flush_delayed_actions()
+            action = f(self, *args, **kwargs)
+            if action is not None:
+                self.add_new_action(action, description)
+                self.perform_action(action)
+            return action
+        return new_f
+
+    if isinstance(description_or_f, basestring):
+        d = description_or_f
+        def wrap(f):
+            return get_f(f, d)
+        return wrap
+    else:
+        return get_f(description_or_f)
 
 class VistrailController(object):
     def __init__(self, vistrail=None, id_scope=None, auto_save=True):
@@ -237,32 +247,145 @@ class VistrailController(object):
             return self.vistrail.has_vistrail_var(name)
         return False
     
-    def set_vistrail_variable(self, name, value):
+    def set_vistrail_variable(self, name, value=None, set_changed=True):
         """set_vistrail_variable(var) -> Boolean
         Returns True if vistrail variable was changed """
         if self.vistrail:
             changed = self.vistrail.set_vistrail_var(name, value)
-            if changed:
+            if changed and set_changed:
                 self.set_changed(changed)
             return changed
         return False
-    
+
+    def get_vistrail_variable(self, name):
+        if self.vistrail:
+            return self.vistrail.get_vistrail_var(name)
+        return None
+   
+    def get_vistrail_variable_by_uuid(self, uuid):
+        if self.vistrail:
+            return self.vistrail.db_get_vistrailVariable_by_uuid(uuid)
+        return None
+ 
     def get_vistrail_variables(self):
-        """get_vistrail_variables() -> dict
-        Returns the dictionary of vistrail variables """
+        """get_vistrail_variables() -> list
+        Returns the list of vistrail variables """
         if self.vistrail:
             return self.vistrail.vistrail_vars
-        return {}
+        return []
     
     def get_vistrail_variable_name_by_uuid(self, uuid):
         """def get_vistrail_variable_name_by_uuid(uuid: str) -> dict
         Returns the var name for vistrail variable with uuid """
-        vars = self.get_vistrail_variables()
-        for var_name, var_info in vars.iteritems():
-            var_uuid, descriptor_info, var_strValue = var_info
-            if var_uuid == uuid:
-                return var_name
+        if self.vistrail and self.vistrail.db_has_vistrailVariable_with_uuid(uuid):
+            return self.vistrail.db_get_vistrailVariable_by_uuid(uuid).name
     
+    def find_vistrail_var_module(self, var_uuid):
+        for m in self.current_pipeline.modules.itervalues():
+            if m.is_vistrail_var() and m.get_vistrail_var() == var_uuid:
+                return m
+        return None
+
+    def get_vistrail_var_pairs(self, to_module, port_name, var_uuid=None):
+        connections = self.get_connections_to(self.current_pipeline, 
+                                              [to_module.id], port_name)
+        pipeline = self.current_pipeline
+        v_pairs = {}
+        for connection in connections:
+            m = pipeline.modules[connection.source.moduleId]
+            if m.is_vistrail_var():
+                if var_uuid is None or m.get_vistrail_var() == var_uuid:
+                    if m.id not in v_pairs:
+                        v_pairs[m.id] = []
+                    v_pairs[m.id].append(connection)
+        return v_pairs
+
+    def create_vistrail_var_module(self, descriptor, x, y, var_uuid):
+        m = self.create_module_from_descriptor(descriptor, x, y)
+        a = Annotation(id=self.id_scope.getNewId(Annotation.vtType),
+                       key=Module.VISTRAIL_VAR_ANNOTATION,
+                       value=var_uuid)
+        m.add_annotation(a)
+        f = self.create_function(m, "value")
+        m.add_function(f)
+        return m
+
+    def check_vistrail_var_connected(self, v_module, to_module, to_port):
+        connections = self.get_connections_to(self.current_pipeline, 
+                                              [to_module.id], to_port)
+        for connection in connections:
+            if connection.source.moduleId == v_module.id:
+                return True
+        return False
+
+    def check_has_vistrail_var_connected(self, to_module, port_name):
+        connections = self.get_connections_to(self.current_pipeline, 
+                                              [to_module.id], port_name)
+        pipeline = self.current_pipeline
+        for connection in connections:
+            if pipeline.modules[connection.source.moduleId].is_vistrail_var():
+                return True
+        return False
+
+    @vt_action("Connected vistrail variable")
+    def connect_vistrail_var_action(self, connection, module=None):
+        ops = []
+        if module is not None:
+            ops.append(('add', module))
+        ops.append(('add', connection))
+        action = core.db.action.create_action(ops)
+        return action
+        
+    def connect_vistrail_var(self, descriptor, var_uuid,
+                             to_module, to_port, x, y):
+        ops = []
+        new_module = None
+        v_module = self.find_vistrail_var_module(var_uuid)
+        if v_module is None:
+            v_module = self.create_vistrail_var_module(descriptor, x, y, 
+                                                       var_uuid)
+            new_module = v_module
+        elif self.check_vistrail_var_connected(v_module, to_module, to_port):
+            return (None, None)
+
+        c = self.create_connection(v_module, "value", to_module, to_port)
+        action = self.connect_vistrail_var_action(c, new_module)
+        return (c, new_module)
+
+    def delete_modules_and_connections(self, modules, connections):
+        ops = []
+        ops.extend([('delete', c) for c in connections])
+        ops.extend([('delete', m) for m in modules])
+        if len(ops) > 0:
+            action = core.db.action.create_action(ops)
+            return action
+        return None
+
+    @vt_action("Disconnected vistrail variable")
+    def disconnect_vistrail_vars(self, modules, connections):
+        return self.delete_modules_and_connections(modules, connections)
+
+    def get_disconnect_vistrail_vars(self, to_module, to_port, 
+                                     to_var_uuid=None):
+        to_delete_modules = []
+        to_delete_conns = []
+        v_pairs = self.get_vistrail_var_pairs(to_module, to_port, to_var_uuid)
+        for (v_module_id, v_conns) in v_pairs.iteritems():
+            to_delete_conns.extend(v_conns)
+            total_conns = self.get_connections_from(self.current_pipeline,
+                                                    [v_module_id])
+            # remove v_module if it isn't connected to others
+            if (len(total_conns) - len(v_conns)) < 1:
+                to_delete_modules.append(
+                    self.current_pipeline.modules[v_module_id])
+
+        # action = self.delete_modules_and_connections(to_delete_modules,
+        #                                              to_delete_conns)
+        # if action:
+        #     self.vistrail.change_description("Disconnected Vistrail Variables",
+        #                                      action.id)
+        return (to_delete_modules, to_delete_conns)
+
     def invalidate_version_tree(self, *args, **kwargs):
         """ invalidate_version_tree(self, *args, **kwargs) -> None
         Does nothing, gui/vistrail_controller.py does, though
@@ -328,7 +451,7 @@ class VistrailController(object):
             return action.db_id
         return None
 
-    def add_new_action(self, action):
+    def add_new_action(self, action, description=None):
         """add_new_action(action) -> None
 
         Call this function to add a new action to the vistrail being
@@ -341,6 +464,8 @@ class VistrailController(object):
         if action is not None:
             self.vistrail.add_action(action, self.current_version, 
                                      self.current_session)
+            if description is not None:
+                self.vistrail.change_description(description, action.id)
             self.set_changed(True)
             self.current_version = action.db_id
             self.recompute_terse_graph()
@@ -659,11 +784,25 @@ class VistrailController(object):
                         op_list.append(('change', old_param, new_param,
                                         function.vtType, function.real_id))
         elif param_values is not None:
-            new_function = self.create_function(module, function_name,
-                                                param_values, aliases,
-                                                query_methods)
-            op_list.append(('add', new_function,
-                            module.vtType, module.id))        
+            if len(param_values) < 1:
+                new_function = self.create_function(module, function_name,
+                                                    param_values, aliases,
+                                                    query_methods)
+                op_list.append(('add', new_function,
+                                module.vtType, module.id))        
+            else:
+                psis = port_spec.port_spec_items
+                found = False
+                for param_value, psi in izip(param_values, psis):
+                    if param_value != psi.default:
+                        found = True
+                        break
+                if found:
+                    new_function = self.create_function(module, function_name,
+                                                        param_values, aliases,
+                                                        query_methods)
+                    op_list.append(('add', new_function,
+                                    module.vtType, module.id))
         return op_list
 
     def update_functions_ops(self, module, functions):
@@ -862,8 +1001,10 @@ class VistrailController(object):
                                            old_id, aliases=aliases,
                                            query_methods=query_methods,
                                            should_replace=should_replace)
-        action = core.db.action.create_action(op_list)
-        return action
+        if len(op_list) > 0:
+            action = core.db.action.create_action(op_list)
+            return action
+        return None
 
     @vt_action
     def update_parameter(self, function, old_param_id, new_value):

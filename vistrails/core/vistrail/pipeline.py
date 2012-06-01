@@ -1085,17 +1085,15 @@ class Pipeline(DBWorkflow):
             raise InvalidPipeline(exceptions, self)
         
     def ensure_vistrail_variables(self, vistrail_vars):
-        if len(vistrail_vars) <= 0:
-            return
-        var_uuids = [var_uuid for var_uuid, descriptor_info, var_strValue in vistrail_vars.itervalues()]
+        var_uuids = [var.uuid for var in vistrail_vars]
         exceptions = set()
         for module in self.modules.itervalues():
-            if module.has_annotation_with_key('__vistrail_var__'):
-                var_uuid = module.get_annotation_by_key('__vistrail_var__').value
+            if module.is_vistrail_var():
+                var_uuid = module.get_vistrail_var()
                 if var_uuid not in var_uuids:
-                    e = MissingVistrailVariable(var_uuid, module.package, module.name, module.namespace)
+                    e = MissingVistrailVariable(var_uuid, module.package, 
+                                                module.name, module.namespace)
                     exceptions.add(e)
-    
         if len(exceptions) > 0:
             raise InvalidPipeline(exceptions, self)
 
@@ -1106,7 +1104,8 @@ class Pipeline(DBWorkflow):
             try:
                 for port_spec in module.port_specs.itervalues():
                     try:
-                        port_spec.create_entries_and_descriptors()
+                        # port_spec.create_entries_and_descriptors()
+                        port_spec.descriptors()
                     except ModuleRegistryException, e:
                         e = PortMismatch(module.package, module.name,
                                          module.namespace, port_spec.name,

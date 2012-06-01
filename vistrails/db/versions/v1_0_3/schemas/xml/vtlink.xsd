@@ -1,4 +1,4 @@
-###############################################################################
+<!--###############################################################################
 ##
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
@@ -31,32 +31,38 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+-->
+<?xml version="1.0" encoding="UTF-8"?>
 
-from constant_configuration import StandardConstantWidgetBase
-from query_configuration import BaseQueryWidget
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="vtlink">
+<xs:complexType>
+<!-- if the vistrail is in a DB use host, database, port and vtid -->
+<xs:attribute name="host" type="xs:string"></xs:attribute>
+<xs:attribute name="database" type="xs:string"></xs:attribute>
+<xs:attribute name="port" type="xs:int"></xs:attribute>
+<xs:attribute name="vtid" type="xs:int"></xs:attribute>
+<!-- if the vistrail is a file use filename below -->
+<xs:attribute name="filename" type="xs:string"></xs:attribute>
+<!-- this is the workflow version -->
+<xs:attribute name="version" type="xs:int"></xs:attribute>
+<!-- this is the workflow tag -->
+<xs:attribute name="tag" type="xs:string"></xs:attribute>
+<xs:attribute name="url" type="xs:string"></xs:attribute>
+<!--  vtcontent can be a workflow in xml or a .vt file base64 encoded -->
+<xs:attribute name="vtcontent" type="xs:string"></xs:attribute>
+<!--  if execute is true the workflow will be executed -->
+<xs:attribute name="execute" type="xs:boolean"></xs:attribute>
+<!--  if showSpreadsheetOnly is True we will hide the builder -->
+<xs:attribute name="showSpreadsheetOnly" type="xs:boolean"></xs:attribute>
+<!--  if there's database information and a workflow is embedded, it will
+force loading from the db instead of using the emebedded version -->
+<xs:attribute name="forceDB" type="xs:boolean"></xs:attribute>
+<!--  if mashuptrail and mashupVersion are set, VisTrails will execute the
+mashup -->
+<xs:attribute name="mashuptrail" type="xs:string"></xs:attribute>
+<xs:attribute name="mashupVersion" type="xs:int"></xs:attribute>
+</xs:complexType>
+</xs:element>
 
-def get_widget_class(module_klass):
-    klass = module_klass.get_widget_class()
-    if klass is None:
-        return StandardConstantWidgetBase
-    if type(klass) == tuple:
-        (path, klass_name) = klass
-        module = __import__(path, globals(), locals(), [klass_name])
-        return getattr(module, klass_name)
-    return klass
-
-def get_query_widget_class(module_klass):
-    klass = module_klass.get_query_widget_class()
-    if klass is None:
-        class DefaultQueryWidget(BaseQueryWidget):
-            def __init__(self, param, parent=None):
-                BaseQueryWidget.__init__(self, get_widget_class(module_klass), 
-                                         ["==", "!="],
-                                         param, parent)
-        return DefaultQueryWidget
-    if type(klass) == tuple:
-        (path, klass_name) = klass
-        module = __import__(path, globals(), locals(), [klass_name])
-        return getattr(module, klass_name)
-    return klass
-
+</xs:schema>

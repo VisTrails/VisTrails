@@ -32,4 +32,4 @@
 ##
 ###############################################################################
 
-from db.versions.v1_0_2.domain import *
+from db.versions.v1_0_3.domain import *

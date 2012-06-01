@@ -48,6 +48,7 @@ from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.modules import module_registry
 from core.modules.basic_modules import Constant
+from core.vistrail.vistrailvariable import VistrailVariable
 from gui.common_widgets import QPromptWidget
 from gui.modules import get_widget_class
 from gui.modules.constant_configuration import StandardConstantWidget, \
@@ -141,24 +142,30 @@ class QVariableDropBox(QtGui.QScrollArea):
         Construct input forms for a controller's variables
         
         """
-        self.controller = controller
-        if self.updateLocked: return
-        self.vWidget.clear()
-        if controller:
-            reg = module_registry.get_module_registry()
-            for var_name, var_info in controller.get_vistrail_variables().iteritems():
-                var_uuid = var_info[0]
-                identifier, name, namespace = var_info[1]
-                var_strValue = var_info[2]
-                try:
-                    descriptor = reg.get_descriptor_by_name(identifier, name, namespace)
-                except module_registry.ModuleRegistryException:
-                    debug.critical("Missing Module Descriptor for VisTrail Variable %s\nPackage: %s\nType: %s\nNamespace: %s"%(var_name,identifier,name,namespace))
-                    continue
-                self.vWidget.addVariable(var_uuid, var_name, descriptor, var_strValue)
-            self.vWidget.showPromptByChildren()
-        else:
-            self.vWidget.showPrompt(False)
+        # we shouldn't do this whenver the controller changes...
+        if self.controller != controller:
+            self.controller = controller
+            if self.updateLocked: return
+            self.vWidget.clear()
+            if controller:
+                reg = module_registry.get_module_registry()
+                for var in controller.vistrail.vistrail_vars:
+                    try:
+                        descriptor = reg.get_descriptor_by_name(var.package,
+                                                                var.module, 
+                                                                var.namespace)
+                    except module_registry.ModuleRegistryException:
+                        debug.critical("Missing Module Descriptor for vistrail"
+                                       " variable %s\nPackage: %s\nType: %s"
+                                       "\nNamespace: %s" % \
+                                           (var.name, var.package, var.module, 
+                                            var.namespace))
+                        continue
+                    self.vWidget.addVariable(var.uuid, var.name, descriptor, 
+                                             var.value)
+                self.vWidget.showPromptByChildren()
+            else:
+                self.vWidget.showPrompt(False)
 
     def lockUpdate(self):
         """ lockUpdate() -> None
@@ -196,12 +203,12 @@ class QVerticalWidget(QPromptWidget):
         self.setMinimumHeight(20)
         self._variable_widgets = []
         
-    def addVariable(self, var_uuid, var_name, descriptor, var_strValue=""):
-        """ addVariable(var_uuid:str, var_name: str, descriptor: ModuleDescriptor, var_strValue: str) -> None
+    def addVariable(self, uuid, name, descriptor, value=''):
+        """ addVariable(uuid:str, name: str, descriptor: ModuleDescriptor, value: str) -> None
         Add an input form for the variable
         
         """
-        inputForm = QVariableInputWidget(var_uuid, var_name, descriptor, var_strValue, self)
+        inputForm = QVariableInputWidget(uuid, name, descriptor, value, self)
         self.connect(inputForm, QtCore.SIGNAL('deleted(QWidget*)'), 
                      self.delete_form)
         self.layout().addWidget(inputForm)
@@ -220,6 +227,7 @@ class QVerticalWidget(QPromptWidget):
             self.disconnect(v, QtCore.SIGNAL('deleted(QWidget*)'), 
                          self.delete_form)
             self.layout().removeWidget(v)
+            v.setParent(None)
             v.deleteLater()
         self._variable_widgets = []
         self.setEnabled(True)
@@ -231,6 +239,7 @@ class QVerticalWidget(QPromptWidget):
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
         self._variable_widgets.remove(input_form)
+        input_form.setParent(None)
         input_form.deleteLater()
         self.showPromptByChildren()
 
@@ -242,14 +251,14 @@ class QVerticalWidget(QPromptWidget):
 
 
 class QVariableInputWidget(QtGui.QDockWidget):
-    def __init__(self, var_uuid, var_name, descriptor, var_strValue="", parent=None):
+    def __init__(self, uuid, name, descriptor, value='', parent=None):
         QtGui.QDockWidget.__init__(self, parent)
-        self.var_uuid = var_uuid
-        self.var_name = var_name
+        self.var_uuid = uuid
+        self.var_name = name
         self.descriptor = descriptor
         self.setFeatures(QtGui.QDockWidget.DockWidgetClosable)
         # Create group and titlebar widgets for input widget
-        self.group_box = QVariableInputForm(descriptor, var_strValue, self)
+        self.group_box = QVariableInputForm(descriptor, value, self)
         self.setWidget(self.group_box)
         title_widget = QtGui.QWidget()
         title_layout = QtGui.QHBoxLayout()
@@ -258,7 +267,7 @@ class QVariableInputWidget(QtGui.QDockWidget):
         self.closeButton.setIcon(QtGui.QIcon(self.style().standardPixmap(QtGui.QStyle.SP_TitleBarCloseButton)))
         self.closeButton.setIconSize(QtCore.QSize(13, 13))
         self.closeButton.setFixedWidth(16)
-        self.label = QHoverVariableLabel(var_name)
+        self.label = QHoverVariableLabel(name)
         title_layout.addWidget(self.label)
         title_layout.addWidget(self.closeButton)
         title_widget.setLayout(title_layout)
@@ -270,7 +279,7 @@ class QVariableInputWidget(QtGui.QDockWidget):
         variableBox = self.parent().parent().parent()
         if variableBox.controller:
             variableBox.lockUpdate()
-            variableBox.controller.set_vistrail_variable(self.var_name, None)
+            variableBox.controller.set_vistrail_variable(self.var_name, None, False)
             variableBox.unlockUpdate()
         # Create var entry with new name, but keeping the same uuid
         self.var_name = var_name
@@ -279,7 +288,8 @@ class QVariableInputWidget(QtGui.QDockWidget):
         
     def closeEvent(self, event):
         choice = show_question('Delete %s?'%self.var_name,
-                               'Are you sure you want to permanently delete the VisTrail variable "%s"?\n\nNote:  Any workflows using this variable will be left in an invalid state.'%self.var_name,
+           'Are you sure you want to permanently delete the VisTrail variable\
+ "%s"?\n\nNote:  Any workflows using this variable will be left in an invalid state.'%self.var_name,
                                [NO_BUTTON,YES_BUTTON],
                                NO_BUTTON)
         if choice == NO_BUTTON:
@@ -310,7 +320,8 @@ class QVariableInputForm(QtGui.QGroupBox):
     
     """
     def __init__(self, descriptor, var_strValue="", parent=None):
-        """ QVariableInputForm(descriptor: ModuleDescriptor, var_strValue: str, parent: QWidget) -> QVariableInputForm
+        """ QVariableInputForm(descriptor: ModuleDescriptor, var_strValue: str,
+                               parent: QWidget) -> QVariableInputForm
         Initialize with a vertical layout
         
         """
@@ -324,7 +335,8 @@ class QVariableInputForm(QtGui.QGroupBox):
         self.palette().setColor(QtGui.QPalette.Window,
                                 CurrentTheme.METHOD_SELECT_COLOR)
         # Create widget for editing variable
-        p = ModuleParam(type=descriptor.name, identifier=descriptor.identifier, namespace=descriptor.namespace)
+        p = ModuleParam(type=descriptor.name, identifier=descriptor.identifier,
+                        namespace=descriptor.namespace)
         p.strValue = var_strValue
         widget_type = get_widget_class(descriptor.module)
         self.widget = widget_type(p, self)
@@ -358,9 +370,10 @@ class QVariableInputForm(QtGui.QGroupBox):
         if variableBox.controller:
             variableBox.lockUpdate()
             descriptor = inputWidget.descriptor
-            descriptor_info = (descriptor.identifier, descriptor.name, descriptor.namespace)
-            value = (inputWidget.var_uuid, descriptor_info, str(self.widget.contents()))
-            variableBox.controller.set_vistrail_variable(inputWidget.var_name, value)
+            var = VistrailVariable(inputWidget.var_name, inputWidget.var_uuid,
+                                   descriptor.identifier, descriptor.name,
+                                   descriptor.namespace, str(self.widget.contents()))
+            variableBox.controller.set_vistrail_variable(inputWidget.var_name, var)
             variableBox.unlockUpdate()
 
 class QDragVariableLabel(QtGui.QLabel):
