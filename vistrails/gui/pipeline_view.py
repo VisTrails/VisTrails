@@ -2271,7 +2271,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     7: CurrentTheme.SUSPENDED_MODULE_BRUSH,
                     }
                 item.setProgress(e.progress)
-                if e.status in statusMap:
+                if item.statusBrush is not None and e.status == 3:
+                    # do not update, already in cache
+                    pass
+                elif e.status in statusMap:
                     item.statusBrush = statusMap[e.status]
                 else:
                     item.statusBrush = None
