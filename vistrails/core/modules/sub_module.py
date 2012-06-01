@@ -450,7 +450,8 @@ def initialize(*args, **kwargs):
     reg.add_input_port(OutputPort, "InternalPipe", Variant)
     reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
 
-    reg.add_module(Group, signatureCallable=group_signature)
+    reg.add_module(Group, signatureCallable=group_signature,
+                   hide_descriptor=True)
     reg.add_output_port(Group, "self", Group, True)
 
-    reg.add_module(Abstraction, name="SubWorkflow")
+    reg.add_module(Abstraction, name="SubWorkflow", hide_descriptor=True)
