@@ -1179,7 +1179,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             else:
                 self.modulePen = CurrentTheme.MODULE_PEN
 
-        if self.customBrush:
+        if self.statusBrush:
+            self.moduleBrush = self.statusBrush
+        elif self.customBrush:
             self.moduleBrush = self.customBrush
         elif self.is_breakpoint:
             self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
@@ -1187,8 +1189,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
         elif self.invalid:
             self.moduleBrush = CurrentTheme.INVALID_MODULE_BRUSH
-        elif self.statusBrush:
-            self.moduleBrush = self.statusBrush
         else:
             self.moduleBrush = CurrentTheme.MODULE_BRUSH
             
