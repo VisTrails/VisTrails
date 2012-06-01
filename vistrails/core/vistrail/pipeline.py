@@ -904,7 +904,8 @@ class Pipeline(DBWorkflow):
                                     module.is_abstraction()):
                 try:
                     subpipeline = module.pipeline
-                    subpipeline.validate()
+                    if subpipeline is not None:
+                        subpipeline.validate()
                 except InvalidPipeline, e:
                     module.is_valid = False
                     e._module_id = module.id

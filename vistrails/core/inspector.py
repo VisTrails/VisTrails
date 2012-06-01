@@ -172,8 +172,9 @@ class PipelineInspector(object):
 
             for subworkflow_id in self.find_subworkflows(pipeline):
                 subworkflow = pipeline.modules[subworkflow_id]
-                find_spreadsheet_cells(subworkflow.pipeline, 
-                                       root_id + [subworkflow_id])
+                if subworkflow.pipeline is not None:
+                    find_spreadsheet_cells(subworkflow.pipeline, 
+                                           root_id + [subworkflow_id])
 
         find_spreadsheet_cells(pipeline)
     
