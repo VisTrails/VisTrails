@@ -1,32 +1,17 @@
+from java.io import File
+from java.net import URLClassLoader
+
 from core.modules.vistrails_module import Module
 from core.modules.module_registry import get_module_registry
 
 from core.modules.basic_modules import Boolean, Float, Integer, String
 
+from modules_runtime import GetterModuleMixin, ConstructorModuleMixin
+
 
 class WekaBaseModule(Module):
     """Base Module from which all Weka modules inherit.
     """
-
-
-class GetterModuleMixin(object):
-    """The mixin implementing the logic for the *_get Module.
-
-    Uses the _getters attribute.
-    """
-    def compute(self):
-        # TODO
-        pass
-
-
-class ConstructorModuleMixin(object):
-    """The mixin implemting the logic for the *_N Module.
-
-    Uses the _getters, _setters and _ctor_params attributes.
-    """
-    def compute(self):
-        # TODO
-        pass
 
 
 _type_to_module = {
@@ -81,12 +66,15 @@ class ModuleCreator(object):
         # as a top-level module?
         pass
 
-    def __init__(self, parseResult):
+    def __init__(self, parseResult, filename):
         self._parseResult = parseResult
         self._created_modules = dict()
         self._module_registry = get_module_registry()
         self._used_methods = 0
         self._ignored_methods = 0
+
+        url = File(filename).toURI().toURL()
+        self._classloader = URLClassLoader([url])
 
     def _get_type_module(self, typename):
         """Return the VisTrails module that represents the given typename.
@@ -131,7 +119,9 @@ class ModuleCreator(object):
         name = c['fullname'].replace('.', '_')
 
         # Create the abstract module
-        mod = type(name, (parent,), dict())
+        mod = type(name, (parent,), dict(
+                _classloader=self._classloader,
+                _classname=c['fullname']))
         self._module_registry.add_module(mod, abstract=True)
         self._created_modules[c['fullname']] = mod
 
@@ -170,7 +160,10 @@ class ModuleCreator(object):
         # Create the getter module
         if getters:
             cname = '%s_get' % name
-            cmod = type(cname, (GetterModuleMixin, mod), dict())
+            cmod = type(
+                    cname,
+                    (GetterModuleMixin, mod),
+                    dict())
             self._module_registry.add_module(cmod)
             self._module_registry.add_input_port(
                     cmod, 'this',
@@ -185,7 +178,7 @@ class ModuleCreator(object):
                 cmod = type(
                         cname,
                         (ConstructorModuleMixin, mod),
-                        dict(_ctor_params=len(m['params'])))
+                        dict(_ctor_params=m['params']))
                 self._module_registry.add_module(cmod)
                 # Constructor parameters
                 for t, n in m['params']:
@@ -219,7 +212,7 @@ class ModuleCreator(object):
             self._populate_modules(c)
 
 
-def generate(parseResult):
+def generate(parseResult, filename):
     """Generates the VisTrails Module's from the parseResult structure.
 
     This method will be called at each startup with either a freshly parsed
@@ -228,5 +221,5 @@ def generate(parseResult):
     reg = get_module_registry()
     reg.add_module(WekaBaseModule, abstract=True)
 
-    creator = ModuleCreator(parseResult)
+    creator = ModuleCreator(parseResult, filename)
     creator.create_all_modules()

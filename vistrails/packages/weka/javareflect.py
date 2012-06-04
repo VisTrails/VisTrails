@@ -54,19 +54,19 @@ class JarIterator(object):
         return self
 
 
+def format_type(t):
+    if not Class.isArray(t):
+        return Class.getName(t)
+    else:
+        return JavaAnalyzer._format_type(Class.getComponentType(t)) + '[]'
+
+
 class JavaAnalyzer(object):
     """Analyzes Java classes into the parseResult structure.
     """
     def __init__(self, sources=None):
         self._sources = sources
         self.classes = {}
-
-    @staticmethod
-    def _format_type(t):
-        if not Class.isArray(t):
-            return Class.getName(t)
-        else:
-            return JavaAnalyzer._format_type(Class.getComponentType(t)) + '[]'
 
     def process(self, c):
         status = 'ok'
@@ -128,11 +128,10 @@ class JavaAnalyzer(object):
                 sourceParams = ['arg%d' % i for i in xrange(len(params))]
 
             for p, n in izip(params, sourceParams):
-                readParams.append((JavaAnalyzer._format_type(p), n))
+                readParams.append((format_type(p), n))
             readMethods.append({
                     'name': Method.getName(m),
-                    'returnType': JavaAnalyzer._format_type(
-                            Method.getReturnType(m)),
+                    'returnType': format_type(Method.getReturnType(m)),
                     'params': readParams})
         readClass['methods'] = readMethods
 
@@ -161,7 +160,7 @@ class JavaAnalyzer(object):
                 sourceParams = ['arg%d' % i for i in xrange(len(params))]
 
             for p, n in izip(params, sourceParams):
-                readParams.append((JavaAnalyzer._format_type(p), n))
+                readParams.append((format_type(p), n))
             readConstructors.append({
                     'params': readParams})
         readClass['constructors'] = readConstructors

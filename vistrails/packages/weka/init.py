@@ -111,7 +111,7 @@ def initialize():
                           "it will have to be parsed again next time...")
 
     import module_generator
-    module_generator.generate(parseResult)
+    module_generator.generate(parseResult, weka_jar)
 
 
 if __name__ == '__main__':
