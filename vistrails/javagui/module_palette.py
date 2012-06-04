@@ -94,13 +94,15 @@ class JModulePalette(JScrollPane):
         self.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
         
         self.packages = {}
+        self.modules = {}
         
     def connect_registry_signals(self):
         app = get_vistrails_application()
         app.register_notification('reg_new_package', self.newPackage)
         app.register_notification('reg_new_module', self.newModule)
         app.register_notification('reg_deleted_module', self.deletedModule)
-        app.register_notification('reg_deleted_package', self.deletedPackage)
+        # Ignore that, we'll delete a package when it becomes empty
+        #app.register_notification('reg_deleted_package', ...)
         app.register_notification('reg_show_module', self.showModule)
         app.register_notification('reg_hide_module', self.hideModule)
         app.register_notification('reg_module_updated', self.switchDescriptors)
@@ -114,6 +116,7 @@ class JModulePalette(JScrollPane):
             self.root.insert(package_item, 0)
         else:
             self.root.add(package_item)
+        self.tree.getModel().nodeStructureChanged(self.root)
         return package_item
 
     def newModule(self, descriptor, recurse=False):
@@ -125,36 +128,43 @@ class JModulePalette(JScrollPane):
                 package_item = self.newPackage(package_identifier, True)
             else:
                 package_item = self.packages[package_identifier]
-                
-            if descriptor.ghost_namespace is not None:
-                namespace = descriptor.ghost_namespace
-            else:
-                namespace = descriptor.namespace
-            if descriptor.namespace_hidden or not namespace:
-                parent_item = package_item
-            else:
-                parent_item = \
-                        package_item.get_namespace(namespace.split('|'))
-            
+
+            # TODO : namespaces
+            parent_item = package_item
+
             item = ModuleTreeNode(descriptor)
+            self.modules[descriptor] = item
             parent_item.add(item)
         if recurse:
             for child in descriptor.children:
                 self.newModule(child, recurse)
+        self.tree.getModel().nodeStructureChanged(self.root)
 
     def deletedModule(self, descriptor):
-        pass
+        try:
+            self.modules[descriptor].removeFromParent()
 
-    def deletedPackage(self, package):
-        pass
+            package_identifier = (
+                    descriptor.ghost_identifier or
+                    descriptor.identifier)
+            package_item = self.packages[package_identifier]
+            if package_item.getChildCount() == 0:
+                package_item.removeFromParent()
+                del self.packages[package_identifier]
+        except KeyError:
+            pass
+        self.tree.getModel().nodeStructureChanged(self.root)
 
     def showModule(self, descriptor):
+        print "TODO : show_module"
         pass
 
     def hideModule(self, descriptor):
+        print "TODO : hide_module"
         pass
 
     def switchDescriptors(self, old_descriptor, new_descriptor):
+        print "TODO : module_updated"
         pass
     
     def link_registry(self):
