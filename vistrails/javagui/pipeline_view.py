@@ -623,9 +623,14 @@ class JPipelineView(PCanvas):
         This method creates a new module at the location of the drop.
         """
         pos = self.getCamera().localToView(location)
-        module = self.controller.create_module_from_descriptor(
+        internal_version = -1L
+        reg = get_module_registry()
+        if reg.is_abstraction(descriptor):
+            internal_version = descriptor.module.internal_version
+        module = self.controller.add_module_from_descriptor(
                 descriptor,
-                pos.x, -pos.y)
+                pos.x, -pos.y,
+                internal_version)
         self.addModule(module)
 
     MOVE_DELTA = 0.5
