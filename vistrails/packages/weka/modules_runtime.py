@@ -49,4 +49,34 @@ class ConstructorModuleMixin(object):
         # Call the constructor
         this = self._ctor.newInstance(params)
 
+        # Call the setters
+        for setter in self._setters:
+            if self.hasInputFromPort(setter):
+                input = self.getInputFromPort(setter)
+                called = False
+                for method in self._class.getMethods():
+                    if method.getName() == setter:
+                        method.invoke(this, [input])
+                        called = True
+                        break
+                if not called:
+                    debug.warning("didn't find requested setter method\n"
+                                  "class=%s, method=%s" % (
+                                  self._classname, setter))
+
+        # Call the getters
+        for getter in self._getters:
+            called = False
+            for method in self._class.getMethods():
+                if method.getName() == getter:
+                    output = method.invoke(this)
+                    called = True
+                    break
+            if called:
+                self.setResult(getter, output)
+            else:
+                debug.warning("didn't find requested getter method\n"
+                              "class=%s, method=%s" % (
+                              self._classname, getter))
+
         self.setResult('this', this)
