@@ -30,9 +30,9 @@ class ConstructorModuleMixin(object):
 
 
 _type_to_module = {
-        'int': Integer, 'long': Integer,
-        'float': Float, 'double': Float,
-        'boolean': Boolean,
+        'int': Integer, 'long': Integer, 'Integer': Integer, 'Long': Integer,
+        'float': Float, 'double': Float, 'Float': Float, 'Double': Float,
+        'boolean': Boolean, 'Boolean': Boolean,
         'java.lang.String': String}
 
 
@@ -48,11 +48,13 @@ class ModuleCreator(object):
           class, or WekaBaseModule.
       - A concrete module used to call getters. It inherits from the abstract
           module, so it has the getter ports, and has a single input port
-          'self'.
+          'this'.
           The module name is appended '_get'.
       - For each constructor, a concrete module is created. It inherits from
           the abstract module, so it has all the getter ports, and has an input
           port for each constructor parameter. It also has the setters.
+          An output port 'this' returns the object constructed with the
+          parameters and after the setters have been called.
           The module name is appended an underscore and a number.
       - For each static method, a concrete module is created. It inherits
           from the WekaBaseModule directly, not from the abstract module.
@@ -171,7 +173,7 @@ class ModuleCreator(object):
             cmod = type(cname, (GetterModuleMixin, mod), dict())
             self._module_registry.add_module(cmod)
             self._module_registry.add_input_port(
-                    cmod, 'self',
+                    cmod, 'this',
                     (mod, 'the object to call getters on'))
 
         # Now, we need to create a new concrete module for each constructor
@@ -197,9 +199,9 @@ class ModuleCreator(object):
                     self._module_registry.add_input_port(
                             cmod, sname,
                             (t, n))
-                # The 'self' output port, that returns the created object
+                # The 'this' output port, that returns the created object
                 self._module_registry.add_output_port(
-                        cmod, 'self',
+                        cmod, 'this',
                         (mod, 'the created object'))
 
         # TODO : static methods
