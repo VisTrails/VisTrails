@@ -550,7 +550,7 @@ class JPipelineView(PCanvas):
         self.setupScene(self.controller.current_pipeline)
 
         # Compute modules colors
-        self.define_modules_color()
+        self.define_modules_color(executed=False)
 
         # Setup dropping of modules from the palette
         self.setTransferHandler(TargetTransferHandler(self))
@@ -564,9 +564,9 @@ class JPipelineView(PCanvas):
         SwingUtilities.invokeLater(CustomRunner(self.revalidate))
         SwingUtilities.invokeLater(CustomRunner(self.repaint))
 
-    def define_modules_color(self):
+    def define_modules_color(self, executed=True):
         self.colorModules = {}
-        if self.executed == {}:
+        if not executed:
             for module in self.controller.current_pipeline._get_modules():
                 self.modules[module].color = Color.gray
         else:
