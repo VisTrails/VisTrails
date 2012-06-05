@@ -12,9 +12,31 @@ class GetterModuleMixin(object):
 
     Uses the _getters attribute.
     """
+    def __init__(self):
+        super(GetterModuleMixin, self).__init__()
+        # Load the class
+        # We do it now so that we don't load unused classes when building the
+        # modules
+        self._class = self._classloader.loadClass(self._classname)
+
     def compute(self):
-        # TODO
-        pass
+        # Get the object fron the input port
+        this = self.getInputFromPort('this')
+
+        # Call the getters
+        for getter in self._getters:
+            called = False
+            for method in self._class.getMethods():
+                if method.getName() == getter:
+                    output = method.invoke(this)
+                    called = True
+                    break
+            if called:
+                self.setResult(getter, output)
+            else:
+                debug.warning("didn't find requested getter method\n"
+                              "class=%s, method=%s" % (
+                              self._classname, getter))
 
 
 class ConstructorModuleMixin(object):
@@ -25,7 +47,7 @@ class ConstructorModuleMixin(object):
     def __init__(self):
         super(ConstructorModuleMixin, self).__init__()
         # Load the class
-        # When do it now so that we don't load unused classes when building the
+        # We do it now so that we don't load unused classes when building the
         # modules
         self._class = self._classloader.loadClass(self._classname)
         # Find the correct constructor
