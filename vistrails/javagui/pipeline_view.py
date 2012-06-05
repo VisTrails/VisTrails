@@ -390,15 +390,15 @@ class PModule(PNode):
             f_pos = self.inputport_position
             if srcport is not None:
                 def check(p):
-                    return registry.ports_can_connect(self.inputPorts[p],
-                                                      srcport)
+                    return registry.ports_can_connect(srcport,
+                                                      self.inputPorts[p])
         else:
             ports = xrange(len(self.outputPorts))
             f_pos = self.outputport_position
             if srcport is not None:
                 def check(p):
-                    return registry.ports_can_connect(srcport,
-                                                      self.outputPorts[p])
+                    return registry.ports_can_connect(self.outputPorts[p],
+                                                      srcport)
 
         m = None
         min = 1E9
