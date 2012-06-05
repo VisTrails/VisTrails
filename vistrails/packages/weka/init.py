@@ -66,13 +66,14 @@ def initialize():
         if not os.path.isdir(weka_dir):
             debug.warning("specified wekaDirectory is not a directory:\n"
                           "%s" % weka_dir)
-        weka_jar = os.path.join(weka_dir, weka_jar)
-        weka_src = os.path.join(weka_dir, weka_src)
+        else:
+            weka_jar = os.path.join(weka_dir, weka_jar)
+            weka_src = os.path.join(weka_dir, weka_src)
     except KeyError:
         weka_dir = ''
 
     if not os.path.isfile(weka_jar):
-        raise WekaConfigurationError("Couldn't find weka.jar")
+        raise WekaConfigurationError("Couldn't find Weka JAR: %s" % weka_jar)
 
     parseResultFilename = os.path.join(
             default_dot_vistrails(),

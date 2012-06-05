@@ -44,17 +44,39 @@ class ConfigurationModel(DefaultTableModel):
 
     # @Override
     def setValueAt(self, aValue, row, column):
-        # TODO : validate type and change value IN BOTH LISTS
-        pass
+        line = self._filtered_lines[row]
+        try:
+            if line.type == int:
+                aValue = int(aValue)
+            elif line.type == str:
+                aValue = str(aValue) # aValue is a Java String, it gets sent as
+                        # unicode
+            elif line.type == bool:
+                if aValue.lower() == "true" or aValue == "1":
+                    aValue = True
+                elif aValue.lower() == "false" or aValue == "0":
+                    aValue = False
+                else:
+                    raise ValueError
+            elif line.type == float:
+                aValue = float(aValue)
+            line.value = aValue
+            print "!!! setting value: %s (%s)" % (aValue, type(aValue))
+            setattr(self._configuration, line.name, line.value)
+            self.fireTableCellUpdated(row, column)
+        except ValueError:
+            # Not updating anything -- cell content will revert
+            pass
 
     # @Override
     def isCellEditable(self, row, column):\
         return column == 1
 
     def filter(self, search):
+        search = search.lower()
         self._filtered_lines = []
         for name in sorted(self._configuration.keys()):
-            if search in name:
+            if search in name.lower():
                 value = getattr(self._configuration, name)
                 if isinstance(value, tuple):
                     t = value[1]
