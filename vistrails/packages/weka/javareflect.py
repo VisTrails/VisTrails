@@ -58,7 +58,7 @@ def format_type(t):
     if not Class.isArray(t):
         return Class.getName(t)
     else:
-        return JavaAnalyzer._format_type(Class.getComponentType(t)) + '[]'
+        return format_type(Class.getComponentType(t)) + '[]'
 
 
 class JavaAnalyzer(object):
