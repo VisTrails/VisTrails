@@ -440,9 +440,10 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         assert param.type == 'Boolean'
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
         assert param.namespace is None
+        self._silent = False
+        self.setContents(param.strValue)
         self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
                      self.change_state)
-        self.setContents(param.strValue)
         
     def contents(self):
         return self._values[self._states.index(self.checkState())]
@@ -453,12 +454,17 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         else:
             value = "False"
         assert value in self._values
+        if silent:
+            self._silent = True
         self.setCheckState(self._states[self._values.index(value)])
         if not silent:
             self.update_parent()
+        else:
+            self._silent = False
             
     def change_state(self, state):
-        self.update_parent()
+        if not self._silent:
+            self.update_parent()
 
 ###############################################################################
 # Constant Color widgets
