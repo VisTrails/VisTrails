@@ -75,6 +75,11 @@ class CloseListener(WindowAdapter):
         self._frame._visibleCond.acquire()
         self._frame._visibleCond.notifyAll()
         self._frame._visibleCond.release()
+        # This will only kill the current thread: AWT's Event Dispatch Thread
+        sys.exit(0)
+        # We need to kill it so that the application can exit, as sys.exit() in
+        # the main thread will join() all the remaining threads
+        # (this is different from Java's System.exit())
 
 
 class BuilderFrame(JFrame):
