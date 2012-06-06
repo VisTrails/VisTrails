@@ -211,6 +211,7 @@ def default():
         'showMovies': True,
         'showSplash': True,
         'showSpreadsheetOnly': False,
+        'singleInstance': True,
         'spreadsheetDumpCells': (None, str),
         'spreadsheetDumpPDF': False,
         'staticRegistry': (None, str),

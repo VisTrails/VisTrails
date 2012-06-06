@@ -320,7 +320,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "c4e3600b6481"
+        release = "240bcab5bbcd"
         if core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(['git', 'describe', '--always', '--abbrev=12'],

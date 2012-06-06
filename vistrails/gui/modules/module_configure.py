@@ -42,7 +42,6 @@ class StandardModuleConfigurationWidget(QtGui.QWidget):
     def __init__(self, module, controller, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.module = module
-        self.module_descriptor = self.module.module_descriptor
         self.controller = controller
         self.state_changed = False
         

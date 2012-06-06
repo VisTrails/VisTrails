@@ -86,7 +86,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
         self._is_running = False
+        self.shared_memory = None
+        self.local_server = None
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
+        qt.allowQObjects()
+
+    def run_single_instance(self):
         # code for single instance of the application
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
@@ -112,9 +117,17 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 else:
                     debug.warning("Server is not listening. This means it will not accept \
 parameters from other instances")
-                                  
-        qt.allowQObjects()
-
+            
+    def found_another_instance_running(self):
+        debug.critical("Found another instance of VisTrails running")
+        msg = str(sys.argv[1:])
+        debug.critical("Will send parameters to main instance %s" % msg)
+        res = self.send_message(msg)
+        if res:
+            sys.exit(0)
+        else:
+            sys.exit(1)
+            
     def init(self, optionsDict=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
@@ -125,7 +138,14 @@ parameters from other instances")
         # DAK this is handled by finalize_vistrails in core.application now
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         VistrailsApplicationInterface.init(self,optionsDict)
-
+        
+        #singleInstance configuration
+        singleInstance = self.temp_configuration.check('singleInstance')
+        if singleInstance:
+            self.run_single_instance()
+            if self._is_running:
+                self.found_another_instance_running()
+                
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
@@ -459,7 +479,7 @@ parameters from other instances")
             pass
 
     def finishSession(self):
-        if QtCore.QT_VERSION >= 0x40400:
+        if QtCore.QT_VERSION >= 0x40400 and self.shared_memory is not None:
             self.shared_memory.detach()
             if self.local_server:
                 self.local_server.close()
@@ -583,15 +603,7 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    if VistrailsApplication.is_running():
-        debug.critical("Found another instance of VisTrails running")
-        msg = str(sys.argv[1:])
-        debug.critical("Will send parameters to main instance %s" % msg)
-        res = VistrailsApplication.send_message(msg)
-        if res:
-            sys.exit(0)
-        else:
-            sys.exit(1)
+    
     try:
         core.requirements.check_all_vistrails_requirements()
     except core.requirements.MissingRequirement, e:

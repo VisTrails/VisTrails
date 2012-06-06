@@ -26,14 +26,103 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0 build 4ef2b8639b6d from v2.0 branch
+Release Name: v2.0 build 240bcab5bbcd from v2.0 branch
 
 Enhancements: 
+ - Ticket #424: SUDSWebServices should store the WSDL spec in the .vt file to enable upgrades (88f616a741de)
+ - Packages can store files in .vt zip files (88f616a741de)
+ - .vt files using SUDS Web Services can now be edited offline (88f616a741de)
+ - CLTools: package menu option for reloading all scripts (3c83b7101bc0)
+ - CLTools: added Open Wizard to package menu (1f19d0a7339a)
+ - Added CLToolsWizard.command file to Mac Binary (99adfd823a2d)
+ - Ticket #430: use of absolute file names can be problematic in vtl files (2b731d8d5043)
+ - LaTex Extension: Added support for relative .vtl links in pdf and relative filenames 
+   in .vtl files (2b731d8d5043)
+ - Package requirement for the job submission package (77f3f1761f92)
+ - Ticket #519: Executions in Version View that fail should change to pipeline (cea08c6e25d9)
+ - Switch to pipeline view if an execution fails (cea08c6e25d9)
+ - Ticket #557: Password dialog (f9739db121c4)
  - Ticket #559: Persistent modules do not work in groups (4ef2b8639b6d)
  - Allow modules in subpipelines to be cached (4ef2b8639b6d)
  - Added alps package to VisTrails 64-bit Windows Binary  (519d862a63f5)
 
 Bug fixes: 
+ - Ticket #575: Vistrail variables panel has an overdraw 
+   problem (c4171c8aab63) (09815c35efb8) (7ca53292670a) (07fdeb8602a7) (45a4818a0b5c)
+ - Ticket #404: Overriding a port via add_*_port does not work (47e72744ede1)
+ - Ensure add_*_port can override ports in superclass port lists (47e72744ede1)
+ - Ticket #523: Default values for parameters not showing (e3f1b1a3253f)
+ - Add default support back in (e3f1b1a3253f)
+ - Fixed spelling in repository.py (6c2259e84214)
+ - SUDSWebServices: Wrong indentation caused vistrail save to fail (5497e50c727f)
+ - Ticket #576: Analogies are only displayed if we change the focus out of VisTrails to 
+   another application and back (d782197a1cab)
+ - Fix issue with redrawing the tree after analogies (d782197a1cab)
+ - Running instance was not accepting parameters from another instance (63b58b8416d0)
+ - Ticket #464: VTK Package does not support VTK 5.10 release (3e3700900ad0)
+ - Ticket #445: mashup previews is not always shown in the main window (9111971ce8c6)
+ - Now persistent cache works after one execution (87e8ff129b88)
+ - Ticket #573: Opened vistrail fail when reloading dependent package (b1ff731d904a)
+ - SUDSWebServices: Failed Web Services could not be removed (b1ff731d904a)
+ - Execution button may hang when execution fails (b1ff731d904a)
+ - Ticket #571: Vistrail variables cannot be used in more than one workflow (02f2acee1727)
+ - Fix issue when setting a vistrail variable on multiple modules (02f2acee1727)
+ - Ticket #574: Cannot add variable to empty detached Vistrail Variables window (4ae4f3d9c582)
+ - Fixed issue with creating vistrail variables in an undocked panel (4ae4f3d9c582)
+ - Ticket #539: Standard Module Configuration Widget asks to save when two ports are 
+   enabled (154525da1047)
+ - Ticket #521: Annoying PythonSource behavior (154525da1047)
+ - Configuration widgets will prompt to save only when the current
+   module change, making it easier to copy text from another application (154525da1047)
+ - QVistrailsWindow.get_current_view() was returning the wrong view sometimes (154525da1047)
+ - CLTools: IOErrors when executing process (d810075f00a6)
+ - Fix issue with analogies that also require upgrades (215ceae6ef1f)
+ - Fix typo (50da981b6938)
+ - Fix issue with remove vistrail variable modules and connections (c3183771c5ea)
+ - Ticket #569: Connected icon in Module Information does not disappear after removing
+   connection (9a68ec624c9d)
+ - Fix issue with connected indicator for ports (9a68ec624c9d)
+ - Eliminate duplicate warnings (f6020fa412bb)
+ - Use lil_matrix for analogies (f6020fa412bb)
+ - Modify logic of analogy usage to use current selected version (f6020fa412bb)
+ - Ticket #419: Analogies fail on new terminator.vt (83c7735b0d28)
+ - Change analogies to use a suitable default alpha value (83c7735b0d28)
+ - Ticket #567: CLTools has issues reading man pages on Mac OS X (cdb5368df6fc)
+ - Ticket #370: dataDirectory setting not used (73fe930b49ff)
+ - Loading an image from workflow graph or a version tree was not
+   working in the command line (2b731d8d5043)
+ - Workflow results that used a VTKCell were consisting of a black
+   screen when running in batch mode (80d55defb140)
+ - Ticket #551: Cannot access messages window when preferences window is open (cc8fa8e6ad8a)
+ - Ticket #487: isosurface script version of terminator.vt causes vistrails to 
+   crash (02caf56e6c0e)
+ - Ticket #564: Invalid view warning (3b2062c17cb0)
+ - Ticket #552: No visual clue when ubuntu package finishes installing (2f78b1b1d749)
+ - Ticket #540: Vistrail is not always marked as changed when containing a vistrail 
+   variable (7acddff31ff1)
+ - Ticket #566: QPixmap scaled error message (c6842a9fa320)
+ - Fixed QPixmap scaled issue (c6842a9fa320)
+ - Ticket #517: Undo menu item not working (a7b574defe31)
+ - Fix undo/redo in pipeline view (a7b574defe31)
+ - Fix issue with executions of untagged versions (36c1a73a46ae)
+ - Ticket #560: Workspace has very inefficient updates (51a4e7982bb7)
+ - Workspace: made loading mashups more efficient (51a4e7982bb7)
+ - Ticket #562: "Save as" replaces items from workspace (d8fa58ccd9c0)
+ - Ticket #560: Workspace has very inefficient updates (3dfac92ab688)
+ - Partial fix to make workspace more efficient (3dfac92ab688)
+ - Ticket #565: Version labels in query results are not gray (22e9920d1ea0)
+ - Fix colors in query results view (22e9920d1ea0)
+ - Ticket #504: The Query's refine option doesn't do anything (1fce254de2c5)
+ - Reenable refined version tree in the query view (1fce254de2c5)
+ - Ticket #532: Edit Package Abstraction Error (7c03b6999125)
+ - Fixed issue with error message for editing package subworkflows (7c03b6999125)
+ - Ticket #541: Crash when detaching ModuleInformation dockwidget on Mac (72c7afc3a95e)
+ - Fix crash on undocking module info palette on Mac OS X (72c7afc3a95e)
+ - Ticket #546: Selecting a version selects the text box instead of the version 
+   ellipse (5a7df50dd899)
+ - Make version tree selection more intuitive (5a7df50dd899)
+ - Ticket #538: Pipeline Connection Drawing? (ed11bdfffa54)
+ - Fix connection drawing issue on Mac (ed11bdfffa54)
  - Ticket #558: Group signatures cannot be based only on interface (4ef2b8639b6d)
  - Fix issue with caching group modules (4ef2b8639b6d)
  - Fix initial layout of matplotlib cells (3a8d5c7c3d62)
@@ -44,9 +133,11 @@ Bug fixes:
  - Fix logic in identifier checks in package manager (1882ed36cd76)
  - Ticket #554: Port labels not displayed (a9454abc238a)
  - Add missing port labels to ports panel (a9454abc238a)
- - Ticket #553: Suspended module does not execute on second run even when notcacheable (3e22759385d3)
+ - Ticket #553: Suspended module does not execute on second run even when 
+   notcacheable (3e22759385d3)
  - Ticket #549: update_db.py script does not work (fb5ad0eb480a)
- - Parameter Exploration only worked on parameters from the Basic Modules package (99969b93ece2)
+ - Parameter Exploration only worked on parameters from the Basic Modules 
+   package (99969b93ece2)
  - Autoloading a SUDS Web Service no longer produce error messages (c079bd9c52db)
  - Ticket #513: Add detachHistoryView back (08bec17e40e6)
  - Ticket #543: Changes to persistence module configuration doesn't work (d03382c67e1d)

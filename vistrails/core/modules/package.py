@@ -55,10 +55,9 @@ class Package(DBPackage):
     Base, User, Other = 0, 1, 2
 
     class InitializationFailed(Exception):
-        def __init__(self, package, exception, traceback):
+        def __init__(self, package, tracebacks):
             self.package = package
-            self.exception = exception
-            self.traceback = traceback
+            self.tracebacks = tracebacks
         def __str__(self):
             try:
                 name = self.package.name
@@ -66,11 +65,9 @@ class Package(DBPackage):
                     name = 'codepath <%s>' % self.package.codepath
             except AttributeError:
                 name = 'codepath <%s>' % self.package.codepath
-            return ("Package '%s' failed to initialize, raising '%s: %s'. Traceback:\n%s" %
-                    (name,
-                     self.exception.__class__.__name__,
-                     self.exception,
-                     self.traceback))
+            return ("Package '%s' failed to initialize because of the "
+                    "following exceptions:\n%s" % \
+                        (name, "\n".join(self.tracebacks)))
 
     class LoadFailed(Exception):
         def __init__(self, package, exception, traceback):
@@ -318,7 +315,7 @@ class Package(DBPackage):
                 self._package_type = self.Base
                 self.prefix = p_path
             except ImportError, e:
-                errors.append((e, traceback.format_exc()))
+                errors.append(traceback.format_exc())
                 return False
             return True
 
@@ -340,13 +337,7 @@ class Package(DBPackage):
             self.py_dependencies.update(self._reset_import())
             
         if r:
-            debug.critical("Could not enable package %s" % self.codepath)
-            for e in errors:
-                debug.critical("Exceptions/tracebacks raised:")
-                debug.critical(str(e[0]))
-                debug.critical(str(e[1]))
-            raise self.InitializationFailed(self,
-                                            errors[-1][0], errors[-1][1])
+            raise self.InitializationFailed(self, errors)
 
         # Sometimes we don't want to change startup.xml, for example
         # when peeking at a package that's on the available package list
@@ -425,7 +416,6 @@ class Package(DBPackage):
                 v = self._module.__file__
             except AttributeError:
                 v = self._module
-            debug.critical("Package %s is missing necessary attribute" % v)
             raise e
         if hasattr(self._module, '__doc__') and self._module.__doc__:
             self.description = self._module.__doc__
