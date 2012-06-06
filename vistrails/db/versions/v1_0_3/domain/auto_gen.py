@@ -9671,6 +9671,280 @@ class DBWorkflowExec(object):
     def getPrimaryKey(self):
         return self._db_id
 
+class DBParameterExploration(object):
+
+    vtType = 'parameter_exploration'
+
+    def __init__(self, id=None, action_id=None, name=None, date=None, user=None, dims=None, layout=None, functions=None):
+        self._db_id = id
+        self._db_action_id = action_id
+        self._db_name = name
+        self._db_date = date
+        self._db_user = user
+        self._db_dims = dims
+        self._db_layout = layout
+        self.db_deleted_functions = []
+        self.db_functions_id_index = {}
+        if functions is None:
+            self._db_functions = []
+        else:
+            self._db_functions = functions
+            for v in self._db_functions:
+                self.db_functions_id_index[v.db_id] = v
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBParameterExploration.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBParameterExploration(id=self._db_id,
+                                    action_id=self._db_action_id,
+                                    name=self._db_name,
+                                    date=self._db_date,
+                                    user=self._db_user,
+                                    dims=self._db_dims,
+                                    layout=self._db_layout)
+        if self._db_functions is None:
+            cp._db_functions = []
+        else:
+            cp._db_functions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+            if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
+                cp._db_action_id = id_remap[('action', self._db_action_id)]
+        
+        # recreate indices and set flags
+        cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBParameterExploration()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'action_id' in class_dict:
+            res = class_dict['action_id'](old_obj, trans_dict)
+            new_obj.db_action_id = res
+        elif hasattr(old_obj, 'db_action_id') and old_obj.db_action_id is not None:
+            new_obj.db_action_id = old_obj.db_action_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
+            new_obj.db_name = old_obj.db_name
+        if 'date' in class_dict:
+            res = class_dict['date'](old_obj, trans_dict)
+            new_obj.db_date = res
+        elif hasattr(old_obj, 'db_date') and old_obj.db_date is not None:
+            new_obj.db_date = old_obj.db_date
+        if 'user' in class_dict:
+            res = class_dict['user'](old_obj, trans_dict)
+            new_obj.db_user = res
+        elif hasattr(old_obj, 'db_user') and old_obj.db_user is not None:
+            new_obj.db_user = old_obj.db_user
+        if 'dims' in class_dict:
+            res = class_dict['dims'](old_obj, trans_dict)
+            new_obj.db_dims = res
+        elif hasattr(old_obj, 'db_dims') and old_obj.db_dims is not None:
+            new_obj.db_dims = old_obj.db_dims
+        if 'layout' in class_dict:
+            res = class_dict['layout'](old_obj, trans_dict)
+            new_obj.db_layout = res
+        elif hasattr(old_obj, 'db_layout') and old_obj.db_layout is not None:
+            new_obj.db_layout = old_obj.db_layout
+        if 'functions' in class_dict:
+            res = class_dict['functions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_function(obj)
+        elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
+            for obj in old_obj.db_functions:
+                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
+            for obj in old_obj.db_deleted_functions:
+                n_obj = DBFunction.update_version(obj, trans_dict)
+                new_obj.db_deleted_functions.append(n_obj)
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False):
+        children = []
+        to_del = []
+        for child in self.db_functions:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_function(child)
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_functions)
+        if remove:
+            self.db_deleted_functions = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        for child in self._db_functions:
+            if child.has_changes():
+                return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_action_id(self):
+        return self._db_action_id
+    def __set_db_action_id(self, action_id):
+        self._db_action_id = action_id
+        self.is_dirty = True
+    db_action_id = property(__get_db_action_id, __set_db_action_id)
+    def db_add_action_id(self, action_id):
+        self._db_action_id = action_id
+    def db_change_action_id(self, action_id):
+        self._db_action_id = action_id
+    def db_delete_action_id(self, action_id):
+        self._db_action_id = None
+    
+    def __get_db_name(self):
+        return self._db_name
+    def __set_db_name(self, name):
+        self._db_name = name
+        self.is_dirty = True
+    db_name = property(__get_db_name, __set_db_name)
+    def db_add_name(self, name):
+        self._db_name = name
+    def db_change_name(self, name):
+        self._db_name = name
+    def db_delete_name(self, name):
+        self._db_name = None
+    
+    def __get_db_date(self):
+        return self._db_date
+    def __set_db_date(self, date):
+        self._db_date = date
+        self.is_dirty = True
+    db_date = property(__get_db_date, __set_db_date)
+    def db_add_date(self, date):
+        self._db_date = date
+    def db_change_date(self, date):
+        self._db_date = date
+    def db_delete_date(self, date):
+        self._db_date = None
+    
+    def __get_db_user(self):
+        return self._db_user
+    def __set_db_user(self, user):
+        self._db_user = user
+        self.is_dirty = True
+    db_user = property(__get_db_user, __set_db_user)
+    def db_add_user(self, user):
+        self._db_user = user
+    def db_change_user(self, user):
+        self._db_user = user
+    def db_delete_user(self, user):
+        self._db_user = None
+    
+    def __get_db_dims(self):
+        return self._db_dims
+    def __set_db_dims(self, dims):
+        self._db_dims = dims
+        self.is_dirty = True
+    db_dims = property(__get_db_dims, __set_db_dims)
+    def db_add_dims(self, dims):
+        self._db_dims = dims
+    def db_change_dims(self, dims):
+        self._db_dims = dims
+    def db_delete_dims(self, dims):
+        self._db_dims = None
+    
+    def __get_db_layout(self):
+        return self._db_layout
+    def __set_db_layout(self, layout):
+        self._db_layout = layout
+        self.is_dirty = True
+    db_layout = property(__get_db_layout, __set_db_layout)
+    def db_add_layout(self, layout):
+        self._db_layout = layout
+    def db_change_layout(self, layout):
+        self._db_layout = layout
+    def db_delete_layout(self, layout):
+        self._db_layout = None
+    
+    def __get_db_functions(self):
+        return self._db_functions
+    def __set_db_functions(self, functions):
+        self._db_functions = functions
+        self.is_dirty = True
+    db_functions = property(__get_db_functions, __set_db_functions)
+    def db_get_functions(self):
+        return self._db_functions
+    def db_add_function(self, function):
+        self.is_dirty = True
+        self._db_functions.append(function)
+        self.db_functions_id_index[function.db_id] = function
+    def db_change_function(self, function):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_functions)):
+            if self._db_functions[i].db_id == function.db_id:
+                self._db_functions[i] = function
+                found = True
+                break
+        if not found:
+            self._db_functions.append(function)
+        self.db_functions_id_index[function.db_id] = function
+    def db_delete_function(self, function):
+        self.is_dirty = True
+        for i in xrange(len(self._db_functions)):
+            if self._db_functions[i].db_id == function.db_id:
+                if not self._db_functions[i].is_new:
+                    self.db_deleted_functions.append(self._db_functions[i])
+                del self._db_functions[i]
+                break
+        del self.db_functions_id_index[function.db_id]
+    def db_get_function(self, key):
+        for i in xrange(len(self._db_functions)):
+            if self._db_functions[i].db_id == key:
+                return self._db_functions[i]
+        return None
+    def db_get_function_by_id(self, key):
+        return self.db_functions_id_index[key]
+    def db_has_function_with_id(self, key):
+        return key in self.db_functions_id_index
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
 class DBLoopExec(object):
 
     vtType = 'loop_exec'
@@ -11271,7 +11545,7 @@ class DBVistrail(object):
 
     vtType = 'vistrail'
 
-    def __init__(self, id=None, entity_type=None, version=None, name=None, last_modified=None, actions=None, tags=None, annotations=None, vistrailVariables=None, actionAnnotations=None):
+    def __init__(self, id=None, entity_type=None, version=None, name=None, last_modified=None, actions=None, tags=None, annotations=None, vistrailVariables=None, parameter_explorations=None, actionAnnotations=None):
         self._db_id = id
         self._db_entity_type = entity_type
         self._db_version = version
@@ -11315,6 +11589,14 @@ class DBVistrail(object):
             for v in self._db_vistrailVariables:
                 self.db_vistrailVariables_name_index[v.db_name] = v
                 self.db_vistrailVariables_uuid_index[v.db_uuid] = v
+        self.db_deleted_parameter_explorations = []
+        self.db_parameter_explorations_id_index = {}
+        if parameter_explorations is None:
+            self._db_parameter_explorations = []
+        else:
+            self._db_parameter_explorations = parameter_explorations
+            for v in self._db_parameter_explorations:
+                self.db_parameter_explorations_id_index[v.db_id] = v
         self.db_deleted_actionAnnotations = []
         self.db_actionAnnotations_id_index = {}
         self.db_actionAnnotations_action_id_index = {}
@@ -11355,6 +11637,10 @@ class DBVistrail(object):
             cp._db_vistrailVariables = []
         else:
             cp._db_vistrailVariables = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vistrailVariables]
+        if self._db_parameter_explorations is None:
+            cp._db_parameter_explorations = []
+        else:
+            cp._db_parameter_explorations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameter_explorations]
         if self._db_actionAnnotations is None:
             cp._db_actionAnnotations = []
         else:
@@ -11377,6 +11663,7 @@ class DBVistrail(object):
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
         cp.db_vistrailVariables_name_index = dict((v.db_name, v) for v in cp._db_vistrailVariables)
         cp.db_vistrailVariables_uuid_index = dict((v.db_uuid, v) for v in cp._db_vistrailVariables)
+        cp.db_parameter_explorations_id_index = dict((v.db_id, v) for v in cp._db_parameter_explorations)
         cp.db_actionAnnotations_id_index = dict((v.db_id, v) for v in cp._db_actionAnnotations)
         cp.db_actionAnnotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_actionAnnotations)
         cp.db_actionAnnotations_key_index = dict(((v.db_key,v.db_value), v) for v in cp._db_actionAnnotations)
@@ -11461,6 +11748,17 @@ class DBVistrail(object):
             for obj in old_obj.db_deleted_vistrailVariables:
                 n_obj = DBVistrailVariable.update_version(obj, trans_dict)
                 new_obj.db_deleted_vistrailVariables.append(n_obj)
+        if 'parameter_explorations' in class_dict:
+            res = class_dict['parameter_explorations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_parameter_exploration(obj)
+        elif hasattr(old_obj, 'db_parameter_explorations') and old_obj.db_parameter_explorations is not None:
+            for obj in old_obj.db_parameter_explorations:
+                new_obj.db_add_parameter_exploration(DBParameterExploration.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_parameter_explorations') and hasattr(new_obj, 'db_deleted_parameter_explorations'):
+            for obj in old_obj.db_deleted_parameter_explorations:
+                n_obj = DBParameterExploration.update_version(obj, trans_dict)
+                new_obj.db_deleted_parameter_explorations.append(n_obj)
         if 'actionAnnotations' in class_dict:
             res = class_dict['actionAnnotations'](old_obj, trans_dict)
             for obj in res:
@@ -11507,6 +11805,13 @@ class DBVistrail(object):
         for child in to_del:
             self.db_delete_vistrailVariable(child)
         to_del = []
+        for child in self.db_parameter_explorations:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_parameter_exploration(child)
+        to_del = []
         for child in self.db_actionAnnotations:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
             if orphan:
@@ -11521,12 +11826,14 @@ class DBVistrail(object):
         children.extend(self.db_deleted_tags)
         children.extend(self.db_deleted_annotations)
         children.extend(self.db_deleted_vistrailVariables)
+        children.extend(self.db_deleted_parameter_explorations)
         children.extend(self.db_deleted_actionAnnotations)
         if remove:
             self.db_deleted_actions = []
             self.db_deleted_tags = []
             self.db_deleted_annotations = []
             self.db_deleted_vistrailVariables = []
+            self.db_deleted_parameter_explorations = []
             self.db_deleted_actionAnnotations = []
         return children
     def has_changes(self):
@@ -11542,6 +11849,9 @@ class DBVistrail(object):
             if child.has_changes():
                 return True
         for child in self._db_vistrailVariables:
+            if child.has_changes():
+                return True
+        for child in self._db_parameter_explorations:
             if child.has_changes():
                 return True
         for child in self._db_actionAnnotations:
@@ -11801,6 +12111,48 @@ class DBVistrail(object):
         return self.db_vistrailVariables_uuid_index[key]
     def db_has_vistrailVariable_with_uuid(self, key):
         return key in self.db_vistrailVariables_uuid_index
+    
+    def __get_db_parameter_explorations(self):
+        return self._db_parameter_explorations
+    def __set_db_parameter_explorations(self, parameter_explorations):
+        self._db_parameter_explorations = parameter_explorations
+        self.is_dirty = True
+    db_parameter_explorations = property(__get_db_parameter_explorations, __set_db_parameter_explorations)
+    def db_get_parameter_explorations(self):
+        return self._db_parameter_explorations
+    def db_add_parameter_exploration(self, parameter_exploration):
+        self.is_dirty = True
+        self._db_parameter_explorations.append(parameter_exploration)
+        self.db_parameter_explorations_id_index[parameter_exploration.db_id] = parameter_exploration
+    def db_change_parameter_exploration(self, parameter_exploration):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_parameter_explorations)):
+            if self._db_parameter_explorations[i].db_id == parameter_exploration.db_id:
+                self._db_parameter_explorations[i] = parameter_exploration
+                found = True
+                break
+        if not found:
+            self._db_parameter_explorations.append(parameter_exploration)
+        self.db_parameter_explorations_id_index[parameter_exploration.db_id] = parameter_exploration
+    def db_delete_parameter_exploration(self, parameter_exploration):
+        self.is_dirty = True
+        for i in xrange(len(self._db_parameter_explorations)):
+            if self._db_parameter_explorations[i].db_id == parameter_exploration.db_id:
+                if not self._db_parameter_explorations[i].is_new:
+                    self.db_deleted_parameter_explorations.append(self._db_parameter_explorations[i])
+                del self._db_parameter_explorations[i]
+                break
+        del self.db_parameter_explorations_id_index[parameter_exploration.db_id]
+    def db_get_parameter_exploration(self, key):
+        for i in xrange(len(self._db_parameter_explorations)):
+            if self._db_parameter_explorations[i].db_id == key:
+                return self._db_parameter_explorations[i]
+        return None
+    def db_get_parameter_exploration_by_id(self, key):
+        return self.db_parameter_explorations_id_index[key]
+    def db_has_parameter_exploration_with_id(self, key):
+        return key in self.db_parameter_explorations_id_index
     
     def __get_db_actionAnnotations(self):
         return self._db_actionAnnotations

@@ -155,7 +155,7 @@ class ModuleFunction(DBFunction):
         simply gets set on the spec being returned.
         """
         assert port_type == 'input' or port_type == 'output'
-        result = PortSpec(signature=self.sigstring)
+        result = PortSpec(sigstring=self.sigstring)
         result.type = port_type
         return result
 

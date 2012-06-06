@@ -42,6 +42,7 @@
         <xs:element ref="tag" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="vistrailVariable" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="parameter_exploration" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="actionAnnotation" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
@@ -87,6 +88,19 @@
       <xs:attribute name="module" type="xs:string"/>
       <xs:attribute name="namespace" type="xs:string"/>
       <xs:attribute name="value" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="parameter_exploration">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="function" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="actionId" type="xs:int"/>
+      <xs:attribute name="name" type="xs:string"/>
+      <xs:attribute name="user" type="xs:string"/>
+      <xs:attribute name="dims" type="xs:string"/>
+      <xs:attribute name="layout" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="actionAnnotation">
@@ -155,6 +169,16 @@
       <xs:attribute name="parentObjType" type="xs:string"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="function">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="pos" type="xs:int"/>
+      <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="module">
     <xs:complexType>
       <xs:sequence>
@@ -176,16 +200,6 @@
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="x" type="xs:float"/>
       <xs:attribute name="y" type="xs:float"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="function">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
-      </xs:sequence>
-      <xs:attribute name="id" type="xs:int"/>
-      <xs:attribute name="pos" type="xs:int"/>
-      <xs:attribute name="name" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="connection">

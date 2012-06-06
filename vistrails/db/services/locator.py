@@ -123,6 +123,8 @@ class BaseLocator(object):
                 args['version_tag'] = workflow_arg
         if 'workflow_exec' in parsed_dict:
             args['workflow_exec'] = parsed_dict['workflow_exec'][0]
+        if 'parameterExploration' in parsed_dict:
+            args['parameterExploration'] = parsed_dict['parameterExploration'][0]
         return args
 
     @staticmethod
@@ -136,6 +138,8 @@ class BaseLocator(object):
             generate_dict['workflow'] = args['version_node']
         elif 'version_tag' in args and args['version_tag']:
             generate_dict['workflow'] = args['version_tag']
+        elif 'parameterExploration' in args and args['parameterExploration']:
+            generate_dict['parameterExploration'] = args['parameterExploration']
         return urllib.urlencode(generate_dict)
 
 
@@ -163,6 +167,7 @@ class XMLFileLocator(BaseLocator):
         self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
         self._mshpversion = kwargs.get('mashupVersion', None)
+        self._parameterexploration = kwargs.get('parameterExploration', None)
         config = core.configuration.get_vistrails_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
@@ -503,6 +508,7 @@ class DBLocator(BaseLocator):
         self._vtag = self.kwargs.get('version_tag', None)
         self._mshptrail = self.kwargs.get('mashuptrail', None)
         self._mshpversion = self.kwargs.get('mashupVersion', None)
+        self._parameterexploration = self.kwargs.get('parameterExploration', None)
         
     def _get_host(self):
         return self._host

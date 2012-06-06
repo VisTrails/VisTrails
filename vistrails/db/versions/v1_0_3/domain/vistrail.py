@@ -118,6 +118,9 @@ class DBVistrail(_DBVistrail):
             self.idScope.updateBeginId('annotation', annotation.db_id+1)
         for annotation in self.db_actionAnnotations:
             self.idScope.updateBeginId('annotation', annotation.db_id+1)
+        for paramexp in self.db_parameter_explorations:
+            self.idScope.updateBeginId('parameter_exploration',
+                                       paramexp.db_id+1)
 
     def db_add_object(self, obj):
         self.db_objects[(obj.vtType, obj.db_id)] = obj

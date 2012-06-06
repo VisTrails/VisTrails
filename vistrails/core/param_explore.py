@@ -178,8 +178,9 @@ class ActionBasedParameterExploration(object):
     an action based parameter exploration
     
     """
-    def explore(self, pipeline, actions):
-        """ explore(pipeline: Pipeline, actions: [action set]) -> [(pipeline, actions)]
+    def explore(self, pipeline, actions, pre_actions=[]):
+        """ explore(pipeline: Pipeline, actions: [action set],
+                           pre_actions: [action set]) -> [(pipeline, actions)]
         Perform the parameter exploration on the pipeline with a set
         of actions. Each 'action set' represent a tuple of actions that we
         need to apply on the pipeline at a step in a dimension. For example:
@@ -191,6 +192,9 @@ class ActionBasedParameterExploration(object):
         pipeline.action1a.action2a.action3a and the second one is
         pipeline.action1b.action2b.action3b.
         
+        pre_actions are actions that should be applied first to all pipelines
+        and usually contains creation of functions that do not already exist
+
         The return values are a list of tuples containing interpolated
         pipeline and a set of actions leading to that interpolated
         pipeline. This is useful for update the parameter exploration
@@ -223,8 +227,13 @@ class ActionBasedParameterExploration(object):
                     currentPipeline.perform_action(action)
                     currentPeformedActions.append(action)
                 exploreDimension(currentPipeline, currentPeformedActions, dim-1)
-                
-        exploreDimension(pipeline, [], len(actions)-1)
+        
+        # perform pre_actions
+        currentPipeline = copy.copy(pipeline)
+        for action in pre_actions:
+            currentPipeline.perform_action(action)
+        
+        exploreDimension(currentPipeline, pre_actions, len(actions)-1)
         return (results, resultActions)
 
 ################################################################################

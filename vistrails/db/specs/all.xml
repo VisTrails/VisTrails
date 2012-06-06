@@ -716,6 +716,9 @@
       <property ref="true" object="change">
 	<sql column="parent_id" type="int"/>
       </property>
+      <property ref="true" object="parameter_exploration">
+	<sql column="parent_id" type="int"/>
+      </property>
     </choice>
 
     <property name="entity_id" type="long" inverse="true">
@@ -2034,11 +2037,16 @@
       <xml nodeType="xs:element"/>
     </property>
 
+    <property ref="true" object="parameter_exploration" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+    
     <property ref="true" object="actionAnnotation" type="list" 
 	      mapping="one-to-many" index="action_id:key !key:value">
       <xml nodeType="xs:element"/>
     </property>
-
+    
   </object>
 
   <!--++++++++++++++++++++++++++-->
@@ -2221,6 +2229,70 @@
     </property>
   </object>
 
+  <!--++++++++++++++++++++++++++-->
+  <!-- PARAMETER_EXPLORATION +++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="parameter_exploration">
+    <layout>
+      <xml name="parameter_exploration" nodeType="xs:element"/>
+      <sql table="parameter_exploration"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+    
+    <property name="action_id" type="long" foreignKey="true" object="action">
+      <xml name="actionId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="date" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="dims" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="layout" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="function" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" type="long" object="vistrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+  
   <!--++++++++++++++++++++++++++-->
   <!-- OPM_GRAPH +++++++++++++++-->
   <!--++++++++++++++++++++++++++-->

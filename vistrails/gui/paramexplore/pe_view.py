@@ -99,18 +99,27 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         
         """
         registry = get_module_registry()
-        actions = self.table.collectParameterActions()
         palette = self.get_palette()
         # Set the annotation to persist the parameter exploration
         # TODO: For now, we just replace the existing exploration - Later we should append them.
-        xmlString = "<paramexps>\n" + self.getParameterExploration() + "\n</paramexps>"
-        self.controller.vistrail.set_paramexp(self.controller.current_version, xmlString)
-        self.controller.set_changed(True)
+        pe = self.getParameterExploration()
+        pe.action_id = self.controller.current_version
+
+        # check if latest has changed
+        if pe != self.controller.vistrail.get_paramexp(pe.action_id):
+            pe.name = ''
+            self.controller.current_parameter_exploration = pe
+            self.controller.vistrail.set_paramexp(pe)
+            self.controller.set_changed(True)
+        else:
+            pe = self.controller.vistrail.get_paramexp(pe.action_id)
+
+        actions, pre_actions = pe.collectParameterActions(palette.pipeline)
 
         if palette.pipeline and actions:
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(
-                palette.pipeline, actions)
+                palette.pipeline, actions, pre_actions)
             
             dim = [max(1, len(a)) for a in actions]
             if (registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and

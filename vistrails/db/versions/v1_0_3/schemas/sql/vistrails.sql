@@ -33,7 +33,7 @@
 --#############################################################################
 
 CREATE TABLE `vistrails_version`(`version` char(16)) engine=InnoDB;
-INSERT INTO `vistrails_version`(`version`) VALUES ('1.0.3');
+INSERT INTO `vistrails_version`(`version`) VALUES ('1_0_3');
 
 CREATE TABLE thumbnail(
     id int not null auto_increment primary key,
@@ -342,6 +342,19 @@ CREATE TABLE workflow_exec(
     completed int,
     name varchar(255),
     log_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE parameter_exploration(
+    id int not null auto_increment primary key,
+    action_id int,
+    name varchar(255),
+    date datetime,
+    user varchar(255),
+    dims varchar(255),
+    layout varchar(255),
+    parent_id int,
     entity_id int,
     entity_type char(16)
 ) engine=InnoDB;

@@ -3167,6 +3167,82 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         
         return node
 
+class DBParameterExplorationXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'parameter_exploration':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('actionId', None)
+        action_id = self.convertFromStr(data, 'long')
+        data = node.get('name', None)
+        name = self.convertFromStr(data, 'str')
+        data = node.get('user', None)
+        user = self.convertFromStr(data, 'str')
+        data = node.get('dims', None)
+        dims = self.convertFromStr(data, 'str')
+        data = node.get('layout', None)
+        layout = self.convertFromStr(data, 'str')
+        
+        functions = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'function':
+                _data = self.getDao('function').fromXML(child)
+                functions.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBParameterExploration(id=id,
+                                     action_id=action_id,
+                                     name=name,
+                                     user=user,
+                                     dims=dims,
+                                     layout=layout,
+                                     functions=functions)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, parameter_exploration, node=None):
+        if node is None:
+            node = ElementTree.Element('parameter_exploration')
+        
+        # set attributes
+        node.set('id',self.convertToStr(parameter_exploration.db_id, 'long'))
+        node.set('actionId',self.convertToStr(parameter_exploration.db_action_id, 'long'))
+        node.set('name',self.convertToStr(parameter_exploration.db_name, 'str'))
+        node.set('user',self.convertToStr(parameter_exploration.db_user, 'str'))
+        node.set('dims',self.convertToStr(parameter_exploration.db_dims, 'str'))
+        node.set('layout',self.convertToStr(parameter_exploration.db_layout, 'str'))
+        
+        # set elements
+        functions = parameter_exploration.db_functions
+        for function in functions:
+            childNode = ElementTree.SubElement(node, 'function')
+            self.getDao('function').toXML(function, childNode)
+        
+        return node
+
 class DBLoopExecXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -3757,6 +3833,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
         tags = []
         annotations = []
         vistrailVariables = []
+        parameter_explorations = []
         actionAnnotations = []
         
         # read children
@@ -3777,6 +3854,9 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child_tag == 'vistrailVariable':
                 _data = self.getDao('vistrailVariable').fromXML(child)
                 vistrailVariables.append(_data)
+            elif child_tag == 'parameter_exploration':
+                _data = self.getDao('parameter_exploration').fromXML(child)
+                parameter_explorations.append(_data)
             elif child_tag == 'actionAnnotation':
                 _data = self.getDao('actionAnnotation').fromXML(child)
                 actionAnnotations.append(_data)
@@ -3792,6 +3872,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
                          tags=tags,
                          annotations=annotations,
                          vistrailVariables=vistrailVariables,
+                         parameter_explorations=parameter_explorations,
                          actionAnnotations=actionAnnotations)
         obj.is_dirty = False
         return obj
@@ -3822,6 +3903,10 @@ class DBVistrailXMLDAOBase(XMLDAO):
         for vistrailVariable in vistrailVariables:
             childNode = ElementTree.SubElement(node, 'vistrailVariable')
             self.getDao('vistrailVariable').toXML(vistrailVariable, childNode)
+        parameter_explorations = vistrail.db_parameter_explorations
+        for parameter_exploration in parameter_explorations:
+            childNode = ElementTree.SubElement(node, 'parameter_exploration')
+            self.getDao('parameter_exploration').toXML(parameter_exploration, childNode)
         actionAnnotations = vistrail.db_actionAnnotations
         for actionAnnotation in actionAnnotations:
             childNode = ElementTree.SubElement(node, 'actionAnnotation')
@@ -4028,6 +4113,8 @@ class XMLDAOListBase(dict):
             self['package'] = DBPackageXMLDAOBase(self)
         if 'workflow_exec' not in self:
             self['workflow_exec'] = DBWorkflowExecXMLDAOBase(self)
+        if 'parameter_exploration' not in self:
+            self['parameter_exploration'] = DBParameterExplorationXMLDAOBase(self)
         if 'loop_exec' not in self:
             self['loop_exec'] = DBLoopExecXMLDAOBase(self)
         if 'connection' not in self:

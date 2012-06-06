@@ -35,8 +35,12 @@
 from db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
                                       DBWorkflow, DBLog, DBRegistry, \
                                       DBAdd, DBChange, DBDelete, \
-                                      DBPortSpec, DBPortSpecItem
+                                      DBPortSpec, DBPortSpecItem, \
+                                      DBParameterExploration, \
+                                      DBParameter, DBFunction
 
+from db.services.vistrail import materializeWorkflow
+from xml.dom.minidom import parseString
 from itertools import izip
 
 id_scope = None
@@ -102,6 +106,80 @@ def update_portSpecs(old_obj, translate_dict):
 def update_portSpec_op(old_obj, translate_dict):
     return update_portSpec(old_obj.db_data, translate_dict)
 
+def createParameterExploration(action_id, xmlString, vistrail):
+    if not xmlString:
+        return
+    # Parse/validate the xml
+
+    try:
+        striplen = len("<paramexps>")
+        xmlString = xmlString[striplen:-(striplen+1)].strip()
+        xmlDoc = parseString(xmlString).documentElement
+    except:
+        return None
+    # we need the pipeline to look up function/paramater id:s
+    pipeline = materializeWorkflow(vistrail, action_id)
+    # Populate parameter exploration window with stored functions and aliases
+    functions = []
+    for f in xmlDoc.getElementsByTagName('function'):
+        f_id = long(f.attributes['id'].value)
+        # we need to convert function id:s to (module_id, port_name)
+        module_id = None
+        f_name = None
+        for m in pipeline.db_modules:
+            for _f in m.db_functions:
+                if _f.db_id == f_id:
+                    module_id = m.db_id
+                    f_name = _f.db_name
+                    continue
+        if not (module_id and f_name):
+            break
+        parameters = []
+        for p in f.getElementsByTagName('param'):
+            # we need to convert function id:s to (module_id, port_name)
+            p_id = long(p.attributes['id'].value)
+            p_pos = None
+            for m in pipeline.db_modules:
+                for _f in m.db_functions:
+                    for _p in _f.db_parameters:
+                        if _p.db_id == p_id:
+                            p_pos = _p.db_pos
+                        continue
+            if p_pos is None:
+                break
+            p_intType = str(p.attributes['interp'].value)
+            if p_intType in ['Linear Interpolation']:
+                p_min = str(p.attributes['min'].value)
+                p_max = str(p.attributes['max'].value)
+                value = "[%s, %s]" % (p_min, p_max)
+            if p_intType in ['RGB Interpolation', 'HSV Interpolation']:
+                p_min = str(p.attributes['min'].value)
+                p_max = str(p.attributes['max'].value)
+                value = '["%s", "%s"]' % (p_min, p_max)
+            elif p_intType == 'List':
+                value = str(p.attributes['values'].value)
+            elif p_intType == 'User-defined Function':
+                # Set function code
+                value = str(p.attributes['code'].value)
+            param = DBParameter(id=int(p.attributes['dim'].value),
+                                pos=p_pos,
+                                type=p_intType,
+                                val=value)
+            parameters.append(param)
+        f_is_alias = (str(f.attributes['alias'].value) == 'True')
+        function = DBFunction(id=module_id,
+                              name=f_name,
+                              pos=1 if f_is_alias else 0,
+                              parameters=parameters)
+        functions.append(function)
+    pe = DBParameterExploration(action_id=action_id,
+                                dims=str(xmlDoc.attributes['dims'].value),
+                                layout=str(xmlDoc.attributes['layout'].value),
+                                date=str(xmlDoc.attributes['date'].value),
+                                functions = functions)
+    return pe
+
+
 def translateVistrail(_vistrail):
     """ Translate old annotation based vistrail variables to new
         DBVistrailVariable class """
@@ -144,6 +222,7 @@ def translateVistrail(_vistrail):
     vistrail = DBVistrail()
     id_scope = vistrail.idScope
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
+    # Update to new VistrailVariables class
     key = '__vistrail_vars__'
     if vistrail.db_has_annotation_with_key(key):
         s = vistrail.db_get_annotation_by_key(key)
@@ -153,6 +232,14 @@ def translateVistrail(_vistrail):
             package, module, namespace = identifier
             var = DBVistrailVariable(name, uuid, package, module, namespace, value)
             vistrail.db_add_vistrailVariable(var)
+    # Update to new ParameterExploration class
+    key = '__paramexp__'
+    for aa in vistrail.db_actionAnnotations:
+        if not aa.db_key == key:
+            continue
+        vistrail.db_delete_actionAnnotation(aa)
+        pe = createParameterExploration(aa.db_action_id, aa.db_value, vistrail)
+        vistrail.db_add_parameter_exploration(pe)
 
     vistrail.db_version = '1.0.3'
     return vistrail

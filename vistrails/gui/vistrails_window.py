@@ -1586,7 +1586,8 @@ class QVistrailsWindow(QVistrailViewWindow):
     def open_vistrail_without_prompt(self, locator, version=None,
                                      execute_workflow=False, 
                                      is_abstraction=False, workflow_exec=None,
-                                     mashuptrail=None, mashupVersion=None):
+                                     mashuptrail=None, mashupVersion=None,
+                                     parameterExploration=None):
         """open_vistrail_without_prompt(locator_class, version: int or str,
                                         execute_workflow: bool,
                                         is_abstraction: bool) -> None
@@ -1596,6 +1597,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         If is_abstraction is True, the vistrail is flagged as abstraction
         If mashuptrail is not None and mashupVersion is not None, the mashup 
         will be executed.
+        If parameterExploration is not None, it will be opened.
         
         """
         if not locator.is_valid():
@@ -1606,6 +1608,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             view = self.open_vistrail(locator, version, is_abstraction)
             if mashuptrail is not None and mashupVersion is not None:
                 view.open_mashup_from_mashuptrail_id(mashuptrail, mashupVersion)
+            elif parameterExploration is not None:
+                view.open_parameter_exploration(parameterExploration)
             elif execute_workflow:
                 self.qactions['execute'].trigger()
             

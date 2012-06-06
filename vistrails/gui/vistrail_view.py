@@ -1071,7 +1071,7 @@ class QVistrailView(QtGui.QWidget):
                 mashup = mashuptrail.getMashup(mashupVersion)
                 self.open_mashup(mashup)
                 break
-            
+
     def open_mashup(self, mashup):
         """open_mashup(mashup: Mashup) -> None
         It will switch to version view, select the corresponding node 
@@ -1102,6 +1102,18 @@ class QVistrailView(QtGui.QWidget):
         inspector = QMashupsInspector.instance()
         inspector.mashupsList.selectMashup(mashup.name)
         
+    def open_parameter_exploration(self, pe_id):
+        pe = self.controller.vistrail.db_get_parameter_exploration_by_id(pe_id)
+        if not pe:
+            return
+        if self.controller.current_version != pe.action_id:
+            self.window().qactions['history'].trigger()
+            self.version_selected(pe.action_id, True)
+            self.version_view.select_current_version()
+        self.controller.current_parameter_exploration = pe
+        self.pe_view.setParameterExploration(pe)
+        self.window().qactions['explore'].trigger()
+
     ##########################################################################
     # Undo/redo
         

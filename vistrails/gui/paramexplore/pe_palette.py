@@ -37,6 +37,7 @@ from PyQt4 import QtGui, QtCore
 from gui.paramexplore.virtual_cell import QVirtualCellWindow
 from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 from gui.vistrails_palette import QVistrailsPaletteInterface
+from gui.theme import CurrentTheme
 
 class QParamExplorePalette(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
@@ -61,6 +62,17 @@ class QParamExplorePalette(QtGui.QWidget, QVistrailsPaletteInterface):
         v_cell_group.setLayout(g_layout)
         layout.addWidget(v_cell_group)
         self.setLayout(layout)
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        # Add the open version action
+        self.savePEAction = QtGui.QAction(
+            CurrentTheme.SAVE_VISTRAIL_ICON,
+            'Save Parameter Exploration', None, triggered=self.savePE)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.savePEAction)
+        self.toolWindow().toolbar.setToolButtonStyle(
+                                           QtCore.Qt.ToolButtonTextBesideIcon)
 
     def set_controller(self, controller):
         self.controller = controller
@@ -72,3 +84,25 @@ class QParamExplorePalette(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pipeline_view.updateAnnotatedIds(pipeline)
         self.virtual_cell.updateVirtualCell(pipeline)
 
+    def savePE(self):
+        pe = self.controller.current_parameter_exploration
+        if not pe:
+            return
+        text, ok = QtGui.QInputDialog.getText(self, 'Enter Name',
+                 'Enter the name of this Parameter Exploration', text=pe.name)
+        if ok and text:
+            old_pe = self.controller.vistrail.get_named_paramexp(str(text))
+            if old_pe and pe != old_pe:
+                # ask to delete old one
+                reply = QtGui.QMessageBox.question(self, 'Name already exist',
+                 "Replace old Parameter Exploration?", QtGui.QMessageBox.Yes |
+                                   QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+                if reply == QtGui.QMessageBox.No:
+                    return
+            if old_pe and pe == old_pe:
+                # they are the same so ignore
+                return
+            pe = pe.do_copy()
+            pe.name = str(text)
+            self.controller.vistrail.set_paramexp(pe)
+            self.controller.set_changed(True)

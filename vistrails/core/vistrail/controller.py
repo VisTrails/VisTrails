@@ -152,6 +152,9 @@ class VistrailController(object):
         # the redo stack stores the undone action ids 
         # (undo is automatic with us, through the version tree)
         self.redo_stack = []
+
+        # this is a reference to the current parameter exploration
+        self.current_parameter_exploration = None
         
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
@@ -385,6 +388,27 @@ class VistrailController(object):
         #     self.vistrail.change_description("Disconnected Vistrail Variables",
         #                                      action.id)
         return (to_delete_modules, to_delete_conns)
+
+    def getParameterExplorationById(self, id):
+        """ getParameterExplorationById(self, id) -> ParameterExploration
+        Returns a ParameterExploration given its id
+        """
+        if self.vistrail and \
+           self.vistrail.db_has_parameter_exploration_with_id(id):
+            return  self.vistrail.db_get_parameter_exploration_by_id(id)
+        return None
+
+    def getLatestParameterExplorationByVersion(self, id):
+        """ getLatestParameterExplorationByVersion(self, version) ->
+                                                        ParameterExploration
+        Returns a parameter exploration given its action_id and
+        that it has not been named
+        """
+        for i in xrange(len(self.vistrail.db_parameter_explorations)):
+            pe = self.vistrail.db_parameter_explorations[i]
+            if pe.action_id == id and not pe.name:
+                return pe
+        return None
 
     def invalidate_version_tree(self, *args, **kwargs):
         """ invalidate_version_tree(self, *args, **kwargs) -> None

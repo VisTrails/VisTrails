@@ -45,6 +45,7 @@ from workflow import WorkflowEntity
 from workflow_exec import WorkflowExecEntity
 from thumbnail import ThumbnailEntity
 from mashup import MashupEntity
+from core.collection.parameter_exploration import ParameterExplorationEntity
 
 class VistrailEntity(Entity):
     type_id = 1
@@ -54,6 +55,7 @@ class VistrailEntity(Entity):
         self.id = None
         self.wf_entity_map = {}
         self.mshp_entity_map = {}
+        self.pe_entity_map = {}
         self.wf_exec_entity_map = {}
         self._vt_tag_map = {}
         self._mshp_tag_map = {}
@@ -117,6 +119,29 @@ class VistrailEntity(Entity):
                      url_tuple[4])
         entity.url = urlparse.urlunsplit(url_tuple)
         # entity.url = self.url + '?workflow_id=%s' % action.id
+        return entity
+
+    def create_parameter_exploration_entity(self, pe):
+        entity = ParameterExplorationEntity(pe)
+        self.children.append(entity)
+        entity.parent = self
+        entity.name = pe.name
+        if pe.name:
+            entity.name = pe.name
+        else:
+            # find logical name using vistrail tag
+            entity.name = "Latest for " + self.get_pipeline_name(pe.action_id)
+        scheme, rest = self.url.split('://', 1)
+        url = 'http://' + rest
+        url_tuple = urlparse.urlsplit(url)
+        query_str = url_tuple[3]
+        if query_str == '':
+            query_str = 'parameterExploration=%s' % pe.id
+        else:
+            query_str += 'parameterExploration=%s' % pe.id
+        url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
+                     url_tuple[4])
+        entity.url = urlparse.urlunsplit(url_tuple)
         return entity
 
     def create_wf_exec_entity(self, wf_exec, wf_entity):
@@ -235,6 +260,23 @@ class VistrailEntity(Entity):
                 mshp_entity.children.append(entity)
                 entity.parent = mshp_entity
         return self.mshp_entity_map[entity_key]
+
+    def add_parameter_exploration_entity(self, pe):
+        if not hasattr(self.vistrail, 'parameter_explorations'):
+            return
+        self.pe_entity_map[pe.id] = \
+                   self.create_parameter_exploration_entity(pe)
+        # get thumbnail for the workflow it points
+        thumbnail = self.vistrail.get_thumbnail(pe.action_id)
+        if thumbnail is not None:
+            cache = ThumbnailCache.getInstance()
+            path = cache.get_abs_name_entry(thumbnail)
+            if path:
+                entity = ThumbnailEntity(path)
+                pe_entity = self.pe_entity_map[pe.id]
+                pe_entity.children.append(entity)
+                entity.parent = self
+        return self.pe_entity_map[pe.id]
        
     def add_wf_exec_entity(self, wf_exec, add_to_map=False):
         version_id = wf_exec.parent_version
@@ -314,6 +356,13 @@ class VistrailEntity(Entity):
                 for mashuptrail in self.vistrail.mashups:
                     self._mshp_tag_map[mashuptrail.id] = \
                          self.add_mashup_entities_from_mashuptrail(mashuptrail)
+
+            #parameter explorations
+            if hasattr(self.vistrail, 'parameter_explorations'):
+                self.pe_entity_map = {}
+                for pe in self.vistrail.parameter_explorations:
+                    self.pe_entity_map[pe.id] = \
+                         self.add_parameter_exploration_entity(pe)
                 
             # read persisted log entries
             try:
@@ -426,7 +475,39 @@ class VistrailEntity(Entity):
                         del self.mshp_entity_map[(mashuptrail.id, version_id)]
                 self._mshp_tag_map[mashuptrail.id] = new_mshp_map
         return (added_mashups, deleted_mashups)
+
+    def update_parameter_explorations(self):
+        # Check for new or deleted pe:s by id
+        added_pes = []
+        deleted_pes = []
+        if hasattr(self.vistrail, 'parameter_explorations'):
+            for pe in self.vistrail.parameter_explorations:
+                if pe.id not in self.pe_entity_map:
+                    added_pes.append(self.add_parameter_exploration_entity(pe))
+            pe_ids = [pe.id for pe in self.vistrail.parameter_explorations]
+            for pe_id in self.pe_entity_map.keys():
+                if pe_id not in pe_ids:
+                    deleted_pes.append(self.pe_entity_map[pe_id])
+                    del self.pe_entity_map[pe_id]
+        return (added_pes, deleted_pes)
                 
+    def get_pipeline_name(self, version):
+        tag_map = self.vistrail.get_tagMap()
+        action_map = self.vistrail.actionMap
+        count = 0
+        while True:
+            if version in tag_map or version <= 0:
+                if version in tag_map:
+                    name = tag_map[version]
+                else:
+                    name = "ROOT"
+                count_str = ""
+                if count > 0:
+                    count_str = " + " + str(count)
+                return name + count_str
+            version = action_map[version].parent
+            count += 1
+
 #        for key, mashup in self.mshp_entity_map.iteritems():
 #            deleted_mashups.append(mashup)
 #        self.mshp_entity_map = {}

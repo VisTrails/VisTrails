@@ -646,6 +646,8 @@ class FileLocator(CoreLocator):
         mashuptrail = convert_from_str(data, 'str')
         data = node.get('mashupVersion', None)
         mashupVersion = convert_from_str(data, 'int')
+        data = node.get('parameterExploration', None)
+        parameterExploration = convert_from_str(data, 'int')
         
         #if execute is False, we will show the builder too
         if showSpreadsheetOnly and not execute:
@@ -700,18 +702,20 @@ class FileLocator(CoreLocator):
                     f.write(vtcontent)
                     f.close()
                 return FileLocator(fname, version_node=version, version_tag=tag,
-                                   mashuptrail=mashuptrail, 
-                                   mashupVersion=mashupVersion)
+                                   mashuptrail=mashuptrail,
+                                   mashupVersion=mashupVersion,
+                                   parameterExploration=parameterExploration)
         if host is not None:
             user = ""
             passwd = ""
             
             return DBLocator(host, port, database,
-                             user, passwd, None, obj_id=vt_id, 
-                             obj_type='vistrail',connection_id=None, 
+                             user, passwd, None, obj_id=vt_id,
+                             obj_type='vistrail',connection_id=None,
                              version_node=version, version_tag=tag,
-                             mashuptrail=mashuptrail, 
-                             mashupVersion=mashupVersion)
+                             mashuptrail=mashuptrail,
+                             mashupVersion=mashupVersion,
+                             parameterExploration=parameterExploration)
         elif vtname is not None:
             if os.path.dirname(vtname) == '':
                 #check if file exists in the same directory as the .vtl file
@@ -719,10 +723,10 @@ class FileLocator(CoreLocator):
                 newvtname = os.path.join(dirname,vtname)
                 if os.path.exists(newvtname):
                     vtname = newvtname
-            print vtname, version, tag, mashuptrail,mashupVersion
-            return FileLocator(vtname, version_node=version, versin_tag=tag,
-                               mashuptrail=mashuptrail, 
-                               mashupVersion=mashupVersion)
+            return FileLocator(vtname, version_node=version, version_tag=tag,
+                               mashuptrail=mashuptrail,
+                               mashupVersion=mashupVersion,
+                               parameterExploration=parameterExploration)
         
         
     ##########################################################################

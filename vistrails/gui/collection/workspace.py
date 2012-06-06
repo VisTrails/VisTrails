@@ -42,7 +42,7 @@ from time import strptime
 from core.thumbnails import ThumbnailCache
 from core import debug
 from core.collection import Collection, MashupEntity, ThumbnailEntity, \
-    VistrailEntity, WorkflowEntity, WorkflowExecEntity
+    VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
 from core.collection.search import SearchCompiler, SearchParseError
 from core.db.locator import FileLocator
 from gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
@@ -305,6 +305,10 @@ class QMashupsItem(QtGui.QTreeWidgetItem):
     def __init__(self, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent, ['Mashups'])
 
+class QParamExplorationsItem(QtGui.QTreeWidgetItem):
+    def __init__(self, parent=None):
+        QtGui.QTreeWidgetItem.__init__(self, parent, ['Parameter Explorations'])
+
 class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
         if not entity:
@@ -316,6 +320,9 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             self.mshp_to_item = {}
             self.mashupsItem = QMashupsItem()
             self.addChild(self.mashupsItem)
+            self.pe_to_item = {}
+            self.paramExplorationsItem = QParamExplorationsItem()
+            self.addChild(self.paramExplorationsItem)
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
             return
         
@@ -336,10 +343,14 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             self.addChild(self.workflowsItem)
             self.mashupsItem = QMashupsItem()
             self.addChild(self.mashupsItem)
-#            self.mashupsItem.setHidden(True)
+            self.mashupsItem.setHidden(True)
+            self.paramExplorationsItem = QParamExplorationsItem()
+            self.addChild(self.paramExplorationsItem)
+            self.paramExplorationsItem.setHidden(True)
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
             self.tag_to_item = {}
             self.mshp_to_item = {}
+            self.pe_to_item = {}
         elif entity.type_id == WorkflowEntity.type_id:
             self.setIcon(0, CurrentTheme.PIPELINE_ICON)
             self.executionList = []
@@ -383,8 +394,14 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
                 if not child.name.startswith('Version #'):
                     childItem = QMashupEntityItem(child)
                     self.mashupsItem.addChild(childItem)
-                    # keep list of tagged workflows
+                    # keep list of tagged mashups
                     self.mshp_to_item[child.name] = childItem
+            elif child.type_id == ParameterExplorationEntity.type_id:
+                # is a parameter exploration
+                childItem = QParamExplorationEntityItem(child)
+                self.paramExplorationsItem.addChild(childItem)
+                # keep list of tagged pe:s
+                self.pe_to_item[child.url] = childItem
             else:
                 self.addChild(QBrowserWidgetItem(child))
         if entity.description:
@@ -415,6 +432,9 @@ class QWorkflowExecEntityItem(QBrowserWidgetItem):
     pass
 
 class QMashupEntityItem(QBrowserWidgetItem):
+    pass
+
+class QParamExplorationEntityItem(QBrowserWidgetItem):
     pass
 
 class QExplorerWidget(QCollectionWidget):
@@ -783,6 +803,9 @@ class QVistrailEntityItem(QBrowserWidgetItem):
     def edit_mashup(self):
         self.treeWidget().edit_mashup(self.entity)
 
+    def open_parameter_exploration(self):
+        self.treeWidget().open_parameter_exploration(self.entity)
+        
 class QVistrailListLatestItem(QtGui.QTreeWidgetItem):
     def __init__(self):
         QtGui.QTreeWidgetItem.__init__(self)
@@ -861,7 +884,11 @@ class QVistrailList(QtGui.QTreeWidget):
                     self.collection.del_from_workspace(entity)
                     self.collection.delete_entity(entity)
                     continue
-            self.closedFilesItem.addChild(QVistrailEntityItem(entity))
+            item = QVistrailEntityItem(entity)
+            self.closedFilesItem.addChild(item)
+            item.mashupsItem.setHidden(not item.mashupsItem.childCount())
+            item.paramExplorationsItem.setHidden(
+                             not item.paramExplorationsItem.childCount())
             
     def show_search_results(self):
         self.searchResultsItem = QtGui.QTreeWidgetItem(['Search Results'])
@@ -913,7 +940,6 @@ class QVistrailList(QtGui.QTreeWidget):
         elif not type(widget_item) == QVistrailListLatestItem:
             # no valid item selected
             return
-            
         from gui.vistrails_window import _app
         open_vistrail = _app.open_vistrail_without_prompt
         set_current_locator = _app.set_current_locator
@@ -972,7 +998,8 @@ class QVistrailList(QtGui.QTreeWidget):
         args = {}
         args['version'] = locator.kwargs.get('version_node', None) or \
                           locator.kwargs.get('version_tag', None)
-
+        args['parameterExploration']=locator.kwargs.get('parameterExploration',
+                                                        None)
         vistrail_widget = widget_item
         vistrail_entity = entity
         version = None
@@ -981,6 +1008,12 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail_entity = entity.parent
             locator = vistrail_entity.locator()
             version = args['version']
+
+        if args['parameterExploration']:
+            args['parameterExploration'] = int(args['parameterExploration'])
+            vistrail_widget = widget_item.parent().parent()
+            vistrail_entity = entity.parent
+            locator = vistrail_entity.locator()
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
         if workflow_exec:
@@ -1019,6 +1052,12 @@ class QVistrailList(QtGui.QTreeWidget):
                 # if it is doubele-clicked without the vistrail being open we 
                 #should open the vistrail
                 self.open_mashup(entity)
+            if view and isinstance(entity, ParameterExplorationEntity):
+                # I am assuming that double-clicking a p.e., the user wants to
+                # run it
+                # if it is double-clicked without the vistrail being open we 
+                #should open the vistrail
+                self.open_parameter_exploration(entity)
 
     def ensureNotDiffView(self):
         """ If current tab is a diff, create a new tab """
@@ -1044,6 +1083,20 @@ class QVistrailList(QtGui.QTreeWidget):
         from gui.vistrails_window import _app
         view = _app.get_current_view()
         view.edit_mashup(entity.mashup)
+
+    def open_parameter_exploration(self, entity):
+        """open_parameter_exploration(entity:ParameterExplorationEntity) -> None
+        It will switch to the correct pipeline and pe, and open the pe
+        """
+        self.ensureNotDiffView()
+        from gui.vistrails_window import _app
+        view = _app.get_current_view()
+        if view.controller.current_version != entity.pe.action_id:
+            view.version_selected(entity.pe.action_id, True)
+        if entity.pe != view.controller.current_parameter_exploration:
+            view.controller.current_parameter_exploration = entity.pe
+            view.pe_view.setParameterExploration(entity.pe)
+        _app.qactions['explore'].trigger()
         
     def mimeData(self, itemList):
         """ mimeData(itemList) -> None        
@@ -1151,13 +1204,8 @@ class QVistrailList(QtGui.QTreeWidget):
             index = wf.parent().indexOfChild(wf)
             wf = wf.parent().takeChild(index)
             item.workflowsItem.addChild(wf)
-        for tag, mshp in item.mshp_to_item.iteritems():
-            index = mshp.parent().indexOfChild(mshp)
-            mshp = mshp.parent().takeChild(index)
-            item.mashupsItem.addChild(mshp)
         self.updateHideExecutions()
         self.setSortingEnabled(True)
-
 
     def make_tree(self, item):
         """ construct a tree from the tagged workflows in a loaded vistrail
@@ -1194,7 +1242,7 @@ class QVistrailList(QtGui.QTreeWidget):
 
 
     def state_changed(self, view):
-        """ update tags and mashups """
+        """ update tags, mashups and parameter explorations """
         item = self.items[id(view)]
         entity = item.entity
         
@@ -1210,6 +1258,7 @@ class QVistrailList(QtGui.QTreeWidget):
         (added_wfs, deleted_wfs) = entity.update_workflows()
         (more_added_wfs, added_wf_execs) = entity.update_log()
         (added_mshps, deleted_mshps) = entity.update_mashups()
+        (added_pes, deleted_pes) = entity.update_parameter_explorations()
 
         for wf_entity in deleted_wfs:
             assert(wf_entity.name in item.tag_to_item)
@@ -1242,12 +1291,28 @@ class QVistrailList(QtGui.QTreeWidget):
             child_idx = child.parent().indexOfChild(child)
             child.parent().takeChild(child_idx)
             del item.mshp_to_item[mshp_entity.name]
+            item.mashupsItem.setHidden(not len(item.mshp_to_item))
         for mshp_entity in added_mshps:
             if not mshp_entity.name.startswith('Version #'):
                 childItem = QMashupEntityItem(mshp_entity)
                 item.mashupsItem.addChild(childItem)
                 # keep list of tagged workflows
                 item.mshp_to_item[mshp_entity.name] = childItem
+                item.mashupsItem.setHidden(not len(item.mshp_to_item))
+
+        for pe_entity in deleted_pes:
+            assert(pe_entity.url in item.pe_to_item)
+            child = item.pe_to_item[pe_entity.url]
+            child_idx = child.parent().indexOfChild(child)
+            child.parent().takeChild(child_idx)
+            del item.pe_to_item[pe_entity.url]
+            item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
+        for pe_entity in added_pes:
+            childItem = QParamExplorationEntityItem(pe_entity)
+            item.paramExplorationsItem.addChild(childItem)
+            # keep list of tagged workflows
+            item.pe_to_item[pe_entity.url] = childItem
+            item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
 
         self.make_tree(item) if self.isTreeView else self.make_list(item)
 
@@ -1324,6 +1389,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 old_item.mashupsItem = item.mashupsItem
                 old_item.tag_to_item = item.tag_to_item
                 old_item.mshp_to_item = item.mshp_to_item
+                old_item.pe_to_item = item.pe_to_item
                 old_item.setText(0, item.text(0))
                 while old_item.childCount():
                     child = old_item.child(0)
@@ -1348,9 +1414,13 @@ class QVistrailList(QtGui.QTreeWidget):
             entity.is_open = True
             entity._window = vistrail_window
             self.openFilesItem.addChild(item)
+            item.workflowsItem.setExpanded(True)
+            item.mashupsItem.setExpanded(True)
+            item.paramExplorationsItem.setExpanded(True)
+            item.mashupsItem.setHidden(not item.mashupsItem.childCount())
+            item.paramExplorationsItem.setHidden(
+                             not item.paramExplorationsItem.childCount())
         self.make_tree(item) if self.isTreeView else self.make_list(item)
-        item.workflowsItem.setExpanded(True)
-        item.mashupsItem.setExpanded(True)
         self.setSelected(vistrail_window)
         self.updateHideExecutions()
 
@@ -1443,6 +1513,16 @@ class QVistrailList(QtGui.QTreeWidget):
                     self.collection.del_from_workspace(item.entity)
                     self.collection.delete_entity(item.entity)
                     self.collection.commit()
+                elif isinstance(item,QParamExplorationEntityItem):
+                    parent = item.parent()
+                    while parent and not hasattr(parent, 'window'):
+                        parent = parent.parent()
+                    if parent:
+                        # delete this parameter exploration
+                        parent.window.controller.vistrail.delete_paramexp(
+                                                               item.entity.pe)
+                        parent.window.controller.set_changed(True)
+
         else:
             QtGui.QTreeWidget.keyPressEvent(self, event)
 

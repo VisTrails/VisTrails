@@ -3004,6 +3004,9 @@ class DBFunctionSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
+        elif obj.db_parentType == 'parameter_exploration':
+            p = all_objects[('parameter_exploration', obj.db_parent)]
+            p.db_add_function(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -4995,6 +4998,218 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBParameterExplorationSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+        self.table = 'parameter_exploration'
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            action_id = self.convertFromDB(row[1], 'long', 'int')
+            name = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            date = self.convertFromDB(row[3], 'datetime', 'datetime')
+            user = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            dims = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            layout = self.convertFromDB(row[6], 'str', 'varchar(255)')
+            vistrail = self.convertFromDB(row[7], 'long', 'int')
+            entity_id = self.convertFromDB(row[8], 'long', 'int')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
+            
+            parameter_exploration = DBParameterExploration(action_id=action_id,
+                                                           name=name,
+                                                           date=date,
+                                                           user=user,
+                                                           dims=dims,
+                                                           layout=layout,
+                                                           id=id)
+            parameter_exploration.db_vistrail = vistrail
+            parameter_exploration.db_entity_id = entity_id
+            parameter_exploration.db_entity_type = entity_type
+            parameter_exploration.is_dirty = False
+            res[('parameter_exploration', id)] = parameter_exploration
+        return res
+
+    def get_sql_select(self, db, global_props,lock=False):
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = global_props
+        orderBy = 'id'
+        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+
+    def process_sql_columns(self, data, global_props):
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            action_id = self.convertFromDB(row[1], 'long', 'int')
+            name = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            date = self.convertFromDB(row[3], 'datetime', 'datetime')
+            user = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            dims = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            layout = self.convertFromDB(row[6], 'str', 'varchar(255)')
+            vistrail = self.convertFromDB(row[7], 'long', 'int')
+            entity_id = self.convertFromDB(row[8], 'long', 'int')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
+            
+            parameter_exploration = DBParameterExploration(action_id=action_id,
+                                                           name=name,
+                                                           date=date,
+                                                           user=user,
+                                                           dims=dims,
+                                                           layout=layout,
+                                                           id=id)
+            parameter_exploration.db_vistrail = vistrail
+            parameter_exploration.db_entity_id = entity_id
+            parameter_exploration.db_entity_type = entity_type
+            parameter_exploration.is_dirty = False
+            res[('parameter_exploration', id)] = parameter_exploration
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('vistrail', obj.db_vistrail) in all_objects:
+            p = all_objects[('vistrail', obj.db_vistrail)]
+            p.db_add_parameter_exploration(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_action_id') and obj.db_action_id is not None:
+            columnMap['action_id'] = \
+                self.convertToDB(obj.db_action_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_date') and obj.db_date is not None:
+            columnMap['date'] = \
+                self.convertToDB(obj.db_date, 'datetime', 'datetime')
+        if hasattr(obj, 'db_user') and obj.db_user is not None:
+            columnMap['user'] = \
+                self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_dims') and obj.db_dims is not None:
+            columnMap['dims'] = \
+                self.convertToDB(obj.db_dims, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_layout') and obj.db_layout is not None:
+            columnMap['layout'] = \
+                self.convertToDB(obj.db_layout, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_vistrail, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
+        
+    def set_sql_command(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return None
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_action_id') and obj.db_action_id is not None:
+            columnMap['action_id'] = \
+                self.convertToDB(obj.db_action_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_date') and obj.db_date is not None:
+            columnMap['date'] = \
+                self.convertToDB(obj.db_date, 'datetime', 'datetime')
+        if hasattr(obj, 'db_user') and obj.db_user is not None:
+            columnMap['user'] = \
+                self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_dims') and obj.db_dims is not None:
+            columnMap['dims'] = \
+                self.convertToDB(obj.db_dims, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_layout') and obj.db_layout is not None:
+            columnMap['layout'] = \
+                self.convertToDB(obj.db_layout, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_vistrail, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        return dbCommand
+
+    def set_sql_process(self, obj, global_props, lastId):
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
+        pass
+
+    def to_sql_fast(self, obj, do_copy=True):
+        for child in obj.db_functions:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'parameter_exploration'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBLoopExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5881,6 +6096,8 @@ class DBVistrailSQLDAOBase(SQLDAO):
             child.db_parent = obj.db_id
         for child in obj.db_vistrailVariables:
             child.db_vistrail = obj.db_id
+        for child in obj.db_parameter_explorations:
+            child.db_vistrail = obj.db_id
         for child in obj.db_actionAnnotations:
             child.db_vistrail = obj.db_id
         
@@ -6191,6 +6408,8 @@ class SQLDAOListBase(dict):
             self['package'] = DBPackageSQLDAOBase(self)
         if 'workflow_exec' not in self:
             self['workflow_exec'] = DBWorkflowExecSQLDAOBase(self)
+        if 'parameter_exploration' not in self:
+            self['parameter_exploration'] = DBParameterExplorationSQLDAOBase(self)
         if 'loop_exec' not in self:
             self['loop_exec'] = DBLoopExecSQLDAOBase(self)
         if 'connection' not in self:

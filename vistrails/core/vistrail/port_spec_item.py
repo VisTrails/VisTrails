@@ -52,7 +52,7 @@ class PortSpecItem(DBPortSpecItem):
                 kwargs["package"] = sigs[0]
             if "module" not in kwargs:
                 kwargs["module"] = sigs[1]
-            if "namesapce" not in kwargs and len(sigs) > 2:
+            if "namespace" not in kwargs and len(sigs) > 2:
                 kwargs["namespace"] = sigs[2]
         if "values" in kwargs:
             if not isinstance(kwargs["values"], basestring):

@@ -40,6 +40,9 @@ API in the classes.
 from PyQt4 import QtCore, QtGui
 from core.modules.module_registry import get_module_registry
 from core.modules.basic_modules import Color
+from core.modules.paramexplore import IntegerLinearInterpolator, \
+   FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator
+    
 from gui.common_widgets import QStringEdit
 from gui.modules.constant_configuration import ColorChooserButton
 from gui.modules.python_source_configure import PythonEditor
@@ -72,14 +75,14 @@ class QParameterEditor(QtGui.QWidget):
     
     """
     def __init__(self, param_info, size, parent=None):
-        """ QParameterEditor(param_info: ParameterInfo: str,
+        """ QParameterEditor(param_info: ParameterInfo,
                              size: int, parent=None: QWidget) -> QParameterEditor
         Put a stacked widget and a popup button
         
         """
         QtGui.QWidget.__init__(self, parent)
         self._param_info = param_info
-        self.type = param_info.type
+        self.type = param_info.spec.module
         self.defaultValue = param_info.value
         
         hLayout = QtGui.QHBoxLayout(self)
@@ -87,10 +90,7 @@ class QParameterEditor(QtGui.QWidget):
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
-        registry = get_module_registry()
-        module = registry.get_module_by_name(param_info.identifier,
-                                             param_info.type,
-                                             param_info.namespace)
+        module = param_info.spec.descriptor.module
 
         self.stackedEditors = QtGui.QStackedWidget()
         self.stackedEditors.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -152,7 +152,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         """
         QtGui.QToolButton.__init__(self, parent)
         self._param_info = param_info
-        self.type = param_info.type
+        self.type = param_info.spec.module
         self.setAutoRaise(True)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
@@ -185,29 +185,6 @@ class QParameterEditorSelector(QtGui.QToolButton):
 
 ##############################################################################
 
-class BaseLinearInterpolator(object):
-
-    def __init__(self, ptype, mn, mx, steps):
-        self._ptype = ptype
-        self._mn = mn
-        self._mx = mx
-        self._steps = steps
-
-    def get_values(self):
-        cast = self._ptype
-        begin = self._mn
-        end = self._mx
-        size = self._steps
-        if size<=1:
-            return [begin]
-        result = [cast(begin + (((end-begin)*i) / cast(size-1)))
-                  for i in xrange(size)]
-        return result
-
-class IntegerLinearInterpolator(BaseLinearInterpolator):
-    def __init__(self, mn, mx, steps):
-        BaseLinearInterpolator.__init__(self, int, mn, mx, steps)
-
 class BasePEWidget(object):
     def get_value(self):
         unimplemented()
@@ -223,10 +200,6 @@ class QIntegerLineEdit(QtGui.QLineEdit, BasePEWidget):
     def set_value(self, str_value):
         self.setText(str_value)
         
-class FloatLinearInterpolator(BaseLinearInterpolator):
-    def __init__(self, mn, mx, steps):
-        BaseLinearInterpolator.__init__(self, float, mn, mx, steps)
-    
 class QFloatLineEdit(QtGui.QLineEdit, BasePEWidget):
     def __init__(self, param_info, parent=None):
         QtGui.QLineEdit.__init__(self, param_info.value, parent)
@@ -247,7 +220,7 @@ def make_interpolator(widget_class, interpolator_class, name):
         def __init__(self, param_info, size, parent=None):
             QtGui.QWidget.__init__(self, parent)
             self._param_info = param_info
-            self.type = param_info.type
+            self.type = param_info.spec.module
 
             hLayout = QtGui.QHBoxLayout(self)
             hLayout.setMargin(0)
@@ -288,66 +261,14 @@ IntegerExploreWidget = make_interpolator(QIntegerLineEdit,
                                          IntegerLinearInterpolator,
                                          'Linear Interpolation')
 
-class BaseColorInterpolator(object):
-
-    def __init__(self, ifunc, begin, end, size):
-        self._ifunc = ifunc
-        self.begin = begin
-        self.end = end
-        self.size = size
-
-    def get_values(self):
-        if self.size <= 1:
-            return [self.begin]
-        result = [self._ifunc(self.begin, self.end, self.size, i)
-                  for i in xrange(self.size)]
-        return result
-
-class RGBColorInterpolator(BaseColorInterpolator):
-
-    def __init__(self, begin, end, size):
-        def fun(b, e, s, i):
-            b = [float(x) for x in b.split(',')]
-            e = [float(x) for x in e.split(',')]
-            u = float(i) / (float(s) - 1.0)
-            [r,g,b] = [b[i] + u * (e[i] - b[i]) for i in [0,1,2]]
-            return Color.to_string(r, g, b)
-        BaseColorInterpolator.__init__(self, fun, begin, end, size)
-
-class HSVColorInterpolator(BaseColorInterpolator):
-    def __init__(self, begin, end, size):
-        def fun(b, e, s, i):
-            b = [float(x) for x in b.split(',')]
-            e = [float(x) for x in e.split(',')]
-            u = float(i) / (float(s) - 1.0)
-
-            # Use QtGui.QColor as easy converter between rgb and hsv
-            color_b = QtGui.QColor(int(b[0] * 255),
-                                   int(b[1] * 255),
-                                   int(b[2] * 255))
-            color_e = QtGui.QColor(int(e[0] * 255),
-                                   int(e[1] * 255),
-                                   int(e[2] * 255))
-
-            b_hsv = [color_b.hueF(), color_b.saturationF(), color_b.valueF()]
-            e_hsv = [color_e.hueF(), color_e.saturationF(), color_e.valueF()]
-
-            [new_h, new_s, new_v] = [b_hsv[i] + u * (e_hsv[i] - b_hsv[i])
-                                     for i in [0,1,2]]
-            new_color = QtGui.QColor()
-            new_color.setHsvF(new_h, new_s, new_v)
-            return Color.to_string(new_color.redF(),
-                                   new_color.greenF(),
-                                   new_color.blueF())
-        BaseColorInterpolator.__init__(self, fun, begin, end, size)
-    
-
 class PEColorChooserButton(ColorChooserButton, BasePEWidget):
 
     def __init__(self, param_info, parent=None):
         ColorChooserButton.__init__(self, parent)
-        r,g,b = [int(float(i) * 255) for i in param_info.value.split(',')]
-        
+        try:
+            r,g,b = [int(float(i) * 255) for i in param_info.value.split(',')]
+        except ValueError:
+            r,g,b = (0.0, 0.0, 0.0)
         self.setColor(QtGui.QColor(r,g,b))
         self.setFixedHeight(22)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -388,7 +309,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)
         self._param_info = param_info
-        self.type = param_info.type
+        self.type = param_info.spec.module
         
         hLayout = QtGui.QHBoxLayout(self)
         hLayout.setMargin(0)
@@ -396,7 +317,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         self.setLayout(hLayout)
         
         self.listValues = QtGui.QLineEdit()
-        if param_info.type=='String':
+        if self.type=='String':
             self.listValues.setText("['%s']" % param_info.value.replace("'", "\'"))
         else:
             self.listValues.setText('[%s]' % param_info.value)
@@ -458,10 +379,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         """
 
         param_info = self._param_info
-        registry = get_module_registry()
-        module = registry.get_module_by_name(param_info.identifier,
-                                             param_info.type,
-                                             param_info.namespace)
+        module = param_info.spec.descriptor.module
         result = [module.translate_to_python(m)
                   for m in self._str_values]
         if len(result) != count:
@@ -703,7 +621,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Sunken)
         self.size = -1
         self._param_info = param_info
-        self.type = param_info.type
+        self.type = param_info.spec.module
         self.defaultValue = param_info.value
         self.function = self.defaultFunction()
         
@@ -759,10 +677,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         
         """
         param_info = self._param_info
-        registry = get_module_registry()
-        module = registry.get_module_by_name(param_info.identifier,
-                                             param_info.type,
-                                             param_info.namespace)
+        module = param_info.spec.descriptor.module
         def get():
             import code
             values = []
@@ -883,35 +798,3 @@ class QUserFunctionDialog(QtGui.QDialog):
         
         """
         return QtCore.QSize(512, 512)
-
-################################################################################
-
-import unittest
-
-class TestLinearInterpolator(unittest.TestCase):
-
-    def test_int(self):
-        x = BaseLinearInterpolator(int, 0, 999, 1000)
-        assert x.get_values() == range(1000)
-
-    def test_float(self):
-        # test the property that differences in value must be linearly
-        # proportional to differences in index for a linear interpolation
-        import random
-        s = random.randint(4, 10000)
-        v1 = random.random()
-        v2 = random.random()
-        mn = min(v1, v2)
-        mx = max(v1, v2)
-        x = BaseLinearInterpolator(float, mn, mx, s).get_values()
-        v1 = random.randint(0, s-1)
-        v2 = 0
-        while v2 == v1:
-            v2 = random.randint(0, s-1)
-        v3 = random.randint(0, s-1)
-        v4 = 0
-        while v3 == v4:
-            v4 = random.randint(0, s-1)
-        r1 = (v2 - v1) / (x[v2] - x[v1])
-        r2 = (v4 - v3) / (x[v4] - x[v3])
-        assert abs(r1 - r2) < 1e-6        
