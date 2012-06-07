@@ -572,14 +572,6 @@ class PortsList(QtGui.QTreeWidget):
         item.setExpanded(True)
         if len(port_spec.descriptors()) == 0:
             self.update_method(subitem, port_spec.name, [], [])
-        elif port_spec.defaults is not None:
-            self.controller.update_function(self.module,
-                                            port_spec.name, port_spec.defaults,
-                                            -1, [], [], True)
-            for i, w in enumerate(subitem.my_widgets):
-                if i >= len(port_spec.defaults):
-                    break
-                w.setContents(port_spec.defaults[i])
 
     def add_method(self, port_name):
         port_spec, item = self.port_spec_items[port_name]
