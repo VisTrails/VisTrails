@@ -121,29 +121,10 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         if self.temp_configuration.check('showSplash'):
             pass #self.splashScreen.finish(self.builderWindow) FIXME
         self.builderWindow.link_registry()
-        
+
         #self.builderWindow.create_first_vistrail()
-        
-        # Debug code -- load some modules and a test vistrail
-        
-        def load_module_if_req(codepath):
-            package_manager = core.packagemanager.get_package_manager()
-            try:
-                package_manager.get_package_by_codepath(codepath)
-            except core.packagemanager.PackageManager.MissingPackage:
-                print "Loading package '%s'..." % codepath
-                try:
-                    package_manager.late_enable_package(codepath)
-                    print "Loading complete"
-                except core.packagemanager.PackageManager.MissingPackage, e:
-                    sys.stderr.write("Unable to load package '%s':" % codepath, str(e), "\n")
-            else:
-                print "Package '%s' had already been loaded automatically" % codepath
 
-        load_module_if_req('javaspreadsheet')
-        load_module_if_req('obvioustest')
-
-        self.builderWindow.open_vistrail("C:/Users/User_2/Documents/obvioustest.vt")
+        self.builderWindow.open_vistrail("C:/Users/User_2/Documents/empty.vt")
 
     def createWindows(self):
         """ createWindows() -> None
