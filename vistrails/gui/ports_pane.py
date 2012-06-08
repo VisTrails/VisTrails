@@ -505,6 +505,14 @@ class PortsList(QtGui.QTreeWidget):
     def set_controller(self, controller):
         self.controller = controller
 
+    def update_function_map(self, subitem):
+        # FIXME need to get the function set on the item somehow
+        # HACK for now
+        for function in self.module.functions:
+            if function.real_id not in self.function_map:
+                self.function_map[function.real_id] = subitem
+                subitem.function = function
+
     def update_method(self, subitem, port_name, widgets, labels, real_id=-1):
         #print 'updateMethod called', port_name
         if self.controller:
@@ -527,13 +535,7 @@ class PortsList(QtGui.QTreeWidget):
                                              for label in labels],
                                             query_methods,
                                             should_replace)
-
-            # FIXME need to get the function set on the item somehow
-            # HACK for now
-            for function in self.module.functions:
-                if function.real_id not in self.function_map:
-                    self.function_map[function.real_id] = subitem
-                    subitem.function = function
+            self.update_function_map(subitem)
                                             
     def delete_method(self, subitem, port_name, real_id=None):
         if real_id is not None and self.controller:
@@ -561,11 +563,12 @@ class PortsList(QtGui.QTreeWidget):
         elif port_spec.defaults is not None:
             self.controller.update_function(self.module,
                                             port_spec.name, port_spec.defaults,
-                                            -1, [], [], True)
+                                            -1, [], [], False)
             for i, w in enumerate(subitem.my_widgets):
                 if i >= len(port_spec.defaults):
                     break
                 w.setContents(port_spec.defaults[i])
+            self.update_function_map(subitem)
 
     def add_method(self, port_name):
         port_spec, item = self.port_spec_items[port_name]
