@@ -54,7 +54,7 @@ from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort, \
-    MissingPackage
+    MissingPackage, PortsIncompatible
 from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail, \
     get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
@@ -580,6 +580,16 @@ class VistrailController(object):
             raise VistrailsInternalError("output port spec is None")
         if input_port_spec is None:
             raise VistrailsInternalError("input port spec is None")
+        reg = core.modules.module_registry.get_module_registry()
+        if not reg.ports_can_connect(output_port_spec, input_port_spec):
+            raise PortsIncompatible(output_module.package,
+                                    output_module.name,
+                                    output_module.namespace,
+                                    output_port_spec.name,
+                                    input_module.package,
+                                    input_module.name,
+                                    input_module.namespace,
+                                    input_port_spec.name)
         output_port_id = id_scope.getNewId(Port.vtType)
         output_port = Port(id=output_port_id,
                            spec=output_port_spec,

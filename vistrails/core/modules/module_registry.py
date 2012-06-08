@@ -386,6 +386,37 @@ class PortMismatch(MissingPort):
                 (self._port_type.capitalize(), self._port_name,
                  self._port_sigstring, self._module_name, self._package_name)
 
+class PortsIncompatible(ModuleRegistryException):
+
+    def __init__(self, output_identifier, output_name, output_namespace,
+                 output_port, input_identifier, input_name, input_namespace,
+                 input_port):
+        ModuleRegistryException.__init__(self, output_identifier, output_name,
+                                         output_namespace)
+        self._output_port = output_port
+        self._input_identifier = input_identifier
+        self._input_name = input_name
+        self._input_namespace = input_namespace
+        self._input_port = input_port
+
+    def __str__(self):
+        if self._namespace:
+            out_name = "%s:%s|%s" % (self._identifier, self._namespace,
+                                     self._name)
+        else:
+            out_name = "%s:%s" % (self._identifier, self._name)
+        if self._input_namespace:
+            in_name = "%s:%s|%s" % (self._input_identifier,
+                                    self._input_namespace,
+                                    self._input_name)
+        else:
+            in_name = "%s:%s" % (self._input_identifier, self._input_name)
+        return ('Output port "%s" from module "%s" cannot connect to '
+                'input port "%s" from module "%s".' % (self._output_port,
+                                                       out_name,
+                                                       self._input_port,
+                                                       in_name))
+
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
                  new_namespace):
