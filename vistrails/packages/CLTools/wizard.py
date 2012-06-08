@@ -63,6 +63,8 @@ class QCLToolsWizard(QtGui.QWidget):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         self.vbox = QtGui.QVBoxLayout()
+        self.vbox.setContentsMargins(5,5,5,5)
+
         self.setLayout(self.vbox)
         self.setTitle()
         self.file = None
@@ -141,6 +143,8 @@ class QCLToolsWizard(QtGui.QWidget):
         self.toolBar.addAction(self.stdAsFiles)
 
         self.commandLayout = QtGui.QHBoxLayout()
+        self.commandLayout.setContentsMargins(5,5,5,5)
+
         self.commandLayout.addWidget(QtGui.QLabel("command:"))
         self.command = QtGui.QLineEdit()
         self.commandLayout.addWidget(self.command)
@@ -545,11 +549,14 @@ class QArgWidget(QtGui.QWidget):
         
     def buildWidget(self):
         layout = self.layout()
+        layout.setContentsMargins(2,2,2,2)
         # remove any previous layout
         layout1 = QtGui.QHBoxLayout()
+        layout1.setContentsMargins(2,2,2,2)
         layout.addLayout(layout1)
         if self.argtype not in self.stdTypes:
             layout2 = QtGui.QHBoxLayout()
+            layout2.setContentsMargins(2,2,2,2)
             layout.addLayout(layout2)
         else:
             layout2 = layout1
@@ -559,87 +566,111 @@ class QArgWidget(QtGui.QWidget):
             self.types = ['Input', 'Output', 'Constant']
             self.typeDict = dict(zip(self.types, xrange(len(self.types))))
             self.typeDict.update(dict(zip([s.lower() for s in self.types], xrange(len(self.types)))))
-            self.typeList.addItems(self.types)
+            self.typeNames = ['Input Port', 'Output Port', 'Constant']
+            self.typeList.addItems(self.typeNames)
             self.typeList.setCurrentIndex(self.typeDict.get(self.argtype, 0))
-            label = QtGui.QLabel('Type:')
-            label.setToolTip('Sets if arg will be an input, output or a constant argument')
-            layout1.addWidget(label)
+            #label = QtGui.QLabel('Type:')
+            tt = 'Select if argument will be an input port, output port or a hidden constant'
+            #label.setToolTip(tt)
+            self.typeList.setToolTip(tt)
+            #layout1.addWidget(label)
             layout1.addWidget(self.typeList)
-        # name of port
-        self.nameLine = QtGui.QLineEdit(self.name)
-        label = QtGui.QLabel('Name:')
-        label.setToolTip('Name of the port, or the value for constants')
-        layout1.addWidget(label)
-        layout1.addWidget(self.nameLine)
         # type of port
         self.klassList = QtGui.QComboBox()
-        self.klasses = ['Flag', 'String', 'File', 'List']
+        self.klasses = ['Flag', 'String', 'Integer', 'Float', 'File', 'List']
         if self.argtype in self.stdTypes:
             self.klasses = ['String', 'File']
         self.klassDict = dict(zip(self.klasses, xrange(len(self.klasses))))
         self.klassDict.update(dict(zip([s.lower() for s in self.klasses], xrange(len(self.klasses)))))
-        self.klassList.addItems(self.klasses)
+        self.klassNames = ['Bool Flag', 'String', 'Integer', 'Float', 'File', 'List']
+        if self.argtype in self.stdTypes:
+            self.klassNames = ['String', 'File']
+        self.klassList.addItems(self.klassNames)
         self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
-        label = QtGui.QLabel('Class:')
-        label.setToolTip('Port Type. Can be String, File or Flag. List means an input list of one of the other types')
-        layout1.addWidget(label)
+        #label = QtGui.QLabel('Class:')
+        tt = 'Port Type. Can be String, Integer, Float, File or Boolean Flag. List means an input list of one of the other types. Only File and String should be used for output ports.'
+        self.klassList.setToolTip(tt)
+        #label.setToolTip(tt)
+        #layout1.addWidget(label)
         layout1.addWidget(self.klassList)
+        # name of port
+        self.nameLine = QtGui.QLineEdit(self.name)
+        label = QtGui.QLabel('Name:')
+        tt = 'Name of the port, or the value for constants'
+        label.setToolTip(tt)
+        self.nameLine.setToolTip(tt)
+        layout1.addWidget(label)
+        layout1.addWidget(self.nameLine)
         # options are different for each widget
-        # all args can have flag
         if self.argtype not in self.stdTypes:
+            # all args can have flag
             self.flag = QtGui.QLineEdit(self.options.get('flag', ''))
             label = QtGui.QLabel('flag:')
-            label.setToolTip('a flag before your input. Example: "-f" -> "-f yourinput"')
+            tt = 'a short-style flag before your input. Example: "-f" -> "-f yourinput"'
+            label.setToolTip(tt)
+            self.flag.setToolTip(tt)
             layout1.addWidget(label)
             layout1.addWidget(self.flag)
         
-        if self.argtype not in self.stdTypes:
             # all args can have prefix
             self.prefix = QtGui.QLineEdit(self.options.get('prefix', ''))
             label = QtGui.QLabel('prefix:')
-            label.setToolTip('a prefix to your input. Example: "--X=" -> "--X=yourinput"')
+            tt = 'a long-style prefix to your input. Example: "--X=" -> "--X=yourinput"'
+            label.setToolTip(tt)
+            self.prefix.setToolTip(tt)
             layout1.addWidget(label)
             layout1.addWidget(self.prefix)
 
         # all can be required
         self.required = QtGui.QCheckBox()
         self.required.setChecked('required' in self.options)
-        label = QtGui.QLabel('required:')
-        label.setToolTip('Check to make port always visible in VisTrails')
+        label = QtGui.QLabel('Visible:')
+        tt = 'Check to make port always visible in VisTrails'
+        label.setToolTip(tt)
+        self.required.setToolTip(tt)
         layout2.addWidget(label)
         layout2.addWidget(self.required)
         
         # subtype
-        self.subList = ['String', 'File']
+        self.subList = ['String', 'Integer', 'Float', 'File']
         self.subDict = dict(zip(self.subList, xrange(len(self.subList))))
         self.subDict.update(dict(zip([s.lower() for s in self.subList], xrange(len(self.subList)))))
         self.subtype = QtGui.QComboBox()
         self.subtype.addItems(self.subList)
         self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String'), 0))
         self.listLabel = QtGui.QLabel('List type:')
-        self.listLabel.setToolTip('Choose type of values in List')
+        self.subtype.setVisible(False)
+        tt = 'Choose type of values in List'
+        self.subtype.setToolTip(tt)
+        self.listLabel.setToolTip(tt)
         layout2.addWidget(self.listLabel)
         layout2.addWidget(self.subtype)
-        self.listLabel.setVisible(self.klass == "List")
-        self.subtype.setVisible(self.klass == "List")
+        self.listLabel.setVisible(False)
+        self.subtype.setVisible(False)
+        
+        self.klassChanged()
 
         # description
         self.desc = QtGui.QLineEdit(self.options.get('desc', ''))
         label = QtGui.QLabel('description:')
-        label.setToolTip('Add a helpful description of the port')
+        tt = 'Add a helpful description of the port'
+        label.setToolTip(tt)
+        self.desc.setToolTip(tt)
         layout2.addWidget(label)
         layout2.addWidget(self.desc)
         
         if self.argtype not in self.stdTypes:
             self.connect(self.klassList, QtCore.SIGNAL('currentIndexChanged(int)'),
                      self.klassChanged)
+            self.connect(self.typeList, QtCore.SIGNAL('currentIndexChanged(int)'),
+                     self.klassChanged)
 
     def getValues(self):
         """ get the values from the widgets and store them """
         if self.argtype not in self.stdTypes:
-            self.argtype = str(self.typeList.currentText())
-        self.klass = str(self.klassList.currentText())
-        self.name = str(self.nameLine.text())
+            self.argtype = self.types[self.typeList.currentIndex()]
+        self.klass = self.klasses[self.klassList.currentIndex()]
+        self.name = str(self.nameLine.text()).strip()
         self.options = {}
         if self.argtype not in self.stdTypes:
             flag = str(self.flag.text()).strip()
@@ -653,7 +684,7 @@ class QArgWidget(QtGui.QWidget):
             self.options['desc'] = desc
         if self.required.isChecked():
             self.options['required'] = ''
-        if self.klass == 'List':
+        if self.klass.lower() == 'list':
             subtype = str(self.subtype.currentText()).strip()
             if subtype:
                 self.options['type'] = subtype
@@ -662,14 +693,15 @@ class QArgWidget(QtGui.QWidget):
         if self.argtype not in self.stdTypes:
             self.typeList.setCurrentIndex(self.typeDict.get(self.argtype, 0))
         self.nameLine.setText(self.name)
-        self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
+        self.klassList.setCurrentIndex(self.klassDict[self.klass])
         if self.argtype not in self.stdTypes:
             self.flag.setText(self.options.get('flag', ''))
             self.prefix.setText(self.options.get('prefix', ''))
+            self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String')))
             self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String'), 0))
         self.required.setChecked('required' in self.options)
         self.desc.setText(self.options.get('desc', ''))
-        self.klassChanged(None)
+        self.klassChanged()
             
     def toList(self):
         self.getValues()
@@ -685,12 +717,14 @@ class QArgWidget(QtGui.QWidget):
             self.name, self.klass, self.options = arg
         self.setValues()
 
-    def klassChanged(self, index):
+    def klassChanged(self, index=0):
         if self.argtype in self.stdTypes:
             return
-        klass = str(self.klassList.currentText())
-        self.listLabel.setVisible(klass == "List")
-        self.subtype.setVisible(klass == "List")
+        type = self.types[self.typeList.currentIndex()].lower()
+        self.klassList.setVisible(type != 'constant')
+        klass = self.klasses[self.klassList.currentIndex()].lower()
+        self.listLabel.setVisible(klass == "list" and type == 'input')
+        self.subtype.setVisible(klass == "list" and type == 'input')
 
     def guess(self, name, count=0):
         """ add argument by guessing what the arg might be """
@@ -802,7 +836,7 @@ class QCLToolsWizardWindow(QtGui.QMainWindow):
         self.wizard = QCLToolsWizard(self)
         self.setCentralWidget(self.wizard)
         self.setWindowTitle("CLTools Wizard")
-        self.resize(800,600)
+        self.resize(1000,600)
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)

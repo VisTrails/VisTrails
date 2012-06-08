@@ -41,7 +41,6 @@ import core.system
 import core.modules.module_registry
 from core import debug
 from core.modules.vistrails_module import Module, ModuleError, new_module
-from core.modules.basic_modules import File
 from core.modules.module_utils import FilePool
 
 cl_tools = {}
@@ -91,6 +90,7 @@ def add_tool(path):
     except ValueError as exc:
         debug.critical("Package CLTools could not parse '%s'" % path, str(exc))
         return
+
     def compute(self):
         """ 1. read inputs
             2. call with inputs
@@ -107,7 +107,15 @@ def add_tool(path):
             type = type.lower()
             klass = klass.lower()
             if "constant" == type:
-                args.append(name)
+                flag = 'flag' in options and options['flag']
+                if flag:
+                    args.append(flag)
+                if name:
+                    # if flag==name we assume user tried to name a constant
+                    if not name == flag:
+                        if 'prefix' in options:
+                            name = options['prefix'] + str(name)
+                        args.append(name)
             elif "input" == type:
                 # handle multiple inputs
                 values = self.forceGetInputListFromPort(name)
@@ -117,10 +125,11 @@ def add_tool(path):
                       if 'type' in options else 'string'
                 for value in values:
                     if 'flag' == klass:
-                        if value and 'flag' in options:
+                        if value and 'flag' in options and options['flag']:
                             value = options['flag']
                         else:
-                            continue
+                            # use name as flag
+                            value = name
                     elif 'file' == klass:
                         value = str(value.name)
                     # check for flag and append file name
@@ -128,7 +137,7 @@ def add_tool(path):
                         args.append(options['flag'])
                     if 'prefix' in options:
                         value = options['prefix'] + str(value)
-                    args.append(value)
+                    args.append(str(value))
             elif "output" == type:
                 # output must be a filename but we may convert the result to a string
                 # create new file
@@ -276,7 +285,8 @@ def add_tool(path):
     def to_vt_type(s):
         # add recognized types here - default is String
         return '(edu.utah.sci.vistrails.basic:%s)' % \
-          {'file':'File', 'flag':'Boolean', 'list':'List'
+          {'file':'File', 'flag':'Boolean', 'list':'List',
+           'float':'Float','integer':'Integer'
           }.get(str(s).lower(), 'String')
     # add module ports
     if 'stdin' in conf:
