@@ -9,6 +9,8 @@ from javax.swing.event import ListSelectionListener
 from java.lang import Integer, RuntimeException
 
 import springutilities
+
+from core import get_vistrails_application
 from core.packagemanager import get_package_manager
 from core import debug
 
@@ -177,6 +179,11 @@ class PreferenceWindow(JDialog, ActionListener):
         self.pack()
         self.setMinimumSize(self.getSize())
 
+        # Register for notifications
+        app = get_vistrails_application()
+        app.register_notification("package_added", self.packageEnabled)
+        app.register_notification("package_removed", self.packageDisabled)
+
     def populate_lists(self):
         """(Re)constructs the enabled and disable packages lists.
 
@@ -220,10 +227,6 @@ class PreferenceWindow(JDialog, ActionListener):
                         debug.critical("Initialization of package '%s' failed" %
                                        codepath, str(e))
                         raise
-                    self.disabled_model.removeElement(codepath)
-                    self.enabled_model.addElement(codepath)
-                    self.list_disabled.clearSelection()
-                    self.update_infos(None)
         elif e.getActionCommand() == 'dis':
             codepath = self.list_enabled.getSelectedValue()
             if codepath is not None:
@@ -238,14 +241,6 @@ class PreferenceWindow(JDialog, ActionListener):
                                     "Please disable those first.") % rev_deps)
                 else:
                     pm.late_disable_package(codepath)
-                    self.enabled_model.removeElement(codepath)
-                    self.disabled_model.addElement(codepath)
-                    self.list_enabled.clearSelection()
-                    self.update_infos(None)
-                    self.button_enable.setEnabled(False)
-                    self.button_disable.setEnabled(False)
-                    self.button_configure.setEnabled(False)
-                    self.button_reload.setEnabled(False)
         elif e.getActionCommand() == 'conf':
             pm = get_package_manager()
             codepath = self.list_enabled.getSelectedValue()
@@ -255,6 +250,22 @@ class PreferenceWindow(JDialog, ActionListener):
             dlg.setVisible(True)
         elif e.getActionCommand() == 'rel':
             pass
+
+    def packageEnabled(self, codepath):
+        if self.disabled_model.removeElement(codepath):
+            self.enabled_model.addElement(codepath)
+            self.list_disabled.clearSelection()
+            self.update_infos(None)
+
+    def packageDisabled(self, codepath):
+        if self.enabled_model.removeElement(codepath):
+            self.disabled_model.addElement(codepath)
+            self.list_enabled.clearSelection()
+            self.update_infos(None)
+            self.button_enable.setEnabled(False)
+            self.button_disable.setEnabled(False)
+            self.button_configure.setEnabled(False)
+            self.button_reload.setEnabled(False)
 
     def selected(self, enabled_list, index):
         pm = get_package_manager()
