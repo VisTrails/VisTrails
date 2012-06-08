@@ -53,16 +53,39 @@ class ModuleTreeNode(DefaultMutableTreeNode):
         return self.descriptor.name
 
 
-class PackageTreeNode(DefaultMutableTreeNode):
-    """A custom tree node for packages.
+class NamespaceTreeNode(DefaultMutableTreeNode):
+    """A custom tree node for namespaces inside a package.
     """
+    def __init__(self, name):
+        super(NamespaceTreeNode, self).__init__(name)
+        self._namespaces = {} # name:str -> namespace:NamespaceTreeNode
+
     # @Override
     def getAllowsChildren(self):
         return True
-    
+
     # @Override
     def isLeaf(self):
         return False
+
+    def get_namespace(self, names):
+        try:
+            ns = self._namespaces[names[0]]
+        except KeyError:
+            ns = NamespaceTreeNode(names[0])
+            self.add(ns)
+            self._namespaces[names[0]] = ns
+        if len(names) > 1:
+            return ns.get_namespace(names[1:])
+        else:
+            return ns
+
+
+class PackageTreeNode(NamespaceTreeNode):
+    """A custom tree node for packages.
+    """
+    def __init__(self, name):
+        super(PackageTreeNode, self).__init__(name)
 
 
 class SourceTransferHandler(TransferHandler):
@@ -129,8 +152,14 @@ class JModulePalette(JScrollPane):
             else:
                 package_item = self.packages[package_identifier]
 
-            # TODO : namespaces
-            parent_item = package_item
+            if descriptor.ghost_namespace is not None:
+                namespace = descriptor.ghost_namespace
+            else:
+                namespace = descriptor.namespace
+            if descriptor.namespace_hidden or not namespace:
+                parent_item = package_item
+            else:
+                parent_item = package_item.get_namespace(namespace.split('|'))
 
             item = ModuleTreeNode(descriptor)
             self.modules[descriptor] = item
@@ -142,15 +171,16 @@ class JModulePalette(JScrollPane):
 
     def deletedModule(self, descriptor):
         try:
-            self.modules[descriptor].removeFromParent()
-
-            package_identifier = (
-                    descriptor.ghost_identifier or
-                    descriptor.identifier)
-            package_item = self.packages[package_identifier]
-            if package_item.getChildCount() == 0:
-                package_item.removeFromParent()
-                del self.packages[package_identifier]
+            obj = self.modules[descriptor]
+            parent = obj.getParent()
+            obj.removeFromParent()
+            obj = parent
+            while (obj is not None and
+                    obj.getChildCount() == 0 and
+                    isinstance(obj, NamespaceTreeNode)):
+                parent = obj.getParent()
+                obj.removeFromParent()
+                obj = parent
         except KeyError:
             pass
         self.tree.getModel().nodeStructureChanged(self.root)
