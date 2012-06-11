@@ -68,12 +68,41 @@ class NamespaceTreeNode(DefaultMutableTreeNode):
     def isLeaf(self):
         return False
 
+    def _findInsertionPoint(self, newChild, namespace=False):
+        newLabel = newChild.toString()
+
+        # We put the namespaces first
+        if namespace:
+            low = 0
+            high = len(self._namespaces) - 1
+        else:
+            low = len(self._namespaces)
+            high = self.getChildCount() - 1
+
+        while low <= high:
+            mid = (low + high)/2
+            midVal = self.getChildAt(mid).toString()
+
+            if midVal < newLabel:
+                low = mid + 1
+            elif newLabel < midVal:
+                high = mid - 1
+            else:
+                return mid # key found
+        return low # key not found
+
+    # @Override
+    def add(self, newChild):
+        ns = isinstance(newChild, NamespaceTreeNode)
+        idx = self._findInsertionPoint(newChild, namespace=ns)
+        self.insert(newChild, idx)
+
     def get_namespace(self, names):
         try:
             ns = self._namespaces[names[0]]
         except KeyError:
             ns = NamespaceTreeNode(names[0])
-            self.add(ns)
+            self.add(ns) # Overridden for sorting
             self._namespaces[names[0]] = ns
         if len(names) > 1:
             return ns.get_namespace(names[1:])
@@ -133,12 +162,18 @@ class JModulePalette(JScrollPane):
     def newPackage(self, package_identifier, prepend=False):
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
+
+        # I don't know what this 'prepend' thing is about, I'll assume that we
+        # have to honor it -- no automatic sorting of packages here
+
         package_item = PackageTreeNode(package_name)
         self.packages[package_identifier] = package_item
+        # Add it at either the beginning or the end, as requested
         if prepend:
             self.root.insert(package_item, 0)
         else:
             self.root.add(package_item)
+
         self.tree.getModel().nodeStructureChanged(self.root)
         return package_item
 
@@ -163,7 +198,7 @@ class JModulePalette(JScrollPane):
 
             item = ModuleTreeNode(descriptor)
             self.modules[descriptor] = item
-            parent_item.add(item)
+            parent_item.add(item) # Overridden for sorting
         if recurse:
             for child in descriptor.children:
                 self.newModule(child, recurse)
