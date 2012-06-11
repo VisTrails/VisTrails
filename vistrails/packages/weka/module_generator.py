@@ -21,6 +21,23 @@ _type_to_module = {
         'java.lang.String': String}
 
 
+def fullname_to_pair(fullname):
+    """Turns a full Java name (pkg.Class) into a namespace/module tuple.
+
+    >>> fullname_to_pair('java.lang.String')
+    ('java|lang', 'String')
+    >>> fullname_to_pair('int')
+    (None, 'int')
+    """
+    try:
+        sep = fullname.rindex('.')
+        return (
+                fullname[:sep].replace('.', '|'),
+                fullname[sep+1:])
+    except ValueError:
+        return (None, fullname)
+
+
 class ModuleCreator(object):
     """Walk over the parseResult structure and emit the Module's in order.
 
@@ -116,18 +133,21 @@ class ModuleCreator(object):
             self._create_module(parent)
             parent = self._created_modules[c['extends']]
 
-        name = c['fullname'].replace('.', '_')
+        (namespace, name) = fullname_to_pair(c['fullname'])
 
         # Create the abstract module
         mod = type(name, (parent,), dict(
                 _classloader=self._classloader,
-                _classname=c['fullname']))
-        self._module_registry.add_module(mod, abstract=True)
+                _classname=c['fullname'],
+                _namespace=namespace))
+        self._module_registry.add_module(mod, abstract=True,
+                                         namespace=namespace)
         self._created_modules[c['fullname']] = mod
 
     def _populate_modules(self, c):
         mod = self._created_modules[c['fullname']]
         name = mod.__name__
+        namespace = mod._namespace
 
         # We identify the input ports for the setters, and the output ports for
         # the getters
@@ -164,7 +184,7 @@ class ModuleCreator(object):
                     cname,
                     (GetterModuleMixin, mod),
                     dict())
-            self._module_registry.add_module(cmod)
+            self._module_registry.add_module(cmod, namespace=namespace)
             self._module_registry.add_input_port(
                     cmod, 'this',
                     (mod, 'the object to call getters on'))
@@ -179,7 +199,7 @@ class ModuleCreator(object):
                         cname,
                         (ConstructorModuleMixin, mod),
                         dict(_ctor_params=m['params']))
-                self._module_registry.add_module(cmod)
+                self._module_registry.add_module(cmod, namespace=namespace)
                 # Constructor parameters
                 for t, n in m['params']:
                     self._module_registry.add_input_port(
