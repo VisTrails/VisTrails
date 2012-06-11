@@ -38,13 +38,13 @@ from java.lang import Runnable, System
 from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
 from java.awt import Color, Polygon, Font, FontMetrics, Point, BasicStroke
 from java.awt.geom import Rectangle2D
-from java.awt.event import MouseEvent
+from java.awt.event import MouseEvent, InputEvent
 from java.io import IOException
 from java.awt.datatransfer import UnsupportedFlavorException
 
 from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
 from edu.umd.cs.piccolo.nodes import PPath
-from edu.umd.cs.piccolo.event import PBasicInputEventHandler
+from edu.umd.cs.piccolo.event import PBasicInputEventHandler, PInputEventFilter
 
 from module_palette import moduleData
 
@@ -529,6 +529,10 @@ class JPipelineView(PCanvas):
         self.executed = {} # List of executed modules, useful for coloring
         self.vistrail = vistrail
         self.locator = locator
+
+        # Use the middle mouse button for panning instead of the left, as we'll
+        # use the later to select and move stuff
+        self.getPanEventHandler().setEventFilter(PInputEventFilter(InputEvent.BUTTON2_MASK))
 
         # Setup the layers
         module_layer = self.getLayer()
