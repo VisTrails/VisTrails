@@ -63,7 +63,7 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         return self
 
     def __init__(self):
-        VistrailsApplicationInterface.__init__(self)
+        super(VistrailsJavaApplicationSingleton, self).__init__()
 
         self.builderWindow = None
 

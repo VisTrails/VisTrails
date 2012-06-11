@@ -89,8 +89,8 @@ class ConfigurationModel(DefaultTableModel):
 
 class PackageConfigurationWindow(JDialog, KeyListener):
     def __init__(self, frame, package):
-        JDialog.__init__(
-                self, frame,
+        super(PackageConfigurationWindow, self).__init__(
+                frame,
                 "Package configuration", Dialog.ModalityType.DOCUMENT_MODAL)
 
         self._package = package

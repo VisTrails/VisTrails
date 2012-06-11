@@ -78,8 +78,10 @@ class MyListSelectionListener(ListSelectionListener):
 
 class PreferenceWindow(JDialog, ActionListener):
     def __init__(self, frame):
-        JDialog.__init__(self, frame, "Preferences",
-                         Dialog.ModalityType.DOCUMENT_MODAL)
+        super(PreferenceWindow, self).__init__(
+                frame,
+                "Preferences",
+                Dialog.ModalityType.DOCUMENT_MODAL)
 
         top = JPanel()
         top.setLayout(BoxLayout(top, BoxLayout.LINE_AXIS))
@@ -203,7 +205,7 @@ class PreferenceWindow(JDialog, ActionListener):
                 self.disabled_model.addElement(pkg)
 
     # @Override
-    def actionPerformed(self, e):        
+    def actionPerformed(self, e):
         if e.getActionCommand() == 'en':
             codepath = self.list_disabled.getSelectedValue()
             if codepath is not None:

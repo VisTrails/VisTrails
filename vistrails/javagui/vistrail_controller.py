@@ -40,7 +40,7 @@ from javax.swing import JComponent
 class JVistrailController(BaseController, JComponent):
 
     def __init__(self):
-        BaseController.__init__(self)
+        super(JVistrailController, self).__init__()
         self.fileName  = ""
 
     def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):

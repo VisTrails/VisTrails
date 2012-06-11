@@ -106,7 +106,7 @@ class ModuleDraggingEventHandler(PBasicInputEventHandler):
 
 class ConnectionDrawingEventHandler(PBasicInputEventHandler):
     def __init__(self, edge_layer, scene):
-        PBasicInputEventHandler.__init__(self)
+        super(ConnectionDrawingEventHandler, self).__init__()
         self.edge_layer = edge_layer
         self.scene = scene
         self.drawing = False
@@ -234,7 +234,7 @@ class PModule(PNode):
     fontMetrics = FontMetricsImpl(font)
 
     def __init__(self, module):
-        PNode.__init__(self)
+        super(PModule, self).__init__()
 
         self.module = module
 
@@ -427,7 +427,7 @@ class PModule(PNode):
 
 class PConnection(PNode):
     def __init__(self, source, oport, destination, iport):
-        PNode.__init__(self)
+        super(PConnection, self).__init__()
 
         if isinstance(oport, str):
             oport = source.outputport_number(oport)
@@ -470,7 +470,7 @@ class TargetTransferHandler(TransferHandler):
     """This is the drag and drop target, accepting module descriptors.
     """
     def __init__(self, pipelineview):
-        TransferHandler.__init__(self)
+        super(TargetTransferHandler, self).__init__()
         self.view = pipelineview
 
     # @Override
@@ -524,7 +524,7 @@ class JPipelineView(PCanvas):
     """
     def __init__(self, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None):
-        PCanvas.__init__(self)
+        super(JPipelineView, self).__init__()
         self.controller = controller
         self.executed = {} # List of executed modules, useful for coloring
         self.vistrail = vistrail
