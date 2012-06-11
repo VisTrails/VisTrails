@@ -846,11 +846,14 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
                                        'when saving mashup: %s'%str(e))
 
     # call package hooks
-    from core.packagemanager import get_package_manager
-    pm = get_package_manager()
-    for package in pm.enabled_package_list():
-        package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
-
+    # it will fail if package manager has not been constructed yet
+    try:
+        from core.packagemanager import get_package_manager
+        pm = get_package_manager()
+        for package in pm.enabled_package_list():
+            package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
+    except Exception, e:
+        debug.warning("Could not call package hooks", str(e))
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
     output = []
@@ -958,7 +961,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     for id, name in tagMap.iteritems():
         if id not in workflowIds:
             #print "creating workflow", vistrail.db_id, id, name,
-            workflow = vistrail.getPipeline(id)
+            workflow = db.services.vistrail.materializeWorkflow(vistrail, id)
             workflow.db_id = None
             workflow.db_vistrail_id = vistrail.db_id
             workflow.db_parent_id = id

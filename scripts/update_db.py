@@ -88,6 +88,9 @@ def update_db(config, new_version=None, tmp_dir=None):
     io.close_db_connection(db_connection)
 
 if __name__ == '__main__':
+    import core.application
+    core.application.init()
+
     more_options = {'v:': ('set new schema version', False, 'version'),
                     }
     config, options = parse_db_cmd_line(sys.argv, more_options)

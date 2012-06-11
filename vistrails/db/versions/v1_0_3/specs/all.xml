@@ -1730,12 +1730,12 @@
 
     <property name="default" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(4095)"/>
+      <sql column="_default" type="varchar(4095)"/>
     </property>
 
     <property name="values" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(65536)"/>
+      <sql column="_values" type="mediumtext"/>
     </property>
 
     <property name="entry_type" type="str">
@@ -2241,7 +2241,7 @@
 
     <property name="id" type="long" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:int"/>
-      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="int"/>
     </property>
     
     <property name="action_id" type="long" foreignKey="true" object="action">

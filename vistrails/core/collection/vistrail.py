@@ -138,7 +138,7 @@ class VistrailEntity(Entity):
         if query_str == '':
             query_str = 'parameterExploration=%s' % pe.id
         else:
-            query_str += 'parameterExploration=%s' % pe.id
+            query_str += '&parameterExploration=%s' % pe.id
         url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
                      url_tuple[4])
         entity.url = urlparse.urlunsplit(url_tuple)

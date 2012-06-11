@@ -172,7 +172,8 @@ def createParameterExploration(action_id, xmlString, vistrail):
                               pos=1 if f_is_alias else 0,
                               parameters=parameters)
         functions.append(function)
-    pe = DBParameterExploration(action_id=action_id,
+    pe = DBParameterExploration(id=vistrail.idScope.getNewId(DBParameterExploration.vtType),
+                                action_id=action_id,
                                 dims=str(xmlDoc.attributes['dims'].value),
                                 layout=str(xmlDoc.attributes['layout'].value),
                                 date=str(xmlDoc.attributes['date'].value),

@@ -138,7 +138,7 @@ class BaseLocator(object):
             generate_dict['workflow'] = args['version_node']
         elif 'version_tag' in args and args['version_tag']:
             generate_dict['workflow'] = args['version_tag']
-        elif 'parameterExploration' in args and args['parameterExploration']:
+        if 'parameterExploration' in args and args['parameterExploration']:
             generate_dict['parameterExploration'] = args['parameterExploration']
         return urllib.urlencode(generate_dict)
 

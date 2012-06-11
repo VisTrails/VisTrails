@@ -1614,7 +1614,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', 'default', 'values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = global_props
         orderBy = 'id'
@@ -1630,7 +1630,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
             label = self.convertFromDB(row[5], 'str', 'varchar(4095)')
             default = self.convertFromDB(row[6], 'str', 'varchar(4095)')
-            values = self.convertFromDB(row[7], 'str', 'varchar(65536)')
+            values = self.convertFromDB(row[7], 'str', 'mediumtext')
             entry_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
             portSpec = self.convertFromDB(row[9], 'long', 'int')
             entity_id = self.convertFromDB(row[10], 'long', 'int')
@@ -1652,7 +1652,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', 'default', 'values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = global_props
         orderBy = 'id'
@@ -1668,7 +1668,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
             label = self.convertFromDB(row[5], 'str', 'varchar(4095)')
             default = self.convertFromDB(row[6], 'str', 'varchar(4095)')
-            values = self.convertFromDB(row[7], 'str', 'varchar(65536)')
+            values = self.convertFromDB(row[7], 'str', 'mediumtext')
             entry_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
             portSpec = self.convertFromDB(row[9], 'long', 'int')
             entity_id = self.convertFromDB(row[10], 'long', 'int')
@@ -1697,7 +1697,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', 'default', 'values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = {}
         whereMap.update(global_props)
@@ -1724,11 +1724,11 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             columnMap['label'] = \
                 self.convertToDB(obj.db_label, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_default') and obj.db_default is not None:
-            columnMap['default'] = \
+            columnMap['_default'] = \
                 self.convertToDB(obj.db_default, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_values') and obj.db_values is not None:
-            columnMap['values'] = \
-                self.convertToDB(obj.db_values, 'str', 'varchar(65536)')
+            columnMap['_values'] = \
+                self.convertToDB(obj.db_values, 'str', 'mediumtext')
         if hasattr(obj, 'db_entry_type') and obj.db_entry_type is not None:
             columnMap['entry_type'] = \
                 self.convertToDB(obj.db_entry_type, 'str', 'varchar(255)')
@@ -1752,7 +1752,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', 'default', 'values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = {}
         whereMap.update(global_props)
@@ -1779,11 +1779,11 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             columnMap['label'] = \
                 self.convertToDB(obj.db_label, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_default') and obj.db_default is not None:
-            columnMap['default'] = \
+            columnMap['_default'] = \
                 self.convertToDB(obj.db_default, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_values') and obj.db_values is not None:
-            columnMap['values'] = \
-                self.convertToDB(obj.db_values, 'str', 'varchar(65536)')
+            columnMap['_values'] = \
+                self.convertToDB(obj.db_values, 'str', 'mediumtext')
         if hasattr(obj, 'db_entry_type') and obj.db_entry_type is not None:
             columnMap['entry_type'] = \
                 self.convertToDB(obj.db_entry_type, 'str', 'varchar(255)')
@@ -5018,7 +5018,6 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             action_id = self.convertFromDB(row[1], 'long', 'int')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             date = self.convertFromDB(row[3], 'datetime', 'datetime')
@@ -5054,7 +5053,6 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             action_id = self.convertFromDB(row[1], 'long', 'int')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             date = self.convertFromDB(row[3], 'datetime', 'datetime')
@@ -5132,11 +5130,6 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -5188,11 +5181,6 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):

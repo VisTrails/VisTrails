@@ -33,7 +33,7 @@
 --#############################################################################
 
 CREATE TABLE `vistrails_version`(`version` char(16)) engine=InnoDB;
-INSERT INTO `vistrails_version`(`version`) VALUES ('1_0_3');
+INSERT INTO `vistrails_version`(`version`) VALUES ('1.0.3');
 
 CREATE TABLE thumbnail(
     id int not null auto_increment primary key,
@@ -146,8 +146,8 @@ CREATE TABLE port_spec_item(
     package varchar(255),
     namespace varchar(255),
     label varchar(4095),
-    default varchar(4095),
-    values varchar(65536),
+    _default varchar(4095),
+    _values mediumtext,
     entry_type varchar(255),
     parent_id int,
     entity_id int,
@@ -347,7 +347,7 @@ CREATE TABLE workflow_exec(
 ) engine=InnoDB;
 
 CREATE TABLE parameter_exploration(
-    id int not null auto_increment primary key,
+    id int,
     action_id int,
     name varchar(255),
     date datetime,
