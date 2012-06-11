@@ -43,6 +43,7 @@ from core import debug
 from core import system
 import core.requirements
 import sys
+from utils import run_on_edt
 
 ################################################################################
 
@@ -118,13 +119,16 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         sys.stderr.write("Error: non-interactive mode is not implemented!")
         
     def interactiveMode(self):
-        if self.temp_configuration.check('showSplash'):
-            pass #self.splashScreen.finish(self.builderWindow) FIXME
-        self.builderWindow.link_registry()
+        def run():
+            if self.temp_configuration.check('showSplash'):
+                pass #self.splashScreen.finish(self.builderWindow) FIXME
+            self.builderWindow.link_registry()
 
-        #self.builderWindow.create_first_vistrail()
+            #self.builderWindow.create_first_vistrail()
 
-        self.builderWindow.open_vistrail("C:/Users/User_2/Documents/empty.vt")
+            self.builderWindow.open_vistrail("C:/Users/User_2/Documents/empty.vt")
+
+        run_on_edt(run)
 
     def createWindows(self):
         """ createWindows() -> None
@@ -132,15 +136,17 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
 
         """
         print "createWindows"
-        
-        self.setupSplashScreen()
+        def run():
+            self.setupSplashScreen()
 
-        # This is so that we don't import too many things before we
-        # have to. Otherwise, requirements are checked too late.
-        from javagui.builder_frame import BuilderFrame
+            # This is so that we don't import too many things before we
+            # have to. Otherwise, requirements are checked too late.
+            from javagui.builder_frame import BuilderFrame
 
-        self.builderWindow = BuilderFrame()
-        self.builderWindow.showFrame()
+            self.builderWindow = BuilderFrame()
+            self.builderWindow.showFrame()
+
+        run_on_edt(run)
 
     def wait_finish(self):
         """Wait for the user to close the window.

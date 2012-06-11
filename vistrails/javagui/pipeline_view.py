@@ -34,7 +34,7 @@
 
 from core.modules.module_registry import get_module_registry
 
-from java.lang import Runnable, System
+from java.lang import System
 from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
 from java.awt import Color, Polygon, Font, FontMetrics, Point, BasicStroke
 from java.awt.geom import Rectangle2D
@@ -47,6 +47,7 @@ from edu.umd.cs.piccolo.nodes import PPath
 from edu.umd.cs.piccolo.event import PBasicInputEventHandler, PInputEventFilter
 
 from module_palette import moduleData
+from utils import PyFuncRunner
 
 
 PORT_WIDTH = 7
@@ -62,16 +63,6 @@ NO_CONNECTION_COLOR = Color(100, 0, 0)
 # FontMetrics is declared abstract even though it has no abstract method
 class FontMetricsImpl(FontMetrics):
     pass
-
-
-# We have to pass something implementing Runnable to invokeLater()
-# This class is used to wrap a Python method as a Runnable
-class CustomRunner(Runnable):
-    def __init__(self, func):
-        self.runner = func;
-
-    def run(self):
-        self.runner()
 
 
 class ModuleDraggingEventHandler(PBasicInputEventHandler):
@@ -564,9 +555,9 @@ class JPipelineView(PCanvas):
         print results[0].__str__()
         self.executed = results[0].executed
         self.define_modules_color()
-        SwingUtilities.invokeLater(CustomRunner(self.invalidate))
-        SwingUtilities.invokeLater(CustomRunner(self.revalidate))
-        SwingUtilities.invokeLater(CustomRunner(self.repaint))
+        SwingUtilities.invokeLater(PyFuncRunner(self.invalidate))
+        SwingUtilities.invokeLater(PyFuncRunner(self.revalidate))
+        SwingUtilities.invokeLater(PyFuncRunner(self.repaint))
 
     def define_modules_color(self, executed=True):
         self.colorModules = {}
