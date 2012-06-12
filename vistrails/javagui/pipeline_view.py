@@ -65,9 +65,11 @@ class FontMetricsImpl(FontMetrics):
     pass
 
 
-class ModuleDraggingEventHandler(PBasicInputEventHandler):
-    def __init__(self):
-        self.dragging = None
+class ModuleSelectingEventHandler(PBasicInputEventHandler):
+    def __init__(self, module_layer, scene):
+        self.dragging = False
+        self.module_layer = module_layer
+        self.scene = scene
 
     # @Override
     def mousePressed(self, event):
@@ -75,24 +77,42 @@ class ModuleDraggingEventHandler(PBasicInputEventHandler):
         if event.getButton() == 1:
             node = event.getPickedNode()
             if node is not None:
-                self.dragging = node
-        event.setHandled(self.dragging is not None)
+                self.dragging = True
+                self.dragged = False
+
+        event.setHandled(self.dragging)
 
     # @Override
     def mouseDragged(self, event):
         # Only the left mouse button may be used
         if self.dragging:
-            node = event.getPickedNode()
-            delta = event.getDeltaRelativeTo(node)
-            node.dragBy(delta.width, delta.height)
+            if not self.dragged:
+                node = event.getPickedNode()
+                if not node.selected:
+                    self.scene.selectModule(node, deselect_others=True)
+            self.dragged = True
+
+            nodes = self.scene.selected_modules
+            delta = event.getDeltaRelativeTo(self.module_layer)
+            for node in nodes:
+                node.dragBy(delta.width, delta.height)
             event.setHandled(True)
 
     # @Override
     def mouseReleased(self, event):
         # Only the left mouse button may be used
         if event.getButton() == 1:
+            # If we have moved the nodes, then this doesn't change the current
+            # selection
+            node = event.getPickedNode()
+            if node and isinstance(node, PModule) and not self.dragged:
+                replace = not (event.getModifiersEx() &
+                               InputEvent.CTRL_DOWN_MASK ==
+                               InputEvent.CTRL_DOWN_MASK)
+                self.scene.selectModule(node, deselect_others=replace)
+
             event.setHandled(True)
-            self.dragging = None
+            self.dragging = False
 
 
 class ConnectionDrawingEventHandler(PBasicInputEventHandler):
@@ -130,7 +150,7 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
                         [self.drawing_from.x, pos.x],
                         [self.drawing_from.y, pos.y])
                 self.drawing_line.setStroke(BasicStroke(2))
-        event.setHandled(self.drawing)
+            event.setHandled(self.drawing)
 
     # @Override
     def mouseMoved(self, event):
@@ -213,6 +233,14 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
         self.scene.hideToolTip()
 
 
+# TODO : another PBasicInputEventHandler to implement box selection and global
+# deselection by clicking in empty space
+
+
+# TODO : another PBasicInputEventHandler to implement connection selection
+# on the edges layer
+
+
 class PModule(PNode):
     """A module to be shown in the pipeline view.
 
@@ -228,6 +256,7 @@ class PModule(PNode):
         super(PModule, self).__init__()
 
         self.module = module
+        self.selected = False
 
         # These are the position of the center of the text, in the global
         # coordinate system
@@ -281,7 +310,10 @@ class PModule(PNode):
         graphics.setColor(self.color)
         graphics.fillRect(self.mod_x, self.mod_y,
                           self.module_width, self.module_height)
-        graphics.setColor(Color.black)
+        if self.selected:
+            graphics.setColor(Color.yellow)
+        else:
+            graphics.setColor(Color.black)
         graphics.drawRect(self.mod_x, self.mod_y,
                           self.module_width, self.module_height)
 
@@ -415,6 +447,11 @@ class PModule(PNode):
         else:
             return self.outputPorts[portnum].toolTip()
 
+    def setSelected(self, selected):
+        if self.selected != selected:
+            self.selected = selected
+            self.invalidatePaint()
+
 
 class PConnection(PNode):
     def __init__(self, source, oport, destination, iport):
@@ -473,7 +510,8 @@ class TargetTransferHandler(TransferHandler):
                 return False
             if not support.isDataFlavorSupported(moduleData):
                 return False
-            if (support.getSourceDropActions() & TransferHandler.COPY) == TransferHandler.COPY:
+            if ((support.getSourceDropActions() & TransferHandler.COPY) ==
+                    TransferHandler.COPY):
                 support.setDropAction(TransferHandler.COPY)
                 return True
             return False
@@ -520,10 +558,13 @@ class JPipelineView(PCanvas):
         self.executed = {} # List of executed modules, useful for coloring
         self.vistrail = vistrail
         self.locator = locator
+        self.selected_modules = set()
+        self.selected_connection = None
 
         # Use the middle mouse button for panning instead of the left, as we'll
         # use the later to select and move stuff
-        self.getPanEventHandler().setEventFilter(PInputEventFilter(InputEvent.BUTTON2_MASK))
+        self.getPanEventHandler().setEventFilter(PInputEventFilter(
+                InputEvent.BUTTON2_MASK))
 
         # Setup the layers
         module_layer = self.getLayer()
@@ -537,7 +578,8 @@ class JPipelineView(PCanvas):
         edge_layer = CustomPickingLayer()
         self.getCamera().addLayer(edge_layer)
 
-        module_layer.addInputEventListener(ModuleDraggingEventHandler())
+        module_layer.addInputEventListener(ModuleSelectingEventHandler(
+                module_layer, self))
         module_layer.addInputEventListener(ConnectionDrawingEventHandler(
                 edge_layer, self))
 
@@ -689,3 +731,17 @@ class JPipelineView(PCanvas):
                 0,
                 False)
         ToolTipManager.sharedInstance().mousePressed(phantom)
+
+    def deselectAll(self):
+        for module in self.selected_modules:
+            module.setSelected(False)
+        self.selected_modules = set()
+        self.selected_connection = None
+
+    def selectModule(self, module, deselect_others=False):
+        if deselect_others:
+            self.deselectAll()
+            self.selected_modules = set([module])
+        else:
+            self.selected_modules.add(module)
+        module.setSelected(True)
