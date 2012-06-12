@@ -38,7 +38,7 @@ from java.lang import System
 from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
 from java.awt import Color, Polygon, Font, FontMetrics, Point, BasicStroke
 from java.awt.geom import Rectangle2D
-from java.awt.event import MouseEvent, InputEvent
+from java.awt.event import MouseEvent, KeyEvent, InputEvent
 from java.io import IOException
 from java.awt.datatransfer import UnsupportedFlavorException
 
@@ -239,6 +239,16 @@ class ConnectionDrawingEventHandler(PBasicInputEventHandler):
 
 # TODO : another PBasicInputEventHandler to implement connection selection
 # on the edges layer
+
+
+class SuppressionEventHandler(PBasicInputEventHandler):
+    def __init__(self, scene):
+        self.scene = scene
+
+    # @Override
+    def keyPressed(self, event):
+        if event.getKeyCode() == KeyEvent.VK_DELETE:
+            self.scene.deleteSelected()
 
 
 class PModule(PNode):
@@ -454,8 +464,10 @@ class PModule(PNode):
 
 
 class PConnection(PNode):
-    def __init__(self, source, oport, destination, iport):
+    def __init__(self, id, source, oport, destination, iport):
         super(PConnection, self).__init__()
+
+        self.id = id
 
         if isinstance(oport, str):
             oport = source.outputport_number(oport)
@@ -492,6 +504,11 @@ class PConnection(PNode):
     def endpointChanged(self):
         self.computeBounds()
         self.invalidatePaint()
+
+    def remove(self):
+        self.removeFromParent()
+        self.source.outputConnections.remove(self)
+        self.destination.inputConnections.remove(self)
 
 
 class TargetTransferHandler(TransferHandler):
@@ -582,6 +599,8 @@ class JPipelineView(PCanvas):
                 module_layer, self))
         module_layer.addInputEventListener(ConnectionDrawingEventHandler(
                 edge_layer, self))
+        self.getRoot().getDefaultInputManager().setKeyboardFocus(
+                SuppressionEventHandler(self))
 
         # Create the scene
         self.setupScene(self.controller.current_pipeline)
@@ -635,19 +654,23 @@ class JPipelineView(PCanvas):
                     self.modules[connection.source.moduleId],
                     connection.source.name,
                     self.modules[connection.destination.moduleId],
-                    connection.destination.name)
+                    connection.destination.name,
+                    id=id)
 
-    def addConnection(self, imodule, iport, omodule, oport, updatedb=False):
-        edge_layer = self.getCamera().getLayer(1)
-        edge_layer.addChild(PConnection(
-                imodule, iport,
-                omodule, oport))
+    def addConnection(self, imodule, iport, omodule, oport,
+                      updatedb=False, id=None):
         if updatedb:
             # Notice that we connect an *output port* of the input module
             # to an *input port* of the output module
-            self.controller.add_connection(
+            c = self.controller.add_connection(
                     omodule.module.id, omodule.inputPorts[oport],
                     imodule.module.id, imodule.outputPorts[iport])
+            id = c.id
+        edge_layer = self.getCamera().getLayer(1)
+        edge_layer.addChild(PConnection(
+                id,
+                imodule, iport,
+                omodule, oport))
 
     def addModule(self, module):
         """Add a module to the view.
@@ -745,3 +768,23 @@ class JPipelineView(PCanvas):
         else:
             self.selected_modules.add(module)
         module.setSelected(True)
+
+    def deleteSelected(self):
+        if self.selected_connection:
+            self.controller.delete_connection(self.selected_connection.id)
+            self.selected_connection = None
+        else:
+            module_ids = []
+            for module in self.selected_modules:
+                connections = set()
+                connections.update(module.inputConnections)
+                connections.update(module.outputConnections)
+                for conn in connections:
+                    conn.remove()
+                module.removeFromParent()
+                module_ids.append(module.module.id)
+                del self.modules[module.module.id]
+            self.controller.delete_module_list(module_ids)
+            self.selected_modules = set()
+            # DON'T delete the connections in the DB, they are deleted in
+            # cascade automatically
