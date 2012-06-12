@@ -330,7 +330,7 @@ def initialize(*args, **keywords):
     
 
     reg = core.modules.module_registry.get_module_registry()
-    reg.add_module(CLTools, hide_descriptor=True)
+    reg.add_module(CLTools, abstract=True)
     for path in os.listdir(location):
         if path.endswith(SUFFIX):
             try:
