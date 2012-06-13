@@ -164,6 +164,8 @@ def initialize(*args, **keywords):
     else:
         configuration.wsdlList = ''
     for wsdl in wsdlList:
+        if not wsdl:
+            break
         if not wsdl.startswith('http://'):
             wsdl = 'http://' + wsdl
         if wsdl in webServicesDict:
