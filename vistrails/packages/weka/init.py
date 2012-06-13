@@ -15,6 +15,7 @@ startup, as Weka is a pretty big library.
 
 from __future__ import with_statement
 
+import sys
 import os
 import pickle
 import hashlib
@@ -111,8 +112,13 @@ def initialize():
             debug.warning("couldn't write the weka reflection cache file\n"
                           "it will have to be parsed again next time...")
 
+    sys.path.append(weka_jar)
+
     import module_generator
     module_generator.generate(parseResult, weka_jar)
+
+    from additional_modules import register_additional_modules
+    register_additional_modules()
 
 
 if __name__ == '__main__':
