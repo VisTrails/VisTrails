@@ -121,16 +121,16 @@ class ModuleCreator(object):
 
         # Process the parent class first
         parent = WekaBaseModule
-        if (c['extends'] is not None and
-                c['extends'] not in self._created_modules):
-            try:
-                parent = self._parseResult[c['extends']]
-            except KeyError:
-                raise ModuleCreator.MissingParent(
-                        "%s extends %s but it couldn't be found" % (
-                                c['fullname'],
-                                c['extends']))
-            self._create_module(parent)
+        if c['extends'] is not None:
+            if c['extends'] not in self._created_modules:
+                try:
+                    parent = self._parseResult[c['extends']]
+                except KeyError:
+                    raise ModuleCreator.MissingParent(
+                            "%s extends %s but it couldn't be found" % (
+                                    c['fullname'],
+                                    c['extends']))
+                self._create_module(parent)
             parent = self._created_modules[c['extends']]
 
         (namespace, name) = fullname_to_pair(c['fullname'])
