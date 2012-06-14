@@ -300,7 +300,7 @@ class PModule(PNode):
             w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
         if self.outputPorts:
             h += SPACING_Y + PORT_HEIGHT
-            n = len(self.inputPorts)
+            n = len(self.outputPorts)
             w = max(w, n*(SPACING_X+PORT_WIDTH) + SPACING_X)
 
         self.module_width = int(w)
