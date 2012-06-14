@@ -132,7 +132,17 @@ def add_tool(path):
             elif "output" == type:
                 # output must be a filename but we may convert the result to a string
                 # create new file
-                file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                try:
+                    file_prefix = options['file_prefix']
+                except KeyError:
+                    file_prefix = ''
+                try:
+                    file_suffix = options['file_suffix']
+                except KeyError:
+                    file_suffix = TEMPSUFFIX
+                file = _file_pool.create_file(
+                        suffix=file_suffix,
+                        prefix=file_prefix)
                 fname = file.name
                 if 'prefix' in options:
                     fname = options['prefix'] + fname
