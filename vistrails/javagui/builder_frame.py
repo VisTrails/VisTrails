@@ -44,6 +44,7 @@ from vistrail_controller import JVistrailController
 from pipeline_view import JPipelineView
 from version_view import JVersionVistrailView
 from module_palette import JModulePalette
+from module_info import JModuleInfo
 from preference_window import PreferenceWindow
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
         untitled_locator
@@ -147,12 +148,18 @@ class BuilderFrame(JFrame):
         top.add(toolBar, BorderLayout.NORTH)
         
         self.contentPanel = JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
-        top.add(self.contentPanel)
 
         # Create the module palette
         self.modulepalette = JModulePalette()
         self.contentPanel.setLeftComponent(self.modulepalette)
         self.contentPanel.setDividerLocation(200)
+
+        panel = JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+        panel.setLeftComponent(self.contentPanel)
+        self.moduleInfo = JModuleInfo()
+        panel.setRightComponent(self.moduleInfo)
+
+        top.add(panel)
 
         self._visibleCond = threading.Condition()
 
