@@ -34,10 +34,12 @@ added, removed and rearranged. Pipes can be added and configured.
 
    Figure 1.1 - CLTools Wizard main window
 
-Arguments can represent either  input ports, output ports, or constant
+Arguments can represent either  input ports, output ports, both, or constant
 strings.  Ports can  handle  different types  such  as boolean  flags,
-strings, or files. Lists of  strings and files are also possible. Each
+strings, integers, floats, or files. Lists of  strings and files are also possible. Each
 argument can have a flag before it such as ``-f`` or a prefix such as ``--file=``.
+
+A file ending can be specified for files that are used as outputs using **file suffix**. 
 
 You can view and import flags from man and help pages (See :ref:`Figure 1.2
 <fig-cltools-import>`).
@@ -118,6 +120,7 @@ TYPE is one of:
 
 * **input** - create input port for this arg
 * **output** - create output port for this arg
+* **inputoutput** - create both input and output port for this arg. The type must be **File** and a copy of the original file will be processed and used as output.
 * **constant** - use "port name" directly as a constant string
 
 CLASS indicates the port type and can be one of the following. **String** is used by default.
@@ -134,7 +137,8 @@ ARGOPTIONDICT is a dict containing argument options. recognized options are:
 * **type**: **CLASS** - used by List-types to specify subtype.
 * **flag**: **name** - Append name as a short-style flag before the specified argument. If type is **List** it is appended before each item
 * **prefix**: **name** - Append name as a long-style prefix to the final argument. If it is also a list it is appended to each item.
-* **required**: "" - Makes the port always visible in VisTrails.
+* **required**: None - Makes the port always visible in VisTrails.
+* **suffix**: **name** - Specifies the file ending for created files
 
 
 .. topic:: Try it Now!
