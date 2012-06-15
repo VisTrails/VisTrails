@@ -36,17 +36,14 @@ import sys
 import json
 import subprocess
 import errno
+import shutil
 
 import core.system
 import core.modules.module_registry
 from core import debug
 from core.modules.vistrails_module import Module, ModuleError, new_module
-from core.modules.module_utils import FilePool
 
 cl_tools = {}
-_file_pool = FilePool()
-
-
 
 class CLTools(Module):
     """ CLTools is the base Module.
@@ -61,7 +58,7 @@ class CLTools(Module):
         raise core.modules.vistrails_module.IncompleteImplementation
 
 SUFFIX = '.clt'
-TEMPSUFFIX = '.cltoolsfile'
+DEFAULTFILESUFFIX = '.cld'
 
 def _eintr_retry_call(func, *args):
     # Fixes OSErrors and IOErrors
@@ -141,7 +138,8 @@ def add_tool(path):
             elif "output" == type:
                 # output must be a filename but we may convert the result to a string
                 # create new file
-                file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                file = self.interpreter.filePool.create_file(
+                              suffix=options.get('suffix', DEFAULTFILESUFFIX))
                 fname = file.name
                 if 'prefix' in options:
                     fname = options['prefix'] + fname
@@ -152,6 +150,28 @@ def add_tool(path):
                     self.setResult(name, file)
                 else: # assume String - set to string value after execution
                     setOutput.append((name, file))
+            elif "inputoutput" == type:
+                # handle single file that is both input and output
+                values = self.forceGetInputListFromPort(name)
+                for value in values:
+                    # create copy of infile to operate on
+                    outfile = self.interpreter.filePool.create_file(
+                              suffix=options.get('suffix', DEFAULTFILESUFFIX))
+                    try:
+                        shutil.copyfile(value.name, outfile.name)
+                    except IOError, e:
+                        raise ModuleError("Error copying file '%s': %s" %
+                                          (value.name, str(e)))
+                    value = str(outfile.name)
+                    # check for flag and append file name
+                    if 'flag' in options:
+                        args.append(options['flag'])
+                    if 'prefix' in options:
+                        value = options['prefix'] + str(value)
+                    args.append(str(value))
+                    self.setResult(name, outfile)
+                    # only process one input
+                    break
         if "stdin" in self.conf:
             name, type, options = self.conf["stdin"]
             type = type.lower()
@@ -170,7 +190,7 @@ def add_tool(path):
                         f = open(value.name, 'rb')
                 else: # assume String
                     if file_std:
-                        file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                        file = self.interpreter.filePool.create_file()
                         f = open(file.name, 'w')
                         f.write(str(value))
                         f.close()
@@ -186,7 +206,8 @@ def add_tool(path):
             if file_std:
                 name, type, options = self.conf["stdout"]
                 type = type.lower()
-                file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                file = self.interpreter.filePool.create_file(
+                                                     suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
                     self.setResult(name, file)
                 else: # assume String - set to string value after execution
@@ -200,7 +221,8 @@ def add_tool(path):
             if file_std:
                 name, type, options = self.conf["stderr"]
                 type = type.lower()
-                file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                file = self.interpreter.filePool.create_file(
+                                                     suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
                     self.setResult(name, file)
                 else: # assume String - set to string value after execution
@@ -251,7 +273,8 @@ def add_tool(path):
                 name, type, options = self.conf["stdout"]
                 type = type.lower()
                 if "file" == type:
-                    file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                    file = self.interpreter.filePool.create_file(
+                                                     suffix=DEFAULTFILESUFFIX)
                     f = open(file.name, 'w')
                     f.write(stdout)
                     f.close()
@@ -262,7 +285,8 @@ def add_tool(path):
                 name, type, options = self.conf["stderr"]
                 type = type.lower()
                 if "file" == type:
-                    file = _file_pool.create_file(suffix=TEMPSUFFIX)
+                    file = self.interpreter.filePool.create_file(
+                                                     suffix=DEFAULTFILESUFFIX)
                     f = open(file.name, 'w')
                     f.write(stderr)
                     f.close()
@@ -307,6 +331,9 @@ def add_tool(path):
             reg.add_input_port(M, name, to_vt_type(klass), optional=optional)
         elif 'output' == type.lower():
             reg.add_output_port(M, name, to_vt_type(klass), optional=optional)
+        elif 'inputoutput' == type.lower():
+            reg.add_input_port(M, name, to_vt_type('file'), optional=optional)
+            reg.add_output_port(M, name, to_vt_type('file'), optional=optional)
     cl_tools[tool_name] = M
 
 
@@ -400,4 +427,4 @@ def menu_items():
     return tuple(lst)
         
 def finalize():
-    _file_pool.cleanup()
+    pass

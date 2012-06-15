@@ -536,7 +536,7 @@ class QArgWidget(QtGui.QWidget):
         self.stdTypes = ['stdin', 'stdout', 'stderr']
         self.stdLabels = ['Standard input', 'Standard output', 'Standard error']
         self.stdDict = dict(zip(self.stdTypes, self.stdLabels))
-        
+
         self.argtype = argtype
         self.name = name
         self.klass = klass
@@ -546,7 +546,7 @@ class QArgWidget(QtGui.QWidget):
         self.setLayout(layout)
 
         self.buildWidget()
-        
+
     def buildWidget(self):
         layout = self.layout()
         layout.setContentsMargins(2,2,2,2)
@@ -563,14 +563,14 @@ class QArgWidget(QtGui.QWidget):
         # type of argument
         if self.argtype not in self.stdTypes:
             self.typeList = QtGui.QComboBox()
-            self.types = ['Input', 'Output', 'Constant']
+            self.types = ['Input', 'Output', 'InputOutput', 'Constant']
             self.typeDict = dict(zip(self.types, xrange(len(self.types))))
             self.typeDict.update(dict(zip([s.lower() for s in self.types], xrange(len(self.types)))))
-            self.typeNames = ['Input Port', 'Output Port', 'Constant']
+            self.typeNames = ['Input Port', 'Output Port', 'InputOutput Port', 'Constant']
             self.typeList.addItems(self.typeNames)
             self.typeList.setCurrentIndex(self.typeDict.get(self.argtype, 0))
             #label = QtGui.QLabel('Type:')
-            tt = 'Select if argument will be an input port, output port or a hidden constant'
+            tt = "Select if argument will be an input port, output port, both, or a hidden constant. InputOutput's are always files."
             #label.setToolTip(tt)
             self.typeList.setToolTip(tt)
             #layout1.addWidget(label)
@@ -609,6 +609,7 @@ class QArgWidget(QtGui.QWidget):
             tt = 'a short-style flag before your input. Example: "-f" -> "-f yourinput"'
             label.setToolTip(tt)
             self.flag.setToolTip(tt)
+            self.flag.setFixedWidth(100)
             layout1.addWidget(label)
             layout1.addWidget(self.flag)
         
@@ -648,6 +649,16 @@ class QArgWidget(QtGui.QWidget):
         self.listLabel.setVisible(False)
         self.subtype.setVisible(False)
         
+        # input files and inputoutput's can set file suffix
+        self.suffix = QtGui.QLineEdit(self.options.get('suffix', ''))
+        self.suffixLabel = QtGui.QLabel('File suffix:')
+        tt = 'Sets the specified file ending on the created file, like for example: ".txt"'
+        self.suffixLabel.setToolTip(tt)
+        self.suffix.setToolTip(tt)
+        self.suffix.setFixedWidth(50)
+        layout2.addWidget(self.suffixLabel)
+        layout2.addWidget(self.suffix)
+        
         self.klassChanged()
 
         # description
@@ -670,6 +681,7 @@ class QArgWidget(QtGui.QWidget):
         if self.argtype not in self.stdTypes:
             self.argtype = self.types[self.typeList.currentIndex()]
         self.klass = self.klasses[self.klassList.currentIndex()]
+        klass = self.klass.lower()
         self.name = str(self.nameLine.text()).strip()
         self.options = {}
         if self.argtype not in self.stdTypes:
@@ -684,10 +696,15 @@ class QArgWidget(QtGui.QWidget):
             self.options['desc'] = desc
         if self.required.isChecked():
             self.options['required'] = ''
-        if self.klass.lower() == 'list':
+        if klass == 'list':
             subtype = str(self.subtype.currentText()).strip()
             if subtype:
                 self.options['type'] = subtype
+        type = self.argtype.lower()
+        suffix = str(self.suffix.text()).strip()
+        if ((klass == "file" and type == 'output') or type == 'inputoutput') and \
+            suffix:
+            self.options['suffix'] = suffix
 
     def setValues(self):
         if self.argtype not in self.stdTypes:
@@ -701,6 +718,10 @@ class QArgWidget(QtGui.QWidget):
             self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String'), 0))
         self.required.setChecked('required' in self.options)
         self.desc.setText(self.options.get('desc', ''))
+        type = self.argtype.lower()
+        klass = self.klass.lower()
+        if (klass == "file" and type == 'output') or type == 'inputoutput':
+            self.suffix.setText(self.options.get('suffix', ''))
         self.klassChanged()
             
     def toList(self):
@@ -721,10 +742,15 @@ class QArgWidget(QtGui.QWidget):
         if self.argtype in self.stdTypes:
             return
         type = self.types[self.typeList.currentIndex()].lower()
-        self.klassList.setVisible(type != 'constant')
+        self.klassList.setVisible(type not in ['constant', 'inputoutput'])
         klass = self.klasses[self.klassList.currentIndex()].lower()
         self.listLabel.setVisible(klass == "list" and type == 'input')
         self.subtype.setVisible(klass == "list" and type == 'input')
+
+        self.suffixLabel.setVisible((klass == "file" and type == 'output') or
+                                    type == 'inputoutput')
+        self.suffix.setVisible((klass == "file" and type == 'output') or
+                               type == 'inputoutput')
 
     def guess(self, name, count=0):
         """ add argument by guessing what the arg might be """
