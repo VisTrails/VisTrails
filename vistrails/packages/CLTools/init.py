@@ -123,6 +123,8 @@ def add_tool(path):
                             continue
                     elif 'file' == klass:
                         value = str(value.name)
+                    elif 'directory' == klass:
+                        value = str(value.name)
                     # check for flag and append file name
                     if not 'flag' == klass and 'flag' in options:
                         args.append(options['flag'])
@@ -286,7 +288,8 @@ def add_tool(path):
     def to_vt_type(s):
         # add recognized types here - default is String
         return '(edu.utah.sci.vistrails.basic:%s)' % \
-          {'file':'File', 'flag':'Boolean', 'list':'List'
+          {'file':'File', 'directory':'Directory', 'flag':'Boolean',
+           'list':'List'
           }.get(str(s).lower(), 'String')
     # add module ports
     if 'stdin' in conf:
