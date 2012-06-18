@@ -15,7 +15,6 @@ startup, as Weka is a pretty big library.
 
 from __future__ import with_statement
 
-import sys
 import os
 import pickle
 import hashlib
@@ -23,6 +22,9 @@ import hashlib
 from core import debug
 from core import configuration
 from core.system import default_dot_vistrails
+
+from java.io import File
+from java.net import URLClassLoader
 
 
 class WekaConfigurationError(Exception):
@@ -112,13 +114,13 @@ def initialize():
             debug.warning("couldn't write the weka reflection cache file\n"
                           "it will have to be parsed again next time...")
 
-    sys.path.append(weka_jar)
-
     import module_generator
-    module_generator.generate(parseResult, weka_jar)
+    url = File(weka_jar).toURI().toURL()
+    classloader = URLClassLoader([url])
+    module_generator.generate(parseResult, classloader)
 
     from additional_modules import register_additional_modules
-    register_additional_modules()
+    register_additional_modules(classloader)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,3 @@
-from java.io import File
-from java.net import URLClassLoader
-
 from core.modules.vistrails_module import Module
 from core.modules.module_registry import get_module_registry
 
@@ -83,15 +80,14 @@ class ModuleCreator(object):
         # as a top-level module?
         pass
 
-    def __init__(self, parseResult, filename):
+    def __init__(self, parseResult, classloader):
         self._parseResult = parseResult
         self._created_modules = dict()
         self._module_registry = get_module_registry()
         self._used_methods = 0
         self._ignored_methods = 0
 
-        url = File(filename).toURI().toURL()
-        self._classloader = URLClassLoader([url])
+        self._classloader = classloader
 
     def _get_type_module(self, typename):
         """Return the VisTrails module that represents the given typename.
@@ -232,7 +228,7 @@ class ModuleCreator(object):
             self._populate_modules(c)
 
 
-def generate(parseResult, filename):
+def generate(parseResult, classloader):
     """Generates the VisTrails Module's from the parseResult structure.
 
     This method will be called at each startup with either a freshly parsed
@@ -241,5 +237,5 @@ def generate(parseResult, filename):
     reg = get_module_registry()
     reg.add_module(WekaBaseModule, abstract=True)
 
-    creator = ModuleCreator(parseResult, filename)
+    creator = ModuleCreator(parseResult, classloader)
     creator.create_all_modules()
