@@ -3,6 +3,20 @@ from core import debug
 from javareflect import format_type
 
 
+def get_class(fullname):
+    pos = fullname.rfind('.')
+    if pos == -1:
+        raise ValueError("get_class() on a class without package")
+    name = fullname[pos+1:]
+    package = fullname[:pos]
+    try:
+        return getattr(__import__(package, globals(), locals(), name), name)
+    except ImportError:
+        raise ValueError("get_class() didn't find the requested package")
+    except AttributeError:
+        raise ValueError("get_class() didn't find the requested class")
+
+
 def format_type_list(l):
     return map(format_type, l)
 
@@ -17,7 +31,7 @@ class GetterModuleMixin(object):
         # Load the class
         # We do it now so that we don't load unused classes when building the
         # modules
-        self._class = self._classloader.loadClass(self._classname)
+        self._class = get_class(self._classname)
 
     def compute(self):
         # Get the object fron the input port
@@ -49,7 +63,7 @@ class ConstructorModuleMixin(object):
         # Load the class
         # We do it now so that we don't load unused classes when building the
         # modules
-        self._class = self._classloader.loadClass(self._classname)
+        self._class = get_class(self._classname)
         # Find the correct constructor
         expected_parameters = [t for t, n in self._ctor_params]
         ctors = self._class.getConstructors()

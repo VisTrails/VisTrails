@@ -4,8 +4,7 @@ from core.modules.module_registry import get_module_registry
 from java.lang import String as JavaString, Class
 import jarray
 
-
-_classloader = None
+from weka.classifiers import Evaluation
 
 
 def _direct(param):
@@ -48,22 +47,12 @@ class EvaluateClassifier(Module):
 
         options = jarray.array(options, JavaString)
 
-        # stdout = Evaluation.evaluateModel(classifier, options)
-        # Not possible, have to use the correct classloader
-
-        evaluation = _classloader.loadClass('weka.classifiers.Evaluation')
-        m = evaluation.getDeclaredMethod('evaluateModel', [
-                _classloader.loadClass('weka.classifiers.Classifier'),
-                Class.forName('[Ljava.lang.String;')])
-        stdout = m.invoke(None, [classifier, options])
+        stdout = Evaluation.evaluateModel(classifier, options)
 
         self.setResult('stdout', stdout)
 
 
-def register_additional_modules(classloader):
-    global _classloader
-    _classloader = classloader
-
+def register_additional_modules():
     reg = get_module_registry()
 
     reg.add_module(EvaluateClassifier)

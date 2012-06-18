@@ -80,14 +80,12 @@ class ModuleCreator(object):
         # as a top-level module?
         pass
 
-    def __init__(self, parseResult, classloader):
+    def __init__(self, parseResult):
         self._parseResult = parseResult
         self._created_modules = dict()
         self._module_registry = get_module_registry()
         self._used_methods = 0
         self._ignored_methods = 0
-
-        self._classloader = classloader
 
     def _get_type_module(self, typename):
         """Return the VisTrails module that represents the given typename.
@@ -133,7 +131,6 @@ class ModuleCreator(object):
 
         # Create the abstract module
         mod = type(name, (parent,), dict(
-                _classloader=self._classloader,
                 _classname=c['fullname'],
                 _namespace=namespace))
         self._module_registry.add_module(mod, abstract=True,
@@ -228,7 +225,7 @@ class ModuleCreator(object):
             self._populate_modules(c)
 
 
-def generate(parseResult, classloader):
+def generate(parseResult):
     """Generates the VisTrails Module's from the parseResult structure.
 
     This method will be called at each startup with either a freshly parsed
@@ -237,5 +234,5 @@ def generate(parseResult, classloader):
     reg = get_module_registry()
     reg.add_module(WekaBaseModule, abstract=True)
 
-    creator = ModuleCreator(parseResult, classloader)
+    creator = ModuleCreator(parseResult)
     creator.create_all_modules()
