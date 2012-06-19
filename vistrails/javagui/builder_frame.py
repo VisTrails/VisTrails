@@ -34,6 +34,7 @@
 
 import sys
 import threading
+import copy
 
 # This can't stay here
 sys.path.append('../../piccolo/piccolo2d-core-1.3.1.jar')
@@ -167,7 +168,10 @@ class BuilderFrame(JFrame):
 
     def open_vistrail(self, fileName):
         # This part is identical with the Python/Qt version
-        locator = ZIPFileLocator(fileName)
+        if isinstance(fileName, basestring):
+            locator = ZIPFileLocator(fileName)
+        else:
+            locator = fileName
         if locator:
             if hasattr(locator, '_vnode'):
                 version = locator._vnode
@@ -189,6 +193,23 @@ class BuilderFrame(JFrame):
 
     def flush_changes(self):
         self.pipelineView.flushMoveActions()
+
+    def create_first_vistrail(self):
+        if self.current_view:
+            return
+        if untitled_locator().has_temporaries():
+            if not FileLocator().prompt_autosave(
+                    JavaLocatorHelperProvider(self)):
+                untitled_locator().clean_temporaries()
+        self.new_vistrail(True)
+
+    def new_vistrail(self, recover_files=False):
+        if recover_files and untitled_locator().has_temporaries():
+            locator = copy.copy(untitled_locator())
+        else:
+            locator = None
+
+        self.open_vistrail_without_prompt(locator)
 
     def open_vistrail_without_prompt(self, locator, version = None):
         self.controller = JVistrailController()

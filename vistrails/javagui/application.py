@@ -124,9 +124,7 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
                 pass #self.splashScreen.finish(self.builderWindow) FIXME
             self.builderWindow.link_registry()
 
-            #self.builderWindow.create_first_vistrail()
-
-            self.builderWindow.open_vistrail("C:/Users/User_2/Documents/empty.vt")
+            self.builderWindow.create_first_vistrail()
 
         run_on_edt(run)
 
