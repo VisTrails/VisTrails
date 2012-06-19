@@ -151,7 +151,7 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
    -m *num*, --movies=\ *num*, "Set automatic movie creation on spreadsheet (0 or 1, default=1). Set this to zero to work around VTK bug with offscreen renderer and OpenGL texture3D mappers."
    -s, --multiheads, Display the Builder and Spreadsheet on different screens (if available).
    -x, --maximized, Maximize Builder and Spreadsheet windows at startup.
-   -D, --detachHistoryView, Detach the history view from the builder window.
+   -P, --parameterExploration, execute Parameter Exploration.
    -l, --nologger, Disable logging.
    -d, --debugsignals, Debug Qt Signals.
    -a *params*, --parameters=\ *params*, Set workflow parameters (non-interactive mode only).
@@ -324,6 +324,24 @@ Note that this infrastructure works on Linux only. To make this work on Windows,
 If you want the main vistrails instance to be multithreaded, use the -M at the end.
 
 After creating this script, update function start_other_instances in vistrails/gui/application_server.py lines 1007-1023 and set the script variable to point to your script. You may also have to change the arguments sent to your script (line 1016: for example, you don't need to set a virtual display). You will need to change the path to the stop_vistrails_server.py script (on line 1026) according to your installation path.
+
+Executing Parameter Explorations from the Command Line
+======================================================
+
+Named parameter explorations can be executed from the command line in different ways using the -P flag. The parameter after the vistrail will then indicate the parameter exploration name in place of the workflow version. To open vistrails and execute a parameter exploration named "final" in terminator.vt run:
+
+``python vistrails.py -P terminator.vt:final``
+
+To only show the spreadsheet run:
+
+``python vistrails.py -P -i terminator.vt:final``
+
+To execute the spreadsheet in batch mode, and to output the spreadsheet as images to a directory, use the -b flag and specify a directory with the -e flag:
+
+``python vistrails.py -P -b -e ./final_images terminator.vt:final``
+
+This will create an image for each cell and also create a composite image for each sheet in the spreadsheet.
+
 
 Finding Methods Via the Command Line
 ====================================

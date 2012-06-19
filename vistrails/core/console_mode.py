@@ -238,6 +238,52 @@ def run(w_list, parameters='', workflow_info=None, update_vistrail=True,
             all_errors.append(result.workflow_info + err)
     return all_errors
 
+def run_parameter_exploration(locator, pe_id, extra_info = {},
+                              reason="Console Mode Parameter Exploration Execution"):
+    """run_parameter_exploration(w_list: (locator, version),
+                                 pe_id: str/int,
+                                 reason: str) -> (pe_id, [error msg])
+    Run parameter exploration in w, and returns an interpreter result object.
+    version can be a tag name or a version id.
+    
+    """
+    if is_running_gui():
+        from gui.vistrail_controller import VistrailController as \
+             GUIVistrailController
+        try:
+            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
+            controller = GUIVistrailController()
+            from gui.pipeline_view import QPipelineView
+            pipeline_view = QPipelineView()
+            controller.current_pipeline_view = pipeline_view.scene()
+            controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
+            try:
+                pe_id = int(pe_id)
+                pe = controller.vistrail.get_paramexp(pe_id)
+            except ValueError:
+                pe = controller.vistrail.get_named_paramexp(pe_id)
+            controller.change_selected_version(pe.action_id)
+            controller.executeParameterExploration(pe, extra_info=extra_info,
+                                                   showProgress=False)
+        except Exception, e:
+            import traceback
+            return (locator, pe_id, str(e), traceback.format_exc())
+
+def run_parameter_explorations(w_list, extra_info = {},
+                       reason="Console Mode Parameter Exploration Execution"):
+    """run(w_list: list of (locator, pe_id), reason: str) -> boolean
+    For each workflow in w_list, run parameter exploration pe_id
+    version can be a tag name or a version id.
+    Returns list of errors (empty list if there are no errors)
+    """
+    all_errors = []
+    for locator, pe_id in w_list:
+        result = run_parameter_exploration(locator, pe_id, reason=reason,
+                                           extra_info=extra_info)
+        if result:
+            all_errors.append(result)
+    return all_errors
+
 def cleanup():
     core.interpreter.cached.CachedInterpreter.cleanup()
 

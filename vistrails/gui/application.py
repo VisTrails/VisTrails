@@ -414,6 +414,7 @@ parameters from other instances")
                 workflow_info = self.temp_configuration.workflowInfo
             else:
                 workflow_info = None
+
             extra_info = None
             if self.temp_configuration.check('spreadsheetDumpCells'):
                 extra_info = \
@@ -422,7 +423,12 @@ parameters from other instances")
                 if extra_info is None:
                     extra_info = {}
                 extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
-            errs = core.console_mode.run(w_list,
+
+            if self.temp_configuration.check('parameterExploration'):
+                errs = core.console_mode.run_parameter_explorations(w_list,
+                                                                    extra_info=extra_info)
+            else:
+                errs = core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
                                       workflow_info, update_vistrail=True,
                                       extra_info=extra_info)

@@ -158,6 +158,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             help="Start VisTrails using the specified static registry")
         add("-D", "--detachHistoryView", action="store_true",
             help="Detach the history view from the builder windows")
+        add("-P", "--parameterExploration", action="store_true",
+            help="Execute Parameter Exploration")
         add("-G", "--workflowgraph", action="store",
             default = None,
             help=("Save workflow graph in specified directory without running "
@@ -253,6 +255,9 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.nologger = bool(get('nologger'))
         if get('quickstart') != None:
             self.temp_configuration.staticRegistry = str(get('quickstart'))
+        if get('parameterExploration')!= None:
+            self.temp_configuration.parameterExploration = \
+                str(get('parameterExploration'))
         if get('detachHistoryView')!= None:
             self.temp_configuration.detachHistoryView = bool(get('detachHistoryView'))
         if get('noSingleInstance')!=None:
@@ -393,6 +398,7 @@ after self.init()"""
         return (name, version)
     
     def process_interactive_input(self):
+        pe = None
         usedb = False
         if self.temp_db_options.host:
             usedb = True
@@ -419,14 +425,18 @@ after self.init()"""
                                         obj_type=None,
                                         connection_id=None)
                 if locator:
-                    if hasattr(locator, '_vnode') and \
-                            locator._vnode is not None:
-                        version = locator._vnode
-                    if hasattr(locator,'_vtag'):
-                        # if a tag is set, it should be used instead of the
-                        # version number
-                        if locator._vtag != '':
-                            version = locator._vtag
+                    if self.temp_configuration.check('parameterExploration'):
+                        pe = version
+                        version = None
+                    else:
+                        if hasattr(locator, '_vnode') and \
+                                locator._vnode is not None:
+                            version = locator._vnode
+                        if hasattr(locator,'_vtag'):
+                            # if a tag is set, it should be used instead of the
+                            # version number
+                            if locator._vtag != '':
+                                version = locator._vtag
                     execute = self.temp_configuration.executeWorkflows
                     mashuptrail = None
                     mashupversion = None
@@ -440,8 +450,14 @@ after self.init()"""
                                                                     version, execute,
                                                                     mashuptrail=mashuptrail, 
                                                                     mashupVersion=mashupversion)
+
+                    if self.temp_configuration.check('parameterExploration'):
+                        self.builderWindow.executeParameterExploration(pe)
+                
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
+
+
                 
     def finishSession(self):
         core.interpreter.cached.CachedInterpreter.cleanup()

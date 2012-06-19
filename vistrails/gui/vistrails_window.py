@@ -1583,6 +1583,18 @@ class QVistrailsWindow(QVistrailViewWindow):
                                               mashupVersion=mashupversion)
             self.set_current_locator(locator)
 
+    def executeParameterExploration(self, pe_id):
+        vistrail = self.current_view.controller.vistrail
+        try:
+            pe_id = int(pe_id)
+            pe = vistrail.get_paramexp(pe_id)
+        except ValueError:
+            pe= vistrail.get_named_paramexp(pe_id)
+        except Exception:
+            return
+        self.current_view.open_parameter_exploration(pe.id)
+        self.qactions['execute'].trigger()
+
     def open_vistrail_without_prompt(self, locator, version=None,
                                      execute_workflow=False, 
                                      is_abstraction=False, workflow_exec=None,

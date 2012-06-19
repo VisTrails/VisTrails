@@ -53,6 +53,7 @@ from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 from gui.theme import CurrentTheme
 import copy
 import string
+import os.path
 
 ################################################################################
 
@@ -92,10 +93,11 @@ def decodeConfiguration(pipeline, cells):
             decodedCells.append((tuple(id_list), vRow, vCol))
     return decodedCells
 
-def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
-                       pipelines, config, originalPipeline, controller):
+def positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
+                       pipelines, cells, controller):
     """ _positionPipelines(sheetPrefix: str, sheetCount: int, rowCount: int,
-                           colCount: int, pipelines: list of Pipeline)
+                           colCount: int, pipelines: list of Pipeline,
+                           cells: List, controller: VistrailCintroller)
                            -> list of Pipelines
     Apply the virtual cell location to a list of pipelines in a
     parameter exploration given that pipelines has multiple chunk
@@ -107,9 +109,8 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
     from packages.spreadsheet.spreadsheet_execute import \
         assignPipelineCellLocations
 
-    registry = get_module_registry()
-    (vRCount, vCCount, cells) = config
     modifiedPipelines = []
+    pipelinePositions = []
     for pId in xrange(len(pipelines)):
         root_pipeline = copy.copy(pipelines[pId])
         col = pId % colCount
@@ -117,6 +118,8 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
         sheet = (pId / (colCount*rowCount)) % sheetCount
 
         decodedCells = decodeConfiguration(root_pipeline, cells)
+        vRCount = (max(c[1] for c in decodedCells) + 1) if len(decodedCells) else 1
+        vCCount = (max(c[2] for c in decodedCells) + 1) if len(decodedCells) else 1
         # still need to go through each separately
         for (id_list, vRow, vCol) in decodedCells:
             sheet_name = "%s %d" % (sheetPrefix, sheet)
@@ -131,9 +134,64 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
                                             min_col_count)
 
         modifiedPipelines.append(root_pipeline)
-    return modifiedPipelines
+        pipelinePositions.append((row, col, sheet))
+    return modifiedPipelines, pipelinePositions
 
+def assembleThumbnails(images, name, background='#000000'):
+    """ assembleThumbnails(images {(sheet, row, col):filename}, name: 'str',
+                           background: str)"""
+                           
+    bgcolor = QtGui.QColor()
+    bgcolor.setNamedColor(background)
+    maxRow = max(i[0] for i in images) + 1
+    maxCol = max(i[1] for i in images) + 1
+    maxSheet = max(i[2] for i in images) + 1
+    
+    w = h = 0
+    sizeX = sizeY = 0
+    sheets = []
+    painter = QtGui.QPainter()
+    
+    # paint thumbnails on correct positions
+    for pos, filename in images.iteritems():
+        row, col, sheet = pos
 
+        if not os.path.exists(filename + '.png'):
+            continue
+        pixmap = QtGui.QPixmap(filename)
+
+        # use first pixmap to calculate spreadsheet size
+        # this assumes all pixmaps have same size
+        if not w:
+            w, h = pixmap.width(), pixmap.height()
+            sizeX = w*maxCol
+            sizeY = h*maxRow
+            # init sheets with correct background
+            for i in xrange(maxSheet):
+                _sheet = QtGui.QPixmap(sizeX, sizeY)
+                sheets.append(_sheet)
+                painter.begin(_sheet)
+                painter.fillRect(0, 0, sizeX, sizeY, bgcolor)
+                painter.end()
+
+        sheet = sheets[sheet]
+        painter.begin(sheet)
+        painter.drawPixmap(col*w, h*row, w, h, pixmap.scaled(w, h,
+                                transformMode=QtCore.Qt.SmoothTransformation))
+        painter.end()
+        # draw spreadsheet grid
+        #painter.setPen(QtCore.Qt.black)
+        #for x in xrange(rows+1):
+        #    painter.drawLine(x*h-0.01, 0, x*h-0.01, size)
+        #for y in xrange(cols+1):
+        #    painter.drawLine(0, y*w-0.01, size, y*w-0.01)
+        #self.setIcon(0, QtGui.QIcon(pic))
+    
+    for i in xrange(len(sheets)):
+        sheet = sheets[i]
+        filename = '%s_%s.png' % (name, i)
+        sheet.save(filename)
+        
 class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
     """
     QVirtualCellWindow contains a caption, a virtual cell
@@ -236,20 +294,6 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         setConfiguration (the dimensions aren't used).
         """
         self.config.setConfiguration(info)
-
-    def positionPipelines(self, sheetPrefix, sheetCount, rowCount, colCount,
-                          pipelines, controller):
-        """ positionPipelines(sheetPrefix: str, sheetCount: int, rowCount: int,
-                              colCount: int, pipelines: list of Pipeline)
-                              -> list of Pipelines
-        Apply the virtual cell location to a list of pipelines in a
-        parameter exploration given that pipelines has multiple chunk
-        of sheetCount x rowCount x colCount cells
-        
-        """
-        return _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount, 
-                                  pipelines, self.getConfiguration(), 
-                                  self.pipeline, controller)
 
 class QVirtualCellConfiguration(QtGui.QWidget):
     """

@@ -46,6 +46,7 @@ from core.modules.package import Package
 from core.packagemanager import PackageManager
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
+from core.param_explore import ActionBasedParameterExploration
 import core.system
 
 from core.vistrail.annotation import Annotation
@@ -58,6 +59,7 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
+from core.interpreter.default import get_default_interpreter
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 
@@ -1324,6 +1326,92 @@ class VistrailController(QtCore.QObject, BaseController):
         self.change_selected_version(action.id, from_root=True)
         self.flush_delayed_actions()
         self.invalidate_version_tree()
+        
+    def executeParameterExploration(self, pe, view=None, extra_info={}, showProgress=True):
+        """ execute(pe: ParameterExploration, view: QVistrailView,
+            extra_info: dict, showProgress: bool) -> None
+        Perform the exploration by collecting a list of actions
+        corresponding to each dimension
+        
+        """
+        reg = core.modules.module_registry.get_module_registry()
+
+        if pe.action_id != self.current_version:
+            self.change_selected_version(pe.action_id)
+        actions, pre_actions = pe.collectParameterActions(self.current_pipeline)
+
+        if self.current_pipeline and actions:
+            explorer = ActionBasedParameterExploration()
+            (pipelines, performedActions) = explorer.explore(
+                self.current_pipeline, actions, pre_actions)
+            
+            dim = [max(1, len(a)) for a in actions]
+            if (reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
+                reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
+                from gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
+                from gui.paramexplore.pe_view import QParamExploreView
+                modifiedPipelines, pipelinePositions = positionPipelines(
+                    'PE#%d %s' % (QParamExploreView.explorationId, self.name),
+                    dim[2], dim[1], dim[0], pipelines, pe.layout, self)
+            else:
+                modifiedPipelines = pipelines
+
+            mCount = []
+            for p in modifiedPipelines:
+                if len(mCount)==0:
+                    mCount.append(0)
+                else:
+                    mCount.append(len(p.modules)+mCount[len(mCount)-1])
+                
+            # Now execute the pipelines
+            if showProgress:
+                totalProgress = sum([len(p.modules) for p in modifiedPipelines])
+                progress = QtGui.QProgressDialog('Performing Parameter '
+                                                 'Exploration...',
+                                                 '&Cancel',
+                                                 0, totalProgress)
+                progress.setWindowTitle('Parameter Exploration')
+                progress.setWindowModality(QtCore.Qt.WindowModal)
+                progress.show()
+
+            QParamExploreView.explorationId += 1
+            interpreter = get_default_interpreter()
+            
+            images = {}
+            for pi in xrange(len(modifiedPipelines)):
+                if showProgress:
+                    progress.setValue(mCount[pi])
+                    QtCore.QCoreApplication.processEvents()
+                    if progress.wasCanceled():
+                        break
+                    def moduleExecuted(objId):
+                        if not progress.wasCanceled():
+                            progress.setValue(progress.value()+1)
+                            QtCore.QCoreApplication.processEvents()
+                name = os.path.splitext(self.name)[0] + \
+                                              ("_%s_%s_%s" % pipelinePositions[pi])
+                extra_info['nameDumpCells'] = name
+                if 'pathDumpCells' in extra_info:
+                    images[pipelinePositions[pi]] = \
+                               os.path.join(extra_info['pathDumpCells'], name)
+                kwargs = {'locator': self.locator,
+                          'current_version': self.current_version,
+                          'reason': 'Parameter Exploration',
+                          'actions': performedActions[pi],
+                          'extra_info': extra_info
+                          }
+                if view:
+                    kwargs['view'] = view
+                if showProgress:
+                    kwargs['module_executed_hook'] = [moduleExecuted]
+                interpreter.execute(modifiedPipelines[pi], **kwargs)
+
+            if showProgress:
+                progress.setValue(totalProgress)
+            if 'pathDumpCells' in extra_info:
+                filename = os.path.join(extra_info['pathDumpCells'],
+                                        os.path.splitext(self.name)[0])
+                assembleThumbnails(images, filename)
     
 ################################################################################
 # Testing

@@ -34,9 +34,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import get_module_registry
-from core.param_explore import ActionBasedParameterExploration
 from gui.base_view import BaseView
 from gui.paramexplore.pe_table import QParameterExplorationWidget
 from gui.theme import CurrentTheme
@@ -98,9 +96,7 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         corresponding to each dimension
         
         """
-        registry = get_module_registry()
-        palette = self.get_palette()
-        # Set the annotation to persist the parameter exploration
+        # persist the parameter exploration
         # TODO: For now, we just replace the existing exploration - Later we should append them.
         pe = self.getParameterExploration()
         pe.action_id = self.controller.current_version
@@ -114,59 +110,5 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         else:
             pe = self.controller.vistrail.get_paramexp(pe.action_id)
 
-        actions, pre_actions = pe.collectParameterActions(palette.pipeline)
-
-        if palette.pipeline and actions:
-            explorer = ActionBasedParameterExploration()
-            (pipelines, performedActions) = explorer.explore(
-                palette.pipeline, actions, pre_actions)
-            
-            dim = [max(1, len(a)) for a in actions]
-            if (registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
-                registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
-                modifiedPipelines = palette.virtual_cell.positionPipelines(
-                    'PE#%d %s' % (QParamExploreView.explorationId,
-                                  self.controller.name),
-                    dim[2], dim[1], dim[0], pipelines, self.controller)
-            else:
-                modifiedPipelines = pipelines
-
-            mCount = []
-            for p in modifiedPipelines:
-                if len(mCount)==0:
-                    mCount.append(0)
-                else:
-                    mCount.append(len(p.modules)+mCount[len(mCount)-1])
-                
-            # Now execute the pipelines
-            totalProgress = sum([len(p.modules) for p in modifiedPipelines])
-            progress = QtGui.QProgressDialog('Performing Parameter '
-                                             'Exploration...',
-                                             '&Cancel',
-                                             0, totalProgress)
-            progress.setWindowTitle('Parameter Exploration')
-            progress.setWindowModality(QtCore.Qt.WindowModal)
-            progress.show()
-
-            QParamExploreView.explorationId += 1
-            interpreter = get_default_interpreter()
-            for pi in xrange(len(modifiedPipelines)):
-                progress.setValue(mCount[pi])
-                QtCore.QCoreApplication.processEvents()
-                if progress.wasCanceled():
-                    break
-                def moduleExecuted(objId):
-                    if not progress.wasCanceled():
-                        progress.setValue(progress.value()+1)
-                        QtCore.QCoreApplication.processEvents()
-                kwargs = {'locator': self.controller.locator,
-                          'current_version': self.controller.current_version,
-                          'view': palette.pipeline_view.scene(),
-                          'module_executed_hook': [moduleExecuted],
-                          'reason': 'Parameter Exploration',
-                          'actions': performedActions[pi],
-                          }
-                interpreter.execute(modifiedPipelines[pi], **kwargs)
-            progress.setValue(totalProgress)
-        
-        
+        self.controller.executeParameterExploration(pe,
+                                     self.get_palette().pipeline_view.scene())
