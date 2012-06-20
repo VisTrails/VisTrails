@@ -569,12 +569,14 @@ class JPipelineView(PCanvas, Dockable):
     to change the pipeline, and accepts drag and drops of module descriptors
     from the palette.
     """
-    def __init__(self, vistrail, locator, controller,
+    def __init__(self, builder_frame, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None):
         super(JPipelineView, self).__init__()
 
         self._key = DockKey('pipeline_view')
         self._key.setResizeWeight(1.0)
+
+        self.builder_frame = builder_frame
 
         self.controller = controller
         self.executed = {} # List of executed modules, useful for coloring
@@ -773,6 +775,8 @@ class JPipelineView(PCanvas, Dockable):
         else:
             self.selected_modules.add(module)
         module.setSelected(True)
+
+        self.builder_frame.set_active_module(module.module)
 
     def deleteSelected(self):
         if self.selected_connection:

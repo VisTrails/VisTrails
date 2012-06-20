@@ -263,6 +263,7 @@ class BuilderFrame(JFrame):
 
         # Create the pipeline view
         self.pipelineView = JPipelineView(
+                self,
                 vistrail, locator, self.controller,
                 abstractions, thumbnails)
         self.pipelineView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
@@ -276,6 +277,8 @@ class BuilderFrame(JFrame):
         self.versionView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
         self.versionView.getDockKey().setResizeWeight(1.0)
         self.versionView.getDockKey().setCloseEnabled(False)
+
+        self.moduleInfo.set_controller(self.controller)
 
         # Setup the view (pipeline by default)
         self.set_current_view(self.pipelineView)
@@ -383,6 +386,9 @@ class BuilderFrame(JFrame):
         except Exception, e:
             debug.critical('Failed to index vistrail', str(e))
         return locator
+
+    def set_active_module(self, module):
+        self.moduleInfo.update_module(module)
 
     def quitAction(self, event=None):
         self.setVisible(False)
