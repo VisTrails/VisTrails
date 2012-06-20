@@ -1,12 +1,14 @@
 from java.lang import Integer
-
 from javax.swing import Box, BoxLayout, JComponent, JLabel, JPanel, JTextField
 from java.awt import Dimension
+from com.vlsolutions.swing.docking import DockKey, Dockable
 
 
-class JModuleInfo(JComponent):
+class JModuleInfo(JComponent, Dockable):
     def __init__(self):
         super(JModuleInfo, self).__init__()
+
+        self._key = DockKey('module_info')
 
         self.setLayout(BoxLayout(self, BoxLayout.PAGE_AXIS))
 
@@ -42,3 +44,14 @@ class JModuleInfo(JComponent):
     def update_module(self, module=None):
         # TODO : update self._type_label, self._pkg_label and self._name_input
         pass
+
+    # @Override
+    def getDockKey(self):
+        return self._key
+
+    # @Override
+    def getComponent(self, *args):
+        if len(args) == 0:
+            return self
+        else:
+            return JComponent.getComponent(self, *args)

@@ -39,6 +39,7 @@ import copy
 # This can't stay here
 sys.path.append('../../piccolo/piccolo2d-core-1.3.1.jar')
 sys.path.append('../../piccolo/piccolo2d-extras-1.3.1.jar')
+sys.path.append('../../vldocking/vldocking_3.0.0.jar')
 
 from vistrail_controller import JVistrailController
 from pipeline_view import JPipelineView
@@ -55,11 +56,14 @@ from core.thumbnails import ThumbnailCache
 import core.system
 
 from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
-from javax.swing import JMenu, JMenuBar, JMenuItem, JButton, JSplitPane
+from javax.swing import JMenu, JMenuBar, JMenuItem, JButton
 from javax.swing import SwingConstants, SwingUtilities
 
-from java.awt import BorderLayout
+from java.awt import BorderLayout, Color
 from java.awt.event import WindowAdapter
+
+from com.vlsolutions.swing.docking import DockingDesktop, DockingConstants,\
+    DockKey, Dockable, DockGroup
 
 from extras.core.db.javagui.locator import JavaLocatorHelperProvider
 
@@ -89,12 +93,16 @@ class BuilderFrame(JFrame):
 
     It is the main class of the GUI, it creates and updates the views.
     """
+    PANELS = DockGroup("panels")
+    CONTENT = DockGroup("content")
+
     def __init__(self):
         self.title = "Vistrails running on Jython"
         self.setTitle(self.title)
         self.filename = ""
         self.currentLocator = None
         self.dbDefault = False
+
         menuBar = JMenuBar()
         fileMenu = JMenu("File")
         openItem = JMenuItem("Open a file")
@@ -111,7 +119,6 @@ class BuilderFrame(JFrame):
         editMenu.add(preferencesItem)
         menuBar.add(editMenu)
         self.setJMenuBar(menuBar)
-        self.current_view = None
 
         self.preferenceWindow = PreferenceWindow(self)
 
@@ -146,20 +153,49 @@ class BuilderFrame(JFrame):
                                        "Switch to version view", "Version")
 
         top.add(toolBar, BorderLayout.NORTH)
-        
-        self.contentPanel = JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+
+        self.desktop = DockingDesktop()
+
+        top.add(self.desktop)
+
+        # Empty view
+        class EmptyView(JPanel, Dockable):
+            def __init__(self, group):
+                self._key = DockKey("(empty)")
+                self._key.setDockGroup(group)
+                self._key.setResizeWeight(1.0)
+
+            # @Override
+            def getDockKey(self):
+                return self._key
+
+            # @Override
+            def getComponent(self):
+                return self
+
+            # @Override
+            def getBackground(self):
+                return Color.green
+
+            def flushMoveActions(self): pass
+            def execute_workflow(self): pass
+
+        self.current_view = EmptyView(BuilderFrame.CONTENT)
+        self.desktop.addDockable(self.current_view)
+        self.pipelineView = self.current_view
+        self.versionView = self.current_view
 
         # Create the module palette
         self.modulepalette = JModulePalette()
-        self.contentPanel.setLeftComponent(self.modulepalette)
-        self.contentPanel.setDividerLocation(200)
+        self.modulepalette.getDockKey().setDockGroup(BuilderFrame.PANELS)
+        self.modulepalette.getDockKey().setResizeWeight(0.2)
+        self.desktop.split(self.current_view, self.modulepalette, DockingConstants.SPLIT_LEFT)
 
-        panel = JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
-        panel.setLeftComponent(self.contentPanel)
+        # Create the module info panel
         self.moduleInfo = JModuleInfo()
-        panel.setRightComponent(self.moduleInfo)
-
-        top.add(panel)
+        self.moduleInfo.getDockKey().setDockGroup(BuilderFrame.PANELS)
+        self.moduleInfo.getDockKey().setResizeWeight(0.2)
+        self.desktop.split(self.current_view, self.moduleInfo, DockingConstants.SPLIT_RIGHT)
 
         self._visibleCond = threading.Condition()
 
@@ -192,11 +228,10 @@ class BuilderFrame(JFrame):
 
     def set_current_view(self, view):
         if view != self.current_view:
-            self.contentPanel.setRightComponent(view)
+            self.desktop.addDockable(view)
+            self.desktop.close(view)
+            self.desktop.replace(self.current_view, view)
             self.current_view = view
-
-            self.contentPanel.revalidate() # Needed when using remove()
-            self.repaint()
 
     def flush_changes(self):
         self.pipelineView.flushMoveActions()
@@ -234,11 +269,15 @@ class BuilderFrame(JFrame):
         self.pipelineView = JPipelineView(
                 vistrail, locator, self.controller,
                 abstractions, thumbnails)
+        self.pipelineView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
+        self.pipelineView.getDockKey().setResizeWeight(1.0)
 
         # Create the version view
         self.versionView = JVersionVistrailView(
                 vistrail, locator, self.controller,
                 abstractions, thumbnails)
+        self.versionView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
+        self.versionView.getDockKey().setResizeWeight(1.0)
 
         # Setup the view (pipeline by default)
         self.set_current_view(self.pipelineView)

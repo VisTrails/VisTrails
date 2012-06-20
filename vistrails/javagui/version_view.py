@@ -32,18 +32,25 @@
 ##
 ###############################################################################
 
-from javax.swing import JPanel
-from java.awt.event import MouseListener
-from java.awt import Rectangle
 from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
-from java.awt import Color
 import core.db.io
 
-class JVersionVistrailView(JPanel, MouseListener):
+from javax.swing import JPanel
+from java.awt.event import MouseListener
+from java.awt import Rectangle, Color
+
+from com.vlsolutions.swing.docking import Dockable, DockKey
+
+class JVersionVistrailView(JPanel, MouseListener, Dockable):
 
     def __init__(self, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None,
-            version=None):
+            version=None,
+            dockgroup=None):
+        self._key = DockKey('version_view')
+        self._key.setDockGroup(dockgroup)
+        self._key.setResizeWeight(1.0)
+
         self.full_tree = True
         self.refine = False
         self.controller = controller
@@ -145,3 +152,13 @@ class JVersionVistrailView(JPanel, MouseListener):
         self.revalidate()
         self.repaint()
 
+    # @Override
+    def getDockKey(self):
+        return self._key
+
+    # @Override
+    def getComponent(self, *args):
+        if len(args) == 0:
+            return self
+        else:
+            return JPanel.getComponent(self, *args)

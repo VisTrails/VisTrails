@@ -5,6 +5,7 @@ from javax.swing import JScrollPane, JTree, TransferHandler
 from javax.swing.tree import DefaultMutableTreeNode
 from java.awt.datatransfer import DataFlavor, Transferable
 from java.lang import Object as JavaObject
+from com.vlsolutions.swing.docking import DockKey, Dockable
 
 
 moduleData = DataFlavor(
@@ -131,23 +132,25 @@ class SourceTransferHandler(TransferHandler):
             return None
 
 
-class JModulePalette(JScrollPane):
+class JModulePalette(JScrollPane, Dockable):
     """The module palette, that allows the addition of modules to the pipeline.
     """
     def __init__(self):
+        self._key = DockKey('module_palette')
+
         self.root = DefaultMutableTreeNode("Available modules")
         self.tree = JTree(self.root)
-        
+
         self.tree.setDragEnabled(True)
         self.tree.setTransferHandler(SourceTransferHandler())
-        
+
         self.setViewportView(self.tree)
         self.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS)
         self.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
-        
+
         self.packages = {}
         self.modules = {}
-        
+
     def connect_registry_signals(self):
         app = get_vistrails_application()
         app.register_notification('reg_new_package', self.newPackage)
@@ -241,3 +244,14 @@ class JModulePalette(JScrollPane):
         for package in registry.package_list:
             self.newPackage(package.identifier)
         self.newModule(registry.root_descriptor, True)
+
+    # @Override
+    def getDockKey(self):
+        return self._key
+
+    # @Override
+    def getComponent(self, *args):
+        if len(args) == 0:
+            return self
+        else:
+            return JScrollPane.getComponent(self, *args)

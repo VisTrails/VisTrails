@@ -48,6 +48,7 @@ from edu.umd.cs.piccolo.event import PBasicInputEventHandler, PInputEventFilter
 
 from module_palette import moduleData
 from utils import PyFuncRunner
+from com.vlsolutions.swing.docking import DockKey, Dockable
 
 
 PORT_WIDTH = 7
@@ -561,7 +562,7 @@ class TargetTransferHandler(TransferHandler):
             return TransferHandler.importData(self, args[0], args[1])
 
 
-class JPipelineView(PCanvas):
+class JPipelineView(PCanvas, Dockable):
     """The pipeline view.
 
     This view represents all the modules and their connections. It can be used
@@ -569,8 +570,14 @@ class JPipelineView(PCanvas):
     from the palette.
     """
     def __init__(self, vistrail, locator, controller,
-            abstraction_files=None, thumbnail_files=None):
+            abstraction_files=None, thumbnail_files=None,
+            dockgroup=None):
         super(JPipelineView, self).__init__()
+
+        self._key = DockKey('pipeline_view')
+        self._key.setDockGroup(dockgroup)
+        self._key.setResizeWeight(1.0)
+
         self.controller = controller
         self.executed = {} # List of executed modules, useful for coloring
         self.vistrail = vistrail
@@ -788,3 +795,14 @@ class JPipelineView(PCanvas):
             self.selected_modules = set()
             # DON'T delete the connections in the DB, they are deleted in
             # cascade automatically
+
+    # @Override
+    def getDockKey(self):
+        return self._key
+
+    # @Override
+    def getComponent(self, *args):
+        if len(args) == 0:
+            return self
+        else:
+            return PCanvas.getComponent(self, *args)
