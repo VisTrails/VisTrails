@@ -45,10 +45,8 @@ class JVersionVistrailView(JPanel, MouseListener, Dockable):
 
     def __init__(self, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None,
-            version=None,
-            dockgroup=None):
+            version=None):
         self._key = DockKey('version_view')
-        self._key.setDockGroup(dockgroup)
         self._key.setResizeWeight(1.0)
 
         self.full_tree = True

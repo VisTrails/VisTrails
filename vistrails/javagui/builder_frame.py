@@ -59,11 +59,11 @@ from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
 from javax.swing import JMenu, JMenuBar, JMenuItem, JButton
 from javax.swing import SwingConstants, SwingUtilities
 
-from java.awt import BorderLayout, Color
+from java.awt import BorderLayout
 from java.awt.event import WindowAdapter
 
 from com.vlsolutions.swing.docking import DockingDesktop, DockingConstants,\
-    DockKey, Dockable, DockGroup
+    DockKey, Dockable, DockGroup, RelativeDockablePosition
 
 from extras.core.db.javagui.locator import JavaLocatorHelperProvider
 
@@ -164,6 +164,7 @@ class BuilderFrame(JFrame):
                 self._key = DockKey("(empty)")
                 self._key.setDockGroup(group)
                 self._key.setResizeWeight(1.0)
+                self._key.setCloseEnabled(False)
 
             # @Override
             def getDockKey(self):
@@ -172,10 +173,6 @@ class BuilderFrame(JFrame):
             # @Override
             def getComponent(self):
                 return self
-
-            # @Override
-            def getBackground(self):
-                return Color.green
 
             def flushMoveActions(self): pass
             def execute_workflow(self): pass
@@ -189,12 +186,14 @@ class BuilderFrame(JFrame):
         self.modulepalette = JModulePalette()
         self.modulepalette.getDockKey().setDockGroup(BuilderFrame.PANELS)
         self.modulepalette.getDockKey().setResizeWeight(0.2)
+        self.modulepalette.getDockKey().setCloseEnabled(False)
         self.desktop.split(self.current_view, self.modulepalette, DockingConstants.SPLIT_LEFT)
 
         # Create the module info panel
         self.moduleInfo = JModuleInfo()
         self.moduleInfo.getDockKey().setDockGroup(BuilderFrame.PANELS)
         self.moduleInfo.getDockKey().setResizeWeight(0.2)
+        self.moduleInfo.getDockKey().setCloseEnabled(False)
         self.desktop.split(self.current_view, self.moduleInfo, DockingConstants.SPLIT_RIGHT)
 
         self._visibleCond = threading.Condition()
@@ -228,17 +227,14 @@ class BuilderFrame(JFrame):
 
     def set_current_view(self, view):
         if view != self.current_view:
-            self.desktop.addDockable(view)
-            self.desktop.close(view)
-            self.desktop.replace(self.current_view, view)
+            self.desktop.remove(self.current_view)
+            self.desktop.addDockable(view, RelativeDockablePosition.TOP_CENTER)
             self.current_view = view
 
     def flush_changes(self):
         self.pipelineView.flushMoveActions()
 
     def create_first_vistrail(self):
-        if self.current_view:
-            return
         if untitled_locator().has_temporaries():
             if not FileLocator().prompt_autosave(
                     JavaLocatorHelperProvider(self)):
@@ -271,6 +267,7 @@ class BuilderFrame(JFrame):
                 abstractions, thumbnails)
         self.pipelineView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
         self.pipelineView.getDockKey().setResizeWeight(1.0)
+        self.pipelineView.getDockKey().setCloseEnabled(False)
 
         # Create the version view
         self.versionView = JVersionVistrailView(
@@ -278,6 +275,7 @@ class BuilderFrame(JFrame):
                 abstractions, thumbnails)
         self.versionView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
         self.versionView.getDockKey().setResizeWeight(1.0)
+        self.versionView.getDockKey().setCloseEnabled(False)
 
         # Setup the view (pipeline by default)
         self.set_current_view(self.pipelineView)

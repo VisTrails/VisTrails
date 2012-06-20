@@ -570,12 +570,10 @@ class JPipelineView(PCanvas, Dockable):
     from the palette.
     """
     def __init__(self, vistrail, locator, controller,
-            abstraction_files=None, thumbnail_files=None,
-            dockgroup=None):
+            abstraction_files=None, thumbnail_files=None):
         super(JPipelineView, self).__init__()
 
         self._key = DockKey('pipeline_view')
-        self._key.setDockGroup(dockgroup)
         self._key.setResizeWeight(1.0)
 
         self.controller = controller
