@@ -1,5 +1,6 @@
 from java.lang import Runnable
-from javax.swing import SwingUtilities
+from javax.swing import SwingUtilities, ImageIcon
+from java.awt.image import BufferedImage
 
 
 # We have to pass something implementing Runnable to invokeLater()
@@ -25,3 +26,22 @@ def run_on_edt(func):
         func.run()
     else:
         SwingUtilities.invokeAndWait(func)
+
+
+def resized_icon(image, size):
+    if isinstance(image, basestring):
+        image = ImageIcon(image)
+    if image.getIconWidth() == size.width and image.getIconHeight() == size.height:
+        return image
+
+    bi = BufferedImage(
+            size.width,
+            size.height,
+            BufferedImage.TYPE_INT_ARGB)
+    g = bi.createGraphics()
+    g.scale(float(size.width) / image.getIconWidth(),
+            float(size.height) / image.getIconHeight())
+    image.paintIcon(None, g, 0, 0)
+    g.dispose()
+
+    return ImageIcon(bi)

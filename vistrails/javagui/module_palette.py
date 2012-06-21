@@ -140,6 +140,7 @@ class JModulePalette(JScrollPane, Dockable):
 
         self.root = DefaultMutableTreeNode("Available modules")
         self.tree = JTree(self.root)
+        self.tree.setRootVisible(False)
 
         self.tree.setDragEnabled(True)
         self.tree.setTransferHandler(SourceTransferHandler())

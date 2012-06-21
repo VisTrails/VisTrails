@@ -4,6 +4,8 @@ from java.awt import Dimension
 from com.vlsolutions.swing.docking import DockKey, Dockable
 from java.awt.event import FocusListener, KeyEvent, KeyListener
 
+from ports_pane import JPortsPane
+
 
 class InputValidationListener(KeyListener, FocusListener):
     def __init__(self, callback):
@@ -38,10 +40,10 @@ class InputValidationListener(KeyListener, FocusListener):
 class JModuleInfo(JComponent, Dockable):
     def __init__(self):
         super(JModuleInfo, self).__init__()
+        self._module = None
+        self.controller = None
 
         self._key = DockKey('module_info')
-
-        self.controller = None
 
         self.setLayout(BoxLayout(self, BoxLayout.PAGE_AXIS))
 
@@ -74,12 +76,15 @@ class JModuleInfo(JComponent, Dockable):
         pkg_line.add(Box.createHorizontalGlue())
         self.add(pkg_line)
 
+        self._ports_pane = JPortsPane()
+        self.add(self._ports_pane)
+
         self.add(Box.createVerticalGlue())
 
     def update_module(self, module=None):
         self._module = module
 
-        # TODO update ports
+        self._ports_pane.update_module(module)
 
         if module is None:
             self._name_input.setText('')
