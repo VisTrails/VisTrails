@@ -278,20 +278,36 @@ class PModule(PNode):
         # Compute the size of the module from the text
         self.fontRect = PModule.fontMetrics.getStringBounds(self.module.name,
                                                             None)
-        w = self.fontRect.getWidth() + 2 * SPACING_X
-        h = self.fontRect.getHeight() + 2 * SPACING_Y
+        self._base_w = self.fontRect.getWidth() + 2 * SPACING_X
+        self._base_h = self.fontRect.getHeight() + 2 * SPACING_Y
+
+        self.inputConnections = set()
+        self.outputConnections = set()
+
+        self.update_ports()
+
+    def update_ports(self):
+        self.inputPorts = self.module.destinationPorts()
+        self.outputPorts = self.module.sourcePorts()
+
+        self.inputPorts = filter(lambda p: (
+                not p.optional or
+                p.name in self.module.visible_input_ports or
+                p.name in self.module.connected_input_ports),
+                self.inputPorts)
+        self.outputPorts = filter(lambda p: (
+                not p.optional or
+                p.name in self.module.visible_output_ports or
+                p.name in self.module.connected_output_ports),
+                self.outputPorts)
+
+        w = self._base_w
+        h = self._base_h
 
         # These are the position of the upper-left corner of the
         # rectangle, in this object's coordinate system
-        self.mod_x = int(-w/2)
-        self.mod_y = int(-h/2)
-
-        self.inputPorts = module.destinationPorts()
-        self.outputPorts = module.sourcePorts()
-
-        # Filter out 'self' ports
-        self.inputPorts = filter(lambda p: p.name != 'self', self.inputPorts)
-        self.outputPorts = filter(lambda p: p.name != 'self', self.outputPorts)
+        self.mod_x = int(-w / 2)
+        self.mod_y = int(-h / 2)
 
         # Update the module size with the ports
         if self.inputPorts:
@@ -310,8 +326,13 @@ class PModule(PNode):
         self.setBounds(self.mod_x, self.mod_y,
                        self.module_width, self.module_height)
 
-        self.inputConnections = set()
-        self.outputConnections = set()
+        self.invalidatePaint()
+
+        # Update connections
+        for conn in self.inputConnections:
+            conn.endpointChanged()
+        for conn in self.outputConnections:
+            conn.endpointChanged()
 
     # @Override
     def paint(self, paintContext):
@@ -703,6 +724,9 @@ class JPipelineView(PCanvas, Dockable):
                 pos.x, -pos.y,
                 internal_version)
         self.addModule(module)
+
+    def ports_changed(self, module_id):
+        self.modules[module_id].update_ports()
 
     MOVE_DELTA = 0.5
 

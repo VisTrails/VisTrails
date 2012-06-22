@@ -41,7 +41,7 @@ class JModuleInfo(JComponent, Dockable):
     def __init__(self):
         super(JModuleInfo, self).__init__()
         self._module = None
-        self.controller = None
+        self._controller = None
 
         self._key = DockKey('module_info')
 
@@ -107,16 +107,20 @@ class JModuleInfo(JComponent, Dockable):
             new_text = (self._name_input.getText()).strip()
             if not new_text:
                 if old_text:
-                    self.controller.delete_annotation('__desc__',
+                    self._controller.delete_annotation('__desc__',
                                                       self._module.id)
             elif old_text != new_text:
-                self.controller.add_annotation(('__desc__', new_text),
+                self._controller.add_annotation(('__desc__', new_text),
                                                self._module.id)
 
             # TODO : update pipeline view, if it can display names
 
-    def set_controller(self, controller):
-        self.controller = controller
+    def _get_controller(self):
+        return self._controller
+    def _set_controller(self, controller):
+        self._controller = controller
+        self._ports_pane.controller = controller
+    controller = property(_get_controller, _set_controller)
 
     # @Override
     def getDockKey(self):

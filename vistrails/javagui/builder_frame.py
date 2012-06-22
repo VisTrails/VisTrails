@@ -269,6 +269,7 @@ class BuilderFrame(JFrame):
         self.pipelineView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
         self.pipelineView.getDockKey().setResizeWeight(1.0)
         self.pipelineView.getDockKey().setCloseEnabled(False)
+        self.controller.current_pipeline_view = self.pipelineView
 
         # Create the version view
         self.versionView = JVersionVistrailView(
@@ -278,7 +279,7 @@ class BuilderFrame(JFrame):
         self.versionView.getDockKey().setResizeWeight(1.0)
         self.versionView.getDockKey().setCloseEnabled(False)
 
-        self.moduleInfo.set_controller(self.controller)
+        self.moduleInfo.controller = self.controller
 
         # Setup the view (pipeline by default)
         self.set_current_view(self.pipelineView)

@@ -2,6 +2,7 @@ from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box
 from java.awt import Dimension
 
 from utils import resized_icon
+from java.awt.event import MouseListener, MouseAdapter
 
 
 ICON_SIZE = Dimension(20, 20)
@@ -12,9 +13,23 @@ VIS_ON = resized_icon('gui/resources/images/eye.png', ICON_SIZE)
 VIS_LOCKED = resized_icon('gui/resources/images/eye_gray.png', ICON_SIZE)
 
 
+class ClickListener(MouseAdapter):
+    def __init__(self, action):
+        super(ClickListener, self).__init__()
+        self._action = action
+
+    # @Override
+    def mouseClicked(self, event):
+        if event.getButton() == 1:
+            self._action()
+
+
 class Port(JPanel):
-    def __init__(self, portname, input_ports):
-        self.input_ports = input_ports
+    def __init__(self, portname, input_ports, module, ports_pane):
+        self._port_name = portname
+        self._input_ports = input_ports
+        self._module = module
+        self._ports_pane = ports_pane
 
         self.setLayout(BoxLayout(self, BoxLayout.LINE_AXIS))
 
@@ -22,6 +37,8 @@ class Port(JPanel):
         self._visibility_icon.setMinimumSize(ICON_SIZE)
         self._visibility_icon.setMaximumSize(ICON_SIZE)
         self._visibility_icon.setPreferredSize(ICON_SIZE)
+        self._visibility_icon.addMouseListener(
+                ClickListener(self._toggle_visibility))
         self.add(self._visibility_icon)
 
         self._connection_icon = JLabel()
@@ -37,8 +54,7 @@ class Port(JPanel):
         self.add(Box.createHorizontalGlue())
 
     def _get_visibility(self):
-        return self._visibile
-
+        return self._visible
     def _set_visibility(self, visibility):
         self._visible = visibility
         if visibility == 'on':
@@ -47,8 +63,25 @@ class Port(JPanel):
             self._visibility_icon.setIcon(None)
         elif visibility == 'locked':
             self._visibility_icon.setIcon(VIS_LOCKED)
-
     port_visible = property(_get_visibility, _set_visibility)
+
+    def _toggle_visibility(self):
+        if self._input_ports:
+            visible_ports = self._module.visible_input_ports
+        else:
+            visible_ports = self._module.visible_output_ports
+
+        if self._visible == 'off':
+            self.port_visible = 'on'
+            visible_ports.add(self._port_name)
+        elif self._visible == 'on' and not self._connected:
+            self.port_visible = 'off'
+            visible_ports.discard(self._port_name)
+        else:
+            return
+
+        self.repaint()
+        self._ports_pane.ports_changed(self._module)
 
     def _get_connected(self):
         return self._connected
@@ -95,6 +128,11 @@ class JPortsPane(JTabbedPane):
             self._extract_ports(module, self._input_ports, True)
             self._extract_ports(module, self._output_ports, False)
 
+        self._input_ports.repaint()
+        self._input_ports.revalidate()
+        self._output_ports.repaint()
+        self._output_ports.revalidate()
+
     def _extract_ports(self, module, ports_list, input_ports):
         if input_ports:
             port_specs = module.destinationPorts()
@@ -106,7 +144,7 @@ class JPortsPane(JTabbedPane):
             visible_ports = module.visible_output_ports
 
         for port_spec in sorted(port_specs, key=lambda p: p.name):
-            item = Port(port_spec.name, input_ports)
+            item = Port(port_spec.name, input_ports, module, self)
 
             item.port_connected = (
                     port_spec.name in connected_ports and
@@ -120,3 +158,6 @@ class JPortsPane(JTabbedPane):
                 item.port_visible = 'off'
 
             ports_list.add_port(item)
+
+    def ports_changed(self, module):
+        self.controller.current_pipeline_view.ports_changed(module.id)
