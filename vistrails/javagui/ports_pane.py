@@ -1,8 +1,11 @@
-from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box
+from java.lang import Integer
+from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton,\
+    JTextField
 from java.awt import Dimension
+from java.awt.event import MouseAdapter
 
 from utils import resized_icon
-from java.awt.event import MouseListener, MouseAdapter
+from core import debug
 
 
 ICON_SIZE = Dimension(20, 20)
@@ -24,6 +27,20 @@ class ClickListener(MouseAdapter):
             self._action()
 
 
+class InputPortValue(JPanel):
+    def __init__(self, port_spec, function):
+        self.setLayout(BoxLayout(self, BoxLayout.LINE_AXIS))
+        self.add(JButton("-"))
+
+        # TODO : input port value widget
+        value = JTextField("placeholder")
+        value.setEnabled(False)
+        value.setMaximumSize(Dimension(
+                Integer.MAX_VALUE,
+                value.getPreferredSize().height))
+        self.add(value)
+
+
 class Port(JPanel):
     def __init__(self, portname, input_ports, module, ports_pane):
         self._port_name = portname
@@ -31,7 +48,10 @@ class Port(JPanel):
         self._module = module
         self._ports_pane = ports_pane
 
-        self.setLayout(BoxLayout(self, BoxLayout.LINE_AXIS))
+        self.setLayout(BoxLayout(self, BoxLayout.PAGE_AXIS))
+
+        first_line = JPanel()
+        first_line.setLayout(BoxLayout(first_line, BoxLayout.LINE_AXIS))
 
         self._visibility_icon = JLabel()
         self._visibility_icon.setMinimumSize(ICON_SIZE)
@@ -39,19 +59,23 @@ class Port(JPanel):
         self._visibility_icon.setPreferredSize(ICON_SIZE)
         self._visibility_icon.addMouseListener(
                 ClickListener(self._toggle_visibility))
-        self.add(self._visibility_icon)
+        first_line.add(self._visibility_icon)
 
         self._connection_icon = JLabel()
         self._connection_icon.setMinimumSize(ICON_SIZE)
         self._connection_icon.setMaximumSize(ICON_SIZE)
         self._connection_icon.setPreferredSize(ICON_SIZE)
-        self.add(self._connection_icon)
+        first_line.add(self._connection_icon)
 
         name = JLabel(portname)
         name.setEnabled(input_ports)
-        self.add(name)
+        first_line.add(name)
 
-        self.add(Box.createHorizontalGlue())
+        first_line.add(Box.createHorizontalGlue())
+        self.add(first_line)
+
+    def add_value(self, value_widget):
+        self.add(value_widget)
 
     def _get_visibility(self):
         return self._visible
@@ -120,6 +144,8 @@ class JPortsPane(JTabbedPane):
         self._output_ports = PortsList(False)
         self.addTab("Output ports", self._output_ports)
 
+        self._ports = dict()
+
     def update_module(self, module=None):
         self._input_ports.clear()
         self._output_ports.clear()
@@ -143,13 +169,17 @@ class JPortsPane(JTabbedPane):
             connected_ports = module.connected_output_ports
             visible_ports = module.visible_output_ports
 
+        self._ports[input_ports] = dict()
+
         for port_spec in sorted(port_specs, key=lambda p: p.name):
             item = Port(port_spec.name, input_ports, module, self)
 
+            # Connected status
             item.port_connected = (
                     port_spec.name in connected_ports and
                     connected_ports[port_spec.name] > 0)
 
+            # Visibility
             if not port_spec.optional:
                 item.port_visible = 'locked'
             elif port_spec.name in visible_ports:
@@ -158,6 +188,16 @@ class JPortsPane(JTabbedPane):
                 item.port_visible = 'off'
 
             ports_list.add_port(item)
+            self._ports[input_ports][port_spec.name] = port_spec, item
+
+        if input_ports:
+            for function in module.functions:
+                #if not function.is_valid:
+                #    debug.critical("function '%s' not valid" % function.name)
+                #    continue
+                port_spec, item = self._ports[input_ports][function.name]
+                subitem = InputPortValue(port_spec, function)
+                item.add_value(subitem)
 
     def ports_changed(self, module):
         self.controller.current_pipeline_view.ports_changed(module.id)
