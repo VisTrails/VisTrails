@@ -1,9 +1,10 @@
-from java.lang import Integer
-from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton,\
-    JTextField
+from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton
 from java.awt import Dimension
 from java.awt.event import MouseAdapter
 
+from itertools import izip
+
+from javagui.modules import get_widget_class
 from utils import resized_icon
 from core import debug
 
@@ -28,17 +29,54 @@ class ClickListener(MouseAdapter):
 
 
 class InputPortValue(JPanel):
-    def __init__(self, port_spec, function):
+    def __init__(self, port_spec, controller, module, function=None):
+        self._port_spec = port_spec
+        self._controller = controller
+        self._module = module
+        self._function = function
+
         self.setLayout(BoxLayout(self, BoxLayout.LINE_AXIS))
         self.add(JButton("-"))
+        # TODO : '+' button
+        # TODO : border
 
-        # TODO : input port value widget
-        value = JTextField("placeholder")
-        value.setEnabled(False)
-        value.setMaximumSize(Dimension(
-                Integer.MAX_VALUE,
-                value.getPreferredSize().height))
-        self.add(value)
+        box = JPanel()
+        box.setLayout(BoxLayout(box, BoxLayout.PAGE_AXIS))
+        self.add(box)
+
+        self._widgets = []
+        if function is not None:
+            params = function.parameters
+        else:
+            params = [None] * len(port_spec.descriptors())
+        for desc, param in izip(port_spec.descriptors(), params):
+            line = JPanel()
+            line.setLayout(BoxLayout(line, BoxLayout.LINE_AXIS))
+            box.add(line)
+            # TODO : Aliases
+            label = JLabel(desc.name)
+            line.add(label)
+            widget_class = get_widget_class(desc.module)
+            widget = widget_class(self, param)
+            self._widgets.append(widget)
+            line.add(widget)
+
+    def value_changed(self, new_value):
+        str_values = [str(w.contents()) for w in self._widgets]
+        if self._function:
+            real_id = self._function.real_id
+            should_replace = True
+        else:
+            real_id = -1
+            should_replace = False
+        self._controller.update_function(
+                self._module,
+                self._port_spec.name,
+                str_values,
+                real_id,
+                [''] * len(self._widgets), # Aliases
+                [], # Query methods
+                should_replace)
 
 
 class Port(JPanel):
@@ -192,11 +230,13 @@ class JPortsPane(JTabbedPane):
 
         if input_ports:
             for function in module.functions:
+                # FIXME : is_valid is False!?
                 #if not function.is_valid:
                 #    debug.critical("function '%s' not valid" % function.name)
                 #    continue
                 port_spec, item = self._ports[input_ports][function.name]
-                subitem = InputPortValue(port_spec, function)
+                subitem = InputPortValue(port_spec, self.controller,
+                                         module, function)
                 item.add_value(subitem)
 
     def ports_changed(self, module):

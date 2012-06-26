@@ -2,39 +2,9 @@ from java.lang import Integer
 from javax.swing import Box, BoxLayout, JComponent, JLabel, JPanel, JTextField
 from java.awt import Dimension
 from com.vlsolutions.swing.docking import DockKey, Dockable
-from java.awt.event import FocusListener, KeyEvent, KeyListener
 
 from ports_pane import JPortsPane
-
-
-class InputValidationListener(KeyListener, FocusListener):
-    def __init__(self, callback):
-        self.callback = callback
-
-    # Implementation of KeyListener
-
-    # @Override
-    def keyTyped(self, e):
-        pass
-
-    # @Override
-    def keyPressed(self, e):
-        if e.getKeyCode() == KeyEvent.VK_ENTER:
-            self.callback()
-
-    # @Override
-    def keyReleased(self, e):
-        pass
-
-    # Implementation of FocusListener
-
-    # @Override
-    def focusGained(self, e):
-        pass
-
-    # @Override
-    def focusLost(self, e):
-        self.callback()
+from utils import InputValidationListener
 
 
 class JModuleInfo(JComponent, Dockable):

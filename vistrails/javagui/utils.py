@@ -1,6 +1,7 @@
 from java.lang import Runnable
 from javax.swing import SwingUtilities, ImageIcon
 from java.awt.image import BufferedImage
+from java.awt.event import FocusListener, KeyEvent, KeyListener
 
 
 # We have to pass something implementing Runnable to invokeLater()
@@ -45,3 +46,33 @@ def resized_icon(image, size):
     g.dispose()
 
     return ImageIcon(bi)
+
+
+class InputValidationListener(KeyListener, FocusListener):
+    def __init__(self, callback):
+        self._callback = callback
+
+    # Implementation of KeyListener
+
+    # @Override
+    def keyTyped(self, e):
+        pass
+
+    # @Override
+    def keyPressed(self, e):
+        if e.getKeyCode() == KeyEvent.VK_ENTER:
+            self._callback()
+
+    # @Override
+    def keyReleased(self, e):
+        pass
+
+    # Implementation of FocusListener
+
+    # @Override
+    def focusGained(self, e):
+        pass
+
+    # @Override
+    def focusLost(self, e):
+        self._callback()
