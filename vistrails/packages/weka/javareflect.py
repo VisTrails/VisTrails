@@ -1,15 +1,27 @@
-from java.io import File, FileInputStream, IOException
-from java.util.zip import ZipInputStream
-from java.lang import Class
-from java.lang import Exception as JavaException
-from java.net import URLClassLoader
-from java.lang.reflect import Method, Modifier, Constructor
-
 from itertools import izip
 
 from core import debug
 
 import javaparser
+
+from extras.core.java_vm import get_java_vm, JavaException
+
+
+_JAVA_VM = get_java_vm()
+
+File = _JAVA_VM.java.io.File
+FileInputStream = _JAVA_VM.java.io.FileInputStream
+IOException = _JAVA_VM.java.io.IOException
+
+ZipInputStream = _JAVA_VM.java.util.zip.ZipInputStream
+
+Class = _JAVA_VM.java.lang.Class
+
+URLClassLoader = _JAVA_VM.java.net.URLClassLoader
+
+Method = _JAVA_VM.java.lang.reflect.Method
+Modifier = _JAVA_VM.java.lang.reflect.Modifier
+Constructor = _JAVA_VM.java.lang.reflect.Constructor
 
 
 # Note that ClassName.methodName(object) is used throughout this file instead
@@ -202,7 +214,7 @@ def parse_jar(filename, parsed_sources=None):
         try:
             c = classLoader.loadClass(classname)
             ret = analyzer.process(c)
-        except JavaException, e:
+        except JavaException:
             ret = 'exception'
         try:
             status[ret] += 1

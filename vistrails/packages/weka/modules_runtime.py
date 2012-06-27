@@ -2,19 +2,7 @@ from core import debug
 
 from javareflect import format_type
 
-
-def get_class(fullname):
-    pos = fullname.rfind('.')
-    if pos == -1:
-        raise ValueError("get_class() on a class without package")
-    name = fullname[pos+1:]
-    package = fullname[:pos]
-    try:
-        return getattr(__import__(package, globals(), locals(), name), name)
-    except ImportError:
-        raise ValueError("get_class() didn't find the requested package")
-    except AttributeError:
-        raise ValueError("get_class() didn't find the requested class")
+from extras.core.java_vm import get_class
 
 
 def format_type_list(l):
@@ -105,7 +93,7 @@ class ConstructorModuleMixin(object):
             called = False
             for method in self._class.getMethods():
                 if method.getName() == getter:
-                    output = method.invoke(this)
+                    output = method.invoke(this, [])
                     called = True
                     break
             if called:

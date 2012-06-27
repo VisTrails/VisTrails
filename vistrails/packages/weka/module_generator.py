@@ -130,7 +130,7 @@ class ModuleCreator(object):
         (namespace, name) = fullname_to_pair(c['fullname'])
 
         # Create the abstract module
-        mod = type(name, (parent,), dict(
+        mod = type(str(name), (parent,), dict(
                 _classname=c['fullname'],
                 _namespace=namespace))
         self._module_registry.add_module(mod, abstract=True,
@@ -174,7 +174,7 @@ class ModuleCreator(object):
         if getters:
             cname = '%s_get' % name
             cmod = type(
-                    cname,
+                    str(cname),
                     (GetterModuleMixin, mod),
                     dict())
             self._module_registry.add_module(cmod, namespace=namespace)
@@ -189,7 +189,7 @@ class ModuleCreator(object):
                 i += 1
                 cname = '%s_%d' % (name, i)
                 cmod = type(
-                        cname,
+                        str(cname),
                         (ConstructorModuleMixin, mod),
                         dict(_ctor_params=m['params']))
                 self._module_registry.add_module(cmod, namespace=namespace)

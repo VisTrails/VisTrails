@@ -112,7 +112,10 @@ def initialize():
             debug.warning("couldn't write the weka reflection cache file\n"
                           "it will have to be parsed again next time...")
 
-    sys.path.append(weka_jar)
+    # This is possible in Jython but not with JPype
+    #sys.path.append(weka_jar)
+    # You have to put the weka JAR in the CLASSPATH environment variable before
+    # running VisTrails
 
     import module_generator
     module_generator.generate(parseResult)

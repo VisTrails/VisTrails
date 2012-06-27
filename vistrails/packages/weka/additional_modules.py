@@ -1,10 +1,15 @@
 from core.modules.vistrails_module import Module
 from core.modules.module_registry import get_module_registry
 
-from java.lang import String as JavaString, Class
-import jarray
+from extras.core.java_vm import get_java_vm, build_jarray
 
-from weka.classifiers import Evaluation
+
+_JAVA_VM = get_java_vm()
+
+Evaluation = _JAVA_VM.weka.classifiers.Evaluation
+
+JavaString = _JAVA_VM.java.lang.String
+Class = _JAVA_VM.java.lang.Class
 
 
 def _direct(param):
@@ -45,7 +50,7 @@ class EvaluateClassifier(Module):
                 if value is not None:
                     options.extend([option, convert(value)])
 
-        options = jarray.array(options, JavaString)
+        options = build_jarray(JavaString, options)
 
         stdout = Evaluation.evaluateModel(classifier, options)
 
