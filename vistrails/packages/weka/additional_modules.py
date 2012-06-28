@@ -27,6 +27,8 @@ class EvaluateClassifier(Module):
     Because EvaluateClassifier is meant to be used from the commandline, it
     accepts an array of string options, which is really inconvenient for
     programmatical use.
+    This module also parses the human-readable output of the class into a more
+    useful format, that can be passed to EvaluationResultTable for instance.
     """
     OPTIONS = [
             ('training-file', "File with the training data",
@@ -49,6 +51,18 @@ class EvaluateClassifier(Module):
             ('xml-options', "Read the options from this XML file",
              '-xml', '(edu.utah.sci.vistrails.basic:File)', _file)]
 
+    _line_format = re.compile(
+            r'^((?:[A-Za-z]| (?! ))+)  .+ ([0-9.]+)(?: *%)? *$')
+    FIELDS = {
+            "Correctly Classified Instances": 'correct_rate',
+            "Incorrectly Classified Instances": 'error_rate',
+            "Kappa statistic": 'kappa_statistic',
+            "Mean absolute error": 'mean_abs_error',
+            "Root mean squared error": 'root_mean_sq_error',
+            "Relative absolute error": 'rel_abs_error',
+            "Root relative squared error": 'root_rel_sq_error',
+            "Total Number of Instances": 'instances'}
+
     def compute(self):
         classifier = self.getInputFromPort('classifier')
         options = []
@@ -65,35 +79,16 @@ class EvaluateClassifier(Module):
 
         self.setResult('stdout', stdout)
 
-
-class EvaluationStatistics(Module):
-    """Parses the output of the EvaluateClassifier module.
-
-    Because EvaluateClassifier is meant to be used from the commandline, it
-    outputs human-readable details on the evaluation. This module parses it
-    into a more useful format, that can be passed to EvaluationResultTable for
-    instance.
-    """
-    _line_format = re.compile(
-            r'^((?:[A-Za-z]| (?! ))+)  .+ ([0-9.]+)(?: *%)? *$')
-    FIELDS = {
-            "Correctly Classified Instances": 'correct_rate',
-            "Incorrectly Classified Instances": 'error_rate',
-            "Kappa statistic": 'kappa_statistic',
-            "Mean absolute error": 'mean_abs_error',
-            "Root mean squared error": 'root_mean_sq_error',
-            "Relative absolute error": 'rel_abs_error',
-            "Root relative squared error": 'root_rel_sq_error',
-            "Total Number of Instances": 'instances'}
-
-    def compute(self):
-        stdout = self.getInputFromPort('stdout')
-
         results = dict()
 
         reader = StringIO.StringIO(stdout)
 
-        classifier_name = reader.readline()
+        classifier_name = ''
+        while not classifier_name:
+            classifier_name = reader.readline().strip()
+        if classifier_name.startswith('=='):
+            classifier_name = ''
+
         self.setResult('classifier_name', classifier_name)
         results['classifier_name'] = classifier_name
 
@@ -103,10 +98,10 @@ class EvaluationStatistics(Module):
             if n > 1 and (not line or line.startswith('===')):
                 break
 
-            m = EvaluationStatistics._line_format.match(line)
+            m = EvaluateClassifier._line_format.match(line)
             if m:
                 try:
-                    key = EvaluationStatistics.FIELDS[m.group(1)]
+                    key = EvaluateClassifier.FIELDS[m.group(1)]
                 except KeyError:
                     continue
                 res = float(m.group(2))
@@ -116,7 +111,50 @@ class EvaluationStatistics(Module):
         self.setResult('results', results)
 
 
-# TODO : EvaluationResultTable module
+class EvaluationResultTable(Module):
+    """Displays the results of EvaluateClassifier as an HTML table.
+
+    This module can be used to turn the output of the EvaluateClassifier
+    module into an HTML table suitable for display.
+    """
+    def compute(self):
+        statistics = self.getInputListFromPort('statistics')
+
+        tempfile = self.interpreter.filePool.create_file(suffix='.html')
+        output = open(str(tempfile.name), 'w')
+        output.write(r'''<!DOCTYPE html>
+<html>
+  <head>
+    <title>Results</title>
+    <style type="text/css">
+table, td, th { border: 1px solid silver; }
+h1 { font-size: 130%; }
+    </style>
+  </head>
+  <body>
+    <h2>Results</h2>
+    <h3>Statistics regarding each classification method are presented below.</h3>
+    <table border="1" cellspacing="5" cellpadding="5">
+      <tr>
+        <th>Method</th><th>Correct Rate</th><th>Error Rate</th>
+        <th>Kappa</th><th>Mean Absolute Error</th><th>Root Mean Squared Error</th>
+        <th>Relative Absolute Error</th><th>Root Relative Squared Error</th>
+      </tr>
+''')
+
+        for st in statistics:
+            output.write('      <tr>\n')
+            output.write('        <td>%s</td>\n' % st['classifier_name'])
+            for k in ['correct_rate', 'error_rate', 'kappa_statistic', 'mean_abs_error', 'root_mean_sq_error', 'rel_abs_error', 'root_rel_sq_error']:
+                output.write('        <td>%s</td>\n' % st[k])
+            output.write('      </tr>\n')
+
+        output.write('    </table>\n')
+        output.write('  </body>\n</html>\n')
+
+        output.close()
+
+        self.setResult('html', tempfile)
 
 
 def register_additional_modules():
@@ -137,20 +175,23 @@ def register_additional_modules():
     reg.add_output_port(
             EvaluateClassifier, 'stdout',
             '(edu.utah.sci.vistrails.basic:String)')
-
-
-    reg.add_module(EvaluationStatistics)
-    reg.add_input_port(
-            EvaluationStatistics, 'stdout',
-            '(edu.utah.sci.vistrails.basic:String)')
     reg.add_output_port(
-            EvaluationStatistics, 'results',
+            EvaluateClassifier, 'results',
             '(edu.utah.sci.vistrails.basic:Dictionary)')
     reg.add_output_port(
-            EvaluationStatistics, 'classifier_name',
+            EvaluateClassifier, 'classifier_name',
             '(edu.utah.sci.vistrails.basic:String)')
 
-    for string, portname in EvaluationStatistics.FIELDS.iteritems():
+    for string, portname in EvaluateClassifier.FIELDS.iteritems():
         reg.add_output_port(
-                EvaluationStatistics, portname,
+                EvaluateClassifier, portname,
                 '(edu.utah.sci.vistrails.basic:Float)')
+
+
+    reg.add_module(EvaluationResultTable)
+    reg.add_input_port(
+            EvaluationResultTable, 'statistics',
+            '(edu.utah.sci.vistrails.basic:Dictionary)')
+    reg.add_output_port(
+            EvaluationResultTable, 'html',
+            '(edu.utah.sci.vistrails.basic:File)')

@@ -323,6 +323,9 @@ class Path(Constant):
     def get_widget_class():
         return ("gui.modules.constant_configuration", "PathChooserWidget")
 
+    def __str__(self):
+        return '%s(path=%s)' % (self.__class__.__name__, self.name)
+
 Path.default_value = Path()
 
 class File(Path):
