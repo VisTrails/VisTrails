@@ -77,7 +77,7 @@ def _find_java_dll():
             if os.stat(os.path.join(path, 'jre6')):
                 return os.path.join(path, 'jre6/bin/client/jvm.dll')
             # Else, any version
-            for subdir in dir(path):
+            for subdir in os.listdir(path):
                 dll = os.path.join(path, subdir, 'bin/client/jvm.dll')
                 if os.stat(dll):
                     return dll
