@@ -36,11 +36,6 @@ import sys
 import threading
 import copy
 
-# This can't stay here
-sys.path.append('../../piccolo/piccolo2d-core-1.3.1.jar')
-sys.path.append('../../piccolo/piccolo2d-extras-1.3.1.jar')
-sys.path.append('../../vldocking/vldocking_3.0.0.jar')
-
 from vistrail_controller import JVistrailController
 from pipeline_view import JPipelineView
 from version_view import JVersionVistrailView

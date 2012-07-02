@@ -44,6 +44,7 @@ from core import system
 import core.requirements
 import sys
 from utils import run_on_edt
+from java_requirements import check_java_requirement
 
 ################################################################################
 
@@ -67,6 +68,30 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         super(VistrailsJavaApplicationSingleton, self).__init__()
 
         self.builderWindow = None
+
+        # Check for non-python requirements, locate additional JARs if needed
+
+        # VLDocking
+        check_java_requirement(
+                ['vldocking', 'docking'],
+                'vldocking_{version}.jar', {'version': '3.0.0'},
+                ('com.vlsolutions.swing.docking',
+                 ['DockKey', 'Dockable']))
+
+        # Piccolo-core
+        check_java_requirement(
+                ['piccolo'],
+                'piccolo2d-core-{version}.jar', {'version': '1.3.1'},
+                ('edu.umd.cs.piccolo',
+                 ['PCanvas', 'PNode']))
+
+        # Piccolo-extras
+        # Not necessary as of now
+        #check_java_requirement(
+        #        ['piccolo', 'piccolox'],
+        #        'piccolo2d-extras-{version}.jar', {'version': '1.3.1'},
+        #        ('edu.umd.cs.piccolox',
+        #         ['PApplet', 'PFrame']))
 
     def init(self, optionsDict=None):
         """ VistrailsJavaApplicationSingleton(optionDict: dict)
