@@ -36,14 +36,6 @@ Parameter Exploration Tab """
 
 from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
-from core.modules.module_registry import get_module_registry
-from core.vistrail.action import Action
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.port import Port
-from core.vistrail import module
-from core.vistrail import connection
-import db.services.action
 # FIXME broke this as Actions have been changed around
 #
 # from core.vistrail.action import AddModuleAction, AddConnectionAction, \

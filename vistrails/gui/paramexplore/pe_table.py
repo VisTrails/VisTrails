@@ -120,13 +120,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         if self.controller:
             currentVersion = self.controller.current_version
             pe = self.controller.vistrail.get_paramexp(currentVersion)
-            if pe is not None:
-                self.setParameterExploration(pe)
-            else:
-                self.table.clear()
-                palette = self.get_palette()
-                palette.virtual_cell.config.clear()
             self.controller.current_parameter_exploration = pe
+            self.setParameterExploration(pe)
 
     def getParameterExplorationOld(self):
         """ getParameterExploration() -> string
@@ -217,16 +212,16 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         return pe
 
     def setParameterExploration(self, pe):
-        """ setParameterExploration(ParameterExploration: parameter_exploration)
-                                                                       -> None
+        """ setParameterExploration(pe: ParameterExploration) -> None
         Sets the current parameter exploration to the one defined by pe
         
         """
+        self.table.clear()
+        palette = self.get_palette()
+        palette.stateChanged()
         if not pe:
             return
-        self.table.clear()
         unescape_dict = { "&apos;":"'", '&quot;':'"', '&#xa;':'\n' }
-        palette = self.get_palette()
         paramView = self.get_param_view()
         # Set the exploration dimensions
         self.table.label.setCounts(pe.dims)
@@ -363,8 +358,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                 interpolator.function = p_code
 
     def get_palette(self):
-        from gui.paramexplore.pe_palette import QParamExplorePalette
-        return QParamExplorePalette.instance()
+        from gui.paramexplore.pe_inspector import QParamExploreInspector
+        return QParamExploreInspector.instance()
     
     def get_param_view(self):
         from gui.paramexplore.param_view import QParameterView

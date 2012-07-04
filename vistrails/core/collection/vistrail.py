@@ -264,7 +264,7 @@ class VistrailEntity(Entity):
     def add_parameter_exploration_entity(self, pe):
         if not hasattr(self.vistrail, 'parameter_explorations'):
             return
-        self.pe_entity_map[pe.id] = \
+        self.pe_entity_map[pe.name] = \
                    self.create_parameter_exploration_entity(pe)
         # get thumbnail for the workflow it points
         thumbnail = self.vistrail.get_thumbnail(pe.action_id)
@@ -273,10 +273,10 @@ class VistrailEntity(Entity):
             path = cache.get_abs_name_entry(thumbnail)
             if path:
                 entity = ThumbnailEntity(path)
-                pe_entity = self.pe_entity_map[pe.id]
+                pe_entity = self.pe_entity_map[pe.name]
                 pe_entity.children.append(entity)
                 entity.parent = self
-        return self.pe_entity_map[pe.id]
+        return self.pe_entity_map[pe.name]
        
     def add_wf_exec_entity(self, wf_exec, add_to_map=False):
         version_id = wf_exec.parent_version
@@ -360,9 +360,19 @@ class VistrailEntity(Entity):
             #parameter explorations
             if hasattr(self.vistrail, 'parameter_explorations'):
                 self.pe_entity_map = {}
+                # find named pe's
+                #max_pe = {}
                 for pe in self.vistrail.parameter_explorations:
-                    self.pe_entity_map[pe.id] = \
-                         self.add_parameter_exploration_entity(pe)
+                    if pe.name:
+                        self.pe_entity_map[pe.name] = \
+                             self.add_parameter_exploration_entity(pe)
+                #    if pe.action_id not in max_pe or max_pe[pe.action_id]<pe.id:
+                #        max_pe[pe.action_id] = pe
+
+                #for pe in max_pe.values():
+                #    if pe.id not in self.pe_entity_map:
+                #        self.pe_entity_map[pe.id] = \
+                #             self.add_parameter_exploration_entity(pe)
                 
             # read persisted log entries
             try:
@@ -482,13 +492,12 @@ class VistrailEntity(Entity):
         deleted_pes = []
         if hasattr(self.vistrail, 'parameter_explorations'):
             for pe in self.vistrail.parameter_explorations:
-                if pe.id not in self.pe_entity_map:
+                if pe.name and pe.name not in self.pe_entity_map:
                     added_pes.append(self.add_parameter_exploration_entity(pe))
-            pe_ids = [pe.id for pe in self.vistrail.parameter_explorations]
-            for pe_id in self.pe_entity_map.keys():
-                if pe_id not in pe_ids:
-                    deleted_pes.append(self.pe_entity_map[pe_id])
-                    del self.pe_entity_map[pe_id]
+            for pe_name in self.pe_entity_map.keys():
+                if not self.vistrail.has_named_paramexp(pe_name):
+                    deleted_pes.append(self.pe_entity_map[pe_name])
+                    del self.pe_entity_map[pe_name]
         return (added_pes, deleted_pes)
                 
     def get_pipeline_name(self, version):

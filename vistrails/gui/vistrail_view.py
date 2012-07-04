@@ -304,7 +304,8 @@ class QVistrailView(QtGui.QWidget):
             window = _app
         #print "EXPLORE"
         self.stack.setCurrentIndex(self.stack.indexOf(self.pe_view))
-        self.tabs.setTabText(self.tabs.currentIndex(), "Explore")
+        self.tabs.setTabText(self.tabs.currentIndex(),
+                             self.stack.currentWidget().get_title())
         self.tab_state[self.tabs.currentIndex()] = window.qactions['explore']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
 
@@ -764,6 +765,7 @@ class QVistrailView(QtGui.QWidget):
         view = self.create_view(QParamExploreView, False)
         self.set_notification('controller_changed', view.set_controller)
         self.set_notification('pipeline_changed', view.updatePipeline)
+        self.set_notification('exploration_changed', view.set_exploration)
         return view
 
     def create_log_view(self):

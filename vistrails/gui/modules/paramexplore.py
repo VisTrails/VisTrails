@@ -82,7 +82,7 @@ class QParameterEditor(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)
         self._param_info = param_info
-        self.type = param_info.spec.module
+        self.type = param_info.spec.descriptor.name
         self.defaultValue = param_info.value
         
         hLayout = QtGui.QHBoxLayout(self)
@@ -152,7 +152,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         """
         QtGui.QToolButton.__init__(self, parent)
         self._param_info = param_info
-        self.type = param_info.spec.module
+        self.type = param_info.spec.descriptor.name
         self.setAutoRaise(True)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
@@ -220,7 +220,7 @@ def make_interpolator(widget_class, interpolator_class, name):
         def __init__(self, param_info, size, parent=None):
             QtGui.QWidget.__init__(self, parent)
             self._param_info = param_info
-            self.type = param_info.spec.module
+            self.type = param_info.spec.descriptor.name
 
             hLayout = QtGui.QHBoxLayout(self)
             hLayout.setMargin(0)
@@ -309,7 +309,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)
         self._param_info = param_info
-        self.type = param_info.spec.module
+        self.type = param_info.spec.descriptor.name
         
         hLayout = QtGui.QHBoxLayout(self)
         hLayout.setMargin(0)
@@ -361,7 +361,7 @@ class QListInterpolationEditor(QtGui.QWidget):
             self._str_values = []
         else: 
             self._str_values = t[1:-1].split(',')
-            if self._param_info.type=='String':
+            if self._param_info.spec.descriptor.name=='String':
                 for i, val in enumerate(self._str_values):
                     val = val.strip()
                     if len(val) >= 2 and  \
@@ -621,7 +621,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Sunken)
         self.size = -1
         self._param_info = param_info
-        self.type = param_info.spec.module
+        self.type = param_info.spec.descriptor.name
         self.defaultValue = param_info.value
         self.function = self.defaultFunction()
         
@@ -705,7 +705,7 @@ class QUserFunctionEditor(QtGui.QFrame):
                          'value of a type different '
                          'than that specified by the '
                          'parameter. Parameter Exploration '
-                         'aborted.' % param_info.type)
+                         'aborted.' % param_info.spec.descriptor.name)
             return None
         return result
         

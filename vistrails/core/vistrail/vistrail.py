@@ -733,20 +733,22 @@ class Vistrail(DBVistrail):
                                           value)
 
     def has_paramexp(self, action_id):
-        """ Check if vistrail has a default paramexp for action action_id
+        """ Check if vistrail has a latest paramexp for action action_id
         """
-        for pe in self.parameter_explorations:
-            if pe.action_id == action_id and not pe.name:
-                return True 
-        return False
+        return len(self.get_paramexps(action_id))>0
     def get_paramexp(self, action_id):
         """ Check if vistrail has a default paramexp for action action_id
-            and returns it
+            and returns it (using latest id)
         """
-        for pe in self.parameter_explorations:
-            if pe.action_id == action_id and not pe.name:
-                return pe 
-        return None
+        pes = self.get_paramexps(action_id)
+        if not len(pes):
+            return None
+        pes.sort(key=lambda x: x.id)
+        return pes[-1]
+    def get_paramexps(self, action_id):
+        """ return all pe:s for this action
+        """
+        return [pe for pe in self.parameter_explorations if pe.action_id == action_id]
     def has_named_paramexp(self, name):
         """ Check if vistrail has a paramexp named "name"
         """
@@ -757,8 +759,7 @@ class Vistrail(DBVistrail):
                 return True 
         return False
     def get_named_paramexp(self, name):
-        """ Check if vistrail has a paramexp named "name"
-            and returns it
+        """ Returns the paramexp named "name" or None
         """
         for pe in self.parameter_explorations:
             if pe.name == name:
@@ -766,13 +767,7 @@ class Vistrail(DBVistrail):
         return None
     def delete_paramexp(self, param_exp):
         self.db_delete_parameter_exploration(param_exp)
-    def set_paramexp(self, param_exp):
-        # there can only be one with this name
-        if param_exp.name and self.has_named_paramexp(param_exp.name):
-            self.delete_paramexp(self.get_named_paramexp(param_exp.name))
-        # or one without name for each action_id
-        if not param_exp.name and self.has_paramexp(param_exp.action_id):
-            self.delete_paramexp(self.get_paramexp(param_exp.action_id))
+    def add_paramexp(self, param_exp):
         param_exp.id = self.idScope.getNewId(param_exp.vtType)
         self.db_add_parameter_exploration(param_exp)
 

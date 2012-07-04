@@ -604,6 +604,9 @@ class DefaultTheme(object):
         self.RIGHT_ARROW_PIXMAP = QtGui.QPixmap(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/right.png')        
+        self.LEFT_ARROW_PIXMAP = QtGui.QPixmap(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/left.png')
         
         # Cursor for zoom in/out graphics views
         self.SELECT_CURSOR = QtGui.QCursor(QtCore.Qt.ArrowCursor)

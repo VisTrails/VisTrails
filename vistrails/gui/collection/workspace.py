@@ -1417,8 +1417,8 @@ class QVistrailList(QtGui.QTreeWidget):
             item.workflowsItem.setExpanded(True)
             item.mashupsItem.setExpanded(True)
             item.paramExplorationsItem.setExpanded(True)
-            item.mashupsItem.setHidden(not item.mashupsItem.childCount())
-            item.paramExplorationsItem.setHidden(
+        item.mashupsItem.setHidden(not item.mashupsItem.childCount())
+        item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
         self.make_tree(item) if self.isTreeView else self.make_list(item)
         self.setSelected(vistrail_window)

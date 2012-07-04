@@ -38,6 +38,7 @@ from core.modules.module_registry import get_module_registry
 from gui.base_view import BaseView
 from gui.paramexplore.pe_table import QParameterExplorationWidget
 from gui.theme import CurrentTheme
+from core import debug
 
 class QParamExploreView(QParameterExplorationWidget, BaseView):
     explorationId = 0
@@ -53,12 +54,22 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
 
     def set_controller(self, controller):
         self.controller = controller
+        self.set_exploration()
         
+    def updatePipeline(self, pipeline):
+        name = self.controller.get_pipeline_name()[10:]
+        self.set_title("Explore: %s" % name)
+
+    def set_exploration(self, pe=None):
+        if not pe:
+            pe = self.controller.current_parameter_exploration
+        self.setParameterExploration(pe)
+
     def set_default_layout(self):
-        from gui.paramexplore.pe_palette import QParamExplorePalette
+        from gui.paramexplore.pe_inspector import QParamExploreInspector
         from gui.paramexplore.param_view import QParameterView
         self.set_palette_layout(
-            {QtCore.Qt.LeftDockWidgetArea: QParamExplorePalette,
+            {QtCore.Qt.LeftDockWidgetArea: QParamExploreInspector,
              QtCore.Qt.RightDockWidgetArea: QParameterView,
              })
             
@@ -97,18 +108,26 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         
         """
         # persist the parameter exploration
-        # TODO: For now, we just replace the existing exploration - Later we should append them.
         pe = self.getParameterExploration()
         pe.action_id = self.controller.current_version
 
-        # check if latest has changed
-        if pe != self.controller.vistrail.get_paramexp(pe.action_id):
+        # check if pe has changed
+        changed = False
+        if not self.controller.current_parameter_exploration or \
+         pe != self.controller.current_parameter_exploration:
+            changed = True
             pe.name = ''
             self.controller.current_parameter_exploration = pe
-            self.controller.vistrail.set_paramexp(pe)
+            self.controller.vistrail.add_paramexp(pe)
             self.controller.set_changed(True)
         else:
-            pe = self.controller.vistrail.get_paramexp(pe.action_id)
+            pe = self.controller.current_parameter_exploration
 
-        self.controller.executeParameterExploration(pe,
-                                     self.get_palette().pipeline_view.scene())
+        errors = self.controller.executeParameterExploration(pe,
+                                     self.get_param_view().pipeline_view.scene())
+        if errors:
+            errors = '\n'.join(['Position %s: %s' % (error[0], error[1]) for error in errors])
+            debug.critical("Parameter Exploration Execution had errors", errors)
+        if changed:
+            from gui.vistrails_window import _app
+            _app.notify('exploration_changed')

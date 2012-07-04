@@ -1378,6 +1378,7 @@ class VistrailController(QtCore.QObject, BaseController):
             interpreter = get_default_interpreter()
             
             images = {}
+            errors = []
             for pi in xrange(len(modifiedPipelines)):
                 if showProgress:
                     progress.setValue(mCount[pi])
@@ -1389,7 +1390,7 @@ class VistrailController(QtCore.QObject, BaseController):
                             progress.setValue(progress.value()+1)
                             QtCore.QCoreApplication.processEvents()
                 name = os.path.splitext(self.name)[0] + \
-                                              ("_%s_%s_%s" % pipelinePositions[pi])
+                                         ("_%s_%s_%s" % pipelinePositions[pi])
                 extra_info['nameDumpCells'] = name
                 if 'pathDumpCells' in extra_info:
                     images[pipelinePositions[pi]] = \
@@ -1404,7 +1405,12 @@ class VistrailController(QtCore.QObject, BaseController):
                     kwargs['view'] = view
                 if showProgress:
                     kwargs['module_executed_hook'] = [moduleExecuted]
-                interpreter.execute(modifiedPipelines[pi], **kwargs)
+                result = interpreter.execute(modifiedPipelines[pi], **kwargs)
+                import api
+                api.result = result
+                for error in result.errors.itervalues():
+                    pp = pipelinePositions[pi]
+                    errors.append(((pp[1], pp[0], pp[2]), error))
 
             if showProgress:
                 progress.setValue(totalProgress)
@@ -1412,7 +1418,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 filename = os.path.join(extra_info['pathDumpCells'],
                                         os.path.splitext(self.name)[0])
                 assembleThumbnails(images, filename)
-    
+            return errors
+
 ################################################################################
 # Testing
 

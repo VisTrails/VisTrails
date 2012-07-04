@@ -37,14 +37,11 @@ QParameterView
 """
 from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
-from core.vistrail.module_param import ModuleParam
 from core.modules.module_registry import get_module_registry
 from core.modules.basic_modules import Constant
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
-from gui.paramexplore.virtual_cell import QVirtualCellWindow
 from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 from gui.vistrails_palette import QVistrailsPaletteInterface
-import operator
 from core.utils import InstanceObject
 
 ################################################################################
@@ -69,10 +66,52 @@ class ParameterInfo(InstanceObject):
 
 ################################################################################
 
-
-class QParameterView(QSearchTreeWindow, QVistrailsPaletteInterface):
+class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
     """
-    QParameterView is a special widget for displaying aliases and
+    QParameterView contains the parameter exploration properties and the
+    parameter palette
+    
+    """
+    def __init__(self, controller=None, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.set_title('Pipeline Methods')
+        
+        self.controller = controller
+        vLayout = QtGui.QVBoxLayout()
+        vLayout.setMargin(0)
+        vLayout.setSpacing(5)
+        self.setLayout(vLayout)
+
+        self.toggleUnsetParameters = QtGui.QCheckBox('Show Unset Parameters')
+        vLayout.addWidget(self.toggleUnsetParameters, 0, QtCore.Qt.AlignRight)
+
+        self.parameterWidget = QParameterWidget()
+        vLayout.addWidget(self.parameterWidget)
+        self.treeWidget = self.parameterWidget.treeWidget
+
+        self.pipeline_view = QAnnotatedPipelineView()
+        vLayout.addWidget(self.pipeline_view)
+
+        vLayout.setStretch(0,0)
+        vLayout.setStretch(1,1)
+        vLayout.setStretch(2,0)
+
+        self.connect(self.toggleUnsetParameters, QtCore.SIGNAL("toggled(bool)"),
+                     self.parameterWidget.treeWidget.toggleUnsetParameters)
+
+    def set_controller(self, controller):
+        self.controller = controller
+        self.set_pipeline(self.controller.current_pipeline)
+        self.pipeline_view.setScene(self.controller.current_pipeline_view)
+
+    def set_pipeline(self, pipeline):
+        self.pipeline = pipeline
+        self.parameterWidget.set_pipeline(pipeline)
+        self.pipeline_view.updateAnnotatedIds(pipeline)
+
+class QParameterWidget(QSearchTreeWindow):
+    """
+    QParameterWidget is a special widget for displaying aliases and
     parameters inside a pipeline
     
     """
@@ -81,23 +120,13 @@ class QParameterView(QSearchTreeWindow, QVistrailsPaletteInterface):
         Return the search tree widget for this window
         
         """
-        self.setWindowTitle('Set Methods')
         treeWidget = QParameterTreeWidget(self)
-        self.addButtonsToToolbar(treeWidget)
         return treeWidget
 
     def set_pipeline(self, pipeline):
         self.pipeline = pipeline
         self.treeWidget.updateFromPipeline(pipeline)
 
-    def addButtonsToToolbar(self, treeWidget):
-        # Add the show unset parameters
-        self.toggleUnsetParameters = QtGui.QAction(
-            'Show Unset Parameters', None, triggered=treeWidget.toggleUnsetParameters)
-        self.toggleUnsetParameters.setCheckable(True)
-        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
-                                               self.toggleUnsetParameters)
-        self.toolWindow().toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
 
 class QParameterTreeWidget(QSearchTreeWidget):
     """
@@ -345,3 +374,4 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
             self.setData(0, QtCore.Qt.UserRole+1,
                          QtCore.QVariant(self.parameter))
         self.isSet = isSet
+

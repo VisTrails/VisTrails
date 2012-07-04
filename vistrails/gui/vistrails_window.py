@@ -947,7 +947,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         from gui.module_palette import QModulePalette
         from gui.module_info import QModuleInfo
         from gui.paramexplore.param_view import QParameterView
-        from gui.paramexplore.pe_palette import QParamExplorePalette
+        from gui.paramexplore.pe_inspector import QParamExploreInspector
         from gui.shell import QShellDialog
         from gui.version_prop import QVersionProp
         from gui.vis_diff import QDiffProperties
@@ -968,8 +968,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                  ('state_changed', 'state_changed')))]),
              (self.LOWER_LEFT_DOCK_AREA,
               [(QModulePalette, True),
-               ((QParamExplorePalette, False),
+               ((QParamExploreInspector, False),
                 (('pipeline_changed', 'set_pipeline'),
+                 ('exploration_changed', 'set_exploration'),
                  ('controller_changed', 'set_controller'))),
                ((QMashupsInspector, False),
                 (('controller_changed', 'updateVistrailController'),
@@ -988,7 +989,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'))),
                ((QParameterView, False),
-                (('pipeline_changed', 'set_pipeline'),)),
+                (('controller_changed', 'set_controller'),
+                 ('pipeline_changed', 'set_pipeline'))),
                ((QLogDetails, False),
                 (('controller_changed', 'set_controller'),
                  ('execution_updated', 'execution_updated'),
