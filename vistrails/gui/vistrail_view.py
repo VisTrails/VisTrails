@@ -1116,6 +1116,20 @@ class QVistrailView(QtGui.QWidget):
         self.pe_view.setParameterExploration(pe)
         self.window().qactions['explore'].trigger()
 
+    def apply_parameter_exploration(self, version, pe):
+        if not pe:
+            return
+        pe = pe.__copy__()
+        pe.action_id = version
+        if self.controller.current_version != version:
+            self.window().qactions['history'].trigger()
+            self.version_selected(version, True)
+            self.version_view.select_current_version()
+        #self.controller.current_parameter_exploration = pe
+        self.window().qactions['explore'].trigger()
+        self.pe_view.setParameterExploration(pe, False)
+        self.pe_view.table.setPipeline(self.controller.current_pipeline)
+
     ##########################################################################
     # Undo/redo
         

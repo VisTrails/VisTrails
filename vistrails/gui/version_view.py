@@ -56,7 +56,7 @@ from gui.qt import qt_super
 from gui.theme import CurrentTheme
 from gui.version_prop import QVersionPropOverlay
 from gui.vis_diff import QVisualDiff
-
+from gui.collection.workspace import QParamExplorationEntityItem
 import gui.utils
 import math
 
@@ -649,12 +649,15 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
         Capture version-to-version drag-and-drop
-        
+        Also capture parameter exploration assignment
         """
         data = event.mimeData()
         if (hasattr(data, 'versionId') and
             hasattr(data, 'controller') and
-            data.versionId!=self.id):
+            data.versionId!=self.id) or \
+           (hasattr(data, 'items') and 
+            len(data.items) == 1 and
+            type(data.items[0]) == QParamExplorationEntityItem):
             event.accept()
         else:
             event.ignore()
@@ -672,6 +675,14 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             #                       self.scene().controller,
             #                       self.scene().views()[0])
             # visDiff.show()
+        elif (hasattr(data, 'items') and 
+              len(data.items) == 1 and
+              type(data.items[0]) == QParamExplorationEntityItem):
+            # apply this parameter exploration to the new version, validate it and switch to PE view
+            from gui.vistrails_window import _app
+            view = _app.get_current_view()
+            view.apply_parameter_exploration(self.id, data.items[0].entity.pe)
+            event.accept()
         else:
             event.ignore()  
 

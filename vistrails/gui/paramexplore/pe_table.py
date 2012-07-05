@@ -211,14 +211,15 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                       functions=functions)
         return pe
 
-    def setParameterExploration(self, pe):
+    def setParameterExploration(self, pe, update_inspector=True):
         """ setParameterExploration(pe: ParameterExploration) -> None
         Sets the current parameter exploration to the one defined by pe
         
         """
         self.table.clear()
         palette = self.get_palette()
-        palette.stateChanged()
+        if update_inspector:
+            palette.stateChanged()
         if not pe:
             return
         unescape_dict = { "&apos;":"'", '&quot;':'"', '&#xa;':'\n' }
