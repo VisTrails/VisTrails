@@ -385,7 +385,7 @@ class PModule(PNode):
         """Returns the position of one of this module's input port, in the
         global coordinate system.
         """
-        if isinstance(iport, str):
+        if isinstance(iport, basestring):
             iport = self.inputport_number(iport)
         return (self.center_x + self.mod_x + (iport+1) * (SPACING_X + PORT_WIDTH) - PORT_WIDTH/2,
                 self.center_y + self.mod_y + SPACING_Y + PORT_HEIGHT/2)
@@ -394,7 +394,7 @@ class PModule(PNode):
         """Returns the position of one of this module's output port, in the
         global coordinate system.
         """
-        if isinstance(oport, str):
+        if isinstance(oport, basestring):
             oport = self.outputport_number(oport)
         return (self.center_x + self.mod_x + self.module_width - (oport+1) * (SPACING_X + PORT_WIDTH) + PORT_WIDTH/2,
                 self.center_y + self.mod_y + self.module_height - SPACING_Y - PORT_HEIGHT/2)
@@ -491,9 +491,9 @@ class PConnection(PNode):
 
         self.id = id
 
-        if isinstance(oport, str):
+        if isinstance(oport, basestring):
             oport = source.outputport_number(oport)
-        if isinstance(iport, str):
+        if isinstance(iport, basestring):
             iport = destination.inputport_number(iport)
 
         self.source = source

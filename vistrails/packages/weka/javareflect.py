@@ -49,7 +49,7 @@ class JarIterator(object):
         return None
 
     def __init__(self, filename):
-        if not isinstance(filename, str):
+        if not isinstance(filename, basestring):
             raise TypeError('filename must be a string')
         f = File(filename)
         self._zip = ZipInputStream(FileInputStream(f))

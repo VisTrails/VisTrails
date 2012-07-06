@@ -230,10 +230,9 @@ class JPortsPane(JTabbedPane):
 
         if input_ports:
             for function in module.functions:
-                # FIXME : is_valid is False!?
-                #if not function.is_valid:
-                #    debug.critical("function '%s' not valid" % function.name)
-                #    continue
+                if not function.is_valid:
+                    debug.critical("function '%s' not valid" % function.name)
+                    continue
                 port_spec, item = self._ports[input_ports][function.name]
                 subitem = InputPortValue(port_spec, self.controller,
                                          module, function)
