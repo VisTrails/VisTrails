@@ -35,6 +35,7 @@
 import __builtin__
 import copy
 import os
+import re
 import sys
 import traceback
 import xml.dom
@@ -48,6 +49,24 @@ from core.utils.uxml import (named_elements, enter_named_element)
 from core.utils import VistrailsInternalError
 
 from db.domain import DBPackage
+
+
+def package_in(pkg_name, package_list):
+    """Checks if a qualifiedmodule/ package name is in a list of packages.
+
+    >>> package_in('some.thing', ['some'])
+    True
+    >>> package_in('some.thing', ['other.stuff', 'some.thing'])
+    True
+    >>> package_in('some.thing', ['some.other'])
+    False
+    >>> package_in('some.thing', ['some.thing.else'])
+    False
+    """
+    for pkg2 in package_list:
+        if pkg_name == pkg2 or pkg2 + '.' in pkg_name:
+            return True
+    return False
 
 ##############################################################################
 
@@ -240,10 +259,13 @@ class Package(DBPackage):
 
     ##########################################################################
     # Methods
-    
-    def _override_import(self, existing_paths=None):
+
+    def _override_import(self, existing_paths=None,
+            force_unload=set(), force_dontunload=set()):
         self._real_import = __builtin__.__import__
         self._imported_paths = set()
+        self._unload_packages = force_unload
+        self._dont_unload_packages = force_dontunload
         if existing_paths is not None:
             self._existing_paths = existing_paths
         else:
@@ -266,19 +288,59 @@ class Package(DBPackage):
         qual_name = ''
         for m in res_name.split('.'):
             qual_name += m
-            if qual_name not in self._existing_paths and \
-                    not qual_name.endswith('_rc'):
+            if qual_name in self._existing_paths:
+                # Don't unload this package if it was already loaded
+                remember_package = False
+            elif package_in(qual_name, self._unload_packages):
+                # _unload_packages is a list of packages that we always want to
+                # unload
+                remember_package = True
+            elif package_in(qual_name, self._dont_unload_packages):
+                # _dont_unload_packages is a list of packages that we never
+                # want to unload
+                remember_package = False
+            elif qual_name.endswith('_rc'):
+                # These packages are big constants that we don't need to reload
+                remember_package = False
+            else:
+                # Ok, now this is just guess work
+                # We try to determine whether this is a system package
+                # System packages are:
+                #   Windows:
+                #     ...\PythonXX\Lib\<package>
+                #     ...\PythonXX\Lib\site-packages\...\<package>
+                #  Linux:
+                #     /usr/lib/pythonX.X/
+                #     /usr/local/lib/python2.6/site-packages/.../<package>
+                #     .../pythonX.X/lib/pythonX.X/<package>
+                #     .../pythonX.X/lib/pythonX.X/site-packages/.../<package>
+                try:
+                    path = res.__file__.lower()
+                except AttributeError:
+                    # Builtin package
+                    remember_package = False
+                else:
+                    if os.sep != '/':
+                        path = path.replace(os.sep, '/')
+                    if 'site-packages' in path:
+                        remember_package = False
+                    else:
+                        remember_package = not (
+                                re.search(r'python[0-9.]+[a-z]?/lib/', path) or
+                                re.search(r'lib/python[0-9.]+[a-z]?/', path))
+
+            if remember_package:
                 # print '  adding', name, qual_name
                 self._imported_paths.add(qual_name)
             # else:
             #     if name != 'core.modules.module_registry':
             #         print '  already exists', name, res.__name__
-	    qual_name += '.'
+            qual_name += '.'
+
         if fromlist is not None:
             for from_module in fromlist:
                 qual_name = res_name + '.' + from_module
-                if qual_name not in self._existing_paths and \
-                        not qual_name.endswith('_rc'):
+                if remember_package:
                     # print '  adding222', name, qual_name
                     self._imported_paths.add(qual_name)
 
@@ -354,7 +416,21 @@ class Package(DBPackage):
         self.set_properties()
 
     def initialize(self, existing_paths=None):
-        self._override_import(existing_paths)
+        force_unload = set()
+        force_dontunload = set()
+        if self._module:
+            try:
+                force_unload = set(self._module.force_unload_packages)
+            except AttributeError:
+                pass
+            try:
+                force_dontunload = set(
+                        self._module.force_dont_unload_packages)
+            except AttributeError:
+                pass
+        self._override_import(existing_paths,
+                              force_unload=force_unload,
+                              force_dontunload=force_dontunload)
         try:
             name = self.prefix + self.codepath + '.init'
             try:
@@ -713,3 +789,8 @@ class Package(DBPackage):
             get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
         dom.unlink()
 
+##############################################################################
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
