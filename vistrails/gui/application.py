@@ -175,6 +175,14 @@ parameters from other instances")
     def is_running_gui(self):
         return True
 
+    def get_controller(self):
+        return self.builderWindow.get_current_controller()
+
+    def get_vistrail(self):
+        if self.get_controller():
+            return self.get_controller().vistrail
+        return None
+
     def create_notification(self, notification_id, window=None, view=None):
         if view is not None:
             if view not in self.view_notifications:

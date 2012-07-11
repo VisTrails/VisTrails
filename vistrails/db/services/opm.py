@@ -224,9 +224,22 @@ def create_opm(workflow, version, log, reg):
                     if spec_t in module_desc.db_portSpecs_name_index:
                         port_spec = module_desc.db_portSpecs_name_index[spec_t]
                     base_id = module_desc.db_base_descriptor_id
-                    pkg = get_package(reg, module_desc.db_package, 
-                                      module_desc.db_package_version)
-                    module_desc = pkg.db_module_descriptors_id_index[base_id]
+
+                   # inefficient spin through db_packages but we do
+                   # not have the descriptors_by_id index that exists
+                   # on core.module_registry.ModuleRegistry here
+                    module_desc = None
+                    for pkg in reg.db_packages:
+                        if base_id in pkg.db_module_descriptors_id_index:
+                            module_desc = \
+                                pkg.db_module_descriptors_id_index[base_id]
+                            break
+                    if module_desc is None:
+                        raise Exception("Cannot find base descriptor id %d" % \
+                                            base_id)
+                    # pkg = get_package(reg, module_desc.db_package,
+                    #                   module_desc.db_package_version)
+                    # module_desc = pkg.db_module_descriptors_id_index[base_id]
                 if port_spec is None:
                     port_spec = module_desc.db_portSpecs_name_index[spec_t]
                 print module_desc.db_name
