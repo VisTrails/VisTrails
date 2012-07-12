@@ -351,6 +351,7 @@ def prune_signatures(module, name, signatures, output=False):
     
 disallowed_classes = set(
     [
+    'simplewrapper', # ticket 464: VTK 5.10 on OpenSuSE needs this
     'vtkCriticalSection',
     'vtkDataArraySelection',
     'vtkDebugLeaks',
