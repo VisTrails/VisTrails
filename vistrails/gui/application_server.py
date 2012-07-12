@@ -1923,8 +1923,10 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.temp_xml_rpc_options = InstanceObject(server=None,
                                                    port=None,
                                                    log_file=None)
-
         qt.allowQObjects()
+
+    def is_running_gui(self):
+        return True
 
     def make_logger(self, filename, label):
         """self.make_logger(filename:str) -> logger. Creates a logging object to
