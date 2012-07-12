@@ -103,6 +103,7 @@ class CustomTable(JTable):
         self.renderer = SpreadsheetRenderer()
         self.editor = SpreadsheetEditor()
         self.setRowHeight(100)
+        self.getTableHeader().setReorderingAllowed(False)
 
     # @Override
     def getDefaultRenderer(self, c):
