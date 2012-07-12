@@ -7,7 +7,8 @@ from component import Component
 from spreadsheet import Spreadsheet
 from references import SheetReference, CellLocation
 
-from javax.swing import JFrame, JPanel, BoxLayout
+import java.io.File
+from javax.swing import JEditorPane, JFrame, JPanel, BoxLayout
 
 
 # Create a Spreadsheet object where we will store everything
@@ -25,17 +26,41 @@ class AssignCell(Module):
     def compute(self):
         sheetref = self.forceGetInputFromPort('sheet', SheetReference())
         location = self.forceGetInputFromPort('location', CellLocation())
-        widgets = self.getInputListFromPort('widget')
 
         sheet = spreadsheet.getSheet(sheetref)
         cell = sheet.getCell(location)
         cell.removeAll()
-        for widget in widgets:
-            cell.add(widget)
 
         spreadsheet.setVisible(True)
 
         self.setResult('cell', cell)
+        return cell
+
+
+class SwingCell(AssignCell):
+    """Module that allocates a cell to display a Swing component.
+
+    You can also pass in a sheet reference if you want to use a specific sheet,
+    and a location in that spreadsheet. If you don't, a cell will be selected
+    automatically.
+    """
+    def compute(self):
+        cell = AssignCell.compute(self)
+        widgets = self.getInputListFromPort('widget')
+        for widget in widgets:
+            cell.add(widget)
+
+
+class RichTextCell(AssignCell):
+    """Module that allocates a cell to display a HTML file.
+    """
+    def compute(self):
+        cell = AssignCell.compute(self)
+        richTextFile = self.getInputFromPort('html_file')
+        javaFile = java.io.File(richTextFile.name)
+        editor_pane = JEditorPane(javaFile.toURI().toURL())
+        editor_pane.setEditable(False)
+        cell.add(editor_pane)
 
 
 class Frame(Module):
@@ -88,19 +113,26 @@ def initialize(*args, **keywords):
             CellLocation, 'location',
             (CellLocation, "reference to a cell location on a sheet"))
 
-    reg.add_module(AssignCell)
+    reg.add_module(AssignCell, abstract=True)
     reg.add_input_port(
             AssignCell, 'sheet',
             (SheetReference, "reference to the sheet to be used"))
     reg.add_input_port(
             AssignCell, 'location',
             (CellLocation, "reference to the cell location to be used"))
-    reg.add_input_port(
-            AssignCell, 'widget',
-            (Component, "the swing component to be placed in the cell"))
     reg.add_output_port(
             AssignCell, 'cell',
             (Component, "the cell component"))
+
+    reg.add_module(SwingCell)
+    reg.add_input_port(
+            SwingCell, 'widget',
+            (Component, "the swing component to be placed in the cell"))
+
+    reg.add_module(RichTextCell)
+    reg.add_input_port(
+            RichTextCell, 'html_file',
+            (basic_modules.File, "the HTML file to render"))
 
     reg.add_module(Frame)
     reg.add_input_port(
