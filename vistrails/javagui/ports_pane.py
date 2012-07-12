@@ -1,4 +1,5 @@
-from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton
+from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton,\
+    SwingUtilities
 from java.awt import Dimension
 from java.awt.event import MouseAdapter
 
@@ -24,7 +25,7 @@ class ClickListener(MouseAdapter):
 
     # @Override
     def mouseClicked(self, event):
-        if event.getButton() == 1:
+        if SwingUtilities.isLeftMouseButton(event):
             self._action()
 
 
