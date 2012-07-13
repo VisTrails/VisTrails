@@ -23,7 +23,7 @@ class Cell(JPanel):
 
 
 class SpreadsheetModel(DefaultTableModel):
-    """The model for the table, holding all the cells.
+    """The model for the _table, holding all the cells.
     """
     def __init__(self, rows, columns):
         self.nbRows = rows
@@ -115,14 +115,14 @@ class CustomTable(JTable):
 
 
 class Sheet(JScrollPane):
-    """A sheet containing a table.
+    """A sheet containing a _table.
     """
     def __init__(self):
         self.model = SpreadsheetModel(2, 3)
-        self.table = CustomTable(self.model)
-        self.setViewportView(self.table)
-        self.setColumnHeaderView(self.table.getTableHeader())
-        self.setRowHeaderView(JTableRowHeader(self.table))
+        self._table = CustomTable(self.model)
+        self.setViewportView(self._table)
+        self.setColumnHeaderView(self._table.getTableHeader())
+        self.setRowHeaderView(JTableRowHeader(self._table))
 
     def getCell(self, location=None):
         # Locate the requested cell
@@ -131,7 +131,7 @@ class Sheet(JScrollPane):
             row = location.row
             column = location.column
 
-        # Should we grow the table?
+        # Should we grow the _table?
         newrowcount, newcolumncount = None, None
         if row and row >= self.model.getRowCount():
             newrowcount = row+1
@@ -141,7 +141,7 @@ class Sheet(JScrollPane):
             self.model.changeSize(
                     newrowcount or self.model.getRowCount(),
                     newcolumncount or self.model.getColumnCount())
-        
+
         row, column = Sheet.findCell(self.model, row, column)
 
         return self.model.getValueAt(row, column, create=True)
