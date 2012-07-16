@@ -144,10 +144,21 @@ class QCLToolsWizard(QtGui.QWidget):
 
         self.commandLayout = QtGui.QHBoxLayout()
         self.commandLayout.setContentsMargins(5,5,5,5)
-
-        self.commandLayout.addWidget(QtGui.QLabel("command:"))
+        tooltip = 'The command to execute'
+        label = QtGui.QLabel("Command:")
+        label.setToolTip(tooltip)
+        self.commandLayout.addWidget(label)
         self.command = QtGui.QLineEdit()
+        self.command.setToolTip(tooltip)
         self.commandLayout.addWidget(self.command)
+        tooltip = 'Sets directory to execute from. Leave blank to ignore.'
+        label = QtGui.QLabel("Directory:")
+        label.setToolTip(tooltip)
+        self.commandLayout.addWidget(label)
+        self.dir = QtGui.QLineEdit()
+        self.dir.setFixedWidth(140)
+        self.dir.setToolTip(tooltip)
+        self.commandLayout.addWidget(self.dir)
         self.vbox.addLayout(self.commandLayout)
 
         self.importLayout = QtGui.QHBoxLayout()
@@ -228,6 +239,7 @@ class QCLToolsWizard(QtGui.QWidget):
     def newFile(self):
         self.file = None
         self.command.clear()
+        self.dir.clear()
         self.showStdin.setChecked(False)
         self.showStdout.setChecked(False)
         self.showStderr.setChecked(False)
@@ -262,6 +274,7 @@ class QCLToolsWizard(QtGui.QWidget):
         self.file = fileName
         self.setTitle(self.file)
         self.command.setText(conf.get('command', ''))
+        self.dir.setText(conf.get('dir', ''))
         if 'stdin' in conf:
             self.stdinWidget.fromList(conf['stdin'])
         self.stdinGroup.setVisible('stdin' in conf)
@@ -291,6 +304,10 @@ class QCLToolsWizard(QtGui.QWidget):
                 return
         conf = {}
         conf['command'] = str(self.command.text()).strip()
+        dir = str(self.dir.text()).strip()
+        if dir:
+            conf['dir'] = dir
+            
         if self.stdinGroup.isVisible():
             conf['stdin'] = self.stdinWidget.toList()
         if self.stdoutGroup.isVisible():
@@ -605,7 +622,7 @@ class QArgWidget(QtGui.QWidget):
         if self.argtype not in self.stdTypes:
             # all args can have flag
             self.flag = QtGui.QLineEdit(self.options.get('flag', ''))
-            label = QtGui.QLabel('flag:')
+            label = QtGui.QLabel('Flag:')
             tt = 'a short-style flag before your input. Example: "-f" -> "-f yourinput"'
             label.setToolTip(tt)
             self.flag.setToolTip(tt)
@@ -615,7 +632,7 @@ class QArgWidget(QtGui.QWidget):
         
             # all args can have prefix
             self.prefix = QtGui.QLineEdit(self.options.get('prefix', ''))
-            label = QtGui.QLabel('prefix:')
+            label = QtGui.QLabel('Prefix:')
             tt = 'a long-style prefix to your input. Example: "--X=" -> "--X=yourinput"'
             label.setToolTip(tt)
             self.prefix.setToolTip(tt)
@@ -663,7 +680,7 @@ class QArgWidget(QtGui.QWidget):
 
         # description
         self.desc = QtGui.QLineEdit(self.options.get('desc', ''))
-        label = QtGui.QLabel('description:')
+        label = QtGui.QLabel('Description:')
         tt = 'Add a helpful description of the port'
         label.setToolTip(tt)
         self.desc.setToolTip(tt)
@@ -832,7 +849,7 @@ class QManpageImport(QtGui.QDialog):
         for i in xrange(self.argLayout.count()):
             w = self.argLayout.layout().itemAt(i)
             w.layout().itemAt(0).widget().setChecked(True)
-        
+
     def selectNone(self):
         for i in xrange(self.argLayout.count()):
             w = self.argLayout.layout().itemAt(i)

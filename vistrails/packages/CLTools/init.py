@@ -247,6 +247,10 @@ def add_tool(path):
                     env[key] = value
             kwargs['env'] = env
         #print "calling", args, kwargs
+
+        if 'dir' in self.conf:
+            kwargs['cwd'] = self.conf['dir']
+
         process = subprocess.Popen(args, **kwargs)
         if file_std:
             process.wait()
@@ -259,6 +263,7 @@ def add_tool(path):
             #    print "stdout:", len(stdout), stdout[:30]
             #if stderr:
             #    print "stderr:", len(stderr), stderr[:30]
+
 
         for f in open_files:
             f.close()
