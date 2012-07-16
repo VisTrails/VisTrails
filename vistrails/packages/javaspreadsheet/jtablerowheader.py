@@ -1,6 +1,6 @@
 from java.awt import Cursor, Dimension, Rectangle
 
-from javax.swing import JTable, UIManager
+from javax.swing import JTable, UIManager, JViewport
 from javax.swing.event import MouseInputAdapter
 from javax.swing.table import AbstractTableModel, DefaultTableCellRenderer
 
@@ -52,6 +52,7 @@ class JTableRowHeader(JTable):
         self._table = table
         self.configure(table)
         self.resizing_row = None
+        self.setFillsViewportHeight(True)
 
         resize_handler = TableRowResizer(table, self)
         self.addMouseListener(resize_handler)
@@ -98,11 +99,50 @@ class JTableRowHeader(JTable):
     def setRowHeight(self, a, b=None):
         if b == None:
             # JTable#setRowHeight(int height)
+            if a < 6:
+                a = 6
             JTable.setRowHeight(self, a)
         else:
             # JTable#setRowHeight(int row, int height
+            if b < 6:
+                b = 6
             JTable.setRowHeight(self, a, b)
             self._table.setRowHeight(a, b)
+
+    # Override
+    def getScrollableTracksViewportHeight(self):
+        return True
+
+    # @Override
+    def doLayout(self):
+        JTable.doLayout(self)
+
+        new_height = self.getHeight()
+
+        # We resize the rows to keep the same total height
+        # If a row is being resized, we try to only affect the following ones
+        if self.resizing_row is not None:
+            # Total current height of the following rows
+            total_height = sum([self.getRowHeight(i)
+                                for i in xrange(self.resizing_row + 1,
+                                                self.getRowCount())])
+            # New height of the following rows
+            height = self.getHeight() - sum(
+                    self.getRowHeight(i)
+                    for i in xrange(self.resizing_row + 1))
+            factor = float(height)/total_height
+
+            for i in xrange(self.resizing_row + 1, self.getRowCount()):
+                self.setRowHeight(i, int(self.getRowHeight(i)*factor))
+
+        total_height = sum([self.getRowHeight(i)
+                            for i in xrange(self.getRowCount())])
+        total_height -= 6 * self.getRowCount()
+        new_height -= 6 * self.getRowCount()
+        factor = float(new_height)/total_height
+
+        for i in xrange(self.getRowCount()):
+            self.setRowHeight(i, 6 + int((self.getRowHeight(i)-6)*factor))
 
 
 class TableRowResizer(MouseInputAdapter):
@@ -123,6 +163,8 @@ class TableRowResizer(MouseInputAdapter):
         mid_point = r.y + r.height/2
         if p.y < mid_point:
             row -= 1
+        if row == self._row_header.getRowCount()-1:
+            return -1
         return row
 
     # @Override
@@ -133,7 +175,7 @@ class TableRowResizer(MouseInputAdapter):
 
         # First find which header cell was hit
         row = self._row_header.getRowIndexAt(p.y)
-        
+
         # The first 3 pixels can be used to resize the cell
         # The last 3 pixels are used to resize the next cell
         row = self._findResizingRow(p, row)
