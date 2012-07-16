@@ -86,6 +86,11 @@ Go to the Preferences->Module Packages dialog, select **CLTools**, make sure it 
 
 Note that if you replace e.g. the **PATH** variable, you should include the existing path, which can be found by running ``echo $PATH`` on the command line.
 
+Setting working directory
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The **Directory** field can be used to specify the working directory where the command will be executed. It can **not** be used to specify the directory where the command exist. Use the PATH enviroment variable for that.
+
 Creating a standalone package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
