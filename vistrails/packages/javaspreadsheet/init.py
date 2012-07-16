@@ -1,5 +1,5 @@
 # VisTrails module imports
-from core.modules.vistrails_module import Module
+from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_registry import get_module_registry
 from core.modules import basic_modules
 
@@ -8,7 +8,7 @@ from spreadsheet import Spreadsheet
 from references import SheetReference, CellLocation
 
 import java.io.File
-from javax.swing import JEditorPane, JFrame, JPanel, BoxLayout
+from javax.swing import JEditorPane, JFrame, JPanel, BoxLayout, JTextArea
 
 
 # Create a Spreadsheet object where we will store everything
@@ -16,7 +16,7 @@ spreadsheet = Spreadsheet()
 
 
 # Module that allocates a cell to display a Swing component
-class AssignCell(Module):
+class AssignCell(NotCacheable, Module):
     """Module that allocates a cell to display a Swing component.
 
     You can also pass in a sheet reference if you want to use a specific sheet,
@@ -61,6 +61,17 @@ class RichTextCell(AssignCell):
         editor_pane = JEditorPane(javaFile.toURI().toURL())
         editor_pane.setEditable(False)
         cell.add(editor_pane)
+
+
+class TextCell(AssignCell):
+    """Module that allocates a cell to display a HTML file.
+    """
+    def compute(self):
+        cell = AssignCell.compute(self)
+        text = self.getInputFromPort('text')
+        text_area = JTextArea(text)
+        text_area.setEditable(False)
+        cell.add(text_area)
 
 
 class Frame(Module):
@@ -133,6 +144,11 @@ def initialize(*args, **keywords):
     reg.add_input_port(
             RichTextCell, 'html_file',
             (basic_modules.File, "the HTML file to render"))
+
+    reg.add_module(TextCell)
+    reg.add_input_port(
+            TextCell, 'text',
+            (basic_modules.String, "the string to display"))
 
     reg.add_module(Frame)
     reg.add_input_port(
