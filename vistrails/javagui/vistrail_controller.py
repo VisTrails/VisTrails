@@ -36,6 +36,7 @@ import core.db.io
 import core.modules.basic_modules
 from core.vistrail.controller import VistrailController as BaseController
 from javax.swing import JComponent
+from core.utils import DummyView
 
 class JVistrailController(BaseController, JComponent):
 
@@ -76,3 +77,22 @@ class JVistrailController(BaseController, JComponent):
             # Should be done before each execution?
             if self.current_pipeline.modules[module]._get_module_descriptor().module() is core.modules.basic_modules.String:
                 self.current_pipeline.modules[module]._get_module_descriptor().module().setValue("testString")
+
+    def execute_current_workflow(self, custom_aliases=None, custom_params=None,
+                                 reason='Pipeline Execution'):
+        self.flush_delayed_actions()
+        if self.current_pipeline:
+            locator = self.get_locator()
+            if locator:
+                locator.clean_temporaries()
+                if self._auto_save:
+                    locator.save_temporary(self.vistrail)
+            view = self.current_pipeline_view or DummyView()
+            return self.execute_workflow_list([(self.locator,
+                                                self.current_version,
+                                                self.current_pipeline,
+                                                view,
+                                                custom_aliases,
+                                                custom_params,
+                                                reason,
+                                                None)])

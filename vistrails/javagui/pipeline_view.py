@@ -66,6 +66,16 @@ class FontMetricsImpl(FontMetrics):
     pass
 
 
+STAT_DEFAULT        = 0
+STAT_SUCCESS        = 1
+STAT_ERROR          = 2
+STAT_NOT_EXECUTED   = 3
+STAT_ACTIVE         = 4
+STAT_COMPUTING      = 5
+STAT_PERSISTENT     = 6
+STAT_SUSPENDED      = 7
+
+
 class ModuleSelectingEventHandler(PBasicInputEventHandler):
     def __init__(self, module_layer, scene):
         self.dragging = False
@@ -263,11 +273,25 @@ class PModule(PNode):
     font = Font("Dialog", Font.BOLD, 14)
     fontMetrics = FontMetricsImpl(font)
 
+    _STATUS_TO_COLOR = {
+            STAT_DEFAULT: Color(0.8275, 0.8275, 0.8275), # light_grey
+            STAT_SUCCESS: Color(0.7400, 0.9900, 0.7900), # mint
+            STAT_ERROR: Color(0.9804, 0.5020, 0.4471), # salmon
+            STAT_NOT_EXECUTED: Color(0.9333, 0.8667, 0.5098), # light_goldenrod
+            STAT_ACTIVE: Color(1.0000, 0.8706, 0.6784), # navajo_white
+            STAT_COMPUTING: Color(1.0000, 1.0000, 0.0000), # yellow
+            STAT_PERSISTENT: Color(0.4157, 0.3529, 0.8039), # slate_blue
+            STAT_SUSPENDED: Color(1.0000, 0.6600, 0.1400), # aureoline_yellow
+            }
+
     def __init__(self, module):
         super(PModule, self).__init__()
 
         self.module = module
         self.selected = False
+
+        self.status = STAT_DEFAULT
+        self.progress = 0.0
 
         # These are the position of the center of the text, in the global
         # coordinate system
@@ -339,7 +363,7 @@ class PModule(PNode):
         graphics = paintContext.getGraphics()
 
         # Draw the rectangle
-        graphics.setColor(self.color)
+        graphics.setColor(PModule._STATUS_TO_COLOR[self.status])
         graphics.fillRect(self.mod_x, self.mod_y,
                           self.module_width, self.module_height)
         if self.selected:
@@ -600,7 +624,6 @@ class JPipelineView(PCanvas, Dockable):
         self.builder_frame = builder_frame
 
         self.controller = controller
-        self.executed = {} # List of executed modules, useful for coloring
         self.vistrail = vistrail
         self.locator = locator
         self.selected_modules = set()
@@ -633,35 +656,15 @@ class JPipelineView(PCanvas, Dockable):
         # Create the scene
         self.setupScene(self.controller.current_pipeline)
 
-        # Compute modules colors
-        self.define_modules_color(executed=False)
-
         # Setup dropping of modules from the palette
         self.setTransferHandler(TargetTransferHandler(self))
 
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
         print results[0].__str__()
-        self.executed = results[0].executed
-        self.define_modules_color()
         SwingUtilities.invokeLater(PyFuncRunner(self.invalidate))
         SwingUtilities.invokeLater(PyFuncRunner(self.revalidate))
         SwingUtilities.invokeLater(PyFuncRunner(self.repaint))
-
-    def define_modules_color(self, executed=True):
-        self.colorModules = {}
-        if not executed:
-            for module in self.controller.current_pipeline._get_modules():
-                self.modules[module].color = Color.gray
-        else:
-            for module in self.controller.current_pipeline._get_modules():
-                if module in self.executed:
-                    if self.executed[module] == True:
-                        self.modules[module].color = Color.green
-                    else:
-                        self.modules[module].color = Color.red
-                else:
-                    self.modules[module].color = Color.orange
 
     def setupScene(self, pipeline):
         """Create all the graphical objects from the vistrail.
@@ -685,6 +688,8 @@ class JPipelineView(PCanvas, Dockable):
                     connection.destination.name,
                     id=id)
 
+        self.reset_module_colors()
+
     def addConnection(self, imodule, iport, omodule, oport,
                       updatedb=False, id=None):
         if updatedb:
@@ -694,6 +699,7 @@ class JPipelineView(PCanvas, Dockable):
                     omodule.module.id, omodule.inputPorts[oport],
                     imodule.module.id, imodule.outputPorts[iport])
             id = c.id
+            self.reset_module_colors()
         edge_layer = self.getCamera().getLayer(1)
         edge_layer.addChild(PConnection(
                 id,
@@ -704,10 +710,11 @@ class JPipelineView(PCanvas, Dockable):
         """Add a module to the view.
         """
         pmod = PModule(module)
-        pmod.color = Color.gray
         self.modules[module.id] = pmod
         module_layer = self.getCamera().getLayer(0)
         module_layer.addChild(pmod)
+
+        self.reset_module_colors()
 
     def droppedModule(self, descriptor, location):
         """Called when a module descriptor has been dropped onto the view.
@@ -807,6 +814,8 @@ class JPipelineView(PCanvas, Dockable):
             self.controller.delete_connection(self.selected_connection.id)
             self.selected_connection = None
         else:
+            if not self.selected_modules:
+                return
             module_ids = []
             for module in self.selected_modules:
                 connections = set()
@@ -822,6 +831,8 @@ class JPipelineView(PCanvas, Dockable):
             # DON'T delete the connections in the DB, they are deleted in
             # cascade automatically
 
+        self.reset_module_colors()
+
     # @Override
     def getDockKey(self):
         return self._key
@@ -832,3 +843,40 @@ class JPipelineView(PCanvas, Dockable):
             return self
         else:
             return PCanvas.getComponent(self, *args)
+
+    def set_module_success(self, module_id):
+        self._set_module_status(module_id, STAT_SUCCESS)
+
+    def set_module_error(self, module_id):
+        self._set_module_status(module_id, STAT_ERROR)
+
+    def set_module_not_executed(self, module_id):
+        self._set_module_status(module_id, STAT_NOT_EXECUTED)
+
+    def set_module_active(self, module_id):
+        self._set_module_status(module_id, STAT_ACTIVE)
+
+    def set_module_computing(self, module_id):
+        self._set_module_status(module_id, STAT_COMPUTING)
+
+    def set_module_persistent(self, module_id):
+        self._set_module_status(module_id, STAT_PERSISTENT)
+
+    def set_module_suspended(self, module_id):
+        self._set_module_status(module_id, STAT_SUSPENDED)
+
+    def _set_module_status(self, module_id, status):
+        try:
+            self.modules[module_id].status = status
+        except KeyError:
+            pass
+
+    def set_module_progress(self, module_id, progress=0.0):
+        try:
+            self.modules[module_id].progress = progress
+        except KeyError:
+            pass
+
+    def reset_module_colors(self):
+        for pmod in self.modules.itervalues():
+            pmod.status = STAT_DEFAULT
