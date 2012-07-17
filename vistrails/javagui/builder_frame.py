@@ -48,6 +48,7 @@ from core.db.io import load_vistrail
 from core.vistrail.vistrail import Vistrail
 from core import debug
 from core.thumbnails import ThumbnailCache
+import core.interpreter.cached
 import core.system
 
 from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
@@ -99,20 +100,33 @@ class BuilderFrame(JFrame):
         self.dbDefault = False
 
         menuBar = JMenuBar()
+
         fileMenu = JMenu("File")
         openItem = JMenuItem("Open a file")
         openItem.actionPerformed = self.openAction
         fileMenu.add(openItem)
         fileMenu.addSeparator()
+
         quitItem = JMenuItem("Quit")
         quitItem.actionPerformed = self.quitAction
         fileMenu.add(quitItem)
         menuBar.add(fileMenu)
+
         editMenu = JMenu("Edit")
         preferencesItem = JMenuItem("Preferences...")
         preferencesItem.actionPerformed = self.showPreferences
         editMenu.add(preferencesItem)
         menuBar.add(editMenu)
+
+        workflowMenu = JMenu("Workflow")
+        executeItem = JMenuItem("Execute")
+        executeItem.actionPerformed = self.executeAction
+        workflowMenu.add(executeItem)
+        eraseCacheItem = JMenuItem("Erase cache contents")
+        eraseCacheItem.actionPerformed = self.erase_cache
+        workflowMenu.add(eraseCacheItem)
+        menuBar.add(workflowMenu)
+
         self.setJMenuBar(menuBar)
 
         self.preferenceWindow = PreferenceWindow(self)
@@ -290,7 +304,7 @@ class BuilderFrame(JFrame):
         elif event.getSource() == self.historyButton:
             self.set_current_view(self.versionView)
         elif event.getSource() == self.executeButton:
-            self.pipelineView.execute_workflow()
+            self.executeAction()
             return
         elif event.getSource() == self.openButton:
             self.openAction()
@@ -391,12 +405,18 @@ class BuilderFrame(JFrame):
     def set_active_module(self, module):
         self.moduleInfo.update_module(module)
 
+    def executeAction(self, event=None):
+        self.pipelineView.execute_workflow()
+
     def quitAction(self, event=None):
         self.setVisible(False)
         self._windowCloseListener.closed()
 
     def showPreferences(self, event=None):
         self.preferenceWindow.setVisible(True)
+
+    def erase_cache(self, event=None):
+        core.interpreter.cached.CachedInterpreter.flush()
 
     def waitClose(self):
         """Wait for the window to close.
