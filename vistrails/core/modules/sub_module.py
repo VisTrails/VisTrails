@@ -383,6 +383,8 @@ def input_port_signature(pipeline, obj, chm):
     return random_signature(pipeline, obj, chm)
 
 def group_signature(pipeline, module, chm):
+    if module._port_specs is None:
+        module.make_port_specs()
     input_conns = {}
     input_functions = {}
     for from_module, c_id in pipeline.graph.edges_to(module.id):
