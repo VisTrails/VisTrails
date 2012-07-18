@@ -32,8 +32,6 @@
 ##
 ###############################################################################
 
-import sys
-print sys.path
 from db.domain import DBAnnotation
 
 class Annotation(DBAnnotation):

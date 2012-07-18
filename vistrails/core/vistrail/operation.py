@@ -32,7 +32,6 @@
 ##
 ###############################################################################
 
-import sys
 from db.domain import DBAdd, DBChange, DBDelete
 from db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
     DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \

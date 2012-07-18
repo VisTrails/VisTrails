@@ -61,6 +61,8 @@ class JVersionVistrailView(JPanel, MouseListener, Dockable):
         self.set_graph()
 
     def set_graph(self):
+        return
+
         self.controller.recompute_terse_graph()
 
         self._current_terse_graph = self.controller._current_terse_graph
@@ -72,6 +74,8 @@ class JVersionVistrailView(JPanel, MouseListener, Dockable):
         self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail, self.controller.current_version)
 
     def paintComponent(self, graphics):
+        return
+
         if graphics is not None:
             font = graphics.getFont()
             fontRenderContext = graphics.getFontRenderContext()
@@ -133,6 +137,8 @@ class JVersionVistrailView(JPanel, MouseListener, Dockable):
                 alreadyVisitedNode.add(nodeId)
 
     def mouseClicked(self, event):
+        return
+
         eventX = event.getX()
         eventY = event.getY()
         isClickInsideNode = False

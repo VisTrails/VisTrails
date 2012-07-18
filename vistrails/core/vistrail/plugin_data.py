@@ -32,7 +32,6 @@
 ##
 ###############################################################################
 
-import sys
 from db.domain import DBPluginData
 
 class PluginData(DBPluginData):

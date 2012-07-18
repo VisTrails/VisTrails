@@ -456,12 +456,13 @@ class ModuleRegistry(DBRegistry):
         dynamically configurable modules, like PythonSource).
 
         """
+        
         if 'root_descriptor_id' not in kwargs:
             kwargs['root_descriptor_id'] = -1
         DBRegistry.__init__(self, *args, **kwargs)
+
         self.set_defaults()
 
-        
     def __copy__(self):
         ModuleRegistry.do_copy(self)
 

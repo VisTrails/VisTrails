@@ -176,7 +176,7 @@ def build_custom_window(title, message, icon=None,
     return msgBox
 
 def show_custom(title, message, icon=None,
-                buttons = [None], default=None, escape=-1):
+                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1):
     """ show_custom(title: str,
                     message: str,
                     icon: QPixmap,

@@ -1,33 +1,33 @@
 ###############################################################################
 ##
-## Copyright (C) 2006-2011, University of Utah.
+## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without
+## "Redistribution and use in source and binary forms, with or without 
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice,
+##  - Redistributions of source code must retain the above copyright notice, 
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright
-##    notice, this list of conditions and the following disclaimer in the
+##  - Redistributions in binary form must reproduce the above copyright 
+##    notice, this list of conditions and the following disclaimer in the 
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its
-##    contributors may be used to endorse or promote products derived from
+##  - Neither the name of the University of Utah nor the names of its 
+##    contributors may be used to endorse or promote products derived from 
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -67,7 +67,7 @@ def unimplemented():
     raise UnimplementedException()
 
 def abstract():
-    """Raises AbstractException."""
+    """Raises AbstractException.""" 
     raise AbstractException()
 
 ################################################################################
@@ -162,14 +162,14 @@ class PortAlreadyExists(Exception):
         self._module_name = module_name
         self._port_type = port_type
         self._port_name = port_name
-
+        
     def __str__(self):
         return "Module '%s:%s' already contains an %s port named '%s'" % \
             (self._identifier, self._module_name, self._port_type,
              self._port_name)
 
 class InvalidPipeline(Exception):
-    """InvalidPipeline is raised when a pipeline cannot be instantiated due
+    """InvalidPipeline is raised when a pipeline cannot be instantiated due 
     to missing information in the registry, like unloaded packages or missing
     modules.
 
@@ -200,7 +200,7 @@ class InvalidPipeline(Exception):
 
     def __str__(self):
         return "Pipeline has errors. Please see the detailed message for more information.\n  " + \
-            '\n  '.join(line for e in self._exception_set
+            '\n  '.join(line for e in self._exception_set 
                         for line in str(e).splitlines())
 
     def get_exception_set(self):
@@ -352,7 +352,7 @@ def iter_index(iterable, item):
         return itertools.dropwhile(lambda (v,c): v != item, itor).next()[1]
     except StopIteration:
         return -1
-
+                                              
 
 def eprint(*args):
     """eprint(*args) -> False - Prints the arguments, then returns
@@ -369,7 +369,7 @@ def uniq(l):
         return []
     a = copy.copy(l)
     a.sort()
-    l1 = a[:-1]
+    l1 = a[:-1] 
     l2 = a[1:]
     return [a[0]] + [next for (i, next) in itertools.izip(l1, l2) if i != next]
 
@@ -389,7 +389,7 @@ class InstanceObject(object):
         items_str = ('\n' + (' ' * len(pre))).join(items)
         post = ')@%X' % id(self)
         return pre + items_str + post
-
+    
     def write_source(self, prefix=""):
         result = ""
         for (k, v) in sorted(self.__dict__.items()):
@@ -398,7 +398,7 @@ class InstanceObject(object):
                 result += v.write_source(newprefix)
             else:
                 result += prefix
-                result += "." + str(k) + " = "
+                result += "." + str(k) + " = " 
                 if type(v) == type('string'):
                     result +=  "'" + str(v) + "'\n"
                 else:
@@ -449,7 +449,7 @@ def versions_increasing(v1, v2):
         core.debug.critical("Cannot compare versions whose components " +
                        "are not integers")
     return False
-
+                
 
 ##############################################################################
 # DummyView & DummyScene
@@ -459,9 +459,9 @@ class DummyScene(object):
         self.current_version = -1
         self.current_pipeline = None
     def get_selected_module_ids(self):
-        return []
+        return [] 
     def flushMoveActions(self, *args, **kwargs): pass
-
+    
 class DummyView(object):
     def __init__(self):
         self._scene = DummyScene()
@@ -473,9 +473,9 @@ class DummyView(object):
     def set_module_progress(self, *args, **kwargs): pass
     def set_module_persistent(self, *args, **kwargs): pass
     def flushMoveActions(self, *args, **kwargs): pass
-    def scene(self):
+    def scene(self): 
         return self._scene
-##############################################################################
+##############################################################################    
 # FIXME: Add tests
 def no_interrupt(callable_, *args, **kwargs):
     """no_interrupt(callable_, *args, **kwargs) -> return arguments
@@ -515,7 +515,7 @@ class Ref(object):
             else: self._obj = weakref.ref(o)
             self._func = f
             self._clas = None
-
+            
     def __call__(self):
         if self._obj is None: return self._func
         elif self._obj() is None: return None
@@ -527,17 +527,17 @@ class Ref(object):
             import new
             instance_method = new.instancemethod
         return instance_method(self._func, self._obj(), self._clas)
-
+    
 ################################################################################
 
 class Chdir(object):
     def __init__(self, dirname):
         self._old_dir = os.getcwd()
         self._new_dir = dirname
-
+        
     def __enter__(self):
         os.chdir(self._new_dir)
-
+        
     def __exit__(self, *args):
         os.chdir(self._old_dir)
 ################################################################################
@@ -569,7 +569,7 @@ class TestCommon(unittest.TestCase):
         append_to_dict_of_lists(f, 2, "Foo")
         self.assertEquals(f.has_key(2), True)
         self.assertEquals(f[2], ["Foo"])
-
+        
     def test_memo(self):
         import time
         t1 = time.time()
@@ -645,19 +645,19 @@ class TestCommon(unittest.TestCase):
         del c
         # And that after deletion the reference is dead
         self.assertEquals(cf(), None)
-
+        
     def test_chdir(self):
         def raise_exception():
             with Chdir(tempfile.gettempdir()):
                 raise Exception
-
+            
         currentpath = os.getcwd()
         with Chdir(tempfile.gettempdir()):
             pass
         self.assertEquals(os.getcwd(), currentpath)
-
+        
         self.assertRaises(Exception, raise_exception)
         self.assertEquals(os.getcwd(), currentpath)
-
+        
 if __name__ == '__main__':
     unittest.main()

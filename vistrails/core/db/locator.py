@@ -1,33 +1,33 @@
 ###############################################################################
 ##
-## Copyright (C) 2006-2011, University of Utah.
+## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without
+## "Redistribution and use in source and binary forms, with or without 
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice,
+##  - Redistributions of source code must retain the above copyright notice, 
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright
-##    notice, this list of conditions and the following disclaimer in the
+##  - Redistributions in binary form must reproduce the above copyright 
+##    notice, this list of conditions and the following disclaimer in the 
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its
-##    contributors may be used to endorse or promote products derived from
+##  - Neither the name of the University of Utah nor the names of its 
+##    contributors may be used to endorse or promote products derived from 
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -58,7 +58,7 @@ class BaseLocator(_BaseLocator):
             locator.__class__ = ZIPFileLocator
         elif locator.__class__ == _DBLocator:
             locator.__class__ = DBLocator
-
+            
     @staticmethod
     def from_url(url):
         locator = _BaseLocator.from_url(url)
@@ -96,7 +96,7 @@ class CoreLocator(object):
         from core.log.log import Log
         from core.modules.module_registry import ModuleRegistry
         from core.log.opm_graph import OpmGraph
-
+        
         klass_map = {Vistrail.vtType: Vistrail,
                      Pipeline.vtType: Pipeline,
                      Log.vtType: Log,
@@ -108,7 +108,7 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
     def __init__(self, filename, **kwargs):
         _XMLFileLocator.__init__(self, filename, **kwargs)
-
+        
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
         if klass is None:
@@ -175,21 +175,21 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 #        return helper_provider.get_load_file_locator_from_gui(klass.vtType)
 
 class DBLocator(_DBLocator, CoreLocator):
-
+    
     __list = ExtConnectionList.getInstance(default_connections_file())
-
+    
     class getKeyChain(object):
         def set_key(self, key, passwd):
             get_vistrails_application().keyChain.set_key(key,passwd)
-
+        
         def get_key(self, key):
             return get_vistrails_application().keyChain.get_key(key)
-
+    
     keyChain = getKeyChain()
-
+    
     def __init__(self, host, port, database, user, passwd, name=None,
                  **kwargs):
-
+        
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
                             **kwargs)
         self.ext_connection_id = -1
@@ -256,7 +256,7 @@ class DBLocator(_DBLocator, CoreLocator):
                                                        self._user,
                                                        self._passwd,
                                                        self._db)
-
+        
         if config is not None and config['succeeded'] == True:
             self._host = config['host']
             self._port = config['port']
@@ -265,17 +265,17 @@ class DBLocator(_DBLocator, CoreLocator):
             self._passwd = config['passwd']
             self.ext_connection_id = self.set_connection_info(**config)
             return True
-
+        
         return False
-
+    
     def update_from_console(self):
         config = self.find_connection_info(self._host, self._port, self._db)
-
+        
         if config is None:
             # the problem here is if VisTrails is being run through command
             # line from LaTex, stdout is being redirected to a log file, so
-            # the user does not see the prompt in raw_input. getpass uses the
-            # controlling terminal so it works fine. Just to make sure he sees
+            # the user does not see the prompt in raw_input. getpass uses the 
+            # controlling terminal so it works fine. Just to make sure he sees 
             # the first message prompt we will the controlling terminal
             try:
                 f= open('/dev/tty', 'w')
@@ -324,7 +324,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 except VistrailsDBException, e:
                     debug.critical('VisTrails DB Exception',  str(e))
                     config['succeeded'] = False
-
+            
             if config['succeeded'] == True:
                 self._host = config['host']
                 self._port = config['port']
@@ -335,7 +335,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 return True
             return False
         return False
-
+        
     def find_connection_info(self, host, port, db):
         """find_connection_info(host:str, port: int, db: str) -> dict
         Returns complete info of a connection with the given parameters
@@ -346,7 +346,7 @@ class DBLocator(_DBLocator, CoreLocator):
             return self.get_connection_info(id)
         else:
             return None
-
+    
     def get_connection_info(self, id):
         """get_connection_info(id: int) -> dict
         Returns info of ExtConnection """
@@ -364,7 +364,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 succeeded = True
             except VistrailsDBException:
                 succeeded = False
-
+                
             config['id'] = conn.id
             config['name'] = conn.name
             config['db'] = conn.database
@@ -372,7 +372,7 @@ class DBLocator(_DBLocator, CoreLocator):
         else:
             config = None
         return config
-
+    
     def set_connection_info(self, *args, **kwargs):
         """set_connection_info(id: int, name: str, host: str, port:int,
                      user:str, passwd:str, db:str) -> None
@@ -402,8 +402,8 @@ class DBLocator(_DBLocator, CoreLocator):
                             passwd='',
                             database=db,
                             dbtype='MySQL')
-
-        if self.__list.has_connection(id):
+        
+        if self.__list.has_connection(id):   
             self.__list.set_connection(id,conn)
         else:
             if conn.id == -1:
@@ -412,7 +412,7 @@ class DBLocator(_DBLocator, CoreLocator):
         key = str(conn.id) + "." + conn.name + "." + conn.host
         DBLocator.keyChain.set_key(key,passwd)
         return conn.id
-
+    
     ##########################################################################
 
     def __eq__(self, other):
@@ -445,7 +445,7 @@ class DBLocator(_DBLocator, CoreLocator):
         locator = _DBLocator.from_xml(node, include_name)
         locator.__class__ = DBLocator
         return locator
-
+    
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename, **kwargs):
@@ -546,7 +546,7 @@ class FileLocator(CoreLocator):
             return None
         else:
             return None
-
+    
     #ElementTree port
     @staticmethod
     def from_xml(node):
@@ -562,7 +562,7 @@ class FileLocator(CoreLocator):
                     filename = str(child.text).strip(" \n\t")
                     return FileLocator(filename)
         return None
-
+    
     @staticmethod
     def from_link_file(filename, helper_provider):
         """from_link_file(filename: str) -> DBLocator
@@ -576,7 +576,7 @@ class FileLocator(CoreLocator):
                     return True
                 if s == 'FALSE':
                     return False
-
+            
             if value is not None:
                 if type == 'str':
                     return str(value)
@@ -592,13 +592,13 @@ class FileLocator(CoreLocator):
                     elif type == 'base64':
                         return base64.b64decode(value)
             return None
-
+        
         def guess_extension_from_contents(contents):
             if contents.startswith("<vistrail"):
                 return ".xml"
             else:
                 return ".vt"
-
+            
         tree = ElementTree.parse(filename)
         node = tree.getroot()
         if node.tag != 'vtlink':
@@ -632,7 +632,7 @@ class FileLocator(CoreLocator):
         mashuptrail = convert_from_str(data, 'str')
         data = node.get('mashupVersion', None)
         mashupVersion = convert_from_str(data, 'int')
-
+        
         #if execute is False, we will show the builder too
         if showSpreadsheetOnly and not execute:
             showSpreadsheetOnly = False
@@ -643,7 +643,7 @@ class FileLocator(CoreLocator):
 
         if tag is None:
             tag = '';
-
+            
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration
         config = get_vistrails_configuration()
@@ -680,23 +680,23 @@ class FileLocator(CoreLocator):
                                 newbase = "%s_%s%s" % (base, i, ext)
                                 fname = os.path.join(dirname,newbase)
                                 i+=1
-
+                        
                 if create_file:
                     f = open(fname,'wb')
                     f.write(vtcontent)
                     f.close()
                 return FileLocator(fname, version_node=version, version_tag=tag,
-                                   mashuptrail=mashuptrail,
+                                   mashuptrail=mashuptrail, 
                                    mashupVersion=mashupVersion)
         if host is not None:
             user = ""
             passwd = ""
-
+            
             return DBLocator(host, port, database,
-                             user, passwd, None, obj_id=vt_id,
-                             obj_type='vistrail',connection_id=None,
+                             user, passwd, None, obj_id=vt_id, 
+                             obj_type='vistrail',connection_id=None, 
                              version_node=version, version_tag=tag,
-                             mashuptrail=mashuptrail,
+                             mashuptrail=mashuptrail, 
                              mashupVersion=mashupVersion)
         elif vtname is not None:
             if os.path.dirname(vtname) == '':
@@ -707,10 +707,10 @@ class FileLocator(CoreLocator):
                     vtname = newvtname
             print vtname, version, tag, mashuptrail,mashupVersion
             return FileLocator(vtname, version_node=version, versin_tag=tag,
-                               mashuptrail=mashuptrail,
+                               mashuptrail=mashuptrail, 
                                mashupVersion=mashupVersion)
-
-
+        
+        
     ##########################################################################
 def untitled_locator():
     basename = 'untitled' + vistrails_default_file_type()
