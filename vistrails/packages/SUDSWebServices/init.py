@@ -46,7 +46,6 @@ from core.modules.package import Package
 from core.modules.vistrails_module import Module, ModuleError, new_module
 from core.upgradeworkflow import UpgradeWorkflowHandler
 from core import debug
-from core import configuration
 
 from core.bundles import py_import
 try:
@@ -72,18 +71,6 @@ def toAddress(s):
     return s[5:].replace('$', ':')
 
 ###############################################################################
-
-class SUDSWebService(Module):
-    """ SUDSWebService is the base Module.
-     We will create a SUDSWebService Module for each method published by 
-     the web service.
-
-    """
-    def __init__(self):
-        Module.__init__(self)
-
-    def compute(self):
-        raise vistrails_module.IncompleteImplementation
 
 wsdlSchemas = ['http://www.w3.org/2001/XMLSchema',
               'http://xml.apache.org/xml-soap',
@@ -168,12 +155,14 @@ def initialize(*args, **keywords):
     suds.client.ObjectCache.protocol = 0 # windows needs this
     package_cache = suds.client.ObjectCache(location, days=days)
 
-    reg = core.modules.module_registry.get_module_registry()
-    reg.add_module(SUDSWebService, **{'hide_descriptor':True})
+    #reg = core.modules.module_registry.get_module_registry()
+    #reg.add_module(SUDSWebService, abstract=True)
 
     wsdlList = []
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
+    else:
+        configuration.wsdlList = ''
     for wsdl in wsdlList:
         if not wsdl.startswith('http://'):
             wsdl = 'http://' + wsdl
@@ -317,12 +306,9 @@ class Service:
         return False
 
     def createPackage(self):
-        pm = get_package_manager()
-        if pm.has_package(self.signature):
-            package = pm.get_package_by_identifier()
-            pm.remove_package(package.codepath)
-
         reg = core.modules.module_registry.get_module_registry()
+        if self.signature in reg.packages:
+            reg.remove_package(reg.packages[self.signature])
 
         # create a document hash integer from the cached sax tree
         # "name" is what suds use as the cache key
@@ -336,7 +322,6 @@ class Service:
 
         package_id = reg.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
-                          codepath=__file__,
                           load_configuration=False,
                           name="SUDS#" + self.address,
                           identifier=self.signature,
@@ -344,6 +329,8 @@ class Service:
                           )
         self.package = package
         reg.add_package(package)
+        reg.signals.emit_new_package(self.signature)
+
         self.module = new_module(Module, str(self.signature))
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,
@@ -365,7 +352,6 @@ class Service:
 
         package_id = reg.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
-                          codepath=__file__,
                           load_configuration=False,
                           name="SUDS#" + self.address,
                           identifier=self.signature,
@@ -376,6 +362,7 @@ class Service:
         package._init_module = suds_package.init_module
         self.package = package
         reg.add_package(package)
+        reg.signals.emit_new_package(self.signature)
         self.module = new_module(Module, str(self.signature))
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,

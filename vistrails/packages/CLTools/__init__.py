@@ -38,6 +38,6 @@ from core.configuration import ConfigurationObject
 
 name = 'CLTools'
 identifier = "edu.utah.sci.vistrails.cltools"
-version = "0.1.0"
+version = "0.1.1"
 
 configuration = ConfigurationObject(env=(None, str))

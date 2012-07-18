@@ -376,12 +376,10 @@ Returns true if given package identifier is present."""
             #check_requirements is now called in pkg.initialize()
             #pkg.check_requirements()
             self._registry.initialize_package(pkg)
-            # FIXME Empty packages still need to be added, but currently they are not
-            # because newPackage is typically only called for the first module inside
-            # a package.
-            from core.modules.abstraction import identifier as abstraction_identifier
-            if pkg.identifier == abstraction_identifier:
-                self._registry.signals.emit_new_package(abstraction_identifier, True)
+            self._registry.signals.emit_new_package(pkg.identifier, True)
+            app = get_vistrails_application()
+            app.send_notification("package_added", package_codepath)
+            self.add_menu_items(pkg)
         except Exception, e:
             del self._package_versions[pkg.identifier][pkg.version]
             if len(self._package_versions[pkg.identifier]) == 0:
@@ -396,9 +394,6 @@ Returns true if given package identifier is present."""
             except MissingPackage:
                 pass
             raise e
-        self.add_menu_items(pkg)
-        app = get_vistrails_application()
-        app.send_notification("package_added", package_codepath)
 
     def late_disable_package(self, package_codepath):
         """late_disable_package disables a package 'late', that is,
