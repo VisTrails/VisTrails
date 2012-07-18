@@ -105,7 +105,26 @@ def get_java_vm():
         return _java_vm
 
     # Build the classpath parameter
+
+    # CLASSPATH environment variable
     classpath = os.environ['classpath'].split(os.pathsep)
+
+    # Application library directory
+    for d in ['../javalibs', '../libs', '../lib', '../jars', '../jar',
+              '../../javalibs', '../../libs', '../../lib', '../../jars',
+              '../../jar']:
+        if os.path.isdir(d):
+            for root, dirs, files in os.walk(d):
+                for f in files:
+                    if f[-4:].lower() == '.jar':
+                        classpath.append(os.path.join(root, f))
+                # Don't visit subdirectories beginning with a dot
+                i = 0
+                while i < len(dirs):
+                    if dirs[i][0] == '.':
+                        del dirs[i]
+                    else:
+                        i += 1
 
     if USING_JYTHON:
         sys.path.extend(classpath)

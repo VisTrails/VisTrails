@@ -73,15 +73,11 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
 
         # VLDocking
         check_java_requirement(
-                ['vldocking', 'docking'],
-                'vldocking_{version}.jar', {'version': '3.0.0'},
                 ('com.vlsolutions.swing.docking',
                  ['DockKey', 'Dockable']))
 
         # Piccolo-core
         check_java_requirement(
-                ['piccolo'],
-                'piccolo2d-core-{version}.jar', {'version': '1.3.1'},
                 ('edu.umd.cs.piccolo',
                  ['PCanvas', 'PNode']))
 
