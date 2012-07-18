@@ -1,8 +1,14 @@
 from core.modules.vistrails_module import Module, NotCacheable
 
-from java.util import HashMap
-from obvious.prefuse.viz import PrefuseObviousVisualization
-from obvious.prefuse.viz.util import PrefuseObviousNetworkViz as Viz
+from extras.java_vm import get_java_vm
+
+
+_JAVA_VM = get_java_vm()
+
+HashMap = _JAVA_VM.java.util.HashMap
+PrefuseObviousVisualization = \
+        _JAVA_VM.obvious.prefuse.viz.PrefuseObviousVisualization
+Viz = _JAVA_VM.obvious.prefuse.viz.util.PrefuseObviousNetworkViz
 
 
 # The visualization shouldn't be cached

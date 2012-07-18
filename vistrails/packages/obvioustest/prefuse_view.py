@@ -1,8 +1,17 @@
 from core.modules.vistrails_module import Module, NotCacheable
 
-import prefuse
-from prefuse.controls import DragControl, PanControl, ZoomControl
-from obvious.prefuse.view import PrefuseObviousControl, PrefuseObviousView as View
+from extras.java_vm import get_java_vm
+
+
+_JAVA_VM = get_java_vm()
+
+prefuse = _JAVA_VM.prefuse
+DragControl = prefuse.controls.DragControl
+PanControl = prefuse.controls.PanControl
+ZoomControl = prefuse.controls.ZoomControl
+
+PrefuseObviousControl = _JAVA_VM.obvious.prefuse.view.PrefuseObviousControl
+View = _JAVA_VM.obvious.prefuse.view.PrefuseObviousView
 
 
 # The view shouldn't be cached - we want the frame to be shown after each

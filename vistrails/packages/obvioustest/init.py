@@ -5,14 +5,6 @@ from core.modules import basic_modules
 # This represents a swing component, that may be added to a spreadsheet cell
 from packages.javaspreadsheet.component import Component
 
-# Set up the path so we can load from the bundled JAR's
-import sys
-sys.path.append('packages/obvioustest/jar/obvious.jar')
-
-sys.path.append('packages/obvioustest/jar/lucene-1.4.3.jar')
-sys.path.append('packages/obvioustest/jar/prefuse.jar')
-sys.path.append('packages/obvioustest/jar/obvious-prefuse.jar')
-
 # Import the Module's of this package, to be registered by initialize()
 from prefuse_grid_network import PrefuseGridNetwork
 from prefuse_network_viz import PrefuseNetworkViz

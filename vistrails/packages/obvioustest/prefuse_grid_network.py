@@ -1,7 +1,12 @@
 from core.modules.vistrails_module import Module
 
-from obvious.prefuse.data import PrefuseObviousNetwork
-from prefuse.util import GraphLib
+from extras.java_vm import get_java_vm
+
+
+_JAVA_VM = get_java_vm()
+
+PrefuseObviousNetwork = _JAVA_VM.obvious.prefuse.data.PrefuseObviousNetwork
+GraphLib = _JAVA_VM.prefuse.util.GraphLib
 
 
 class PrefuseGridNetwork(Module):
