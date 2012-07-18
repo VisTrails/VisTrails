@@ -179,6 +179,8 @@ def NewPythonEditor(parent):
         
             # folding margin colors (foreground,background)
             self.setFoldMarginColors(QtGui.QColor("#DDDDDD"),QtGui.QColor("#DDDDDD"))
+            # do not use tabs
+            self.setIndentationsUseTabs(False)
             self.setTabWidth(4)
             self.setTabIndents(True)
         
