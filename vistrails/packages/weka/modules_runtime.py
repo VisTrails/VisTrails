@@ -2,7 +2,7 @@ from core import debug
 
 from javareflect import format_type
 
-from extras.core.java_vm import get_class
+from extras.java_vm import get_class
 
 
 def format_type_list(l):

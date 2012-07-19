@@ -75,7 +75,7 @@ from db.services.io import SaveBundle
 import db.services.vistrail
 from db import VistrailsDBException
 
-from extras.core.db.gui.locator import QtLocatorHelperProvider
+from extras.db.gui.locator import QtLocatorHelperProvider
 
 class QBaseViewWindow(QtGui.QMainWindow):
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):

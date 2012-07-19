@@ -57,7 +57,7 @@ from core.modules.module_registry import ModuleRegistry, \
     ModuleRegistryException
 import copy
 
-from extras.core.db.gui.locator import QtLocatorHelperProvider
+from extras.db.gui.locator import QtLocatorHelperProvider
 
 ################################################################################
 class QDetachedView(QtGui.QStackedWidget):

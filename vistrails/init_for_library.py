@@ -127,6 +127,6 @@ import gui.theme
 import gui.utils
 import gui.version_view
 import gui.vistrail_controller
-import gui.vistrails_tree_layout_lw
+import extras.vistrails_tree_layout_lw
 spreadsheet = __import__('packages.spreadsheet', globals(), locals(), 
                             ['spreadsheet_controller'], -1) 

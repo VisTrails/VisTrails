@@ -64,7 +64,7 @@ from gui.mashups.mashup_view import QMashupView
 from gui.ports_pane import ParameterEntry
 from gui.query_view import QueryEntry
 
-from extras.core.db.gui.locator import QtLocatorHelperProvider
+from extras.db.gui.locator import QtLocatorHelperProvider
 
 ################################################################################
 

@@ -41,7 +41,7 @@ import os
 from javax.swing import JFileChooser, JOptionPane
 from javax.swing.filechooser import FileFilter, FileNameExtensionFilter
 
-from extras.core.db.locator import LocatorHelperProvider
+from extras.db.locator import LocatorHelperProvider
 
 
 class JavaLocatorHelperProvider(LocatorHelperProvider):

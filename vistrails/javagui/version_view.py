@@ -32,22 +32,42 @@
 ##
 ###############################################################################
 
-from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+from extras.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 import core.db.io
 
 from javax.swing import JPanel
 from java.awt.event import MouseListener
-from java.awt import Rectangle, Color
+from java.awt import Rectangle, Color, Font
 
 from com.vlsolutions.swing.docking import Dockable, DockKey
+from utils import FontMetricsImpl
+
+
+class FontMetrics(object):
+    def __init__(self, metrics):
+        self._metrics = metrics
+        self._height = metrics.getHeight()
+
+    def width(self, string):
+        return self._metrics.getStringBounds(string, None).getWidth()
+
+    def height(self):
+        return self._height
+
 
 class JVersionVistrailView(JPanel, MouseListener, Dockable):
+
+    MARGIN_X = 60
+    MARGIN_Y = 35
 
     def __init__(self, vistrail, locator, controller,
             abstraction_files=None, thumbnail_files=None,
             version=None):
         self._key = DockKey('version_view')
         self._key.setResizeWeight(1.0)
+
+        font = Font("Dialog", Font.PLAIN, 15)
+        self.FONT_METRICS = FontMetrics(FontMetricsImpl(font))
 
         self.full_tree = True
         self.refine = False
@@ -61,21 +81,20 @@ class JVersionVistrailView(JPanel, MouseListener, Dockable):
         self.set_graph()
 
     def set_graph(self):
-        return
-
         self.controller.recompute_terse_graph()
 
         self._current_terse_graph = self.controller._current_terse_graph
         self._current_full_graph = self.controller._current_full_graph
         self._current_graph_layout = VistrailsTreeLayoutLW()
         self._current_graph_layout.layout_from(
-                self.vistrail, self._current_terse_graph)
+                self.vistrail, self._current_terse_graph,
+                self.FONT_METRICS,
+                self.MARGIN_X,
+                self.MARGIN_Y)
 
         self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail, self.controller.current_version)
 
     def paintComponent(self, graphics):
-        return
-
         if graphics is not None:
             font = graphics.getFont()
             fontRenderContext = graphics.getFontRenderContext()
@@ -137,8 +156,6 @@ class JVersionVistrailView(JPanel, MouseListener, Dockable):
                 alreadyVisitedNode.add(nodeId)
 
     def mouseClicked(self, event):
-        return
-
         eventX = event.getX()
         eventY = event.getY()
         isClickInsideNode = False

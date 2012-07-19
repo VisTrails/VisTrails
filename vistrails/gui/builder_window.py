@@ -72,7 +72,7 @@ from core.thumbnails import ThumbnailCache
 import gui.debug
 from gui.mashups.mashups_manager import MashupsManager
 
-from extras.core.db.gui.locator import QtLocatorHelperProvider
+from extras.db.gui.locator import QtLocatorHelperProvider
 
 ################################################################################
 

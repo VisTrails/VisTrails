@@ -61,7 +61,7 @@ from java.awt.event import WindowAdapter
 from com.vlsolutions.swing.docking import DockingDesktop, DockingConstants,\
     DockKey, Dockable, DockGroup, RelativeDockablePosition
 
-from extras.core.db.javagui.locator import JavaLocatorHelperProvider
+from extras.db.javagui.locator import JavaLocatorHelperProvider
 
 
 class CloseListener(WindowAdapter):

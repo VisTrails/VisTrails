@@ -4,7 +4,7 @@ import StringIO
 from core.modules.vistrails_module import Module
 from core.modules.module_registry import get_module_registry
 
-from extras.core.java_vm import get_java_vm, build_jarray
+from extras.java_vm import get_java_vm, build_jarray
 
 
 _JAVA_VM = get_java_vm()

@@ -1,4 +1,4 @@
-from extras.core.java_vm import get_java_vm
+from extras.java_vm import get_java_vm
 from core.requirements import MissingRequirement
 
 

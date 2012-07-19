@@ -1,5 +1,6 @@
 from java.lang import Runnable
 from javax.swing import SwingUtilities, ImageIcon
+from java.awt import FontMetrics
 from java.awt.image import BufferedImage
 from java.awt.event import FocusListener, KeyEvent, KeyListener
 
@@ -76,3 +77,8 @@ class InputValidationListener(KeyListener, FocusListener):
     # @Override
     def focusLost(self, e):
         self._callback()
+
+
+# FontMetrics is declared abstract even though it has no abstract method
+class FontMetricsImpl(FontMetrics):
+    pass

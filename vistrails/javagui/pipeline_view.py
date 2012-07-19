@@ -36,7 +36,7 @@ from core.modules.module_registry import get_module_registry
 
 from java.lang import System
 from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
-from java.awt import Color, Polygon, Font, FontMetrics, Point, BasicStroke
+from java.awt import Color, Polygon, Font, Point, BasicStroke
 from java.awt.geom import Rectangle2D
 from java.awt.event import MouseEvent, KeyEvent, InputEvent
 from java.io import IOException
@@ -47,7 +47,7 @@ from edu.umd.cs.piccolo.nodes import PPath
 from edu.umd.cs.piccolo.event import PBasicInputEventHandler, PInputEventFilter
 
 from module_palette import moduleData
-from utils import PyFuncRunner
+from utils import PyFuncRunner, FontMetricsImpl
 from com.vlsolutions.swing.docking import DockKey, Dockable
 
 
@@ -59,11 +59,6 @@ SPACING_Y = 5
 
 CONNECTION_OK_COLOR = Color(0, 0, 100)
 NO_CONNECTION_COLOR = Color(100, 0, 0)
-
-
-# FontMetrics is declared abstract even though it has no abstract method
-class FontMetricsImpl(FontMetrics):
-    pass
 
 
 STAT_DEFAULT        = 0

@@ -53,7 +53,7 @@ import os.path
 import getpass
 import sys
 
-from extras.core.db.gui.locator import QtLocatorHelperProvider
+from extras.db.gui.locator import QtLocatorHelperProvider
 
 ################################################################################
 

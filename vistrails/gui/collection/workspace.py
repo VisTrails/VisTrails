@@ -52,7 +52,7 @@ from gui.module_palette import QModuleTreeWidgetItemDelegate
 from gui.vis_diff import QDiffView
 from core.collection.entity import Entity
 
-from extras.core.db.gui.locator import QtLocatorHelperProvider
+from extras.db.gui.locator import QtLocatorHelperProvider
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling

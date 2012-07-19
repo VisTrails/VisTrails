@@ -127,9 +127,12 @@ class DotLayout(object):
             for (first,second) in froom:
                 f.write('  %s -> %s;\n' % (id, first))
 
-    def layout_from(self, vistrail, graph):
-        """ layout_from(vistrail: VisTrail, graph: Graph) -> None
-        Take a graph from VisTrail version and use Dotty to lay it out
+    def layout_from(self, vistrail, graph,
+            fontMetrics=None,
+            text_horizontal_margin=0, text_vertical_margin=0):
+        """ layout_from(vistrail: VisTrail, graph: Graph, fontMetrics,
+            text_horizontal_margin:int, text_vertical_margin:int) -> None
+        Take a graph from VisTrail version and use Dotty to lay it out.
         
         """
         # Create VisTrail graph input

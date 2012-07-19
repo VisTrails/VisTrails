@@ -45,7 +45,7 @@ from gui.theme import initializeCurrentTheme
 from gui.palette_container import PaletteContainer
 from gui.vistrails_window import QVistrailsWindow
 
-from extras.core.db.gui.locator import QtLocatorHelperProvider
+from extras.db.gui.locator import QtLocatorHelperProvider
 
 class VisTrailsApp(QtGui.QMainWindow):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):

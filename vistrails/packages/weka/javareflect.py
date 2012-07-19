@@ -4,7 +4,7 @@ from core import debug
 
 import javaparser
 
-from extras.core.java_vm import get_java_vm, JavaException
+from extras.java_vm import get_java_vm, JavaException
 
 
 _JAVA_VM = get_java_vm()

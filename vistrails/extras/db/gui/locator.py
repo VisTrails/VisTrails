@@ -43,7 +43,7 @@ from PyQt4 import QtGui, QtCore
 import core.system
 import os
 
-from extras.core.db.locator import LocatorHelperProvider
+from extras.db.locator import LocatorHelperProvider
 
 
 class QtLocatorHelperProvider(LocatorHelperProvider):

@@ -59,7 +59,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
-from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+from extras.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 
 import core.analogy
 import copy
@@ -507,8 +507,13 @@ class VistrailController(QtCore.QObject, BaseController):
     def recompute_terse_graph(self):
         BaseController.recompute_terse_graph(self)
         self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
-        self._current_graph_layout.layout_from(self.vistrail,
-                                               self._current_terse_graph)
+        
+        from gui.theme import CurrentTheme
+        self._current_graph_layout.layout_from(
+                self.vistrail, self._current_terse_graph,
+                CurrentTheme.VERSION_FONT_METRIC,
+                CurrentTheme.VERSION_LABEL_MARGIN[0],
+                CurrentTheme.VERSION_LABEL_MARGIN[1])
 
     def refine_graph(self, step=1.0):
         """ refine_graph(step: float in [0,1]) -> (Graph, Graph)        

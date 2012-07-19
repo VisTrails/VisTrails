@@ -80,7 +80,8 @@ class VistrailsTreeLayoutLW(object):
         self.scale = 0.0
         self.width = 0.0
 
-    def generateTreeLW(self, vistrail, graph):
+    def generateTreeLW(self, vistrail, graph,
+            fontMetrics, text_horizontal_margin, text_vertical_margin):
         """ output_vistrail_graph(f: str) -> None
         Using vistrail and graph to prepare a dotty graph input
         
@@ -117,11 +118,6 @@ class VistrailsTreeLayoutLW(object):
                     nodes.append((first, vistrail.get_description(first)))
                     X.add(first)
 
-        # get widths and heights for the nodes
-        from gui.theme import CurrentTheme
-        fontMetrics = CurrentTheme.VERSION_FONT_METRIC
-        text_horizontal_margin = CurrentTheme.VERSION_LABEL_MARGIN[0]
-        text_vertical_margin = CurrentTheme.VERSION_LABEL_MARGIN[1]
         empty_width = text_horizontal_margin + fontMetrics.width(" "*5)
         
         # default height for all nodes
@@ -154,13 +150,16 @@ class VistrailsTreeLayoutLW(object):
         # return the tree
         return tree
 
-    def layout_from(self, vistrail, graph):
-        """ layout_from(vistrail: VisTrail, graph: Graph) -> None
-        Take a graph from VisTrail version and use Dotty to lay it out
+    def layout_from(self, vistrail, graph,
+            fontMetrics, text_horizontal_margin, text_vertical_margin):
+        """ layout_from(vistrail: VisTrail, graph: Graph, fontMetrics,
+            text_horizontal_margin:int, text_vertical_margin:int) -> None
+        Take a graph from VisTrail version and lay it out.
         
         """
 
-        tree = self.generateTreeLW(vistrail, graph)
+        tree = self.generateTreeLW(vistrail, graph,
+                fontMetrics, text_horizontal_margin, text_vertical_margin)
 
         min_horizontal_separation = 20
         min_vertical_separation = 50
