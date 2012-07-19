@@ -13,3 +13,7 @@ configuration = ConfigurationObject(
         wekaDirectory='',
         wekaJar='weka.jar',
         wekaSrcJar='weka-src.jar')
+
+def package_requirements():
+    from core.requirements import require_python_module
+    require_python_module('json')
