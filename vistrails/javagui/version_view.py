@@ -37,7 +37,7 @@ import core.db.io
 
 from javax.swing import JPanel
 from java.awt.event import MouseListener
-from java.awt import Rectangle, Color, Font
+from java.awt import Color, Font
 
 from com.vlsolutions.swing.docking import Dockable, DockKey
 from utils import FontMetricsImpl
@@ -55,23 +55,35 @@ class FontMetrics(object):
         return self._height
 
 
-class JVersionVistrailView(JPanel, MouseListener, Dockable):
+class VersionNode(object):
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+
+class JVersionView(JPanel, MouseListener, Dockable):
 
     MARGIN_X = 60
     MARGIN_Y = 35
 
-    def __init__(self, vistrail, locator, controller,
+    HORIZONTAL_POSITION = 300
+    VERTICAL_POSITION = 20
+
+    def __init__(self, vistrail, locator, controller, builder_frame,
             abstraction_files=None, thumbnail_files=None,
             version=None):
         self._key = DockKey('version_view')
         self._key.setResizeWeight(1.0)
 
-        font = Font("Dialog", Font.PLAIN, 15)
-        self.FONT_METRICS = FontMetrics(FontMetricsImpl(font))
+        self.FONT = Font("Dialog", Font.PLAIN, 15)
+        self.FONT_METRICS = FontMetrics(FontMetricsImpl(self.FONT))
 
         self.full_tree = True
         self.refine = False
         self.controller = controller
+        self.builder_frame = builder_frame
         self.idScope = self.controller.id_scope
         self.setBackground(Color.GREEN)
         self.addMouseListener(self)
@@ -94,81 +106,101 @@ class JVersionVistrailView(JPanel, MouseListener, Dockable):
 
         self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail, self.controller.current_version)
 
+    # @Override
     def paintComponent(self, graphics):
-        if graphics is not None:
-            font = graphics.getFont()
-            fontRenderContext = graphics.getFontRenderContext()
-            self.nodesToDim = {}
+        fontRenderContext = graphics.getFontRenderContext()
+        graphics.setFont(self.FONT)
 
-            graphics.translate(20, 20)
+        graphics.clearRect(0, 0, self.getWidth(), self.getHeight())
+        
+        graphics.translate(self.HORIZONTAL_POSITION, self.VERTICAL_POSITION)
 
-            # Draw the nodes
-            maxWidth = 0
-            maxHeight = 0
+        self.nodes = dict()
 
-            for _, node in self._current_graph_layout.nodes.iteritems():
-                label = self.vistrail.get_description(node.id) or str(node.id)
-                if label is None or label == "":
-                    label = "TREE ROOT"
+        vistrail = self.controller.vistrail
+        tm = vistrail.get_tagMap()
 
-                fontRect = font.getStringBounds(label, fontRenderContext)
+        for node in self._current_graph_layout.nodes.itervalues():
+            v = node.id
+            tag = tm.get(v, None)
+            description = vistrail.get_description(v)
 
-                graphics.setColor(Color.white)
-                graphics.fillRect(int(node.p.x), int(node.p.y),
-                                  int(fontRect.getWidth()), int(fontRect.getHeight()))
+            if tag is not None:
+                label = tag
+            elif description is not None:
+                label = description
+            else:
+                label = ''
+
+            fontRect = self.FONT.getStringBounds(label, fontRenderContext)
+
+            graphics.setColor(Color.white)
+            w = int(fontRect.getWidth()) + self.MARGIN_X
+            h = int(fontRect.getHeight()) + self.MARGIN_Y
+            oval = (int(node.p.x) - w/2, int(node.p.y) - h/2,
+                    w, h)
+            graphics.fillOval(*oval)
+            if v == self.controller.current_version:
+                graphics.setColor(Color.red)
+            else:
                 graphics.setColor(Color.black)
-                graphics.drawString(label, int(node.p.x),
-                    int(node.p.y) + int(fontRect.getHeight()))
+            graphics.drawOval(*oval)
+            graphics.drawString(
+                    label,
+                    int(node.p.x - fontRect.getWidth()/2),
+                    int(node.p.y -
+                            fontRect.getY() - fontRect.getHeight()/2))
 
-                if maxWidth < int(fontRect.getWidth()):
-                    maxWidth = int(fontRect.getWidth())
-                if maxHeight < int(fontRect.getHeight()):
-                    maxHeight = int(fontRect.getHeight())
-                dim = {}
-                dim["x"] = int(node.p.x)
-                dim["y"] = int(node.p.y)
-                dim["height"] = int(fontRect.getHeight())
-                dim["width"] = int(fontRect.getWidth())
-                self.nodesToDim[node.id] = dim
+            self.nodes[node.id] = VersionNode(
+                    int(node.p.x) + self.HORIZONTAL_POSITION,
+                    int(node.p.y) + self.VERTICAL_POSITION,
+                    w, h)
 
-            # Draw the edges
-            alreadyVisitedNode = set()
-            for _, node in self._current_graph_layout.nodes.iteritems():
-                nodeId = node.id
-                for _, nodeBis in self._current_graph_layout.nodes.iteritems():
-                    nodeBisId = nodeBis.id
-                    if nodeBis in alreadyVisitedNode:
-                        pass
-                    else:
-                        if self._current_terse_graph.has_edge(nodeId, nodeBisId) or self._current_terse_graph.has_edge(nodeBisId, nodeId):
-                            graphics.setColor(Color.black)
-                            # Detecting the top node in order to correctly draw edges
-                            if node.p.y < nodeBis.p.y:
-                                topNode = node
-                                bottomNode = nodeBis
-                            else:
-                                topNode = nodeBis
-                                bottomNode = node
-                            graphics.drawLine(int(topNode.p.x) + self.nodesToDim[topNode.id]["width"]/2 ,
-                                              int(topNode.p.y) + maxHeight,
-                                              int(bottomNode.p.x) + self.nodesToDim[bottomNode.id]["width"]/2,
-                                              int(bottomNode.p.y))
-                alreadyVisitedNode.add(nodeId)
+        # Draw the edges
+        graphics.setColor(Color.black)
+        alreadyVisitedNode = set()
+        for node1 in self._current_graph_layout.nodes.itervalues():
+            v1 = node1.id
+            for node2 in self._current_graph_layout.nodes.itervalues():
+                v2 = node2.id
+                if node2 in alreadyVisitedNode:
+                    pass
+                else:
+                    if self._current_terse_graph.has_edge(v1, v2) or self._current_terse_graph.has_edge(v2, v1):
+                        # Detecting the top node1 in order to correctly draw edges
+                        if node1.p.y < node2.p.y:
+                            topNode = node1
+                            bottomNode = node2
+                        else:
+                            topNode = node2
+                            bottomNode = node1
+                        graphics.drawLine(
+                                int(topNode.p.x),
+                                int(topNode.p.y) +
+                                    self.nodes[topNode.id].height/2,
+                                int(bottomNode.p.x),
+                                int(bottomNode.p.y) -
+                                    self.nodes[bottomNode.id].height/2)
+            alreadyVisitedNode.add(v1)
 
+    # @Override
     def mouseClicked(self, event):
         eventX = event.getX()
         eventY = event.getY()
         isClickInsideNode = False
-        for node in self.nodesToDim:
-            nodeRect = Rectangle(self.nodesToDim[node]["x"], self.nodesToDim[node]["y"],
-                                          self.nodesToDim[node]["width"],
-                                          self.nodesToDim[node]["height"])
-            if nodeRect.contains(eventX, eventY):
-                self.builderFrame.currentVersion = node
-                self.builderFrame.clickedVersionNodeId = node
+        for nodeID, node in self.nodes.iteritems():
+            x = float(eventX - node.x)*2/node.width
+            y = float(eventY - node.y)*2/node.height
+            if x*x + y*y <= 1.0:
+                # TODO : this doesn't actually do anything
+                self.builder_frame.currentVersion = nodeID
+                self.builder_frame.clickedVersionNodeId = nodeID
                 isClickInsideNode = True
+                break
+
         if isClickInsideNode == False:
-            self.builderFrame.clickedVersionNodeId = -1
+            self.builder_frame.clickedVersionNodeId = -1
+
         self.invalidate()
         self.revalidate()
         self.repaint()

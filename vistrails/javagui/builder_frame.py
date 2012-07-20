@@ -38,7 +38,7 @@ import copy
 
 from vistrail_controller import JVistrailController
 from pipeline_view import JPipelineView
-from version_view import JVersionVistrailView
+from version_view import JVersionView
 from module_palette import JModulePalette
 from module_info import JModuleInfo
 from preference_window import PreferenceWindow
@@ -286,8 +286,8 @@ class BuilderFrame(JFrame):
         self.controller.current_pipeline_view = self.pipelineView
 
         # Create the version view
-        self.versionView = JVersionVistrailView(
-                vistrail, locator, self.controller,
+        self.versionView = JVersionView(
+                vistrail, locator, self.controller, self,
                 abstractions, thumbnails)
         self.versionView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
         self.versionView.getDockKey().setResizeWeight(1.0)
