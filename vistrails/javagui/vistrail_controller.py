@@ -43,6 +43,8 @@ class JVistrailController(BaseController, JComponent):
     def __init__(self):
         super(JVistrailController, self).__init__()
         self.fileName  = ""
+        self.quiet = False
+        self.__version_change_callbacks = set()
 
     def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
@@ -72,11 +74,20 @@ class JVistrailController(BaseController, JComponent):
         self.current_pipeline = core.db.io.get_workflow(
                 self.vistrail, self.current_version)
 
-        for module in self.current_pipeline._get_modules():
-            # FIXME : Replaces information panels by providing test values
-            # Should be done before each execution?
-            if self.current_pipeline.modules[module]._get_module_descriptor().module() is core.modules.basic_modules.String:
-                self.current_pipeline.modules[module]._get_module_descriptor().module().setValue("testString")
+    def perform_action(self, action):
+        if action is not None:
+            BaseController.perform_action(self, action)
+            if not self.quiet:
+                self._notify_version_change()
+            return action.db_id
+        return None
+
+    def register_version_callback(self, callback):
+        self.__version_change_callbacks.add(callback)
+
+    def _notify_version_change(self):
+        for callback in self.__version_change_callbacks:
+            callback()
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
                                  reason='Pipeline Execution'):

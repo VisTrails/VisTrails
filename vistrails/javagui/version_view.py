@@ -77,7 +77,7 @@ class JVersionView(JPanel, MouseListener, Dockable):
         self._key = DockKey('version_view')
         self._key.setResizeWeight(1.0)
 
-        self.FONT = Font("Dialog", Font.PLAIN, 15)
+        self.FONT = Font('Dialog', Font.PLAIN, 15)
         self.FONT_METRICS = FontMetrics(FontMetricsImpl(self.FONT))
 
         self.full_tree = True
@@ -91,6 +91,10 @@ class JVersionView(JPanel, MouseListener, Dockable):
         self.vistrail = vistrail
         self.locator = locator
         self.set_graph()
+
+        # This method is called back by the controller when an action is
+        # performed that creates a new version.
+        controller.register_version_callback(self.set_graph)
 
     def set_graph(self):
         self.controller.recompute_terse_graph()

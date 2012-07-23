@@ -1,6 +1,6 @@
 from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton,\
     SwingUtilities
-from java.awt import Dimension
+from java.awt import Color, Dimension, Font
 from java.awt.event import MouseAdapter
 
 from itertools import izip
@@ -27,6 +27,21 @@ class ClickListener(MouseAdapter):
     def mouseClicked(self, event):
         if SwingUtilities.isLeftMouseButton(event):
             self._action()
+
+
+class MissingWidget(JLabel):
+    """A missing widget, i.e. that we couldn't get from the module.
+    """
+    def __init__(self, value):
+        JLabel.__init__(self, "(missing widget)")
+        self.setOpaque(True)
+        self.setBackground(Color(255, 91, 91))
+        self.setFont(Font('Dialog', Font.BOLD, 14))
+
+        self.value = value
+
+    def contents(self):
+        return self.value
 
 
 class InputPortValue(JPanel):
@@ -57,8 +72,11 @@ class InputPortValue(JPanel):
             # TODO : Aliases
             label = JLabel(desc.name)
             line.add(label)
-            widget_class = get_widget_class(desc.module)
-            widget = widget_class(self, param)
+            try:
+                widget_class = get_widget_class(desc.module)
+                widget = widget_class(self, param)
+            except:
+                widget = MissingWidget(param.strValue)
             self._widgets.append(widget)
             line.add(widget)
 

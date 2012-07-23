@@ -263,7 +263,7 @@ class BuilderFrame(JFrame):
     def _version_set(self, version):
         if version != self.controller.current_version:
             self.controller.change_selected_version(version)
-            self.create_pipeline_view()
+            self.pipelineView.version_changed()
     current_version = property(_version_get, _version_set)
 
     def open_vistrail_without_prompt(self, locator, version=None):

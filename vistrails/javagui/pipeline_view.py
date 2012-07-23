@@ -265,7 +265,7 @@ class PModule(PNode):
     displayed through Piccolo.
     """
     # We use this to measure text in the constructor
-    font = Font("Dialog", Font.BOLD, 14)
+    font = Font('Dialog', Font.BOLD, 14)
     fontMetrics = FontMetricsImpl(font)
 
     _STATUS_TO_COLOR = {
@@ -618,8 +618,6 @@ class JPipelineView(PCanvas, Dockable):
         self.builder_frame = builder_frame
 
         self.controller = controller
-        self.selected_modules = set()
-        self.selected_connection = None
 
         # Use the middle mouse button for panning instead of the left, as we'll
         # use the later to select and move stuff
@@ -646,10 +644,24 @@ class JPipelineView(PCanvas, Dockable):
                 SuppressionEventHandler(self))
 
         # Create the scene
-        self.setupScene(self.controller.current_pipeline)
+        self.setupScene()
 
         # Setup dropping of modules from the palette
         self.setTransferHandler(TargetTransferHandler(self))
+
+        # Re-create the modules when the version changes
+        self.controller.register_version_callback(self.version_changed)
+
+    def version_changed(self):
+        selected_modules = [m.module.id for m in self.selected_modules]
+
+        self.setupScene()
+
+        # Restores the selection
+        for module_id in selected_modules:
+            module = self.modules[module_id]
+            self.selected_modules.add(module)
+            self.selectModule(module, False)
 
     def execute_workflow(self):
         (results, changed) = self.controller.execute_current_workflow()
@@ -658,20 +670,27 @@ class JPipelineView(PCanvas, Dockable):
         SwingUtilities.invokeLater(PyFuncRunner(self.revalidate))
         SwingUtilities.invokeLater(PyFuncRunner(self.repaint))
 
-    def setupScene(self, pipeline):
+    def setupScene(self):
         """Create all the graphical objects from the vistrail.
         """
+        pipeline = self.controller.current_pipeline
+        
         self.modules = {}
+        self.selected_modules = set()
+        self.selected_connection = None
 
         module_layer = self.getCamera().getLayer(0)
+        module_layer.removeAllChildren()
+        edge_layer = self.getCamera().getLayer(1)
+        edge_layer.removeAllChildren()
 
-        # Draw the pipeline using their stored position
+        # Create the modules
         for id, module in pipeline.modules.iteritems():
             pmod = PModule(module)
             self.modules[id] = pmod
             module_layer.addChild(pmod)
 
-        # Draw the edges
+        # Create the edges
         for id, connection in pipeline.connections.iteritems():
             self.addConnection(
                     self.modules[connection.source.moduleId],
