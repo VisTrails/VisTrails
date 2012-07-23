@@ -104,7 +104,10 @@ class JVersionView(JPanel, MouseListener, Dockable):
                 self.MARGIN_X,
                 self.MARGIN_Y)
 
-        self.controller.current_pipeline = core.db.io.get_workflow(self.vistrail, self.controller.current_version)
+        self.controller.current_pipeline = core.db.io.get_workflow(
+                self.vistrail, self.controller.current_version)
+
+        self.clicked_version_id = None
 
     # @Override
     def paintComponent(self, graphics):
@@ -112,7 +115,7 @@ class JVersionView(JPanel, MouseListener, Dockable):
         graphics.setFont(self.FONT)
 
         graphics.clearRect(0, 0, self.getWidth(), self.getHeight())
-        
+
         graphics.translate(self.HORIZONTAL_POSITION, self.VERTICAL_POSITION)
 
         self.nodes = dict()
@@ -140,11 +143,15 @@ class JVersionView(JPanel, MouseListener, Dockable):
             oval = (int(node.p.x) - w/2, int(node.p.y) - h/2,
                     w, h)
             graphics.fillOval(*oval)
+            if v == self.clicked_version_id:
+                graphics.setColor(Color.blue)
+            else:
+                graphics.setColor(Color.black)
+            graphics.drawOval(*oval)
             if v == self.controller.current_version:
                 graphics.setColor(Color.red)
             else:
                 graphics.setColor(Color.black)
-            graphics.drawOval(*oval)
             graphics.drawString(
                     label,
                     int(node.p.x - fontRect.getWidth()/2),
@@ -192,14 +199,13 @@ class JVersionView(JPanel, MouseListener, Dockable):
             x = float(eventX - node.x)*2/node.width
             y = float(eventY - node.y)*2/node.height
             if x*x + y*y <= 1.0:
-                # TODO : this doesn't actually do anything
-                self.builder_frame.currentVersion = nodeID
-                self.builder_frame.clickedVersionNodeId = nodeID
+                self.builder_frame.current_version = nodeID
+                self.clicked_version_id = nodeID
                 isClickInsideNode = True
                 break
 
         if isClickInsideNode == False:
-            self.builder_frame.clickedVersionNodeId = -1
+            self.clickedVersionNodeId = None
 
         self.invalidate()
         self.revalidate()

@@ -258,9 +258,16 @@ class BuilderFrame(JFrame):
 
         self.open_vistrail_without_prompt(locator)
 
+    def _version_get(self):
+        return self.controller.current_version
+    def _version_set(self, version):
+        if version != self.controller.current_version:
+            self.controller.change_selected_version(version)
+            self.create_pipeline_view()
+    current_version = property(_version_get, _version_set)
+
     def open_vistrail_without_prompt(self, locator, version=None):
         self.controller = JVistrailController()
-        self.currentVersion = "-1"
 
         # Open the vistrail
         (vistrail, abstractions, thumbnails, mashups) = \
@@ -276,14 +283,7 @@ class BuilderFrame(JFrame):
         self.controller.set_changed(False)
 
         # Create the pipeline view
-        self.pipelineView = JPipelineView(
-                self,
-                vistrail, locator, self.controller,
-                abstractions, thumbnails)
-        self.pipelineView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
-        self.pipelineView.getDockKey().setResizeWeight(1.0)
-        self.pipelineView.getDockKey().setCloseEnabled(False)
-        self.controller.current_pipeline_view = self.pipelineView
+        self.create_pipeline_view()
 
         # Create the version view
         self.versionView = JVersionView(
@@ -297,6 +297,13 @@ class BuilderFrame(JFrame):
 
         # Setup the view (pipeline by default)
         self.set_current_view(self.pipelineView)
+
+    def create_pipeline_view(self):
+        self.pipelineView = JPipelineView(self, self.controller)
+        self.pipelineView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
+        self.pipelineView.getDockKey().setResizeWeight(1.0)
+        self.pipelineView.getDockKey().setCloseEnabled(False)
+        self.controller.current_pipeline_view = self.pipelineView
 
     def buttonClicked(self, event):
         if event.getSource() == self.pipelineButton:
