@@ -236,6 +236,7 @@ class PortSpec(DBPortSpec):
         signature = []
         for i in self.port_spec_items:
             signature.append((i.descriptor.module, i.label))
+        return signature
     signature = property(_get_signature)
 
     def toolTip(self):
