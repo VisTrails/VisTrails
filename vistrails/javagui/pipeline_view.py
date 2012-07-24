@@ -54,7 +54,7 @@ from com.vlsolutions.swing.docking import DockKey, Dockable
 
 from core.modules.module_registry import get_module_registry
 from javagui.module_palette import moduleData
-from javagui.utils import PyFuncRunner, FontMetricsImpl
+from javagui.utils import PyFuncRunner, FontMetricsImpl, run_on_edt
 
 
 PORT_WIDTH = 7
@@ -670,11 +670,8 @@ class JPipelineView(PCanvas, Dockable):
             self.selectModule(module, False)
 
     def execute_workflow(self):
-        (results, changed) = self.controller.execute_current_workflow()
-        print results[0].__str__()
-        SwingUtilities.invokeLater(PyFuncRunner(self.invalidate))
-        SwingUtilities.invokeLater(PyFuncRunner(self.revalidate))
-        SwingUtilities.invokeLater(PyFuncRunner(self.repaint))
+        # This will run on its own thread
+        self.controller.execute_current_workflow()
 
     def setupScene(self):
         """Create all the graphical objects from the vistrail.
@@ -883,16 +880,26 @@ class JPipelineView(PCanvas, Dockable):
         self._set_module_status(module_id, STAT_SUSPENDED)
 
     def _set_module_status(self, module_id, status):
-        try:
-            self.modules[module_id].status = status
-        except KeyError:
-            pass
+        def run_async():
+            try:
+                self.modules[module_id].status = status
+                SwingUtilities.invokeLater(PyFuncRunner(self.invalidate))
+                SwingUtilities.invokeLater(PyFuncRunner(self.revalidate))
+                SwingUtilities.invokeLater(PyFuncRunner(self.repaint))
+            except KeyError:
+                pass
+        run_on_edt(run_async, async=True)
 
     def set_module_progress(self, module_id, progress=0.0):
-        try:
-            self.modules[module_id].progress = progress
-        except KeyError:
-            pass
+        def run_async():
+            try:
+                self.modules[module_id].progress = progress
+                SwingUtilities.invokeLater(PyFuncRunner(self.invalidate))
+                SwingUtilities.invokeLater(PyFuncRunner(self.revalidate))
+                SwingUtilities.invokeLater(PyFuncRunner(self.repaint))
+            except KeyError:
+                pass
+        run_on_edt(run_async, async=True)
 
     def reset_module_colors(self):
         for pmod in self.modules.itervalues():

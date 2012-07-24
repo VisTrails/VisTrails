@@ -39,6 +39,8 @@ This subclasses provides:
 - Execution of the workflow on a different thread
 """
 
+import threading
+
 from javax.swing import JComponent
 
 import core.db.io
@@ -47,6 +49,9 @@ from core.vistrail.controller import VistrailController as BaseController
 
 
 class JVistrailController(BaseController, JComponent):
+
+    _workflow_executing = False
+    _execution_mutex = threading.Lock()
 
     def __init__(self):
         super(JVistrailController, self).__init__()
@@ -99,19 +104,31 @@ class JVistrailController(BaseController, JComponent):
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
                                  reason='Pipeline Execution'):
-        self.flush_delayed_actions()
-        if self.current_pipeline:
-            locator = self.get_locator()
-            if locator:
-                locator.clean_temporaries()
-                if self._auto_save:
-                    locator.save_temporary(self.vistrail)
-            view = self.current_pipeline_view or DummyView()
-            return self.execute_workflow_list([(self.locator,
-                                                self.current_version,
-                                                self.current_pipeline,
-                                                view,
-                                                custom_aliases,
-                                                custom_params,
-                                                reason,
-                                                None)])
+        self._execution_mutex.acquire()
+        if self._workflow_executing:
+            self._execution_mutex.release()
+            return False
+        else:
+            self._workflow_executing = True
+            self._execution_mutex.release()
+            self.flush_delayed_actions()
+            if self.current_pipeline:
+                locator = self.get_locator()
+                if locator:
+                    locator.clean_temporaries()
+                    if self._auto_save:
+                        locator.save_temporary(self.vistrail)
+                view = self.current_pipeline_view or DummyView()
+                def execute():
+                    self.execute_workflow_list([(self.locator,
+                                                 self.current_version,
+                                                 self.current_pipeline,
+                                                 view,
+                                                 custom_aliases,
+                                                 custom_params,
+                                                 reason,
+                                                 None)])
+                    self._execution_mutex.acquire()
+                    self._workflow_executing = False
+                    self._execution_mutex.release()
+                threading.Thread(target=execute).start()

@@ -18,7 +18,7 @@ class PyFuncRunner(Runnable):
         self.runner()
 
 
-def run_on_edt(func):
+def run_on_edt(func, async=False):
     """Runs a Python method or Java Runnable on the Event Dispatch Thread.
 
     Returns after the function has finished, using
@@ -27,10 +27,13 @@ def run_on_edt(func):
     if not isinstance(func, Runnable):
         func = PyFuncRunner(func)
 
-    if SwingUtilities.isEventDispatchThread():
-        func.run()
+    if async:
+        SwingUtilities.invokeLater(func)
     else:
-        SwingUtilities.invokeAndWait(func)
+        if SwingUtilities.isEventDispatchThread():
+            func.run()
+        else:
+            SwingUtilities.invokeAndWait(func)
 
 
 def resized_icon(image, size):
