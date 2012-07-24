@@ -39,8 +39,8 @@ These utilities are used by several programs, such as SpringBox and
 SpringCompactGrid.
 """
 
-from javax.swing import Spring, SpringLayout
 from java.lang import System
+from javax.swing import Spring, SpringLayout
 
 def printSizes(c):
     """Debugging method.

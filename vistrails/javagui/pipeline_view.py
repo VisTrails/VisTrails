@@ -32,23 +32,29 @@
 ##
 ###############################################################################
 
-from core.modules.module_registry import get_module_registry
+"""The pipeline view is the main view, showing the workflow.
+
+This is the more important view of VisTrails. It allows the user to edit the
+current version of the workflow, creating new ones, and shows the execution
+status of the modules.
+"""
 
 from java.lang import System
-from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
 from java.awt import Color, Polygon, Font, Point, BasicStroke
-from java.awt.geom import Rectangle2D
-from java.awt.event import MouseEvent, KeyEvent, InputEvent
-from java.io import IOException
 from java.awt.datatransfer import UnsupportedFlavorException
+from java.awt.event import MouseEvent, KeyEvent, InputEvent
+from java.awt.geom import Rectangle2D
+from java.io import IOException
+from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
 
 from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
 from edu.umd.cs.piccolo.nodes import PPath
 from edu.umd.cs.piccolo.event import PBasicInputEventHandler, PInputEventFilter
-
-from module_palette import moduleData
-from utils import PyFuncRunner, FontMetricsImpl
 from com.vlsolutions.swing.docking import DockKey, Dockable
+
+from core.modules.module_registry import get_module_registry
+from javagui.module_palette import moduleData
+from javagui.utils import PyFuncRunner, FontMetricsImpl
 
 
 PORT_WIDTH = 7

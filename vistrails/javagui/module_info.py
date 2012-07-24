@@ -1,10 +1,16 @@
+"""The module info panel, displaying informations about the selected module.
+
+It also allows to rename a module, and contains the ports pane.
+"""
+
 from java.lang import Integer
-from javax.swing import Box, BoxLayout, JComponent, JLabel, JPanel, JTextField
 from java.awt import Dimension
+from javax.swing import Box, BoxLayout, JComponent, JLabel, JPanel, JTextField
+
 from com.vlsolutions.swing.docking import DockKey, Dockable
 
-from ports_pane import JPortsPane
-from utils import InputValidationListener
+from javagui.ports_pane import JPortsPane
+from javagui.utils import InputValidationListener
 
 
 class JModuleInfo(JComponent, Dockable):

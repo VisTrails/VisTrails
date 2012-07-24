@@ -32,11 +32,19 @@
 ##
 ###############################################################################
 
-import core.db.io
-import core.modules.basic_modules
-from core.vistrail.controller import VistrailController as BaseController
+"""Subclass of the controller adding Java GUI specific behaviors.
+
+This subclasses provides:
+- Notifications when the selected version changes
+- Execution of the workflow on a different thread
+"""
+
 from javax.swing import JComponent
+
+import core.db.io
 from core.utils import DummyView
+from core.vistrail.controller import VistrailController as BaseController
+
 
 class JVistrailController(BaseController, JComponent):
 

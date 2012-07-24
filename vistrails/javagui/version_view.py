@@ -32,15 +32,26 @@
 ##
 ###############################################################################
 
-from extras.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
-import core.db.io
+"""Version view.
 
-from javax.swing import JPanel
-from java.awt.event import MouseListener
+Currently non-interactive, only the selection of a different version is
+possible.
+TODO :
+- Zooming/panning
+- Tagging versions
+- Deleting versions
+- Expanding/collapsing branches of the version tree
+"""
+
 from java.awt import Color, Font
+from java.awt.event import MouseListener
+from javax.swing import JPanel
 
 from com.vlsolutions.swing.docking import Dockable, DockKey
-from utils import FontMetricsImpl
+
+import core.db.io
+from extras.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
+from javagui.utils import FontMetricsImpl
 
 
 class FontMetrics(object):

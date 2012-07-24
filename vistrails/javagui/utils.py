@@ -1,8 +1,11 @@
+"""Various utilities related to the Java GUI.
+"""
+
 from java.lang import Runnable
-from javax.swing import SwingUtilities, ImageIcon
 from java.awt import FontMetrics
 from java.awt.image import BufferedImage
 from java.awt.event import FocusListener, KeyEvent, KeyListener
+from javax.swing import SwingUtilities, ImageIcon
 
 
 # We have to pass something implementing Runnable to invokeLater()

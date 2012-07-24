@@ -1,13 +1,18 @@
-from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton,\
-    SwingUtilities
-from java.awt import Color, Dimension, Font
-from java.awt.event import MouseAdapter
+"""The ports pane, displaying the ports of a specific module instance.
+
+It is a component of the module info panel.
+"""
 
 from itertools import izip
 
-from javagui.modules import get_widget_class
-from utils import resized_icon
+from java.awt import Color, Dimension, Font
+from java.awt.event import MouseAdapter
+from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton,\
+    SwingUtilities
+
 from core import debug
+from javagui.modules import get_widget_class
+from javagui.utils import resized_icon
 
 
 ICON_SIZE = Dimension(20, 20)

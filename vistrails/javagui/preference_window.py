@@ -1,20 +1,21 @@
+"""The preference window, used to configure the application.
+
+Currently only allows to manage the loaded packages.
+"""
+
+from java.lang import Integer, RuntimeException
 from java.awt import Dialog, Dimension
 from java.awt.event import ActionListener
-
 from javax.swing import Box, BoxLayout, DefaultListModel, JButton, JDialog
 from javax.swing import JLabel, JList, JPanel, JScrollPane, JTextArea
 from javax.swing import ListSelectionModel, ScrollPaneConstants, SpringLayout
 from javax.swing.event import ListSelectionListener
 
-from java.lang import Integer, RuntimeException
-
-import springutilities
-
 from core import get_vistrails_application
 from core.packagemanager import get_package_manager
 from core import debug
-
-from package_configuration import PackageConfigurationWindow
+from javagui.package_configuration import PackageConfigurationWindow
+from javagui import springutilities
 
 
 class SortedListModel(DefaultListModel):

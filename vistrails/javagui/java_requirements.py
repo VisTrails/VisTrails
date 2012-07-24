@@ -1,3 +1,6 @@
+"""Checks that required imports are available.
+"""
+
 from extras.java_vm import get_java_vm
 from core.requirements import MissingRequirement
 

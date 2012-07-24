@@ -1,6 +1,11 @@
+"""The package configuration dialog.
+
+This dialog allows the user to change the parameters of a package. It can be
+opened with the 'configure' button from the preference window.
+"""
+
 from java.awt import Dialog
 from java.awt.event import KeyListener
-
 from javax.swing import BoxLayout, JDialog, JPanel, JScrollPane
 from javax.swing import JTable, JTextField
 from javax.swing.table import DefaultTableModel

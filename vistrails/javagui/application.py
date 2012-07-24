@@ -31,20 +31,21 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-""" This is the main application of vistrail, it will calls for
-initializations to the theme, packages and the builder...
 
+""" This is the main application of the Java version of VisTrail.
+
+It will call initialize everything, check requirements and create the builder
+frame.
 """
 
-
+import sys
 from core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
 from core import debug
-from core import system
 import core.requirements
-import sys
-from utils import run_on_edt
-from java_requirements import check_java_requirement
+from core import system
+from javagui.java_requirements import check_java_requirement
+from javagui.utils import run_on_edt
 
 ################################################################################
 

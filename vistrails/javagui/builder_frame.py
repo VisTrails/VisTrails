@@ -32,16 +32,27 @@
 ##
 ###############################################################################
 
+"""The builder frame is the main window of VisTrails.
+
+It contains the pipeline view and its associated panels, the version view, a
+menu bar and various buttons.
+It terminates Swing's Event Dispatch Thread when closed, and uses a condition
+to pause Jython's main thread while running (see waitClose()).
+"""
+
+import copy
 import sys
 import threading
-import copy
 
-from vistrail_controller import JVistrailController
-from pipeline_view import JPipelineView
-from version_view import JVersionView
-from module_palette import JModulePalette
-from module_info import JModuleInfo
-from preference_window import PreferenceWindow
+from java.awt import BorderLayout
+from java.awt.event import WindowAdapter
+from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
+from javax.swing import JMenu, JMenuBar, JMenuItem, JButton
+from javax.swing import SwingConstants, SwingUtilities
+
+from com.vlsolutions.swing.docking import DockingDesktop, DockingConstants,\
+    DockKey, Dockable, DockGroup, RelativeDockablePosition
+
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
         untitled_locator
 from core.db.io import load_vistrail
@@ -50,18 +61,13 @@ from core import debug
 from core.thumbnails import ThumbnailCache
 import core.interpreter.cached
 import core.system
-
-from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
-from javax.swing import JMenu, JMenuBar, JMenuItem, JButton
-from javax.swing import SwingConstants, SwingUtilities
-
-from java.awt import BorderLayout
-from java.awt.event import WindowAdapter
-
-from com.vlsolutions.swing.docking import DockingDesktop, DockingConstants,\
-    DockKey, Dockable, DockGroup, RelativeDockablePosition
-
 from extras.db.javagui.locator import JavaLocatorHelperProvider
+from javagui.vistrail_controller import JVistrailController
+from javagui.pipeline_view import JPipelineView
+from javagui.version_view import JVersionView
+from javagui.module_palette import JModulePalette
+from javagui.module_info import JModuleInfo
+from javagui.preference_window import PreferenceWindow
 
 
 class CloseListener(WindowAdapter):

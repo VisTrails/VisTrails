@@ -1,8 +1,13 @@
-from javax.swing import JTextField
-from java.awt import Dimension
-from java.lang import Integer
+"""The input constants logic.
 
-from utils import InputValidationListener
+Provides the widgets used in the ports pane to set constant inputs on ports.
+"""
+
+from java.lang import Integer
+from java.awt import Dimension
+from javax.swing import JTextField
+
+from javagui.utils import InputValidationListener
 
 
 class ConstantWidget(object):

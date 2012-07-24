@@ -1,11 +1,19 @@
-from core import get_vistrails_application
-from core.modules.module_registry import get_module_registry
+"""The module palette, from which modules can be added.
 
+This palette is a hierarchical view of the modules available in the loaded
+packages. These can be dragged and dropped on the pipeline view to add a new
+module instance.
+"""
+
+from java.lang import Object as JavaObject
+from java.awt.datatransfer import DataFlavor, Transferable
 from javax.swing import JScrollPane, JTree, TransferHandler
 from javax.swing.tree import DefaultMutableTreeNode
-from java.awt.datatransfer import DataFlavor, Transferable
-from java.lang import Object as JavaObject
+
 from com.vlsolutions.swing.docking import DockKey, Dockable
+
+from core import get_vistrails_application
+from core.modules.module_registry import get_module_registry
 
 
 moduleData = DataFlavor(
