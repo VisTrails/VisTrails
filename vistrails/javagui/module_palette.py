@@ -122,8 +122,9 @@ class NamespaceTreeNode(DefaultMutableTreeNode):
 class PackageTreeNode(NamespaceTreeNode):
     """A custom tree node for packages.
     """
-    def __init__(self, name):
+    def __init__(self, name, identifier):
         super(PackageTreeNode, self).__init__(name)
+        self.identifier = identifier
 
 
 class SourceTransferHandler(TransferHandler):
@@ -175,19 +176,23 @@ class JModulePalette(JScrollPane, Dockable):
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
 
-        # I don't know what this 'prepend' thing is about, I'll assume that we
-        # have to honor it -- no automatic sorting of packages here
+        try:
+            # The package might already exist...
+            return self.packages[package_identifier]
+        except KeyError:
+            # I don't know what this 'prepend' thing is about, I'll assume that we
+            # have to honor it -- no automatic sorting of packages here
 
-        package_item = PackageTreeNode(package_name)
-        self.packages[package_identifier] = package_item
-        # Add it at either the beginning or the end, as requested
-        if prepend:
-            self.root.insert(package_item, 0)
-        else:
-            self.root.add(package_item)
+            package_item = PackageTreeNode(package_name, package_identifier)
+            self.packages[package_identifier] = package_item
+            # Add it at either the beginning or the end, as requested
+            if prepend:
+                self.root.insert(package_item, 0)
+            else:
+                self.root.add(package_item)
 
-        self.tree.getModel().nodeStructureChanged(self.root)
-        return package_item
+            self.tree.getModel().nodeStructureChanged(self.root)
+            return package_item
 
     def newModule(self, descriptor, recurse=False):
         if not descriptor.module_abstract():
@@ -219,6 +224,7 @@ class JModulePalette(JScrollPane, Dockable):
     def deletedModule(self, descriptor):
         try:
             obj = self.modules[descriptor]
+            del self.modules[descriptor]
             parent = obj.getParent()
             obj.removeFromParent()
             obj = parent
@@ -226,6 +232,8 @@ class JModulePalette(JScrollPane, Dockable):
                     obj.getChildCount() == 0 and
                     isinstance(obj, NamespaceTreeNode)):
                 parent = obj.getParent()
+                if isinstance(obj, PackageTreeNode):
+                    del self.packages[obj.identifier]
                 obj.removeFromParent()
                 obj = parent
         except KeyError:
