@@ -57,7 +57,7 @@ from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
         untitled_locator
 from core.db.io import load_vistrail
 from core.vistrail.vistrail import Vistrail
-from core import debug
+from core import debug, get_vistrails_application
 from core.thumbnails import ThumbnailCache
 import core.interpreter.cached
 import core.system
@@ -132,6 +132,8 @@ class BuilderFrame(JFrame):
         eraseCacheItem.actionPerformed = self.erase_cache
         workflowMenu.add(eraseCacheItem)
         menuBar.add(workflowMenu)
+
+        menuBar.add(self._setup_packages_menu())
 
         self.setJMenuBar(menuBar)
 
@@ -215,6 +217,38 @@ class BuilderFrame(JFrame):
 
         self._windowCloseListener = CloseListener(self)
         self.addWindowListener(self._windowCloseListener)
+
+    def _setup_packages_menu(self):
+        self.packages_menu = JMenu("Packages")
+        self.packages_menu_items = dict()
+
+        def add_package_menu(pkg_id, pkg_name, items):
+            try:
+                menu = self.packages_menu_items[pkg_id]
+            except KeyError:
+                pass
+            else:
+                self.packages_menu.remove(menu)
+                del self.packages_menu_items[pkg_id]
+            menu = JMenu(pkg_name)
+            for caption, action in items:
+                item = JMenuItem(caption)
+                item.actionPerformed = action
+                menu.add(item)
+            self.packages_menu.add(menu)
+            self.packages_menu_items[pkg_id] = menu
+
+        def remove_package_menu(pkg_id):
+            self.packages_menu.remove(self.packages_menu_items[pkg_id])
+            del self.packages_menu_items[pkg_id]
+
+        app = get_vistrails_application()
+        app.register_notification('pm_add_package_menu',
+                                  add_package_menu)
+        app.register_notification('pm_remove_package_menu',
+                                  remove_package_menu)
+
+        return self.packages_menu
 
     def showFrame(self):
         self.setSize(300, 300)

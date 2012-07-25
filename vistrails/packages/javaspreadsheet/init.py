@@ -154,3 +154,16 @@ def initialize(*args, **keywords):
     reg.add_input_port(
             Frame, 'widget',
             (Component, "the swing component to be placed in the frame"))
+
+
+def menu_items():
+    def show_spreadsheet():
+        spreadsheet.setVisible(True)
+    def foo(msg):
+        def bar():
+            print msg
+        return bar
+    return (
+            ("Show Java Spreadsheet", show_spreadsheet),
+            ("Other useless entry", foo("other entry")),
+            ("Third entry, still useless", foo("third entry")),)

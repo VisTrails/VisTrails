@@ -97,12 +97,12 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
 
         """
         VistrailsApplicationInterface.init(self,optionsDict)
-
-        self.vistrailsStartup.init()
         
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.createWindows()
+
+        self.vistrailsStartup.init()
 
         self._initialized = True
 
