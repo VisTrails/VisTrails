@@ -861,7 +861,7 @@ class JPipelineView(PCanvas, Dockable):
     def set_module_success(self, module_id):
         self._set_module_status(module_id, STAT_SUCCESS)
 
-    def set_module_error(self, module_id):
+    def set_module_error(self, module_id, error, errorTrace=None):
         self._set_module_status(module_id, STAT_ERROR)
 
     def set_module_not_executed(self, module_id):
@@ -876,7 +876,7 @@ class JPipelineView(PCanvas, Dockable):
     def set_module_persistent(self, module_id):
         self._set_module_status(module_id, STAT_PERSISTENT)
 
-    def set_module_suspended(self, module_id):
+    def set_module_suspended(self, module_id, error=None):
         self._set_module_status(module_id, STAT_SUSPENDED)
 
     def _set_module_status(self, module_id, status):
