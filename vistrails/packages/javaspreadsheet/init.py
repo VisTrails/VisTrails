@@ -163,7 +163,4 @@ def menu_items():
         def bar():
             print msg
         return bar
-    return (
-            ("Show Java Spreadsheet", show_spreadsheet),
-            ("Other useless entry", foo("other entry")),
-            ("Third entry, still useless", foo("third entry")),)
+    return (("Show Java Spreadsheet", show_spreadsheet),)

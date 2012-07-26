@@ -231,9 +231,13 @@ class BuilderFrame(JFrame):
                 self.packages_menu.remove(menu)
                 del self.packages_menu_items[pkg_id]
             menu = JMenu(pkg_name)
+            def wrap(f):
+                def wrapped(event=None):
+                    return f()
+                return wrapped
             for caption, action in items:
                 item = JMenuItem(caption)
-                item.actionPerformed = action
+                item.actionPerformed = wrap(action)
                 menu.add(item)
             self.packages_menu.add(menu)
             self.packages_menu_items[pkg_id] = menu
