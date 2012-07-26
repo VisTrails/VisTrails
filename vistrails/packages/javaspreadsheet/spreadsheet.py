@@ -1,25 +1,88 @@
-from core.utils import product
-
-from java.awt import Color
-
-from javax.swing import (JPanel, JFrame, JScrollPane, JTable, JTabbedPane,
-                         AbstractCellEditor)
+from java.awt import Color, Dimension
+from java.awt.event import ComponentListener
+from javax.swing import (AbstractCellEditor, JFrame, JLabel, JPanel,
+                         JScrollPane, JTabbedPane, JTable, JMenuBar, JMenu,
+                         JRadioButtonMenuItem, ButtonGroup)
 from javax.swing.table import (DefaultTableModel, DefaultTableCellRenderer,
                                TableCellEditor)
+
+from core.utils import product
+from javagui.utils import resized_icon
 
 from jtablerowheader import JTableRowHeader
 
 
+ICON_SIZE = Dimension(64, 64)
+
+
+COPY = resized_icon(
+        'packages/javaspreadsheet/images/copy.png', ICON_SIZE)
+MOVE = resized_icon(
+        'packages/javaspreadsheet/images/move.png', ICON_SIZE)
+CREATE_ANALOGY = resized_icon(
+        'packages/javaspreadsheet/images/create_analogy.png', ICON_SIZE)
+APPLY_ANALOGY = resized_icon(
+        'packages/javaspreadsheet/images/apply_analogy.png', ICON_SIZE)
+
+
+class CellManipulator(JLabel):
+    def __init__(self, icon, command, observer):
+        JLabel.__init__(self, icon)
+        self.command = command
+        self.observer = observer
+
+    # TODO : drag and drop
+
+
+INTERACTIVE = 1
+EDITING = 2
+
+
 class Cell(JPanel):
-    def __init__(self, observer):
+    def __init__(self, observer, mode=INTERACTIVE):
         self.observer = observer
         self.setBackground(Color.white)
+        self._widget = None
+        self._mode = mode
+        self._setup()
+
+    def _get_mode(self):
+        return self._mode
+    def _set_mode(self, mode):
+        if mode == self._mode:
+            return
+        self._mode = mode
+        self._setup()
+    mode = property(_get_mode, _set_mode)
+
+    def _setup(self):
+        self.removeAll()
+        if self._widget is not None:
+            self.add(self._widget)
+
+        if self._mode == EDITING:
+            self.add(CellManipulator(COPY, 'copy', self.observer))
+            self.add(CellManipulator(MOVE, 'move', self.observer))
+            self.add(CellManipulator(CREATE_ANALOGY, 'create_analogy',
+                                     self.observer))
+            self.add(CellManipulator(APPLY_ANALOGY, 'apply_analogy',
+                                     self.observer))
+
+    def _get_widget(self):
+        return self._widget
+    def _set_widget(self, widget):
+        if self._widget is not None:
+            self.remove(self._widget)
+        self._widget = widget
+        self._setup()
+    widget = property(_get_widget, _set_widget)
 
     # @Override
     def paint(self, g):
         JPanel.paint(self, g)
-        if self.observer is not None:
-            self.observer.repainted(self)
+        self.observer.repainted(self)
+
+    # TODO : Correctly react to resize events (resize the widget)
 
 
 class SpreadsheetModel(DefaultTableModel):
@@ -30,6 +93,16 @@ class SpreadsheetModel(DefaultTableModel):
         self.nbColumns = columns
         self.cells = {}
         self.cellpositions = {}
+        self._mode = INTERACTIVE
+
+    def _get_mode(self):
+        return self._mode
+    def _set_mode(self, mode):
+        if mode != self._mode:
+            self._mode = mode
+            for cell in self.cells.itervalues():
+                cell.mode = mode
+    mode = property(_get_mode, _set_mode)
 
     # @Override
     def getRowCount(self):
@@ -45,7 +118,7 @@ class SpreadsheetModel(DefaultTableModel):
             return self.cells[(row, column)]
         except KeyError:
             if create:
-                c = Cell(self)
+                c = Cell(self, self._mode)
                 self.cells[(row, column)] = c
                 self.cellpositions[c] = (row, column)
                 self.fireTableCellUpdated(row, column)
@@ -124,6 +197,12 @@ class Sheet(JScrollPane):
         self.setColumnHeaderView(self._table.getTableHeader())
         self.setRowHeaderView(JTableRowHeader(self._table))
 
+    def _get_mode(self):
+        return self._table.getModel().mode
+    def _set_mode(self, mode):
+        self._table.getModel().mode = mode
+    mode = property(_get_mode, _set_mode)
+
     def getCell(self, location=None):
         # Locate the requested cell
         row, column = None, None
@@ -172,10 +251,31 @@ class Spreadsheet(JFrame):
     """
     def __init__(self):
         self.title = "Java Spreadsheet Window"
+
         self.tabbedPane = JTabbedPane(JTabbedPane.BOTTOM)
         self.setContentPane(self.tabbedPane)
         self.sheets = {}
         self.addTab("sheet1", Sheet())
+
+        def ch_mode(mode):
+            def action(event=None):
+                for sheet in self.sheets.itervalues():
+                    sheet.mode = mode
+            return action
+        menuBar = JMenuBar()
+        viewMenu = JMenu("View")
+        interactiveMode = JRadioButtonMenuItem("Interactive Mode", True)
+        interactiveMode.actionPerformed = ch_mode(INTERACTIVE)
+        viewMenu.add(interactiveMode)
+        editingMode = JRadioButtonMenuItem("Editing Mode")
+        editingMode.actionPerformed = ch_mode(EDITING)
+        viewMenu.add(editingMode)
+        group = ButtonGroup()
+        group.add(interactiveMode)
+        group.add(editingMode)
+        menuBar.add(viewMenu)
+        self.setJMenuBar(menuBar)
+
         self.pack()
 
     def addTab(self, name, tab):

@@ -46,9 +46,8 @@ class SwingCell(AssignCell):
     """
     def compute(self):
         cell = AssignCell.compute(self)
-        widgets = self.getInputListFromPort('widget')
-        for widget in widgets:
-            cell.add(widget)
+        widget = self.getInputFromPort('widget')
+        cell.widget = widget
 
 
 class RichTextCell(AssignCell):
@@ -60,7 +59,7 @@ class RichTextCell(AssignCell):
         javaFile = java.io.File(richTextFile.name)
         editor_pane = JEditorPane(javaFile.toURI().toURL())
         editor_pane.setEditable(False)
-        cell.add(editor_pane)
+        cell.widget = editor_pane
 
 
 class TextCell(AssignCell):
@@ -71,14 +70,14 @@ class TextCell(AssignCell):
         text = self.getInputFromPort('text')
         text_area = JTextArea(text)
         text_area.setEditable(False)
-        cell.add(text_area)
+        cell.widget = text_area
 
 
 class Frame(Module):
     """Simple module building a JFrame.
 
-    This module displays a Swing component in a JFrame of its own. It
-    doesn't use the spreadsheet.
+    This module displays Swing components in a JFrame of its own. It doesn't
+    use the spreadsheet.
     """
     def compute(self):
         widgets = self.getInputListFromPort('widget')
