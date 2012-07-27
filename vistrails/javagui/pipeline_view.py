@@ -665,9 +665,13 @@ class JPipelineView(PCanvas, Dockable):
 
         # Restores the selection
         for module_id in selected_modules:
-            module = self.modules[module_id]
-            self.selected_modules.add(module)
-            self.selectModule(module, False)
+            try:
+                module = self.modules[module_id]
+                self.selected_modules.add(module)
+                self.selectModule(module, False)
+            except KeyError:
+                # The module might not be in the new version...
+                pass
 
     def execute_workflow(self):
         # This will run on its own thread
@@ -772,9 +776,7 @@ class JPipelineView(PCanvas, Dockable):
             if not JPipelineView.float_eq(ploc, module.center):
                 moves.append((id, ploc.x, ploc.y))
         if moves:
-            self.controller.quiet = True
             self.controller.move_module_list(moves)
-            self.controller.quiet = False
             print "wrote %d move actions to vistrail" % len(moves)
             return True
         return False
