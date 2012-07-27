@@ -42,6 +42,7 @@ class Cell(JPanel):
     def __init__(self, observer, mode=INTERACTIVE):
         self.observer = observer
         self.setBackground(Color.white)
+        self.setLayout(None)
         self._widget = None
         self._mode = mode
         self._setup()
@@ -59,6 +60,7 @@ class Cell(JPanel):
         self.removeAll()
         if self._widget is not None:
             self.add(self._widget)
+            self._widget.setBounds(0, 0, self.getWidth(), self.getHeight())
 
         if self._mode == EDITING:
             self.add(CellManipulator(COPY, 'copy', self.observer))
@@ -82,7 +84,11 @@ class Cell(JPanel):
         JPanel.paint(self, g)
         self.observer.repainted(self)
 
-    # TODO : Correctly react to resize events (resize the widget)
+    # @Override
+    def setSize(self, *args):
+        JPanel.setSize(self, *args)
+        if self._widget is not None:
+            self._widget.setBounds(0, 0, self.getWidth(), self.getHeight())
 
 
 class SpreadsheetModel(DefaultTableModel):
@@ -148,16 +154,25 @@ class SpreadsheetModel(DefaultTableModel):
 
 
 class SpreadsheetRenderer(DefaultTableCellRenderer):
+    def __init__(self, table):
+        super(SpreadsheetRenderer, self).__init__()
+        self.table = table
+
     # @Override
     def getTableCellRendererComponent(self, table, value, isSelected, hasFocus,
                                       row, column):
+        if isinstance(value, Cell):
+            new_size = self.table.getCellSize(value)
+            if ((value.getSize()) != new_size):
+                value.setSize(new_size)
         return value
 
 
 class SpreadsheetEditor(AbstractCellEditor, TableCellEditor):
-    def __init__(self):
+    def __init__(self, table):
         super(SpreadsheetEditor, self).__init__()
         self.cell = None
+        self.table = table
 
     # @Override
     def getCellEditorValue(self):
@@ -166,6 +181,10 @@ class SpreadsheetEditor(AbstractCellEditor, TableCellEditor):
     # @Override
     def getTableCellEditorComponent(self, table, value, isSelected,
                                     row, column):
+        if isinstance(value, Cell):
+            new_size = self.table.getCellSize(value)
+            if ((value.getSize()) != new_size):
+                value.setSize(new_size)
         self.cell = value
         return self.cell
 
@@ -173,8 +192,8 @@ class SpreadsheetEditor(AbstractCellEditor, TableCellEditor):
 class CustomTable(JTable):
     def __init__(self, model):
         super(CustomTable, self).__init__(model)
-        self.renderer = SpreadsheetRenderer()
-        self.editor = SpreadsheetEditor()
+        self.renderer = SpreadsheetRenderer(self)
+        self.editor = SpreadsheetEditor(self)
         self.setRowHeight(100)
         self.getTableHeader().setReorderingAllowed(False)
 
@@ -185,6 +204,12 @@ class CustomTable(JTable):
     # @Override
     def getDefaultEditor(self, columnClass):
         return self.editor
+
+    def getCellSize(self, cell):
+        row, column = self.getModel().cellpositions[cell]
+        return Dimension(
+                self.getColumnModel().getColumn(column).getWidth(),
+                self.getRowHeight(row))
 
 
 class Sheet(JScrollPane):
