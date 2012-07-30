@@ -241,8 +241,27 @@ class SpreadsheetModel(DefaultTableModel):
 
     # @Override
     def setValueAt(self, value, row, column):
-        self.cells[(row, column)] = value
-        self.cellpositions[value] = (row, column)
+        try:
+            old_row, old_column = self.cellpositions[value] # might raise
+            del self.cellpositions[value]
+            del self.cells[(old_row, old_column)] # might raise
+            self.fireTableCellUpdated(old_row, old_column)
+        except KeyError:
+            pass
+
+        if value is not None:
+            try:
+                old_cell = self.cells[(row, column)]
+                del self.cellpositions[old_cell]
+            except KeyError:
+                pass
+            self.cells[(row, column)] = value
+            self.cellpositions[value] = (row, column)
+        else:
+            try:
+                del self.cells[(row, column)]
+            except KeyError:
+                pass
         self.fireTableCellUpdated(row, column)
 
     # @Override
@@ -258,6 +277,12 @@ class SpreadsheetModel(DefaultTableModel):
     def repainted(self, cell):
         pos = self.cellpositions[cell]
         self.fireTableCellUpdated(pos[0], pos[1])
+
+    def swap_cells(self, loc1, loc2):
+        prev1 = self.cells.get(loc1, None)
+        prev2 = self.cells.get(loc2, None)
+        self.setValueAt(prev2, loc1[0], loc1[1])
+        self.setValueAt(prev1, loc2[0], loc2[1])
 
 
 class SpreadsheetRenderer(DefaultTableCellRenderer):
@@ -325,8 +350,10 @@ class SpreadsheetTable(JTable):
             # TODO : I don't know how to do that
             pass
         elif command == 'move':
-            # TODO : swap cells
-            pass
+            self.editor.cancelCellEditing()
+            self.getModel().swap_cells(
+                    self.getModel().cellpositions[source],
+                    target_loc)
         elif command == 'create_analogy':
             # TODO : create an analogy
             pass
