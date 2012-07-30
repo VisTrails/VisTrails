@@ -1,8 +1,13 @@
+from java.lang import Object as JavaObject
 from java.awt import Color, Dimension
-from java.awt.event import ComponentListener
-from javax.swing import (AbstractCellEditor, JFrame, JLabel, JPanel,
-                         JScrollPane, JTabbedPane, JTable, JMenuBar, JMenu,
-                         JRadioButtonMenuItem, ButtonGroup)
+from java.awt.datatransfer import (DataFlavor, Transferable,
+                                   UnsupportedFlavorException)
+from java.awt.event import MouseListener
+from java.io import IOException
+
+from javax.swing import (AbstractCellEditor, ButtonGroup, DropMode, JFrame,
+                         JLabel, JMenu, JMenuBar, JPanel, JRadioButtonMenuItem,
+                         JScrollPane, JTabbedPane, JTable, TransferHandler)
 from javax.swing.table import (DefaultTableModel, DefaultTableCellRenderer,
                                TableCellEditor)
 
@@ -25,13 +30,107 @@ APPLY_ANALOGY = resized_icon(
         'packages/javaspreadsheet/images/apply_analogy.png', ICON_SIZE)
 
 
-class CellManipulator(JLabel):
-    def __init__(self, icon, command, observer):
+manipulatorData = DataFlavor(
+        JavaObject,
+        'X-Vistrails-Spreadsheet-Manipulator; class=<java.lang.Object>')
+
+
+class CellManipulatorTransferable(Transferable):
+    def __init__(self, command, source):
+        self.command = command
+        self.source = source
+
+    # @Override
+    def getTransferData(self, flavor):
+        if flavor == manipulatorData:
+            return (self.command, self.source)
+        else:
+            return None
+
+    # @Override
+    def getTransferDataFlavors(self):
+        return [manipulatorData]
+
+    # @Override
+    def isDataFlavorSupported(self, flavor):
+        return flavor == manipulatorData
+
+
+class CellManipulatorTransferHandler(TransferHandler):
+    def __init__(self, manipulator):
+        TransferHandler.__init__(self)
+        self.manipulator = manipulator
+
+    # @Override
+    def getSourceActions(self, c):
+        return TransferHandler.COPY
+
+    # @Override
+    def createTransferable(self, tree):
+        return CellManipulatorTransferable(self.manipulator.command,
+                                           self.manipulator.cell)
+
+class TableTransferHandler(TransferHandler):
+    def __init__(self, table):
+        TransferHandler.__init__(self)
+        self.table = table
+
+    # @Override
+    def canImport(self, *args):
+        if len(args) == 1:
+            # canImport(TransferSupport support)
+            support = args[0]
+            if not support.isDrop():
+                return False
+            elif not support.isDataFlavorSupported(manipulatorData):
+                return False
+            return True
+        else:
+            # canImport(JComponent comp, DataFlavor[] transferFlavors)
+            return TransferHandler.canImport(self, *args)
+
+    # @Override
+    def importData(self, *args):
+        if len(args) == 1:
+            # importData(TransferSupport support)
+            support = args[0]
+            if not support.isDrop():
+                return False
+            elif not self.canImport(support):
+                return False
+
+            try:
+                command, source = support.getTransferable().getTransferData(
+                        manipulatorData)
+            except UnsupportedFlavorException:
+                return False
+            except IOException:
+                return False
+
+            target_loc = support.getDropLocation()
+            target_loc = (target_loc.getRow(), target_loc.getColumn())
+            self.table.manipulator_action(command, source, target_loc)
+
+            return True
+        else:
+            # importData(JComponent comp, Transferable t)
+            return TransferHandler.importData(self, *args)
+
+
+class CellManipulator(JLabel, MouseListener):
+    def __init__(self, icon, cell, command, observer):
         JLabel.__init__(self, icon)
+        self.cell = cell
         self.command = command
         self.observer = observer
 
-    # TODO : drag and drop
+        self.setTransferHandler(CellManipulatorTransferHandler(self))
+        self.addMouseListener(self)
+
+    # @Override
+    def mousePressed(self, event):
+        self.getTransferHandler().exportAsDrag(
+                self, event, TransferHandler.COPY)
 
 
 INTERACTIVE = 1
@@ -58,17 +157,25 @@ class Cell(JPanel):
 
     def _setup(self):
         self.removeAll()
+
+        if self._mode == EDITING:
+            def add(manipulator):
+                self.add(manipulator)
+                manipulator.setBounds(add.nb * ICON_SIZE.width + 20, 20,
+                                      ICON_SIZE.width, ICON_SIZE.height)
+                add.nb += 1
+            add.nb = 0
+
+            add(CellManipulator(COPY, self, 'copy', self.observer))
+            add(CellManipulator(MOVE, self, 'move', self.observer))
+            add(CellManipulator(CREATE_ANALOGY, self, 'create_analogy',
+                                self.observer))
+            add(CellManipulator(APPLY_ANALOGY, self, 'apply_analogy',
+                                self.observer))
+
         if self._widget is not None:
             self.add(self._widget)
             self._widget.setBounds(0, 0, self.getWidth(), self.getHeight())
-
-        if self._mode == EDITING:
-            self.add(CellManipulator(COPY, 'copy', self.observer))
-            self.add(CellManipulator(MOVE, 'move', self.observer))
-            self.add(CellManipulator(CREATE_ANALOGY, 'create_analogy',
-                                     self.observer))
-            self.add(CellManipulator(APPLY_ANALOGY, 'apply_analogy',
-                                     self.observer))
 
     def _get_widget(self):
         return self._widget
@@ -189,13 +296,15 @@ class SpreadsheetEditor(AbstractCellEditor, TableCellEditor):
         return self.cell
 
 
-class CustomTable(JTable):
+class SpreadsheetTable(JTable):
     def __init__(self, model):
-        super(CustomTable, self).__init__(model)
+        super(SpreadsheetTable, self).__init__(model)
         self.renderer = SpreadsheetRenderer(self)
         self.editor = SpreadsheetEditor(self)
         self.setRowHeight(100)
         self.getTableHeader().setReorderingAllowed(False)
+        self.setDropMode(DropMode.USE_SELECTION)
+        self.setTransferHandler(TableTransferHandler(self))
 
     # @Override
     def getDefaultRenderer(self, c):
@@ -211,13 +320,27 @@ class CustomTable(JTable):
                 self.getColumnModel().getColumn(column).getWidth(),
                 self.getRowHeight(row))
 
+    def manipulator_action(self, command, source, target_loc):
+        if command == 'copy':
+            # TODO : I don't know how to do that
+            pass
+        elif command == 'move':
+            # TODO : swap cells
+            pass
+        elif command == 'create_analogy':
+            # TODO : create an analogy
+            pass
+        elif command == 'apply_analogy':
+            # TODO : apply an analogy
+            pass
+
 
 class Sheet(JScrollPane):
     """A sheet containing a _table.
     """
     def __init__(self):
         self.model = SpreadsheetModel(2, 3)
-        self._table = CustomTable(self.model)
+        self._table = SpreadsheetTable(self.model)
         self.setViewportView(self._table)
         self.setColumnHeaderView(self._table.getTableHeader())
         self.setRowHeaderView(JTableRowHeader(self._table))
