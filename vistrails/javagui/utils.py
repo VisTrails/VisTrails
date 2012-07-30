@@ -15,7 +15,7 @@ class PyFuncRunner(Runnable):
         self.runner = func;
 
     def run(self):
-        self.runner()
+        self.result =  self.runner()
 
 
 def run_on_edt(func, async=False):
@@ -34,6 +34,7 @@ def run_on_edt(func, async=False):
             func.run()
         else:
             SwingUtilities.invokeAndWait(func)
+        return func.result
 
 
 def resized_icon(image, size):

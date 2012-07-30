@@ -99,19 +99,24 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         VistrailsApplicationInterface.init(self,optionsDict)
         
         interactive = self.temp_configuration.check('interactiveMode')
+        def run():
+            if interactive:
+                self.createWindows()
+    
+            self.vistrailsStartup.init()
+    
+            self._initialized = True
+    
+            if interactive:
+                self.interactiveMode()
+            else:
+                r = self.noninteractiveMode()
+                return r
+            return True
         if interactive:
-            self.createWindows()
-
-        self.vistrailsStartup.init()
-
-        self._initialized = True
-
-        if interactive:
-            self.interactiveMode()
+            return run_on_edt(run)
         else:
-            r = self.noninteractiveMode()
-            return r
-        return True
+            return run()
 
     def is_running_gui(self):
         # Who asks? This is probably not the GUI you are looking for...
@@ -156,17 +161,15 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
 
         """
         print "createWindows"
-        def run():
-            self.setupSplashScreen()
 
-            # This is so that we don't import too many things before we
-            # have to. Otherwise, requirements are checked too late.
-            from javagui.builder_frame import BuilderFrame
+        self.setupSplashScreen()
 
-            self.builderWindow = BuilderFrame()
-            self.builderWindow.showFrame()
+        # This is so that we don't import too many things before we
+        # have to. Otherwise, requirements are checked too late.
+        from javagui.builder_frame import BuilderFrame
 
-        run_on_edt(run)
+        self.builderWindow = BuilderFrame()
+        self.builderWindow.showFrame()
 
     def wait_finish(self):
         """Wait for the user to close the window.
