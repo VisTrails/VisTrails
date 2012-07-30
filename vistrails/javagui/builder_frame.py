@@ -311,20 +311,27 @@ class BuilderFrame(JFrame):
     current_version = property(_version_get, _version_set)
 
     def open_vistrail_without_prompt(self, locator, version=None):
-        self.controller = JVistrailController()
+        try:
+            controller = JVistrailController()
 
-        # Open the vistrail
-        (vistrail, abstractions, thumbnails, mashups) = \
-                load_vistrail(self.currentLocator, False)
+            # Open the vistrail
+            (vistrail, abstractions, thumbnails, mashups) = \
+                    load_vistrail(self.currentLocator, False)
 
-        # Initialize the controller
-        self.controller.set_vistrail(
-                vistrail, self.currentLocator, abstractions, thumbnails)
+            # Initialize the controller
+            controller.set_vistrail(
+                    vistrail, self.currentLocator, abstractions, thumbnails)
 
-        self.controller.select_latest_version()
-        self.controller.current_pipeline.validate()
+            controller.select_latest_version()
+            controller.current_pipeline.validate()
 
-        self.controller.set_changed(False)
+            controller.set_changed(False)
+        except Exception, e:
+            import traceback
+            traceback.print_exc()
+            return
+        else:
+            self.controller = controller
 
         # Create the pipeline view
         self.create_pipeline_view()
