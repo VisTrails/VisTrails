@@ -1,5 +1,5 @@
 from java.lang import Object as JavaObject
-from java.awt import Color, Dimension
+from java.awt import AlphaComposite, BorderLayout, Color, Dimension
 from java.awt.datatransfer import (DataFlavor, Transferable,
                                    UnsupportedFlavorException)
 from java.awt.event import MouseListener
@@ -131,6 +131,26 @@ class CellManipulator(JLabel, MouseListener):
     def mousePressed(self, event):
         self.getTransferHandler().exportAsDrag(
                 self, event, TransferHandler.COPY)
+
+
+class TranslucentCellOverlay(JPanel):
+    OVERLAY_COLOR = Color(113, 159, 203)
+
+    def __init__(self, component, size):
+        JPanel.__init__(self, BorderLayout())
+        if component is not None:
+            self.add(component)
+        self.setSize(size)
+
+    # @Override
+    def paint(self, g):
+        JPanel.paint(self, g)
+        g = g.create()
+        g.setComposite(
+                AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5))
+        g.setColor(self.OVERLAY_COLOR)
+        g.fillRect(0, 0, self.getWidth(), self.getHeight())
+        g.dispose()
 
 
 INTERACTIVE = 1
@@ -291,13 +311,21 @@ class SpreadsheetRenderer(DefaultTableCellRenderer):
         self.table = table
 
     # @Override
-    def getTableCellRendererComponent(self, table, value, isSelected, hasFocus,
+    def getTableCellRendererComponent(self, table, cell, isSelected, hasFocus,
                                       row, column):
-        if isinstance(value, Cell):
-            new_size = self.table.getCellSize(value)
-            if ((value.getSize()) != new_size):
-                value.setSize(new_size)
-        return value
+        new_size = self.table.getCellSize(row, column)
+        if isinstance(cell, Cell):
+            if ((cell.getSize()) != new_size):
+                cell.setSize(new_size)
+
+        drop_location = table.getDropLocation()
+        if (drop_location is not None and
+                not drop_location.isInsertRow() and
+                not drop_location.isInsertColumn() and
+                drop_location.getRow() == row and
+                drop_location.getColumn() == column):
+            return TranslucentCellOverlay(cell, new_size)
+        return cell
 
 
 class SpreadsheetEditor(AbstractCellEditor, TableCellEditor):
@@ -314,7 +342,7 @@ class SpreadsheetEditor(AbstractCellEditor, TableCellEditor):
     def getTableCellEditorComponent(self, table, value, isSelected,
                                     row, column):
         if isinstance(value, Cell):
-            new_size = self.table.getCellSize(value)
+            new_size = self.table.getCellSize(row, column)
             if ((value.getSize()) != new_size):
                 value.setSize(new_size)
         self.cell = value
@@ -339,8 +367,7 @@ class SpreadsheetTable(JTable):
     def getDefaultEditor(self, columnClass):
         return self.editor
 
-    def getCellSize(self, cell):
-        row, column = self.getModel().cellpositions[cell]
+    def getCellSize(self, row, column):
         return Dimension(
                 self.getColumnModel().getColumn(column).getWidth(),
                 self.getRowHeight(row))
