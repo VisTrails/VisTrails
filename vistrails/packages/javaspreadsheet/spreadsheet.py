@@ -179,6 +179,8 @@ class Cell(JPanel):
         self.removeAll()
 
         if self._mode == EDITING:
+            self._label_height = 0
+
             def add(title, text):
                 label = JLabel('%s: %s' % (
                         title, text))
@@ -186,34 +188,39 @@ class Cell(JPanel):
                 label.setBackground(Color(230, 240, 230))
                 self.add(label)
                 h = int(label.getPreferredSize().getHeight())
-                label.setBounds(0, add.vpos, self._widget.getWidth(), h)
-                add.vpos += h
-            add.vpos = 0
+                label.setBounds(0, self._label_height, 999999, h)
+                self._label_height += h
 
             add("Vistrail", self.infos['vistrail'])
             add("Index", "Pipeline: %d, Module: %d" % (
                     self.infos['version'], self.infos['module_id']))
             add("Created by", self.infos['reason'])
 
-            vpos = add.vpos
-
-            def add(manipulator):
-                self.add(manipulator)
-                manipulator.setBounds(add.nb * ICON_SIZE.width + 20, vpos + 20,
-                                      ICON_SIZE.width, ICON_SIZE.height)
-                add.nb += 1
-            add.nb = 0
-
-            add(CellManipulator(COPY, self, 'copy', self.observer))
-            add(CellManipulator(MOVE, self, 'move', self.observer))
-            add(CellManipulator(CREATE_ANALOGY, self, 'create_analogy',
+            self.add(CellManipulator(COPY, self, 'copy', self.observer))
+            self.add(CellManipulator(MOVE, self, 'move', self.observer))
+            self.add(CellManipulator(CREATE_ANALOGY, self, 'create_analogy',
                                 self.observer))
-            add(CellManipulator(APPLY_ANALOGY, self, 'apply_analogy',
+            self.add(CellManipulator(APPLY_ANALOGY, self, 'apply_analogy',
                                 self.observer))
 
         if self._widget is not None:
             self.add(self._widget)
-            self._widget.setBounds(0, 0, self.getWidth(), self.getHeight())
+
+        self._layout()
+
+    def _layout(self):
+        nb_manips = 0
+        for i in xrange(self.getComponentCount()):
+            component = self.getComponent(i)
+            if component is self._widget:
+                component.setBounds(0, 0, self.getWidth(), self.getHeight())
+            elif isinstance(component, CellManipulator):
+                component.setBounds(
+                        nb_manips * ICON_SIZE.width + 20,
+                        self._label_height + 20,
+                        ICON_SIZE.width,
+                        ICON_SIZE.height)
+                nb_manips += 1
 
     def _get_widget(self):
         return self._widget
@@ -221,11 +228,12 @@ class Cell(JPanel):
         if self._widget is not None:
             self.remove(self._widget)
         self._widget = widget
-        self._setup()
+        self.add(widget)
+        self._layout()
     widget = property(_get_widget, _set_widget)
 
     def assign(self, infos):
-        self.removeAll()
+        self._widget = None
         self.infos = infos
         self._setup()
 
@@ -237,9 +245,7 @@ class Cell(JPanel):
     # @Override
     def setSize(self, *args):
         JPanel.setSize(self, *args)
-        self._setup()
-        #if self._widget is not None:
-        #    self._widget.setBounds(0, 0, self.getWidth(), self.getHeight())
+        self._layout()
 
 
 class SpreadsheetModel(DefaultTableModel):
@@ -348,6 +354,8 @@ class SpreadsheetRenderer(DefaultTableCellRenderer):
                 not drop_location.isInsertColumn() and
                 drop_location.getRow() == row and
                 drop_location.getColumn() == column):
+            # We use a wrapper component instead of a simple property inside
+            # class Cell because 'cell' might be None here
             return TranslucentCellOverlay(cell, new_size)
         return cell
 
