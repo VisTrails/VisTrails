@@ -29,7 +29,11 @@ class AssignCell(NotCacheable, Module):
 
         sheet = spreadsheet.getSheet(sheetref)
         cell = sheet.getCell(location)
-        cell.removeAll()
+        cell.assign(dict(
+                vistrail=self.moduleInfo['locator'].name,
+                version=self.moduleInfo['version'],
+                module_id=self.moduleInfo['moduleId'],
+                reason=self.moduleInfo['reason']))
 
         spreadsheet.setVisible(True)
 

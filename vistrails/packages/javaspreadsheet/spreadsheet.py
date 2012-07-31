@@ -179,9 +179,27 @@ class Cell(JPanel):
         self.removeAll()
 
         if self._mode == EDITING:
+            def add(title, text):
+                label = JLabel('%s: %s' % (
+                        title, text))
+                label.setOpaque(True)
+                label.setBackground(Color(230, 240, 230))
+                self.add(label)
+                h = int(label.getPreferredSize().getHeight())
+                label.setBounds(0, add.vpos, self._widget.getWidth(), h)
+                add.vpos += h
+            add.vpos = 0
+
+            add("Vistrail", self.infos['vistrail'])
+            add("Index", "Pipeline: %d, Module: %d" % (
+                    self.infos['version'], self.infos['module_id']))
+            add("Created by", self.infos['reason'])
+
+            vpos = add.vpos
+
             def add(manipulator):
                 self.add(manipulator)
-                manipulator.setBounds(add.nb * ICON_SIZE.width + 20, 20,
+                manipulator.setBounds(add.nb * ICON_SIZE.width + 20, vpos + 20,
                                       ICON_SIZE.width, ICON_SIZE.height)
                 add.nb += 1
             add.nb = 0
@@ -206,6 +224,11 @@ class Cell(JPanel):
         self._setup()
     widget = property(_get_widget, _set_widget)
 
+    def assign(self, infos):
+        self.removeAll()
+        self.infos = infos
+        self._setup()
+
     # @Override
     def paint(self, g):
         JPanel.paint(self, g)
@@ -214,8 +237,9 @@ class Cell(JPanel):
     # @Override
     def setSize(self, *args):
         JPanel.setSize(self, *args)
-        if self._widget is not None:
-            self._widget.setBounds(0, 0, self.getWidth(), self.getHeight())
+        self._setup()
+        #if self._widget is not None:
+        #    self._widget.setBounds(0, 0, self.getWidth(), self.getHeight())
 
 
 class SpreadsheetModel(DefaultTableModel):
