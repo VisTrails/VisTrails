@@ -309,9 +309,11 @@ parameters from other instances")
         """ interactiveMode() -> None
         Instantiate the GUI for interactive mode
         
-        """     
+        """
         if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
+            debug.DebugPrint.getInstance().register_splash(None)
+            self.splashScreen = None
         # self.builderWindow.modulePalette.updateFromModuleRegistry()
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()

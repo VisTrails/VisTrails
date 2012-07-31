@@ -150,6 +150,8 @@ gui.application.start_application({'interactiveMode': True,
 
 print "Test Suite for VisTrails"
 
+tests_passed = True
+
 main_test_suite = unittest.TestSuite()
 
 if test_modules:
@@ -159,7 +161,7 @@ else:
 
 for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
-    if p.find('.svn') != -1:
+    if p.find('.svn') != -1 or p.find('.git') != -1 :
         continue
     for filename in files:
         # skip files that don't look like VisTrails python modules
@@ -207,7 +209,11 @@ for (p, subdirs, files) in os.walk(root_directory):
         elif verbose >= 2:
             print msg, "Ok: %s test cases." % len(test_cases)
 
-unittest.TextTestRunner().run(main_test_suite)
+result = unittest.TextTestRunner().run(main_test_suite)
+
+if not result.wasSuccessful():
+    tests_passed = False
+
 if test_examples:
     import core.db.io
     import core.db.locator
@@ -252,8 +258,11 @@ if test_examples:
             print "  Ok."
     print "-----------------------------------------------------------------"
     if errors:
+        tests_passed = False
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
 gui.application.get_vistrails_application().finishSession()
 gui.application.stop_application()
+# Test Runners can use the return value to know if the tests passed
+sys.exit(0 if tests_passed else 1)
