@@ -41,14 +41,12 @@ This subclasses provides:
 
 import threading
 
-from javax.swing import JComponent
-
 import core.db.io
 from core.utils import DummyView
 from core.vistrail.controller import VistrailController as BaseController
 
 
-class JVistrailController(BaseController, JComponent):
+class JVistrailController(BaseController):
 
     _workflow_executing = False
     _execution_mutex = threading.Lock()
@@ -94,6 +92,7 @@ class JVistrailController(BaseController, JComponent):
     def perform_action(self, action):
         if action is not None:
             BaseController.perform_action(self, action)
+            self.validate(self.current_pipeline)
             if not self.quiet:
                 self._notify_version_change()
             return action.db_id

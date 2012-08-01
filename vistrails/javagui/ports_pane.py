@@ -93,6 +93,7 @@ class InputPortValue(JPanel):
         else:
             real_id = -1
             should_replace = False
+        # Triggers an action
         self._controller.update_function(
                 self._module,
                 self._port_spec.name,

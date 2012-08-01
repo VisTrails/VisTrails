@@ -713,6 +713,7 @@ class JPipelineView(PCanvas, Dockable):
         if updatedb:
             # Notice that we connect an *output port* of the input module
             # to an *input port* of the output module
+            # Triggers an action
             c = self.controller.add_connection(
                     omodule.module.id, omodule.inputPorts[oport],
                     imodule.module.id, imodule.outputPorts[iport])
@@ -744,6 +745,7 @@ class JPipelineView(PCanvas, Dockable):
         reg = get_module_registry()
         if reg.is_abstraction(descriptor):
             internal_version = descriptor.module.internal_version
+        # Triggers an action
         module = self.controller.add_module_from_descriptor(
                 descriptor,
                 pos.x, -pos.y,
@@ -776,6 +778,7 @@ class JPipelineView(PCanvas, Dockable):
             if not JPipelineView.float_eq(ploc, module.center):
                 moves.append((id, ploc.x, ploc.y))
         if moves:
+            # Triggers an action
             self.controller.move_module_list(moves)
             print "wrote %d move actions to vistrail" % len(moves)
             return True
@@ -827,6 +830,7 @@ class JPipelineView(PCanvas, Dockable):
 
     def deleteSelected(self):
         if self.selected_connection:
+            # Triggers an action
             self.controller.delete_connection(self.selected_connection.id)
             self.selected_connection = None
         else:
@@ -842,6 +846,7 @@ class JPipelineView(PCanvas, Dockable):
                 module.removeFromParent()
                 module_ids.append(module.module.id)
                 del self.modules[module.module.id]
+            # Triggers an action
             self.controller.delete_module_list(module_ids)
             self.selected_modules = set()
             # DON'T delete the connections in the DB, they are deleted in
