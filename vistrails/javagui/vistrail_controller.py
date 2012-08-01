@@ -58,6 +58,10 @@ class JVistrailController(BaseController, JComponent):
         self.fileName  = ""
         self.quiet = False
         self.__version_change_callbacks = set()
+        self._execution_listeners = set()
+
+    def add_execution_listener(self, listener):
+        self._execution_listeners.add(listener)
 
     def set_vistrail(self, vistrail, locator, abstractions=None, thumbnails=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
@@ -110,6 +114,8 @@ class JVistrailController(BaseController, JComponent):
             return False
         else:
             self._workflow_executing = True
+            for listener in self._execution_listeners:
+                listener(True)
             self._execution_mutex.release()
             self.flush_delayed_actions()
             if self.current_pipeline:
@@ -130,5 +136,7 @@ class JVistrailController(BaseController, JComponent):
                                                  None)])
                     self._execution_mutex.acquire()
                     self._workflow_executing = False
+                    for listener in self._execution_listeners:
+                        listener(False)
                     self._execution_mutex.release()
                 threading.Thread(target=execute).start()

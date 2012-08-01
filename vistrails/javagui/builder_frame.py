@@ -108,9 +108,9 @@ class BuilderFrame(JFrame):
         menuBar = JMenuBar()
 
         fileMenu = JMenu("File")
-        openItem = JMenuItem("Open a file")
-        openItem.actionPerformed = self.openAction
-        fileMenu.add(openItem)
+        self.openMenuItem = JMenuItem("Open a file")
+        self.openMenuItem.actionPerformed = self.openAction
+        fileMenu.add(self.openMenuItem)
         fileMenu.addSeparator()
 
         quitItem = JMenuItem("Quit")
@@ -119,15 +119,15 @@ class BuilderFrame(JFrame):
         menuBar.add(fileMenu)
 
         editMenu = JMenu("Edit")
-        preferencesItem = JMenuItem("Preferences...")
-        preferencesItem.actionPerformed = self.showPreferences
-        editMenu.add(preferencesItem)
+        self.preferencesMenuItem = JMenuItem("Preferences...")
+        self.preferencesMenuItem.actionPerformed = self.showPreferences
+        editMenu.add(self.preferencesMenuItem)
         menuBar.add(editMenu)
 
         workflowMenu = JMenu("Workflow")
-        executeItem = JMenuItem("Execute")
-        executeItem.actionPerformed = self.executeAction
-        workflowMenu.add(executeItem)
+        self.executeMenuItem = JMenuItem("Execute")
+        self.executeMenuItem.actionPerformed = self.executeAction
+        workflowMenu.add(self.executeMenuItem)
         eraseCacheItem = JMenuItem("Erase cache contents")
         eraseCacheItem.actionPerformed = self.erase_cache
         workflowMenu.add(eraseCacheItem)
@@ -313,6 +313,7 @@ class BuilderFrame(JFrame):
     def open_vistrail_without_prompt(self, locator, version=None):
         try:
             controller = JVistrailController()
+            controller.add_execution_listener(self.set_executing)
 
             # Open the vistrail
             (vistrail, abstractions, thumbnails, mashups) = \
@@ -459,6 +460,15 @@ class BuilderFrame(JFrame):
         except Exception, e:
             debug.critical('Failed to index vistrail', str(e))
         return locator
+
+    def set_executing(self, executing):
+        self.saveButton.setEnabled(not executing)
+        self.saveAsButton.setEnabled(not executing)
+        self.openButton.setEnabled(not executing)
+        self.executeButton.setEnabled(not executing)
+        self.openMenuItem.setEnabled(not executing)
+        self.preferencesMenuItem.setEnabled(not executing)
+        self.executeMenuItem.setEnabled(not executing)
 
     def set_active_module(self, module):
         self.moduleInfo.update_module(module)
