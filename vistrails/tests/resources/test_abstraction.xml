@@ -1,118 +1,155 @@
-<?xml version="1.0" ?>
-<!--###############################################################################
-##
-## Copyright (C) 2006-2011, University of Utah. 
-## All rights reserved.
-## Contact: contact@vistrails.org
-##
-## This file is part of VisTrails.
-##
-## "Redistribution and use in source and binary forms, with or without 
-## modification, are permitted provided that the following conditions are met:
-##
-##  - Redistributions of source code must retain the above copyright notice, 
-##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
-##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
-##    this software without specific prior written permission.
-##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-##
-###############################################################################
--->
-<vistrail dbHost="" dbName="" dbPort="" id="" name="" version="0.7.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
-  <action date="2007-08-27 17:13:44" id="1" prevId="0" prune="" session="" user="dakoop">
+<vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2007-08-27 17:13:44" id="1" prevId="0" session="" user="dakoop">
     <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="0" name="Float" package="edu.utah.sci.vistrails.basic" version=""/>
+      <module cache="1" id="0" name="Float" namespace="" package="edu.utah.sci.vistrails.basic" version="" />
     </add>
     <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
-      <location id="0" x="62.0" y="180.0"/>
+      <location id="0" x="62.0" y="180.0" />
     </add>
   </action>
-  <action date="2007-08-27 17:13:46" id="2" prevId="1" prune="" session="" user="dakoop">
+  <action date="2007-08-27 17:13:46" id="2" prevId="1" session="" user="dakoop">
     <add id="2" objectId="1" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="1" name="Float" package="edu.utah.sci.vistrails.basic" version=""/>
+      <module cache="1" id="1" name="Float" namespace="" package="edu.utah.sci.vistrails.basic" version="" />
     </add>
     <add id="3" objectId="1" parentObjId="1" parentObjType="module" what="location">
-      <location id="1" x="-109.0" y="146.0"/>
+      <location id="1" x="-109.0" y="146.0" />
     </add>
   </action>
-  <action date="2007-08-27 17:13:51" id="3" prevId="2" prune="" session="" user="dakoop">
+  <action date="2007-08-27 17:13:51" id="3" prevId="2" session="" user="dakoop">
     <add id="4" objectId="2" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="2" name="List" package="edu.utah.sci.vistrails.basic" version=""/>
+      <module cache="1" id="2" name="List" namespace="" package="edu.utah.sci.vistrails.basic" version="" />
     </add>
     <add id="5" objectId="2" parentObjId="2" parentObjType="module" what="location">
-      <location id="2" x="18.0" y="85.0"/>
+      <location id="2" x="18.0" y="85.0" />
     </add>
   </action>
-  <action date="2007-08-27 17:13:53" id="4" prevId="3" prune="" session="" user="dakoop">
+  <action date="2007-08-27 17:13:53" id="4" prevId="3" session="" user="dakoop">
     <add id="6" objectId="3" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="3" name="List" package="edu.utah.sci.vistrails.basic" version=""/>
+      <module cache="1" id="3" name="List" namespace="" package="edu.utah.sci.vistrails.basic" version="" />
     </add>
     <add id="7" objectId="3" parentObjId="3" parentObjType="module" what="location">
-      <location id="3" x="17.0" y="-31.0"/>
+      <location id="3" x="17.0" y="-31.0" />
     </add>
   </action>
-  <action date="2007-08-27 17:13:57" id="5" prevId="4" prune="" session="" user="dakoop">
+  <action date="2007-08-27 17:13:57" id="5" prevId="4" session="" user="dakoop">
     <add id="8" objectId="0" parentObjId="" parentObjType="" what="connection">
-      <connection id="0"/>
+      <connection id="0" />
     </add>
     <add id="9" objectId="1" parentObjId="0" parentObjType="connection" what="port">
-      <port id="1" moduleId="2" moduleName="List" name="head" spec="(edu.utah.sci.vistrails.basic:Module)" type="destination"/>
+      <port id="1" moduleId="2" moduleName="List" name="head" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
     </add>
     <add id="10" objectId="0" parentObjId="0" parentObjType="connection" what="port">
-      <port id="0" moduleId="1" moduleName="Float" name="value" spec="(edu.utah.sci.vistrails.basic:Float)" type="source"/>
+      <port id="0" moduleId="1" moduleName="Float" name="value" signature="(edu.utah.sci.vistrails.basic:Float)" type="source" />
     </add>
   </action>
-  <action date="2007-08-27 17:14:03" id="6" prevId="5" prune="" session="" user="dakoop">
-    <delete id="11" objectId="1" parentObjId="0" parentObjType="connection" what="port"/>
-    <delete id="12" objectId="0" parentObjId="0" parentObjType="connection" what="port"/>
-    <delete id="13" objectId="0" parentObjId="" parentObjType="" what="connection"/>
+  <action date="2007-08-27 17:14:03" id="6" prevId="5" session="" user="dakoop">
+    <delete id="11" objectId="1" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="12" objectId="0" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="13" objectId="0" parentObjId="" parentObjType="" what="connection" />
   </action>
-  <action date="2007-08-27 17:14:06" id="7" prevId="6" prune="" session="" user="dakoop">
+  <action date="2007-08-27 17:14:06" id="7" prevId="6" session="" user="dakoop">
     <add id="14" objectId="1" parentObjId="" parentObjType="" what="connection">
-      <connection id="1"/>
+      <connection id="1" />
     </add>
     <add id="15" objectId="3" parentObjId="1" parentObjType="connection" what="port">
-      <port id="3" moduleId="3" moduleName="List" name="head" spec="(edu.utah.sci.vistrails.basic:Module)" type="destination"/>
+      <port id="3" moduleId="3" moduleName="List" name="head" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
     </add>
     <add id="16" objectId="2" parentObjId="1" parentObjType="connection" what="port">
-      <port id="2" moduleId="1" moduleName="Float" name="value" spec="(edu.utah.sci.vistrails.basic:Float)" type="source"/>
+      <port id="2" moduleId="1" moduleName="Float" name="value" signature="(edu.utah.sci.vistrails.basic:Float)" type="source" />
     </add>
   </action>
-  <action date="2007-08-27 17:14:09" id="8" prevId="7" prune="" session="" user="dakoop">
+  <action date="2007-08-27 17:14:09" id="8" prevId="7" session="" user="dakoop">
     <add id="17" objectId="2" parentObjId="" parentObjType="" what="connection">
-      <connection id="2"/>
+      <connection id="2" />
     </add>
     <add id="18" objectId="5" parentObjId="2" parentObjType="connection" what="port">
-      <port id="5" moduleId="2" moduleName="List" name="head" spec="(edu.utah.sci.vistrails.basic:Module)" type="destination"/>
+      <port id="5" moduleId="2" moduleName="List" name="head" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
     </add>
     <add id="19" objectId="4" parentObjId="2" parentObjType="connection" what="port">
-      <port id="4" moduleId="0" moduleName="Float" name="value" spec="(edu.utah.sci.vistrails.basic:Float)" type="source"/>
+      <port id="4" moduleId="0" moduleName="Float" name="value" signature="(edu.utah.sci.vistrails.basic:Float)" type="source" />
     </add>
   </action>
-  <action date="2007-08-27 17:14:11" id="9" prevId="8" prune="" session="" user="dakoop">
+  <action date="2007-08-27 17:14:11" id="9" prevId="8" session="" user="dakoop">
     <add id="20" objectId="3" parentObjId="" parentObjType="" what="connection">
-      <connection id="3"/>
+      <connection id="3" />
     </add>
     <add id="21" objectId="7" parentObjId="3" parentObjType="connection" what="port">
-      <port id="7" moduleId="3" moduleName="List" name="tail" spec="(edu.utah.sci.vistrails.basic:List)" type="destination"/>
+      <port id="7" moduleId="3" moduleName="List" name="tail" signature="(edu.utah.sci.vistrails.basic:List)" type="destination" />
     </add>
     <add id="22" objectId="6" parentObjId="3" parentObjType="connection" what="port">
-      <port id="6" moduleId="2" moduleName="List" name="value" spec="(edu.utah.sci.vistrails.basic:List)" type="source"/>
+      <port id="6" moduleId="2" moduleName="List" name="value" signature="(edu.utah.sci.vistrails.basic:List)" type="source" />
     </add>
   </action>
+  <action date="2012-08-02 17:59:40" id="10" prevId="9" session="2" user="tommy">
+    <annotation id="0" key="__description__" value="Upgrade" />
+    <delete id="23" objectId="3" parentObjId="1" parentObjType="connection" what="port" />
+    <delete id="24" objectId="2" parentObjId="1" parentObjType="connection" what="port" />
+    <delete id="25" objectId="1" parentObjId="" parentObjType="" what="connection" />
+    <delete id="26" objectId="7" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="27" objectId="6" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="28" objectId="3" parentObjId="" parentObjType="" what="connection" />
+    <delete id="29" objectId="3" parentObjId="3" parentObjType="module" what="location" />
+    <delete id="30" objectId="3" parentObjId="" parentObjType="" what="module" />
+    <delete id="31" objectId="1" parentObjId="1" parentObjType="module" what="location" />
+    <delete id="32" objectId="1" parentObjId="" parentObjType="" what="module" />
+    <delete id="33" objectId="5" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="34" objectId="4" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="35" objectId="2" parentObjId="" parentObjType="" what="connection" />
+    <delete id="36" objectId="2" parentObjId="2" parentObjType="module" what="location" />
+    <delete id="37" objectId="2" parentObjId="" parentObjType="" what="module" />
+    <delete id="38" objectId="0" parentObjId="0" parentObjType="module" what="location" />
+    <delete id="39" objectId="0" parentObjId="" parentObjType="" what="module" />
+    <add id="40" objectId="4" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="4" name="List" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="41" objectId="4" parentObjId="4" parentObjType="module" what="location">
+      <location id="4" x="17.0" y="-31.0" />
+    </add>
+    <add id="42" objectId="5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5" name="Float" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="43" objectId="5" parentObjId="5" parentObjType="module" what="location">
+      <location id="5" x="-109.0" y="146.0" />
+    </add>
+    <add id="44" objectId="6" parentObjId="" parentObjType="" what="connection">
+      <connection id="6" />
+    </add>
+    <add id="45" objectId="12" parentObjId="6" parentObjType="connection" what="port">
+      <port id="12" moduleId="5" moduleName="Float" name="value" signature="(edu.utah.sci.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="46" objectId="13" parentObjId="6" parentObjType="connection" what="port">
+      <port id="13" moduleId="4" moduleName="List" name="head" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="47" objectId="6" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="6" name="List" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="48" objectId="6" parentObjId="6" parentObjType="module" what="location">
+      <location id="6" x="18.0" y="85.0" />
+    </add>
+    <add id="49" objectId="7" parentObjId="" parentObjType="" what="connection">
+      <connection id="7" />
+    </add>
+    <add id="50" objectId="14" parentObjId="7" parentObjType="connection" what="port">
+      <port id="14" moduleId="6" moduleName="List" name="value" signature="(edu.utah.sci.vistrails.basic:List)" type="source" />
+    </add>
+    <add id="51" objectId="15" parentObjId="7" parentObjType="connection" what="port">
+      <port id="15" moduleId="4" moduleName="List" name="tail" signature="(edu.utah.sci.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="52" objectId="7" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="7" name="Float" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="53" objectId="7" parentObjId="7" parentObjType="module" what="location">
+      <location id="7" x="62.0" y="180.0" />
+    </add>
+    <add id="54" objectId="9" parentObjId="" parentObjType="" what="connection">
+      <connection id="9" />
+    </add>
+    <add id="55" objectId="18" parentObjId="9" parentObjType="connection" what="port">
+      <port id="18" moduleId="7" moduleName="Float" name="value" signature="(edu.utah.sci.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="56" objectId="19" parentObjId="9" parentObjType="connection" what="port">
+      <port id="19" moduleId="6" moduleName="List" name="head" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <actionAnnotation actionId="9" date="2012-08-02 17:59:40" id="2" key="__upgrade__" user="tommy" value="10" />
 </vistrail>
