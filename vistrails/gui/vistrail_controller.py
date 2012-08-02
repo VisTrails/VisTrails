@@ -1496,8 +1496,6 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
         # TE: changed again because upgrades produced different id:s
         # also saved upgrade in test_abstraction.xml
         connection_ids = [6, 7, 9]
-        cp = controller.current_pipeline
-        print controller.current_version, cp.modules, cp.connections, filename
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))
