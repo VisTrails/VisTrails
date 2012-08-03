@@ -46,6 +46,7 @@ import core.requirements
 from core import system
 from javagui.java_requirements import check_java_requirement
 from javagui.utils import run_on_edt
+from javagui.splashscreen import JSplashScreen
 
 ################################################################################
 
@@ -69,6 +70,7 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         super(VistrailsJavaApplicationSingleton, self).__init__()
 
         self.builderWindow = None
+        self._splash_screen = None
 
         # Check for non-python requirements, locate additional JARs if needed
 
@@ -99,24 +101,19 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         VistrailsApplicationInterface.init(self,optionsDict)
         
         interactive = self.temp_configuration.check('interactiveMode')
-        def run():
-            if interactive:
-                self.createWindows()
-    
+
+        if not interactive:
             self.vistrailsStartup.init()
-    
             self._initialized = True
-    
-            if interactive:
-                self.interactiveMode()
-            else:
-                r = self.noninteractiveMode()
-                return r
-            return True
-        if interactive:
-            return run_on_edt(run)
+            return self.noninteractiveMode()
         else:
-            return run()
+            self.setupSplashScreen()
+            self.createWindows()
+            self.vistrailsStartup.init() # Will hang...
+            self._initialized = True
+            self.interactiveMode() # Will hang...
+            self.finishSplashScreen()
+            return True
 
     def is_running_gui(self):
         # Who asks? This is probably not the GUI you are looking for...
@@ -134,12 +131,31 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         if self.temp_configuration.check('showSplash'):
             splashPath = (system.vistrails_root_directory() +
                           "/gui/resources/images/vistrails_splash.png")
-            # TODO : display splash screen
+            def run():
+                self._splash_screen = JSplashScreen(splashPath, "Starting up...")
+
+                # debug.splashMessage will call splashMessage() back
+                debug.DebugPrint.getInstance().register_splash(self)
+
+                # Blocks until setVisible(False) is called...
+                # Documentation states that running this on the EDT won't stop
+                # event processing
+                self._splash_screen.setVisible(True)
+            run_on_edt(run, async=True)
+
+    def finishSplashScreen(self):
+        if self._splash_screen is not None:
+            def run():
+                self._splash_screen.finish(self.builderWindow)
+                self._splash_screen = None
+            run_on_edt(run)
 
     def splashMessage(self, msg):
-        if hasattr(self, "splashScreen"):
-            # TODO : display splash message
-            pass
+        if self._splash_screen is not None:
+            def run():
+                self._splash_screen.message = msg
+            run_on_edt(run, async=True)
+            
         
     def noninteractiveMode(self):
         # TODO : application#noninteractiveMode()
@@ -147,12 +163,8 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         
     def interactiveMode(self):
         def run():
-            if self.temp_configuration.check('showSplash'):
-                pass #self.splashScreen.finish(self.builderWindow) FIXME
             self.builderWindow.link_registry()
-
             self.builderWindow.create_first_vistrail()
-
         run_on_edt(run)
 
     def createWindows(self):
@@ -160,16 +172,14 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         Create and configure all GUI widgets including the builder
 
         """
-        print "createWindows"
-
-        self.setupSplashScreen()
-
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.
         from javagui.builder_frame import BuilderFrame
 
-        self.builderWindow = BuilderFrame()
-        self.builderWindow.showFrame()
+        def run():
+            self.builderWindow = BuilderFrame()
+            self.builderWindow.showFrame()
+        run_on_edt(run)
 
     def wait_finish(self):
         """Wait for the user to close the window.
