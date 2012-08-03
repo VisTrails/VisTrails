@@ -30,10 +30,13 @@ class AssignCell(NotCacheable, Module):
         sheet = spreadsheet.getSheet(sheetref)
         cell = sheet.getCell(location)
         cell.assign(dict(
+                pipeline=self.moduleInfo['pipeline'],
+                locator=self.moduleInfo['locator'],
                 vistrail=self.moduleInfo['locator'].name,
                 version=self.moduleInfo['version'],
                 module_id=self.moduleInfo['moduleId'],
-                reason=self.moduleInfo['reason']))
+                reason=self.moduleInfo['reason'],
+                actions=self.moduleInfo['actions']))
 
         spreadsheet.setVisible(True)
 

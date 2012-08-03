@@ -1,17 +1,22 @@
+import copy
+
 from java.lang import Object as JavaObject
 from java.awt import AlphaComposite, BorderLayout, Color, Dimension
 from java.awt.datatransfer import (DataFlavor, Transferable,
                                    UnsupportedFlavorException)
 from java.awt.event import MouseListener
 from java.io import IOException
-
 from javax.swing import (AbstractCellEditor, ButtonGroup, DropMode, JFrame,
                          JLabel, JMenu, JMenuBar, JPanel, JRadioButtonMenuItem,
                          JScrollPane, JTabbedPane, JTable, TransferHandler)
-from javax.swing.table import (DefaultTableModel, DefaultTableCellRenderer,
+from javax.swing.table import (DefaultTableCellRenderer, DefaultTableModel,
                                TableCellEditor)
 
-from core.utils import product
+from core.inspector import PipelineInspector
+from core.interpreter.default import get_default_interpreter
+from core.modules.module_registry import get_module_registry
+from core.utils import DummyView, product
+from core.vistrail.controller import VistrailController
 from javagui.utils import resized_icon
 
 from jtablerowheader import JTableRowHeader
@@ -162,6 +167,7 @@ class Cell(JPanel):
         self.observer = observer
         self.setBackground(Color.white)
         self.setLayout(None)
+        self.infos = None
         self._widget = None
         self._mode = mode
         self._setup()
@@ -191,10 +197,11 @@ class Cell(JPanel):
                 label.setBounds(0, self._label_height, 999999, h)
                 self._label_height += h
 
-            add("Vistrail", self.infos['vistrail'])
-            add("Index", "Pipeline: %d, Module: %d" % (
-                    self.infos['version'], self.infos['module_id']))
-            add("Created by", self.infos['reason'])
+            if self.infos is not None:
+                add("Vistrail", self.infos['vistrail'])
+                add("Index", "Pipeline: %d, Module: %d" % (
+                        self.infos['version'], self.infos['module_id']))
+                add("Created by", self.infos['reason'])
 
             self.add(CellManipulator(COPY, self, 'copy', self.observer))
             self.add(CellManipulator(MOVE, self, 'move', self.observer))
@@ -251,7 +258,8 @@ class Cell(JPanel):
 class SpreadsheetModel(DefaultTableModel):
     """The model for the _table, holding all the cells.
     """
-    def __init__(self, rows, columns):
+    def __init__(self, name, rows, columns):
+        self.name = name
         self.nbRows = rows
         self.nbColumns = columns
         self.cells = {}
@@ -334,6 +342,134 @@ class SpreadsheetModel(DefaultTableModel):
         self.setValueAt(prev2, loc1[0], loc1[1])
         self.setValueAt(prev1, loc2[0], loc2[1])
 
+    def copy_cell(self, src_loc, dst_loc):
+        try:
+            cell = self.cells[src_loc]
+        except KeyError:
+            return False
+        infos = cell.infos
+        pipeline = infos['pipeline']
+        if pipeline is None:
+            return False
+        mod_id = infos['module_id']
+        pipeline = self.setPipelineToLocateAt(
+                dst_loc,
+                pipeline, [mod_id])
+        interpreter = get_default_interpreter()
+        interpreter.execute(
+                pipeline,
+                locator=infos['locator'],
+                current_version=infos['version'],
+                view=DummyView(),
+                actions=infos['actions'],
+                reason=infos['reason'],
+                sinks=[mod_id])
+        return True
+
+    def setPipelineToLocateAt(self, dst_loc, pipeline, modules):
+        """ setPipelineToLocateAt(dst_loc: (int, int), pipeline: Pipeline,
+                                  modules: [ids]) -> Pipeline                                  
+        Modify the pipeline to have its cells (provided by modules) to
+        be located at the specified location on this sheet.
+        """
+        return assignPipelineCellLocations(pipeline, self.name, dst_loc, modules)
+
+
+# This is an adaptation of packages.spreadsheet.spreadsheet_execute
+# FIXME : there must be a better way to do this
+def assignPipelineCellLocations(pipeline, sheetName, 
+                                dst_loc, modules=[]):
+    row, col = dst_loc
+
+    reg = get_module_registry()
+    # These are the modules we need to edit
+    spreadsheet_cell_desc = \
+        reg.get_descriptor_by_name('edu.utah.sci.vistrails.javaspreadsheet',
+                                   'AssignCell')
+
+    create_module = VistrailController.create_module_static
+    create_function = VistrailController.create_function_static
+    create_connection = VistrailController.create_connection_static
+
+    pipeline = copy.copy(pipeline)
+    root_pipeline = pipeline
+    if modules is None:
+        inspector = PipelineInspector()
+        inspector.inspect_spreadsheet_cells(pipeline)
+        inspector.inspect_ambiguous_modules(pipeline)
+        modules = inspector.spreadsheet_cells
+
+    for id_list in modules:
+        # find at which depth we need to be working
+        try:                
+            id_iter = iter(id_list)
+            m = pipeline.modules[id_iter.next()]
+            for mId in id_iter:
+                pipeline = m.pipeline
+                m = pipeline.modules[mId]
+        except TypeError:
+            mId = id_list
+
+        m = pipeline.modules[mId]
+        if not reg.is_descriptor_subclass(m.module_descriptor, 
+                                          spreadsheet_cell_desc):
+            continue
+
+        # Walk through all connections and remove all CellLocation
+        # modules connected to this spreadsheet cell
+        conns_to_delete = []
+        for conn_id, c in pipeline.connections.iteritems():
+            if (c.destinationId==mId and pipeline.modules[c.sourceId].name in
+                    ('CellLocation', 'SheetReference')):
+                conns_to_delete.append(c.id)
+        for c_id in conns_to_delete:
+            pipeline.delete_connection(c_id)
+
+        # a hack to first get the id_scope to the local pipeline scope
+        # then make them negative by hacking the getNewId method
+        # all of this is reset at the end of this block
+        id_scope = pipeline.tmp_id
+        orig_getNewId = pipeline.tmp_id.__class__.getNewId
+        def getNewId(self, objType):
+            return -orig_getNewId(self, objType)
+        pipeline.tmp_id.__class__.getNewId = getNewId
+
+        # Add a sheet reference with a specific name
+        sheetReference = create_module(
+                id_scope,
+                'edu.utah.sci.vistrails.javaspreadsheet', 'SheetReference')
+        sheetNameFunction = create_function(id_scope, sheetReference, 
+                                            'sheet', [str(sheetName)])
+        sheetReference.add_function(sheetNameFunction)
+
+        # Add a cell location module with a specific row and column
+        cellLocation = create_module(id_scope, 
+                                     "edu.utah.sci.vistrails.javaspreadsheet",
+                                     "CellLocation")
+        rowFunction = create_function(id_scope, cellLocation, "row", [str(row)])
+        colFunction = create_function(id_scope, cellLocation, "column", 
+                                      [str(col)])
+
+        cellLocation.add_function(rowFunction)
+        cellLocation.add_function(colFunction)
+
+        cell_module = pipeline.get_module_by_id(mId)
+        # Then connect the SheetReference to the AssignCell
+        sheet_conn = create_connection(id_scope, sheetReference, 'reference',
+                                       cell_module, 'sheet')
+        # Then connect the CellLocation to the spreadsheet cell
+        cell_conn = create_connection(id_scope, cellLocation, 'location',
+                                      cell_module, 'location')
+
+        pipeline.add_module(sheetReference)
+        pipeline.add_module(cellLocation)
+        pipeline.add_connection(sheet_conn)
+        pipeline.add_connection(cell_conn)
+        # replace the getNewId method
+        pipeline.tmp_id.__class__.getNewId = orig_getNewId
+
+    return root_pipeline
+
 
 class SpreadsheetRenderer(DefaultTableCellRenderer):
     def __init__(self, table):
@@ -406,8 +542,10 @@ class SpreadsheetTable(JTable):
 
     def manipulator_action(self, command, source, target_loc):
         if command == 'copy':
-            # TODO : I don't know how to do that
-            pass
+            self.editor.cancelCellEditing()
+            self.getModel().copy_cell(
+                    self.getModel().cellpositions[source],
+                    target_loc)
         elif command == 'move':
             self.editor.cancelCellEditing()
             self.getModel().swap_cells(
@@ -424,8 +562,8 @@ class SpreadsheetTable(JTable):
 class Sheet(JScrollPane):
     """A sheet containing a _table.
     """
-    def __init__(self):
-        self.model = SpreadsheetModel(2, 3)
+    def __init__(self, name):
+        self.model = SpreadsheetModel(name, 2, 3)
         self._table = SpreadsheetTable(self.model)
         self.setViewportView(self._table)
         self.setColumnHeaderView(self._table.getTableHeader())
@@ -489,7 +627,7 @@ class Spreadsheet(JFrame):
         self.tabbedPane = JTabbedPane(JTabbedPane.BOTTOM)
         self.setContentPane(self.tabbedPane)
         self.sheets = {}
-        self.addTab("sheet1", Sheet())
+        self.addTab("sheet1", Sheet("sheet1"))
 
         def ch_mode(mode):
             def action(event=None):
@@ -521,14 +659,14 @@ class Spreadsheet(JFrame):
             try:
                 return self.sheets[sheetref.name]
             except KeyError:
-                sheet = Sheet()
+                sheet = Sheet(sheetref.name)
                 self.addTab(sheetref.name, sheet)
                 return sheet
         else:
             # No specific sheet was requested, we'll use the current one
             sheet = self.tabbedPane.getSelectedComponent()
             if not sheet:
-                sheet = Sheet()
+                sheet = Sheet("sheet1")
                 self.addTab("sheet1", sheet)
                 return sheet
             else:
