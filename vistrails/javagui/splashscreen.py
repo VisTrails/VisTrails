@@ -44,6 +44,7 @@ class JSplashScreen(JDialog):
     message = property(fset=_set_message)
 
     def finish(self, new_window=None):
+        self.setAlwaysOnTop(False)
         self.setVisible(False)
         if new_window is not None:
             # TODO : focus the new window
