@@ -6,9 +6,10 @@ from java.awt.datatransfer import (DataFlavor, Transferable,
                                    UnsupportedFlavorException)
 from java.awt.event import MouseListener
 from java.io import IOException
-from javax.swing import (AbstractCellEditor, ButtonGroup, DropMode, JFrame,
-                         JLabel, JMenu, JMenuBar, JPanel, JRadioButtonMenuItem,
-                         JScrollPane, JTabbedPane, JTable, TransferHandler)
+from javax.swing import (AbstractCellEditor, ButtonGroup, DropMode, JButton,
+                         JFrame, JLabel, JMenu, JMenuBar, JPanel,
+                         JRadioButtonMenuItem, JScrollPane, JTabbedPane,
+                         JTable, JToolBar, TransferHandler)
 from javax.swing.table import (DefaultTableCellRenderer, DefaultTableModel,
                                TableCellEditor)
 
@@ -163,14 +164,21 @@ EDITING = 2
 
 
 class Cell(JPanel):
+    SELECTION_COLOR = Color(51, 153, 255)
+
     def __init__(self, observer, mode=INTERACTIVE):
         self.observer = observer
         self.setBackground(Color.white)
         self.setLayout(None)
         self.infos = None
         self._widget = None
+        self.selected = False
         self._mode = mode
         self._setup()
+
+    def _set_selected(self, selected):
+        self.setBackground(selected and self.SELECTION_COLOR or None)
+    selected = property(fset=_set_selected)
 
     def _get_mode(self):
         return self._mode
@@ -220,7 +228,8 @@ class Cell(JPanel):
         for i in xrange(self.getComponentCount()):
             component = self.getComponent(i)
             if component is self._widget:
-                component.setBounds(0, 0, self.getWidth(), self.getHeight())
+                component.setBounds(2, 2,
+                                    self.getWidth() - 4, self.getHeight() - 4)
             elif isinstance(component, CellManipulator):
                 component.setBounds(
                         nb_manips * ICON_SIZE.width + 20,
@@ -300,19 +309,20 @@ class SpreadsheetModel(DefaultTableModel):
     # @Override
     def setValueAt(self, value, row, column):
         try:
-            old_row, old_column = self.cellpositions[value] # might raise
-            del self.cellpositions[value]
-            del self.cells[(old_row, old_column)] # might raise
-            self.fireTableCellUpdated(old_row, old_column)
+            old_cell = self.cells[(row, column)]
+            del self.cellpositions[old_cell]
         except KeyError:
             pass
 
         if value is not None:
             try:
-                old_cell = self.cells[(row, column)]
-                del self.cellpositions[old_cell]
+                old_row, old_column = self.cellpositions[value] # might raise
+                del self.cellpositions[value]
+                del self.cells[(old_row, old_column)] # might raise
+                self.fireTableCellUpdated(old_row, old_column)
             except KeyError:
                 pass
+
             self.cells[(row, column)] = value
             self.cellpositions[value] = (row, column)
         else:
@@ -483,6 +493,7 @@ class SpreadsheetRenderer(DefaultTableCellRenderer):
         if isinstance(cell, Cell):
             if ((cell.getSize()) != new_size):
                 cell.setSize(new_size)
+            cell.selected = False
 
         drop_location = table.getDropLocation()
         if (drop_location is not None and
@@ -513,6 +524,7 @@ class SpreadsheetEditor(AbstractCellEditor, TableCellEditor):
             new_size = self.table.getCellSize(row, column)
             if ((value.getSize()) != new_size):
                 value.setSize(new_size)
+            value.selected = True
         self.cell = value
         return self.cell
 
@@ -570,9 +582,9 @@ class Sheet(JScrollPane):
         self.setRowHeaderView(JTableRowHeader(self._table))
 
     def _get_mode(self):
-        return self._table.getModel().mode
+        return self.model.mode
     def _set_mode(self, mode):
-        self._table.getModel().mode = mode
+        self.model.mode = mode
     mode = property(_get_mode, _set_mode)
 
     def getCell(self, location=None):
@@ -596,6 +608,12 @@ class Sheet(JScrollPane):
         row, column = Sheet.findCell(self.model, row, column)
 
         return self.model.getValueAt(row, column, create=True)
+
+    def clearSelectedCell(self):
+        self._table.editor.cancelCellEditing()
+        self.model.setValueAt(
+                None,
+                self._table.getSelectedRow(), self._table.getSelectedColumn())
 
     @staticmethod
     def findCell(model, row, column):
@@ -625,7 +643,10 @@ class Spreadsheet(JFrame):
         self.title = "Java Spreadsheet Window"
 
         self.tabbedPane = JTabbedPane(JTabbedPane.BOTTOM)
-        self.setContentPane(self.tabbedPane)
+        panel = JPanel()
+        panel.setLayout(BorderLayout())
+        self.setContentPane(panel)
+        panel.add(self.tabbedPane, BorderLayout.CENTER)
         self.sheets = {}
         self.addTab("sheet1", Sheet("sheet1"))
 
@@ -647,6 +668,14 @@ class Spreadsheet(JFrame):
         group.add(editingMode)
         menuBar.add(viewMenu)
         self.setJMenuBar(menuBar)
+
+        toolBar = JToolBar()
+        clearButton = JButton("Clear cell")
+        def clear(event=None):
+            self.tabbedPane.getSelectedComponent().clearSelectedCell()
+        clearButton.actionPerformed = clear
+        toolBar.add(clearButton)
+        panel.add(toolBar, BorderLayout.NORTH)
 
         self.pack()
 
