@@ -68,7 +68,7 @@ import tests
 
 EXAMPLES_PATH = os.path.join(_this_dir, '..', '..', 'examples')
 #dictionary of examples that will be run with the workflows that will be ignored
-VT_EXAMPLES = { 'EMBOSS_webservices.vt': [],
+VT_EXAMPLES = { 'EMBOSS_webservices.vt': ["ProphetOutput"],
                 'KEGGPathway.vt': [],
                 'KEGG_SearchEntities_webservice.vt': [],
                 'KEGG_webservices.vt': [],
