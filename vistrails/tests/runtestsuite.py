@@ -145,8 +145,14 @@ sys.argv = sys.argv[:1]
 import gui.application
 
 # We need the windows so we can test events, etc.
-gui.application.start_application({'interactiveMode': True,
-                                   'nologger': True})
+v = gui.application.start_application({'interactiveMode': True,
+                                       'nologger': True})
+if v != 0:
+    app = gui.application.get_vistrails_application()
+    if app:
+        app.finishSession()
+    sys.exit(v)
+
 
 print "Test Suite for VisTrails"
 

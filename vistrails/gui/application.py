@@ -120,11 +120,7 @@ parameters from other instances")
         debug.critical("Found another instance of VisTrails running")
         msg = str(sys.argv[1:])
         debug.critical("Will send parameters to main instance %s" % msg)
-        res = self.send_message(msg)
-        if res:
-            sys.exit(0)
-        else:
-            sys.exit(1)
+        return self.send_message(msg)
             
     def init(self, optionsDict=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
@@ -142,8 +138,8 @@ parameters from other instances")
         if singleInstance:
             self.run_single_instance()
             if self._is_running:
-                self.found_another_instance_running()
-                
+                if not self.found_another_instance_running():
+                    return False
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
@@ -574,7 +570,7 @@ parameters from other instances")
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
                                local_socket.errorString().toLatin1())
-                return
+                return False
             byte_array = local_socket.readAll()
             debug.log("Other instance processed input (%s)"%str(byte_array))
             local_socket.disconnectFromServer()
