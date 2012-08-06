@@ -6,8 +6,8 @@ from java.awt.datatransfer import (DataFlavor, Transferable,
                                    UnsupportedFlavorException)
 from java.awt.event import MouseListener
 from java.io import IOException
-from javax.swing import (AbstractCellEditor, ButtonGroup, DropMode, JButton,
-                         JFrame, JLabel, JMenu, JMenuBar, JPanel,
+from javax.swing import (AbstractCellEditor, ButtonGroup, DropMode, ImageIcon,
+                         JButton, JFrame, JLabel, JMenu, JMenuBar, JPanel,
                          JRadioButtonMenuItem, JScrollPane, JTabbedPane,
                          JTable, JToolBar, TransferHandler)
 from javax.swing.table import (DefaultTableCellRenderer, DefaultTableModel,
@@ -18,7 +18,6 @@ from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import get_module_registry
 from core.utils import DummyView, product
 from core.vistrail.controller import VistrailController
-from javagui.utils import resized_icon
 
 from jtablerowheader import JTableRowHeader
 
@@ -26,14 +25,11 @@ from jtablerowheader import JTableRowHeader
 ICON_SIZE = Dimension(64, 64)
 
 
-COPY = resized_icon(
-        'packages/javaspreadsheet/images/copy.png', ICON_SIZE)
-MOVE = resized_icon(
-        'packages/javaspreadsheet/images/move.png', ICON_SIZE)
-CREATE_ANALOGY = resized_icon(
-        'packages/javaspreadsheet/images/create_analogy.png', ICON_SIZE)
-APPLY_ANALOGY = resized_icon(
-        'packages/javaspreadsheet/images/apply_analogy.png', ICON_SIZE)
+COPY = ImageIcon('packages/javaspreadsheet/images/copy.png')
+MOVE = ImageIcon('packages/javaspreadsheet/images/move.png')
+CREATE_ANALOGY = ImageIcon(
+        'packages/javaspreadsheet/images/create_analogy.png')
+APPLY_ANALOGY = ImageIcon('packages/javaspreadsheet/images/apply_analogy.png')
 
 
 manipulatorData = DataFlavor(
