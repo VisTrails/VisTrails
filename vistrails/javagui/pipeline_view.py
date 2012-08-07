@@ -750,7 +750,9 @@ class JPipelineView(PCanvas, Dockable):
                 descriptor,
                 pos.x, -pos.y,
                 internal_version)
-        self.addModule(module)
+        # We don't need to add the module since the above line will trigger
+        # an action that will recreate all the modules
+        #self.addModule(module)
 
     def ports_changed(self, module_id):
         self.modules[module_id].update_ports()
