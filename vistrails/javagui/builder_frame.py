@@ -46,13 +46,15 @@ import threading
 
 from java.awt import BorderLayout
 from java.awt.event import WindowAdapter
-from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
+from javax.swing import ImageIcon, JFileChooser, JFrame, JOptionPane, \
+    JPanel, JToolBar
 from javax.swing import JMenu, JMenuBar, JMenuItem, JButton
 from javax.swing import SwingConstants, SwingUtilities
 
 from com.vlsolutions.swing.docking import Dockable, DockGroup, \
     DockingConstants, DockingDesktop, DockKey
 
+import db.services.locator
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
         untitled_locator
 from core.db.io import load_vistrail
@@ -62,12 +64,13 @@ from core.thumbnails import ThumbnailCache
 import core.interpreter.cached
 import core.system
 from extras.db.javagui.locator import JavaLocatorHelperProvider
-from javagui.vistrail_controller import JVistrailController
-from javagui.pipeline_view import JPipelineView
-from javagui.version_view import JVersionView
-from javagui.module_palette import JModulePalette
 from javagui.module_info import JModuleInfo
+from javagui.module_palette import JModulePalette
+from javagui.pipeline_view import JPipelineView
 from javagui.preference_window import PreferenceWindow
+from javagui.version_view import JVersionView
+from javagui.vistrail_controller import JVistrailController
+from javagui.vistrail_holder import VistrailHolder
 
 
 class CloseListener(WindowAdapter):
@@ -126,7 +129,6 @@ class BuilderFrame(JFrame):
         self.title = "Vistrails running on Jython"
         self.setTitle(self.title)
         self.filename = ""
-        self.currentLocator = None
         self.dbDefault = False
 
         menuBar = JMenuBar()
@@ -194,6 +196,12 @@ class BuilderFrame(JFrame):
         self.desktop = DockingDesktop()
 
         top.add(self.desktop)
+
+        self._controller = None
+        self.first_controller = None
+
+        # The vistrails that are currently opened
+        self._opened_vistrails = VistrailHolder()
 
         # Create the pipeline dockable, with no pipeline view at the moment
         self.pipelineView = None
@@ -292,8 +300,16 @@ class BuilderFrame(JFrame):
                     # version number
                     if locator._vtag != '':
                         version = locator._vtag
-            self.currentLocator = locator
-            self.open_vistrail_without_prompt(locator, version)
+
+            try:
+                controller = self._opened_vistrails.find_controller(locator)
+            except KeyError:
+                return self.open_vistrail_without_prompt(locator, version)
+            else:
+                if version is not None:
+                    controller.change_selected_version(version)
+                self.select_vistrail(controller)
+                return controller
 
     def flush_changes(self):
         self.pipelineView.flushMoveActions()
@@ -303,7 +319,7 @@ class BuilderFrame(JFrame):
             if not FileLocator().prompt_autosave(
                     JavaLocatorHelperProvider(self)):
                 untitled_locator().clean_temporaries()
-        self.new_vistrail(True)
+        self.first_controller = self.new_vistrail(True)
 
     def new_vistrail(self, recover_files=False):
         if recover_files and untitled_locator().has_temporaries():
@@ -311,31 +327,68 @@ class BuilderFrame(JFrame):
         else:
             locator = None
 
-        self.open_vistrail_without_prompt(locator)
+        return self.open_vistrail_without_prompt(locator)
 
     def _version_get(self):
-        return self.controller.current_version
+        return self._controller.current_version
     def _version_set(self, version):
-        if version != self.controller.current_version:
-            self.controller.change_selected_version(version)
+        if version != self._controller.current_version:
+            self._controller.change_selected_version(version)
             self.pipelineView.version_changed()
     current_version = property(_version_get, _version_set)
 
-    def open_vistrail_without_prompt(self, locator, version=None):
+    def _confirm_closing(self, controller):
+        return JOptionPane.showConfirmDialog(
+                self,
+                "Vistrail %s contains unsaved changes.\nDo you want to "
+                "save changes before closing it?",
+                "VisTrails",
+                JOptionPane.YES_NO_CANCEL_OPTION)
+
+    # Might return False (user presses "cancel")
+    def close_vistrail(self, controller, quiet=False, save=False):
+        if not quiet and controller.changed:
+            ret = self._confirm_closing(controller)
+            if (ret == JOptionPane.CLOSED_OPTION or
+                    ret == JOptionPane.CANCEL_OPTION):
+                # Don't close it
+                return False
+            elif ret == JOptionPane.YES_OPTION:
+                save = True
+        if save and controller.changed:
+            if self.dbDefault:
+                self.save_vistrail(controller, DBLocator)
+            else:
+                self.save_vistrail(controller, FileLocator())
+        if controller is self._controller:
+            self._controller = None
+            self.pipeline_dockable.change_content(None)
+            self.version_dockable.change_content(None)
+        self._opened_vistrails.remove(controller)
+        return True
+
+    def open_vistrail_without_prompt(self, locator, version=None, select=True):
+        if isinstance(locator, db.services.locator.XMLFileLocator):
+            print "Opening vistrail %r" % locator.name
+        else:
+            print "Opening vistrail %r" % (locator,)
         try:
             controller = JVistrailController()
             controller.add_execution_listener(self.set_executing)
 
             # Open the vistrail
             (vistrail, abstractions, thumbnails, mashups) = \
-                    load_vistrail(self.currentLocator, False)
+                    load_vistrail(locator, False)
 
             # Initialize the controller
             controller.set_vistrail(
-                    vistrail, self.currentLocator, abstractions, thumbnails)
+                    vistrail, locator, abstractions, thumbnails)
 
-            controller.select_latest_version()
-            controller.current_pipeline.validate()
+            if version is not None:
+                controller.change_selected_version(version)
+            else:
+                controller.select_latest_version()
+                controller.current_pipeline.validate()
 
             controller.set_changed(False)
         except Exception, e:
@@ -343,20 +396,32 @@ class BuilderFrame(JFrame):
             traceback.print_exc()
             return
         else:
-            self.controller = controller
+            self._opened_vistrails.add(controller, locator)
+            if select:
+                self.select_vistrail(controller)
 
+        return controller
+
+    def select_vistrail(self, arg):
+        controller = self._opened_vistrails.find_controller(arg)
+
+        self._controller = controller
         # Create the pipeline view
-        self.pipelineView = JPipelineView(self, self.controller)
-        self.controller.current_pipeline_view = self.pipelineView
+        self.pipelineView = JPipelineView(self, self._controller)
+        self._controller.current_pipeline_view = self.pipelineView
         self.pipeline_dockable.change_content(self.pipelineView)
 
         # Create the version view
         self.versionView = JVersionView(
-                vistrail, locator, self.controller, self,
-                abstractions, thumbnails)
+                self._controller, self)
         self.version_dockable.change_content(self.versionView)
 
-        self.moduleInfo.controller = self.controller
+        self.moduleInfo.controller = self._controller
+
+        # Close the first controller if still present
+        if self.first_controller is not None:
+            if self.close_vistrail(self.first_controller):
+                self.first_controller = None
 
         # Restores buttons
         self.set_executing(False)
@@ -380,7 +445,6 @@ class BuilderFrame(JFrame):
         returnedValue = fileChooser.showOpenDialog(self)
         if (returnedValue == JFileChooser.APPROVE_OPTION):
             filename = fileChooser.getSelectedFile()
-            print filename.getAbsolutePath()
             self.open_vistrail(filename.getAbsolutePath())
             self.getContentPane().getComponent(1).invalidate()
             self.getContentPane().getComponent(1).revalidate()
@@ -388,39 +452,37 @@ class BuilderFrame(JFrame):
 
     def saveAction(self, event=None):
         if self.dbDefault:
-            self.save_vistrail(DBLocator)
+            self.save_vistrail(self._controller, DBLocator)
         else:
-            self.save_vistrail(FileLocator())
+            self.save_vistrail(self._controller, FileLocator())
 
     def saveAsAction(self, event=None):
         if self.dbDefault:
-            locator = self.save_vistrail(DBLocator,
+            locator = self.save_vistrail(self._controller, DBLocator,
                                          force_choose_locator=True)
         else:
-            locator = self.save_vistrail(FileLocator(),
+            locator = self.save_vistrail(self._controller, FileLocator(),
                                          force_choose_locator=True)
 
-        self.currentLocator = locator
-
-    def save_vistrail(self, locator_class, force_choose_locator=False):
+    def save_vistrail(self, controller, locator_class, force_choose_locator=False):
         self.flush_changes()
         if force_choose_locator:
             locator = locator_class.save_from_gui(
                     JavaLocatorHelperProvider(self),
                     Vistrail.vtType,
-                    self.controller.locator)
+                    self._controller.locator)
         else:
-            locator = self.controller.locator or \
+            locator = self._controller.locator or \
                     locator_class.save_from_gui(
                             JavaLocatorHelperProvider(self),
                             Vistrail.vtType,
-                            self.controller.locator)
+                            self._controller.locator)
 
         if locator == untitled_locator():
             locator = locator_class.save_from_gui(
                     JavaLocatorHelperProvider(self),
                     Vistrail.vtType,
-                    self.controller.locator)
+                    self._controller.locator)
 
         # if couldn't get one, ignore the request
         if not locator:
@@ -428,20 +490,20 @@ class BuilderFrame(JFrame):
 
         # update collection
         try:
-            self.controller.write_vistrail(locator)
+            self._controller.write_vistrail(locator)
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            debug.critical("An error has occurred", str(e))
             raise
             return False
         try:
             from core.collection import Collection
             thumb_cache = ThumbnailCache.getInstance()
-            self.controller.vistrail.thumbnails = \
-                self.controller.find_thumbnails(
+            self._controller.vistrail.thumbnails = \
+                self._controller.find_thumbnails(
                     tags_only=thumb_cache.conf.tagsOnly)
-            self.controller.vistrail.abstractions = \
-                self.controller.find_abstractions(
-                    self.controller.vistrail, True)
+            self._controller.vistrail.abstractions = \
+                self._controller.find_abstractions(
+                    self._controller.vistrail, True)
 
             collection = Collection.getInstance()
             url = locator.to_url()
@@ -453,7 +515,7 @@ class BuilderFrame(JFrame):
                     entity = entity.parent
             else:
                 entity = collection.updateVistrail(url,
-                                                   self.controller.vistrail)
+                                                   self._controller.vistrail)
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()

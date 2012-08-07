@@ -80,7 +80,7 @@ class JVersionView(JPanel, MouseListener):
     HORIZONTAL_POSITION = 300
     VERTICAL_POSITION = 20
 
-    def __init__(self, vistrail, locator, controller, builder_frame,
+    def __init__(self, controller, builder_frame,
             abstraction_files=None, thumbnail_files=None,
             version=None):
         self.FONT = Font('Dialog', Font.PLAIN, 15)
@@ -88,14 +88,12 @@ class JVersionView(JPanel, MouseListener):
 
         self.full_tree = True
         self.refine = False
-        self.controller = controller
+        self._controller = controller
         self.builder_frame = builder_frame
-        self.idScope = self.controller.id_scope
+        self.idScope = self._controller.id_scope
         self.setBackground(Color.GREEN)
         self.addMouseListener(self)
 
-        self.vistrail = vistrail
-        self.locator = locator
         self.set_graph()
 
         # This method is called back by the controller when an action is
@@ -103,19 +101,19 @@ class JVersionView(JPanel, MouseListener):
         controller.register_version_callback(self.set_graph)
 
     def set_graph(self):
-        self.controller.recompute_terse_graph()
+        self._controller.recompute_terse_graph()
 
-        self._current_terse_graph = self.controller._current_terse_graph
-        self._current_full_graph = self.controller._current_full_graph
+        self._current_terse_graph = self._controller._current_terse_graph
+        self._current_full_graph = self._controller._current_full_graph
         self._current_graph_layout = VistrailsTreeLayoutLW()
         self._current_graph_layout.layout_from(
-                self.vistrail, self._current_terse_graph,
+                self._controller.vistrail, self._current_terse_graph,
                 self.FONT_METRICS,
                 self.MARGIN_X,
                 self.MARGIN_Y)
 
-        self.controller.current_pipeline = core.db.io.get_workflow(
-                self.vistrail, self.controller.current_version)
+        self._controller.current_pipeline = core.db.io.get_workflow(
+                self._controller.vistrail, self._controller.current_version)
 
         self.clicked_version_id = None
 
@@ -130,7 +128,7 @@ class JVersionView(JPanel, MouseListener):
 
         self.nodes = dict()
 
-        vistrail = self.controller.vistrail
+        vistrail = self._controller.vistrail
         tm = vistrail.get_tagMap()
 
         for node in self._current_graph_layout.nodes.itervalues():
@@ -158,7 +156,7 @@ class JVersionView(JPanel, MouseListener):
             else:
                 graphics.setColor(Color.black)
             graphics.drawOval(*oval)
-            if v == self.controller.current_version:
+            if v == self._controller.current_version:
                 graphics.setColor(Color.red)
             else:
                 graphics.setColor(Color.black)
