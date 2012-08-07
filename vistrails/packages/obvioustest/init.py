@@ -19,8 +19,8 @@ def initialize(*args, **keywords):
     reg = get_module_registry()
 
     # Data types for ports
-    reg.add_module(data.ObviousNetwork)
-    reg.add_module(data.ObviousVisualization)
+    reg.add_module(data.ObviousNetwork, hide_descriptor=True)
+    reg.add_module(data.ObviousVisualization, hide_descriptor=True)
 
     # PrefuseGridNetwork
     reg.add_module(PrefuseGridNetwork)

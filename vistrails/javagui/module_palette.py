@@ -195,7 +195,7 @@ class JModulePalette(JScrollPane, Dockable):
             return package_item
 
     def newModule(self, descriptor, recurse=False):
-        if not descriptor.module_abstract():
+        if not descriptor.module_abstract() and not descriptor.is_hidden:
             package_identifier = (
                     descriptor.ghost_identifier or
                     descriptor.identifier)
