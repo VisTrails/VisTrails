@@ -50,8 +50,8 @@ from javax.swing import ImageIcon, JFileChooser, JFrame, JToolBar, JPanel
 from javax.swing import JMenu, JMenuBar, JMenuItem, JButton
 from javax.swing import SwingConstants, SwingUtilities
 
-from com.vlsolutions.swing.docking import DockingDesktop, DockingConstants,\
-    DockKey, Dockable, DockGroup, RelativeDockablePosition
+from com.vlsolutions.swing.docking import Dockable, DockGroup, \
+    DockingConstants, DockingDesktop, DockKey
 
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
         untitled_locator
@@ -88,6 +88,30 @@ class CloseListener(WindowAdapter):
         # We need to kill it so that the application can exit, as sys.exit() in
         # the main thread will join() all the remaining threads
         # (this is different from Java's System.exit())
+
+
+class DockableContainer(JPanel, Dockable):
+    def __init__(self, key, close_enabled=False, weight=1.0):
+        self._key = DockKey(key)
+        self._key.setResizeWeight(weight)
+        self._key.setCloseEnabled(close_enabled)
+
+        self.setLayout(BorderLayout())
+
+    # @Override
+    def getDockKey(self):
+        return self._key
+
+    # @Override
+    def getComponent(self, *args):
+        if len(args) == 0:
+            return self
+        else:
+            return JPanel.getComponent(self, *args)
+
+    def change_content(self, widget):
+        self.removeAll()
+        self.add(widget)
 
 
 class BuilderFrame(JFrame):
@@ -164,10 +188,6 @@ class BuilderFrame(JFrame):
         self.openButton = addButton('open_vistrail.png', "Open", "Open")
         self.executeButton = addButton(
                 'execute.png', "Execute the current pipeline", "Execute")
-        self.pipelineButton = addButton('pipeline.png',
-                                        "Switch to pipeline view", "Pipeline")
-        self.historyButton = addButton('history.png',
-                                       "Switch to version view", "Version")
 
         top.add(toolBar, BorderLayout.NORTH)
 
@@ -175,43 +195,40 @@ class BuilderFrame(JFrame):
 
         top.add(self.desktop)
 
-        # Empty view
-        class EmptyView(JPanel, Dockable):
-            def __init__(self, group):
-                self._key = DockKey("(empty)")
-                self._key.setDockGroup(group)
-                self._key.setResizeWeight(1.0)
-                self._key.setCloseEnabled(False)
+        # Create the pipeline dockable, with no pipeline view at the moment
+        self.pipelineView = None
+        self.pipeline_dockable = DockableContainer('pipeline')
+        self.pipeline_dockable.getDockKey().setDockGroup(BuilderFrame.CONTENT)
+        self.desktop.addDockable(self.pipeline_dockable)
 
-            # @Override
-            def getDockKey(self):
-                return self._key
+        # Create the version dockable, with no version view at the moment
+        self.versionView = None
+        self.version_dockable = DockableContainer('version')
+        self.version_dockable.getDockKey().setDockGroup(BuilderFrame.CONTENT)
+        self.desktop.createTab(self.pipeline_dockable, self.version_dockable,
+                               1, False)
 
-            # @Override
-            def getComponent(self):
-                return self
-
-            def flushMoveActions(self): pass
-            def execute_workflow(self): pass
-
-        self.current_view = EmptyView(BuilderFrame.CONTENT)
-        self.desktop.addDockable(self.current_view)
-        self.pipelineView = self.current_view
-        self.versionView = self.current_view
+        # These actions are impossible without a vistrail
+        self.saveButton.setEnabled(False)
+        self.saveAsButton.setEnabled(False)
+        self.executeButton.setEnabled(False)
+        self.executeMenuItem.setEnabled(False)
 
         # Create the module palette
         self.modulepalette = JModulePalette()
         self.modulepalette.getDockKey().setDockGroup(BuilderFrame.PANELS)
         self.modulepalette.getDockKey().setResizeWeight(0.2)
         self.modulepalette.getDockKey().setCloseEnabled(False)
-        self.desktop.split(self.current_view, self.modulepalette, DockingConstants.SPLIT_LEFT)
+        self.desktop.split(self.pipeline_dockable, self.modulepalette,
+                           DockingConstants.SPLIT_LEFT)
 
         # Create the module info panel
         self.moduleInfo = JModuleInfo()
         self.moduleInfo.getDockKey().setDockGroup(BuilderFrame.PANELS)
         self.moduleInfo.getDockKey().setResizeWeight(0.2)
         self.moduleInfo.getDockKey().setCloseEnabled(False)
-        self.desktop.split(self.current_view, self.moduleInfo, DockingConstants.SPLIT_RIGHT)
+        self.desktop.split(self.pipeline_dockable, self.moduleInfo,
+                           DockingConstants.SPLIT_RIGHT)
 
         self._visibleCond = threading.Condition()
 
@@ -255,7 +272,7 @@ class BuilderFrame(JFrame):
         return self.packages_menu
 
     def showFrame(self):
-        self.setSize(300, 300)
+        self.setSize(650, 500)
         self.setVisible(True)
 
     def link_registry(self):
@@ -277,12 +294,6 @@ class BuilderFrame(JFrame):
                         version = locator._vtag
             self.currentLocator = locator
             self.open_vistrail_without_prompt(locator, version)
-
-    def set_current_view(self, view):
-        if view != self.current_view:
-            self.desktop.remove(self.current_view)
-            self.desktop.addDockable(view, RelativeDockablePosition.TOP_CENTER)
-            self.current_view = view
 
     def flush_changes(self):
         self.pipelineView.flushMoveActions()
@@ -335,34 +346,23 @@ class BuilderFrame(JFrame):
             self.controller = controller
 
         # Create the pipeline view
-        self.create_pipeline_view()
+        self.pipelineView = JPipelineView(self, self.controller)
+        self.controller.current_pipeline_view = self.pipelineView
+        self.pipeline_dockable.change_content(self.pipelineView)
 
         # Create the version view
         self.versionView = JVersionView(
                 vistrail, locator, self.controller, self,
                 abstractions, thumbnails)
-        self.versionView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
-        self.versionView.getDockKey().setResizeWeight(1.0)
-        self.versionView.getDockKey().setCloseEnabled(False)
+        self.version_dockable.change_content(self.versionView)
 
         self.moduleInfo.controller = self.controller
 
-        # Setup the view (pipeline by default)
-        self.set_current_view(self.pipelineView)
-
-    def create_pipeline_view(self):
-        self.pipelineView = JPipelineView(self, self.controller)
-        self.pipelineView.getDockKey().setDockGroup(BuilderFrame.CONTENT)
-        self.pipelineView.getDockKey().setResizeWeight(1.0)
-        self.pipelineView.getDockKey().setCloseEnabled(False)
-        self.controller.current_pipeline_view = self.pipelineView
+        # Restores buttons
+        self.set_executing(False)
 
     def buttonClicked(self, event):
-        if event.getSource() == self.pipelineButton:
-            self.set_current_view(self.pipelineView)
-        elif event.getSource() == self.historyButton:
-            self.set_current_view(self.versionView)
-        elif event.getSource() == self.executeButton:
+        if event.getSource() == self.executeButton:
             self.executeAction()
             return
         elif event.getSource() == self.openButton:

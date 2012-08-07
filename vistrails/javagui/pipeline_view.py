@@ -50,7 +50,6 @@ from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
 from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
 from edu.umd.cs.piccolo.nodes import PPath
 from edu.umd.cs.piccolo.event import PBasicInputEventHandler, PInputEventFilter
-from com.vlsolutions.swing.docking import DockKey, Dockable
 
 from core.modules.module_registry import get_module_registry
 from javagui.module_palette import moduleData
@@ -608,7 +607,7 @@ class TargetTransferHandler(TransferHandler):
             return TransferHandler.importData(self, args[0], args[1])
 
 
-class JPipelineView(PCanvas, Dockable):
+class JPipelineView(PCanvas):
     """The pipeline view.
 
     This view represents all the modules and their connections. It can be used
@@ -617,9 +616,6 @@ class JPipelineView(PCanvas, Dockable):
     """
     def __init__(self, builder_frame, controller):
         super(JPipelineView, self).__init__()
-
-        self._key = DockKey('pipeline_view')
-        self._key.setResizeWeight(1.0)
 
         self.builder_frame = builder_frame
 
@@ -855,17 +851,6 @@ class JPipelineView(PCanvas, Dockable):
             # cascade automatically
 
         self.reset_module_colors()
-
-    # @Override
-    def getDockKey(self):
-        return self._key
-
-    # @Override
-    def getComponent(self, *args):
-        if len(args) == 0:
-            return self
-        else:
-            return PCanvas.getComponent(self, *args)
 
     def set_module_success(self, module_id):
         self._set_module_status(module_id, STAT_SUCCESS)

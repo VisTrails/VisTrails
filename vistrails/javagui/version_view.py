@@ -47,8 +47,6 @@ from java.awt import Color, Font
 from java.awt.event import MouseListener
 from javax.swing import JPanel
 
-from com.vlsolutions.swing.docking import Dockable, DockKey
-
 import core.db.io
 from extras.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from javagui.utils import FontMetricsImpl
@@ -74,7 +72,7 @@ class VersionNode(object):
         self.height = height
 
 
-class JVersionView(JPanel, MouseListener, Dockable):
+class JVersionView(JPanel, MouseListener):
 
     MARGIN_X = 60
     MARGIN_Y = 35
@@ -85,9 +83,6 @@ class JVersionView(JPanel, MouseListener, Dockable):
     def __init__(self, vistrail, locator, controller, builder_frame,
             abstraction_files=None, thumbnail_files=None,
             version=None):
-        self._key = DockKey('version_view')
-        self._key.setResizeWeight(1.0)
-
         self.FONT = Font('Dialog', Font.PLAIN, 15)
         self.FONT_METRICS = FontMetrics(FontMetricsImpl(self.FONT))
 
@@ -225,14 +220,3 @@ class JVersionView(JPanel, MouseListener, Dockable):
         self.invalidate()
         self.revalidate()
         self.repaint()
-
-    # @Override
-    def getDockKey(self):
-        return self._key
-
-    # @Override
-    def getComponent(self, *args):
-        if len(args) == 0:
-            return self
-        else:
-            return JPanel.getComponent(self, *args)
