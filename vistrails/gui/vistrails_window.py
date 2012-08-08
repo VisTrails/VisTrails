@@ -514,7 +514,11 @@ class QVistrailViewWindow(QBaseViewWindow):
                        ('importWorkflow', "Workflow...",
                         {'statusTip': "Import a workflow from an XML file",
                          'enabled': True,
-                         'callback': _app.import_workflow_default})]),
+                         'callback': _app.import_workflow_default}),
+                       ('importWorkflowDB', "Workflow from DB...",
+                        {'statusTip': "Import a workflow from a database",
+                         'enabled': True,
+                         'callback': _app.import_workflow_from_db})]),
                      ("export", "Export",
                       [('exportFile', "To DB...",
                         {'statusTip': "Export the current vistrail to a " \
@@ -1674,6 +1678,13 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def import_workflow_default(self):
         self.import_workflow(XMLFileLocator)
+
+    def import_workflow_from_db(self):
+        """ import_workflow_from_db() -> None
+        Imports a workflow from the db
+
+        """
+        self.import_workflow(DBLocator)
 
     def open_workflow(self, locator, version=None):
         self.close_first_vistrail_if_necessary()
