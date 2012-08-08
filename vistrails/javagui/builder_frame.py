@@ -115,6 +115,7 @@ class DockableContainer(JPanel, Dockable):
         self.removeAll()
         if widget is not None:
             self.add(widget)
+        self.revalidate()
 
 
 class BuilderFrame(JFrame):
@@ -133,6 +134,10 @@ class BuilderFrame(JFrame):
         self.filename = ""
         self.dbDefault = False
 
+        # The vistrails that are currently opened
+        self._opened_vistrails = VistrailHolder()
+
+        # The menu bar
         menuBar = JMenuBar()
 
         fileMenu = JMenu("File")
@@ -162,6 +167,8 @@ class BuilderFrame(JFrame):
         menuBar.add(workflowMenu)
 
         menuBar.add(self._setup_packages_menu())
+
+        menuBar.add(self._opened_vistrails.create_jmenu(self.select_vistrail))
 
         self.setJMenuBar(menuBar)
 
@@ -201,9 +208,6 @@ class BuilderFrame(JFrame):
 
         self._controller = None
         self.first_controller = None
-
-        # The vistrails that are currently opened
-        self._opened_vistrails = VistrailHolder()
 
         # Create the pipeline dockable, with no pipeline view at the moment
         self.pipelineView = None
@@ -428,7 +432,11 @@ class BuilderFrame(JFrame):
         return controller
 
     def select_vistrail(self, arg):
+        print "select_vistrail(%r)" % arg
         controller = self._opened_vistrails.find_controller(arg)
+        if controller == self._controller:
+            return
+
         controller.current_pipeline.validate()
         self._controller = controller
 
@@ -475,9 +483,6 @@ class BuilderFrame(JFrame):
         if (returnedValue == JFileChooser.APPROVE_OPTION):
             filename = fileChooser.getSelectedFile()
             self.open_vistrail(filename.getAbsolutePath())
-            self.getContentPane().getComponent(1).invalidate()
-            self.getContentPane().getComponent(1).revalidate()
-            self.getContentPane().getComponent(1).repaint()
 
     def saveAction(self, event=None):
         if self.dbDefault:
