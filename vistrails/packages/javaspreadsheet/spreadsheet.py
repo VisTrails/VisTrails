@@ -27,9 +27,6 @@ ICON_SIZE = Dimension(64, 64)
 
 COPY = ImageIcon('packages/javaspreadsheet/images/copy.png')
 MOVE = ImageIcon('packages/javaspreadsheet/images/move.png')
-CREATE_ANALOGY = ImageIcon(
-        'packages/javaspreadsheet/images/create_analogy.png')
-APPLY_ANALOGY = ImageIcon('packages/javaspreadsheet/images/apply_analogy.png')
 
 
 manipulatorData = DataFlavor(
@@ -209,10 +206,6 @@ class Cell(JPanel):
 
             self.add(CellManipulator(COPY, self, 'copy', self.observer))
             self.add(CellManipulator(MOVE, self, 'move', self.observer))
-            self.add(CellManipulator(CREATE_ANALOGY, self, 'create_analogy',
-                                self.observer))
-            self.add(CellManipulator(APPLY_ANALOGY, self, 'apply_analogy',
-                                self.observer))
 
         if self._widget is not None:
             self.add(self._widget)
@@ -559,12 +552,6 @@ class SpreadsheetTable(JTable):
             self.getModel().swap_cells(
                     self.getModel().cellpositions[source],
                     target_loc)
-        elif command == 'create_analogy':
-            # TODO : create an analogy
-            pass
-        elif command == 'apply_analogy':
-            # TODO : apply an analogy
-            pass
 
 
 class Sheet(JScrollPane):
