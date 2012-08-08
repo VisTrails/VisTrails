@@ -54,7 +54,6 @@ from javax.swing import SwingConstants, SwingUtilities
 from com.vlsolutions.swing.docking import Dockable, DockGroup, \
     DockingConstants, DockingDesktop, DockKey
 
-import db.services.locator
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, \
         untitled_locator
 from core.db.io import load_vistrail
@@ -63,6 +62,7 @@ from core import debug, get_vistrails_application
 from core.thumbnails import ThumbnailCache
 import core.interpreter.cached
 import core.system
+from db.services.locator import BaseLocator
 from extras.db.javagui.locator import JavaLocatorHelperProvider
 from javagui.module_info import JModuleInfo
 from javagui.module_palette import JModulePalette
@@ -79,18 +79,17 @@ class CloseListener(WindowAdapter):
 
     # @Override
     def windowClosing(self, e):
-        self._frame.setVisible(False)
         self.closed()
 
     def closed(self):
-        self._frame._visibleCond.acquire()
-        self._frame._visibleCond.notifyAll()
-        self._frame._visibleCond.release()
-        # This will only kill the current thread: AWT's Event Dispatch Thread
-        sys.exit(0)
-        # We need to kill it so that the application can exit, as sys.exit() in
-        # the main thread will join() all the remaining threads
-        # (this is different from Java's System.exit())
+        if self._frame.closing():
+            self._frame.setVisible(False)
+            # This will only kill the current thread: AWT's Event Dispatch
+            # Thread
+            sys.exit(0)
+            # We need to kill it so that the application can exit, as
+            # sys.exit() in the main thread will join() all the remaining
+            # threads (this is different from Java's System.exit())
 
 
 class DockableContainer(JPanel, Dockable):
@@ -114,7 +113,8 @@ class DockableContainer(JPanel, Dockable):
 
     def change_content(self, widget):
         self.removeAll()
-        self.add(widget)
+        if widget is not None:
+            self.add(widget)
 
 
 class BuilderFrame(JFrame):
@@ -128,6 +128,8 @@ class BuilderFrame(JFrame):
     def __init__(self):
         self.title = "Vistrails running on Jython"
         self.setTitle(self.title)
+        self.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE)
+
         self.filename = ""
         self.dbDefault = False
 
@@ -337,29 +339,53 @@ class BuilderFrame(JFrame):
             self.pipelineView.version_changed()
     current_version = property(_version_get, _version_set)
 
-    def _confirm_closing(self, controller):
-        return JOptionPane.showConfirmDialog(
+    def _confirm_closing(self, controller, name=None):
+        if name is None:
+            if (isinstance(controller.locator, BaseLocator) and
+                    controller.locator.name):
+                name = controller.locator.name
+            else:
+                name = "Untitled%s" % core.system.vistrails_default_file_type()
+        ret = JOptionPane.showConfirmDialog(
                 self,
-                "Vistrail %s contains unsaved changes.\nDo you want to "
-                "save changes before closing it?",
+                "Vistrail %s contains unsaved changes.\nDo you want to save "
+                "changes before closing it?" % name,
                 "VisTrails",
                 JOptionPane.YES_NO_CANCEL_OPTION)
+        if ret == JOptionPane.YES_OPTION:
+            return True
+        elif ret == JOptionPane.NO_OPTION:
+            return False
+        else:
+            return None
 
     # Might return False (user presses "cancel")
-    def close_vistrail(self, controller, quiet=False, save=False):
+    def close_vistrail(self, controller, quiet=False, save=False,
+                       override_name=None):
+        if isinstance(controller.locator, BaseLocator):
+            print "close_vistrail(%r)" % controller.locator.name
+        elif controller.locator is not None:
+            print "close_vistrail(%r)" % controller.locator
+        else:
+            print "close_vistrail(%r)" % controller
         if not quiet and controller.changed:
-            ret = self._confirm_closing(controller)
-            if (ret == JOptionPane.CLOSED_OPTION or
-                    ret == JOptionPane.CANCEL_OPTION):
+            ret = self._confirm_closing(controller, override_name)
+            if ret is None:
                 # Don't close it
                 return False
-            elif ret == JOptionPane.YES_OPTION:
+            elif ret is True:
                 save = True
         if save and controller.changed:
             if self.dbDefault:
-                self.save_vistrail(controller, DBLocator)
+                r = self.save_vistrail(
+                        controller, DBLocator,
+                        force_choose_locator=override_name is not None)
             else:
-                self.save_vistrail(controller, FileLocator())
+                r = self.save_vistrail(
+                        controller, FileLocator(),
+                        force_choose_locator=override_name is not None)
+            if r == False:
+                return False
         if controller is self._controller:
             self._controller = None
             self.pipeline_dockable.change_content(None)
@@ -368,10 +394,10 @@ class BuilderFrame(JFrame):
         return True
 
     def open_vistrail_without_prompt(self, locator, version=None, select=True):
-        if isinstance(locator, db.services.locator.XMLFileLocator):
+        if isinstance(locator, BaseLocator):
             print "Opening vistrail %r" % locator.name
         else:
-            print "Opening vistrail %r" % (locator,)
+            print "Opening vistrail %r" % locator
         try:
             controller = JVistrailController()
             controller.add_execution_listener(self.set_executing)
@@ -388,10 +414,9 @@ class BuilderFrame(JFrame):
                 controller.change_selected_version(version)
             else:
                 controller.select_latest_version()
-                controller.current_pipeline.validate()
 
             controller.set_changed(False)
-        except Exception, e:
+        except Exception:
             import traceback
             traceback.print_exc()
             return
@@ -404,8 +429,9 @@ class BuilderFrame(JFrame):
 
     def select_vistrail(self, arg):
         controller = self._opened_vistrails.find_controller(arg)
-
+        controller.current_pipeline.validate()
         self._controller = controller
+
         # Create the pipeline view
         self.pipelineView = JPipelineView(self, self._controller)
         self._controller.current_pipeline_view = self.pipelineView
@@ -418,13 +444,16 @@ class BuilderFrame(JFrame):
 
         self.moduleInfo.controller = self._controller
 
-        # Close the first controller if still present
-        if self.first_controller is not None:
-            if self.close_vistrail(self.first_controller):
-                self.first_controller = None
+        # Close the first controller if necessary
+        if (self.first_controller and self.first_controller != controller and
+                not self.first_controller.changed):
+            self.close_vistrail(self.first_controller, quiet=True, save=False)
+            self.first_controller = None
 
         # Restores buttons
         self.set_executing(False)
+
+        return True
 
     def buttonClicked(self, event):
         if event.getSource() == self.executeButton:
@@ -458,31 +487,31 @@ class BuilderFrame(JFrame):
 
     def saveAsAction(self, event=None):
         if self.dbDefault:
-            locator = self.save_vistrail(self._controller, DBLocator,
-                                         force_choose_locator=True)
+            self.save_vistrail(self._controller, DBLocator,
+                               force_choose_locator=True)
         else:
-            locator = self.save_vistrail(self._controller, FileLocator(),
-                                         force_choose_locator=True)
+            self.save_vistrail(self._controller, FileLocator(),
+                               force_choose_locator=True)
 
-    def save_vistrail(self, controller, locator_class, force_choose_locator=False):
+    def save_vistrail(self, controller, locator_class,
+                      force_choose_locator=False):
         self.flush_changes()
         if force_choose_locator:
             locator = locator_class.save_from_gui(
                     JavaLocatorHelperProvider(self),
                     Vistrail.vtType,
-                    self._controller.locator)
+                    controller.locator)
         else:
-            locator = self._controller.locator or \
-                    locator_class.save_from_gui(
-                            JavaLocatorHelperProvider(self),
-                            Vistrail.vtType,
-                            self._controller.locator)
+            locator = controller.locator or locator_class.save_from_gui(
+                    JavaLocatorHelperProvider(self),
+                    Vistrail.vtType,
+                    controller.locator)
 
         if locator == untitled_locator():
             locator = locator_class.save_from_gui(
                     JavaLocatorHelperProvider(self),
                     Vistrail.vtType,
-                    self._controller.locator)
+                    controller.locator)
 
         # if couldn't get one, ignore the request
         if not locator:
@@ -490,7 +519,7 @@ class BuilderFrame(JFrame):
 
         # update collection
         try:
-            self._controller.write_vistrail(locator)
+            controller.write_vistrail(locator)
         except Exception, e:
             debug.critical("An error has occurred", str(e))
             raise
@@ -498,12 +527,10 @@ class BuilderFrame(JFrame):
         try:
             from core.collection import Collection
             thumb_cache = ThumbnailCache.getInstance()
-            self._controller.vistrail.thumbnails = \
-                self._controller.find_thumbnails(
+            controller.vistrail.thumbnails = controller.find_thumbnails(
                     tags_only=thumb_cache.conf.tagsOnly)
-            self._controller.vistrail.abstractions = \
-                self._controller.find_abstractions(
-                    self._controller.vistrail, True)
+            controller.vistrail.abstractions = controller.find_abstractions(
+                    controller.vistrail, True)
 
             collection = Collection.getInstance()
             url = locator.to_url()
@@ -514,8 +541,7 @@ class BuilderFrame(JFrame):
                 while entity.parent:
                     entity = entity.parent
             else:
-                entity = collection.updateVistrail(url,
-                                                   self._controller.vistrail)
+                entity = collection.updateVistrail(url, controller.vistrail)
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
@@ -539,7 +565,6 @@ class BuilderFrame(JFrame):
         self.pipelineView.execute_workflow()
 
     def quitAction(self, event=None):
-        self.setVisible(False)
         self._windowCloseListener.closed()
 
     def showPreferences(self, event=None):
@@ -547,6 +572,25 @@ class BuilderFrame(JFrame):
 
     def erase_cache(self, event=None):
         core.interpreter.cached.CachedInterpreter.flush()
+
+    def closing(self):
+        def first(collection):
+            i = iter(collection)
+            return i.next()
+
+        # Loop on opened vistrails and close them
+        while not self._opened_vistrails.empty():
+            controller = first(self._opened_vistrails)
+            if not self.close_vistrail(controller):
+                self.select_vistrail(controller)
+                return False
+
+        # Notify threads blocked by waitClose()
+        self._visibleCond.acquire()
+        self._visibleCond.notifyAll()
+        self._visibleCond.release()
+
+        return True
 
     def waitClose(self):
         """Wait for the window to close.
