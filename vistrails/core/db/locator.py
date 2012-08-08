@@ -47,6 +47,7 @@ from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     BaseLocator as _BaseLocator
 from db.services.io import SaveBundle, test_db_connection
 from db import VistrailsDBException
+from db.domain import DBWorkflow
 ElementTree = get_elementtree_library()
 
 class BaseLocator(_BaseLocator):
@@ -199,6 +200,12 @@ class DBLocator(_DBLocator, CoreLocator):
         if klass is None:
             klass = Vistrail
         save_bundle = _DBLocator.load(self, klass.vtType, ThumbnailCache.getInstance().get_directory())
+        if klass.vtType == DBWorkflow.vtType:
+            wf = save_bundle
+            klass = self.get_convert_klass(wf.vtType)
+            klass.convert(wf)
+            wf.locator = self
+            return wf
         for obj in save_bundle.get_db_objs():
             klass = self.get_convert_klass(obj.vtType)
             klass.convert(obj)
