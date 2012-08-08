@@ -836,17 +836,20 @@ class JPipelineView(PCanvas):
                 return
             module_ids = []
             for module in self.selected_modules:
-                connections = set()
-                connections.update(module.inputConnections)
-                connections.update(module.outputConnections)
-                for conn in connections:
-                    conn.remove()
+                # We don't need to remove the connections since the deletion
+                # of the module will trigger an action that will recreate all
+                # the modules and connections
+                #connections = set()
+                #connections.update(module.inputConnections)
+                #connections.update(module.outputConnections)
+                #for conn in connections:
+                #    conn.remove()
                 module.removeFromParent()
                 module_ids.append(module.module.id)
                 del self.modules[module.module.id]
             # Triggers an action
-            self.controller.delete_module_list(module_ids)
             self.selected_modules = set()
+            self.controller.delete_module_list(module_ids)
             # DON'T delete the connections in the DB, they are deleted in
             # cascade automatically
 
