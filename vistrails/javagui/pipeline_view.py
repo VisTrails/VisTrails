@@ -713,13 +713,14 @@ class JPipelineView(PCanvas):
             c = self.controller.add_connection(
                     omodule.module.id, omodule.inputPorts[oport],
                     imodule.module.id, imodule.outputPorts[iport])
-            id = c.id
-            self.reset_module_colors()
-        edge_layer = self.getCamera().getLayer(1)
-        edge_layer.addChild(PConnection(
-                id,
-                imodule, iport,
-                omodule, oport))
+            # We don't need to add the connection since the above line will
+            # trigger an action that will recreate the pipeline view
+        else:
+            edge_layer = self.getCamera().getLayer(1)
+            edge_layer.addChild(PConnection(
+                    id,
+                    imodule, iport,
+                    omodule, oport))
 
     def addModule(self, module):
         """Add a module to the view.
@@ -747,7 +748,7 @@ class JPipelineView(PCanvas):
                 pos.x, -pos.y,
                 internal_version)
         # We don't need to add the module since the above line will trigger
-        # an action that will recreate all the modules
+        # an action that will recreate the pipeline view
         #self.addModule(module)
 
     def ports_changed(self, module_id):
