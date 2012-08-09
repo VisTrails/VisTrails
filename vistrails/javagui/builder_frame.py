@@ -431,10 +431,14 @@ class BuilderFrame(JFrame):
 
         return controller
 
-    def select_vistrail(self, arg):
-        print "select_vistrail(%r)" % arg
+    def select_vistrail(self, arg, version=None):
+        print "select_vistrail(%r, %s)" % (arg, version)
         controller = self._opened_vistrails.find_controller(arg)
-        if controller == self._controller:
+
+        if (version is not None and
+                version != controller.current_version):
+            controller.change_selected_version(version)
+        elif controller == self._controller:
             return
 
         controller.current_pipeline.validate()

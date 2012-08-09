@@ -13,6 +13,7 @@ from javax.swing import (AbstractCellEditor, ButtonGroup, DropMode, ImageIcon,
 from javax.swing.table import (DefaultTableCellRenderer, DefaultTableModel,
                                TableCellEditor)
 
+from core.application import get_vistrails_application
 from core.inspector import PipelineInspector
 from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import get_module_registry
@@ -27,6 +28,7 @@ ICON_SIZE = Dimension(64, 64)
 
 COPY = ImageIcon('packages/javaspreadsheet/images/copy.png')
 MOVE = ImageIcon('packages/javaspreadsheet/images/move.png')
+LOCATE_VERSION = ImageIcon('packages/javaspreadsheet/images/locate.png')
 
 
 manipulatorData = DataFlavor(
@@ -207,6 +209,10 @@ class Cell(JPanel):
             self.add(CellManipulator(COPY, self, 'copy', self.observer))
             self.add(CellManipulator(MOVE, self, 'move', self.observer))
 
+            locate_version = JButton(LOCATE_VERSION)
+            locate_version.actionPerformed = self._select_version
+            self.add(locate_version)
+
         if self._widget is not None:
             self.add(self._widget)
 
@@ -219,7 +225,7 @@ class Cell(JPanel):
             if component is self._widget:
                 component.setBounds(2, 2,
                                     self.getWidth() - 4, self.getHeight() - 4)
-            elif isinstance(component, CellManipulator):
+            elif isinstance(component, (CellManipulator, JButton)):
                 component.setBounds(
                         nb_manips * ICON_SIZE.width + 20,
                         self._label_height + 20,
@@ -236,6 +242,16 @@ class Cell(JPanel):
         self.add(widget)
         self._layout()
     widget = property(_get_widget, _set_widget)
+
+    def _select_version(self, event=None):
+        app = get_vistrails_application()
+        try:
+            window = app.builderWindow
+        except AttributeError:
+            pass
+        else:
+            window.select_vistrail(self.infos['locator'],
+                                   self.infos['version'])
 
     def assign(self, infos):
         self._widget = None
