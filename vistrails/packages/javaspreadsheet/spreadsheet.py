@@ -1,7 +1,7 @@
 import copy
 
 from java.lang import Object as JavaObject
-from java.awt import AlphaComposite, BorderLayout, Color, Dimension
+from java.awt import AlphaComposite, BorderLayout, Color, Dimension, Point
 from java.awt.datatransfer import (DataFlavor, Transferable,
                                    UnsupportedFlavorException)
 from java.awt.event import MouseListener
@@ -109,7 +109,7 @@ class TableTransferHandler(TransferHandler):
                 return False
 
             target_loc = support.getDropLocation()
-            target_loc = (target_loc.getRow(), target_loc.getColumn())
+            target_loc = Point(target_loc.getColumn(), target_loc.getRow())
             self.table.manipulator_action(command, source, target_loc)
 
             return True
@@ -254,6 +254,7 @@ class Cell(JPanel):
                                    self.infos['version'])
 
     def assign(self, infos):
+        # JAVAPORT : 'infos' dictionary could be replaced by a class
         self._widget = None
         self.infos = infos
         self._setup()
@@ -276,8 +277,8 @@ class SpreadsheetModel(DefaultTableModel):
         self.name = name
         self.nbRows = rows
         self.nbColumns = columns
-        self.cells = {}
-        self.cellpositions = {}
+        self.cells = dict() # Point -> Cell
+        self.cellpositions = dict() # Cell -> Point
         self._mode = INTERACTIVE
 
     def _get_mode(self):
@@ -300,13 +301,13 @@ class SpreadsheetModel(DefaultTableModel):
     # @Override
     def getValueAt(self, row, column, create=False):
         try:
-            return self.cells[(row, column)]
+            return self.cells[Point(column, row)]
         except KeyError:
             if create:
                 c = Cell(self, self._mode)
-                self.cells[(row, column)] = c
-                self.cellpositions[c] = (row, column)
-                self.fireTableCellUpdated(row, column)
+                self.cells[Point(column, row)] = c
+                self.cellpositions[c] = Point(column, row)
+                self.fireTableCellUpdated(column, row)
                 return c
             else:
                 return None
@@ -314,28 +315,30 @@ class SpreadsheetModel(DefaultTableModel):
     # @Override
     def setValueAt(self, value, row, column):
         try:
-            old_cell = self.cells[(row, column)]
+            old_cell = self.cells[Point(column, row)]
             del self.cellpositions[old_cell]
         except KeyError:
             pass
 
         if value is not None:
             try:
-                old_row, old_column = self.cellpositions[value] # might raise
+                old_point = self.cellpositions[value] # might raise
+                old_column = old_point.x
+                old_row = old_point.y
                 del self.cellpositions[value]
-                del self.cells[(old_row, old_column)] # might raise
+                del self.cells[Point(old_column, old_row)] # might raise
                 self.fireTableCellUpdated(old_row, old_column)
             except KeyError:
                 pass
 
-            self.cells[(row, column)] = value
-            self.cellpositions[value] = (row, column)
+            self.cells[Point(column, row)] = value
+            self.cellpositions[value] = Point(column, row)
         else:
             try:
-                del self.cells[(row, column)]
+                del self.cells[Point(column, row)]
             except KeyError:
                 pass
-        self.fireTableCellUpdated(row, column)
+        self.fireTableCellUpdated(column, row)
 
     # @Override
     def getColumnName(self, column):
@@ -349,13 +352,13 @@ class SpreadsheetModel(DefaultTableModel):
 
     def repainted(self, cell):
         pos = self.cellpositions[cell]
-        self.fireTableCellUpdated(pos[0], pos[1])
+        self.fireTableCellUpdated(pos.y, pos.x)
 
     def swap_cells(self, loc1, loc2):
         prev1 = self.cells.get(loc1, None)
         prev2 = self.cells.get(loc2, None)
-        self.setValueAt(prev2, loc1[0], loc1[1])
-        self.setValueAt(prev1, loc2[0], loc2[1])
+        self.setValueAt(prev2, loc1.y, loc1.x)
+        self.setValueAt(prev1, loc2.y, loc2.x)
 
     def copy_cell(self, src_loc, dst_loc):
         try:
@@ -367,9 +370,12 @@ class SpreadsheetModel(DefaultTableModel):
         if pipeline is None:
             return False
         mod_id = infos['module_id']
-        pipeline = self.setPipelineToLocateAt(
+        # JAVAPORT : This has to be implemented in Python
+        pipeline = assignPipelineCellLocations(
+                pipeline,
+                self.name,
                 dst_loc,
-                pipeline, [mod_id])
+                [mod_id])
         interpreter = get_default_interpreter()
         interpreter.execute(
                 pipeline,
@@ -381,20 +387,18 @@ class SpreadsheetModel(DefaultTableModel):
                 sinks=[mod_id])
         return True
 
-    def setPipelineToLocateAt(self, dst_loc, pipeline, modules):
-        """ setPipelineToLocateAt(dst_loc: (int, int), pipeline: Pipeline,
-                                  modules: [ids]) -> Pipeline                                  
-        Modify the pipeline to have its cells (provided by modules) to
-        be located at the specified location on this sheet.
-        """
-        return assignPipelineCellLocations(pipeline, self.name, dst_loc, modules)
-
 
 # This is an adaptation of packages.spreadsheet.spreadsheet_execute
 # FIXME : there must be a better way to do this
 def assignPipelineCellLocations(pipeline, sheetName, 
                                 dst_loc, modules=[]):
-    row, col = dst_loc
+    """ assignPipelineCellLocations(pipeline: Pipeline, sheetName: str,
+                                    dst_loc: (int, int),
+                                    modules: [ids]) -> Pipeline                                  
+    Modify the pipeline to have its cells (provided by modules) to
+    be located at the specified location on this sheet.
+    """
+    col, row = dst_loc.x, dst_loc.y
 
     reg = get_module_registry()
     # These are the modules we need to edit
@@ -646,7 +650,7 @@ class Spreadsheet(JFrame):
         panel.setLayout(BorderLayout())
         self.setContentPane(panel)
         panel.add(self.tabbedPane, BorderLayout.CENTER)
-        self.sheets = {}
+        self.sheets = dict()
         self.addTab("sheet1", Sheet("sheet1"))
 
         def ch_mode(mode):
