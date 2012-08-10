@@ -4,7 +4,7 @@ from core.modules.module_registry import get_module_registry
 from core.modules import basic_modules
 
 from component import Component
-from spreadsheet import Spreadsheet
+from spreadsheet import setup_spreadsheet
 from references import SheetReference, CellLocation
 
 import java.io.File
@@ -12,7 +12,7 @@ from javax.swing import JEditorPane, JFrame, JPanel, BoxLayout, JTextArea
 
 
 # Create a Spreadsheet object where we will store everything
-spreadsheet = Spreadsheet()
+spreadsheet = setup_spreadsheet()
 
 
 # Module that allocates a cell to display a Swing component
