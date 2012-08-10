@@ -439,7 +439,7 @@ class BuilderFrame(JFrame):
                 version != controller.current_version):
             controller.change_selected_version(version)
         elif controller == self._controller:
-            return
+            return True
 
         controller.current_pipeline.validate()
         self._controller = controller

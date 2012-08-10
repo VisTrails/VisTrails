@@ -54,7 +54,7 @@ class SwingCell(AssignCell):
     def compute(self):
         cell = AssignCell.compute(self)
         widget = self.getInputFromPort('widget')
-        cell.widget = widget
+        cell.setWidget(widget)
 
 
 class RichTextCell(AssignCell):
@@ -66,7 +66,7 @@ class RichTextCell(AssignCell):
         javaFile = java.io.File(richTextFile.name)
         editor_pane = JEditorPane(javaFile.toURI().toURL())
         editor_pane.setEditable(False)
-        cell.widget = editor_pane
+        cell.setWidget(editor_pane)
 
 
 class TextCell(AssignCell):
@@ -77,7 +77,7 @@ class TextCell(AssignCell):
         text = self.getInputFromPort('text')
         text_area = JTextArea(text)
         text_area.setEditable(False)
-        cell.widget = text_area
+        cell.setWidget(text_area)
 
 
 class Frame(Module):

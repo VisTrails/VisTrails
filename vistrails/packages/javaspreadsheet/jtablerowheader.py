@@ -54,7 +54,7 @@ class JTableRowHeader(JTable):
         self.resizing_row = None
         self.setFillsViewportHeight(True)
 
-        resize_handler = TableRowResizer(table, self)
+        resize_handler = TableRowResizer(self)
         self.addMouseListener(resize_handler)
         self.addMouseMotionListener(resize_handler)
 
@@ -123,9 +123,9 @@ class JTableRowHeader(JTable):
         # If a row is being resized, we try to only affect the following ones
         if self.resizing_row is not None:
             # Total current height of the following rows
-            total_height = sum([self.getRowHeight(i)
-                                for i in xrange(self.resizing_row + 1,
-                                                self.getRowCount())])
+            total_height = sum(self.getRowHeight(i)
+                               for i in xrange(self.resizing_row + 1,
+                                               self.getRowCount()))
             # New height of the following rows
             height = self.getHeight() - sum(
                     self.getRowHeight(i)
@@ -135,8 +135,8 @@ class JTableRowHeader(JTable):
             for i in xrange(self.resizing_row + 1, self.getRowCount()):
                 self.setRowHeight(i, int(self.getRowHeight(i)*factor))
 
-        total_height = sum([self.getRowHeight(i)
-                            for i in xrange(self.getRowCount())])
+        total_height = sum(self.getRowHeight(i)
+                           for i in xrange(self.getRowCount()))
         total_height -= 6 * self.getRowCount()
         new_height -= 6 * self.getRowCount()
         factor = float(new_height)/total_height
@@ -148,8 +148,7 @@ class JTableRowHeader(JTable):
 class TableRowResizer(MouseInputAdapter):
     RESIZE_CURSOR = Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR)
 
-    def __init__(self, table, row_header):
-        self._table = table
+    def __init__(self, row_header):
         self._row_header = row_header
         self._other_cursor = self.RESIZE_CURSOR
 

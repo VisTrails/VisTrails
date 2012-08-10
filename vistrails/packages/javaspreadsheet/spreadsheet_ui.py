@@ -97,9 +97,7 @@ class TableTransferHandler(TransferHandler):
         if len(args) == 1:
             # importData(TransferSupport support)
             support = args[0]
-            if not support.isDrop():
-                return False
-            elif not self.canImport(support):
+            if not self.canImport(support):
                 return False
 
             try:
@@ -165,7 +163,6 @@ class Cell(JPanel):
     def __init__(self, observer, interface, mode=INTERACTIVE):
         self._observer = observer
         self._interface = interface
-        self.setBackground(Color.white)
         self.setLayout(None)
         self.infos = None
         self._widget = None
@@ -235,15 +232,12 @@ class Cell(JPanel):
                         ICON_SIZE.height)
                 nb_manips += 1
 
-    def _get_widget(self):
-        return self._widget
-    def _set_widget(self, widget):
+    def setWidget(self, widget):
         if self._widget is not None:
             self.remove(self._widget)
         self._widget = widget
         self.add(widget)
         self._layout()
-    widget = property(_get_widget, _set_widget)
 
     def _select_version(self, event=None):
         self._interface.select_version(self.infos)
@@ -303,7 +297,7 @@ class SpreadsheetModel(DefaultTableModel):
                 c = Cell(self, self._interface, self._mode)
                 self.cells[Point(column, row)] = c
                 self.cellpositions[c] = Point(column, row)
-                self.fireTableCellUpdated(column, row)
+                self.fireTableCellUpdated(row, column)
                 return c
             else:
                 return None
@@ -322,7 +316,7 @@ class SpreadsheetModel(DefaultTableModel):
                 old_column = old_point.x
                 old_row = old_point.y
                 del self.cellpositions[value]
-                del self.cells[Point(old_column, old_row)] # might raise
+                del self.cells[old_point] # might raise
                 self.fireTableCellUpdated(old_row, old_column)
             except KeyError:
                 pass
@@ -334,7 +328,7 @@ class SpreadsheetModel(DefaultTableModel):
                 del self.cells[Point(column, row)]
             except KeyError:
                 pass
-        self.fireTableCellUpdated(column, row)
+        self.fireTableCellUpdated(row, column)
 
     # @Override
     def getColumnName(self, column):
@@ -577,6 +571,4 @@ class Spreadsheet(JFrame):
             if not sheet:
                 sheet = Sheet("sheet1", self._interface)
                 self.addTab("sheet1", sheet)
-                return sheet
-            else:
-                return sheet
+            return sheet
