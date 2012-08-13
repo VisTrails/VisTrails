@@ -86,7 +86,7 @@ exception is recognized by the interpreter and allows meaningful error
 reporting to the user and to the logging mechanism."""
     
     def __init__(self, module, errormsg):
-        """ModuleError should be passed the module that signaled the
+        """ModuleError should be passed the module instance that signaled the
 error and the error message as a string."""
         Exception.__init__(self, errormsg)
         self.module = module
