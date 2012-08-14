@@ -29,10 +29,15 @@ class AssignCell(NotCacheable, Module):
 
         sheet = spreadsheet.getSheet(sheetref)
         cell = sheet.getCell(location)
+        locator = self.moduleInfo['locator']
+        if locator is not None:
+            locator_name = locator.name
+        else:
+            locator_name = "(untitled)"
         cell.assign(dict(
                 pipeline=self.moduleInfo['pipeline'],
-                locator=self.moduleInfo['locator'],
-                vistrail=self.moduleInfo['locator'].name,
+                locator=locator,
+                vistrail=locator_name,
                 version=self.moduleInfo['version'],
                 module_id=self.moduleInfo['moduleId'],
                 reason=self.moduleInfo['reason'],
