@@ -3,12 +3,21 @@ from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_registry import get_module_registry
 from core.modules import basic_modules
 
+from extras.java_vm import get_java_vm
+
 from component import Component
 from spreadsheet import setup_spreadsheet
 from references import SheetReference, CellLocation
 
-import java.io.File
-from javax.swing import JEditorPane, JFrame, JPanel, BoxLayout, JTextArea
+
+_JAVA_VM = get_java_vm()
+
+JavaFile = _JAVA_VM.java.io.File
+JEditorPane = _JAVA_VM.javax.swing.JEditorPane
+JFrame = _JAVA_VM.javax.swing.JFrame
+JPanel = _JAVA_VM.javax.swing.JPanel
+BoxLayout = _JAVA_VM.javax.swing.BoxLayout
+JTextArea = _JAVA_VM.javax.swing.JTextArea
 
 
 # Create a Spreadsheet object where we will store everything
@@ -68,8 +77,8 @@ class RichTextCell(AssignCell):
     def compute(self):
         cell = AssignCell.compute(self)
         richTextFile = self.getInputFromPort('html_file')
-        javaFile = java.io.File(richTextFile.name)
-        editor_pane = JEditorPane(javaFile.toURI().toURL())
+        java_file = JavaFile(richTextFile.name)
+        editor_pane = JEditorPane(java_file.toURI().toURL())
         editor_pane.setEditable(False)
         cell.setWidget(editor_pane)
 

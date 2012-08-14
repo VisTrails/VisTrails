@@ -2,7 +2,11 @@
 from core.modules.vistrails_module import Module
 
 # Java imports
-from javax.swing import JLabel
+from extras.java_vm import get_java_vm
+
+
+_JAVA_VM = get_java_vm()
+JLabel = _JAVA_VM.javax.swing.JLabel
 
 
 # Module that represents a swing component
