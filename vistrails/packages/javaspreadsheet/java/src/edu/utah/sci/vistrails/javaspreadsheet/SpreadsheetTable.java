@@ -26,6 +26,7 @@ class SpreadsheetTable extends JTable {
     private static class TranslucentCellOverlay extends JPanel {
 
         static final Color OVERLAY_COLOR = new Color(113, 159, 203);
+        static final float OVERLAY_ALPHA = 0.5f;
 
         public TranslucentCellOverlay(Component component, Dimension size)
         {
@@ -40,7 +41,7 @@ class SpreadsheetTable extends JTable {
         {
             super.paint(g);
             Graphics2D g2 = (Graphics2D)g.create();
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, OVERLAY_ALPHA));
             g2.setColor(OVERLAY_COLOR);
             g2.fillRect(0, 0, getWidth(), getHeight());
             g2.dispose();

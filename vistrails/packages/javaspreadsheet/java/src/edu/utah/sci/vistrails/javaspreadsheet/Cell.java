@@ -1,11 +1,15 @@
 package edu.utah.sci.vistrails.javaspreadsheet;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -18,6 +22,39 @@ import edu.utah.sci.vistrails.javaspreadsheet.Spreadsheet.Mode;
 
 
 public class Cell extends JPanel {
+
+    private static class TranslucentMask extends JPanel implements MouseListener {
+
+        static final Color MASK_COLOR = new Color(113, 113, 113);
+        static final float MASK_ALPHA = 0.3f;
+
+        public TranslucentMask()
+        {
+            addMouseListener(this);
+        }
+
+        @Override
+        public void paint(Graphics g)
+        {
+            Graphics2D g2 = (Graphics2D)g.create();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, MASK_ALPHA));
+            g2.setColor(MASK_COLOR);
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.dispose();
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent event) {}
+        @Override
+        public void mousePressed(MouseEvent event) {}
+        @Override
+        public void mouseReleased(MouseEvent event) {}
+        @Override
+        public void mouseEntered(MouseEvent event) {}
+        @Override
+        public void mouseExited(MouseEvent event) {}
+
+    }
 
     private static final Color SELECTION_COLOR = new Color(51, 153, 255);
 
@@ -89,6 +126,7 @@ public class Cell extends JPanel {
 
         if(m_Mode == Spreadsheet.Mode.EDITING)
         {
+            // Informations on this cell
             m_LabelHeight = 0;
 
             if(m_Infos != null)
@@ -98,9 +136,11 @@ public class Cell extends JPanel {
                 addLabel("Created by", m_Infos.getReason());
             }
 
+            // Manipulators, drag'n'droppable
             add(new CellManipulator(COPY, this, "copy"));
             add(new CellManipulator(MOVE, this, "move"));
 
+            // "Locate version" button
             JButton locate_version = new JButton(LOCATE_VERSION);
             locate_version.addActionListener(new ActionListener() {
 
@@ -111,6 +151,9 @@ public class Cell extends JPanel {
                 }
             });
             add(locate_version);
+
+            // Translucent pane masking the widget
+            add(new TranslucentMask());
         }
 
         if(m_Widget != null)
@@ -124,7 +167,7 @@ public class Cell extends JPanel {
         for(int i = 0; i < getComponentCount(); ++i)
         {
             Component component = getComponent(i);
-            if(component == m_Widget)
+            if(component == m_Widget || component instanceof TranslucentMask)
                 component.setBounds(2, 2, getWidth() - 4, getHeight() - 4);
             else if(component instanceof CellManipulator || component instanceof JButton)
             {
