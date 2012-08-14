@@ -1,7 +1,6 @@
 import os
 import sys
 import platform
-import core.system
 import functools
 
 
@@ -17,12 +16,12 @@ if not USING_JYTHON:
     import jpype
 
 
-__all__ = ['get_java_vm', 'get_class', 'JavaException', 'build_jarray']
+__all__ = ['get_java_vm', 'get_class', 'build_jarray', 'implement_interface',
+           'JavaException', 'USING_JYTHON']
 
 
 def _find_executable_from_path(filename):
-    pathlist = (os.environ['PATH'].split(os.pathsep) +
-                [core.system.vistrails_root_directory(), "."])
+    pathlist = os.environ['PATH'].split(os.pathsep) + ["."]
     for p in pathlist:
         # On Windows, paths may be enclosed in ""
         if USING_WINDOWS:
@@ -212,3 +211,69 @@ def build_jarray(t, seq):
         elif t == 'long':
             t = jpype.JLong
         return jpype.JArray(t)(seq)
+
+
+if USING_JYTHON:
+    def implement(interface_name):
+        def actual_decorator(klass):
+            # Get the interface from its name
+            interface = get_class(interface_name)
+            # We'll replace this class with a subclass
+            subclass = type(
+                klass.__name__ + '_Proxy',
+                (klass, interface),
+                dict())
+            return subclass
+        return actual_decorator
+else:
+    def implement(interface_name):
+        def actual_decorator(klass):
+            # We replace the class with a constructor method
+            def constructor(*args, **kwargs):
+                # Build the instance
+                inst = klass(*args, **kwargs)
+                # Make a JProxy
+                return jpype.JProxy(interface_name, inst=inst)
+            return constructor
+        return actual_decorator
+
+
+import unittest
+
+class TestInterfaceCallback(unittest.TestCase):
+    def setUp(self):
+        self._vm = get_java_vm()
+
+    def test_callback_class(self):
+        class InterfImpl(object):
+            def __init__(self, testcase):
+                self.testcase = testcase
+
+            def callback(self, number, name):
+                self.testcase.assertEqual(number, 42)
+                self.testcase.assertEqual(name, u"answer")
+                self.testcase.assertTrue(isinstance(name, (unicode, str)))
+        # No class decorator in 2.5 syntax
+        InterfImpl = implement('tests.jproxy.CallbackInterface')(InterfImpl)
+
+        proxy = InterfImpl(self)
+        self._vm.tests.jproxy.CallbackUser.use(proxy)
+
+
+class TestInterfaceBean(unittest.TestCase):
+    def setUp(self):
+        self._vm = get_java_vm()
+
+    def test_bean_class(self):
+        class BeanImpl(object):
+            def getNumber(self):
+                return 42
+            def getName(self):
+                return "answer"
+        # No class decorator in 2.5 syntax
+        BeanImpl = implement('tests.jproxy.BeanInterface')(BeanImpl)
+        proxy = BeanImpl()
+        self._vm.tests.jproxy.BeanUser.use(proxy)
+
+if __name__ == '__main__':
+    unittest.main()

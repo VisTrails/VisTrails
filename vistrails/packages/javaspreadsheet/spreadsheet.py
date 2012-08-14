@@ -6,42 +6,59 @@ from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import get_module_registry
 from core.utils import DummyView
 from core.vistrail.controller import VistrailController
-
-# JAVAPORT : To be replaced with Java code
-from spreadsheet_ui import Spreadsheet, SpreadsheetInterface
+from extras.java_vm import get_java_vm, implement
 
 
-class SpreadsheetInterfaceImpl(SpreadsheetInterface):
+_JAVA_VM = get_java_vm()
+
+Spreadsheet = _JAVA_VM.edu.utah.sci.vistrails.javaspreadsheet.Spreadsheet
+
+
+class SpreadsheetInterfaceImpl(object):
+    """This interface is called back by the UI to perform VisTrails actions.
+    """
+    # @Override
     def executePipelineToCell(self, infos, dst_sheet, dst_loc):
-        pipeline = infos['pipeline']
-        if pipeline is None:
+        try:
+            infos = infos.getInfos() # FIXME : temporary, for Jython only
+            pipeline = infos['pipeline']
+            if pipeline is None:
+                return False
+            mod_id = infos['module_id']
+            pipeline = assignPipelineCellLocations(
+                    pipeline,
+                    dst_sheet,
+                    dst_loc,
+                    [mod_id])
+            interpreter = get_default_interpreter()
+            interpreter.execute(
+                    pipeline,
+                    locator=infos['locator'],
+                    current_version=infos['version'],
+                    view=DummyView(),
+                    actions=infos['actions'],
+                    reason=infos['reason'],
+                    sinks=[mod_id])
+            return True
+        except Exception:
+            import traceback
+            traceback.print_exc()
             return False
-        mod_id = infos['module_id']
-        pipeline = assignPipelineCellLocations(
-                pipeline,
-                dst_sheet,
-                dst_loc,
-                [mod_id])
-        interpreter = get_default_interpreter()
-        interpreter.execute(
-                pipeline,
-                locator=infos['locator'],
-                current_version=infos['version'],
-                view=DummyView(),
-                actions=infos['actions'],
-                reason=infos['reason'],
-                sinks=[mod_id])
-        return True
 
+    # @Override
     def select_version(self, infos):
         app = get_vistrails_application()
         try:
             window = app.builderWindow
         except AttributeError:
-            pass
+            return False
         else:
-            window.select_vistrail(infos['locator'],
-                                   infos['version'])
+            infos = infos.getInfos() # FIXME : temporary, for Jython only
+            return window.select_vistrail(infos['locator'],
+                                          infos['version'])
+SpreadsheetInterfaceImpl = implement(
+        'edu.utah.sci.vistrails.javaspreadsheet.SpreadsheetInterface')(
+        SpreadsheetInterfaceImpl)
 
 
 # This is an adaptation of packages.spreadsheet.spreadsheet_execute
@@ -146,5 +163,100 @@ def assignPipelineCellLocations(pipeline, sheetName,
     return root_pipeline
 
 
+class SheetReferenceImpl(object):
+    def __init__(self, name=None):
+        self.__name = name
+
+    # @Override
+    def getName(self):
+        return self.__name
+SheetReferenceImpl = implement(
+        'edu.utah.sci.vistrails.javaspreadsheet.SheetReference')(
+        SheetReferenceImpl)
+
+
+class CellLocationImpl(object):
+    def __init__(self, row=None, column=None):
+        self.__row = row
+        self.__column = column
+
+    # @Override
+    def getRow(self):
+        return self.__row
+
+    # @Override
+    def getColumn(self):
+        return self.__column
+CellLocationImpl = implement(
+        'edu.utah.sci.vistrails.javaspreadsheet.CellLocation')(
+        CellLocationImpl)
+
+
+class CellInfosImpl(object):
+    def __init__(self, infos):
+        self.__infos = infos
+
+    # @Override
+    def getVistrail(self):
+        return self.__infos['vistrail']
+
+    # @Override
+    def getVersion(self):
+        return self.__infos['version']
+
+    # @Override
+    def getModule(self):
+        return self.__infos['module_id']
+
+    # @Override
+    def getReason(self):
+        return self.__infos['reason']
+
+    def getInfos(self):
+        # FIXME : temporary, won't work with JPype
+        return self.__infos
+CellInfosImpl = implement(
+        'edu.utah.sci.vistrails.javaspreadsheet.CellInfos')(
+        CellInfosImpl)
+
+
+class SpreadsheetWrapper(object):
+    def __init__(self):
+        self._spreadsheet = Spreadsheet(SpreadsheetInterfaceImpl())
+
+    def getSheet(self, sheetref=None):
+        if sheetref is None:
+            return SheetWrapper(self._spreadsheet.getSheet())
+        else:
+            return SheetWrapper(self._spreadsheet.getSheet(
+                SheetReferenceImpl(sheetref.name)))
+
+    def setVisible(self, vis):
+        self._spreadsheet.setVisible(vis)
+
+
+class SheetWrapper(object):
+    def __init__(self, sheet):
+        self._sheet = sheet
+
+    def getCell(self, location=None):
+        if location is None:
+            return CellWrapper(self._sheet.getCell())
+        else:
+            return CellWrapper(self._sheet.getCell(CellLocationImpl(
+                location.row, location.column)))
+
+
+class CellWrapper(object):
+    def __init__(self, cell):
+        self._cell = cell
+
+    def setWidget(self, widget):
+        self._cell.setWidget(widget)
+
+    def assign(self, infos):
+        self._cell.assign(CellInfosImpl(infos))
+
+
 def setup_spreadsheet():
-    return Spreadsheet(SpreadsheetInterfaceImpl())
+    return SpreadsheetWrapper()
