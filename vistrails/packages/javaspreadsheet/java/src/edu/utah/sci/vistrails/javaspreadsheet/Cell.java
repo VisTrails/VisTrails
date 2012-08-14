@@ -115,8 +115,8 @@ public class Cell extends JPanel {
         label.setOpaque(true);
         label.setBackground(new Color(230, 240, 230));
         add(label);
-        int h = (int)label.getPreferredSize().getHeight();
-        label.setBounds(0, m_LabelHeight, Integer.MAX_VALUE, h);
+        int h = label.getPreferredSize().height;
+        label.setBounds(0, m_LabelHeight, 999999, h);
         m_LabelHeight += h;
     }
 
