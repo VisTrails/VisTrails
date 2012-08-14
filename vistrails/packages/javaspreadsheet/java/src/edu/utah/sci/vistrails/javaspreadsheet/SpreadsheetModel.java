@@ -32,7 +32,6 @@ class SpreadsheetModel extends DefaultTableModel implements Cell.Observer {
 
     void setMode(Mode mode)
     {
-        System.err.println(String.format("SpreadsheetModel#setMode %s -> %s", m_Mode, mode));
         try {
             if(mode != m_Mode)
             {

@@ -13,7 +13,6 @@ import java.io.IOException;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.DropMode;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.TransferHandler;
@@ -28,7 +27,7 @@ class SpreadsheetTable extends JTable {
 
         static final Color OVERLAY_COLOR = new Color(113, 159, 203);
 
-        public TranslucentCellOverlay(JComponent component, Dimension size)
+        public TranslucentCellOverlay(Component component, Dimension size)
         {
             super(new BorderLayout());
             if(component != null)
@@ -60,13 +59,12 @@ class SpreadsheetTable extends JTable {
                 if(!cell.getSize().equals(new_size))
                     cell.setSize(new_size);
                 cell.setSelected(false);
-
-                DropLocation drop_location = getDropLocation();
-                if(drop_location != null && !drop_location.isInsertRow() && !drop_location.isInsertColumn() && (drop_location.getRow() == row) && (drop_location.getColumn() == column))
-                    return new TranslucentCellOverlay(cell, new_size);
-                return cell;
             }
-            return null;
+
+            DropLocation drop_location = getDropLocation();
+            if(drop_location != null && !drop_location.isInsertRow() && !drop_location.isInsertColumn() && (drop_location.getRow() == row) && (drop_location.getColumn() == column))
+                return new TranslucentCellOverlay((Component)value, new_size);
+            return (Component)value;
         }
     }
 
