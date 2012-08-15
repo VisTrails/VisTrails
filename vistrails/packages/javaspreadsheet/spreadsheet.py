@@ -20,7 +20,7 @@ class SpreadsheetInterfaceImpl(object):
     # @Override
     def executePipelineToCell(self, infos, dst_sheet, dst_loc):
         try:
-            infos = infos.getInfos() # FIXME : temporary, for Jython only
+            infos = CellInfos.getInfos(infos)
             pipeline = infos['pipeline']
             if pipeline is None:
                 return False
@@ -47,15 +47,39 @@ class SpreadsheetInterfaceImpl(object):
 
     # @Override
     def select_version(self, infos):
-        app = get_vistrails_application()
         try:
-            window = app.builderWindow
-        except AttributeError:
+            app = get_vistrails_application()
+            try:
+                window = app.builderWindow
+            except AttributeError:
+                return False
+            else:
+                infos = CellInfos.getInfos(infos)
+                if window.__class__.__module__.startswith('gui.'):
+                    # FIXME : Temporarily disabled
+                    # Threading issues with Qt (this is called on AWT's Event
+                    # Dispatch Thread) cause an access violation
+                    return False
+                    view = window.ensureVistrail(infos['locator'])
+                    if view:
+                        view.version_selected(infos['version'], True)
+                        view.version_view.select_current_version()
+                        window.view_changed(view)
+                        w = view.window()
+                        # this has no effect
+                        w.qactions['history'].trigger()
+                        # so we need to use this one
+                        view.history_selected()
+                        view.activateWindow()
+                    return True # I guess...
+                else:
+                    return window.select_vistrail(infos['locator'],
+                                                  infos['version'])
+        except Exception:
+            import traceback
+            from sys import stderr
+            traceback.print_exc(file=stderr)
             return False
-        else:
-            infos = infos.getInfos() # FIXME : temporary, for Jython only
-            return window.select_vistrail(infos['locator'],
-                                          infos['version'])
 SpreadsheetInterfaceImpl = implement(
         'edu.utah.sci.vistrails.javaspreadsheet.SpreadsheetInterface')(
         SpreadsheetInterfaceImpl)
@@ -192,32 +216,41 @@ CellLocationImpl = implement(
         CellLocationImpl)
 
 
-class CellInfosImpl(object):
+class CellInfos(object):
+    __ID_GEN = 1
+    __ORIG_DATA = dict()
+
     def __init__(self, infos):
-        self.__infos = infos
+        self.__internal_id = self.__ID_GEN
+        CellInfos.__ID_GEN += 1
+        CellInfos.__ORIG_DATA[self.__internal_id] = infos
 
     # @Override
     def getVistrail(self):
-        return self.__infos['vistrail']
+        return CellInfos.__ORIG_DATA[self.__internal_id]['vistrail']
 
     # @Override
     def getVersion(self):
-        return self.__infos['version']
+        return CellInfos.__ORIG_DATA[self.__internal_id]['version']
 
     # @Override
     def getModule(self):
-        return self.__infos['module_id']
+        return CellInfos.__ORIG_DATA[self.__internal_id]['module_id']
 
     # @Override
     def getReason(self):
-        return self.__infos['reason']
+        return CellInfos.__ORIG_DATA[self.__internal_id]['reason']
 
-    def getInfos(self):
-        # FIXME : temporary, won't work with JPype
-        return self.__infos
+    # @Override
+    def getInternalID(self):
+        return self.__internal_id
+
+    @staticmethod
+    def getInfos(infos):
+        return CellInfos.__ORIG_DATA[infos.getInternalID()]
 CellInfosImpl = implement(
         'edu.utah.sci.vistrails.javaspreadsheet.CellInfos')(
-        CellInfosImpl)
+        CellInfos)
 
 
 class SpreadsheetWrapper(object):

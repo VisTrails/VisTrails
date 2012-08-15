@@ -11,4 +11,8 @@ public interface CellInfos {
 
     public String getReason();
 
+    // This is a hack used to associate private VisTrails data with this
+    // structure
+    public int getInternalID();
+
 }
