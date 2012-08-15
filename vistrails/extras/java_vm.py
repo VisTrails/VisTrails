@@ -67,7 +67,15 @@ def _find_java_dll():
         # distribution
         java = _find_executable_from_path('java')
         if java is not None:
-            return os.path.realpath(os.path.join(java, '../client/jvm.dll'))
+            # If the 'java' command comes from a JDK, the DLL is located in a
+            # 'jre' subdirectory
+            path = os.path.realpath(os.path.join(
+                java, '../../jre/bin/client/jvm.dll'))
+            if os.path.exists(path):
+                return path
+            else:
+                return os.path.realpath(os.path.join(
+                    java, '../client/jvm.dll'))
 
         # Else, look for a Java distribution in standard locations
         for path in ['C:/Program Files/Java',
