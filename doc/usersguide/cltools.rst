@@ -44,6 +44,8 @@ A file ending can be specified for files that are used as outputs using **file s
 You can view and import flags from man and help pages (See :ref:`Figure 1.2
 <fig-cltools-import>`).
 
+.. _fig-cltools-import:
+
 .. figure:: figures/CLTools/import.png
    :align: center
    :width: 70%
@@ -58,7 +60,6 @@ Supported flags::
         For example, to create a wrapper for ls with two flags -l and -A run:
         python wizard.py -c ls -l -A
 
-.. _fig-cltools-import:
 
 .. topic:: Try it Now!
 
@@ -68,14 +69,14 @@ Supported flags::
 
     Your wrapper should look like in figure :ref:`Figure 1.3 <fig-cltools-inputoutput>`. Note that the order of the arguments is always preserved:
 
-    .. figure:: figures/CLTools/inputoutputfile.png
-       :align: center
-       :width: 100%
-
-       Figure 1.3 - An infile outfile wrapper
-
+.. _fig-cltools-inputoutput:
     
-    .. _fig-cltools-inputoutput:
+.. figure:: figures/CLTools/inputoutputfile.png
+   :align: center
+   :width: 100%
+
+   Figure 1.3 - An infile outfile wrapper
+
 
 
 Setting environment variables
