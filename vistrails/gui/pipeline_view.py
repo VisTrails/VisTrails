@@ -338,7 +338,8 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         if self.tmp_connection_item:
             if self.tmp_connection_item.snapPortItem is not None:
                 self.scene().addConnectionFromTmp(self.tmp_connection_item,
-                                                  self.parentItem().module)
+                                                  self.parentItem().module,
+                                                  self.port.type == "output")
             self.tmp_connection_item.disconnect(True)
             self.scene().removeItem(self.tmp_connection_item)
             self.tmp_connection_item = None
@@ -2352,10 +2353,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if self.pipeline_tab:
             self.pipeline_tab.moduleSelected(-1)
 
-    def createConnectionFromTmp(self, tmp_connection_item, module):
-        src_port_item = tmp_connection_item.snapPortItem
-        dst_port_item = tmp_connection_item.startPortItem
-        if src_port_item.parentItem().id < 0:
+    def createConnectionFromTmp(self, tmp_connection_item, module, 
+                                start_is_src=False):
+        if start_is_src:
+            src_port_item = tmp_connection_item.startPortItem
+            dst_port_item = tmp_connection_item.snapPortItem
+        else:
+            src_port_item = tmp_connection_item.snapPortItem
+            dst_port_item = tmp_connection_item.startPortItem
+        
+        if src_port_item.parentItem().id < 0 or start_is_src:
             src_module_id = module.id
             dst_module_id = dst_port_item.parentItem().id
         else:
@@ -2368,8 +2375,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                               dst_port_item.port)
         self.addConnection(conn)
 
-    def addConnectionFromTmp(self, tmp_connection_item, module):
-        self.createConnectionFromTmp(tmp_connection_item, module)
+    def addConnectionFromTmp(self, tmp_connection_item, module, start_is_src):
+        self.createConnectionFromTmp(tmp_connection_item, module, start_is_src)
         self.reset_module_colors()
         self._old_connection_ids = \
             set(self.controller.current_pipeline.connections)
