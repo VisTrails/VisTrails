@@ -187,6 +187,14 @@ class VistrailsJavaApplicationSingleton(VistrailsApplicationInterface):
         if self.builderWindow:
             self.builderWindow.waitClose()
 
+    def select_vistrail(self, locator, version):
+        try:
+            window = self.builderWindow
+        except AttributeError:
+            return False
+        else:
+            return window.select_vistrail(locator, version)
+
     def finishSession(self):
         if self.builderWindow:
             self.builderWindow.setVisible(False)

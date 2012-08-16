@@ -47,39 +47,9 @@ class SpreadsheetInterfaceImpl(object):
 
     # @Override
     def select_version(self, infos):
-        try:
-            app = get_vistrails_application()
-            try:
-                window = app.builderWindow
-            except AttributeError:
-                return False
-            else:
-                infos = CellInfos.getInfos(infos)
-                if window.__class__.__module__.startswith('gui.'):
-                    # FIXME : Temporarily disabled
-                    # Threading issues with Qt (this is called on AWT's Event
-                    # Dispatch Thread) cause an access violation
-                    return False
-                    view = window.ensureVistrail(infos['locator'])
-                    if view:
-                        view.version_selected(infos['version'], True)
-                        view.version_view.select_current_version()
-                        window.view_changed(view)
-                        w = view.window()
-                        # this has no effect
-                        w.qactions['history'].trigger()
-                        # so we need to use this one
-                        view.history_selected()
-                        view.activateWindow()
-                    return True # I guess...
-                else:
-                    return window.select_vistrail(infos['locator'],
-                                                  infos['version'])
-        except Exception:
-            import traceback
-            from sys import stderr
-            traceback.print_exc(file=stderr)
-            return False
+        infos = CellInfos.getInfos(infos)
+        app = get_vistrails_application()
+        return app.select_vistrail(infos['locator'], infos['version'])
 SpreadsheetInterfaceImpl = implement(
         'edu.utah.sci.vistrails.javaspreadsheet.SpreadsheetInterface')(
         SpreadsheetInterfaceImpl)

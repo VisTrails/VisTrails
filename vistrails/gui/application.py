@@ -47,6 +47,7 @@ from core.db.locator import FileLocator, DBLocator
 import core.requirements
 from db import VistrailsDBException
 import db.services.io
+from db.services.locator import BaseLocator
 from gui import qt
 import gui.theme
 import os.path
@@ -521,6 +522,39 @@ parameters from other instances")
     
     def is_running(self):
         return self._is_running
+
+    # This might be called from another thread!
+    def select_vistrail(self, locator, version):
+        QtCore.QMetaObject.invokeMethod(
+                self,
+                "_select_vistrail",
+                QtCore.Q_ARG(BaseLocator, locator),
+                QtCore.Q_ARG(int, version))
+        # We can't get the return value -
+        # "QMetaMethod::invoke: Unable to invoke methods with return values in
+        # queued connections"
+        # Just return True
+        return True
+
+    @QtCore.pyqtSlot(BaseLocator, int)
+    def _select_vistrail(self, locator, version):
+        try:
+            window = self.builderWindow
+        except AttributeError:
+            return False
+        else:
+            view = window.ensureVistrail(locator)
+            if view:
+                view.version_selected(version, True)
+                view.version_view.select_current_version()
+                window.view_changed(view)
+                w = view.window()
+                # this has no effect
+                w.qactions['history'].trigger()
+                # so we need to use this one
+                view.history_selected()
+                view.activateWindow()
+            return True # I guess...
 
     def message_received(self):
         if QtCore.QT_VERSION >= 0x40400:
