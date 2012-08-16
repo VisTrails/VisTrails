@@ -39,6 +39,7 @@ import core.db.action
 import core.db.locator
 import core.modules.vistrails_module
 from core.utils import VistrailsInternalError, InvalidPipeline
+from core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.module_registry import get_module_registry, MissingPort
@@ -60,8 +61,8 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
 from core.interpreter.default import get_default_interpreter
+from gui.theme import CurrentTheme
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
-from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 
 import core.analogy
 import copy
@@ -122,7 +123,14 @@ class VistrailController(QtCore.QObject, BaseController):
             self.setup_timer()
         
         self._previous_graph_layout = None
-        self._current_graph_layout = VistrailsTreeLayoutLW()
+
+        def width_f(text):
+            return CurrentTheme.VERSION_FONT_METRIC.width(text)
+        self._current_graph_layout = \
+            VistrailsTreeLayoutLW(width_f, 
+                                  CurrentTheme.VERSION_FONT_METRIC.height(), 
+                                  CurrentTheme.VERSION_LABEL_MARGIN[0], 
+                                  CurrentTheme.VERSION_LABEL_MARGIN[1])
         self.animate_layout = False
         #this was moved to BaseController
         #self.num_versions_always_shown = 1

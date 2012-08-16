@@ -32,11 +32,12 @@
 ##
 ###############################################################################
 """ 
-Interface Vistrails - TreeLayoutLW to align version trees
+Interface Vistrails - TreeLayoutLW to align version trees.
+Originally written by Lauro D. Lins.
 
 """
 
-from core.tree_layout_lw import TreeLW, NodeLW, TreeLayoutLW
+from tree_layout import TreeLW, NodeLW, TreeLayoutLW
 from core.data_structures.point import Point
 
 ################################################################################
@@ -70,11 +71,16 @@ class VistrailsTreeLayoutLW(object):
     parsed by version tree view
     
     """
-    def __init__(self):
+    def __init__(self, text_width_f, text_height, text_horizontal_margin,
+                 text_vertical_margin):
         """ DotLayout() -> DotLayout()
         Initialize DotNode as a data structure holding graph structure
         
         """
+        self.text_width_f = text_width_f
+        self.text_height = text_height
+        self.text_horizontal_margin = text_horizontal_margin
+        self.text_vertical_margin = text_vertical_margin
         self.nodes = {}
         self.height = 0.0
         self.scale = 0.0
@@ -82,7 +88,7 @@ class VistrailsTreeLayoutLW(object):
 
     def generateTreeLW(self, vistrail, graph):
         """ output_vistrail_graph(f: str) -> None
-        Using vistrail and graph to prepare a dotty graph input
+        Using vistrail and graph to generate layout
         
         """
         
@@ -118,14 +124,17 @@ class VistrailsTreeLayoutLW(object):
                     X.add(first)
 
         # get widths and heights for the nodes
-        from gui.theme import CurrentTheme
-        fontMetrics = CurrentTheme.VERSION_FONT_METRIC
-        text_horizontal_margin = CurrentTheme.VERSION_LABEL_MARGIN[0]
-        text_vertical_margin = CurrentTheme.VERSION_LABEL_MARGIN[1]
-        empty_width = text_horizontal_margin + fontMetrics.width(" "*5)
+        # from gui.theme import CurrentTheme
+        # fontMetrics = CurrentTheme.VERSION_FONT_METRIC
+        # text_horizontal_margin = CurrentTheme.VERSION_LABEL_MARGIN[0]
+        # text_vertical_margin = CurrentTheme.VERSION_LABEL_MARGIN[1]
+                    
+        # empty_width = text_horizontal_margin + fontMetrics.width(" "*5)
+        empty_width = self.text_horizontal_margin + self.text_width_f(" " * 5)
         
         # default height for all nodes
-        height = fontMetrics.height() + text_vertical_margin
+        # height = fontMetrics.height() + text_vertical_margin
+        height = self.text_height + self.text_vertical_margin
 
         # create an empty tree
         tree = TreeLW()
@@ -135,7 +144,8 @@ class VistrailsTreeLayoutLW(object):
 
         # add the remaining nodes
         for id, tag in nodes:
-            width = text_horizontal_margin + fontMetrics.width(tag)
+            # width = text_horizontal_margin + fontMetrics.width(tag)
+            width = self.text_horizontal_margin + self.text_width_f(tag)
             width = max(width, empty_width)
             # print "add node to the tree %d %s" % (id, tag)
             mapTreeNodes[id] = tree.addNode(None,width,height,(id,tag))
@@ -165,7 +175,9 @@ class VistrailsTreeLayoutLW(object):
         min_horizontal_separation = 20
         min_vertical_separation = 50
 
-        layout = TreeLayoutLW(tree,TreeLayoutLW.TOP,min_horizontal_separation,min_vertical_separation)
+        layout = TreeLayoutLW(tree, TreeLayoutLW.TOP,
+                              min_horizontal_separation,
+                              min_vertical_separation)
 
         # prepare the result
         self.nodes = {}
