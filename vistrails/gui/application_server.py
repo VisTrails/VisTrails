@@ -72,6 +72,7 @@ from core import command_line
 from core import system
 from core.modules.module_registry import get_module_registry as module_registry
 from core import interpreter
+from core.packagemanager import get_package_manager
 from gui.vistrail_controller import VistrailController
 import core
 import db.services.io
@@ -263,6 +264,105 @@ class RequestHandler(object):
                 package_dic[package.identifier]['description'] = \
                         package.description if package.description else "No description available"
             return (package_dic, 1)
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
+        except Exception, e:
+            self.server_logger.error(str(e))
+            self.server_logger.error(traceback.format_exc())
+            return (str(e), 0)
+
+    def get_server_packages(self, codepath=None, status=None):
+        """get_server_packages()-> dict
+        This returns a dictionary with all the packages to vistrails with status indicating wether it is loaded.
+        It is also possible to enable/disable a package by passing a package codepath and the desired status on/off
+        The keys are the package identifier.
+        """
+        self.server_logger.info("Request: get_server_packages()")
+
+        messages = []
+        if self.proxies_queue is not None:
+            # collect all proxies:
+            proxies = []
+            while len(proxies) < len(self.instances):
+                self.server_logger.info("Proxies: %s Instances: %s" % (len(proxies), len(self.instances)))
+                if self.proxies_queue.empty():
+                    for p in  proxies:
+                        self.proxies_queue.put(p)
+                    return [[[],
+                        "Not all vistrail instances are free, please try again."], 1]
+                proxies.append(self.proxies_queue.get())
+            for proxy in proxies:
+                try:
+                    if codepath and status is not None:
+                        result, s = proxy.get_server_packages(codepath, status)
+                    else:
+                        result, s = proxy.get_server_packages()
+                except xmlrpclib.ProtocolError, err:
+                    err_msg = ("A protocol error occurred\n"
+                           "URL: %s\n"
+                           "HTTP/HTTPS headers: %s\n"
+                           "Error code: %d\n"
+                           "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+                    self.server_logger.error(err_msg)
+                if s == 0:
+                    messages.append('An error occurred: %s' % result)
+                else:
+                    messages.append(result[1])
+                self.proxies_queue.put(proxy)
+
+        try:
+            pkg_manager = get_package_manager()
+            message = ''
+            if codepath and status is not None:
+                if int(status):
+                    # Try to enable package
+                    try:
+                        pkg_manager.late_enable_package(codepath)
+                        message = "Successfully enabled package '%s'" % codepath
+                    except Exception, e:
+                        import traceback
+                        message = "Could not enable package '%s': %s %s" % \
+                                         (codepath, str(e), traceback.format_exc())
+                else:
+                    # Try to disable package
+                    if codepath in ["basic_modules", 'abstraction']:
+                        message = "Package '%s' cannot be disabled" % codepath
+                    elif not pkg_manager.can_be_disabled(
+                             pkg_manager.get_package_by_codepath(codepath).identifier):
+                        message = "Package '%s' cannot be disabled because other packages depends on it." % codepath
+                    else:
+                        try:
+                            pkg_manager.remove_package(codepath)
+                            message = "Successfully disabled package '%s'" % codepath
+                        except Exception, e:
+                            message = "Could not disable package '%s': %s %s" % \
+                                      (codepath, str(e), traceback.format_exc())
+            packages = []
+            enabled_pkgs = sorted(pkg_manager.enabled_package_list())
+            enabled_pkg_dict = dict([(pkg.codepath, pkg) for
+                                      pkg in enabled_pkgs])
+            for pkg in sorted([pkg.codepath for pkg in enabled_pkgs]):
+                packages.append([pkg, True])
+            available_pkg_names = [pkg for pkg in 
+                                   sorted(pkg_manager.available_package_names_list())
+                                   if pkg not in enabled_pkg_dict]
+            for pkg in available_pkg_names:
+                packages.append([pkg, False])
+
+            if codepath and messages:
+                # we are the main instance so assemble messages
+                message = ''.join(["Main instance: %s" % message] + \
+                   ["<br/>Instance %s: %s" % (i+1, m) for i, m in
+                                              zip(xrange(len(messages)), messages)])
+            return [[packages, message], 1]
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
@@ -1823,8 +1923,10 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.temp_xml_rpc_options = InstanceObject(server=None,
                                                    port=None,
                                                    log_file=None)
-
         qt.allowQObjects()
+
+    def is_running_gui(self):
+        return True
 
     def make_logger(self, filename, label):
         """self.make_logger(filename:str) -> logger. Creates a logging object to
