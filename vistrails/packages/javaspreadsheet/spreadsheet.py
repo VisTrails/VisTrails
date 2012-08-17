@@ -12,6 +12,8 @@ from extras.java_vm import get_java_vm, implement
 _JAVA_VM = get_java_vm()
 
 Spreadsheet = _JAVA_VM.edu.utah.sci.vistrails.javaspreadsheet.Spreadsheet
+JavaCellLocation = _JAVA_VM.edu.utah.sci.vistrails.javaspreadsheet.CellLocation
+Integer = _JAVA_VM.java.lang.Integer
 
 
 class SpreadsheetInterfaceImpl(object):
@@ -65,7 +67,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
     Modify the pipeline to have its cells (provided by modules) to
     be located at the specified location on this sheet.
     """
-    col, row = dst_loc.x, dst_loc.y
+    col, row = int(dst_loc.x), int(dst_loc.y)
 
     reg = get_module_registry()
     # These are the modules we need to edit
@@ -169,23 +171,6 @@ SheetReferenceImpl = implement(
         SheetReferenceImpl)
 
 
-class CellLocationImpl(object):
-    def __init__(self, row=None, column=None):
-        self.__row = row
-        self.__column = column
-
-    # @Override
-    def getRow(self):
-        return self.__row
-
-    # @Override
-    def getColumn(self):
-        return self.__column
-CellLocationImpl = implement(
-        'edu.utah.sci.vistrails.javaspreadsheet.CellLocation')(
-        CellLocationImpl)
-
-
 class CellInfos(object):
     __ID_GEN = 1
     __ORIG_DATA = dict()
@@ -246,8 +231,14 @@ class SheetWrapper(object):
         if location is None:
             return CellWrapper(self._sheet.getCell())
         else:
-            return CellWrapper(self._sheet.getCell(CellLocationImpl(
-                location.row, location.column)))
+            row = None
+            if location.row is not None:
+                row = Integer(location.row)
+            column = None
+            if location.column is not None:
+                column = Integer(location.column)
+            return CellWrapper(self._sheet.getCell(JavaCellLocation(
+                row, column)))
 
 
 class CellWrapper(object):
