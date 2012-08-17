@@ -124,16 +124,9 @@ class VistrailsTreeLayoutLW(object):
                     X.add(first)
 
         # get widths and heights for the nodes
-        # from gui.theme import CurrentTheme
-        # fontMetrics = CurrentTheme.VERSION_FONT_METRIC
-        # text_horizontal_margin = CurrentTheme.VERSION_LABEL_MARGIN[0]
-        # text_vertical_margin = CurrentTheme.VERSION_LABEL_MARGIN[1]
-                    
-        # empty_width = text_horizontal_margin + fontMetrics.width(" "*5)
         empty_width = self.text_horizontal_margin + self.text_width_f(" " * 5)
         
         # default height for all nodes
-        # height = fontMetrics.height() + text_vertical_margin
         height = self.text_height + self.text_vertical_margin
 
         # create an empty tree
@@ -144,7 +137,6 @@ class VistrailsTreeLayoutLW(object):
 
         # add the remaining nodes
         for id, tag in nodes:
-            # width = text_horizontal_margin + fontMetrics.width(tag)
             width = self.text_horizontal_margin + self.text_width_f(tag)
             width = max(width, empty_width)
             # print "add node to the tree %d %s" % (id, tag)

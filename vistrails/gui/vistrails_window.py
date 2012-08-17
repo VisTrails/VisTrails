@@ -232,6 +232,13 @@ class QBaseViewWindow(QtGui.QMainWindow):
                       {'enabled': True,
                        'callback': _app.flush_cache}),
                      "---",
+                     ("layout", "Re-Layout",
+                      {'statusTip': "Move all modules to create a clean " \
+                           "layout for the workflow",
+                       'shortcut': 'Ctrl+L',
+                       'enabled': False,
+                       'callback': _app.pass_through(self.get_current_scene,
+                                                     'layout')}),
                      ("group", "Group",
                       {'statusTip': "Group the selected modules in the " \
                            "current pipeline view",

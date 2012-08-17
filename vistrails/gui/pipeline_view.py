@@ -2618,6 +2618,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.controller.ungroup_set(items[0])
             self.setupScene(self.controller.current_pipeline)
         
+    def layout(self):
+        if len(self.items()) > 0:
+            self.controller.layout_workflow()
+            self.setupScene(self.controller.current_pipeline)
+
     def makeAbstraction(self):
         items = self.get_selected_item_ids(True)
         if items is not None:
@@ -2977,6 +2982,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.action_links = \
             {'copy': ('module_changed', self.has_selected_modules),
              'paste': ('clipboard_changed', self.clipboard_non_empty),
+             'layout': ('pipeline_changed', self.pipeline_non_empty),
              'group': ('module_changed', self.has_selected_modules),
              'ungroup': ('module_changed', self.has_selected_groups),
              'showGroup': ('module_changed', self.has_selected_group),
