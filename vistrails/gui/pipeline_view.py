@@ -49,6 +49,8 @@ from PyQt4 import QtCore, QtGui
 from core.configuration import get_vistrails_configuration
 from core import debug
 from core.db.action import create_action
+from core.layout.workflow_layout import WorkflowLayout, \
+    Pipeline as LayoutPipeline
 from core.system import systemType
 from core.utils import profile
 from core.vistrail.annotation import Annotation
@@ -999,6 +1001,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
         self.connectionItems = {}
         self._cur_function_names = set()
+        self.handlePositionChanges = True
 
     def moduleHasChanged(self, core_module):
         def module_text_has_changed(m1, m2):
@@ -1348,8 +1351,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.description = ''
         self.setToolTip(self.description)
         self.computeBoundingRect()
-        self.resetMatrix()
-        self.translate(module.center.x, -module.center.y)
+        self.setPos(module.center.x, -module.center.y)
 
         # Check to see which ports will be shown on the screen
         # setupModule is in a hotpath, performance-wise, which is the
@@ -1695,7 +1697,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
         """
         # Move connections with modules
-        if change==QtGui.QGraphicsItem.ItemPositionChange:
+        if change==QtGui.QGraphicsItem.ItemPositionChange and \
+                self.handlePositionChanges:
             oldPos = self.pos()
             newPos = value.toPointF()
             dis = newPos - oldPos
@@ -2619,9 +2622,114 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.setupScene(self.controller.current_pipeline)
         
     def layout(self):
-        if len(self.items()) > 0:
-            self.controller.layout_workflow()
-            self.setupScene(self.controller.current_pipeline)
+        if len(self.items()) <= 0:
+            return
+
+        def get_visible_ports(port_list, visible_ports):
+            output_list = []
+            visible_list = []
+            for p in port_list:
+                if not p.optional:
+                    output_list.append(p)
+                elif p.name in visible_ports:
+                    visible_list.append(p)
+            output_list.extend(visible_list)
+            return output_list
+        
+        module_ids = self.get_selected_module_ids()
+        if len(module_ids) == 0:
+            self.selectAll()
+            module_ids = self.modules
+
+        wf = LayoutPipeline()
+        wf_module_map = {}
+        wf_iport_map = {}
+        wf_oport_map = {}
+
+        center = [0.0, 0.0]
+        # print "module_ids:", module_ids
+            
+        for module_id in module_ids:
+            module_item = self.modules[module_id]
+            module = module_item.module
+
+            center[0] += module_item.scenePos().x()
+            center[1] += module_item.scenePos().y()
+            m = wf.createModule(module_id, 
+                                module.name,
+                                len(module_item.inputPorts),
+                                len(module_item.outputPorts))
+            m._module_item = module_item
+            wf_module_map[module_id] = m
+
+            input_ports = get_visible_ports(module.destinationPorts(), 
+                                            module.visible_input_ports)
+            output_ports = get_visible_ports(module.sourcePorts(),
+                                             module.visible_output_ports)
+            for i, p in enumerate(input_ports):
+                if module_id not in wf_iport_map:
+                    wf_iport_map[module_id] = {}
+                wf_iport_map[module_id][p.name] = m.input_ports[i]
+            for i, p in enumerate(output_ports):
+                if module_id not in wf_oport_map:
+                    wf_oport_map[module_id] = {}
+                wf_oport_map[module_id][p.name] = m.output_ports[i]
+
+        for conn_item in self.connections.itervalues():
+            c = conn_item.connection
+            if c.sourceId in module_ids and c.destinationId in module_ids:
+                src = wf_oport_map[c.sourceId][c.source.name]
+                dst = wf_iport_map[c.destinationId][c.destination.name]
+                wf.createConnection(src.module, src.index, 
+                                    dst.module, dst.index)
+        
+        def get_module_size(m):
+            rect = m._module_item.boundingRect()
+            return (rect.width(), rect.height())
+        
+        layout = WorkflowLayout(wf, get_module_size, 
+                                CurrentTheme.MODULE_PORT_MARGIN, 
+                                (CurrentTheme.PORT_WIDTH, 
+                                 CurrentTheme.PORT_HEIGHT), 
+                                CurrentTheme.MODULE_PORT_SPACE)
+        layout.compute_module_sizes()
+        layout.assign_modules_to_layers()
+        layout.assign_module_permutation_to_each_layer()
+        layer_x_separation = layer_y_separation = 50
+        layout.compute_layout(layer_x_separation, layer_y_separation)
+
+        move_list = []
+        center[0] /= float(len(module_ids))
+        center[1] /= float(len(module_ids))
+        center_out = [0.0, 0.0]
+        for module in wf.modules:
+            center_out[0] += module.layout_pos.x
+            center_out[1] += module.layout_pos.y
+        center_out[0] /= float(len(module_ids))
+        center_out[1] /= float(len(module_ids))
+        self.handlePositionChanges = False
+        try:
+            for module in wf.modules:
+                m_item = self.modules[module.shortname]
+                m_item.setPos(
+                    module.layout_pos.x - center_out[0] + center[0],
+                    module.layout_pos.y - center_out[1] + center[1])
+
+            for conn_item in self.connections.itervalues():
+                c = conn_item.connection
+                if c.sourceId in module_ids or c.destinationId in module_ids:
+                    srcModule = self.modules[c.sourceId]
+                    dstModule = self.modules[c.destinationId]
+                    srcPortItem = srcModule.getOutputPortItem(c.source)
+                    dstPortItem = dstModule.getInputPortItem(c.destination)
+                    conn_item.prepareGeometryChange()
+                    conn_item.setupConnection(srcPortItem.getPosition(),
+                                              dstPortItem.getPosition())
+        finally:
+            self.handlePositionChanges = True
+        # trigger the moves to be persisted
+        self.controller.flush_delayed_actions()
+        self.setupScene(self.controller.current_pipeline)
 
     def makeAbstraction(self):
         items = self.get_selected_item_ids(True)
@@ -2717,7 +2825,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         for item in self.items():
-            item.setSelected(True)
+            if isinstance(item, QGraphicsModuleItem) or \
+                    isinstance(item, QGraphicsConnectionItem):
+                item.setSelected(True)
 
     def open_configure_window(self, id):
         """ open_configure_window(int) -> None

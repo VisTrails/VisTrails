@@ -374,39 +374,6 @@ class WorkflowLayout(object):
         self.port_size = port_size
         self.port_interspace = port_interspace
 
-    # def from_pipeline_view(self):
-    #     (mpm0, mpm1, mpm2, mpm3) = t.MODULE_PORT_MARGIN
-    #     # Adjust the width to fit all ports
-    #     maxPortCount = max(len(inputPorts), len(outputPorts))
-    #     minWidth = (mpm0 +
-    #                 t.PORT_WIDTH*maxPortCount +
-    #                 t.MODULE_PORT_SPACE*(maxPortCount-1) +
-    #                 mpm2 +
-    #                 t.MODULE_PORT_PADDED_SPACE)
-    #     self.adjustWidthToMin(minWidth)
-
-    #     self.nextInputPortPos = [self.paddedRect.x() + mpm0,
-    #                              self.paddedRect.y() + mpm1]
-    #     self.nextOutputPortPos = [self.paddedRect.right() - \
-    #                                   t.PORT_WIDTH - mpm2,
-    #                               self.paddedRect.bottom() - \
-    #                                   t.PORT_HEIGHT - mpm3]
-
-    #     # Update input ports
-    #     [x, y] = self.nextInputPortPos
-    #     for port in inputPorts:
-    #         self.inputPorts[port] = self.createPortItem(port, x, y)
-    #         x += t.PORT_WIDTH + t.MODULE_PORT_SPACE
-    #     self.nextInputPortPos = [x,y]
-
-    #     # Update output ports
-    #     [x, y] = self.nextOutputPortPos
-    #     for port in outputPorts:            
-    #         self.outputPorts[port] = self.createPortItem(port, x, y)
-    #         x -= t.PORT_WIDTH + t.MODULE_PORT_SPACE
-    #     self.nextOutputPortPos = [x, y]
-
-
     #
     # Compute sizes
     # 

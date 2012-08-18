@@ -39,8 +39,6 @@ import core.db.action
 import core.db.locator
 import core.modules.vistrails_module
 from core.utils import VistrailsInternalError, InvalidPipeline
-from core.layout.workflow_layout import WorkflowLayout, \
-    Pipeline as LayoutPipeline
 from core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
@@ -303,71 +301,6 @@ class VistrailController(QtCore.QObject, BaseController):
         
         if self.vistrail.set_notes(self.current_version, str(notes)):
             self.emit(QtCore.SIGNAL('notesChanged()'))
-
-    def layout_workflow(self):
-        def get_visible_ports(port_list, visible_ports):
-            output_list = []
-            visible_list = []
-            for p in port_list:
-                if not p.optional:
-                    output_list.append(p)
-                elif p.name in visible_ports:
-                    visible_list.append(p)
-            output_list.extend(visible_list)
-            return output_list
-
-        wf = LayoutPipeline()
-        wf_module_map = {}
-        wf_iport_map = {}
-        wf_oport_map = {}
-        for module_item in self.current_pipeline_view.modules.itervalues():
-            module = module_item.module
-            m = wf.createModule(module.id, 
-                                module.name,
-                                len(module_item.inputPorts),
-                                len(module_item.outputPorts))
-            m._module_item = module_item
-            wf_module_map[module_item.module.id] = m
-
-            input_ports = get_visible_ports(module.destinationPorts(), 
-                                            module.visible_input_ports)
-            output_ports = get_visible_ports(module.sourcePorts(),
-                                             module.visible_output_ports)
-            for i, p in enumerate(input_ports):
-                if module.id not in wf_iport_map:
-                    wf_iport_map[module.id] = {}
-                wf_iport_map[module.id][p.name] = m.input_ports[i]
-            for i, p in enumerate(output_ports):
-                if module.id not in wf_oport_map:
-                    wf_oport_map[module.id] = {}
-                wf_oport_map[module.id][p.name] = m.output_ports[i]
-
-        for conn_item in self.current_pipeline_view.connections.itervalues():
-            c = conn_item.connection
-            src = wf_oport_map[c.sourceId][c.source.name]
-            dst = wf_iport_map[c.destinationId][c.destination.name]
-            wf.createConnection(src.module, src.index, dst.module, dst.index)
-        
-        def get_module_size(m):
-            rect = m._module_item.boundingRect()
-            return (rect.width(), rect.height())
-        
-        layout = WorkflowLayout(wf, get_module_size, 
-                                CurrentTheme.MODULE_PORT_MARGIN, 
-                                (CurrentTheme.PORT_WIDTH, 
-                                 CurrentTheme.PORT_HEIGHT), 
-                                CurrentTheme.MODULE_PORT_SPACE)
-        layout.compute_module_sizes()
-        layout.assign_modules_to_layers()
-        layout.assign_module_permutation_to_each_layer()
-        layer_x_separation = layer_y_separation = 50
-        layout.compute_layout(layer_x_separation, layer_y_separation)
-
-        move_list = []
-        for module in wf.modules:
-            move_list.append((module.shortname, module.layout_pos.x, 
-                              -module.layout_pos.y))
-        self.move_module_list(move_list)
 
     ##########################################################################
     # Workflow Execution
