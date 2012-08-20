@@ -254,3 +254,31 @@ class CellWrapper(object):
 
 def setup_spreadsheet():
     return SpreadsheetWrapper()
+
+
+##############################################################################
+
+import unittest
+
+
+class SheetTest(unittest.TestCase):
+    def setUp(self):
+        self._Sheet = _JAVA_VM.edu.utah.sci.vistrails.javaspreadsheet.Sheet
+        self._sheet = self._Sheet()
+
+    def test_getCell(self):
+        c01 = self._sheet.getCell(JavaCellLocation(Integer(0), Integer(1)))
+        c00 = self._sheet.getCell(JavaCellLocation(Integer(0), None))
+        c11 = self._sheet.getCell(JavaCellLocation(None, Integer(1)))
+        c02 = self._sheet.getCell(JavaCellLocation(Integer(0), None))
+
+        def test(cell, row, column):
+            self.assertEqual(cell, self._sheet.getCell(JavaCellLocation(Integer(row), Integer(column))))
+        test(c00, 0, 0)
+        test(c01, 0, 1)
+        test(c02, 0, 2)
+        test(c11, 1, 1)
+
+
+if __name__ == '__main__':
+    unittest.main()

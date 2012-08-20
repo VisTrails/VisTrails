@@ -16,6 +16,14 @@ public class Sheet extends JScrollPane {
     private SpreadsheetModel m_Model;
     private SpreadsheetTable m_Table;
 
+    /**
+     * This constructor is only used to run unittests.
+     */
+    public Sheet()
+    {
+        this("sheet_unittest", Spreadsheet.Mode.INTERACTIVE, null);
+    }
+
     Sheet(String name, Mode mode, SpreadsheetInterface interf)
     {
         m_Model = new SpreadsheetModel(name, 2, 3, mode, interf);
@@ -35,7 +43,6 @@ public class Sheet extends JScrollPane {
         return getCell(null);
     }
 
-    // TODO : Test coverage
     public Cell getCell(CellLocation location)
     {
         // Locate the requested cell
@@ -66,7 +73,6 @@ public class Sheet extends JScrollPane {
         m_Model.setValueAt(null, m_Table.getSelectedRow(), m_Table.getSelectedColumn());
     }
 
-    // TODO : Test coverage
     static Point findCell(SpreadsheetModel model, Integer row, Integer column)
     {
         if(row != null && column != null)

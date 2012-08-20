@@ -246,7 +246,10 @@ else:
         return actual_decorator
 
 
+##############################################################################
+
 import unittest
+
 
 class TestInterfaceCallback(unittest.TestCase):
     def setUp(self):
@@ -282,6 +285,28 @@ class TestInterfaceBean(unittest.TestCase):
         BeanImpl = implement('tests.jproxy.BeanInterface')(BeanImpl)
         proxy = BeanImpl()
         self._vm.tests.jproxy.BeanUser.use(proxy)
+
+
+class TestJava(unittest.TestCase):
+    def setUp(self):
+        self._vm = get_java_vm()
+
+    def test_std_class(self):
+        Math = self._vm.java.lang.Math
+        self.assertAlmostEqual(Math.abs(-4), 4)
+
+    def test_get_class(self):
+        Math = get_class('java.lang.Math')
+        self.assertAlmostEqual(Math.abs(-4), 4)
+
+    def test_arrays(self):
+        Arrays = self._vm.java.util.Arrays
+        array = build_jarray('int', [4, 2, 1, 2])
+        Arrays.sort(array)
+        exp = [1, 2, 2, 4]
+        for i in xrange(4):
+            self.assertEqual(array[i], exp[i])
+
 
 if __name__ == '__main__':
     unittest.main()
