@@ -28,8 +28,27 @@ following Java dependencies:
     http://code.google.com/p/vldocking/
     License: GNU Lesser GPL
 
+Note that while this is not only necessary for the Java version of VisTrails,
+you probably want to use the Java Spreadsheet package. Instructions on setting
+up this module for both versions of VisTrails can be found in the
+'README-javaspreadsheet.txt' file.
+
 
 # Examples
+
+## obvioustest (included)
+
+The 'obvioustest' package wraps the Obvious visualization framework. This
+example uses it to display a simple network visualization using Prefuse,
+inside the Java spreadsheet.
+
+
+## python_modules (included)
+
+This is a very simple exampe that uses Python modules, and thus run the same
+way on Python and Jython. The HTTP, ImageMagick and PythonCalc packages are
+used.
+
 
 ## form_classification
 
