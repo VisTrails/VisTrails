@@ -1586,11 +1586,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         return None
 
-    def buildPortItem(self, port, port_dict, optional_ports, next_pos, 
-                       next_op, default_sig):
+    def buildPortItem(self, port, port_dict, optional_ports, visible_ports,
+                      next_pos, next_op, default_sig):
         """buildPortItem(port: Port,
                          port_dict: {PortSpec: QGraphicsPortItem},
                          optional_ports: [PortSpec],
+                         visible_ports: set(string),
                          next_pos: [float, float],
                          next_op: operator (operator.add, operator.sub),
                          default_sig: str
@@ -1605,6 +1606,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             for p in optional_ports:
                 if registry.port_and_port_spec_match(port, p):
                     item = self.createPortItem(p, *next_pos)
+                    visible_ports.add(port.name)
                     port_dict[p] = item
                     next_pos[0] = next_op(next_pos[0], 
                                           (CurrentTheme.PORT_WIDTH +
@@ -1650,6 +1652,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             item = self.buildPortItem(port,
                                       self.inputPorts,
                                       self.optionalInputPorts,
+                                      self.module.visible_input_ports,
                                       self.nextInputPortPos,
                                       operator.add,
                                       '(edu.utah.sci.vistrails.basic:Variant)')
@@ -1661,6 +1664,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             item = self.buildPortItem(port,
                                       self.outputPorts,
                                       self.optionalOutputPorts,
+                                      self.module.visible_output_ports,
                                       self.nextOutputPortPos,
                                       operator.sub,
                                       '(edu.utah.sci.vistrails.basic:Module)')
