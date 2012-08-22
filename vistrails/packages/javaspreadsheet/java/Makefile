@@ -3,8 +3,8 @@
 # are in the path if undefined
 # JAVA_HOME needs to point to a JDK, not a JRE!
 ifdef JAVA_HOME
-	JAVAC = $(JAVA_HOME)/bin/javac
-	JAR = $(JAVA_HOME)/bin/jar
+	JAVAC = "$(JAVA_HOME)"/bin/javac
+	JAR = "$(JAVA_HOME)"/bin/jar
 else
 	JAVAC = javac
 	JAR = jar
