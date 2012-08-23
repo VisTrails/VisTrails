@@ -52,6 +52,7 @@ import os.path
 import shutil
 import tempfile
 import copy
+import zipfile, posixpath
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
@@ -613,14 +614,20 @@ def open_vistrail_bundle_from_zip_xml(filename):
 
     """
 
-    core.requirements.require_executable('unzip')
+    # core.requirements.require_executable('unzip')
 
-    vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    output = []
-    cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
-    result = execute_cmdline(cmdline, output)
-
-    if result != 0 and len(output) != 0:
+    # vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
+    # output = []
+    # cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
+    # result = execute_cmdline(cmdline, output)
+    # if result != 0 and len(output) != 0:
+    #     raise VistrailsDBException("Unzip of '%s' failed" % filename)
+    
+    try:
+        zf = zipfile.ZipFile(filename, 'r')
+        zf.extractall(vt_save_dir)
+        zf.close()
+    except IOError, e:
         raise VistrailsDBException("Unzip of '%s' failed" % filename)
 
     vistrail = None
@@ -753,7 +760,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     
     """
 
-    core.requirements.require_executable('zip')
+#    core.requirements.require_executable('zip')
 
     if save_bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
@@ -858,22 +865,34 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
 
     # on windows, we assume zip.exe is in the current directory when
     # running from the binary install
-    zipcmd = 'zip'
-    if systemType in ['Windows', 'Microsoft']:
-        zipcmd = get_executable_path('zip.exe')
-        if not zipcmd or not os.path.exists(zipcmd):
-            zipcmd = 'zip.exe' #assume zip is in path
-    cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
+    # zipcmd = 'zip'
+    # if systemType in ['Windows', 'Microsoft']:
+    #     zipcmd = get_executable_path('zip.exe')
+    #     if not zipcmd or not os.path.exists(zipcmd):
+    #         zipcmd = 'zip.exe' #assume zip is in path
+    # cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
     try:
         #if we want that directories are also stored in the zip file
         # we need to run from the vt directory
         with Chdir(vt_save_dir):
-            result = execute_cmdline(cmdline,output)
+            #result = execute_cmdline(cmdline,output)
+            try:
+                zf = zipfile.ZipFile(tmp_zip_file,
+                                     "w",
+                                     compression=zipfile.ZIP_DEFLATED)
+                for dirpath, dirnames, filenames in os.walk("."):
+                    for name in filenames:
+                        path = os.path.normpath(os.path.join(dirpath, name))
+                        if os.path.isfile(path):
+                            zf.write(path, path)
+                zf.close()
+            except IOError, e:
+                raise VistrailsDBException(" ".join(str(e)))
         #print result, output
-        if result != 0 or len(output) != 0:
-            for line in output:
-                if line.find('deflated') == -1:
-                    raise VistrailsDBException(" ".join(output))
+        # if result != 0 or len(output) != 0:
+        #     for line in output:
+        #         if line.find('deflated') == -1:
+        #             raise VistrailsDBException(" ".join(output))
         shutil.copyfile(tmp_zip_file, filename)
     finally:
         os.unlink(tmp_zip_file)
