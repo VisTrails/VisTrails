@@ -616,7 +616,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
 
     # core.requirements.require_executable('unzip')
 
-    # vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
+    vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     # output = []
     # cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
     # result = execute_cmdline(cmdline, output)
