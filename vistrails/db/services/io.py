@@ -588,6 +588,7 @@ def unserialize(str, obj_type):
 
 def open_vistrail_from_xml(filename):
     """open_vistrail_from_xml(filename) -> Vistrail"""
+
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
     try:
@@ -625,7 +626,8 @@ def open_vistrail_bundle_from_zip_xml(filename):
     
     try:
         zf = zipfile.ZipFile(filename, 'r')
-        zf.extractall(vt_save_dir)
+        for zipinfo in zf.namelist():
+            zf.extract(zipinfo, vt_save_dir)
         zf.close()
     except IOError, e:
         raise VistrailsDBException("Unzip of '%s' failed" % filename)
