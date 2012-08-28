@@ -342,6 +342,39 @@ else:
     any = __builtin__.any
     all = __builtin__.all
 
+# Adds the missing methods of zipfile if python version < 2.6
+if sys.version_info < (2, 6):
+    import zipfile
+
+    # Provide a replacement for ZipFile#open()
+    # The whole file will be stored in memory, which might be a problem on
+    # large files...
+    import StringIO
+    def open_workaround(self, filename):
+        return StringIO.StringIO(self.read(filename))
+    zipfile.ZipFile.open = open_workaround
+
+    # Provide a replacement for ZipFile#extract()
+    def extract_workaround(self, zipinfo, directory=os.getcwd()):
+        if isinstance(zipinfo, zipfile.ZipInfo):
+            filename = zipinfo.filename
+        else:
+            filename = zipinfo
+        contents = self.read(filename)
+        f = open(os.path.join(directory, filename), 'wb')
+        f.write(contents)
+        f.close()
+    zipfile.ZipFile.extract = extract_workaround
+
+    # Provide a replacement for ZipFile#extractall()
+    def extractall_workaround(self, directory=os.getcwd()):
+        for zipinfo in self.infolist():
+            if zipinfo.filename[-1] == '/': # directory
+                os.mkdir(os.path.join(directory, zipinfo.filename[:-1]))
+            else:
+                self.extract(zipinfo, directory)
+    zipfile.ZipFile.extractall = extractall_workaround
+
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator
     until item is found, and returns the index inside the iterator.

@@ -421,15 +421,6 @@ def parse_jar(filename, dir):
 
     parsed_classes = dict()
 
-    # zipfile.ZipFile#open() was introduced in 2.6
-    try:
-        zip.open
-    except AttributeError:
-        import StringIO
-        def open_workaround(filename):
-            return StringIO.StringIO(zip.read(filename))
-        zip.open = open_workaround
-
     for entry in entries:
         filename = entry.filename
         if filename.startswith(dir) and filename.endswith('.java'):
