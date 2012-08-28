@@ -52,7 +52,7 @@ class DatabaseAccess(object):
         run_schema = False
         if not os.path.exists(db_file):
             run_schema = True
-        self.conn = sqlite3.connect(db_file)
+        self.conn = sqlite3.connect(db_file.decode('latin-1'))
         if run_schema:
             print 'running schema'
             print '__file__:', __file__

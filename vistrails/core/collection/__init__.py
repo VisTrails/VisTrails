@@ -79,7 +79,7 @@ class Collection(object):
         
         if not os.path.exists(self.database):
             debug.log("'%s' does not exist. Trying to create" % self.database)
-            self.conn = sqlite3.connect(self.database)
+            self.conn = sqlite3.connect(self.database.decode('latin-1'))
             try:
                 cur = self.conn.cursor()
                 [cur.execute(s) for s in schema]
@@ -88,7 +88,7 @@ class Collection(object):
                 debug.critical("Could not create vistrail index schema",
                                str(e))
         else:
-            self.conn = sqlite3.connect(self.database)
+            self.conn = sqlite3.connect(self.database.decode('latin-1'))
         self.load_entities()
 
     #Singleton technique
