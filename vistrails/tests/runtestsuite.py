@@ -42,6 +42,7 @@ any unit tests, as a crude measure of code coverage.
 
 """
 
+import doctest
 import os
 import platform
 import sys
@@ -103,17 +104,6 @@ def sub_print(s, overline=False):
         print "-" * len(s)
     print s
     print "-" * len(s)
-
-def get_test_cases(module):
-    """Return all test cases from the module. Test cases are classes derived
-    from unittest.TestCase"""
-    result = []
-    import inspect
-    for member_name in dir(module):
-        member = getattr(module, member_name)
-        if inspect.isclass(member) and issubclass(member, unittest.TestCase):
-            result.append(member)
-    return result
 
 ###############################################################################
 
@@ -178,6 +168,7 @@ else:
 print "Test Suite for VisTrails"
 
 main_test_suite = unittest.TestSuite()
+test_loader = unittest.TestLoader()
 
 if test_modules:
     sub_print("Trying to import some of the modules")
@@ -238,20 +229,29 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
 
         if m is not None:
-            test_cases = get_test_cases(m)
-            for test_case in test_cases:
-                suite = unittest.TestLoader().loadTestsFromTestCase(test_case)
-                main_test_suite.addTests(suite)
+            # Load the unittest TestCases
+            suite = test_loader.loadTestsFromModule(m)
 
-            if not test_cases and verbose >= 1:
+            # Load the doctests
+            #try:
+            #    suite.addTests(doctest.DocTestSuite(m))
+            #except ValueError:
+            #    pass # No doctest is fine, we check that some tests exist later
+            # The doctests are currently opt-in; a load_tests method can be
+            # defined to build a DocTestSuite
+
+            main_test_suite.addTests(suite)
+
+            if suite.countTestCases() == 0 and verbose >= 1:
                 print msg, "WARNING: %s has no tests!" % filename
             elif verbose >= 2:
-                print msg, "Ok: %s test cases." % len(test_cases)
+                print msg, "Ok: %s test cases." % len(suite.countTestCases())
 s.close()
 f.close()
 err.close()
 
-sub_print("Imported modules. Running tests...")
+sub_print("Imported modules. Running %d tests..." %
+          main_test_suite.countTestCases())
 
 unittest.TextTestRunner().run(main_test_suite)
 

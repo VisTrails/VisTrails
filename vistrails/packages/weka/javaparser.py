@@ -450,12 +450,18 @@ def parse_jar(filename, dir):
     zip.close()
     return parsed_classes
 
+##############################################################################
+
+import doctest
+import unittest
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
 
 if __name__ == '__main__':
     debug.DebugPrint.getInstance().set_message_level(debug.DebugPrint.Log)
 
-    import doctest
-    doctest.testmod()
-
-    parse_jar('C:\\Program Files (x86)\\Weka-3-6\\weka-src.jar',
-              'src/main/java')
+    unittest.main()

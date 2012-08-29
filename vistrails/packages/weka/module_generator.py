@@ -236,3 +236,17 @@ def generate(parseResult):
 
     creator = ModuleCreator(parseResult)
     creator.create_all_modules()
+
+##############################################################################
+
+import doctest
+import unittest
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
+
+if __name__ == '__main__':
+    unittest.main()

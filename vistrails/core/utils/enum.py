@@ -40,10 +40,9 @@ def enum(className, enumValues, doc = None):
     """enum(className: str, enumValues: [str], doc = None) -> class.
     Creates a new enumeration class. For example:
 
-    >>> import enum
-    >>> Colors = enum.enum('Colors',
-                           ['Red', 'Green', 'Blue'],
-                           "Enumeration of primary colors")
+    >>> Colors = enum('Colors',
+    ...               ['Red', 'Green', 'Blue'],
+    ...               "Enumeration of primary colors")
 
     will create a class that can be used as follows:
 
@@ -53,7 +52,7 @@ def enum(className, enumValues, doc = None):
     False
     >>> z = Colors.REd
     Traceback (most recent call last):
-      File "<stdin>", line 1, in ?
+        ...
     AttributeError: type object 'Colors' has no attribute 'REd'
     >>> z = Colors.Red
     >>> z == x
@@ -104,7 +103,9 @@ def enum(className, enumValues, doc = None):
 
 ################################################################################
 
+import doctest
 import unittest
+
 
 class TestEnum(unittest.TestCase):
 
@@ -135,6 +136,12 @@ class TestEnum(unittest.TestCase):
         import copy
         y = copy.copy(x)
         self.assertEquals(x, y)
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
 
 if __name__ == '__main__':
     unittest.main()

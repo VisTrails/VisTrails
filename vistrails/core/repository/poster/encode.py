@@ -466,3 +466,17 @@ def multipart_encode(params, boundary=None, cb=None):
     params = MultipartParam.from_params(params)
 
     return multipart_yielder(params, boundary, cb), headers
+
+##############################################################################
+
+import doctest
+import unittest
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
+
+if __name__ == '__main__':
+    unittest.main()

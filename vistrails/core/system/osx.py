@@ -252,7 +252,9 @@ def get_executable_path(executable_name):
 
 ################################################################################
 
+import doctest
 import unittest
+
 
 class TestMacOSX(unittest.TestCase):
     """ Class to test Mac OS X specific functions """
@@ -277,6 +279,12 @@ class TestMacOSX(unittest.TestCase):
         # Should exist in any POSIX shell, which is what we have in OSX
         result = executable_is_in_path('ls')
         assert result == "/bin/ls" # Any UNIX should respect this.
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
 
 if __name__ == '__main__':
     unittest.main()

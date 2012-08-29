@@ -300,3 +300,17 @@ class ClassTree(object):
             return cmp(x.name, y.name)
         for nodes in self.tree:
             nodes.sort(_comp)
+
+##############################################################################
+
+import doctest
+import unittest
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -111,7 +111,7 @@ class VTKMethodParser(object):
        >>> print p.get_method_signature(o.GetColor)[0]
        ([('float', 'float', 'float')], None)
        >>> print p.get_method_signature(o.GetColor)[1]
-       ([None], (('float', 'float', 'float'),))
+       ([None], ['float', 'float', 'float'])
 
     The `get_method_signature` is fairly efficient and obtaining the
     signature for every method in every class in the VTK API takes
@@ -546,3 +546,16 @@ class VTKMethodParser(object):
                         break
         return obj
 
+##############################################################################
+
+import doctest
+import unittest
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
+
+if __name__ == '__main__':
+    unittest.main()

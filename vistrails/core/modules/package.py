@@ -791,6 +791,14 @@ class Package(DBPackage):
 
 ##############################################################################
 
+import doctest
+import unittest
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
+
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+    unittest.main()

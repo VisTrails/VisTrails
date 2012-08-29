@@ -62,7 +62,7 @@ class Graph(object):
     >>> g.out_degree('foo')
     2
     >>> g.out_degree('bar')
-    1    
+    1
     """
 
     ##########################################################################
@@ -768,6 +768,7 @@ def edge_cmp(v1, v2):
 ################################################################################
 # Unit testing
 
+import doctest
 import unittest
 import random
 
@@ -1131,6 +1132,12 @@ class TestGraph(unittest.TestCase):
          self.assertEqual(g, Graph.map_vertices(g, m))
          m = {0: 5, 1: 6, 2: 7, 3: 8, 4: 9}
          self.assertNotEqual(g, Graph.map_vertices(g, m))
-         
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
+
 if __name__ == '__main__':
     unittest.main()

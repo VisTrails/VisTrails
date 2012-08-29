@@ -247,7 +247,10 @@ def xtea_decrypt(key,block,n=32,endian="!"):
     
 ##############################################################################
 
+import doctest
 import unittest
+
+
 class A(object):
     def set_key(self, chain, key, value):
         chain.set_key(key,value)
@@ -269,6 +272,12 @@ class TestKeyChain(unittest.TestCase):
         #test key protection
         value = other.get_key(keyChain, "mykey.name")
         self.assertEquals(value, "")   
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(None))
+    return tests
+
 
 if __name__ == '__main__':
     unittest.main()
