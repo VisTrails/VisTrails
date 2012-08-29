@@ -43,7 +43,9 @@ any unit tests, as a crude measure of code coverage.
 """
 
 import os
-import sys, traceback
+import platform
+import sys
+import traceback
 import unittest
 import os.path
 import optparse
@@ -60,7 +62,6 @@ if not _this_dir:
 else:
     root_directory = os.path.join(_this_dir,  '..')
 sys.path.append(root_directory)
-
 
 import tests
 
@@ -143,13 +144,36 @@ if len(args) > 0:
 sys.argv = sys.argv[:1]
 
 # creates the app so that testing can happen
-#import gui.application
 
 # We need the windows so we can test events, etc.
-#gui.application.start_application({'interactiveMode': True,
-#                                   'nologger': True})
-import core.application
-core.application.init()
+if platform.system() in ['Java', 'JAVA']:
+    import core.application
+    core.application.init()
+    def package_filter(module):
+        ignore = ['gui', 'extras.db.gui', 'index', 'db.bin']
+        for i in ignore:
+            if module.startswith(i):
+                return False
+        return True
+    def end_tests():
+        core.application.get_vistrails_application().finishSession()
+        from javagui.utils import run_on_edt
+        def kill_edt():
+            sys.exit(0)
+        run_on_edt(kill_edt)
+else:
+    import gui.application
+    gui.application.start_application({'interactiveMode': True,
+                                       'nologger': True})
+    def package_filter(module):
+        ignore = ['javagui', 'extras.db.javagui']
+        for i in ignore:
+            if module.startswith(i):
+                return False
+        return True
+    def end_tests():
+        gui.application.get_vistrails_application().finishSession()
+        gui.application.stop_application()
 
 print "Test Suite for VisTrails"
 
@@ -160,6 +184,9 @@ if test_modules:
 else:
     sub_print("Trying to import all modules")
 
+s = open('successimport.log', 'w')
+f = open('failedimport.log', 'w') 
+err = open('errorimport.log', 'w')
 for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
     if p.find('.svn') != -1:
@@ -188,17 +215,14 @@ for (p, subdirs, files) in os.walk(root_directory):
         module = module.replace('\\','.')
         if module.endswith('__init__'):
             module = module[:-9]
-        print 'module ' + module
-        s = open('successimport.log', 'a')
-        f = open('failedimport.log', 'a') 
-        err = open('errorimport.log', 'a')
         m = None
         try:
-            if module.startswith('api') or module.startswith('core'):
-                m = __import__(module, globals(), locals(), ['foo'])
+            if package_filter(module):
+                if '.' in module:
+                    m = __import__(module, globals(), locals(), ['foo'])
+                else:
+                    m = __import__(module)
                 s.write(module + "\n")
-            #else:
-            #    m = __import__(module)
         except tests.NotModule:
             if verbose >= 1:
                 print "Skipping %s, not an importable module" % filename
@@ -223,9 +247,16 @@ for (p, subdirs, files) in os.walk(root_directory):
                 print msg, "WARNING: %s has no tests!" % filename
             elif verbose >= 2:
                 print msg, "Ok: %s test cases." % len(test_cases)
-print 'pikachu'
+s.close()
+f.close()
+err.close()
+
+sub_print("Imported modules. Running tests...")
+
 unittest.TextTestRunner().run(main_test_suite)
-print 'pikachu2'
+
+sub_print("Tests finished.")
+
 if test_examples:
     import core.db.io
     import core.db.locator
@@ -269,13 +300,9 @@ if test_examples:
         else:
             print "  Ok."
     print "-----------------------------------------------------------------"
-    print 'pikachu'
     if errors:
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
 
-import gui.application
-
-gui.application.get_vistrails_application().finishSession()
-gui.application.stop_application()
+end_tests()
