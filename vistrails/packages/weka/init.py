@@ -23,6 +23,7 @@ import hashlib
 from core import debug
 from core import configuration
 from core.system import default_dot_vistrails
+from extras.java_vm import add_on_classpath
 
 
 class WekaConfigurationError(Exception):
@@ -113,7 +114,7 @@ def initialize():
                           "it will have to be parsed again next time...")
 
     # This is possible in Jython but not with JPype
-    #sys.path.append(weka_jar)
+    add_on_classpath(weka_jar)
     # You have to put the weka JAR in the CLASSPATH environment variable before
     # running VisTrails
 

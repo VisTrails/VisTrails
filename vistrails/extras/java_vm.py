@@ -221,6 +221,20 @@ def build_jarray(t, seq):
         return jpype.JArray(t)(seq)
 
 
+def add_on_classpath(path):
+    if not USING_JYTHON:
+        return False # Can't do this on JPype...
+    else:
+        if isinstance(path, basestring):
+            if not path in sys.path:
+                sys.path.append(path)
+        elif isinstance(path, (tuple, list, set)):
+            for p in path:
+                if not p in sys.path:
+                    sys.path.append(p)
+        return True
+
+
 if USING_JYTHON:
     def implement(interface_name):
         def actual_decorator(klass):
