@@ -130,6 +130,17 @@ class ConfigurationObject(InstanceObject):
         """
         return [k for k in self.__dict__.keys() if not k.startswith('_')]
     
+    # About bytestrings:
+    # A XML document can only hold unicode characters! Thus, we encode each
+    # byte of a bytestring as the corresponding unicode character.
+    #
+    # If the source bytestring is Latin-1, it will get turned into the correct
+    # unicode sequence and stored as UTF-8 in the XML file
+    # Else, something strange can get written in the XML file (for instance,
+    # double UTF-8 encoded strings). This could cause issues if a user where to
+    # manually edit the XML file, but set_from_dom_node can restore safely any
+    # bytestring from the XML file later on.
+    
     def write_to_dom(self, dom, element):
         conf_element = dom.createElement('configuration')
         element.appendChild(conf_element)
@@ -138,7 +149,7 @@ class ConfigurationObject(InstanceObject):
                 continue
             key_element = dom.createElement('key')
             key_element.setAttribute('name', key)
-            if type(value) in [int, str, bool, float]:
+            if type(value) in [int, str, unicode, bool, float]:
                 conf_element.appendChild(key_element)
                 value_element = quote_xml_value(dom, value)
                 key_element.appendChild(value_element)
@@ -155,12 +166,12 @@ class ConfigurationObject(InstanceObject):
             key_name = str(key.attributes['name'].value)
             value = [x for x in
                      elements_filter(key, lambda node: node.nodeName in
-                                    ['bool', 'str', 'int', 'float', 'configuration'])][0]
+                                    ['bool', 'str', 'unicode', 'int', 'float', 'configuration'])][0]
             value_type = value.nodeName
             if value_type == 'configuration':
                 if hasattr(self,key_name):
                     getattr(self, key_name).set_from_dom_node(value)
-            elif value_type in ['bool', 'str', 'int', 'float']:
+            elif value_type in ['bool', 'str', 'unicode', 'int', 'float']:
                 setattr(self, key_name, eval_xml_value(value))
         
 

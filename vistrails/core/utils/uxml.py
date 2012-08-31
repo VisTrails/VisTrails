@@ -48,16 +48,22 @@ def eval_xml_value(node):
     
     key_name = node.nodeName
     type_ = getattr(__builtin__, key_name)
-    str_value = str(node.attributes['value'].value)
+    str_value = node.attributes['value'].value
 
     # Tricky case bool('False') == True
     if type_ == bool:
-        if str_value == 'True':
+        if str_value == u'True':
             return True
-        elif str_value == 'False':
+        elif str_value == u'False':
             return False
         else:
             raise Exception("eval_xml_value: Bogus bool value '%s'" % str_value)
+    # unicode to bytestring
+    elif type_ == str:
+        try:
+            return str_value.encode('latin-1')
+        except UnicodeEncodeError:
+            raise Exception("eval_xml_value: Bogus bytestring value %r (some unicode characters don't fit in a byte)")
     return type_(str_value)
 
 def quote_xml_value(dom, value):
@@ -67,13 +73,17 @@ def quote_xml_value(dom, value):
        eval_xml_value(quote_xml_value(dom, value)) == value
 
        <str value='foo'/> <- 'foo'
+       <unicode value='bar'/> <- u'bar'
        <int value='3'/> <- 3
        <float value='3.141592'> <- 3.141592
        <bool value='False'> <- False
     """
 
-    el = dom.createElement(type(value).__name__)
-    el.setAttribute('value', str(value))
+    tag = type(value).__name__
+    if isinstance(value, str): # bytestring to unicode
+        value = value.decode('latin-1')
+    el = dom.createElement(tag)
+    el.setAttribute('value', unicode(value))
     return el
 
 def named_elements(element, elname):

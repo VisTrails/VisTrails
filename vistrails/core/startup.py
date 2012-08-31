@@ -129,7 +129,7 @@ class VistrailsStartup(object):
     def write_startup_dom(self, dom):
         filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
         f = file(filename, 'w')
-        f.write(dom.toxml())
+        f.write(dom.toxml('utf-8'))
         f.close()
                 
     def load_configuration(self):
