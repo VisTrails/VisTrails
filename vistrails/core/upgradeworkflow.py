@@ -39,6 +39,8 @@ from core import debug
 import core.db.action
 from core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort
+from core.modules.utils import parse_descriptor_string, \
+    create_descriptor_string, expand_port_spec_string
 from core.packagemanager import get_package_manager
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
@@ -97,7 +99,7 @@ class UpgradeWorkflowHandler(object):
                 s = reg.get_port_spec_from_descriptor(descriptor, port_name,
                                                       port_type)
                 found = True
-                sigstring = reg.expand_port_spec_string(sigstring, basic_pkg)
+                sigstring = expand_port_spec_string(sigstring, basic_pkg)
                 if s.sigstring != sigstring:
                     msg = ('%s port "%s" of module "%s" exists, but '
                            'signatures differ "%s" != "%s"') % \
@@ -485,10 +487,10 @@ class UpgradeWorkflowHandler(object):
         reg = get_module_registry()
 
         old_module = pipeline.modules[module_id]
-        old_desc_str = reg.create_descriptor_string(old_module.package,
-                                                    old_module.name,
-                                                    old_module.namespace,
-                                                    False)
+        old_desc_str = create_descriptor_string(old_module.package,
+                                                old_module.name,
+                                                old_module.namespace,
+                                                False)
         # print 'running module_upgrade_request', old_module.name
         if old_desc_str in module_remap:
             for upgrade_tuple in module_remap[old_desc_str]:
@@ -520,9 +522,8 @@ class UpgradeWorkflowHandler(object):
                             else:
                                 raise e
                     elif type(new_module_type) == type(""):
-                        d_tuple = \
-                            reg.expand_descriptor_string(new_module_type, \
-                                                             old_module.package)
+                        d_tuple = parse_descriptor_string(new_module_type,
+                                                          old_module.package)
                         try:
                             new_module_desc = \
                                 reg.get_descriptor_by_name(*d_tuple)

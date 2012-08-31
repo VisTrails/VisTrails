@@ -33,6 +33,8 @@
 ###############################################################################
 
 import copy
+from core.modules.utils import parse_port_spec_item_string, \
+    create_port_spec_item_string
 from db.domain import DBPortSpecItem
 
 class PortSpecItem(DBPortSpecItem):
@@ -43,17 +45,16 @@ class PortSpecItem(DBPortSpecItem):
     def __init__(self, *args, **kwargs):
         if "sigstring" in kwargs:
             sigstring = kwargs["sigstring"]
-            sigs = sigstring.split(":", 2)
             del kwargs["sigstring"]
-            if len(sigs) < 2:
-                raise Exception("sigstring '%s' must contain both package"
-                                " identifier and module name" % sigstring)
+
+            (package, module, namespace) = \
+                parse_port_spec_item_string(sigstring)
             if "package" not in kwargs:
-                kwargs["package"] = sigs[0]
+                kwargs["package"] = package
             if "module" not in kwargs:
-                kwargs["module"] = sigs[1]
-            if "namespace" not in kwargs and len(sigs) > 2:
-                kwargs["namespace"] = sigs[2]
+                kwargs["module"] = module
+            if "namespace" not in kwargs:
+                kwargs["namespace"] = namespace
         if "values" in kwargs:
             if not isinstance(kwargs["values"], basestring):
                 kwargs["values"] = str(kwargs["values"])
@@ -124,9 +125,9 @@ class PortSpecItem(DBPortSpecItem):
 
     def _get_sigstring(self):
         if self._sigstring is None:
-            self._sigstring = \
-                ("%s:%s:%s" % (self.package, self.module, self.namespace) 
-                 if self.namespace else "%s:%s" % (self.package, self.module))
+            self._sigstring = create_port_spec_item_string(self.package,
+                                                           self.module,
+                                                           self.namespace)
         return self._sigstring
     sigstring = property(_get_sigstring)
 
@@ -161,6 +162,9 @@ class PortSpecItem(DBPortSpecItem):
             self._values = eval(values)
     values = property(_get_values, _set_values)
 
+    def _get_spec_tuple(self):
+        return (self.package, self.module, self.namespace)
+    spec_tuple = property(_get_spec_tuple)
 
 ################################################################################
 # Testing

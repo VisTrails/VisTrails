@@ -37,6 +37,7 @@ from itertools import izip
 import operator
 
 from core.data_structures.bijectivedict import Bidict
+from core.modules.utils import create_port_spec_string, parse_port_spec_string
 from core.utils import enum, VistrailsInternalError
 from core.vistrail.port_spec_item import PortSpecItem
 from db.domain import DBPortSpec
@@ -85,6 +86,10 @@ class PortSpec(DBPortSpec):
         if 'entry_types' in kwargs:
             entry_types = kwargs['entry_types']
             del kwargs['entry_types']
+
+        if 'items' in kwargs and 'portSpecItems' not in kwargs:
+            kwargs['portSpecItems'] = kwargs['items']
+            del kwargs['items']
 
         if 'optional' not in kwargs:
             kwargs['optional'] = 0 # False
@@ -210,9 +215,11 @@ class PortSpec(DBPortSpec):
     min_conns = DBPortSpec.db_min_conns
     max_conns = DBPortSpec.db_max_conns
     port_spec_items = DBPortSpec.db_portSpecItems
+    items = DBPortSpec.db_portSpecItems
 
     def _get_sigstring(self):
-        return "(" + ",".join(i.sigstring for i in self.port_spec_items) + ")"
+        return create_port_spec_string([i.spec_tuple 
+                                        for i in self.port_spec_items])
     sigstring = property(_get_sigstring)
 
     def is_mandatory(self):
@@ -268,7 +275,8 @@ class PortSpec(DBPortSpec):
             return kwargs
         else:
             for (attr_key, attr) in izip(attr_order, attrs):
-                setattr(item, attr_key, attr)
+                if attr is not None:
+                    setattr(item, attr_key, attr)
 
 
     def create_spec_items(self, items=None, signature=None, sigstring=None, 
@@ -357,16 +365,17 @@ class PortSpec(DBPortSpec):
 
     def get_items_from_sigstring(self, sigstring, *attrs):
         ps_items = []
-        assert(sigstring[0] == '(' and sigstring[-1] == ')')
-        if len(sigstring[1:-1]) == 0:
-            # empty so return empty list
+        specs_list = parse_port_spec_string(sigstring)
+        if len(specs_list) == 0:
             return ps_items
-        sigs = sigstring[1:-1].split(',')
-        self._resize_attrs(sigs, *attrs)
-        for i, item_tuple in enumerate(izip(sigs, *attrs)):
+
+        self._resize_attrs(specs_list, *attrs)
+        for i, item_tuple in enumerate(izip(specs_list, *attrs)):
             kwargs = self._set_attrs(None, *item_tuple[1:])
             ps_item = PortSpecItem(pos=i,
-                                   sigstring=item_tuple[0].strip(),
+                                   package=item_tuple[0][0],
+                                   module=item_tuple[0][1],
+                                   namespace=item_tuple[0][2],
                                    **kwargs)
             ps_items.append(ps_item)
         return ps_items

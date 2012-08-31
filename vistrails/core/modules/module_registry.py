@@ -46,6 +46,7 @@ import core.modules
 import core.modules.vistrails_module
 from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.package import Package
+import core.modules.utils
 from core.utils import VistrailsInternalError, memo_method, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
      all, profile, versions_increasing, InvalidPipeline
@@ -964,9 +965,17 @@ class ModuleRegistry(DBRegistry):
             if port_key in module.__dict__:
                 for port_info in module.__dict__[port_key]:
                     added = False
-                    if len(port_info) >= 2:
+                    if type(port_info) == PortSpec:
+                        # force port type to match list it occurs in
+                        # we just need "input" or "output"
+                        port_info.type = port_key[1:-6]
+                        descriptor = self.get_descriptor(module)
+                        self.add_port_spec(descriptor, port_info)
+                        added = True
+                    elif len(port_info) >= 2:
                         port_name, port_sig = port_info[:2]
-                        if len(port_info) > 2 and type(port_info[2]) == dict:
+                        if len(port_info) > 2 and \
+                                type(port_info[2]) == dict:
                             kwargs = port_info[2]
                             adder_f(module, port_name, port_sig, **kwargs)
                             added = True
@@ -974,6 +983,7 @@ class ModuleRegistry(DBRegistry):
                             args = port_info[2:]
                             adder_f(module, port_name, port_sig, *args)
                             added = True
+                        
                     if not added:
                         raise TypeError("Expected (port_name, port_signature, "
                                         "kwargs_dict) or (port_name, "
@@ -1357,8 +1367,20 @@ class ModuleRegistry(DBRegistry):
                         max_conns=max_conns)
         return spec
 
-    def add_port_spec(self, descriptor, port_spec):
-        descriptor.add_port_spec(port_spec)
+    def add_port_spec(self, descriptor, spec):
+        # check if the spec is valid
+        try:
+            spec.descriptors()
+        except ModuleRegistryException, e:
+            raise InvalidPortSpec(descriptor, spec.name, spec.type, e)
+
+        descriptor.add_port_spec(spec)
+        if spec.type == 'input':
+            self.signals.emit_new_input_port(descriptor.identifier,
+                                             descriptor.name, spec.name, spec)
+        elif spec.type == 'output':
+            self.signals.emit_new_output_port(descriptor.identifier,
+                                              descriptor.name, spec.name, spec)
 
     def get_port_spec_from_descriptor(self, desc, port_name, port_type):
         for d in self.get_module_hierarchy(desc):
@@ -1396,19 +1418,7 @@ class ModuleRegistry(DBRegistry):
                                      docstring, shape,
                                      min_conns, max_conns)
 
-        # need to check if the spec is valid
-        try:
-            spec.descriptors()
-        except ModuleRegistryException, e:
-            raise InvalidPortSpec(descriptor, port_name, port_type, e)
-
-        descriptor.add_port_spec(spec)
-        if port_type == 'input':
-            self.signals.emit_new_input_port(descriptor.identifier,
-                                             descriptor.name, port_name, spec)
-        elif port_type == 'output':
-            self.signals.emit_new_output_port(descriptor.identifier,
-                                             descriptor.name, port_name, spec)
+        self.add_port_spec(descriptor, spec)
 
     def add_input_port(self, module, portName, portSignature, optional=False, 
                        sort_key=-1, labels=None, defaults=None, values=None,
@@ -1876,91 +1886,10 @@ class ModuleRegistry(DBRegistry):
     def update_module(self, old_descriptor, new_descriptor):
         self.signals.emit_module_updated(old_descriptor, new_descriptor)
 
-    def create_descriptor_string(self, package, name, namespace=None,
-                                 use_package=False):
-        package_str = ""
-        namespace_str = ""
-        if use_package:
-            package_str = "%s:" % package
-        if namespace:
-            namespace_str = "%s|" % namespace
-        return "%s%s%s" % (package_str, namespace_str, name)
-
-    def expand_descriptor_string(self, d_string, cur_package=None):
-        """expand_descriptor_string will expand names of modules using
-        information about the current package and allowing shortcuts
-        for any bundled vistrails packages (e.g. "basic" for
-        "edu.utah.sci.vistrails.basic").  It also allows a nicer
-        format for namespace/module specification (namespace comes
-        fist unlike port specifications where it is after the module
-        name...
-
-        Examples:
-          "persistence:PersistentInputFile", None -> 
-              ("edu.utah.sci.vistrails.persistence", PersistentInputFile", "")
-          "basic:String", None ->
-              ("edu.utah.sci.vistrails.basic", "String", "")
-          "NamespaceA|NamespaceB|Module", "org.example.my" ->
-              ("org.example.my", "Module", "NamespaceA|NamespaceB")
-        """
-
-        package = ''
-        qual_name = ''
-        name = ''
-        namespace = ''
-        parts = d_string.strip().split(':', 1)
-        if len(parts) > 1:
-            qual_name = parts[1]
-            if '.' in parts[0]:
-                package = parts[0]
-            else:
-                package = 'edu.utah.sci.vistrails.' + parts[0]
-        else:
-            qual_name = d_string
-            if cur_package is None:
-                basic_pkg = core.modules.basic_modules.identifier
-                package = basic_pkg
-            else:
-                package = cur_package
-        qual_parts = qual_name.rsplit('|', 1)
-        if len(qual_parts) > 1:
-            namespace, name = qual_parts
-        else:
-            name = qual_name
-        return (package, name, namespace)
-        
-    def expand_port_spec_string(self, p_string, cur_package=None):
-        """Similar to expand_descriptor_string but for full port
-        specifications.  Allows you to omit the beginning and ending
-        parens and shorten the names of each port type
-
-        Example:
-          "basic:String, basic:Integer" -> 
-              "(edu.utah.sci.vistrails.basic:String, 
-                edu.utah.sci.vistrails.basic:Integer)"
-        """
-
-        port_spec = p_string.strip()
-        if port_spec.startswith('('):
-            port_spec = port_spec[1:]
-        if port_spec.endswith(')'):
-            port_spec = port_spec[:-1]
-        if port_spec.strip() == '':
-            return '()'
-        new_spec_list = []
-        for spec in port_spec.split(','):
-            spec_arr = spec.split(':', 2)
-            if len(spec_arr) > 2:
-                # switch format of spec to more natural
-                # <package>:<namespace>|<name> for descriptor parsing
-                spec = '%s:%s|%s' % (spec_arr[0], spec_arr[2], spec_arr[1])
-            (package, name, namespace) = \
-                self.expand_descriptor_string(spec, cur_package)
-            if namespace:
-                namespace = ':' + namespace
-            new_spec_list.append('%s:%s%s' % \
-                                     (package, name, namespace))
-        return '(' + ','.join(new_spec_list) + ')'
+    def expand_port_spec_string(self, p_string, cur_package=None, 
+                                old_style=False):
+        return core.modules.utils.expand_port_spec_string(p_string, cur_package,
+                                                          old_style)
 
 ###############################################################################
 

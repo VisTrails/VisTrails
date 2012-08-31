@@ -36,6 +36,8 @@
 
  """
 from db.domain import DBParameter
+from core.modules.utils import parse_port_spec_item_string, \
+    create_port_spec_item_string
 from core.utils import enum
 
 ################################################################################
@@ -132,33 +134,17 @@ class ModuleParam(DBParameter):
     alias = DBParameter.db_alias
 
     def parse_db_type(self):
-        if self.db_type:
-            k = self.db_type.split(':', 2)
-        else:
-            k = []
-        if len(k) < 2:
-            # FIXME don't hardcode this
-            self._identifier = "edu.utah.sci.vistrails.basic"
-            self._namespace = None
-            self._type = self.db_type
-        else:
-            self._identifier, self._type = k[:2]
-            if len(k) > 2:
-                self._namespace = k[2]
-            else:
-                self._namespace = None
+        (self._identifier, self._type, self._namespace) = \
+            parse_port_spec_item_string(self.db_type,
+                                        "edu.utah.sci.vistrails.basic")
 
     def update_db_type(self):
         if not self._type:
             self.db_type = None
         else:
-            if not self._identifier:
-                # FIXME don't hardcode this
-                self._identifier = "edu.utah.sci.vistrails.basic"
-            type_list = [self._identifier, self._type]
-            if self._namespace:
-                type_list.append(self._namespace)
-            self.db_type = ':'.join(type_list)
+            self.db_type = create_port_spec_item_string(self._identifer,
+                                                        self._type,
+                                                        self._namespace)
 
     def _get_type(self):
         if not hasattr(self, '_type'):
@@ -192,6 +178,10 @@ class ModuleParam(DBParameter):
     def _set_port_spec_item(self, psi):
         self._port_spec_item = psi
     port_spec_item = property(_get_port_spec_item, _set_port_spec_item)
+
+    def _get_spec_tuple(self):
+        return (self._identifier, self._type, self._namespace)
+    spec_tuple = property(_get_spec_tuple)
 
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 

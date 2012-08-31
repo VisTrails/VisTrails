@@ -4,6 +4,7 @@ import core.application
 from core.db.locator import FileLocator
 import core.db.io
 from core.modules.module_registry import get_module_registry
+from core.modules.utils import create_port_spec_string
 from core.packagemanager import get_package_manager
 # from core.modules.package import Package as _Package
 # from core.vistrail.module import Module as _Module
@@ -144,7 +145,7 @@ class Module(object):
             assert len(port_spec.descriptors()) == len(args)
             for i, descriptor in enumerate(port_spec.descriptors()):
                 arg_name = 'arg%d' % i
-                sigstring = "(" + descriptor.sigstring + ")"
+                sigstring = create_port_spec_string([descriptor.spec_tuple])
                 tuple_port_spec = PortSpec(id=-1,
                                            name=arg_name,
                                            type='input',

@@ -36,8 +36,9 @@ from itertools import izip
 import os
 
 from core import debug
+from core.modules.basic_modules import identifier as basic_identifier
 from core.modules.module_registry import get_module_registry
-from core.modules.basic_modules import String
+from core.modules.utils import create_port_spec_string
 from core.vistrail.port_spec import PortSpec
 from core.system import vistrails_root_directory
 from gui.modules import get_widget_class
@@ -132,6 +133,7 @@ class Parameter(object):
         self.alias = ''
         self.queryMethod = None
         self.port_spec_item = None
+        self.param_exists = False
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
@@ -458,9 +460,9 @@ class PortsList(QtGui.QTreeWidget):
                 if function.name in self.port_spec_items:
                     port_spec, item = self.port_spec_items[function.name]
                 else:
-                    sigstring = "(" + ",".join(
-                        ['edu.utah.sci.vistrails.basic:String'
-                         for i in xrange(len(function.parameters))]) + ")"
+                    sigstring = create_port_spec_string(
+                        [(basic_identifier, "String")
+                         for i in xrange(len(function.parameters))])
                     port_spec = PortSpec(name=function.name, type='input',
                                          sigstring=sigstring)
                     item = PortItem(port_spec,  False, False, False)
