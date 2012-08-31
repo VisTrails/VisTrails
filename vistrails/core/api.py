@@ -8,6 +8,7 @@ from core.packagemanager import get_package_manager
 # from core.modules.package import Package as _Package
 # from core.vistrail.module import Module as _Module
 from core.vistrail.pipeline import Pipeline
+from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
 
 _api = None
@@ -79,22 +80,20 @@ class Module(object):
     def __getattr__(self, attr_name):
         def create_port(port_spec):
             return Port(self, port_spec)
-        try:
-            return self.__dict__[attr_name]
-        except KeyError:
-            if self._module.has_port_spec(attr_name, 'output'):
-                port_spec = \
-                    self._module.get_port_spec(attr_name, 'output')
-                return create_port(port_spec)
-            elif self._module.has_port_spec(attr_name, 'input'):
-                port_spec = \
-                    self._module.get_port_spec(attr_name, 'input')
-                return create_port(port_spec)
-            else:
-                raise AttributeError("type object '%s' has no "
-                                     "attribute '%s'" % \
-                                         (self.__class__.__name__, 
-                                          attr_name))
+
+        if self._module.has_port_spec(attr_name, 'output'):
+            port_spec = \
+                self._module.get_port_spec(attr_name, 'output')
+            return create_port(port_spec)
+        elif self._module.has_port_spec(attr_name, 'input'):
+            port_spec = \
+                self._module.get_port_spec(attr_name, 'input')
+            return create_port(port_spec)
+        else:
+            raise AttributeError("type object '%s' has no "
+                                 "attribute '%s'" % \
+                                     (self.__class__.__name__, 
+                                      attr_name))
 
     def __setattr__(self, attr_name, value):
         if attr_name.startswith('_'):
@@ -135,17 +134,13 @@ class Module(object):
             tuple_desc = \
                 reg.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
                                            'Tuple', '')
-
-            d = {'_module_desc': tuple_desc,
-                 '_package': self._package,}
-            tuple = type('module', (Module,), d)()
-
+            tuple_module = vt_api.add_module_from_descriptor(tuple_desc)
             output_port_spec = PortSpec(id=-1,
                                         name='value',
                                         type='output',
                                         sigstring=port_spec.sigstring)
-            vt_api.add_port_spec(tuple._module.id, output_port_spec)
-            self._update_func(port_spec, *[tuple.value()])
+            vt_api.add_port_spec(tuple_module, output_port_spec)
+            self._update_func(port_spec, *[tuple_module.value()])
             assert len(port_spec.descriptors()) == len(args)
             for i, descriptor in enumerate(port_spec.descriptors()):
                 arg_name = 'arg%d' % i
@@ -154,12 +149,9 @@ class Module(object):
                                            name=arg_name,
                                            type='input',
                                            sigstring=sigstring)
-                vt_api.add_port_spec(tuple._module.id, tuple_port_spec)
-                tuple._process_attr_value(arg_name, args[i])
+                vt_api.add_port_spec(tuple_module, tuple_port_spec)
+                tuple_module._process_attr_value(arg_name, args[i])
                 
-                
-            # create tuple object
-            pass
         elif num_ports == 1:
             other = args[0]
             if isinstance(other, Port):
@@ -219,16 +211,13 @@ class Package(object):
             iteritems = itertools.chain(iteritems, namespaces.itervalues())
 
     def __getattr__(self, attr_name):
-        try:
-            return self.__dict__[attr_name]
-        except KeyError:
-            reg = get_module_registry()
-            d = reg.get_descriptor_by_name(self._package.identifier,
-                                           attr_name, '', 
-                                           self._package.version)
-            vt_api = get_api()
-            module = vt_api.add_module_from_descriptor(d)
-            return module
+        reg = get_module_registry()
+        d = reg.get_descriptor_by_name(self._package.identifier,
+                                       attr_name, '', 
+                                       self._package.version)
+        vt_api = get_api()
+        module = vt_api.add_module_from_descriptor(d)
+        return module
  
     def get_modules(self, namespace=None):
         modules = []
@@ -268,12 +257,16 @@ class VisTrailsAPI(object):
         self._old_log = None
 
     def add_module(self, identifier, name, namespace='', internal_version=-1):
-        module = self._controller.add_module(identifier, name, namespace, 
-                                             internal_version=internal_version)
+        m = self._controller.add_module(identifier, name, namespace, 
+                                        internal_version=internal_version)
+        # have to go back since there is a copy when the action is performed
+        module = self._controller.current_pipeline.modules[m.id]
         return Module.create_module(module)
 
     def add_module_from_descriptor(self, desc):
-        module = self._controller.add_module_from_descriptor(desc)
+        m = self._controller.add_module_from_descriptor(desc)
+        # have to go back since there is a copy when the action is performed
+        module = self._controller.current_pipeline.modules[m.id]
         return Module.create_module(module)
 
     def add_connection(self, module_a, port_a, module_b, port_b):
@@ -281,9 +274,9 @@ class VisTrailsAPI(object):
                                                module_b._module.id, port_b)
 
     def add_port_spec(self, module, port_spec):
-        self._controller.add_port_spec(module._module.id,
-                                       (port_spec.type, port_spec.name,
-                                        port_spec.sigstring))
+        self._controller.add_module_port(module._module.id,
+                                         (port_spec.type, port_spec.name,
+                                          port_spec.sigstring))
 
     def change_parameter(self, module, function_name, param_list):
         self._controller.update_function(module._module, function_name,
