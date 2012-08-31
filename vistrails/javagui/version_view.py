@@ -37,15 +37,17 @@
 Currently non-interactive, only the selection of a different version is
 possible.
 TODO :
-- Zooming/panning
 - Tagging versions
 - Deleting versions
 - Expanding/collapsing branches of the version tree
 """
 
-from java.awt import Color, Font
-from java.awt.event import MouseListener
-from javax.swing import JPanel
+from java.awt import Color, Font, Point
+from java.awt.event import InputEvent
+from java.awt.geom import Rectangle2D
+
+from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
+from edu.umd.cs.piccolo.event import PInputEventFilter, PBasicInputEventHandler
 
 import core.db.io
 from extras.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
@@ -64,41 +66,161 @@ class FontMetrics(object):
         return self._height
 
 
-class VersionNode(object):
-    def __init__(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
+FONT = Font('Dialog', Font.PLAIN, 15)
+FONT_METRICS = FontMetricsImpl(FONT)
+GRAPH_METRICS = FontMetrics(FONT_METRICS)
+
+MARGIN_X = 60
+MARGIN_Y = 35
+
+HORIZONTAL_POSITION = 300
+VERTICAL_POSITION = 20
 
 
-class JVersionView(JPanel, MouseListener):
+class PVersionNode(PNode):
+    def __init__(self, x, y, version_id, label, view, selected=False, current=False):
+        super(PVersionNode, self).__init__()
 
-    MARGIN_X = 60
-    MARGIN_Y = 35
+        self.version_id = version_id
 
-    HORIZONTAL_POSITION = 300
-    VERTICAL_POSITION = 20
+        self.translate(x, y)
 
-    def __init__(self, controller, builder_frame,
-            abstraction_files=None, thumbnail_files=None,
-            version=None):
-        self.FONT = Font('Dialog', Font.PLAIN, 15)
-        self.FONT_METRICS = FontMetrics(FontMetricsImpl(self.FONT))
+        self._fontRect = FONT_METRICS.getStringBounds(label, None)
+        self.node_width = int(self._fontRect.getWidth()) + MARGIN_X
+        self.node_height = int(self._fontRect.getHeight()) + MARGIN_Y
+
+        self.setBounds(-self.node_width/2, -self.node_height/2,
+                       self.node_width, self.node_height)
+
+        self._label = label
+        self._selected = selected
+        self._current = current
+
+        self._view = view
+
+    def _get_selected(self):
+        return self._selected
+    def _set_selected(self, s):
+        self._selected = s
+        self.invalidatePaint()
+    selected = property(_get_selected, _set_selected)
+
+    # @Override
+    def paint(self, paintContext):
+        graphics = paintContext.getGraphics()
+        graphics.setFont(FONT);
+
+        graphics.setColor(Color.white)
+        oval = (-self.node_width/2,
+                -self.node_height/2,
+                self.node_width,
+                self.node_height)
+        graphics.fillOval(*oval)
+        if self._selected:
+            graphics.setColor(Color.blue)
+        else:
+            graphics.setColor(Color.black)
+        graphics.drawOval(*oval)
+        if self.version_id == self._view.current_version:
+            graphics.setColor(Color.red)
+        else:
+            graphics.setColor(Color.black)
+        graphics.drawString(
+                self._label,
+                int(-self._fontRect.getWidth()/2),
+                int(-self._fontRect.getY() - self._fontRect.getHeight()/2))
+
+
+class PConnection(PNode):
+    def __init__(self, top, bottom):
+        super(PConnection, self).__init__()
+        self._top = top
+        self._bottom = bottom
+
+        self.computeBounds()
+
+    def computeBounds(self):
+        x1 = self._top.getXOffset()
+        #y1 = self._top.getYOffset() + self._top.node_height/2
+        y1 = self._top.getYOffset()
+        x2 = self._bottom.getXOffset()
+        #y2 = self._bottom.getYOffset() + self._bottom.node_height/2
+        y2 = self._bottom.getYOffset()
+
+        b = Rectangle2D.Double(int(x1), int(y1), 1, 1)
+        b.add(Point(int(x2), int(y2)))
+        self.setBounds(b)
+
+    # @Override
+    def paint(self, paintContext):
+        graphics = paintContext.getGraphics()
+
+        graphics.setColor(Color.black)
+        graphics.drawLine(
+                int(self._top.getXOffset()),
+                int(self._top.getYOffset()),
+                int(self._bottom.getXOffset()),
+                int(self._bottom.getYOffset()))
+
+
+class VersionSelectingEventHandler(PBasicInputEventHandler):
+    def __init__(self, view):
+        self._view = view
+
+    # @Override
+    def mouseClicked(self, event):
+        #eventX = event.getPosition().getX()
+        #eventY = event.getPosition().getY()
+        #for nodeID, node in self._view._nodes.iteritems():
+        #    x = float(eventX - node.x)*2/node.node_width
+        #    y = float(eventY - node.y)*2/node.node_height
+        #    if x*x + y*y <= 1.0:
+        #        self._view.node_clicked(nodeID)
+        #        break
+
+        node = event.getPickedNode()
+        if node is not None:
+            self._view.node_clicked(node.version_id)
+
+
+class JVersionView(PCanvas):
+    def __init__(self, controller, builder_frame):
+        super(JVersionView, self).__init__()
+
+        # Use the middle mouse button for panning instead of the left, as we'll
+        # use the later to select versions
+        self.getPanEventHandler().setEventFilter(PInputEventFilter(
+                InputEvent.BUTTON2_MASK))
 
         self.full_tree = True
         self.refine = False
         self._controller = controller
         self.builder_frame = builder_frame
         self.idScope = self._controller.id_scope
-        self.setBackground(Color.GREEN)
-        self.addMouseListener(self)
+
+        # Setup the layers
+        node_layer = self.getLayer()
+        # We override fullPick() for edge_layer to ensure that nodes are picked
+        # first
+        class CustomPickingLayer(PLayer):
+            # @Override
+            def fullPick(self, pickPath):
+                return (node_layer.fullPick(pickPath) or
+                        PLayer.fullPick(self, pickPath))
+        connection_layer = CustomPickingLayer()
+        self.getCamera().addLayer(0, connection_layer)
+
+        node_layer.addInputEventListener(VersionSelectingEventHandler(self))
 
         self.set_graph()
 
         # This method is called back by the controller when an action is
         # performed that creates a new version.
         controller.register_version_callback(self.set_graph)
+
+    def _get_current_version(self):
+        return self._controller.current_version
+    current_version = property(_get_current_version)
 
     def set_graph(self):
         self._controller.recompute_terse_graph()
@@ -108,29 +230,29 @@ class JVersionView(JPanel, MouseListener):
         self._current_graph_layout = VistrailsTreeLayoutLW()
         self._current_graph_layout.layout_from(
                 self._controller.vistrail, self._current_terse_graph,
-                self.FONT_METRICS,
-                self.MARGIN_X,
-                self.MARGIN_Y)
+                GRAPH_METRICS,
+                MARGIN_X,
+                MARGIN_Y)
 
         self._controller.current_pipeline = core.db.io.get_workflow(
                 self._controller.vistrail, self._controller.current_version)
-
         self.clicked_version_id = None
 
-    # @Override
-    def paintComponent(self, graphics):
-        fontRenderContext = graphics.getFontRenderContext()
-        graphics.setFont(self.FONT)
+        node_layer = self.getCamera().getLayer(1)
+        node_layer.removeAllChildren()
+        connection_layer = self.getCamera().getLayer(0)
+        connection_layer.removeAllChildren()
 
-        graphics.clearRect(0, 0, self.getWidth(), self.getHeight())
+        self.getCamera().setViewOffset(HORIZONTAL_POSITION,
+                                       VERTICAL_POSITION)
 
-        graphics.translate(self.HORIZONTAL_POSITION, self.VERTICAL_POSITION)
-
-        self.nodes = dict()
+        self._nodes = dict()
+        self._connections = dict()
 
         vistrail = self._controller.vistrail
         tm = vistrail.get_tagMap()
 
+        # Create the nodes
         for node in self._current_graph_layout.nodes.itervalues():
             v = node.id
             tag = tm.get(v, None)
@@ -143,36 +265,18 @@ class JVersionView(JPanel, MouseListener):
             else:
                 label = ''
 
-            fontRect = self.FONT.getStringBounds(label, fontRenderContext)
-
-            graphics.setColor(Color.white)
-            w = int(fontRect.getWidth()) + self.MARGIN_X
-            h = int(fontRect.getHeight()) + self.MARGIN_Y
-            oval = (int(node.p.x) - w/2, int(node.p.y) - h/2,
-                    w, h)
-            graphics.fillOval(*oval)
-            if v == self.clicked_version_id:
-                graphics.setColor(Color.blue)
-            else:
-                graphics.setColor(Color.black)
-            graphics.drawOval(*oval)
-            if v == self._controller.current_version:
-                graphics.setColor(Color.red)
-            else:
-                graphics.setColor(Color.black)
-            graphics.drawString(
+            pnode = PVersionNode(
+                    int(node.p.x),
+                    int(node.p.y),
+                    node.id,
                     label,
-                    int(node.p.x - fontRect.getWidth()/2),
-                    int(node.p.y -
-                            fontRect.getY() - fontRect.getHeight()/2))
+                    self,
+                    selected=(v == self.clicked_version_id),
+                    current=(v == self._controller.current_version))
+            self._nodes[node.id] = pnode
+            node_layer.addChild(pnode)
 
-            self.nodes[node.id] = VersionNode(
-                    int(node.p.x) + self.HORIZONTAL_POSITION,
-                    int(node.p.y) + self.VERTICAL_POSITION,
-                    w, h)
-
-        # Draw the edges
-        graphics.setColor(Color.black)
+        # Create the edges
         alreadyVisitedNode = set()
         for node1 in self._current_graph_layout.nodes.itervalues():
             v1 = node1.id
@@ -181,7 +285,8 @@ class JVersionView(JPanel, MouseListener):
                 if node2 in alreadyVisitedNode:
                     pass
                 else:
-                    if self._current_terse_graph.has_edge(v1, v2) or self._current_terse_graph.has_edge(v2, v1):
+                    if (self._current_terse_graph.has_edge(v1, v2) or
+                            self._current_terse_graph.has_edge(v2, v1)):
                         # Detecting the top node1 in order to correctly draw edges
                         if node1.p.y < node2.p.y:
                             topNode = node1
@@ -189,31 +294,20 @@ class JVersionView(JPanel, MouseListener):
                         else:
                             topNode = node2
                             bottomNode = node1
-                        graphics.drawLine(
-                                int(topNode.p.x),
-                                int(topNode.p.y) +
-                                    self.nodes[topNode.id].height/2,
-                                int(bottomNode.p.x),
-                                int(bottomNode.p.y) -
-                                    self.nodes[bottomNode.id].height/2)
+                        c = PConnection(self._nodes[topNode.id],
+                                        self._nodes[bottomNode.id])
+                        connection_layer.addChild(c)
+                        self._connections[(topNode.id, bottomNode.id)] = c
             alreadyVisitedNode.add(v1)
 
-    # @Override
-    def mouseClicked(self, event):
-        eventX = event.getX()
-        eventY = event.getY()
-        isClickInsideNode = False
-        for nodeID, node in self.nodes.iteritems():
-            x = float(eventX - node.x)*2/node.width
-            y = float(eventY - node.y)*2/node.height
-            if x*x + y*y <= 1.0:
-                self.builder_frame.current_version = nodeID
-                self.clicked_version_id = nodeID
-                isClickInsideNode = True
-                break
+    def node_clicked(self, nodeID):
+        if self.clicked_version_id is not None:
+            self._nodes[self.clicked_version_id].selected = False
+        self.clicked_version_id = nodeID
+        self._nodes[nodeID].selected = True
 
-        if isClickInsideNode == False:
-            self.clickedVersionNodeId = None
+        # Switch version
+        self.builder_frame.current_version = nodeID
 
         self.invalidate()
         self.revalidate()
