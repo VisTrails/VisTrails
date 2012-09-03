@@ -134,15 +134,20 @@ class ModuleParam(DBParameter):
     alias = DBParameter.db_alias
 
     def parse_db_type(self):
-        (self._identifier, self._type, self._namespace) = \
-            parse_port_spec_item_string(self.db_type,
-                                        "edu.utah.sci.vistrails.basic")
+        if self.db_type:
+            (self._identifier, self._type, self._namespace) = \
+                parse_port_spec_item_string(self.db_type,
+                                            "edu.utah.sci.vistrails.basic")
+        else:
+            self._identifier = None
+            self._type = None
+            self._namespace = None
 
     def update_db_type(self):
         if not self._type:
             self.db_type = None
         else:
-            self.db_type = create_port_spec_item_string(self._identifer,
+            self.db_type = create_port_spec_item_string(self._identifier,
                                                         self._type,
                                                         self._namespace)
 
@@ -378,3 +383,10 @@ class TestModuleParam(unittest.TestCase):
     def test_str(self):
         p = ModuleParam(type='Float', val='1.5')
         str(p)
+
+
+    def test_parse(self):
+        p = ModuleParam(type='Integer', val='1.5')
+        assert p.identifier == 'edu.utah.sci.vistrails.basic'
+        assert p.type == 'Integer'
+        assert not p.namespace
