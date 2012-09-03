@@ -127,6 +127,8 @@ parser.add_option("-e", "--examples", action="store_true",
                   help="will run vistrails examples")
 
 (options, args) = parser.parse_args()
+# remove empty strings
+args = filter(len, args)
 verbose = 0
 if options.verbose:
     verbose = options.verbose
