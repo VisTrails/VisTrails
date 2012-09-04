@@ -785,16 +785,13 @@ class VistrailController(QtCore.QObject, BaseController):
 
         changed = False
 
-        while 1:
-            try:
-                current=x.pop()
-            except IndexError:
-                break
+        while x:
+            current=x.pop()
 
             children = [to for (to, _) in full.adjacency_list[current]
                         if (to in am) and not self.vistrail.is_pruned(to)]
             if len(children) > 1:
-                break;
+                break
             self.vistrail.collapseVersion(current)
             changed = True
 

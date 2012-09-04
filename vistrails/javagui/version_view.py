@@ -77,8 +77,18 @@ HORIZONTAL_POSITION = 300
 VERTICAL_POSITION = 20
 
 
+class ConnectionExpandingEventHandler(PBasicInputEventHandler):
+    # @Override
+    def mousePressed(self, event):
+        # Only the left mouse button may be used
+        if event.getButton() == 1:
+            node = event.getPickedNode()
+            if isinstance(node, PConnection):
+                event.setHandled(node.mousePressed(event.getPosition()))
+
+
 class PVersionNode(PNode):
-    def __init__(self, x, y, version_id, label, view, selected=False, current=False):
+    def __init__(self, x, y, version_id, label, view, selected=False):
         super(PVersionNode, self).__init__()
 
         self.version_id = version_id
@@ -94,7 +104,6 @@ class PVersionNode(PNode):
 
         self._label = label
         self._selected = selected
-        self._current = current
 
         self._view = view
 
@@ -132,10 +141,13 @@ class PVersionNode(PNode):
 
 
 class PConnection(PNode):
-    def __init__(self, top, bottom):
+    def __init__(self, top, bottom, view, expand=False, collapse=False):
         super(PConnection, self).__init__()
         self._top = top
         self._bottom = bottom
+        self._view = view
+        self._expand = expand
+        self._collapse = collapse
 
         self.computeBounds()
 
@@ -161,6 +173,33 @@ class PConnection(PNode):
                 int(self._top.getYOffset()),
                 int(self._bottom.getXOffset()),
                 int(self._bottom.getYOffset()))
+
+        if self._expand or self._collapse:
+            x = int((self._top.getXOffset() + self._bottom.getXOffset())/2)
+            y = int((self._top.getYOffset() + self._bottom.getYOffset())/2)
+            graphics.setColor(Color.white)
+            graphics.fillRect(x - 5, y - 5, 10, 10)
+            graphics.setColor(Color.black)
+            graphics.drawRect(x - 5, y - 5, 10, 10)
+            graphics.drawLine(x - 3, y, x + 3, y)
+            if self._expand:
+                graphics.drawLine(x, y - 3, x, y + 3)
+
+    def mousePressed(self, pos):
+        if not self._expand and not self._collapse:
+            return
+        x = int((self._top.getXOffset() + self._bottom.getXOffset())/2)
+        y = int((self._top.getYOffset() + self._bottom.getYOffset())/2)
+        if (x - 5 < pos.x < x + 5 and
+                y - 5 < pos.y < y + 5):
+            if self._expand:
+                self._view.expand_versions(
+                        self._top.version_id,
+                        self._bottom.version_id)
+            else:
+                self._view.collapse_versions(self._bottom.version_id)
+            return True
+        return False
 
 
 class VersionSelectingEventHandler(PBasicInputEventHandler):
@@ -192,8 +231,6 @@ class JVersionView(PCanvas):
         self.getPanEventHandler().setEventFilter(PInputEventFilter(
                 InputEvent.BUTTON2_MASK))
 
-        self.full_tree = True
-        self.refine = False
         self._controller = controller
         self.builder_frame = builder_frame
         self.idScope = self._controller.id_scope
@@ -211,8 +248,13 @@ class JVersionView(PCanvas):
         self.getCamera().addLayer(0, connection_layer)
 
         node_layer.addInputEventListener(VersionSelectingEventHandler(self))
+        connection_layer.addInputEventListener(
+                ConnectionExpandingEventHandler())
 
         self.set_graph()
+
+        self.getCamera().setViewOffset(HORIZONTAL_POSITION,
+                                       VERTICAL_POSITION)
 
         # This method is called back by the controller when an action is
         # performed that creates a new version.
@@ -223,6 +265,7 @@ class JVersionView(PCanvas):
     current_version = property(_get_current_version)
 
     def set_graph(self):
+        # See gui.version_view:QVersionTreeScene#setupScene()
         self._controller.recompute_terse_graph()
 
         self._current_terse_graph = self._controller._current_terse_graph
@@ -242,9 +285,6 @@ class JVersionView(PCanvas):
         node_layer.removeAllChildren()
         connection_layer = self.getCamera().getLayer(0)
         connection_layer.removeAllChildren()
-
-        self.getCamera().setViewOffset(HORIZONTAL_POSITION,
-                                       VERTICAL_POSITION)
 
         self._nodes = dict()
         self._connections = dict()
@@ -271,18 +311,20 @@ class JVersionView(PCanvas):
                     node.id,
                     label,
                     self,
-                    selected=(v == self.clicked_version_id),
-                    current=(v == self._controller.current_version))
+                    selected=(v == self.clicked_version_id))
             self._nodes[node.id] = pnode
             node_layer.addChild(pnode)
 
+        am = vistrail.actionMap
+        last_n = vistrail.getLastActions(self._controller.num_versions_always_shown)
+
         # Create the edges
-        alreadyVisitedNode = set()
+        alreadyVisitedNodes = set()
         for node1 in self._current_graph_layout.nodes.itervalues():
             v1 = node1.id
             for node2 in self._current_graph_layout.nodes.itervalues():
                 v2 = node2.id
-                if node2 in alreadyVisitedNode:
+                if node2 in alreadyVisitedNodes:
                     pass
                 else:
                     if (self._current_terse_graph.has_edge(v1, v2) or
@@ -294,11 +336,79 @@ class JVersionView(PCanvas):
                         else:
                             topNode = node2
                             bottomNode = node1
+                        sourceChildren = [to for to, _ in 
+                                          self._current_full_graph.adjacency_list[topNode.id]
+                                          if to in am and not vistrail.is_pruned(to)]
+                        targetChildren = [to for to, _ in
+                                          self._current_full_graph.adjacency_list[bottomNode.id]
+                                          if to in am and not vistrail.is_pruned(to)]
+                        expand = self._current_full_graph.parent(bottomNode.id) != topNode.id
+                        collapse = (
+                                self._current_full_graph.parent(bottomNode.id) == topNode.id and # No in betweens
+                                len(targetChildren) == 1 and # target is not a leaf or branch
+                                bottomNode.id != self._controller.current_version and # target is not selected
+                                bottomNode.id not in tm and # target has no tag
+                                bottomNode.id not in last_n and # not one of the last n modules
+                                (topNode.id in tm or # source has a tag
+                                topNode.id == 0 or # source is root node
+                                len(sourceChildren) > 1 or # source is branching node 
+                                topNode.id == self._controller.current_version)) # source is selected
                         c = PConnection(self._nodes[topNode.id],
-                                        self._nodes[bottomNode.id])
+                                        self._nodes[bottomNode.id],
+                                        self,
+                                        expand,
+                                        collapse)
                         connection_layer.addChild(c)
                         self._connections[(topNode.id, bottomNode.id)] = c
-            alreadyVisitedNode.add(v1)
+            alreadyVisitedNodes.add(v1)
+
+    def expand_versions(self, start_version, end_version):
+        full = self._current_full_graph
+        vistrail = self._controller.vistrail
+
+        p = full.parent(end_version)
+        changed = False
+        while p > start_version:
+            vistrail.expandVersion(p)
+            changed = True
+            p = full.parent(p)
+
+        print "expand_versions: changed = %r" % changed
+
+        if changed:
+            self._controller.set_changed(True)
+            self.set_graph()
+
+    def collapse_versions(self, end_version):
+        full = self._current_full_graph
+        vistrail = self._controller.vistrail
+
+        am = vistrail.actionMap
+        tm = vistrail.get_tagMap()
+
+        x = [end_version]
+        changed = False
+
+        while x:
+            current = x.pop()
+
+            children = [to for to, _ in full.adjacency_list[current]
+                        if to in am and not vistrail.is_pruned(to)]
+            if len(children) > 1:
+                break
+            vistrail.collapseVersion(current)
+            changed = True
+
+            for child in children:
+                if (not child in tm and  # has no Tag
+                    child != self._controller.current_version): # not selected
+                    x.append(child)
+
+        print "collapse_versions: changed = %r" % changed
+
+        if changed:
+            self._controller.set_changed(True)
+            self.set_graph()
 
     def node_clicked(self, nodeID):
         if self.clicked_version_id is not None:
