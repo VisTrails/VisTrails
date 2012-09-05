@@ -45,13 +45,15 @@ from java.awt.datatransfer import UnsupportedFlavorException
 from java.awt.event import MouseEvent, KeyEvent, InputEvent
 from java.awt.geom import Rectangle2D
 from java.io import IOException
-from javax.swing import SwingUtilities, TransferHandler, ToolTipManager
+from javax.swing import JMenuItem, JPopupMenu, SwingUtilities, \
+    ToolTipManager, TransferHandler
 
 from edu.umd.cs.piccolo import PCanvas, PNode, PLayer
 from edu.umd.cs.piccolo.nodes import PPath
 from edu.umd.cs.piccolo.event import PBasicInputEventHandler, PInputEventFilter
 
 from core.modules.module_registry import get_module_registry
+from javagui.module_info import JModuleDocumentation
 from javagui.module_palette import moduleData
 from javagui.utils import PyFuncRunner, FontMetricsImpl, run_on_edt
 
@@ -121,6 +123,14 @@ class ModuleSelectingEventHandler(PBasicInputEventHandler):
                                InputEvent.CTRL_DOWN_MASK ==
                                InputEvent.CTRL_DOWN_MASK)
                 self.scene.selectModule(node, deselect_others=replace)
+                pos = event.getPosition()
+                if node.is_popup_event(pos.x, pos.y):
+                    menu = JPopupMenu()
+                    item = JMenuItem("Show documentation",
+                                     actionPerformed=node.show_documentation)
+                    menu.add(item)
+                    cpos = event.getCanvasPosition()
+                    menu.show(self.scene, int(cpos.x), int(cpos.y))
 
             event.setHandled(True)
             self.dragging = False
@@ -439,6 +449,16 @@ class PModule(PNode):
         for conn in self.outputConnections:
             conn.endpointChanged()
 
+    def is_popup_event(self, x, y):
+        x -= self.center_x + self.mod_x
+        y -= self.center_y + self.mod_y
+        up = SPACING_Y
+        if up <= y <= up + PORT_HEIGHT:
+            left = self.module_width - SPACING_X - PORT_WIDTH
+            if left <= x <= left + PORT_WIDTH:
+                return True
+        return False
+
     def pick_port(self, x, y):
         x -= self.center_x + self.mod_x
         y -= self.center_y + self.mod_y
@@ -502,6 +522,9 @@ class PModule(PNode):
             return self.inputPorts[portnum].toolTip()
         else:
             return self.outputPorts[portnum].toolTip()
+
+    def show_documentation(self, event=None):
+        JModuleDocumentation(self.module.module_descriptor).setVisible(True)
 
     def setSelected(self, selected):
         if self.selected != selected:

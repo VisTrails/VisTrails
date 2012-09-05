@@ -8,11 +8,12 @@ from itertools import izip
 from java.awt import Color, Dimension, Font
 from java.awt.event import MouseAdapter
 from javax.swing import BoxLayout, JLabel, JPanel, JTabbedPane, Box, JButton,\
-    SwingUtilities
+    SwingUtilities, JPopupMenu, JMenuItem, SpringLayout, JDialog, JTextArea
 
 from core import debug
 from javagui.modules import get_widget_class
 from javagui.utils import resized_icon
+from javagui import springutilities
 
 
 ICON_SIZE = Dimension(20, 20)
@@ -47,6 +48,42 @@ class MissingWidget(JLabel):
 
     def contents(self):
         return self.value
+    
+
+class JPortDocumentation(JDialog):
+    def __init__(self, module, portname, input_port):
+        JDialog.__init__(
+                self,
+                None,
+                "Documentation for %s port %s.%s" % (
+                    input_port and "input" or "output",
+                    module.name, portname))
+
+        top = JPanel()
+        top.setLayout(BoxLayout(top, BoxLayout.PAGE_AXIS))
+        self.setContentPane(top)
+
+        infos = JPanel()
+        infos.setLayout(SpringLayout())
+        infos.add(JLabel("Port name:"))
+        infos.add(JLabel(portname))
+        infos.add(JLabel("Module name:"))
+        infos.add(JLabel(module.name))
+        infos.add(JLabel("Module package:"))
+        infos.add(JLabel(module.module_package()))
+        springutilities.makeCompactGrid(infos, 0, 2, 6, 6, 6, 6)
+        top.add(infos)
+
+        if input_port:
+            doc = module.module.provide_input_port_documentation(portname)
+        else:
+            doc = module.module.provide_output_port_documentation(portname)
+        doc = JTextArea(doc or "Documentation not available")
+        doc.setLineWrap(True)
+        doc.setEditable(False)
+        top.add(doc)
+
+        self.pack()
 
 
 class InputPortValue(JPanel):
@@ -105,9 +142,23 @@ class InputPortValue(JPanel):
 
 
 class Port(JPanel):
-    def __init__(self, portname, input_ports, module, ports_pane):
+    class MouseListener(MouseAdapter):
+        def __init__(self, port):
+            self._port = port
+            super(Port.MouseListener, self).__init__()
+
+        # @Override
+        def mousePressed(self, event):
+            if SwingUtilities.isRightMouseButton(event):
+                menu = JPopupMenu()
+                item = JMenuItem("Show documentation",
+                                 actionPerformed=self._port.show_documentation)
+                menu.add(item)
+                menu.show(self._port, event.getX(), event.getY())
+
+    def __init__(self, portname, input_port, module, ports_pane):
         self._port_name = portname
-        self._input_ports = input_ports
+        self._input_port = input_port
         self._module = module
         self._ports_pane = ports_pane
 
@@ -131,7 +182,8 @@ class Port(JPanel):
         first_line.add(self._connection_icon)
 
         name = JLabel(portname)
-        name.setEnabled(input_ports)
+        name.setEnabled(input_port)
+        name.addMouseListener(Port.MouseListener(self))
         first_line.add(name)
 
         first_line.add(Box.createHorizontalGlue())
@@ -139,6 +191,11 @@ class Port(JPanel):
 
     def add_value(self, value_widget):
         self.add(value_widget)
+
+    def show_documentation(self, event=None):
+        doc = JPortDocumentation(self._module.module_descriptor,
+                                 self._port_name, self._input_port)
+        doc.setVisible(True)
 
     def _get_visibility(self):
         return self._visible
@@ -153,7 +210,7 @@ class Port(JPanel):
     port_visible = property(_get_visibility, _set_visibility)
 
     def _toggle_visibility(self):
-        if self._input_ports:
+        if self._input_port:
             visible_ports = self._module.visible_input_ports
         else:
             visible_ports = self._module.visible_output_ports

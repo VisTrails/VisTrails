@@ -141,6 +141,7 @@ class PreferenceWindow(JDialog, ActionListener):
         infos.add(JLabel("Description:"))
         self.package_desc = JTextArea()
         self.package_desc.setLineWrap(True)
+        self.package_desc.setEditable(False)
         desc_sp = JScrollPane(self.package_desc)
         desc_sp.setHorizontalScrollBarPolicy(
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)

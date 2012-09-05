@@ -5,12 +5,42 @@ It also allows to rename a module, and contains the ports pane.
 
 from java.lang import Integer
 from java.awt import Dimension
-from javax.swing import Box, BoxLayout, JComponent, JLabel, JPanel, JTextField
+from javax.swing import Box, BoxLayout, JComponent, JDialog, JLabel, JPanel, \
+    JTextField, JTextArea, JButton, SpringLayout
 
 from com.vlsolutions.swing.docking import DockKey, Dockable
 
 from javagui.ports_pane import JPortsPane
+from javagui import springutilities
 from javagui.utils import InputValidationListener
+
+
+class JModuleDocumentation(JDialog):
+    def __init__(self, module):
+        JDialog.__init__(
+                self,
+                None,
+                "Module documentation: %s" % module.name)
+
+        top = JPanel()
+        top.setLayout(BoxLayout(top, BoxLayout.PAGE_AXIS))
+        self.setContentPane(top)
+
+        infos = JPanel()
+        infos.setLayout(SpringLayout())
+        infos.add(JLabel("Module name:"))
+        infos.add(JLabel(module.name))
+        infos.add(JLabel("Module package:"))
+        infos.add(JLabel(module.module_package()))
+        springutilities.makeCompactGrid(infos, 0, 2, 6, 6, 6, 6)
+        top.add(infos)
+
+        doc = JTextArea(module.module.__doc__ or "Documentation not available")
+        doc.setLineWrap(True)
+        doc.setEditable(False)
+        top.add(doc)
+
+        self.pack()
 
 
 class JModuleInfo(JComponent, Dockable):
@@ -52,6 +82,13 @@ class JModuleInfo(JComponent, Dockable):
         pkg_line.add(Box.createHorizontalGlue())
         self.add(pkg_line)
 
+        buttons_line = JPanel()
+        buttons_line.setLayout(BoxLayout(buttons_line, BoxLayout.LINE_AXIS))
+        buttons_line.add(
+                JButton("Documentation",
+                        actionPerformed=self._module_documentation))
+        self.add(buttons_line)
+
         self._ports_pane = JPortsPane()
         self.add(self._ports_pane)
 
@@ -74,6 +111,9 @@ class JModuleInfo(JComponent, Dockable):
             self._name_input.setText(label)
             self._type_label.setText(module.name)
             self._pkg_label.setText(module.package)
+
+    def _module_documentation(self, event=None):
+        JModuleDocumentation(self._module.module_descriptor).setVisible(True)
 
     def _name_validation(self):
         if self._module is not None:
