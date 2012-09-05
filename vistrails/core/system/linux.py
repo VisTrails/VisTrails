@@ -191,9 +191,10 @@ class TestLinux(unittest.TestCase):
         os.unlink(name2)
 
     def test_executable_file_in_path(self):
+        print "RUNNING DAT TEST"
         # Should exist in any POSIX shell, which is what we have in OSX
         result = executable_is_in_path('ls')
-        self.assertEqual(result, "/bin/ls") # Any UNIX should respect this.
+        self.assertTrue(os.access(result, os.X_OK))
 
 if __name__ == '__main__':
     unittest.main()

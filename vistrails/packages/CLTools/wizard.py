@@ -142,6 +142,8 @@ class QCLToolsWizard(QtGui.QWidget):
         self.stdAsFiles.setCheckable(True)
         self.toolBar.addAction(self.stdAsFiles)
 
+        self.envOption = ""
+
         self.commandLayout = QtGui.QHBoxLayout()
         self.commandLayout.setContentsMargins(5,5,5,5)
         tooltip = 'The command to execute'
@@ -296,7 +298,8 @@ class QCLToolsWizard(QtGui.QWidget):
             self.argList.setItemWidget(item, arg)
         if 'options' in conf:
             self.stdAsFiles.setChecked('std_using_files' in conf['options'])
-
+            self.envOption = conf['options']['env'] if 'env' in conf['options'] else ''
+            
     def save(self):
         if not self.file:
             self.saveAs()
@@ -323,6 +326,11 @@ class QCLToolsWizard(QtGui.QWidget):
             if not 'options' in conf:
                 conf['options'] = {}
             conf['options']['std_using_files'] = ''
+
+        if self.envOption:
+            if not 'options' in conf:
+                conf['options'] = {}
+            conf['options']['env'] = self.envOption
 
         f = open(self.file, "w")
         conf = json.dump(conf, f, sort_keys=True, indent=4)

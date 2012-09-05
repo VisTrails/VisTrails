@@ -120,6 +120,7 @@ ROOT is a dict with the following possible keys:
 OPTIONDICT is a dict with module specific options, recognized options are:
 
 * **std_using_files** - connect files to pipes so that they need not be stored in memory. This is useful for large files but may be unsafe since it does not use subprocess.communicate
+* **env** - A list of environment variables to set when executing the command, with entries separated by **;** and key/value pairs separated by **=**. This overrides all other environment variables set, and should only be used when you don't expect them to change. It can only be set by editing the .clt files directly with a text editor. 
 
 ARG is a 4-list containing [TYPE, "name", KLASS, ARGOPTIONDICT]
 TYPE is one of:

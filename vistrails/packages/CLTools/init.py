@@ -239,16 +239,29 @@ def add_tool(path):
                           args[0] in ['dir', 'cd']:
             kwargs['shell'] = True
             
+        env = {}
         if configuration.check('env'):
-            env = os.environ
             for var in configuration.env.split(";"):
-                key, value = var.split('=')
+                key, value = str(var).split('=')
                 key = key.strip()
                 value = value.strip()
                 if key:
                     env[key] = value
-            kwargs['env'] = env
-        #print "calling", args, kwargs
+
+        if 'options' in self.conf and 'env' in self.conf['options']:
+            for var in self.conf['options']['env'].split(";"):
+                key, value = str(var).split('=')
+                key = key.strip()
+                value = value.strip()
+                if key:
+                    env[key] = value
+
+        if env:
+            kwargs['env'] = dict(os.environ)
+            kwargs['env'].update(env)
+            # write to execution provenance
+            env = ';'.join(['%s=%s'%(k,v) for k,v in env.iteritems()])
+            self.annotate({'execution_env': env})
 
         if 'dir' in self.conf:
             kwargs['cwd'] = self.conf['dir']
