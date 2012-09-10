@@ -1,7 +1,25 @@
 #!/bin/bash
+
+if [ -z "$1" ]
+then
+    echo "usage: $0 <app_path>"
+    exit 65
+fi
+
 THIS_DIR=`dirname $0`
-# WATCH OUT!
-# You have to change BASE_DIR so that it points to the bundle you're currently using.
-BASE_DIR="${THIS_DIR}/../../../VisTrails Trunk Bundle/Vistrails Trunk.app/Contents"
-LIB_DIR=${BASE_DIR}/Resources/lib/python2.6
-DYLD_LIBRARY_PATH= PYTHONPATH=$PYTHONPATH:${LIB_DIR}:${LIB_DIR}/lib-dynload "${BASE_DIR}/MacOS/python" ${THIS_DIR}/runtestsuite.py
+PYTHON_EXEC_PATH="Contents/MacOS/python"
+RESOURCES_PATH="Contents/Resources"
+
+if [ ! -e "$1/$RESOURCES_PATH" ]
+then
+    echo "$1/$RESOURCES_PATH does not exist"
+    exit 66
+fi
+
+if [ ! -e "$1/$PYTHON_EXEC_PATH" ]
+then
+    echo "$1/$PYTHON_EXEC_PATH does not exist"
+    exit 67
+fi
+
+PYTHONHOME="$1/$RESOURCES_PATH" ${1}/${PYTHON_EXEC_PATH} ${THIS_DIR}/runtestsuite.py
