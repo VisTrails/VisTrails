@@ -864,7 +864,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     zipcmd = 'zip'
     if systemType in ['Windows', 'Microsoft']:
         zipcmd = get_executable_path('zip.exe')
-        if not os.path.exists(zipcmd):
+        if not zipcmd or not os.path.exists(zipcmd):
             zipcmd = 'zip.exe' #assume zip is in path
     cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
     try:
