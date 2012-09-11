@@ -36,7 +36,7 @@ import copy
 import sys
 sys.path.append('/vistrails/src/trunk/vistrails')
 import db.services.io
-from db.versions.v1_0_0.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
+from db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
     DBOpmArtifactIdCause, DBOpmArtifactIdEffect, DBOpmRole, DBOpmAccountId, \
     DBOpmAccount, DBOpmAccounts, DBOpmGraph, DBOpmArtifacts, \
@@ -45,7 +45,6 @@ from db.versions.v1_0_0.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy, DBFunction, \
     DBParameter
 from db.services.vistrail import materializeWorkflow
-from db.versions.v1_0_0.persistence import DAOList
 
 def create_process(item_exec, account, id_scope):
     return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
@@ -760,6 +759,8 @@ def create_opm_from_vistrail(vistrail, version, log, registry):
     return create_opm(workflow, version, log, registry)
 
 def run(vistrail_xml, version, log_xml, registry_xml, output_fname):
+    from db.persistence import DAOList
+
     vistrail = db.services.io.open_vistrail_from_xml(vistrail_xml)
     log = db.services.io.open_log_from_xml(log_xml)
     registry = db.services.io.open_registry_from_xml(registry_xml)
