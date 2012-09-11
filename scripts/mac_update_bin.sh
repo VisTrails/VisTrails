@@ -59,15 +59,15 @@ for dir in $DIRS
 do
     if [ -e "$2/$BIN_PATH/$dir" ]
     then
-	rm -r $2/$BIN_PATH/$dir
+    	rm -r $2/$BIN_PATH/$dir
     fi
-    ln -s $1/$SRC_PATH/$dir $2/$BIN_PATH/$dir
+    ln -s -f -F $1/$SRC_PATH/$dir $2/$BIN_PATH/$dir
 done
 
 if [ -e "$2/$BIN_PATH/../../vistrails.py" ]
 then
     rm $2/$BIN_PATH/../../vistrails.py
 fi
-ln -s $1/$SRC_PATH/vistrails.py $2/$BIN_PATH/../../vistrails.py
+ln -s -f -F $1/$SRC_PATH/vistrails.py $2/$BIN_PATH/../../vistrails.py
 
 exit 0
