@@ -44,13 +44,13 @@ then
     exit 65
 fi
 
-if [ -e "$2/$BIN_PATH_27/$dir" ]
+if [ -e "$2/$BIN_PATH_27" ]
 then
     BIN_PATH=$BIN_PATH_27
-elif [ -e "$2/$BIN_PATH_26/$dir" ]
+elif [ -e "$2/$BIN_PATH_26" ]
 then
     BIN_PATH=$BIN_PATH_26
-elif [ -e "$2/$BIN_PATH_25/$dir" ]
+elif [ -e "$2/$BIN_PATH_25" ]
 then
     BIN_PATH=$BIN_PATH_25
 fi
