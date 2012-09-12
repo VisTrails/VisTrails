@@ -155,7 +155,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         if self._selected:
             self._pen_color = CurrentTheme.PORT_PEN_COLOR_SELECTED
         elif self.ghosted:
-            self._pen_color = CurentTheme.PORT_PEN_COLOR_GHOSTED
+            self._pen_color = CurrentTheme.PORT_PEN_COLOR_GHOSTED
             # self.setPen(CurrentTheme.GHOSTED_PORT_PEN)
             self.setBrush(CurrentTheme.GHOSTED_PORT_BRUSH)
         elif self.invalid:
