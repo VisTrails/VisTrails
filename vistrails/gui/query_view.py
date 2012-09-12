@@ -567,8 +567,12 @@ class QQueryView(QtGui.QWidget, BaseView):
             self.query_controller.reset_search()
         # FIXME add support for changing the query to something specific
 
-    def version_changed(self, version_id):
-        self.vt_controller.change_selected_version(version_id)
+    # DAK: removed this call as the query view maintains its own
+    # "current version"
+    # def version_changed(self, version_id):
+    #     self.vt_controller.change_selected_version(version_id)
+    #     self.version_result_view.select_current_version()
+    #     self.query_controller.update_results()
         
     def result_version_selected(self, version_id, by_click, do_validate=True,
                                 from_root=False, double_click=False):

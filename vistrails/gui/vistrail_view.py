@@ -752,7 +752,8 @@ class QVistrailView(QtGui.QWidget):
         #              QtCore.SIGNAL('diffRequested(int,int)'),
         #              self.diff_requested)
         self.set_notification('query_changed', view.query_changed)
-        self.set_notification('version_changed', view.version_changed)
+        # DAK: removed this notification: query view has own version
+        # self.set_notification('version_changed', view.version_changed)
         return view
 
     def create_diff_view(self):
@@ -810,7 +811,7 @@ class QVistrailView(QtGui.QWidget):
             view = _app._previous_view
         else:
             view = self.stack.widget(
-                            self.tab_to_stack_idx[self.tabs.currentIndex()])
+                self.tab_to_stack_idx[self.tabs.currentIndex()])
         if view and by_click:
             self.controller.change_selected_version(version_id, True, 
                                                     do_validate, from_root)
