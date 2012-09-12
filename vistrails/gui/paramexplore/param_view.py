@@ -228,40 +228,44 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                                      label)
             # Add available parameters
             reg = get_module_registry()
-            for port_spec in module.destinationPorts():
-                if port_spec.name in function_names or \
-                    not len(port_spec.port_spec_items) or\
-                    False in [issubclass(
-                        reg.get_module_by_name(p.package,p.module,p.namespace),
-                        Constant) for p in port_spec.port_spec_items]:
-                    # The function already exists or is empty
-                    # or contains non-constant modules
-                    continue
-                if moduleItem==None:
-                    if inspector.annotated_modules.has_key(mId):
-                        annotatedId = inspector.annotated_modules[mId]
-                        moduleItem = QParameterTreeWidgetItem(annotatedId,
-                                                        self, mLabel, False)
-                    else:
-                        moduleItem = QParameterTreeWidgetItem(None, self,
-                                                              mLabel, False)
-                v = ', '.join([p.module for p in port_spec.port_spec_items])
-                label = QtCore.QStringList('%s(%s)' % (port_spec.name, v))
-                
-                pList = [ParameterInfo(module_id=mId,
-                                       name=port_spec.name,
-                                       pos=port_spec.port_spec_items[pId].pos,
-                                       value="",
-                                       spec=port_spec.port_spec_items[pId],
-                                       is_alias=False)
-                         for pId in xrange(len(port_spec.port_spec_items))]
-                mName = module.name
-                if moduleItem.parameter!=None:
-                    mName += '(%d)' % moduleItem.parameter
-                fName = '%s :: %s' % (mName, port_spec.name)
-                mItem = QParameterTreeWidgetItem((fName, pList),
-                                                 moduleItem,
-                                                 label, False)
+            if module.is_valid:
+                for port_spec in module.destinationPorts():
+                    if port_spec.name in function_names or \
+                        not len(port_spec.port_spec_items) or \
+                        False in [issubclass(
+                            reg.get_module_by_name(p.package,
+                                                   p.module,
+                                                   p.namespace),
+                            Constant) for p in port_spec.port_spec_items]:
+                        # The function already exists or is empty
+                        # or contains non-constant modules
+                        continue
+                    if moduleItem==None:
+                        if inspector.annotated_modules.has_key(mId):
+                            annotatedId = inspector.annotated_modules[mId]
+                            moduleItem = QParameterTreeWidgetItem(annotatedId,
+                                                                  self, 
+                                                                  mLabel, 
+                                                                  False)
+                        else:
+                            moduleItem = QParameterTreeWidgetItem(None, self,
+                                                                  mLabel, False)
+                    v = ', '.join([p.module for p in port_spec.port_spec_items])
+                    label = QtCore.QStringList('%s(%s)' % (port_spec.name, v))
+                    pList = [ParameterInfo(module_id=mId,
+                                           name=port_spec.name,
+                                           pos=port_spec.port_spec_items[pId].pos,
+                                           value="",
+                                           spec=port_spec.port_spec_items[pId],
+                                           is_alias=False)
+                             for pId in xrange(len(port_spec.port_spec_items))]
+                    mName = module.name
+                    if moduleItem.parameter!=None:
+                        mName += '(%d)' % moduleItem.parameter
+                    fName = '%s :: %s' % (mName, port_spec.name)
+                    mItem = QParameterTreeWidgetItem((fName, pList),
+                                                     moduleItem,
+                                                     label, False)
             if moduleItem:
                 moduleItem.setExpanded(True)
         self.toggleUnsetParameters(self.showUnsetParameters)
