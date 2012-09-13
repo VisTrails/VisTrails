@@ -342,13 +342,6 @@ class MissingPackageVersion(ModuleRegistryException):
         return "Missing version %s of package %s" % \
             (self._package_version, self._identifier)
 
-    def _get_module_id(self):
-        return None
-    def _set_module_id(self, m_id):
-        # do not set
-        pass
-    _module_id = property(_get_module_id, _set_module_id)
-
 class MissingModuleVersion(ModuleRegistryException):
     def __init__(self, identifier, name, namespace, module_version, 
                  package_version=None, module_id=None):
