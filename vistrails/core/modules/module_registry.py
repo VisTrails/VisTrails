@@ -1596,7 +1596,8 @@ class ModuleRegistry(DBRegistry):
         top_sort = graph.vertices_topological_sort()
         # set up fast removal of model
         for sigstring in top_sort:
-            self.delete_module(*(sigstring.split(':',2)))
+            self.delete_module(
+                *core.modules.utils.parse_descriptor_string(sigstring))
         
         # Remove upgraded package subworkflows from registry
         for key, version_dict in package._abs_pkg_upgrades.iteritems():
