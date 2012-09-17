@@ -626,8 +626,8 @@ class RequestHandler(object):
                     locator = DBLocator(host=db_host,
                                         port=3306,
                                         database='vistrails',
-                                        user='vtserver',
-                                        passwd='',
+                                        user=db_write_user,
+                                        passwd=db_write_pass,
                                         obj_id=medley._vtid,
                                         obj_type=None,
                                         connection_id=None)
