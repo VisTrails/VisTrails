@@ -626,8 +626,8 @@ class RequestHandler(object):
                     locator = DBLocator(host=db_host,
                                         port=3306,
                                         database='vistrails',
-                                        user='vtserver',
-                                        passwd='',
+                                        user=db_write_user,
+                                        passwd=db_write_pass,
                                         obj_id=medley._vtid,
                                         obj_type=None,
                                         connection_id=None)
@@ -1303,13 +1303,13 @@ class RequestHandler(object):
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
+                from gui.pipeline_view import QPipelineView
+                pipeline_view = QPipelineView()
+                controller.current_pipeline_view = pipeline_view.scene()
                 controller.set_vistrail(v, locator, abstractions, thumbnails,
                                         mashups)
                 from gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPNG(filename)
                 del version_view
