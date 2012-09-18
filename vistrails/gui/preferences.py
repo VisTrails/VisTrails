@@ -516,36 +516,8 @@ class QPackagesWidget(QtGui.QWidget):
         self._available_packages_list.setFocus()
 
     def invalidate_current_pipeline(self):
-        # Reconstruct the current pipelines from root
-        from core.interpreter.cached import CachedInterpreter
-        CachedInterpreter.flush()
-        def reload_view(view):
-            view.version_selected(view.controller.current_version,
-                                  True, from_root=True)
-        #    def reload_tab(tab):
-        #        scene = tab.scene()
-        #        if scene.current_pipeline:
-        #            scene.current_pipeline.is_valid = False
-        #            scene.current_pipeline= \
-        #                view.controller.vistrail.getPipeline(
-        #                                                scene.current_version)
-        #            view.controller.validate(scene.current_pipeline)
-        #            scene.setupScene(scene.current_pipeline)
-        #
-        #    for i in xrange(view.stack.count()):
-        #        tab = view.stack.widget(i)
-        #        if isinstance(tab, QPipelineView):
-        #            reload_tab(tab)
-        #    for tab in view.detached_views:
-        #        if isinstance(tab, QPipelineView):
-        #            reload_tab(tab)
-
         from gui.vistrails_window import _app
-        for i in xrange(_app.stack.count()):
-            view = _app.stack.widget(i)
-            reload_view(view)
-        for view in _app.windows:
-            reload_view(view)
+        _app.invalidate_pipelines()
         
 class QPreferencesDialog(QtGui.QDialog):
 

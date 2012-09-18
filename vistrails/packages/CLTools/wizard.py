@@ -60,14 +60,17 @@ def default_dir():
     return default_dir
     
 class QCLToolsWizard(QtGui.QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent, reload_scripts=None):
         QtGui.QWidget.__init__(self, parent)
+
         self.vbox = QtGui.QVBoxLayout()
         self.vbox.setContentsMargins(5,5,5,5)
 
         self.setLayout(self.vbox)
         self.setTitle()
         self.file = None
+        self.conf = None
+        self.reload_scripts = reload_scripts
 
         self.toolBar = QtGui.QToolBar()
         self.layout().addWidget(self.toolBar)
@@ -95,6 +98,14 @@ class QCLToolsWizard(QtGui.QWidget):
         self.connect(self.saveFileAsAction, QtCore.SIGNAL('triggered()'),
                      self.saveAs)
         self.toolBar.addAction(self.saveFileAsAction)
+
+        if self.reload_scripts:
+            self.reloadAction = QtGui.QAction(
+                self.get_icon('view-refresh'), 'Refresh', self)
+            self.reloadAction.setToolTip('Save and Reload CLTools Modules in VisTrails')
+            self.connect(self.reloadAction, QtCore.SIGNAL('triggered()'),
+                         self.refresh)
+            self.toolBar.addAction(self.reloadAction)
         
         self.toolBar.addSeparator()
         self.addAction = QtGui.QAction(
@@ -123,6 +134,7 @@ class QCLToolsWizard(QtGui.QWidget):
         self.toolBar.addAction(self.downAction)
         
         self.toolBar.addSeparator()
+
         self.showStdin = QtGui.QAction('stdin', self)
         self.showStdin.setToolTip('Check to use standard input as an input port')
         self.showStdin.setCheckable(True)
@@ -135,19 +147,34 @@ class QCLToolsWizard(QtGui.QWidget):
         self.showStderr.setToolTip('Check to use standard error as an output port')
         self.showStderr.setCheckable(True)
         self.toolBar.addAction(self.showStderr)
+        self.envPort = QtGui.QAction("env", self)
+        self.envPort.setToolTip('Check to add the "env" input port for specifying environment variables')
+        self.envPort.setCheckable(True)
+        self.toolBar.addAction(self.envPort)
         
         self.toolBar.addSeparator()
+
         self.stdAsFiles = QtGui.QAction('std file processing', self)
         self.stdAsFiles.setToolTip('Check to make pipes communicate using files instead of strings\nOnly useful when processing large files')
         self.stdAsFiles.setCheckable(True)
         self.toolBar.addAction(self.stdAsFiles)
 
-        self.envOption = ""
+        self.toolBar.addSeparator()
 
+        self.previewPorts = QtGui.QAction('preview', self)
+        self.previewPorts.setToolTip('Check which ports will be available for this module')
+        self.connect(self.previewPorts, QtCore.SIGNAL('triggered()'),
+                     self.preview_ports)
+        self.toolBar.addAction(self.previewPorts)
+
+        
+        self.envOption = None
+        
         self.commandLayout = QtGui.QHBoxLayout()
         self.commandLayout.setContentsMargins(5,5,5,5)
         tooltip = 'The command to execute'
         label = QtGui.QLabel("Command:")
+        label.setFixedWidth(80)
         label.setToolTip(tooltip)
         self.commandLayout.addWidget(label)
         self.command = QtGui.QLineEdit()
@@ -163,7 +190,22 @@ class QCLToolsWizard(QtGui.QWidget):
         self.commandLayout.addWidget(self.dir)
         self.vbox.addLayout(self.commandLayout)
 
+        self.previewLayout = QtGui.QHBoxLayout()
+        self.previewLayout.setContentsMargins(5,5,5,5)
+        self.previewLayout.setAlignment(QtCore.Qt.AlignLeft)
+        tooltip = 'Shows what the command will look like when executed in the command line'
+        label = QtGui.QLabel("Preview:")
+        label.setToolTip(tooltip)
+        label.setFixedWidth(80)
+        self.previewLayout.addWidget(label)
+        self.preview = QtGui.QLabel()
+        self.preview.setToolTip(tooltip)
+        self.preview.setMaximumWidth(600)
+        self.previewLayout.addWidget(self.preview)
+        self.vbox.addLayout(self.previewLayout)
+
         self.importLayout = QtGui.QHBoxLayout()
+        self.importLayout.setContentsMargins(5,5,5,5)
         self.importLayout.setAlignment(QtCore.Qt.AlignLeft)
         self.importLayout.addWidget(QtGui.QLabel("Man page:"))
         self.viewManButton = QtGui.QPushButton("view")
@@ -239,12 +281,15 @@ class QCLToolsWizard(QtGui.QWidget):
         self.parent().setWindowTitle("CLTools Wizard - " + (file if file else "untitled"))
 
     def newFile(self):
+        self.conf = None
         self.file = None
         self.command.clear()
         self.dir.clear()
         self.showStdin.setChecked(False)
         self.showStdout.setChecked(False)
         self.showStderr.setChecked(False)
+        self.envPort.setChecked(False)
+        self.envOption = None
         while self.argList.count():
             item = self.argList.item(0)
             itemWidget = self.argList.itemWidget(item)
@@ -259,6 +304,7 @@ class QCLToolsWizard(QtGui.QWidget):
         self.layout().addWidget(self.argList)
         self.stdAsFiles.setChecked(False)
         self.setTitle()
+        self.generate_preview()
     
     def openFile(self):
         fileName = QtGui.QFileDialog.getOpenFileName(self,
@@ -296,15 +342,16 @@ class QCLToolsWizard(QtGui.QWidget):
             item.setSizeHint(arg.sizeHint())
             self.argList.addItem(item)
             self.argList.setItemWidget(item, arg)
-        if 'options' in conf:
-            self.stdAsFiles.setChecked('std_using_files' in conf['options'])
-            self.envOption = conf['options']['env'] if 'env' in conf['options'] else ''
+        self.envPort.setChecked('options' in conf and
+                                'env_port' in conf['options'])
+        self.stdAsFiles.setChecked('options' in conf and
+                                   'std_using_files' in conf['options'])
+        self.envOption = conf['options']['env'] \
+                 if ('options' in conf and 'env' in conf['options']) else None
+        self.conf = conf
+        self.generate_preview()
             
-    def save(self):
-        if not self.file:
-            self.saveAs()
-            if not self.file:
-                return
+    def get_current_conf(self):
         conf = {}
         conf['command'] = str(self.command.text()).strip()
         dir = str(self.dir.text()).strip()
@@ -322,19 +369,28 @@ class QCLToolsWizard(QtGui.QWidget):
             arg = self.argList.itemWidget(self.argList.item(row))
             args.append(arg.toList())
         conf['args'] = args
+
+        options = {}
         if self.stdAsFiles.isChecked():
-            if not 'options' in conf:
-                conf['options'] = {}
-            conf['options']['std_using_files'] = ''
-
+            options['std_using_files'] = ''
+        if self.envPort.isChecked():
+            options['env_port'] = ''
         if self.envOption:
-            if not 'options' in conf:
-                conf['options'] = {}
-            conf['options']['env'] = self.envOption
-
+            options['env'] = self.envOption
+        if options:
+            conf['options'] = options
+        return conf
+    
+    def save(self):
+        if not self.file:
+            self.saveAs()
+            if not self.file:
+                return
+        self.conf = self.get_current_conf()
         f = open(self.file, "w")
-        conf = json.dump(conf, f, sort_keys=True, indent=4)
+        json.dump(self.conf, f, sort_keys=True, indent=4)
         f.close()
+        self.generate_preview()
 
     def saveAs(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self,
@@ -348,6 +404,124 @@ class QCLToolsWizard(QtGui.QWidget):
             self.save()
             self.setTitle(self.file)
 
+    def refresh(self):
+        self.save()
+        self.reload_scripts()
+    
+    def generate_preview(self):
+        # generate preview from self.conf
+        c = self.get_current_conf()
+        if not c:
+            self.preview.setText('')
+            self.preview.setToolTip('')
+            return
+        
+        text = ''
+
+        # show env as bash-style prefix
+        if 'options' in c:
+            o = c['options']
+            # env_port
+            if 'env_port' in o:
+                text += '<env_port>'
+            # env
+            if 'env' in o:
+                if text:
+                    text += ';'
+                text += c['options']['env']
+            if text:
+                text += ' '
+
+        # command
+        text += c['command']
+        # args
+
+        if 'args' in c:
+            text += ''
+            for type, name, klass, opts in c['args']:
+                type = type.lower()
+                klass = klass.lower()
+                text += ' '
+                if type == 'constant':
+                    if 'flag' in opts:
+                        text += opts['flag'] + ' '
+                    text += name
+                    continue
+                if 'required' not in opts:
+                    text += '['
+                if klass in 'list':
+                    text += '{'
+                if 'flag' in opts:
+                    text += opts['flag']
+                    if klass != 'flag':
+                        text += ' '
+                if 'prefix' in opts:
+                    text += opts['prefix']
+                if type!='input' or klass != 'flag':
+                    text += '<'
+                if klass == 'list':
+                    text += opts['type'].lower() \
+                            if ('type' in opts and opts['type']) else 'string'
+                elif type=='input' and klass == 'flag':
+                    if 'flag' not in opts:
+                        text += name
+                elif type in ['output', 'inputoutput']:
+                    text += 'file'
+                else:
+                    text += klass
+                if type!='input' or klass != 'flag':
+                    text += '>'
+                if klass == 'list':
+                    text += '}'
+                if 'required' not in opts:
+                    text += ']' 
+                
+        self.preview.setText(text)
+        self.preview.setToolTip(text)
+
+    def preview_ports(self):
+        # show dialog with the ports that this module will have
+        self.generate_preview()
+        conf = self.get_current_conf()
+        if not conf:
+            return
+
+        intext = []
+        outtext = []
+
+        if 'stdin' in conf:
+            name, type, options = conf['stdin']
+            optional = 'required' not in options
+            intext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+        if 'stdout' in conf:
+            name, type, options = conf['stdout']
+            optional = 'required' not in options
+            outtext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+        if 'stderr' in conf:
+            name, type, options = conf['stderr']
+            optional = 'required' not in options
+            outtext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+        if 'options' in conf and 'env_port' in conf['options']:
+            intext.append('env: String')
+        for type, name, klass, options in conf['args']:
+            optional = 'required' not in options
+            if 'input' == type.lower():
+                intext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+            elif 'output' == type.lower():
+                outtext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+            elif 'inputoutput' == type.lower():
+                intext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
+                outtext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
+        
+        intext = ''.join(['Input %s. %s\n' % (i+1, t)
+                          for i, t in zip(xrange(len(intext)), intext)])
+        outtext = ''.join(['Output %s. %s\n' % (i+1, t)
+                            for i, t in zip(xrange(len(outtext)), outtext)])
+        
+        self.helppageView = QManpageDialog("Module Ports for this Wrapper",
+                                     intext + "\n" + outtext, self)
+        self.helppageView.show()
+    
     def loadFromCommand(self, argv):
         self.command.setText(argv[0])
         pos = 0
@@ -882,9 +1056,9 @@ class QManpageImport(QtGui.QDialog):
 
 class QCLToolsWizardWindow(QtGui.QMainWindow):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None, reload_scripts=None):
         QtGui.QMainWindow.__init__(self, parent)
-        self.wizard = QCLToolsWizard(self)
+        self.wizard = QCLToolsWizard(self, reload_scripts)
         self.setCentralWidget(self.wizard)
         self.setWindowTitle("CLTools Wizard")
         self.resize(1000,600)
