@@ -2432,6 +2432,26 @@ class QVistrailsWindow(QVistrailViewWindow):
         dialog = QRepositoryDialog(self)
         dialog.exec_()
         
+    def invalidate_pipelines(self):
+        """ invalidate_pipelines() -> None
+            Clears the cache and reloads the current pipelines in all views
+            This should be called when a module in the module registry
+            is changed/added/deleted
+        """
+
+        from core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.flush()
+        
+        def reload_view(view):
+            view.version_selected(view.controller.current_version,
+                                  True, from_root=True)
+        
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            reload_view(view)
+        for view in self.windows:
+            reload_view(view)
+    
     def closeNotPinPalettes(self):
         if (QtGui.QApplication.activeWindow() == self or 
             QtGui.QApplication.activeWindow() in self.windows.values()):
