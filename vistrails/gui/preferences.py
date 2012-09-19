@@ -458,6 +458,12 @@ class QPackagesWidget(QtGui.QWidget):
         """
         assert self._current_package
         p = self._current_package
+
+        # A delayed signal can result in the package already has been removed
+        pm = get_package_manager()
+        if not pm.has_package(p.identifier):
+            return
+
         try:
             p.load()
         except Exception, e:
