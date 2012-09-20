@@ -148,7 +148,8 @@ import gui.application
 
 # We need the windows so we can test events, etc.
 v = gui.application.start_application({'interactiveMode': True,
-                                       'nologger': True})
+                                       'nologger': True,
+                                       'singleInstance': False})
 if v != 0:
     app = gui.application.get_vistrails_application()
     if app:
