@@ -113,9 +113,32 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if self.local_server.listen(self._unique_key):
                     debug.log("Listening on %s"%self.local_server.fullServerName())
                 else:
-                    debug.warning("Server is not listening. This means it will not accept \
+                    # This usually happens when vistrails have crashed
+                    # Delete the key and try again
+                    self.shared_memory.detach()
+                    self.local_server.close()
+                    if os.path.exists(self._unique_key):
+                        os.remove(self._unique_key)
+
+                    self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+                    self.local_server = None
+                    if self.shared_memory.attach():
+                        self._is_running = True
+                    else:
+                        self._is_running = False
+                        if not self.shared_memory.create(1):
+                            debug.critical("Unable to create single instance "
+                                           "of vistrails application")
+                            return
+                        self.local_server = QtNetwork.QLocalServer(self)
+                        self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
+                                     self.message_received)
+                        if self.local_server.listen(self._unique_key):
+                            debug.log("Listening on %s"%self.local_server.fullServerName())
+                        else:
+                            debug.warning("Server is not listening. This means it will not accept \
 parameters from other instances")
-            
+
     def found_another_instance_running(self):
         debug.critical("Found another instance of VisTrails running")
         msg = str(sys.argv[1:])
@@ -138,7 +161,9 @@ parameters from other instances")
         if singleInstance:
             self.run_single_instance()
             if self._is_running:
-                if not self.found_another_instance_running():
+                if self.found_another_instance_running() is True:
+                    return True
+                else:
                     return False
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
@@ -433,7 +458,7 @@ parameters from other instances")
             if len(errs) > 0:
                 for err in errs:
                     debug.critical("*** Error in %s:%s:%s -- %s" % err)
-                return False
+                return [False, ["*** Error in %s:%s:%s -- %s" % err for err in errs]]
             return True
         else:
             debug.warning("no input vistrails provided")
@@ -540,9 +565,11 @@ parameters from other instances")
             self.temp_configuration.executeWorkflows = False
             self.temp_configuration.interactiveMode = True
             
-            self.parse_input_args_from_other_instance(str(byte_array))
+            result = self.parse_input_args_from_other_instance(str(byte_array))
+            if result not in [True, False]:
+                result = '\n'.join(result[1])
             self.shared_memory.lock()
-            local_socket.write("1")
+            local_socket.write(str(result))
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.debug("Writing failed: %s" %
@@ -572,9 +599,14 @@ parameters from other instances")
                                local_socket.errorString().toLatin1())
                 return False
             byte_array = local_socket.readAll()
-            debug.log("Other instance processed input (%s)"%str(byte_array))
+            result = str(byte_array)
+            debug.log("Other instance processed input (%s)"%result)
+            if result != 'True':
+                debug.critical(result)
+            else:
+                return True
             local_socket.disconnectFromServer()
-            return True
+            return str(byte_array)
     
     def parse_input_args_from_other_instance(self, msg):
         import re
@@ -588,14 +620,15 @@ parameters from other instances")
                 self.readOptions()
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
-                    self.process_interactive_input()
+                    result = self.process_interactive_input()
                     if not self.temp_configuration.showSpreadsheetOnly:
                         # in some systems (Linux and Tiger) we need to make both calls
                         # so builderWindow is activated
                         self.builderWindow.raise_()
                         self.builderWindow.activateWindow()
+                    return result
                 else:
-                    self.noninteractiveMode()
+                    return self.noninteractiveMode()
             else:
                 debug.critical("Invalid string: %s" % msg)
         else:
