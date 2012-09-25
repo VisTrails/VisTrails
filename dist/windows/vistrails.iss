@@ -33,7 +33,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.0
+AppVerName=VisTrails 2.0.1
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
@@ -137,8 +137,8 @@ Source: Input\qt.conf; DestDir: {app}\vistrails\Python27
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
 Source: Input\x86\python27.dll; DestDir: {app}\vistrails
 Source: Input\x86\python27.dll; DestDir: {app}\vistrails\Python27
-Source: I:\emanuele\src\vtk\vtk-5.8.0\build\bin\Release\*.dll; DestDir: {app}\vistrails
-Source: I:\emanuele\src\vtk\vtk-5.8.0\build\bin\Release\*.pyd; DestDir: {app}\vistrails
+Source: I:\emanuele\src\vtk\vtk-5.10.0\build\bin\Release\*.dll; DestDir: {app}\vistrails
+Source: I:\emanuele\src\vtk\vtk-5.10.0\build\bin\Release\*.pyd; DestDir: {app}\vistrails
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
@@ -223,6 +223,7 @@ Name: {app}\vistrails\*.pyd; Type: files
 Name: {app}\vistrails\dgnlib.dll; Type: files
 Name: {app}\vistrails\_Xdmf.dll; Type: files
 Name: {app}\vistrails\geotiff.dll; Type: files
+Name: {app}\vistrails\libmysql.dll; Type: files
 Name: {app}\examples\gridfieldexample.vt; Type: files
 Name: {app}\vistrails\vistrails; Type: filesandordirs
 Name: {app}\vistrails\packages\gridfield; Type: filesandordirs
