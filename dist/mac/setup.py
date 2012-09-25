@@ -41,7 +41,7 @@ Usage:
 from setuptools import setup
 import sys
 
-VERSION = '2.0'
+VERSION = '2.0.1'
 
 plist = dict(
     CFBundleName='VisTrails',
