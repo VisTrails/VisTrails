@@ -246,7 +246,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.0'
+    return '2.0.1'
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
