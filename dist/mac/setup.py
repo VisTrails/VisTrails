@@ -56,15 +56,15 @@ APP = ['../../vistrails/vistrails.py']
 #comma-separated list of additional data files and
 #folders to include (not for code!)
 #DATA_FILES = ['/usr/local/graphviz-2.12/bin/dot',]
+#removed gridifield: gridfield, gridfield.core, gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
 OPTIONS = {'argv_emulation': True,
            'iconfile': 'resources/vistrails_icon.icns',
            'includes': 'sip,pylab,xml,\
 			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
-                        shelve, uuid, gridfield, gridfield.core, \
-                        gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
+                        shelve, uuid, \
                         sine,st,Numeric,pexpect,psycopg2,sqlite3,suds,shapelib, dbflib,mpl_toolkits.mplot3d,_mysql_exceptions',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,Scientific,distutils,h5py,batchq',
-           'excludes': 'mpl_toolkits.basemap',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,packages,core,gui,db,numpy,scipy,api,twisted,Scientific,distutils,h5py,batchq,osgeo',
+           'excludes': 'mpl_toolkits.basemap, PyQt4.uic',
            'plist': plist,
            }
 

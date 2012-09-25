@@ -15,7 +15,7 @@ exit 0
 fi
 VOL="$1"
 DMG="$VOL.dmg"
-ALPS_VERSION="2.1.0-r6167"
+ALPS_VERSION="2.1.1-r6372"
 ALPS_URL="http://archive.comp-phys.org/software/vistrails/"
 ALPS_FILE="alps-vistrails-${ALPS_VERSION}-macosx-10.6.tar.gz"
 echo "removing build and dist folders..."
@@ -45,8 +45,8 @@ ln -s Versions/2.7/Resources Resources
 cd $curdir
 echo "copying hdf5 headers and libs..."
 mkdir dist/VisTrails.app/Contents/Resources/hdf5
-cp -r /Users/emanuele/src/hdf5-1.8.4/hdf5/include dist/VisTrails.app/Contents/Resources/hdf5/
-cp -r /Users/emanuele/src/hdf5-1.8.4/hdf5/lib dist/VisTrails.app/Contents/Resources/hdf5/
+cp -r /Users/vistrails/src/hdf5-1.8.4/hdf5/include dist/VisTrails.app/Contents/Resources/hdf5/
+cp -r /Users/vistrails/src/hdf5-1.8.4/hdf5/lib dist/VisTrails.app/Contents/Resources/hdf5/
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.6.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.dylib
@@ -99,6 +99,8 @@ echo "adding extension files..."
 cp -r ../../extensions dist/extensions
 echo "adding script files..."
 cp -r ../../scripts dist/scripts
+echo "copying GDAL's resource files..."
+cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Resources/gdal dist/VisTrails.app/Contents/Frameworks/GDAL.framework/Versions/1.8/Resources/
 echo "Building User's Guide and adding it distribution"
 #make sure that build_usersguide is configured for this step
 mkdir dist/doc
@@ -110,6 +112,7 @@ mv dist/examples dist/VisTrails/
 mv dist/extensions dist/VisTrails/
 mv dist/scripts dist/VisTrails/
 mv dist/VisTrails.command dist/VisTrails/
+mv dist/CLToolsWizard.command dist/Vistrails/
 mv dist/doc dist/VisTrails/doc
 #uncomment the following lines for itk support
 #echo "including itk..."
