@@ -44,7 +44,7 @@ IGNORE_LIST = ["update_copyright_year.py"]
 files = []
 for (path, dnames, fnames) in os.walk('.'):
     for fn in fnames:
-        if fn not in IGNORE_LIST and fn.endswith(".sh"):
+        if fn not in IGNORE_LIST and fn.endswith(".py"):
             files.append(os.path.join(path, fn))
 
 print len(files), " files found"
