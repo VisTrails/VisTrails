@@ -67,6 +67,7 @@ class DAOList(dict):
 COPYRIGHT_NOTICE = \
 """###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
