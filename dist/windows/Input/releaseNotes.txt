@@ -1,6 +1,72 @@
 RELEASE NOTES
 -------------
-Release Name: v2.0 build 240bcab5bbcd from v2.0 branch
+Release Name: v2.0.1 build 71e39bb6846a from v2.0 branch
+
+Enhancements: 
+ - Support import of schema v1.0.3 (94bb430fa0f0)
+ - CLTools: Preview command line arguments and module ports (6c737e297a60)
+ - CLTools: Reload modules from the wizard (6c737e297a60)
+ - CLTools: Add env port using wizard (6c737e297a60)
+ - CLTools: Extended documentation (6c737e297a60)
+ - CLTools: Ability to specify fixed environment variables for modules (6ece9152e511)
+ - CLTools: Write changes in environment variables to execution log (6ece9152e511)
+ - Added server function for seeing and enabling/disabling packages (1b7ad7717b31)
+ - CLTools: Ability to set working directory (cbf02c561ccd)
+ - CLTools: New arg type inputoutput that enables files be used as both input and output (692e3ce05961)
+ - CLTools: You can now specify file endings for output files using the suffix option (692e3ce05961)
+ - Ticket #582: CLTools: should support other types (c3b49457c3a5)
+ - Added single instance check as a configuration option and a command line option (4032ca504171)
+ - Improved exception message for invalid port specification (431802313d43)
+ - Improved error messages during package loading (4175f8c09b4d)
+
+Bug fixes: 
+ - Added the missing v1_0_3 directory for schema v1_0_3 support from master branch (916cf9162df8)
+ - FileHooks for DBVistrail types should be skipped (94bb430fa0f0)
+ - Check if package has been removed before setting package information (94bb430fa0f0)
+ - CLTools: Modules were not reloaded after reloading scripts (6c737e297a60)
+ - CLTools: "env" option was not reset in wizard when loading other tool (6c737e297a60)
+ - Server mashup request need to use db user with write access (af73f32d44c0)
+ - get_vt_graph_png was broken (af73f32d44c0)
+ - Ticket #617: Hard import from the v1_0_0 schema in opm.py makes it fail with other schemas (2fefff447711)
+ - Fix OPM import (2fefff447711)
+ - Windows: Saving vistrail zip xml fails when zip.exe cannot be located (32bd4aa03c3b)
+ - Ticket #624: unix /bin/ls check fails on fedora 17 (ee2cd7d1f6c3)
+ - Ticket #621: Hidden ports that are used in connections are not set to visible (4cb7b1758bac)
+ - Fixed visibility of a connected port in ports panel (4cb7b1758bac)
+ -  Fixed documentation file of CLTools that was causing a failure when
+building the pdf version of the usersguide  (3899208009dd)
+ - is_running_gui missing in VistrailsServerSingleton (272006002712)
+ - Ticket #618: Open Workflow from DB missing in file menu (8e413fc8f504)
+ - Ticket #614: test_abtraction_create fails in test suite (2315d8e92026)
+ - Ticket #583: CLTools: sometimes a module called CLTools is displayed (11107c05a73a)
+ - Empty packages could not be reloaded (11107c05a73a)
+ - Ticket #612: User-defined parameter exploration editor is problematic (deab533c7302)
+ - Fix issue with modified group signatures (cd8e2467903b)
+ - Ticket #464: VTK Package does not support VTK 5.10 release (65462fd17800)
+ - Fixed issue where OPM export could not resolve ports in parent modules (cdc1a53bf496)
+ - Fixed issue where modifying a defaulted parameter caused a second copy of the parameter to be added (d6924b42d821)
+ - Ticket #602: core api does not work in console (ac85e1935819)
+ - Add missing methods to GUI application (ac85e1935819)
+ - Ticket #594: Defaulted booleans added twice (e90af069e58a) (d6924b42d821)
+ - Fix duplicate boolean values when using defaults (e90af069e58a)
+ - Update color of cached modules correctly and reset colors on re-execute (421ef3182f7b)
+ - Do not set module color back to active after it has been run (1f6ea4ff45e3)
+ - Ticket #591: User-decorated modules do not change color during execution (c53334a5e412)
+ - Module status brushes are checked first when setting the color of a module (c53334a5e412)
+ - Ticket #592: Dragging a Group module into a pipeline causes an invalid pipeline error (cd8b62b219a6)
+ - Guard against empty group modules (cd8b62b219a6)
+ - Spreadsheet package: Checking if the GUI is running before trying to initialize the package. (a71954b1639a)
+ - Ticket #586: Selecting an invalid module raises exceptions (225f057294dd)
+ - Catch exceptions when selecting invalid modules (225f057294dd)
+ - enabling/disabling package did not invalidate pipeline (a363ed3f0151)
+ - Ticket #585: Failed reloading of a package does not invalidate modules (46a6204cbab4)
+ - Fixed issue where modules were not marked as invalid before validation (46a6204cbab4)
+ - Ticket #584: Enabling a package adds it to the enabled package list even if there are errors (0593aad10533)
+ - Fix issues with package list in preferences (0593aad10533)
+ - SUDSWebServices: Offline Mode by storing WSDL in .vt file was not portable (6fa03241e9c6)
+ - SUDSWebServices: Typo in handle_missing_module caused packages with wrong names (6fa03241e9c6)
+
+From Release: v2.0 build 240bcab5bbcd from v2.0 branch
 
 Enhancements: 
  - Ticket #424: SUDSWebServices should store the WSDL spec in the .vt file to enable upgrades (88f616a741de)
