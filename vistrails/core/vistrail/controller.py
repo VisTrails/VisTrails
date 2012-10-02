@@ -2654,7 +2654,7 @@ class VistrailController(object):
 
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
-        if not pm.has_package(pkg.identifier) and pkg:
+        if pkg and not pm.has_package(pkg.identifier):
             deps = pm.all_dependencies(identifier, dep_graph)[:-1]
             if pkg.identifier in self._asked_packages:
                 return False
