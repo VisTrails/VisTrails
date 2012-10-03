@@ -1,6 +1,6 @@
 RELEASE NOTES
 -------------
-Release Name: v2.0.1 build 71e39bb6846a from v2.0 branch
+Release Name: v2.0.1 build 5e35e2b83b90 from v2.0 branch
 
 Enhancements:
  - ALPS package: Updated to version 2.1.1 (4741aa04a9d7) 
