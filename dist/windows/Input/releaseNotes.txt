@@ -2,7 +2,8 @@ RELEASE NOTES
 -------------
 Release Name: v2.0.1 build 71e39bb6846a from v2.0 branch
 
-Enhancements: 
+Enhancements:
+ - ALPS package: Updated to version 2.1.1 (4741aa04a9d7) 
  - Support import of schema v1.0.3 (94bb430fa0f0)
  - CLTools: Preview command line arguments and module ports (6c737e297a60)
  - CLTools: Reload modules from the wizard (6c737e297a60)
