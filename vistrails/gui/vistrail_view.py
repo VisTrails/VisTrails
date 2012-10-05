@@ -929,6 +929,7 @@ class QVistrailView(QtGui.QWidget):
         if not self.is_abstraction:
             _app.set_current_locator(locator)
         _app.view_changed(self)
+        _app.notify("vistrail_saved")
         # reload workspace entry
         from gui.collection.workspace import QWorkspaceWindow
         QWorkspaceWindow.instance().add_vt_window(self)

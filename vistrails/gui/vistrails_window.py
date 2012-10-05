@@ -1030,6 +1030,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 #                (('controller_changed', 'set_controller'),)),
                ((QVersionEmbed, True),
                 (('controller_changed', 'set_controller'),
+                 ('vistrail_saved', 'updateEmbedText'),
                  ('version_changed', 'updateVersion')))])]
         
         left_added = None
