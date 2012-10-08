@@ -868,7 +868,7 @@ Configuring Ports
    :linenos:
 
    class TestDefaults(Module):
-      _input_ports = [('f1', '(edu.utah.sci.vistrails.basic:Float, \
+      _input_ports = [('f1', '(edu.utah.sci.vistrails.basic:Float,\
                                edu.utah.sci.vistrails.basic:String)',
                        {"defaults": str([1.23, "abc"]), 
                         "labels": str(["temp", "name"])})]
@@ -889,7 +889,7 @@ or in the older syntax,
 .. index::
    pair: ports; optional
 
-**Making a Port Optional**  To add a port that is optional, simply set optional to true:
+**Making a Port Optional**  To add a port that is optional, set the optional flag to true:
 
 .. code-block:: python
    :linenos:
@@ -898,7 +898,7 @@ or in the older syntax,
                        {"optional": True})]
 
    reg.add_input_port(MyModule, "MyPort", 
-                      (edu.utah.sci.vistrails.basic:String, 'MyPort Name'), 
+                      "(edu.utah.sci.vistrails.basic:String)", 
                       optional=True)
 
 
