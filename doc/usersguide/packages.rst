@@ -868,9 +868,10 @@ Configuring Ports
    :linenos:
 
    class TestDefaults(Module):
-      _input_ports = [('f1', '(edu.utah.sci.vistrails.basic:Float,\
-                               edu.utah.sci.vistrails.basic:String)',
-                       {"defaults": str([1.23, "abc"]), 
+      _input_ports = [('f1',
+                       # Warning: VisTrails pre v2.1 does not allow spaces in the string below
+                       '(edu.utah.sci.vistrails.basic:Float,edu.utah.sci.vistrails.basic:String)',
+                       {"defaults": str([1.23, "abc"]),
                         "labels": str(["temp", "name"])})]
    _modules = [TestDefaults]
 
