@@ -93,6 +93,7 @@ def parse_descriptor_string(d_string, cur_package=None):
     return (package, name, namespace)
 
 def parse_port_spec_item_string(spec, cur_package=None):
+    spec = spec.strip()
     spec_arr = spec.split(':', 2)
     if len(spec_arr) > 2:
         # switch format of spec to more natural
