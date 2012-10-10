@@ -38,7 +38,9 @@ from db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
                                       DBAdd, DBChange, DBDelete, \
                                       DBPortSpec, DBPortSpecItem, \
                                       DBParameterExploration, \
-                                      DBParameter, DBFunction
+                                      DBParameter, DBFunction, \
+                                      IdScope, DBAbstraction, \
+                                      DBModule, DBGroup
 
 from db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
@@ -50,7 +52,7 @@ def update_portSpec(old_obj, translate_dict):
     global id_scope
     sigstring = old_obj.db_sigstring
     sigs = []
-    if sigstring != '()':
+    if sigstring and sigstring != '()':
         for sig in sigstring[1:-1].split(','):
             sigs.append(sig.split(':', 2))
     # not great to use eval...
@@ -254,7 +256,7 @@ def translateWorkflow(_workflow):
                       'DBGroup': {'workflow': update_workflow}}
 
     workflow = DBWorkflow()
-    id_scope = workflow.idScope
+    id_scope = IdScope(remap={DBAbstraction.vtType: DBModule.vtType, DBGroup.vtType: DBModule.vtType})
     workflow = DBWorkflow.update_version(_workflow, translate_dict, workflow)
     workflow.db_version = '1.0.3'
     return workflow
