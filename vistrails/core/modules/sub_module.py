@@ -78,6 +78,7 @@ class OutputPort(Module):
 class Group(Module):
     def __init__(self):
         Module.__init__(self)
+        self.is_group = True
 
     def compute(self):
         if not hasattr(self, 'pipeline') or self.pipeline is None:

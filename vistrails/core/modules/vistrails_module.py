@@ -255,6 +255,10 @@ Designing New Modules
         self.suspended = False
 
         self.signature = None
+        
+        # stores whether the output of the module should be annotated in the
+        # execution log
+        self.annotate_output = False
 
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -349,6 +353,8 @@ context."""
             import traceback
             traceback.print_exc()
             raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
+        if self.annotate_output:
+            self.annotate_output_values()
         self.upToDate = True
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
@@ -364,6 +370,12 @@ Makes sure input port 'name' is filled."""
 
     def setResult(self, port, value):
         self.outputPorts[port] = value
+        
+    def annotate_output_values(self):
+        output_values = []
+        for port in self.outputPorts:
+            output_values.append((port, self.outputPorts[port]))
+        self.logging.annotate(self, {'output': output_values})
 
     def get_output(self, port):
         # if self.outputPorts.has_key(port) or not self.outputPorts[port]: 

@@ -196,6 +196,13 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
             obj.signature = module._signature
+            
+            # Checking if output should be stored
+            if module.has_annotation_with_key('annotate_output'):
+                annotate_output = module.get_annotation_by_key('annotate_output')
+                #print annotate_output
+                if annotate_output:
+                    obj.annotate_output = True
                 
             reg = modules.module_registry.get_module_registry()
             for f in module.functions:

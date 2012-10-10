@@ -71,10 +71,10 @@ def is_running_gui():
     app = get_vistrails_application()
     return app.is_running_gui()
 
-def init(options_dict={}):
+def init(options_dict={}, args=None):
     app = VistrailsCoreApplication()
     set_vistrails_application(app)
-    app.init(options_dict)
+    app.init(optionsDict=options_dict, args=args)
     return app
 
 class VistrailsApplicationInterface(object):
@@ -82,7 +82,7 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setupOptions(self):
+    def setupOptions(self, args=None):
         """ setupOptions() -> None
         Check and store all command-line arguments
         
@@ -172,7 +172,10 @@ The builder window can be accessed by a spreadsheet menu option.")
         add ("-g", "--noSingleInstance", action="store_true",
              help=("Run VisTrails without the single instance restriction."))
         
-        command_line.CommandLineParser.parse_options()
+        if args != None:
+            command_line.CommandLineParser.parse_options(args=args)
+        else:
+            command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
         """ printVersion() -> None
@@ -264,7 +267,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         if get('noSingleInstance')!=None:
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         self.input = command_line.CommandLineParser().positional_arguments()
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -278,7 +281,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.configuration = core.configuration.default()
         
         self.keyChain = keychain.KeyChain()
-        self.setupOptions()
+        self.setupOptions(args)
         
         # self.temp_configuration is the configuration that will be updated 
         # with the command line and custom options dictionary. 
@@ -522,8 +525,8 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._controller = None
         self._vistrail = None
 
-    def init(self, optionsDict=None):
-        VistrailsApplicationInterface.init(self, optionsDict)
+    def init(self, optionsDict=None, args=None):
+        VistrailsApplicationInterface.init(self, optionsDict=optionsDict, args=args)
         self.vistrailsStartup.init()
 
     def is_running_gui(self):
