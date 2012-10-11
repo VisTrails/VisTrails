@@ -317,6 +317,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             suspended[obj.id] = obj.suspended
             for callable_ in module_suspended_hook:
                 callable_(obj.id)
+                
+        def set_computing(obj):
+            i = get_remapped_id(obj.id)
+            view.set_module_computing(i)
 
         # views work on local ids
         def begin_compute(obj):
@@ -373,6 +377,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             view.set_module_progress(i, percentage)
             
+        def add_exec(exec_):
+            logger.add_exec(exec_, self.parent_execs)
+            
         logging_obj = InstanceObject(signalSuccess=add_to_executed,
                                      signalSuspended=add_to_suspended,
                                      begin_update=begin_update,
@@ -380,6 +387,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                      update_progress=update_progress,
                                      end_update=end_update,
                                      update_cached=update_cached,
+                                     set_computing=set_computing,
+                                     add_exec = add_exec,
                                      annotate=annotate,
                                      log=logger)
 
