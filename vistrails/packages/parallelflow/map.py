@@ -6,6 +6,7 @@ from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
 from core.modules.basic_modules import NotCacheable, Constant
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.annotation import Annotation
+from core.vistrail.group import Group
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.db.io import serialize
@@ -76,7 +77,7 @@ def execute_wf(wf, output_ports):
     
     # getting the outputs
     module_outputs = []
-    annotations = module_log._get_annotations()
+    annotations = module_log.annotations
     for annotation in annotations:
         if annotation.key == 'output':
             module_outputs = annotation.value
@@ -178,10 +179,28 @@ class Map(Module):
                 
                 pipeline_db_module = pipeline_modules[module_id]
                 
+                # transforming a subworkflow in a group
+                if pipeline_db_module.is_abstraction():
+                    group = Group(id=pipeline_db_module.id,
+                                  cache=pipeline_db_module.cache,
+                                  location=pipeline_db_module.location,
+                                  functions=pipeline_db_module.functions,
+                                  annotations=pipeline_db_module.annotations)
+                    
+                    source_port_specs = pipeline_db_module.sourcePorts()
+                    dest_port_specs = pipeline_db_module.destinationPorts()
+                    for source_port_spec in source_port_specs:
+                        group.add_port_spec(source_port_spec)
+                    for dest_port_spec in dest_port_specs:
+                        group.add_port_spec(dest_port_spec)
+                    
+                    group.pipeline = pipeline_db_module.pipeline
+                    pipeline_db_module = group
+                
                 # getting highest id between functions to guarantee unique ids
                 # TODO: can get current IdScope here?
                 high_id = 0
-                module_functions = pipeline_db_module._get_functions()
+                module_functions = pipeline_db_module.functions
                 for function in module_functions:
                     if int(function.id) > high_id:
                         high_id = int(function.id)
@@ -309,7 +328,7 @@ class Map(Module):
                 # something is wrong...
                 continue
             
-            exec_annotations = exec_._get_annotations()
+            exec_annotations = exec_.annotations
 #            annotations = []
 #            for i in range(len(exec_annotations)):
 #                if exec_annotations[i].key != 'output':
@@ -317,7 +336,7 @@ class Map(Module):
             
             parallel_annotation = Annotation(key='parallel_execution', value=True)
             annotations = [parallel_annotation] + exec_annotations
-            exec_._set_annotations(annotations)
+            exec_.annotations = annotations
             self.logging.add_exec(exec_)
 
 
