@@ -1,6 +1,7 @@
 import core
 import core.db.action
 import core.application
+import db.versions
 from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
     ModuleConnector, InvalidOutput
 from core.modules.basic_modules import NotCacheable, Constant
@@ -16,6 +17,7 @@ from core.vistrail.controller import VistrailController
 from core.db.io import serialize, unserialize
 from core.log.module_exec import ModuleExec
 from core.log.group_exec import GroupExec
+from core.log.machine import Machine
 from db.domain import IdScope
 
 import os
@@ -72,8 +74,10 @@ def execute_wf(wf, output_ports):
             errors.append(msg)
     
     # execution log
-    module_log = controller.log.db_workflow_execs[0]._db_item_execs[0]
+    module_log = controller.log.workflow_execs[0].item_execs[0]
+    machine = controller.log.machine_list[0]
     xml_log = serialize(module_log)
+    machine_log = serialize(machine)
     
     # getting the outputs
     module_outputs = []
@@ -94,7 +98,7 @@ def execute_wf(wf, output_ports):
                 outputs.append(output[1])
                 break
     
-    return dict(errors=errors, ports=ports, outputs=outputs, xml_log=xml_log)
+    return dict(errors=errors, ports=ports, outputs=outputs, xml_log=xml_log, machine_log=machine_log)
 
 #################################################################################
 ## Map Operator
@@ -180,6 +184,7 @@ class Map(Module):
                 pipeline_db_module = pipeline_modules[module_id]
                 
                 # transforming a subworkflow in a group
+                # TODO: should we also transform inner subworkflows?
                 if pipeline_db_module.is_abstraction():
                     group = Group(id=pipeline_db_module.id,
                                   cache=pipeline_db_module.cache,
@@ -206,6 +211,7 @@ class Map(Module):
                         high_id = int(function.id)
                 
                 # adding function and parameter to module in pipeline
+                # TODO: 'pos' should not be always 0 here
                 id_scope = IdScope(beginId=long(high_id+1))
                 for elementValue, inputPort in izip(element, nameInput):
                     
@@ -328,15 +334,34 @@ class Map(Module):
                 # something is wrong...
                 continue
             
+            # assigning new ids to existing annotations
             exec_annotations = exec_.annotations
-#            annotations = []
-#            for i in range(len(exec_annotations)):
-#                if exec_annotations[i].key != 'output':
-#                    annotations.append(exec_annotations[i])
+            for i in range(len(exec_annotations)):
+                exec_annotations[i].id = self.logging.log.log.id_scope.getNewId(Annotation.vtType)
             
             parallel_annotation = Annotation(key='parallel_execution', value=True)
+            parallel_annotation.id = self.logging.log.log.id_scope.getNewId(Annotation.vtType)
             annotations = [parallel_annotation] + exec_annotations
             exec_.annotations = annotations
+            
+            # before adding the execution log, we need to get the machine information
+            machine = unserialize(map_result[engine]['machine_log'], Machine)
+            machine.id = self.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
+            self.logging.log.log.add_machine(machine)
+            
+            # recursively add machine information to execution items
+            def add_machine_recursive(exec_):
+                for i in range(len(exec_.item_execs)):
+                    if hasattr(exec_.item_execs[i], 'machine_id'):
+                        exec_.item_execs[i].machine_id = machine.id
+                        vt_type = exec_.item_execs[i].vtType
+                        if (vt_type == 'abstraction') or (vt_type == 'group'):
+                            add_machine_resursive(exec_.item_execs[i])
+            
+            exec_.machine_id = machine.id
+            if (vtType == 'abstraction') or (vtType == 'group'):
+                add_machine_recursive(exec_)
+            
             self.logging.add_exec(exec_)
 
 
@@ -351,7 +376,7 @@ class Map(Module):
                 if module.is_group():
                     process_group(module)
 
-        pipeline = Pipeline(version='1.0.3')
+        pipeline = Pipeline(version=db.versions.currentVersion)
 
         if module.is_group():
             process_group(module)
