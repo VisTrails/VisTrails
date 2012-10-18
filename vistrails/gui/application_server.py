@@ -2167,7 +2167,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver.stop = True
         return result
 
-    def setupOptions(self):
+    def setupOptions(self, args=None):
         """ setupOptions() -> None
         Check and store all command-line arguments
 
@@ -2192,7 +2192,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             default=os.path.join(system.vistrails_root_directory(),
                                  'server.cfg'),
             help="config file for server connection options")
-        VistrailsApplicationInterface.setupOptions(self)
+        VistrailsApplicationInterface.setupOptions(self, args)
 
     def readOptions(self):
         """ readOptions() -> None
