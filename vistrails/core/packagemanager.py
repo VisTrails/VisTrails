@@ -481,7 +481,7 @@ Returns true if given package identifier is present."""
                                                  "'%s' (version %s) in %s" % \
                                                      (package.identifier, 
                                                       package.version, 
-                                                      package_codepath))
+                                                      package.codepath))
                 else:
                     debug.warning('Duplicate package identifier: %s' % \
                                       package.identifier)
