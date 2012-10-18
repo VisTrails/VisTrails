@@ -1105,13 +1105,12 @@ class RequestHandler(object):
 
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                controller.set_vistrail(v, locator, abstractions, 
-                                        thumbnails, mashups)
-                controller.change_selected_version(version)
-
                 from gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 controller.current_pipeline_view = pipeline_view.scene()
+                controller.set_vistrail(v, locator, abstractions, 
+                                        thumbnails, mashups)
+                controller.change_selected_version(version)
                 p = controller.current_pipeline
                 pipeline_view.scene().setupScene(p)
                 pipeline_view.scene().saveToPDF(filename)
