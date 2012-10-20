@@ -103,7 +103,7 @@ def execute_wf(wf, output_ports):
 #################################################################################
 ## Map Operator
 
-class Map(Module):
+class Map(Module, NotCacheable):
     """The Map Module executes a map operator in parallel, using
     IPython engines."""
     
@@ -458,18 +458,6 @@ class Map(Module):
         self.updateFunctionPort()
 
         self.setResult('Result', self.result)
-
-#    def setInitialValue(self):
-#        """This method defines the initial value of the Fold structure. It must
-#        be defined before the operation() method."""
-#        
-#        pass
-#
-#    def operation(self):
-#        """This method defines the interaction between the current element of
-#        the list and the previous iterations' result."""
-#
-#        pass
 
 #################################################################################
 
