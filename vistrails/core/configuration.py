@@ -216,6 +216,7 @@ def default():
         'spreadsheetDumpCells': (None, str),
         'spreadsheetDumpPDF': False,
         'staticRegistry': (None, str),
+        'temporaryDirectory': (None, str),
         'thumbs': default_thumbs(),
         'upgradeOn': True,
         'upgradeDelay': True,
