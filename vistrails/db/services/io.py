@@ -56,10 +56,11 @@ import copy
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
-    DBRegistry, DBWorkflowExec, DBOpmGraph
+    DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvModel
 import db.services.abstraction
 import db.services.log
 import db.services.opm
+import db.services.prov
 import db.services.registry
 import db.services.workflow
 import db.services.vistrail
@@ -474,6 +475,8 @@ def save_to_xml(obj, filename, version=None):
         return save_registry_to_xml(obj, filename, version)
     elif obj.vtType == DBOpmGraph.vtType:
         return save_opm_to_xml(obj, filename, version)
+    elif obj.vtType == DBProvModel.vtType:
+        return save_prov_to_xml(obj, filename, version)
     else:
         raise VistrailsDBException("cannot save object of type "
                                    "'%s' to xml" % type)
@@ -1230,6 +1233,25 @@ def save_opm_to_xml(opm_graph, filename, version=None):
                                            opm_graph.registry)
     daoList.save_to_xml(opm_graph, filename, tags, version)
     return opm_graph
+
+##############################################################################
+# PROV I/O
+
+def save_prov_to_xml(prov_model, filename, version=None):    
+    # FIXME, we're using workflow, version, and log here...
+    # which aren't in DBProvModel...
+    if version is None:
+        version = currentVersion
+    daoList = getVersionDAO(version)
+    tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
+            'xmlns:dcterms': 'http://purl.org/dc/terms/',
+            }
+    prov_model = db.services.prov.create_prov(prov_model.workflow, 
+                                              prov_model.version,
+                                              prov_model.log,
+                                              prov_model.registry)
+    daoList.save_to_xml(prov_model, filename, tags, version)
+    return prov_model
 
 ##############################################################################
 # Registry I/O

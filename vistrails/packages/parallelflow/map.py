@@ -241,10 +241,9 @@ class Map(Module, NotCacheable):
             break
                 
         # IPython stuff
-        # TODO: user choose config file from somewhere else
         try:
-            rc = Client(os.path.join(os.getenv('HOME'),
-                                     '.ipython/profile_default/security/ipcontroller-client.json'))
+            from init import profile_dir
+            rc = Client(profile_dir + '/security/ipcontroller-client.json')
             engines = rc.ids
             dview = rc[:]
         except Exception, error:

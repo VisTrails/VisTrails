@@ -735,6 +735,54 @@ class DBPortXMLDAOBase(XMLDAO):
         
         return node
 
+class DBProvActivitiesXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'activities':
+            return None
+        
+        prov_activitys = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Activity':
+                _data = self.getDao('prov_activity').fromXML(child)
+                prov_activitys.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvActivities(prov_activitys=prov_activitys)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_activities, node=None):
+        if node is None:
+            node = ElementTree.Element('activities')
+        
+        # set elements
+        prov_activitys = prov_activities.db_prov_activitys
+        for prov_activity in prov_activitys:
+            childNode = ElementTree.SubElement(node, 'prov:Activity')
+            self.getDao('prov_activity').toXML(prov_activity, childNode)
+        
+        return node
+
 class DBOpmArtifactXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -1058,6 +1106,47 @@ class DBOpmProcessIdCauseXMLDAOBase(XMLDAO):
         
         # set attributes
         node.set('id',self.convertToStr(opm_process_id_cause.db_id, 'str'))
+        
+        return node
+
+class DBProvGenerationXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:Generation':
+            return None
+        
+        # read attributes
+        data = node.get('vt:id', None)
+        id = self.convertFromStr(data, 'str')
+        data = node.get('prov:hadRole', None)
+        prov_hadRole = self.convertFromStr(data, 'str')
+        data = node.get('prov:Activity', None)
+        prov_activity = self.convertFromStr(data, 'str')
+        
+        obj = DBProvGeneration(id=id,
+                               prov_hadRole=prov_hadRole,
+                               prov_activity=prov_activity)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_generation, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:Generation')
+        
+        # set attributes
+        node.set('vt:id',self.convertToStr(prov_generation.db_id, 'str'))
+        node.set('prov:hadRole',self.convertToStr(prov_generation.db_prov_hadRole, 'str'))
+        node.set('prov:Activity',self.convertToStr(prov_generation.db_prov_activity, 'str'))
         
         return node
 
@@ -1640,6 +1729,99 @@ class DBParameterXMLDAOBase(XMLDAO):
         
         return node
 
+class DBProvModelXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'provModel':
+            return None
+        
+        entities = None
+        activities = None
+        agents = None
+        usages = None
+        generations = None
+        associations = None
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'entities':
+                _data = self.getDao('prov_entities').fromXML(child)
+                entities = _data
+            elif child_tag == 'activities':
+                _data = self.getDao('prov_activities').fromXML(child)
+                activities = _data
+            elif child_tag == 'agents':
+                _data = self.getDao('prov_agents').fromXML(child)
+                agents = _data
+            elif child_tag == 'usages':
+                _data = self.getDao('prov_usages').fromXML(child)
+                usages = _data
+            elif child_tag == 'generations':
+                _data = self.getDao('prov_generations').fromXML(child)
+                generations = _data
+            elif child_tag == 'associations':
+                _data = self.getDao('prov_associations').fromXML(child)
+                associations = _data
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvModel(entities=entities,
+                          activities=activities,
+                          agents=agents,
+                          usages=usages,
+                          generations=generations,
+                          associations=associations)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_model, node=None):
+        if node is None:
+            node = ElementTree.Element('provModel')
+        
+        # set elements
+        entities = prov_model.db_entities
+        if entities is not None:
+            childNode = ElementTree.SubElement(node, 'entities')
+            self.getDao('prov_entities').toXML(entities, childNode)
+        activities = prov_model.db_activities
+        if activities is not None:
+            childNode = ElementTree.SubElement(node, 'activities')
+            self.getDao('prov_activities').toXML(activities, childNode)
+        agents = prov_model.db_agents
+        if agents is not None:
+            childNode = ElementTree.SubElement(node, 'agents')
+            self.getDao('prov_agents').toXML(agents, childNode)
+        usages = prov_model.db_usages
+        if usages is not None:
+            childNode = ElementTree.SubElement(node, 'usages')
+            self.getDao('prov_usages').toXML(usages, childNode)
+        generations = prov_model.db_generations
+        if generations is not None:
+            childNode = ElementTree.SubElement(node, 'generations')
+            self.getDao('prov_generations').toXML(generations, childNode)
+        associations = prov_model.db_associations
+        if associations is not None:
+            childNode = ElementTree.SubElement(node, 'associations')
+            self.getDao('prov_associations').toXML(associations, childNode)
+        
+        return node
+
 class DBOpmUsedXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -2126,6 +2308,325 @@ class DBOpmArtifactIdCauseXMLDAOBase(XMLDAO):
         
         return node
 
+class DBProvAgentXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:Agent':
+            return None
+        
+        # read attributes
+        data = node.get('vt:id', None)
+        id = self.convertFromStr(data, 'str')
+        data = node.get('prov:type', None)
+        prov_type = self.convertFromStr(data, 'str')
+        data = node.get('prov:label', None)
+        prov_label = self.convertFromStr(data, 'str')
+        
+        obj = DBProvAgent(id=id,
+                          prov_type=prov_type,
+                          prov_label=prov_label)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_agent, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:Agent')
+        
+        # set attributes
+        node.set('vt:id',self.convertToStr(prov_agent.db_id, 'str'))
+        node.set('prov:type',self.convertToStr(prov_agent.db_prov_type, 'str'))
+        node.set('prov:label',self.convertToStr(prov_agent.db_prov_label, 'str'))
+        
+        return node
+
+class DBProvActivityXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:Activity':
+            return None
+        
+        # read attributes
+        data = node.get('vt:id', None)
+        id = self.convertFromStr(data, 'str')
+        data = node.get('prov:startedAtTime', None)
+        startTime = self.convertFromStr(data, 'str')
+        data = node.get('prov:endedAtTime', None)
+        endTime = self.convertFromStr(data, 'str')
+        data = node.get('vt:type', None)
+        vt_type = self.convertFromStr(data, 'str')
+        data = node.get('vt:cached', None)
+        vt_cached = self.convertFromStr(data, 'str')
+        data = node.get('vt:completed', None)
+        vt_completed = self.convertFromStr(data, 'str')
+        data = node.get('vt:error', None)
+        vt_error = self.convertFromStr(data, 'str')
+        data = node.get('dcterms:isPartOf', None)
+        isPartOf = self.convertFromStr(data, 'str')
+        
+        usages = []
+        associations = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Usage':
+                _data = self.getDao('prov_usage').fromXML(child)
+                usages.append(_data)
+            elif child_tag == 'prov:Association':
+                _data = self.getDao('prov_association').fromXML(child)
+                associations.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvActivity(id=id,
+                             startTime=startTime,
+                             endTime=endTime,
+                             vt_type=vt_type,
+                             vt_cached=vt_cached,
+                             vt_completed=vt_completed,
+                             vt_error=vt_error,
+                             isPartOf=isPartOf,
+                             usages=usages,
+                             associations=associations)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_activity, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:Activity')
+        
+        # set attributes
+        node.set('vt:id',self.convertToStr(prov_activity.db_id, 'str'))
+        node.set('prov:startedAtTime',self.convertToStr(prov_activity.db_startTime, 'str'))
+        node.set('prov:endedAtTime',self.convertToStr(prov_activity.db_endTime, 'str'))
+        node.set('vt:type',self.convertToStr(prov_activity.db_vt_type, 'str'))
+        node.set('vt:cached',self.convertToStr(prov_activity.db_vt_cached, 'str'))
+        node.set('vt:completed',self.convertToStr(prov_activity.db_vt_completed, 'str'))
+        node.set('vt:error',self.convertToStr(prov_activity.db_vt_error, 'str'))
+        node.set('dcterms:isPartOf',self.convertToStr(prov_activity.db_isPartOf, 'str'))
+        
+        # set elements
+        usages = prov_activity.db_usages
+        for usage in usages:
+            childNode = ElementTree.SubElement(node, 'prov:Usage')
+            self.getDao('prov_usage').toXML(usage, childNode)
+        associations = prov_activity.db_associations
+        for association in associations:
+            childNode = ElementTree.SubElement(node, 'prov:Association')
+            self.getDao('prov_association').toXML(association, childNode)
+        
+        return node
+
+class DBProvUsagesXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'usages':
+            return None
+        
+        prov_usages = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Usage':
+                _data = self.getDao('prov_usage').fromXML(child)
+                prov_usages.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvUsages(prov_usages=prov_usages)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_usages, node=None):
+        if node is None:
+            node = ElementTree.Element('usages')
+        
+        # set elements
+        prov_usages = prov_usages.db_prov_usages
+        for prov_usage in prov_usages:
+            childNode = ElementTree.SubElement(node, 'prov:Usage')
+            self.getDao('prov_usage').toXML(prov_usage, childNode)
+        
+        return node
+
+class DBProvEntitiesXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'entities':
+            return None
+        
+        prov_entitys = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Entity':
+                _data = self.getDao('prov_entity').fromXML(child)
+                prov_entitys.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvEntities(prov_entitys=prov_entitys)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_entities, node=None):
+        if node is None:
+            node = ElementTree.Element('entities')
+        
+        # set elements
+        prov_entitys = prov_entities.db_prov_entitys
+        for prov_entity in prov_entitys:
+            childNode = ElementTree.SubElement(node, 'prov:Entity')
+            self.getDao('prov_entity').toXML(prov_entity, childNode)
+        
+        return node
+
+class DBProvGenerationsXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'generations':
+            return None
+        
+        prov_generations = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Generation':
+                _data = self.getDao('prov_generation').fromXML(child)
+                prov_generations.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvGenerations(prov_generations=prov_generations)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_generations, node=None):
+        if node is None:
+            node = ElementTree.Element('generations')
+        
+        # set elements
+        prov_generations = prov_generations.db_prov_generations
+        for prov_generation in prov_generations:
+            childNode = ElementTree.SubElement(node, 'prov:Generation')
+            self.getDao('prov_generation').toXML(prov_generation, childNode)
+        
+        return node
+
+class DBProvUsageXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:Usage':
+            return None
+        
+        # read attributes
+        data = node.get('vt:id', None)
+        id = self.convertFromStr(data, 'str')
+        data = node.get('prov:hadRole', None)
+        prov_hadRole = self.convertFromStr(data, 'str')
+        data = node.get('prov:Entity', None)
+        prov_entity = self.convertFromStr(data, 'str')
+        
+        obj = DBProvUsage(id=id,
+                          prov_hadRole=prov_hadRole,
+                          prov_entity=prov_entity)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_usage, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:Usage')
+        
+        # set attributes
+        node.set('vt:id',self.convertToStr(prov_usage.db_id, 'str'))
+        node.set('prov:hadRole',self.convertToStr(prov_usage.db_prov_hadRole, 'str'))
+        node.set('prov:Entity',self.convertToStr(prov_usage.db_prov_entity, 'str'))
+        
+        return node
+
 class DBOpmArtifactValueXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -2414,6 +2915,154 @@ class DBOpmAccountXMLDAOBase(XMLDAO):
         value = opm_account.db_value
         childNode = ElementTree.SubElement(node, 'value')
         childNode.text = self.convertToStr(value, 'str')
+        
+        return node
+
+class DBProvEntityXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:Entity':
+            return None
+        
+        # read attributes
+        data = node.get('vt:id', None)
+        id = self.convertFromStr(data, 'str')
+        data = node.get('prov:type', None)
+        prov_type = self.convertFromStr(data, 'str')
+        data = node.get('prov:label', None)
+        prov_label = self.convertFromStr(data, 'str')
+        data = node.get('prov:value', None)
+        prov_value = self.convertFromStr(data, 'str')
+        data = node.get('vt:type', None)
+        vt_type = self.convertFromStr(data, 'str')
+        data = node.get('vt:desc', None)
+        vt_desc = self.convertFromStr(data, 'str')
+        data = node.get('vt:package', None)
+        vt_package = self.convertFromStr(data, 'str')
+        data = node.get('vt:version', None)
+        vt_version = self.convertFromStr(data, 'str')
+        data = node.get('vt:cache', None)
+        vt_cache = self.convertFromStr(data, 'str')
+        data = node.get('vt:location_x', None)
+        vt_location_x = self.convertFromStr(data, 'str')
+        data = node.get('vt:location_y', None)
+        vt_location_y = self.convertFromStr(data, 'str')
+        data = node.get('dcterms:isPartOf', None)
+        isPartOf = self.convertFromStr(data, 'str')
+        
+        prov_generations = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Generation':
+                _data = self.getDao('prov_generation').fromXML(child)
+                prov_generations.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvEntity(id=id,
+                           prov_type=prov_type,
+                           prov_label=prov_label,
+                           prov_value=prov_value,
+                           vt_type=vt_type,
+                           vt_desc=vt_desc,
+                           vt_package=vt_package,
+                           vt_version=vt_version,
+                           vt_cache=vt_cache,
+                           vt_location_x=vt_location_x,
+                           vt_location_y=vt_location_y,
+                           isPartOf=isPartOf,
+                           prov_generations=prov_generations)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_entity, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:Entity')
+        
+        # set attributes
+        node.set('vt:id',self.convertToStr(prov_entity.db_id, 'str'))
+        node.set('prov:type',self.convertToStr(prov_entity.db_prov_type, 'str'))
+        node.set('prov:label',self.convertToStr(prov_entity.db_prov_label, 'str'))
+        node.set('prov:value',self.convertToStr(prov_entity.db_prov_value, 'str'))
+        node.set('vt:type',self.convertToStr(prov_entity.db_vt_type, 'str'))
+        node.set('vt:desc',self.convertToStr(prov_entity.db_vt_desc, 'str'))
+        node.set('vt:package',self.convertToStr(prov_entity.db_vt_package, 'str'))
+        node.set('vt:version',self.convertToStr(prov_entity.db_vt_version, 'str'))
+        node.set('vt:cache',self.convertToStr(prov_entity.db_vt_cache, 'str'))
+        node.set('vt:location_x',self.convertToStr(prov_entity.db_vt_location_x, 'str'))
+        node.set('vt:location_y',self.convertToStr(prov_entity.db_vt_location_y, 'str'))
+        node.set('dcterms:isPartOf',self.convertToStr(prov_entity.db_isPartOf, 'str'))
+        
+        # set elements
+        prov_generations = prov_entity.db_prov_generations
+        for prov_generation in prov_generations:
+            childNode = ElementTree.SubElement(node, 'prov:Generation')
+            self.getDao('prov_generation').toXML(prov_generation, childNode)
+        
+        return node
+
+class DBProvAssociationsXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'associations':
+            return None
+        
+        prov_associations = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Association':
+                _data = self.getDao('prov_association').fromXML(child)
+                prov_associations.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvAssociations(prov_associations=prov_associations)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_associations, node=None):
+        if node is None:
+            node = ElementTree.Element('associations')
+        
+        # set elements
+        prov_associations = prov_associations.db_prov_associations
+        for prov_association in prov_associations:
+            childNode = ElementTree.SubElement(node, 'prov:Association')
+            self.getDao('prov_association').toXML(prov_association, childNode)
         
         return node
 
@@ -3333,6 +3982,54 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         
         return node
 
+class DBProvAgentsXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'agents':
+            return None
+        
+        prov_agents = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'prov:Agent':
+                _data = self.getDao('prov_agent').fromXML(child)
+                prov_agents.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBProvAgents(prov_agents=prov_agents)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_agents, node=None):
+        if node is None:
+            node = ElementTree.Element('agents')
+        
+        # set elements
+        prov_agents = prov_agents.db_prov_agents
+        for prov_agent in prov_agents:
+            childNode = ElementTree.SubElement(node, 'prov:Agent')
+            self.getDao('prov_agent').toXML(prov_agent, childNode)
+        
+        return node
+
 class DBConnectionXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -3806,6 +4503,51 @@ class DBDeleteXMLDAOBase(XMLDAO):
         
         return node
 
+class DBProvAssociationXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:Association':
+            return None
+        
+        # read attributes
+        data = node.get('vt:id', None)
+        id = self.convertFromStr(data, 'str')
+        data = node.get('prov:hadRole', None)
+        prov_hadRole = self.convertFromStr(data, 'str')
+        data = node.get('prov:hadPlan', None)
+        prov_hadPlan = self.convertFromStr(data, 'str')
+        data = node.get('prov:Agent', None)
+        prov_agent = self.convertFromStr(data, 'str')
+        
+        obj = DBProvAssociation(id=id,
+                                prov_hadRole=prov_hadRole,
+                                prov_hadPlan=prov_hadPlan,
+                                prov_agent=prov_agent)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, prov_association, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:Association')
+        
+        # set attributes
+        node.set('vt:id',self.convertToStr(prov_association.db_id, 'str'))
+        node.set('prov:hadRole',self.convertToStr(prov_association.db_prov_hadRole, 'str'))
+        node.set('prov:hadPlan',self.convertToStr(prov_association.db_prov_hadPlan, 'str'))
+        node.set('prov:Agent',self.convertToStr(prov_association.db_prov_agent, 'str'))
+        
+        return node
+
 class DBVistrailXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -4044,6 +4786,8 @@ class XMLDAOListBase(dict):
             self['opm_account_id'] = DBOpmAccountIdXMLDAOBase(self)
         if 'port' not in self:
             self['port'] = DBPortXMLDAOBase(self)
+        if 'prov_activities' not in self:
+            self['prov_activities'] = DBProvActivitiesXMLDAOBase(self)
         if 'opm_artifact' not in self:
             self['opm_artifact'] = DBOpmArtifactXMLDAOBase(self)
         if 'group' not in self:
@@ -4054,6 +4798,8 @@ class XMLDAOListBase(dict):
             self['opm_agents'] = DBOpmAgentsXMLDAOBase(self)
         if 'opm_process_id_cause' not in self:
             self['opm_process_id_cause'] = DBOpmProcessIdCauseXMLDAOBase(self)
+        if 'prov_generation' not in self:
+            self['prov_generation'] = DBProvGenerationXMLDAOBase(self)
         if 'portSpecItem' not in self:
             self['portSpecItem'] = DBPortSpecItemXMLDAOBase(self)
         if 'machine' not in self:
@@ -4072,6 +4818,8 @@ class XMLDAOListBase(dict):
             self['opm_dependencies'] = DBOpmDependenciesXMLDAOBase(self)
         if 'parameter' not in self:
             self['parameter'] = DBParameterXMLDAOBase(self)
+        if 'prov_model' not in self:
+            self['prov_model'] = DBProvModelXMLDAOBase(self)
         if 'opm_used' not in self:
             self['opm_used'] = DBOpmUsedXMLDAOBase(self)
         if 'plugin_data' not in self:
@@ -4086,6 +4834,18 @@ class XMLDAOListBase(dict):
             self['workflow'] = DBWorkflowXMLDAOBase(self)
         if 'opm_artifact_id_cause' not in self:
             self['opm_artifact_id_cause'] = DBOpmArtifactIdCauseXMLDAOBase(self)
+        if 'prov_agent' not in self:
+            self['prov_agent'] = DBProvAgentXMLDAOBase(self)
+        if 'prov_activity' not in self:
+            self['prov_activity'] = DBProvActivityXMLDAOBase(self)
+        if 'prov_usages' not in self:
+            self['prov_usages'] = DBProvUsagesXMLDAOBase(self)
+        if 'prov_entities' not in self:
+            self['prov_entities'] = DBProvEntitiesXMLDAOBase(self)
+        if 'prov_generations' not in self:
+            self['prov_generations'] = DBProvGenerationsXMLDAOBase(self)
+        if 'prov_usage' not in self:
+            self['prov_usage'] = DBProvUsageXMLDAOBase(self)
         if 'opm_artifact_value' not in self:
             self['opm_artifact_value'] = DBOpmArtifactValueXMLDAOBase(self)
         if 'opm_artifact_id_effect' not in self:
@@ -4096,6 +4856,10 @@ class XMLDAOListBase(dict):
             self['registry'] = DBRegistryXMLDAOBase(self)
         if 'opm_account' not in self:
             self['opm_account'] = DBOpmAccountXMLDAOBase(self)
+        if 'prov_entity' not in self:
+            self['prov_entity'] = DBProvEntityXMLDAOBase(self)
+        if 'prov_associations' not in self:
+            self['prov_associations'] = DBProvAssociationsXMLDAOBase(self)
         if 'annotation' not in self:
             self['annotation'] = DBAnnotationXMLDAOBase(self)
         if 'change' not in self:
@@ -4118,6 +4882,8 @@ class XMLDAOListBase(dict):
             self['parameter_exploration'] = DBParameterExplorationXMLDAOBase(self)
         if 'loop_exec' not in self:
             self['loop_exec'] = DBLoopExecXMLDAOBase(self)
+        if 'prov_agents' not in self:
+            self['prov_agents'] = DBProvAgentsXMLDAOBase(self)
         if 'connection' not in self:
             self['connection'] = DBConnectionXMLDAOBase(self)
         if 'opm_process' not in self:
@@ -4132,6 +4898,8 @@ class XMLDAOListBase(dict):
             self['opm_agent'] = DBOpmAgentXMLDAOBase(self)
         if 'delete' not in self:
             self['delete'] = DBDeleteXMLDAOBase(self)
+        if 'prov_association' not in self:
+            self['prov_association'] = DBProvAssociationXMLDAOBase(self)
         if 'vistrail' not in self:
             self['vistrail'] = DBVistrailXMLDAOBase(self)
         if 'module_exec' not in self:

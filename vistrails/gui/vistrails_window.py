@@ -566,11 +566,17 @@ class QVistrailViewWindow(QBaseViewWindow):
                                                        DBLocator)}),
                        "---",
                        ('saveOpm', "OPM XML...",
-                        {'statusTip': "Save proveannce according to the " \
+                        {'statusTip': "Save provenance according to the " \
                              "Open Provenance Model in XML",
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_view,
                                                        'save_opm')}),
+                       ('saveProv', "PROV Model...",
+                        {'statusTip': "Saves provenance according to the " \
+                             "PROV Model in XML",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_prov')}),
                        ('saveLog', "Log to XML...",
                         {'statusTip': "Save the execution log to a file",
                          'enabled': False,
@@ -1799,10 +1805,25 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         if not self.quit():
             e.ignore()
-
+            
+    def stopIPythonController(self):
+        """ stopIPythonController() -> None
+        Stops the IPython controller, in case it is still running.
+        
+        """
+        try:
+            from packages.parallelflow.init import ipythonSet
+            if ipythonSet:
+                ipythonSet.stop_engines()
+                ipythonSet.stop_controller()
+        except:
+            pass
+        
     def quit(self):
         self._is_quitting = True
         if self.close_all_vistrails():
+            # stopping IPython controller, in case there is one running
+            self.stopIPythonController()
             QtCore.QCoreApplication.quit()
             # In case the quit() failed (when Qt doesn't have the main
             # event loop), we have to return True still

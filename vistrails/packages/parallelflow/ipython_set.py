@@ -4,9 +4,12 @@ import time
 import logging
 from IPython.config.loader import Config
 from IPython.parallel.apps.launcher import LocalControllerLauncher,\
-                                           LocalEngineLauncher
+                                           LocalEngineLauncher, \
+                                           SSHEngineSetLauncher
                                            
 from PyQt4 import QtCore, QtGui
+
+local_profile_dir = os.path.join(os.getenv('HOME'), '.ipython/profile_default')
 
 class IPythonSet:
     """
@@ -40,6 +43,8 @@ class IPythonSet:
         
         # creating and starting the controller
         self.create_controller()
+        
+        print "Controller started!"
 
 
     def create_controller(self):
@@ -50,8 +55,7 @@ class IPythonSet:
         if self.controller_type == 'local':
             # IPython information
             self.config = Config(ProfileDir={})
-            self.profile_dir = os.path.join(os.getenv('HOME'),
-                                            '.ipython/profile_default')
+            self.profile_dir = local_profile_dir
             
             # controller
             self.controller = LocalControllerLauncher(config=self.config,
@@ -70,6 +74,8 @@ class IPythonSet:
         self.controller.stop()
         self.create_controller()
         
+        print "Controller restarted!"
+        
         
     def stop_controller(self):
         """
@@ -77,6 +83,8 @@ class IPythonSet:
         """
         
         self.controller.stop()
+        
+        print "Controller stopped!"
         
         
     def create_engine(self):
@@ -116,6 +124,8 @@ class IPythonSet:
             
         self.number_engines += n
         
+        print "Engines created!"
+        
         
     def restart_engines(self):
         """
@@ -128,13 +138,18 @@ class IPythonSet:
         for i in range(self.number_engines):
             self.create_engine()
             time.sleep(1)
+            
+        print "Engines restarted!"
         
     def stop_engines(self):
         """
         Stops the engines of the IPython set.
+        There should not be an error if there are no engines running.
         """
         
         [e.stop() for e in self.engines]
+        
+        print "Engines stopped!"
         
 
 class QWarningDialog(QtGui.QDialog):
