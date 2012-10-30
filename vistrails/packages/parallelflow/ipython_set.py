@@ -2,10 +2,11 @@ import os
 import sys
 import time
 import logging
+import socket
 from IPython.config.loader import Config
 from IPython.parallel.apps.launcher import LocalControllerLauncher,\
                                            LocalEngineLauncher, \
-                                           SSHEngineSetLauncher
+                                           SSHEngineLauncher
                                            
 from PyQt4 import QtCore, QtGui
 
@@ -19,10 +20,12 @@ class IPythonSet:
     using the gui.
     """
     
-    def __init__(self, controller_type='local'):
+    def __init__(self, ip, controller_type='local'):
         """
         Init method for IPythonSet.
-        'controller_type' --> local, pbs, mpi, lfs 
+        'ip'              --> ip where engines will be started (external interface
+                              where the controller will listen for connections)
+        'controller_type' --> local, ssh 
         """
         
         # controller and set of engines
@@ -31,6 +34,8 @@ class IPythonSet:
         self.engines = []
         self.number_engines = 0
         self.engine_type = None
+        self.ip = ip
+        self.hostname = socket.gethostbyaddr(ip)[0]
         
         # IPython information
         self.config = None
@@ -58,12 +63,13 @@ class IPythonSet:
             self.profile_dir = local_profile_dir
             
             # controller
-            self.controller = LocalControllerLauncher(config=self.config,
+            self.controller = LocalControllerLauncher(ip=self.ip,
+                                                      config=self.config,
                                                       log=self.logger,
                                                       profile_dir=self.profile_dir)
             self.controller.start()
         else:
-            # TODO: deal with other cases
+            # TODO: Do we need controllers that are not local?
             pass
         
     def restart_controller(self):
@@ -91,14 +97,19 @@ class IPythonSet:
         """
         Creates and starts an engine.
         """
-        
+
         e = None
         if self.engine_type == 'local':
             e = LocalEngineLauncher(config=self.config,
                                     log=self.logger,
                                     profile_dir=self.profile_dir)
+        elif self.engine_type == 'ssh':
+            e = SSHEngineLauncher(config=self.config,
+                                  log=self.logger,
+                                  profile_dir=self.profile_dir,
+                                  hostname=self.hostname)
         else:
-            # TODO: deal with other cases
+            #TODO: deal with other cases
             pass
         
         self.engines.append(e)
@@ -108,7 +119,8 @@ class IPythonSet:
     def add_engines(self, n, engine_type='local'):
         """
         Adds engines to the IPython set.
-        'engine_type' --> local, pbs, mpi, lfs
+        'n'           --> number of engines to be started
+        'engine_type' --> local, ssh
         """
         
         if self.engine_type:
@@ -120,7 +132,7 @@ class IPythonSet:
             
         for i in range(n):
             self.create_engine()
-            time.sleep(1)
+        time.sleep(2)
             
         self.number_engines += n
         
@@ -137,7 +149,7 @@ class IPythonSet:
         
         for i in range(self.number_engines):
             self.create_engine()
-            time.sleep(1)
+        time.sleep(2)
             
         print "Engines restarted!"
         
@@ -184,20 +196,20 @@ class QWarningDialog(QtGui.QDialog):
     def is_cancel(self):
         return self.reject
     
-class QAddEnginesDialog(QtGui.QDialog):
+class QuestionDialog(QtGui.QDialog):
     """
-    Gets the number of engines to be added.
+    A dialog to get information from the user.
     """
     
-    def __init__(self, parent=None):
+    def __init__(self, title, label, default, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.setModal(True)
-        self.setWindowTitle("How many engines?")
+        self.setWindowTitle(title)
         self.setLayout(QtGui.QVBoxLayout())
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel("Number of Engines:"))
+        hbox.addWidget(QtGui.QLabel(label))
         self.line_edit = QtGui.QLineEdit()
-        self.line_edit.setText("4")
+        self.line_edit.setText(default)
         hbox.addWidget(self.line_edit)
         self.layout().addLayout(hbox)
 
@@ -211,5 +223,30 @@ class QAddEnginesDialog(QtGui.QDialog):
         self.connect(ok, QtCore.SIGNAL("clicked(bool)"), self.accept)
         self.connect(cancel, QtCore.SIGNAL("clicked(bool)"), self.reject)
 
-    def get_number(self):
+    def get_answer(self):
         return str(self.line_edit.text())
+    
+class QIpDialog(QuestionDialog):
+    """
+    Gets the ip where the engines are located.
+    """
+    
+    def __init__(self, parent=None):
+        QuestionDialog.__init__(self,
+                                title="What is the IP for the engines?",
+                                label="IP where engines are located:",
+                                default="127.0.0.1",
+                                parent=parent)
+    
+class QAddEnginesDialog(QuestionDialog):
+    """
+    Gets the number of engines to be added.
+    """
+    
+    def __init__(self, parent=None):
+        QuestionDialog.__init__(self,
+                                title="How many engines?",
+                                label="Number of Engines:",
+                                default="4",
+                                parent=parent)
+        

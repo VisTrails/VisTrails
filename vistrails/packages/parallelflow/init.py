@@ -2,7 +2,7 @@ from core.modules.vistrails_module import Module
 from core.modules.module_registry import get_module_registry
 from core.modules.basic_modules import String, Variant, List
 
-from ipython_set import IPythonSet, QWarningDialog, QAddEnginesDialog
+from ipython_set import IPythonSet, QWarningDialog, QAddEnginesDialog, QIpDialog
 ipythonSet = None
 profile_dir = None
 
@@ -27,54 +27,65 @@ def start_local_controller():
     global ipythonSet, profile_dir
     
     if not ipythonSet:
-        ipythonSet = IPythonSet()
-        profile_dir = ipythonSet.profile_dir
+        ip_widget = QIpDialog()
+        ip = ""
+        if ip_widget.exec_():
+            ip = ip_widget.get_answer()
+            ipythonSet = IPythonSet(ip)
+            profile_dir = ipythonSet.profile_dir
     else:
         warning_widget = QWarningDialog('A local controller is already running. Would you like to restart it?')
         if warning_widget.exec_():
             if warning_widget.is_ok():
                 ipythonSet.restart_controller()
         
+        
+def add_engines(engine_type):
+    """
+    Adds engines to an IPython set.
+    """
+    global ipythonSet, profile_dir
+    
+    def add_engines_ipython_set(engine_type):
+        n_engines = 0
+        engines_widget = QAddEnginesDialog()
+        if engines_widget.exec_():
+            try:
+                n_engines = int(engines_widget.get_answer())
+            except:
+                 warning_widget = QWarningDialog("Invalid number of engines: '%s'" %engines_widget.get_answer(),
+                                                 button_cancel=False)
+                 warning_widget.exec_()
+            ipythonSet.add_engines(n=n_engines,
+                                   engine_type=engine_type)
+    
+    if not ipythonSet:
+        warning_widget = QWarningDialog('No local controller was found. Would you like to start a local controller and add %s engines?' %engine_type)
+        if warning_widget.exec_():
+            if warning_widget.is_ok():
+                start_local_controller()
+                add_engines_ipython_set(engine_type)
+    else:
+        if (ipythonSet.engine_type != engine_type) and (ipythonSet.engine_type != None):
+            warning_widget = QWarningDialog("Existing engines are of type '%s'." %ipythonSet.engine_type,
+                                            button_cancel=False)
+            warning_widget.exec_()
+        else:
+            add_engines_ipython_set(engine_type)
+            
 
 def add_local_engines():
     """
     Adds local engines in the IPython set.
     """
-    global ipythonSet, profile_dir, type_engines
-    
-    def add_engines():
-        n_engines = 0
-        engines_widget = QAddEnginesDialog()
-        if engines_widget.exec_():
-            try:
-                n_engines = int(engines_widget.get_number())
-            except:
-                 warning_widget = QWarningDialog("Invalid number of engines: '%s'" %engines_widget.get_number(),
-                                                 button_cancel=False)
-                 warning_widget.exec_()
-            ipythonSet.add_engines(n_engines)
-    
-    if not ipythonSet:
-        warning_widget = QWarningDialog('No local controller was found. Would you like to start a local controller and add local engines?')
-        if warning_widget.exec_():
-            if warning_widget.is_ok():
-                ipythonSet = IPythonSet()
-                profile_dir = ipythonSet.profile_dir
-                add_engines()
-    else:
-        if (ipythonSet.engine_type != 'local') and (ipythonSet.engine_type != None):
-            warning_widget = QWarningDialog("Existing engines are of type '%s'." %ipythonSet.engine_type,
-                                            button_cancel=False)
-            warning_widget.exec_()
-        else:
-            add_engines()
+    add_engines('local')
        
        
 def add_ssh_engines():
     """
     Adds SSH engines in the IPython set.
     """
-    pass
+    add_engines('ssh')
 
 
 def restart_controller():
@@ -88,8 +99,7 @@ def restart_controller():
         warning_widget = QWarningDialog('No local controller was found. Would you like to start a local controller?')
         if warning_widget.exec_():
             if warning_widget.is_ok():
-                ipythonSet = IPythonSet()
-                profile_dir = ipythonSet.profile_dir
+                start_local_controller()
     else:
         ipythonSet.restart_controller()
         ipythonSet.restart_engines()
@@ -105,8 +115,7 @@ def restart_engines():
         warning_widget = QWarningDialog('No local controller was found. Would you like to start a local controller and add local engines?')
         if warning_widget.exec_():
             if warning_widget.is_ok():
-                ipythonSet = IPythonSet()
-                profile_dir = ipythonSet.profile_dir
+                start_local_controller()
                 add_local_engines()
     else:
         ipythonSet.restart_engines()
