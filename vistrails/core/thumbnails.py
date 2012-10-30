@@ -145,8 +145,8 @@ class ThumbnailCache(object):
                 del self.elements[elements[i].name]    
                 os.unlink(elements[i].abs_name)
             except os.error, e:
-                debug.warning("Could not remove file %s:"(elements[i].abs_name,
-                                                          str(e)))
+                debug.warning("Could not remove file %s: %s" % \
+                                 (elements[i].abs_name, str(e)))
     def remove(self,key):
         if key in self.elements.keys():
             entry = self.elements[key]
