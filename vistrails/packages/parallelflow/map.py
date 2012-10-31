@@ -14,6 +14,7 @@ from core.db.io import serialize
 from core.vistrail.vistrail import Vistrail
 from core.db.locator import XMLFileLocator
 from core.vistrail.controller import VistrailController
+from core.interpreter.default import get_default_interpreter
 from core.db.io import serialize, unserialize
 from core.log.module_exec import ModuleExec
 from core.log.group_exec import GroupExec
@@ -37,6 +38,10 @@ def execute_wf(wf, output_ports):
     f = open(temp_wf, 'w')
     f.write(wf)
     f.close()
+    
+    # cleaning cache
+    interpreter = get_default_interpreter()
+    interpreter.flush()
 
     # using VisTrails API
     vistrail = Vistrail()
@@ -241,8 +246,11 @@ class Map(Module, NotCacheable):
             break
                 
         # IPython stuff
+        from init import profile_dir, ipythonSet
+        if not ipythonSet:
+            msg = "Exception while loading IPython: No IPython engines detected!"
+            raise ModuleError(self, msg)
         try:
-            from init import profile_dir
             rc = Client(profile_dir + '/security/ipcontroller-client.json')
             engines = rc.ids
             dview = rc[:]
@@ -270,6 +278,7 @@ class Map(Module, NotCacheable):
                 from core.vistrail.pipeline import Pipeline
                 from core.db.locator import XMLFileLocator
                 from core.vistrail.controller import VistrailController
+                from core.interpreter.default import get_default_interpreter
             
             # initializing a VisTrails application
             dview.execute('app = core.application.init(args=[])')
@@ -285,7 +294,7 @@ class Map(Module, NotCacheable):
             map_result = dview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
         except Exception, error:
             msg = "Exception while executing in the IPython engines: '%s'" %str(error)
-            raise ModuleError(module, msg)
+            raise ModuleError(self, msg)
         
         # verifying errors
         errors = []
@@ -295,7 +304,7 @@ class Map(Module, NotCacheable):
                 errors.append(msg)
                 
         if errors:
-            raise ModuleError(module, '\n'.join(errors))
+            raise ModuleError(self, '\n'.join(errors))
         
         # setting success color
         module.logging.signalSuccess(module)
