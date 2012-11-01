@@ -2,6 +2,8 @@ import core
 import core.db.action
 import core.application
 import db.versions
+import core.modules.module_registry
+import core.modules.utils
 from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
     ModuleConnector, InvalidOutput
 from core.modules.basic_modules import NotCacheable, Constant
@@ -24,6 +26,7 @@ from db.domain import IdScope
 import os
 import copy
 import tempfile
+import inspect
 from itertools import izip
 
 from IPython.parallel import Client
@@ -94,16 +97,31 @@ def execute_wf(wf, output_ports):
         
     # storing the output values
     # making sure that the order is the same as in output_ports
+    reg = core.modules.module_registry.get_module_registry()
     ports = []
     outputs = []
+    serializable = []
     for port in output_ports:
         for output in module_outputs:
             if output[0] == port:
-                ports.append(output[0])
-                outputs.append(output[1])
+                # checking if output port needs to be serialized
+                base_classes = inspect.getmro(type(output[1]))
+                if eval('core.modules.vistrails_module.Module') in base_classes:
+                    ports.append(output[0])
+                    outputs.append(output[1].serialize())
+                    serializable.append(reg.get_descriptor(type(output[1])).sigstring)
+                else:
+                    ports.append(output[0])
+                    outputs.append(output[1])
+                    serializable.append(None)
                 break
     
-    return dict(errors=errors, ports=ports, outputs=outputs, xml_log=xml_log, machine_log=machine_log)
+    return dict(errors=errors,
+                ports=ports,
+                outputs=outputs,
+                serializable=serializable,
+                xml_log=xml_log,
+                machine_log=machine_log)
 
 #################################################################################
 ## Map Operator
@@ -268,11 +286,13 @@ class Map(Module, NotCacheable):
             # then, when the engines are started, they can see the VisTrails API
             with dview.sync_imports():
                 import tempfile
+                import inspect
         
                 # VisTrails API
                 import core
                 import core.db.action
                 import core.application
+                import core.modules.module_registry
                 from core.db.io import serialize
                 from core.vistrail.vistrail import Vistrail
                 from core.vistrail.pipeline import Pipeline
@@ -323,11 +343,21 @@ class Map(Module, NotCacheable):
             raise ModuleError(self,
                               'Output ports not found: %s' %ports)
         
+        reg = core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
             execution_output = []
+            serializable = map_execution['serializable']
             for i in range(len(map_execution['outputs'])):
-                execution_output.append(map_execution['outputs'][i])
+                output = None
+                if not serializable[i]:
+                    output = map_execution['outputs'][i]
+                else:
+                    d_tuple = core.modules.utils.parse_descriptor_string(serializable[i])
+                    d = reg.get_descriptor_by_name(*d_tuple)
+                    module_klass = d.module
+                    output = module_klass().deserialize(map_execution['outputs'][i])
+                execution_output.append(output)
             self.result.append(execution_output)
         
         # including execution logs
