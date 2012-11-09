@@ -34,15 +34,17 @@
 ###############################################################################
 """ This python module defines Connection class.
 """
-
 import copy
-from db.domain import DBConnection
-import core.modules.module_registry
-from core.modules.vistrails_module import ModuleConnector
-from core.utils import VistrailsInternalError
-from core.vistrail.port import PortEndPoint, Port
+from vistrails.db.domain import DBConnection
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.vistrails_module import ModuleConnector
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.vistrail.port import PortEndPoint, Port
 
-registry = core.modules.module_registry.registry
+import unittest
+from vistrails.db.domain import IdScope
+
+registry = vistrails.core.modules.module_registry.registry
 
 ################################################################################
 
@@ -327,13 +329,11 @@ class Connection(DBConnection):
 ################################################################################
 # Testing
 
-import unittest
-from db.domain import IdScope
 
 class TestConnection(unittest.TestCase):
 
     def create_connection(self, id_scope=IdScope()):
-        from core.vistrail.port import Port
+        from vistrails.core.vistrail.port import Port
         source = Port(id=id_scope.getNewId(Port.vtType),
                       type='source', 
                       moduleId=21L, 
@@ -362,10 +362,10 @@ class TestConnection(unittest.TestCase):
         self.assertNotEquals(c1.id, c3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         c1 = self.create_connection()
-        xml_str = core.db.io.serialize(c1)
-        c2 = core.db.io.unserialize(xml_str, Connection)
+        xml_str = vistrails.core.db.io.serialize(c1)
+        c2 = vistrails.core.db.io.unserialize(xml_str, Connection)
         self.assertEquals(c1, c2)
         self.assertEquals(c1.id, c2.id)
 

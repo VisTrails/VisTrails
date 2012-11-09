@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.utils import \
+from vistrails.core.utils import \
      InstanceObject, \
      lock_method, \
      enum, \

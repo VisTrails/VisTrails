@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBProvModel
+from vistrails.db.domain import DBProvModel
 
 class ProvModel(DBProvModel):
     """ Class that stores info for generating PROV model. """

@@ -35,10 +35,12 @@
 import os
 import shutil
 from ctypes import CDLL, c_void_p
-from core.system.unix import executable_is_in_path,\
+from vistrails.core.system.unix import executable_is_in_path,\
      executable_is_in_pythonpath, list2cmdline, execute_cmdline, \
      get_executable_path, execute_piped_cmdlines
-import core.bundles
+import vistrails.core.bundles
+
+import unittest
 
 ################################################################################
 
@@ -122,7 +124,7 @@ def get_libX11():
     different machines. Right now, libX11.so.6 is used.
     
     """
-    ctypes = core.bundles.pyimport.py_import('ctypes',
+    ctypes = vistrails.core.bundles.pyimport.py_import('ctypes',
                                              {'linux-ubuntu':
                                               'python-ctypes'})
     c_void_p = ctypes.c_void_p
@@ -141,7 +143,7 @@ def XDestroyWindow(displayId, windowId):
     Qt widget
     
     """
-    ctypes = core.bundles.pyimport.py_import('ctypes',
+    ctypes = vistrails.core.bundles.pyimport.py_import('ctypes',
                                              {'linux-ubuntu':
                                               'python-ctypes'})
     c_void_p = ctypes.c_void_p
@@ -152,7 +154,6 @@ def XDestroyWindow(displayId, windowId):
 
 ################################################################################
 
-import unittest
 
 class TestLinux(unittest.TestCase):
      """ Class to test Linux specific functions """

@@ -32,15 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 import os
 
-from core.db.locator import FileLocator, DBLocator
-from core.publishing.parse_latex import parse_latex_file, parse_vt_command, \
+from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.publishing.parse_latex import parse_latex_file, parse_vt_command, \
     build_vt_command
-from gui.common_widgets import QDockPushButton
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.common_widgets import QDockPushButton
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QLatexFigureItem(QtGui.QListWidgetItem):
     def __init__(self, opt_dict, parent=None):
@@ -592,7 +591,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     def focusInEvent(self, event):
         if self.controller:
             if self.controller.locator:
-                from gui.vistrails_window import _app
+                from vistrails.gui.vistrails_window import _app
                 _app.ensureVistrail(self.controller.locator)
                     
                     

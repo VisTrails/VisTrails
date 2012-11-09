@@ -32,12 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ##############################################################################
-
 import traceback
-from core import debug
-from core.modules.basic_modules import Color
+from vistrails.core import debug
+from vistrails.core.modules.basic_modules import Color
 
-
+import unittest
 
 class BaseLinearInterpolator(object):
     def __init__(self, ptype, mn, mx, steps):
@@ -151,7 +150,7 @@ class UserDefinedFunctionInterpolator(object):
         if not all(self._ptype.validate(x) for x in result):
             try:
                 # FIXME: We should throw an error here instead
-                from gui.utils import show_warning
+                from vistrails.gui.utils import show_warning
                 show_warning('Failed Validation',
                              'One of the <i>%s</i>\'s user defined '
                              'functions has failed validation, '
@@ -167,7 +166,6 @@ class UserDefinedFunctionInterpolator(object):
 
 ################################################################################
 
-import unittest
 
 class TestLinearInterpolator(unittest.TestCase):
 

@@ -34,19 +34,20 @@
 ###############################################################################
 """ This file describe the virtual cell layout widget used in
 Parameter Exploration Tab """
-
 from PyQt4 import QtCore, QtGui
-from core.inspector import PipelineInspector
+from vistrails.core.inspector import PipelineInspector
+from vistrails.gui.common_widgets import QToolWindowInterface
+from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
+from vistrails.gui.theme import CurrentTheme
+import copy
+import string
+import os.path
+import vistrails.gui
+
 # FIXME broke this as Actions have been changed around
 #
 # from core.vistrail.action import AddModuleAction, AddConnectionAction, \
 #      DeleteConnectionAction, ChangeParameterAction
-from gui.common_widgets import QToolWindowInterface
-from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
-from gui.theme import CurrentTheme
-import copy
-import string
-import os.path
 
 ################################################################################
 
@@ -99,7 +100,7 @@ def positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
     """
 
     # at this point, we know that we have the spreadsheet loaded
-    from packages.spreadsheet.spreadsheet_execute import \
+    from vistrails.packages.spreadsheet.spreadsheet_execute import \
         assignPipelineCellLocations
 
     modifiedPipelines = []
@@ -621,9 +622,9 @@ class QVirtualCellLabel(QtGui.QLabel):
 
 if __name__=="__main__":        
     import sys
-    import gui.theme
+    import vistrails.gui.theme
     app = QtGui.QApplication(sys.argv)
-    gui.theme.initializeCurrentTheme()
+    vistrails.gui.theme.initializeCurrentTheme()
     vc = QVirtualCellConfiguration()
     vc.configVirtualCells(['VTKCell', 'ImageViewerCell', 'RichTextCell'])
     vc.show()

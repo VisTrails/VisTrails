@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.db.locator import BaseLocator
+from vistrails.core.db.locator import BaseLocator
 
 class Entity(object):
     def __init__(self):

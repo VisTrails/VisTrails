@@ -34,12 +34,13 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-
-from core.system import get_elementtree_library
-ElementTree = get_elementtree_library()
+from vistrails.core.system import get_elementtree_library
 
 from xml_dao import XMLDAO
-from db.versions.v0_9_1.domain import *
+from vistrails.db.versions.v0_9_1.domain import *
+
+ElementTree = get_elementtree_library()
+
 
 class DBPortSpecXMLDAOBase(XMLDAO):
 

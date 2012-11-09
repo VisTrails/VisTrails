@@ -41,7 +41,7 @@
 from PyQt4 import QtCore, QtGui
 import datetime
 import os
-from core import system, debug
+from vistrails.core import system, debug
 import cell_rc
 import celltoolbar_rc
 import spreadsheet_controller

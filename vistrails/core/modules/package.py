@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import __builtin__
 import copy
 import os
@@ -40,14 +39,14 @@ import sys
 import traceback
 import xml.dom
 
-from core import debug
-from core import get_vistrails_application
-from core.configuration import ConfigurationObject, get_vistrails_configuration
-from core.modules.module_descriptor import ModuleDescriptor
-from core.utils import versions_increasing
-from core.utils.uxml import (named_elements, enter_named_element)
+from vistrails.core import debug
+from vistrails.core import get_vistrails_application
+from vistrails.core.configuration import ConfigurationObject, get_vistrails_configuration
+from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.utils import versions_increasing
+from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 
-from db.domain import DBPackage
+from vistrails.db.domain import DBPackage
 
 ##############################################################################
 
@@ -329,7 +328,7 @@ class Package(DBPackage):
             elif prefix is not None:
                 r = not import_from(prefix)
             else:
-                r = (not import_from('packages.') and
+                r = (not import_from('vistrails.packages.') and
                      not import_from('userpackages.'))
         except Exception, e:
             raise self.LoadFailed(self, e, traceback.format_exc())

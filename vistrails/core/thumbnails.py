@@ -40,10 +40,10 @@ import shutil
 import time
 import uuid
 import mimetypes
-from core import debug
-from core.configuration import get_vistrails_configuration, \
+from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
-from core.utils import VistrailsInternalError
+from vistrails.core.utils import VistrailsInternalError
 
 ############################################################################
 class CacheEntry(object):

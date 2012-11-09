@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
+from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
                                       DBWorkflow, DBLog, DBRegistry, \
                                       DBAdd, DBChange, DBDelete, \
                                       DBPortSpec, DBPortSpecItem, \
@@ -42,7 +41,7 @@ from db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
                                       IdScope, DBAbstraction, \
                                       DBModule, DBGroup
 
-from db.services.vistrail import materializeWorkflow
+from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
 from itertools import izip
 

@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBOpmGraph
+from vistrails.db.domain import DBOpmGraph
 
 class OpmGraph(DBOpmGraph):
     """ Class that stores info for generating OPM Provenance. """

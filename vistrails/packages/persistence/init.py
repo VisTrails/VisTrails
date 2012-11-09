@@ -32,12 +32,31 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 import os
 import shutil
 import tempfile
 import uuid
+
+import vistrails.core.debug
+from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.cache.hasher import Hasher
+from vistrails.core.modules.basic_modules import Path, File, Directory, Boolean, \
+    String, Constant
+from vistrails.core.modules.module_registry import get_module_registry, MissingModule, \
+    MissingPackageVersion, MissingModuleVersion
+from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
+from vistrails.core.system import default_dot_vistrails, execute_cmdline2, \
+    execute_piped_cmdlines, systemType, \
+    current_user, current_time, get_executable_path
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
+from compute_hash import compute_hash
+from widgets import PersistentRefInlineWidget, \
+    PersistentInputFileConfiguration, PersistentOutputFileConfiguration, \
+    PersistentInputDirConfiguration, PersistentOutputDirConfiguration, \
+    PersistentRefModel, PersistentConfiguration
+from db_utils import DatabaseAccessSingleton
+
 try:
     import hashlib
     sha_hash = hashlib.sha1
@@ -45,24 +64,6 @@ except ImportError:
     import sha
     sha_hash = sha.new
 
-import core.debug
-from core.configuration import ConfigurationObject
-from core.cache.hasher import Hasher
-from core.modules.basic_modules import Path, File, Directory, Boolean, \
-    String, Constant
-from core.modules.module_registry import get_module_registry, MissingModule, \
-    MissingPackageVersion, MissingModuleVersion
-from core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from core.system import default_dot_vistrails, execute_cmdline2, \
-    execute_piped_cmdlines, systemType, \
-    current_user, current_time, get_executable_path
-from core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
-from compute_hash import compute_hash
-from widgets import PersistentRefInlineWidget, \
-    PersistentInputFileConfiguration, PersistentOutputFileConfiguration, \
-    PersistentInputDirConfiguration, PersistentOutputDirConfiguration, \
-    PersistentRefModel, PersistentConfiguration
-from db_utils import DatabaseAccessSingleton
 
 global_db = None
 local_db = None
@@ -607,7 +608,7 @@ class PersistentPath(Module):
             if path != ref.local_path:
                 self.copypath(path, ref.local_path)
         if not str(ref.version):
-            core.debug.critical("Persistent version annotation not set correctly "
+            vistrails.core.debug.critical("Persistent version annotation not set correctly "
                            "for persistent_id=%s" % ref.id)
         # for all paths
         self.annotate({'persistent_id': ref.id,

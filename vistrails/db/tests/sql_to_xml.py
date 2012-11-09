@@ -33,16 +33,20 @@
 ##
 ###############################################################################
 # MACOSX binary install stuff
-if __name__ != '__main__':
-    import tests
-    raise tests.NotModule('This should not be imported as a module')
-    
 import os
-os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'
 
 import MySQLdb
 
-from db.services import io
+from vistrails.db.services import io
+import vistrails.tests
+
+if __name__ != '__main__':
+    import vistrails.tests
+    raise vistrails.tests.NotModule('This should not be imported as a module')
+    
+os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'
+
+
 
 def convert_sql_to_xml(filename, id):
     config = {'host': 'localhost', 

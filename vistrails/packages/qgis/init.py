@@ -33,9 +33,9 @@
 ##
 ###############################################################################
 from PyQt4 import QtCore, QtGui
-from core.modules.vistrails_module import Module
-from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
-from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.core.modules.vistrails_module import Module
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 
 import qgis.core
 import qgis.gui

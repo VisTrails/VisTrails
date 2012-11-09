@@ -138,11 +138,11 @@
 #             result = result.union(query.run(pipeline, module_ids))
 
 ################################################################################
-
 import xml.sax.saxutils
 
-from core.application import is_running_gui
-from core.utils import memo_method
+from vistrails.core.application import is_running_gui
+from vistrails.core.utils import memo_method
+import vistrails.gui
 
 # convenience method that does the full html extract if PyQt is loaded
 def extract_text(escaped_html_str):
@@ -257,8 +257,8 @@ class Query1b(Query):
 class Query1c(Query):
 
     def run(self, vistrail, name):
-        import gui.vis_application
-        c = gui.vis_application.logger.db.cursor()
+        import vistrails.gui.vis_application
+        c = vistrails.gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails
@@ -297,8 +297,8 @@ class Query1c(Query):
 class Query2(Query):
 
     def run(self, vistrail, name):
-        import gui.vis_application
-        c = gui.vis_application.logger.db.cursor()
+        import vistrails.gui.vis_application
+        c = vistrails.gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails
@@ -346,8 +346,8 @@ class Query2(Query):
 class Query3(Query):
 
     def run(self, vistrail, name):
-        import gui.vis_application
-        c = gui.vis_application.logger.db.cursor()
+        import vistrails.gui.vis_application
+        c = vistrails.gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails
@@ -389,8 +389,8 @@ class Query3(Query):
 class Query4(Query):
 
     def run(self, vistrail, name):
-        import gui.vis_application
-        c = gui.vis_application.logger.db.cursor()
+        import vistrails.gui.vis_application
+        c = vistrails.gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct exec.ts_start, exec.ts_end, exec_id, module_id, wf_version from
         wf_exec, exec, vistrails
@@ -426,8 +426,8 @@ class Query5(Query):
         return set(self.upstream(graph, m_id))
 
     def run(self, vistrail, name):
-        import gui.vis_application
-        c = gui.vis_application.logger.db.cursor()
+        import vistrails.gui.vis_application
+        c = vistrails.gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct
            wf_exec.wf_version, exec.module_id
@@ -476,8 +476,8 @@ class Query5(Query):
 class Query6(Query):
 
     def run(self, vistrail, name):
-        import gui.vis_application
-        c = gui.vis_application.logger.db.cursor()
+        import vistrails.gui.vis_application
+        c = vistrails.gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails

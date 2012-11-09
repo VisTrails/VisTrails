@@ -37,9 +37,9 @@
 # and it should be reimplemented to integrate between the spreadsheet
 # and the analogy
 ################################################################################
-
 import os
-import core.analogy
+import vistrails.core.analogy
+import vistrails.gui
 
 class SpreadsheetAnalogyObject(object):
     """
@@ -97,8 +97,8 @@ class SpreadsheetAnalogyObject(object):
         
         """
         def get_controller_by_locator(locator):
-            import gui.application
-            app = gui.application.get_vistrails_application()
+            import vistrails.gui.application
+            app = vistrails.gui.application.get_vistrails_application()
             m = app.builderWindow
             # slow, but who cares
             for v in xrange(m.stack.count()):
@@ -122,7 +122,7 @@ class SpreadsheetAnalogyObject(object):
             return None
         #p1_locator = os.path.split(p1_vistrail)[1]
 
-        perform = core.analogy.perform_analogy_on_vistrail
+        perform = vistrails.core.analogy.perform_analogy_on_vistrail
 
         controller = get_controller_by_locator(p3_locator)
         vt = controller.vistrail

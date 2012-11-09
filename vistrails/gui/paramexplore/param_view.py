@@ -37,13 +37,13 @@
 QParameterView
 """
 from PyQt4 import QtCore, QtGui
-from core.inspector import PipelineInspector
-from core.modules.module_registry import get_module_registry
-from core.modules.basic_modules import Constant
-from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
-from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from core.utils import InstanceObject
+from vistrails.core.inspector import PipelineInspector
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.basic_modules import Constant
+from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
+from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.utils import InstanceObject
 
 ################################################################################
 

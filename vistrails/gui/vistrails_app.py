@@ -32,19 +32,19 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 import copy
 
-from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
-from core.db.io import load_vistrail
-from core.modules.module_registry import ModuleRegistryException
-from core.vistrail.vistrail import Vistrail
+from vistrails.core.db.locator import FileLocator, XMLFileLocator, untitled_locator
+from vistrails.core.db.io import load_vistrail
+from vistrails.core.modules.module_registry import ModuleRegistryException
+from vistrails.core.vistrail.vistrail import Vistrail
 
-from gui.application import get_vistrails_application
-from gui.theme import initializeCurrentTheme
-from gui.palette_container import PaletteContainer
-from gui.vistrails_window import QVistrailsWindow
+from vistrails.gui.application import get_vistrails_application
+from vistrails.gui.theme import initializeCurrentTheme
+from vistrails.gui.palette_container import PaletteContainer
+from vistrails.gui.vistrails_window import QVistrailsWindow
+import vistrails.gui
 
 class VisTrailsApp(QtGui.QMainWindow):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
@@ -67,11 +67,11 @@ class VisTrailsApp(QtGui.QMainWindow):
 
     def init_palettes(self):
         # palettes are global!
-        from gui.module_configuration import QModuleConfiguration
-        from gui.module_documentation import QModuleDocumentation
-        from gui.module_palette import QModulePalette
-        from gui.module_info import QModuleInfo
-        from gui.version_prop import QVersionProp
+        from vistrails.gui.module_configuration import QModuleConfiguration
+        from vistrails.gui.module_documentation import QModuleDocumentation
+        from vistrails.gui.module_palette import QModulePalette
+        from vistrails.gui.module_info import QModuleInfo
+        from vistrails.gui.version_prop import QVersionProp
         self.palettes = []
         palette_layout = [[QModulePalette], 
                           [(QModuleInfo, 
@@ -356,27 +356,27 @@ _app = None
 _menu_bar = QtGui.QMenuBar()
         
 if __name__ == '__main__':
-    import gui.requirements
-    gui.requirements.check_pyqt4()
+    import vistrails.gui.requirements
+    vistrails.gui.requirements.check_pyqt4()
 
     from PyQt4 import QtGui
-    import gui.application
+    import vistrails.gui.application
     import sys
     import os
     try:
-        v = gui.application.start_application()
+        v = vistrails.gui.application.start_application()
         if v != 0:
-            if gui.application.get_vistrails_application():
-                gui.application.get_vistrails_application().finishSession()
+            if vistrails.gui.application.get_vistrails_application():
+                vistrails.gui.application.get_vistrails_application().finishSession()
             sys.exit(v)
-        app = gui.application.get_vistrails_application()()
+        app = vistrails.gui.application.get_vistrails_application()()
     except SystemExit, e:
-        if gui.application.get_vistrails_application():
-            gui.application.get_vistrails_application().finishSession()
+        if vistrails.gui.application.get_vistrails_application():
+            vistrails.gui.application.get_vistrails_application().finishSession()
         sys.exit(e)
     except Exception, e:
-        if gui.application.get_vistrails_application():
-            gui.application.get_vistrails_application().finishSession()
+        if vistrails.gui.application.get_vistrails_application():
+            vistrails.gui.application.get_vistrails_application().finishSession()
         print "Uncaught exception on initialization: %s" % e
         import traceback
         traceback.print_exc()
@@ -385,7 +385,7 @@ if __name__ == '__main__':
         not app.temp_configuration.check('spreadsheetDumpCells')): 
         v = app.exec_()
         
-    gui.application.stop_application()
+    vistrails.gui.application.stop_application()
     sys.exit(v)
 
     # app = QtGui.QApplication([])

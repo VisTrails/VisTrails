@@ -32,15 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
-import db.services.io
-from db.domain import DBProvModel, DBProvEntities, DBProvEntity, \
+import vistrails.db.services.io
+from vistrails.db.domain import DBProvModel, DBProvEntities, DBProvEntity, \
     DBProvActivities, DBProvActivity, DBProvAgents, DBProvAgent, \
     DBProvGeneration, DBProvUsage, DBProvAssociation, DBVtConnections, \
     DBVtConnection, IdScope, DBGroupExec, DBLoopExec, DBModuleExec, \
     DBWorkflowExec, DBFunction, DBParameter
-from db.services.vistrail import materializeWorkflow
+from vistrails.db.services.vistrail import materializeWorkflow
 
 def create_prov_model(entities, activities, agents, connections):
     return DBProvModel(entities=entities,

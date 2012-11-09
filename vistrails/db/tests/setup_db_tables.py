@@ -35,8 +35,9 @@
 # MACOSX binary install stuff
 import os
 import sys
+from vistrails.db.services import io
+
 sys.path.append("../..")
-from db.services import io
 
 def setup_tables(host, port, user, passwd, db):
     config = {'host': host, 

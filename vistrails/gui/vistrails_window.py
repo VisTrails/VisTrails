@@ -34,47 +34,46 @@
 ###############################################################################
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
-
 from PyQt4 import QtCore, QtGui
 import copy
 from itertools import izip
 import operator
 
-from core import get_vistrails_application
-from core.configuration import (get_vistrails_configuration,
+from vistrails.core import get_vistrails_application
+from vistrails.core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
-from core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
+from vistrails.core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
     untitled_locator
-from core.db.io import load_vistrail
-from core.interpreter.cached import CachedInterpreter
-from core.modules.module_registry import ModuleRegistry, \
+from vistrails.core.db.io import load_vistrail
+from vistrails.core.interpreter.cached import CachedInterpreter
+from vistrails.core.modules.module_registry import ModuleRegistry, \
                                          ModuleRegistryException
-from core.recent_vistrails import RecentVistrailList
-import core.system
-import core.db.action
-from core.packagemanager import get_package_manager
-from core.system import vistrails_default_file_type
-from core.vistrail.vistrail import Vistrail
-from core.vistrail.pipeline import Pipeline
-from core.thumbnails import ThumbnailCache
-from core.collection import Collection
-from core import debug
+from vistrails.core.recent_vistrails import RecentVistrailList
+import vistrails.core.system
+import vistrails.core.db.action
+from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.system import vistrails_default_file_type
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.collection import Collection
+from vistrails.core import debug
 
-from gui.application import get_vistrails_application
-from gui.preferences import QPreferencesDialog
-from gui.base_view import BaseView
-from gui.pipeline_view import QPipelineView
-from gui.repository import QRepositoryDialog
-from gui.theme import initializeCurrentTheme, CurrentTheme
-from gui.utils import build_custom_window
-from gui.vistrail_view import QVistrailView
-from gui import merge_gui
-from gui.vistrail_variables import QVistrailVariables
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from gui.mashups.mashup_app import QMashupAppMainWindow
-from db.services.io import SaveBundle
-import db.services.vistrail
-from db import VistrailsDBException
+from vistrails.gui.application import get_vistrails_application
+from vistrails.gui.preferences import QPreferencesDialog
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.repository import QRepositoryDialog
+from vistrails.gui.theme import initializeCurrentTheme, CurrentTheme
+from vistrails.gui.utils import build_custom_window
+from vistrails.gui.vistrail_view import QVistrailView
+from vistrails.gui import merge_gui
+from vistrails.gui.vistrail_variables import QVistrailVariables
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
+from vistrails.db.services.io import SaveBundle
+import vistrails.db.services.vistrail
+from vistrails.db import VistrailsDBException
 
 class QBaseViewWindow(QtGui.QMainWindow):
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
@@ -866,7 +865,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         if get_vistrails_configuration().detachHistoryView:
             self.history_view = QBaseViewWindow(parent=None)
             self.history_view.resize(800, 600)
-            from gui.version_prop import QVersionProp
+            from vistrails.gui.version_prop import QVersionProp
             inst = QVersionProp.instance().toolWindow()
             self.history_view.addDockWidget(QtCore.Qt.RightDockWidgetArea,inst)
             self.history_view.stack = QtGui.QStackedWidget()
@@ -892,7 +891,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def create_view(self, vistrail, locator,  abstraction_files=None, 
                     thumbnail_files=None, mashups=None):
-        from gui.collection.workspace import QWorkspaceWindow
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
         view = QVistrailView(vistrail, locator, abstraction_files,
                              thumbnail_files, mashups)
         self.vistrail_to_widget[view.get_name()] = view
@@ -909,7 +908,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         return view
 
     def remove_view(self, view):
-        from gui.collection.workspace import QWorkspaceWindow
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
         if view not in self.windows:
             if view in self.view_notifications:
                 del self.view_notifications[view]
@@ -958,23 +957,23 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def init_palettes(self):
         # palettes are global!
-        from gui.debug import DebugView
-        from gui.debugger import QDebugger
-        from gui.module_configuration import QModuleConfiguration
-        from gui.module_documentation import QModuleDocumentation
-        from gui.module_palette import QModulePalette
-        from gui.module_info import QModuleInfo
-        from gui.paramexplore.param_view import QParameterView
-        from gui.paramexplore.pe_inspector import QParamExploreInspector
-        from gui.shell import QShellDialog
-        from gui.version_prop import QVersionProp
-        from gui.vis_diff import QDiffProperties
-        from gui.collection.explorer import QExplorerWindow
-        from gui.collection.workspace import QWorkspaceWindow
-        from gui.collection.vis_log import QLogDetails
-        from gui.mashups.mashups_inspector import QMashupsInspector
-        from gui.mashups.alias_parameter_view import QAliasParameterView
-        from gui.publishing import QLatexAssistant, QVersionEmbed
+        from vistrails.gui.debug import DebugView
+        from vistrails.gui.debugger import QDebugger
+        from vistrails.gui.module_configuration import QModuleConfiguration
+        from vistrails.gui.module_documentation import QModuleDocumentation
+        from vistrails.gui.module_palette import QModulePalette
+        from vistrails.gui.module_info import QModuleInfo
+        from vistrails.gui.paramexplore.param_view import QParameterView
+        from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
+        from vistrails.gui.shell import QShellDialog
+        from vistrails.gui.version_prop import QVersionProp
+        from vistrails.gui.vis_diff import QDiffProperties
+        from vistrails.gui.collection.explorer import QExplorerWindow
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        from vistrails.gui.collection.vis_log import QLogDetails
+        from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
+        from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
+        from vistrails.gui.publishing import QLatexAssistant, QVersionEmbed
         self.palettes = []
         self.palette_window = None
         
@@ -1388,7 +1387,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.qactions['saveFileAs'].setEnabled(False)
             self.qactions['closeVistrail'].setEnabled(False)
 
-        from gui.collection.workspace import QWorkspaceWindow
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
         QWorkspaceWindow.instance().change_vt_window(new_view)
         self.update_merge_menu()
         self.update_window_menu()
@@ -1567,7 +1566,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 collection.add_to_workspace(entity)
             collection.commit()
             # update workspace (view creation used the old entities)
-            from gui.collection.workspace import QWorkspaceWindow
+            from vistrails.gui.collection.workspace import QWorkspaceWindow
             QWorkspaceWindow.instance().remove_vt_window(view)
             QWorkspaceWindow.instance().add_vt_window(view)
             return view
@@ -1713,7 +1712,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                     action_list.append(('add', module))
                 for connection in workflow.connection_list:
                     action_list.append(('add', connection))
-                action = core.db.action.create_action(action_list)
+                action = vistrails.core.db.action.create_action(action_list)
                 vistrail.add_action(action, 0L)
                 vistrail.update_id_scope()
                 vistrail.addTag("Imported workflow", action.id)
@@ -1745,7 +1744,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = current_view.window()
             text = current_view.controller.name
             if text=='':
-                text = 'Untitled%s'%core.system.vistrails_default_file_type()
+                text = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
             text = ('Vistrail ' +
                     QtCore.Qt.escape(text) +
                     ' contains unsaved changes.\n Do you want to '
@@ -1812,7 +1811,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         
         """
         try:
-            from packages.parallelflow.init import ipythonSet
+            from vistrails.packages.parallelflow.init import ipythonSet
             if ipythonSet:
                 ipythonSet.stop_engines()
                 ipythonSet.stop_controller()
@@ -1832,12 +1831,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         return False
 
     def link_registry(self):
-        from gui.module_palette import QModulePalette
+        from vistrails.gui.module_palette import QModulePalette
         QModulePalette.instance().link_registry()
        
     def get_current_view(self):
-        from packages.spreadsheet.spreadsheet_window import SpreadsheetWindow
-        from gui.common_widgets import QToolWindow
+        from vistrails.packages.spreadsheet.spreadsheet_window import SpreadsheetWindow
+        from vistrails.gui.common_widgets import QToolWindow
         if self.isActiveWindow():
             return self.stack.currentWidget()
         else:
@@ -2054,7 +2053,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         layout.addWidget(bgimage)
         dlg.setLayout(layout)
         text = "<font color=\"white\"><b>%s</b></font>" % \
-            core.system.short_about_string()
+            vistrails.core.system.short_about_string()
         version = About(text, dlg)
         version.setGeometry(11,20,450,30)
         self.connect(bgimage,
@@ -2075,7 +2074,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
 
-        new_version_exists, version = core.system.new_vistrails_release_exists()
+        new_version_exists, version = vistrails.core.system.new_vistrails_release_exists()
         if new_version_exists:
             msg = 'Version %s of VisTrails is available at ' \
                 '<a href="%s">%s</a>' % \
@@ -2319,14 +2318,14 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.update_recent_vistrail_actions()
                 
     def configure_module(self):
-        from gui.module_configuration import QModuleConfiguration
+        from vistrails.gui.module_configuration import QModuleConfiguration
         action_name = QModuleConfiguration.instance().get_title()
         # easy way to make sure that configuration window is raised
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
 
     def show_documentation(self):
-        from gui.module_documentation import QModuleDocumentation
+        from vistrails.gui.module_documentation import QModuleDocumentation
         action_name = QModuleDocumentation.instance().get_title()
         # easy way to make sure that documentation window is raised
         self.qactions[action_name].setChecked(False)
@@ -2371,7 +2370,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             for m_id in selected_module_ids:
                 module = current_scene.current_pipeline.modules[m_id]
                 if module.is_abstraction():
-                    from core.modules.abstraction import identifier as \
+                    from vistrails.core.modules.abstraction import identifier as \
                         abstraction_pkg                    
                     ann_get = module.vistrail.get_annotation
                     if module.package == abstraction_pkg and \
@@ -2408,7 +2407,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             if thumb_cache.conf.autoSave else []
         s2 = SaveBundle(c2.vistrail.vtType, c2.vistrail, c2.log, thumbnails=t2)
 
-        db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
+        vistrails.db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
         vistrail = s1.vistrail
         vistrail.locator = None
         vistrail.set_defaults()
@@ -2462,7 +2461,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             is changed/added/deleted
         """
 
-        from core.interpreter.cached import CachedInterpreter
+        from vistrails.core.interpreter.cached import CachedInterpreter
         CachedInterpreter.flush()
         
         def reload_view(view):
@@ -2485,11 +2484,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                         p.toolWindow().close()
                       
     def applicationFocusChanged(self, old, current):
-        from gui.modules.constant_configuration import ConstantWidgetMixin
-        from gui.paramexplore.pe_view import QParamExploreView
-        from gui.mashups.alias_inspector import QAliasInspector
-        from gui.mashups.mashup_view import QMashupViewTab
-        from packages.spreadsheet.spreadsheet_cell import QCellWidget
+        from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+        from vistrails.gui.paramexplore.pe_view import QParamExploreView
+        from vistrails.gui.mashups.alias_inspector import QAliasInspector
+        from vistrails.gui.mashups.mashup_view import QMashupViewTab
+        from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
         def is_or_has_parent_of_types(widget, types):
             while widget is not None:
                 for _type in types:

@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import __builtin__
 from itertools import izip
 import copy
@@ -41,21 +40,23 @@ import tempfile
 import traceback
 import uuid
 
-from core import debug, get_vistrails_application
-from core.data_structures.graph import Graph
-import core.modules
-import core.modules.vistrails_module
-from core.modules.module_descriptor import ModuleDescriptor
-from core.modules.package import Package
-import core.modules.utils
-from core.utils import VistrailsInternalError, memo_method, \
+from vistrails.core import debug, get_vistrails_application
+from vistrails.core.data_structures.graph import Graph
+import vistrails.core.modules
+import vistrails.core.modules.vistrails_module
+from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.modules.package import Package
+import vistrails.core.modules.utils
+from vistrails.core.utils import VistrailsInternalError, memo_method, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
      all, profile, versions_increasing, InvalidPipeline
-from core.system import vistrails_root_directory, vistrails_version
-from core.vistrail.port import Port, PortEndPoint
-from core.vistrail.port_spec import PortSpec
-import core.cache.hasher
-from db.domain import DBRegistry
+from vistrails.core.system import vistrails_root_directory, vistrails_version
+from vistrails.core.vistrail.port import Port, PortEndPoint
+from vistrails.core.vistrail.port_spec import PortSpec
+import vistrails.core.cache.hasher
+from vistrails.db.domain import DBRegistry
+
+import unittest
 
 ##############################################################################
 
@@ -109,7 +110,7 @@ def _parse_abstraction_name(filename):
     return name
 
 def _toposort_abstractions(package, abstraction_list):
-    from core.modules.sub_module import find_internal_abstraction_refs
+    from vistrails.core.modules.sub_module import find_internal_abstraction_refs
     g = Graph()
     for a in abstraction_list:
         if type(a) == tuple:
@@ -512,7 +513,7 @@ class ModuleRegistry(DBRegistry):
             # _constant_hasher_map stores callables for custom parameter
             # hashers
             self._constant_hasher_map = {}
-            basic_pkg = core.modules.basic_modules.identifier
+            basic_pkg = vistrails.core.modules.basic_modules.identifier
             if basic_pkg in self.packages:
                 self._default_package = self.packages[basic_pkg]
                 self._current_package = self._default_package
@@ -910,12 +911,12 @@ class ModuleRegistry(DBRegistry):
                                                  module.name,
                                                  module.namespace)
         if not descriptor:
-            return core.cache.hasher.Hasher.module_signature(module, chm)
+            return vistrails.core.cache.hasher.Hasher.module_signature(module, chm)
         c = descriptor.hasher_callable()
         if c:
             return c(pipeline, module, chm)
         else:
-            return core.cache.hasher.Hasher.module_signature(module, chm)
+            return vistrails.core.cache.hasher.Hasher.module_signature(module, chm)
 
     def get_module_color(self, identifier, name, namespace=None):
         return self.get_descriptor_by_name(identifier, name, namespace).module_color()
@@ -1236,7 +1237,7 @@ class ModuleRegistry(DBRegistry):
             raise TypeError("Expected filename or (filename, kwargs)")
 
     def add_subworkflow(self, vt_fname, **kwargs):
-        from core.modules.sub_module import new_abstraction, read_vistrail, \
+        from vistrails.core.modules.sub_module import new_abstraction, read_vistrail, \
             get_next_abs_annotation_key
 
         # vt_fname is relative to the package path
@@ -1275,12 +1276,12 @@ class ModuleRegistry(DBRegistry):
             module = new_abstraction(name, vistrail, vt_fname, version)
         except InvalidPipeline, e:
             # This import MUST be delayed until this point or it will fail
-            import core.vistrail.controller 
-            from core.db.io import save_vistrail_to_xml
-            from core.modules.abstraction import identifier as \
+            import vistrails.core.vistrail.controller 
+            from vistrails.core.db.io import save_vistrail_to_xml
+            from vistrails.core.modules.abstraction import identifier as \
                 abstraction_pkg, version as abstraction_ver
             # Use a "dummy" controller to handle the upgrade
-            controller = core.vistrail.controller.VistrailController(vistrail)
+            controller = vistrails.core.vistrail.controller.VistrailController(vistrail)
             if version == -1L:
                 version = vistrail.get_latest_version()
             (new_version, new_pipeline) = \
@@ -1591,7 +1592,7 @@ class ModuleRegistry(DBRegistry):
         # set up fast removal of model
         for sigstring in top_sort:
             self.delete_module(
-                *core.modules.utils.parse_descriptor_string(sigstring))
+                *vistrails.core.modules.utils.parse_descriptor_string(sigstring))
         
         # Remove upgraded package subworkflows from registry
         for key, version_dict in package._abs_pkg_upgrades.iteritems():
@@ -1713,7 +1714,7 @@ class ModuleRegistry(DBRegistry):
         Check if specs of sub and super port are matched or not
         
         """
-        variantType = core.modules.basic_modules.Variant
+        variantType = vistrails.core.modules.basic_modules.Variant
         variant_desc = \
             self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
                                         'Variant')
@@ -1757,7 +1758,7 @@ class ModuleRegistry(DBRegistry):
             return descriptors
         return [self.get_descriptor(klass)
                 for klass in descriptor.module.mro()
-                if issubclass(klass, core.modules.vistrails_module.Module)]
+                if issubclass(klass, vistrails.core.modules.vistrails_module.Module)]
         
     def get_input_port_spec(self, module, portName):
         """ get_input_port_spec(module: Module, portName: str) ->
@@ -1793,7 +1794,7 @@ class ModuleRegistry(DBRegistry):
         base classes that subclass from Module."""
         return [klass
                 for klass in module.__bases__
-                if issubclass(klass, core.modules.vistrails_module.Module)]
+                if issubclass(klass, vistrails.core.modules.vistrails_module.Module)]
 
     def set_current_package(self, package):
         """ set_current_package(package: Package) -> None        
@@ -1877,7 +1878,7 @@ class ModuleRegistry(DBRegistry):
         return d1_list[d1_idx+1]
 
     def is_abstraction(self, descriptor):
-        basic_pkg = core.modules.basic_modules.identifier
+        basic_pkg = vistrails.core.modules.basic_modules.identifier
         try:
             abstraction_desc = self.get_descriptor_by_name(basic_pkg, 
                                                        'SubWorkflow')
@@ -1897,7 +1898,7 @@ class ModuleRegistry(DBRegistry):
 
     def expand_port_spec_string(self, p_string, cur_package=None, 
                                 old_style=False):
-        return core.modules.utils.expand_port_spec_string(p_string, cur_package,
+        return vistrails.core.modules.utils.expand_port_spec_string(p_string, cur_package,
                                                           old_style)
 
 ###############################################################################
@@ -1924,12 +1925,11 @@ def module_registry_loaded():
 
 ##############################################################################
 
-import unittest
 
 class TestModuleRegistry(unittest.TestCase):
 
     def test_portspec_construction(self):
-        from core.modules.basic_modules import Float, Integer
+        from vistrails.core.modules.basic_modules import Float, Integer
         t1 = PortSpec(signature=Float)
         t2 = PortSpec(signature=[Float])
         self.assertEquals(t1, t2)

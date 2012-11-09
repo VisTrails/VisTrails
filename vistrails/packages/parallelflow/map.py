@@ -1,27 +1,27 @@
-import core
-import core.db.action
-import core.application
-import db.versions
-import core.modules.module_registry
-import core.modules.utils
-from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
+import vistrails.core
+import vistrails.core.db.action
+import vistrails.core.application
+import vistrails.db.versions
+import vistrails.core.modules.module_registry
+import vistrails.core.modules.utils
+from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
     ModuleConnector, InvalidOutput
-from core.modules.basic_modules import NotCacheable, Constant
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.annotation import Annotation
-from core.vistrail.group import Group
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.db.io import serialize
-from core.vistrail.vistrail import Vistrail
-from core.db.locator import XMLFileLocator
-from core.vistrail.controller import VistrailController
-from core.interpreter.default import get_default_interpreter
-from core.db.io import serialize, unserialize
-from core.log.module_exec import ModuleExec
-from core.log.group_exec import GroupExec
-from core.log.machine import Machine
-from db.domain import IdScope
+from vistrails.core.modules.basic_modules import NotCacheable, Constant
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.group import Group
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.db.io import serialize
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.db.locator import XMLFileLocator
+from vistrails.core.vistrail.controller import VistrailController
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.db.io import serialize, unserialize
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.log.group_exec import GroupExec
+from vistrails.core.log.machine import Machine
+from vistrails.db.domain import IdScope
 
 import os
 import copy
@@ -56,7 +56,7 @@ def execute_wf(wf, output_ports):
         action_list.append(('add', module))
     for connection in workflow.connection_list:
         action_list.append(('add', connection))
-    action = core.db.action.create_action(action_list)
+    action = vistrails.core.db.action.create_action(action_list)
     
     vistrail.add_action(action, 0L)
     vistrail.update_id_scope()
@@ -97,7 +97,7 @@ def execute_wf(wf, output_ports):
         
     # storing the output values
     # making sure that the order is the same as in output_ports
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     ports = []
     outputs = []
     serializable = []
@@ -289,16 +289,16 @@ class Map(Module, NotCacheable):
                 import inspect
         
                 # VisTrails API
-                import core
-                import core.db.action
-                import core.application
-                import core.modules.module_registry
-                from core.db.io import serialize
-                from core.vistrail.vistrail import Vistrail
-                from core.vistrail.pipeline import Pipeline
-                from core.db.locator import XMLFileLocator
-                from core.vistrail.controller import VistrailController
-                from core.interpreter.default import get_default_interpreter
+                import vistrails.core
+                import vistrails.core.db.action
+                import vistrails.core.application
+                import vistrails.core.modules.module_registry
+                from vistrails.core.db.io import serialize
+                from vistrails.core.vistrail.vistrail import Vistrail
+                from vistrails.core.vistrail.pipeline import Pipeline
+                from vistrails.core.db.locator import XMLFileLocator
+                from vistrails.core.vistrail.controller import VistrailController
+                from vistrails.core.interpreter.default import get_default_interpreter
             
             # initializing a VisTrails application
             dview.execute('app = core.application.init(args=[])')
@@ -343,7 +343,7 @@ class Map(Module, NotCacheable):
             raise ModuleError(self,
                               'Output ports not found: %s' %ports)
         
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
             execution_output = []
@@ -353,7 +353,7 @@ class Map(Module, NotCacheable):
                 if not serializable[i]:
                     output = map_execution['outputs'][i]
                 else:
-                    d_tuple = core.modules.utils.parse_descriptor_string(serializable[i])
+                    d_tuple = vistrails.core.modules.utils.parse_descriptor_string(serializable[i])
                     d = reg.get_descriptor_by_name(*d_tuple)
                     module_klass = d.module
                     output = module_klass().deserialize(map_execution['outputs'][i])
@@ -414,7 +414,7 @@ class Map(Module, NotCacheable):
                 if module.is_group():
                     process_group(module)
 
-        pipeline = Pipeline(version=db.versions.currentVersion)
+        pipeline = Pipeline(version=vistrails.db.versions.currentVersion)
 
         if module.is_group():
             process_group(module)
@@ -479,10 +479,10 @@ class Map(Module, NotCacheable):
         """
         port_spec1 = port_spec
 
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
 
-        from core.vistrail.port_spec import PortSpec
+        from vistrails.core.vistrail.port_spec import PortSpec
         v_module = self.createSignature(v_module)
         port_spec2 = PortSpec(**{'signature': v_module})
         matched = reg.are_specs_matched(port_spec1, port_spec2)
@@ -520,7 +520,7 @@ def create_module(value, signature):
     Creates a module for value, in order to do the type checking.
     """
     
-    from core.modules.basic_modules import Boolean, String, Integer, Float, Tuple, File, List
+    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, Tuple, File, List
     
     if type(value)==bool:
         v_module = Boolean()
@@ -551,7 +551,7 @@ def create_module(value, signature):
             v_modules += (create_module(value[element], signature[element]),)
         return v_modules
     else:
-        from core import debug
+        from vistrails.core import debug
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside Map module.")
         return None

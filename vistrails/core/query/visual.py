@@ -32,9 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core import query
-from core.modules.module_registry import get_module_registry
-from core.utils import append_to_dict_of_lists
+from vistrails.core import query
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.utils import append_to_dict_of_lists
 import copy
 import re
 

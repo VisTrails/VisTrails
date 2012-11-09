@@ -40,23 +40,23 @@
 import vtk
 from PyQt4 import QtCore, QtGui
 import sip
-from core import system
-from core.modules.module_registry import get_module_registry
-from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
-from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.core import system
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import vtkcell_rc
 import gc
-from gui.qt import qt_super
-import core.db.action
-from core.vistrail.action import Action
-from core.vistrail.port import Port
-from core.vistrail import module
-from core.vistrail import connection
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.location import Location
-from core.modules.vistrails_module import ModuleError
+from vistrails.gui.qt import qt_super
+import vistrails.core.db.action
+from vistrails.core.vistrail.action import Action
+from vistrails.core.vistrail.port import Port
+from vistrails.core.vistrail import module
+from vistrails.core.vistrail import connection
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.location import Location
+from vistrails.core.modules.vistrails_module import ModuleError
 import copy
 
 ################################################################################
@@ -1082,7 +1082,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                          ('SetViewUp', convert_to_str(cup))]
             ops.extend(controller.update_functions_ops(camera, functions))
 
-        action = core.db.action.create_action(ops)
+        action = vistrails.core.db.action.create_action(ops)
         controller.add_new_action(action)
         controller.perform_action(action)
         controller.select_latest_version()
@@ -1130,7 +1130,7 @@ def registerSelf():
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
-    import core.debug
+    import vistrails.core.debug
     for (port,module) in [("AddRenderer",'vtkRenderer'),
                           ("SetRenderView",'vtkRenderView'),
                           ("InteractionHandler",'vtkInteractionHandler'),
@@ -1140,6 +1140,6 @@ def registerSelf():
             registry.add_input_port(VTKCell, port,'(%s:%s)'%(identifier,module))
  
         except Exception, e:
-            core.debug.warning(str(e))
+            vistrails.core.debug.warning(str(e))
 
     registry.add_output_port(VTKCell, "self", VTKCell)

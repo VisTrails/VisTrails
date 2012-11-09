@@ -32,10 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtGui, QtCore
 import os
-import api
+import vistrails.api
 
 CHOICE_OTHER_ALL = 0
 CHOICE_OTHER = 1
@@ -296,7 +295,7 @@ class MergeGUI:
     def resolveTags(a, b, text):
         exm = resolve_tags(a, b, text)
         exm.show()
-        app = api.get_builder_window()
+        app = vistrails.api.get_builder_window()
         if not app:
             app = QtGui.QApplication([])
             app.exec_()
@@ -306,7 +305,7 @@ class MergeGUI:
     def resolveNotes(a, b, text):
         exm = resolve_notes(a, b, text)
         exm.show()
-        app = api.get_builder_window()
+        app = vistrails.api.get_builder_window()
         if not app:
             app = QtGui.QApplication([])
             app.exec_()
@@ -316,7 +315,7 @@ class MergeGUI:
     def resolveThumbs(a, b, old_tmp_dir, new_tmp_dir):
         exm = resolve_thumbs(a, b, old_tmp_dir, new_tmp_dir)
         exm.show()
-        app = api.get_builder_window()
+        app = vistrails.api.get_builder_window()
         if not app:
             app = QtGui.QApplication([])
             app.exec_()

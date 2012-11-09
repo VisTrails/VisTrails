@@ -32,15 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 
-from core.utils import VistrailsInternalError
-from core.vistrail.port_spec import PortSpec, PortEndPoint
-import core.debug
-import core.modules.module_registry
-from core.modules.utils import create_descriptor_string
-from db.domain import DBModuleDescriptor
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
+import vistrails.core.debug
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.utils import create_descriptor_string
+from vistrails.db.domain import DBModuleDescriptor
 
 # this is used by add_port to signal a repeated port. Should never
 # happen, but it does. Probably means a bug on the dynamic modules
@@ -213,7 +212,7 @@ class ModuleDescriptor(DBModuleDescriptor):
     
     def _get_base_descriptor(self):
         if self._base_descriptor is None and self.base_descriptor_id >= 0:
-            from core.modules.module_registry import get_module_registry
+            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             self._base_descriptor = \
                 reg.descriptors_by_id[self.base_descriptor_id]
@@ -267,8 +266,8 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._left_fringe = None
             self._right_fringe = None
         else:
-            core.modules.module_registry._check_fringe(left_fringe)
-            core.modules.module_registry._check_fringe(right_fringe)
+            vistrails.core.modules.module_registry._check_fringe(left_fringe)
+            vistrails.core.modules.module_registry._check_fringe(right_fringe)
             self._left_fringe = left_fringe
             self._right_fringe = right_fringe
 

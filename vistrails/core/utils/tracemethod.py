@@ -37,10 +37,14 @@ thread-safe. It won't crash, but the bump() printouts might not be correct.
 
 Also defines report_stack, a decorator that dumps the traceback whenever
 a method gets called."""
-
 import sys
 import traceback
-from core.data_structures.stack import Stack
+from vistrails.core.data_structures.stack import Stack
+
+import unittest
+import tempfile
+import os
+
 _output_file = sys.stderr
 
 __current_method_name = Stack()
@@ -112,9 +116,6 @@ def report_stack(method):
         
 ###############################################################################
 
-import unittest
-import tempfile
-import os
 
 @trace_method
 def test_fun(p1):

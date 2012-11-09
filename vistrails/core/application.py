@@ -32,30 +32,29 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 import os.path
 import sys
 import weakref
 
-from core import command_line
-from core import debug
-from core import keychain
-from core import system
-import core.configuration
-from core.db.locator import FileLocator, DBLocator
-import core.interpreter.cached
-import core.interpreter.default
-import core.startup
-from core.utils import InstanceObject
-from core.utils.uxml import enter_named_element
-from core.vistrail.vistrail import Vistrail
-from core.vistrail.controller import VistrailController
+from vistrails.core import command_line
+from vistrails.core import debug
+from vistrails.core import keychain
+from vistrails.core import system
+import vistrails.core.configuration
+from vistrails.core.db.locator import FileLocator, DBLocator
+import vistrails.core.interpreter.cached
+import vistrails.core.interpreter.default
+import vistrails.core.startup
+from vistrails.core.utils import InstanceObject
+from vistrails.core.utils.uxml import enter_named_element
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.vistrail.controller import VistrailController
 
 VistrailsApplication = None
 
 def finalize_vistrails(app):
-    core.interpreter.cached.CachedInterpreter.cleanup()
+    vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
 
 def get_vistrails_application():
     global VistrailsApplication
@@ -278,7 +277,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         
         # This is the persistent configuration
         # Setup configuration to default
-        self.configuration = core.configuration.default()
+        self.configuration = vistrails.core.configuration.default()
         
         self.keyChain = keychain.KeyChain()
         self.setupOptions(args)
@@ -289,7 +288,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # persistent. This is the actual VisTrails current configuration
         self.temp_configuration = copy.copy(self.configuration)
         
-        core.interpreter.default.connect_to_configuration(self.temp_configuration)
+        vistrails.core.interpreter.default.connect_to_configuration(self.temp_configuration)
         
         # now we want to open vistrails and point to a specific version
         # we will store the version in temp options as it doesn't
@@ -321,7 +320,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # During this initialization, VistrailsStartup will load the
         # configuration from disk and update both configurations
         self.vistrailsStartup = \
-            core.startup.VistrailsStartup(self.configuration,
+            vistrails.core.startup.VistrailsStartup(self.configuration,
                                           self.temp_configuration)
 
         # Starting in version 1.2.1 logging is enabled by default.
@@ -464,7 +463,7 @@ after self.init()"""
 
                 
     def finishSession(self):
-        core.interpreter.cached.CachedInterpreter.cleanup()
+        vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
         
     def save_configuration(self):
         """ save_configuration() -> None

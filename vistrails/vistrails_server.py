@@ -33,18 +33,18 @@
 ##
 ###############################################################################
 """Main file for running VisTrails in server mode"""
-
+import vistrails.gui
 if __name__ == '__main__':
-    import gui.requirements
-    gui.requirements.check_pyqt4()
+    import vistrails.gui.requirements
+    vistrails.gui.requirements.check_pyqt4()
 
     from PyQt4 import QtGui
-    import gui.application_server
+    import vistrails.gui.application_server
     import sys
     import os
     try:
-        v = gui.application_server.start_server()
-        app = gui.application_server.VistrailsServer()
+        v = vistrails.gui.application_server.start_server()
+        app = vistrails.gui.application_server.VistrailsServer()
     except SystemExit, e:
         sys.exit(e)
     except Exception, e:
@@ -54,5 +54,5 @@ if __name__ == '__main__':
         sys.exit(255)
      
     v = app.run_server()
-    gui.application_server.stop_server()
+    vistrails.gui.application_server.stop_server()
     sys.exit(v)

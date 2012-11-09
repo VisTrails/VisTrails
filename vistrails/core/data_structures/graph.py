@@ -38,9 +38,12 @@ import copy
 
 from itertools import imap, chain, izip
 
-from core.utils import all
-from core.data_structures.queue import Queue
-from core.data_structures.stack import Stack
+from vistrails.core.utils import all
+from vistrails.core.data_structures.queue import Queue
+from vistrails.core.data_structures.stack import Stack
+
+import unittest
+import random
 
 ################################################################################
 # Graph
@@ -769,8 +772,6 @@ def edge_cmp(v1, v2):
 ################################################################################
 # Unit testing
 
-import unittest
-import random
 
 class TestGraph(unittest.TestCase):
      """ Class to test Graph

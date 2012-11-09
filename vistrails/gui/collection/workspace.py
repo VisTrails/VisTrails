@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 
 import glob
@@ -40,18 +39,19 @@ from itertools import chain
 import os
 from datetime import datetime
 from time import strptime
-from core.thumbnails import ThumbnailCache
-from core import debug
-from core.collection import Collection, MashupEntity, ThumbnailEntity, \
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core import debug
+from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity, \
     VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
-from core.collection.search import SearchCompiler, SearchParseError
-from core.db.locator import FileLocator
-from gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from gui.theme import CurrentTheme
-from gui.module_palette import QModuleTreeWidgetItemDelegate
-from gui.vis_diff import QDiffView
-from core.collection.entity import Entity
+from vistrails.core.collection.search import SearchCompiler, SearchParseError
+from vistrails.core.db.locator import FileLocator
+from vistrails.gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.module_palette import QModuleTreeWidgetItemDelegate
+from vistrails.gui.vis_diff import QDiffView
+from vistrails.core.collection.entity import Entity
+import vistrails.gui
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
@@ -107,11 +107,11 @@ class QCollectionWidget(QtGui.QTreeWidget):
         #print 'item_selected'
         locator = widget_item.entity.locator()
         #print "locator", locator
-        import gui.application
+        import vistrails.gui.application
 #        if not locator.is_valid():
 #            debug.critical("Locator is not valid:" % locator.to_url())
 #            return
-        app = gui.application.get_vistrails_application()
+        app = vistrails.gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
         args['version'] = locator.kwargs.get('version_node', None) or \
@@ -599,10 +599,10 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
             self.open_list.searchMode = False
             self.searchAction.setText("Search")
 
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.notify('query_changed', None)
         else:
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.qactions['search'].trigger()
  
     def updateSearchResults(self, search=None, result_list=None):
@@ -922,7 +922,7 @@ class QVistrailList(QtGui.QTreeWidget):
             
     def search_result_selected(self, view, version):
         # need to signal the query view to change its version and vistrail
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.change_view(view)
         view.query_version_selected(self.search, version)
 
@@ -941,7 +941,7 @@ class QVistrailList(QtGui.QTreeWidget):
         elif not type(widget_item) == QVistrailListLatestItem:
             # no valid item selected
             return
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         open_vistrail = _app.open_vistrail_without_prompt
         set_current_locator = _app.set_current_locator
 
@@ -1062,7 +1062,7 @@ class QVistrailList(QtGui.QTreeWidget):
 
     def ensureNotDiffView(self):
         """ If current tab is a diff, create a new tab """
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = _app.get_current_view()
         tab = view.get_current_tab()
         if type(tab) == QDiffView:
@@ -1073,7 +1073,7 @@ class QVistrailList(QtGui.QTreeWidget):
         It will ask the Vistrail view to execute the mashup
         """
         self.ensureNotDiffView()
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = _app.get_current_view()
         view.open_mashup(entity.mashup)
         
@@ -1081,7 +1081,7 @@ class QVistrailList(QtGui.QTreeWidget):
         """open_mashup(entity:MashupEntity) -> None
         It will ask the Vistrail view to execute the mashup
         """
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = _app.get_current_view()
         view.edit_mashup(entity.mashup)
 
@@ -1090,7 +1090,7 @@ class QVistrailList(QtGui.QTreeWidget):
         It will switch to the correct pipeline and pe, and open the pe
         """
         self.ensureNotDiffView()
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = _app.get_current_view()
         if view.controller.current_version != entity.pe.action_id:
             view.version_selected(entity.pe.action_id, True)
@@ -1144,7 +1144,7 @@ class QVistrailList(QtGui.QTreeWidget):
                           buttons=QtGui.QMessageBox.Yes,
                           defaultButton=QtGui.QMessageBox.No)
         if res == QtGui.QMessageBox.Yes:
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.merge_vistrails(destination.window.controller, source.window.controller)
 
     def visual_diff(self, source, destination):
@@ -1320,7 +1320,7 @@ class QVistrailList(QtGui.QTreeWidget):
     def execution_updated(self):
         """ Add new executions to workflow """
         # get view and item
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = _app.get_current_view()
         if id(view) not in self.items:
             return
@@ -1503,7 +1503,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 item = items[0]
                 if item.parent() == self.openFilesItem:
                     # close current vistrail
-                    from gui.vistrails_window import _app
+                    from vistrails.gui.vistrails_window import _app
                     if hasattr(item, 'window'):
                         _app.close_vistrail(item.window)
                     else:
@@ -1574,7 +1574,7 @@ class QVistrailList(QtGui.QTreeWidget):
 if __name__ == '__main__':
     import sys
     sys.path.append('/vistrails/src/query/vistrails')
-    from core.collection import Collection
+    from vistrails.core.collection import Collection
     
 #     vt_1 = load_vistrail(ZIPFileLocator('/vistrails/examples/spx.vt'))[0]
 #     vt_2 = load_vistrail(DBLocator('vistrails.sci.utah.edu', 3306,

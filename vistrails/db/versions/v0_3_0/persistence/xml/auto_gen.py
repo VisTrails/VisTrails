@@ -34,9 +34,8 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-
-from db.versions.v0_3_0.persistence.xml.xml_dao import XMLDAO
-from db.versions.v0_3_0.domain.auto_gen import *
+from vistrails.db.versions.v0_3_0.persistence.xml.xml_dao import XMLDAO
+from vistrails.db.versions.v0_3_0.domain.auto_gen import *
 
 class DBChangeParameterXMLDAOBase(XMLDAO):
 

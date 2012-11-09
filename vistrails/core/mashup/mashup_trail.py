@@ -35,13 +35,19 @@
 from datetime import date, datetime
 from time import strptime
 
-from core.mashup import XMLObject
-from core.mashup.mashup import Mashup
-from core.system import get_elementtree_library
+from vistrails.core.mashup import XMLObject
+from vistrails.core.mashup.mashup import Mashup
+from vistrails.core.system import get_elementtree_library
+
+from vistrails.core import debug
+from vistrails.db.domain import IdScope
+
+import unittest
+from vistrails.db.domain import IdScope
+import copy
+
 ElementTree = get_elementtree_library()
 
-from core import debug
-from db.domain import IdScope
 
 
 
@@ -471,14 +477,11 @@ class Mashuptrail(XMLObject):
            
 ################################################################################
             
-import unittest
-from db.domain import IdScope
-import copy
 
 class TestAction(unittest.TestCase):
     def create_action(self, id_scope=IdScope()):
-        from core.mashup.component import Component
-        from core.mashup.alias import Alias
+        from vistrails.core.mashup.component import Component
+        from vistrails.core.mashup.alias import Alias
         c1 = Component(id=id_scope.getNewId('component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,

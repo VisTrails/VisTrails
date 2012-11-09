@@ -43,16 +43,15 @@
 type information, and organizes them.
 
 """
-
 import re
 import vtk
 import class_tree
-import core.debug
+import vistrails.core.debug
 
-log      = core.debug.log
-warning  = core.debug.warning
-critical = core.debug.critical
-debug    = core.debug.debug
+log      = vistrails.core.debug.log
+warning  = vistrails.core.debug.warning
+critical = vistrails.core.debug.critical
+debug    = vistrails.core.debug.debug
 
 class VTKMethodParser(object):
     """This class provides useful methods for parsing methods of a VTK

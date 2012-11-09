@@ -1,4 +1,4 @@
-from core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module
 from batchq.core.batch import Property
 QUEUE_REGISTER = {}
 ####

@@ -32,23 +32,25 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 from itertools import izip
 
-from core.vistrail.annotation import Annotation
-from core.vistrail.location import Location
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.port_spec import PortSpec, PortEndPoint
-from db.domain import DBGroup
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
+from vistrails.db.domain import DBGroup
 
-from core.utils import NoSummon, VistrailsInternalError, report_stack
-from core.modules.basic_modules import identifier as basic_pkg, \
+from vistrails.core.utils import NoSummon, VistrailsInternalError, report_stack
+from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
     version as basic_pkg_version
-import core.modules.sub_module
-import core.modules.module_registry
-from core.modules.module_registry import get_module_registry, ModuleRegistry
+import vistrails.core.modules.sub_module
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.module_registry import get_module_registry, ModuleRegistry
+
+import unittest
+from vistrails.db.domain import IdScope
 
 class Group(DBGroup, Module):
 
@@ -100,7 +102,7 @@ class Group(DBGroup, Module):
         if _group.db_location:
             Location.convert(_group.db_location)
         if _group.db_workflow:
-            from core.vistrail.pipeline import Pipeline
+            from vistrails.core.vistrail.pipeline import Pipeline
             Pipeline.convert(_group.db_workflow)
 	for _function in _group.db_functions:
 	    ModuleFunction.convert(_function)
@@ -218,7 +220,7 @@ class Group(DBGroup, Module):
     output_port_specs = property(_get_output_port_specs)
 
     def get_port_spec_info(self, module):
-        return core.modules.sub_module.get_port_spec_info(self.pipeline, 
+        return vistrails.core.modules.sub_module.get_port_spec_info(self.pipeline, 
                                                           module)
 
     def make_port_specs(self):
@@ -295,15 +297,13 @@ class Group(DBGroup, Module):
 ################################################################################
 # Testing
 
-import unittest
-from db.domain import IdScope
 
 class TestGroup(unittest.TestCase):
 
     def create_group(self, id_scope=IdScope()):
-        from core.vistrail.location import Location
-        from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.location import Location
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module_param import ModuleParam
 
         params = [ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
                                   type='Int',
@@ -335,10 +335,10 @@ class TestGroup(unittest.TestCase):
 
     def test_serialization(self):
         """ Check that serialize and unserialize are working properly """
-        import core.db.io
+        import vistrails.core.db.io
 
         m1 = self.create_group()
-        xml_str = core.db.io.serialize(m1)
-        m2 = core.db.io.unserialize(xml_str, Group)
+        xml_str = vistrails.core.db.io.serialize(m1)
+        m2 = vistrails.core.db.io.unserialize(xml_str, Group)
         self.assertEquals(m1, m2)
         self.assertEquals(m1.id, m2.id)

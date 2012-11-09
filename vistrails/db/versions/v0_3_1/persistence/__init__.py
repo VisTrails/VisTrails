@@ -32,5 +32,4 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.versions.v0_3_0.persistence import DAOList
+from vistrails.db.versions.v0_3_0.persistence import DAOList

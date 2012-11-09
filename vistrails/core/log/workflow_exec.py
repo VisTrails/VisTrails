@@ -32,12 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.log.module_exec import ModuleExec
-from core.log.group_exec import GroupExec
-from core.log.loop_exec import LoopExec
-from core.vistrail.annotation import Annotation
-from db.domain import DBWorkflowExec
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.log.group_exec import GroupExec
+from vistrails.core.log.loop_exec import LoopExec
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.db.domain import DBWorkflowExec
 
 class WorkflowExec(DBWorkflowExec):
     """ Class that stores info for logging a workflow execution. """

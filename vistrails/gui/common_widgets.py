@@ -35,12 +35,11 @@
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
-
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
-from gui.theme import CurrentTheme
-from gui.modules.constant_configuration import StandardConstantWidget
-from core.system import systemType
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.modules.constant_configuration import StandardConstantWidget
+from vistrails.core.system import systemType
 ################################################################################
 
 class QToolWindow(QtGui.QDockWidget):

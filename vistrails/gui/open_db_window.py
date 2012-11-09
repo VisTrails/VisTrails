@@ -43,15 +43,15 @@ QConnectionDBSetupWindow
 
 """
 from PyQt4 import QtCore, QtGui
-from db import VistrailsDBException
-import db.services.io
-from core.external_connection import ExtConnectionList, DBConnection
-from core.db.locator import DBLocator
-from core.system import default_connections_file
-from gui.theme import CurrentTheme
-from gui.utils import show_info, show_warning, show_question, \
+from vistrails.db import VistrailsDBException
+import vistrails.db.services.io
+from vistrails.core.external_connection import ExtConnectionList, DBConnection
+from vistrails.core.db.locator import DBLocator
+from vistrails.core.system import default_connections_file
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import show_info, show_warning, show_question, \
 NO_BUTTON, YES_BUTTON
-from core import debug
+from vistrails.core import debug
 
 class QOpenDBWindow(QtGui.QDialog):
     """
@@ -553,7 +553,7 @@ class QDBConnectionList(QtGui.QListWidget):
             del config['name']
             config_id = config['id']
             del config['id']
-        vt_list = db.services.io.get_db_object_list(config, obj_type)
+        vt_list = vistrails.db.services.io.get_db_object_list(config, obj_type)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name
             config['id'] = config_id
@@ -746,7 +746,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
                   'passwd': str(self.passwdEdt.text()),
                   'db': str(self.databaseEdt.text())}
         try:
-            db.services.io.test_db_connection(config)
+            vistrails.db.services.io.test_db_connection(config)
             show_info('Vistrails',"Connection succeeded!")
             
         except Exception, e:

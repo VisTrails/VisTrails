@@ -32,21 +32,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import urlparse
 import copy
 
-from core.thumbnails import ThumbnailCache
-from core import debug
-from core.query import extract_text
-import core.system
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core import debug
+from vistrails.core.query import extract_text
+import vistrails.core.system
 
 from entity import Entity
 from workflow import WorkflowEntity
 from workflow_exec import WorkflowExecEntity
 from thumbnail import ThumbnailEntity
 from mashup import MashupEntity
-from core.collection.parameter_exploration import ParameterExplorationEntity
+from vistrails.core.collection.parameter_exploration import ParameterExplorationEntity
 
 class VistrailEntity(Entity):
     type_id = 1
@@ -177,9 +176,9 @@ class VistrailEntity(Entity):
         size = vistrail.get_version_count()
         if size < 1:
             # empty vistrail
-            user = core.system.current_user()
-            mod_time = core.system.current_time()
-            create_time = core.system.current_time()
+            user = vistrails.core.system.current_user()
+            mod_time = vistrails.core.system.current_time()
+            create_time = vistrails.core.system.current_time()
         else:
             latestVersionId = vistrail.get_latest_version()
             latestVersion = vistrail.actionMap[latestVersionId]
@@ -577,4 +576,4 @@ class VistrailEntity(Entity):
     def open(self):
         locator = BaseLocator.from_url(self.url)
         locator._name = self.name
-        core.open_locator(locator)
+        vistrails.core.open_locator(locator)

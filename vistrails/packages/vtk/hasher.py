@@ -35,7 +35,7 @@
 
 # This is the user-defined hasher for VTK, that takes into account
 # incoming and outgoing connections
-from core.cache.hasher import Hasher
+from vistrails.core.cache.hasher import Hasher
 
 def vtk_hasher(pipeline, module, chm):
     outgoing_connections = pipeline.graph.edges_from(module.id)

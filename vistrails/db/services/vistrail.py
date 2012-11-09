@@ -32,16 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstraction, \
+from vistrails.db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstraction, \
     DBModule, DBConnection, DBPort, DBFunction, DBParameter, DBGroup
-from db.services.action_chain import getActionChain, getCurrentOperationDict, \
+from vistrails.db.services.action_chain import getActionChain, getCurrentOperationDict, \
     getCurrentOperations, simplify_ops
-from db import VistrailsDBException
+from vistrails.db import VistrailsDBException
 
 import copy
 import datetime
 import getpass
+
+import unittest
+import vistrails.core.system
 
 def update_id_scope(vistrail):
     if hasattr(vistrail, 'update_id_scope'):
@@ -1268,12 +1270,10 @@ def getWorkflowDiff(vt_pair_1, vt_pair_2, heuristic_match=True):
 
 ################################################################################
 
-import unittest
-import core.system
 
 class TestDBVistrailService(unittest.TestCase):
     def test_parameter_heuristic(self):
-        from core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.module_param import ModuleParam
         
         param1 = ModuleParam(id=0, pos=0, type='String', val='abc')
         param2 = ModuleParam(id=1, pos=0, type='String', val='abc')
@@ -1291,8 +1291,8 @@ class TestDBVistrailService(unittest.TestCase):
         assert heuristicParameterMatch(param1, param5) == -1
 
     def test_function_heuristic(self):
-        from core.vistrail.module_param import ModuleParam
-        from core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.module_function import ModuleFunction
         
         param1 = ModuleParam(id=0, pos=0, type='String', val='abc')
         param2 = ModuleParam(id=1, pos=1, type='Float', val='1.0')
@@ -1317,9 +1317,9 @@ class TestDBVistrailService(unittest.TestCase):
         assert heuristicFunctionMatch(function1, function5) == 0
 
     def test_module_heuristic(self):
-        from core.vistrail.module_param import ModuleParam
-        from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module import Module
+        from vistrails.core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module import Module
 
         param1 = ModuleParam(id=0, pos=0, type='String', val='abc')
         param2 = ModuleParam(id=1, pos=1, type='Float', val='1.0')

@@ -32,11 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.data_structures.graph import Graph
-from core.utils import expression
-from core.utils import trace_method
-from core import debug
+from vistrails.core.data_structures.graph import Graph
+from vistrails.core.utils import expression
+from vistrails.core.utils import trace_method
+from vistrails.core import debug
 import copy
 import parser
 

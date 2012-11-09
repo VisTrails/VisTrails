@@ -32,12 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtGui, QtCore
 
-from gui.paramexplore.virtual_cell import QVirtualCellWindow
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from gui.theme import CurrentTheme
+from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.theme import CurrentTheme
 from pe_view import QParamExploreView 
 
 import weakref
@@ -203,7 +202,7 @@ class QParamExpProperties(QtGui.QWidget):
                                               self.controller.current_version)
 
             if version_changed:
-                from gui.vistrails_window import _app
+                from vistrails.gui.vistrails_window import _app
                 _app.notify('exploration_changed')
                 return
 
@@ -275,7 +274,7 @@ class QParamExpProperties(QtGui.QWidget):
         if index>0:
             pe = self.peDict[ids[index-1]]
             self.controller.current_parameter_exploration = pe
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.notify('exploration_changed')
 
 
@@ -288,5 +287,5 @@ class QParamExpProperties(QtGui.QWidget):
         if index<count-1:
             pe = self.peDict[ids[index+1]]
             self.controller.current_parameter_exploration = pe
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.notify('exploration_changed')

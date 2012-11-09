@@ -32,12 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 import sys
-sys.path.append('/vistrails/src/trunk/vistrails')
-import db.services.io
-from db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
+import vistrails.db.services.io
+from vistrails.db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
     DBOpmArtifactIdCause, DBOpmArtifactIdEffect, DBOpmRole, DBOpmAccountId, \
     DBOpmAccount, DBOpmAccounts, DBOpmGraph, DBOpmArtifacts, \
@@ -45,7 +43,9 @@ from db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     IdScope, DBGroupExec, DBLoopExec, DBModuleExec, DBOpmOverlaps, DBPort, \
     DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy, DBFunction, \
     DBParameter
-from db.services.vistrail import materializeWorkflow
+from vistrails.db.services.vistrail import materializeWorkflow
+
+sys.path.append('/vistrails/src/trunk/vistrails')
 
 def create_process(item_exec, account, id_scope):
     return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
@@ -760,11 +760,11 @@ def create_opm_from_vistrail(vistrail, version, log, registry):
     return create_opm(workflow, version, log, registry)
 
 def run(vistrail_xml, version, log_xml, registry_xml, output_fname):
-    from db.persistence import DAOList
+    from vistrails.db.persistence import DAOList
 
-    vistrail = db.services.io.open_vistrail_from_xml(vistrail_xml)
-    log = db.services.io.open_log_from_xml(log_xml)
-    registry = db.services.io.open_registry_from_xml(registry_xml)
+    vistrail = vistrails.db.services.io.open_vistrail_from_xml(vistrail_xml)
+    log = vistrails.db.services.io.open_log_from_xml(log_xml)
+    registry = vistrails.db.services.io.open_registry_from_xml(registry_xml)
     opm_graph = create_opm_from_vistrail(vistrail, int(version), log, registry)
     dao_list = DAOList()
     dao_list.save_to_xml(opm_graph, output_fname, {})

@@ -32,23 +32,23 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.core.bundles import py_import
+from PyQt4 import QtCore, QtGui
+import urllib
 
-from core.bundles import py_import
+from vistrails.core import debug
+from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
+from vistrails.gui.modules.source_configure import SourceConfigurationWidget
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.utils import PortAlreadyExists
+from vistrails.gui.theme import CurrentTheme
 
 MySQLdb = py_import('MySQLdb', {'linux-ubuntu':'python-mysqldb',
                                 'linux-fedora':'MySQL-python'})
 
 psycopg2 = py_import('psycopg2', {'linux-ubuntu':'python-psycopg2',
                                   'linux-fedora':'python-psycopg2'})
-from PyQt4 import QtCore, QtGui
-import urllib
 
-from core import debug
-from core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from gui.modules.source_configure import SourceConfigurationWidget
-from core.upgradeworkflow import UpgradeWorkflowHandler
-from core.utils import PortAlreadyExists
-from gui.theme import CurrentTheme
 
 class QPasswordEntry(QtGui.QDialog):
     def __init__(self, parent=None):

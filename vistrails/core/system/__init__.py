@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from __future__ import with_statement
 
 import datetime
@@ -44,16 +43,18 @@ import sys
 import platform
 import socket
 import urllib2
-from core import debug
-from core.utils import unimplemented, VistrailsInternalError, Chdir
-import core.requirements
+from vistrails.core import debug
+from vistrails.core.utils import unimplemented, VistrailsInternalError, Chdir
+import vistrails.core.requirements
+
+import unittest
 
 ##############################################################################
 
 systemType = platform.system()
 
 if systemType in ['Windows', 'Microsoft']:
-    from core.system.windows import guess_total_memory, temporary_directory, \
+    from vistrails.core.system.windows import guess_total_memory, temporary_directory, \
         list2cmdline, \
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
@@ -61,7 +62,7 @@ if systemType in ['Windows', 'Microsoft']:
         execute_cmdline, get_executable_path, execute_piped_cmdlines, TestWindows
 
 elif systemType in ['Linux']:
-    from core.system.linux import guess_total_memory, temporary_directory, \
+    from vistrails.core.system.linux import guess_total_memory, temporary_directory, \
         list2cmdline, \
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
@@ -70,7 +71,7 @@ elif systemType in ['Linux']:
         execute_piped_cmdlines, TestLinux
 
 elif systemType in ['Darwin']:
-    from core.system.osx import guess_total_memory, temporary_directory, \
+    from vistrails.core.system.osx import guess_total_memory, temporary_directory, \
         list2cmdline, \
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
@@ -294,7 +295,7 @@ def vistrails_revision():
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
         release = "1b88c3949efd"
-        if core.requirements.executable_file_exists('git'):
+        if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(['git', 'describe', '--always', '--abbrev=12'],
                                      lines)
@@ -390,7 +391,6 @@ def execute_cmdline2(cmd_list):
 
 ################################################################################
 
-import unittest
 
 if __name__ == '__main__':
     unittest.main()

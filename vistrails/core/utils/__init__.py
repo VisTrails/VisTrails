@@ -38,19 +38,23 @@ used all over VisTrails.
 """
 from __future__ import with_statement
 
-import core.debug
-from core.utils.enum import enum
-from core.utils.timemethod import time_method, time_call
-from core.utils.tracemethod import trace_method, bump_trace, report_stack, \
+import vistrails.core.debug
+from vistrails.core.utils.enum import enum
+from vistrails.core.utils.timemethod import time_method, time_call
+from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_stack, \
      trace_method_options, trace_method_args
-from core.utils.color import ColorByName
-from core.utils.lockmethod import lock_method
+from vistrails.core.utils.color import ColorByName
+from vistrails.core.utils.lockmethod import lock_method
 import copy
 import errno
 import itertools
 import os
 import sys
 import weakref
+
+
+import unittest
+import tempfile
 
 ################################################################################
 
@@ -280,8 +284,8 @@ def save_profile_to_disk(callable_, filename):
 
 def save_all_profiles():
     # This is internal because core.system imports core.utils... :/
-    import core.system
-    td = core.system.temporary_directory()
+    import vistrails.core.system
+    td = vistrails.core.system.temporary_directory()
     for (name, method) in get_profiled_methods():
         fout = td + name + '.pyp'
         #print fout
@@ -432,7 +436,7 @@ def versions_increasing(v1, v2):
         elif len(v1_list) > len(v2_list):
             return False
     except ValueError:
-        core.debug.critical("Cannot compare versions whose components " +
+        vistrails.core.debug.critical("Cannot compare versions whose components " +
                        "are not integers")
     return False
                 
@@ -529,8 +533,6 @@ class Chdir(object):
 ################################################################################
 
 
-import unittest
-import tempfile
 
 class _TestFibo(object):
     @memo_method

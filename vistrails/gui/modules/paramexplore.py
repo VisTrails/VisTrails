@@ -37,19 +37,18 @@ exploration. This allows user-defined constants to be used as dimensions
 in parameter exploration, provided the user implements the appropriate
 API in the classes.
 """
-
 from PyQt4 import QtCore, QtGui
-from core.modules.module_registry import get_module_registry
-from core.modules.basic_modules import Color
-from core.modules.paramexplore import IntegerLinearInterpolator, \
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.basic_modules import Color
+from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator
-    
-from gui.common_widgets import QStringEdit
-from gui.modules.constant_configuration import ColorChooserButton
-from gui.modules.python_source_configure import PythonEditor
-from gui.theme import CurrentTheme
-from gui.utils import show_warning
-from core.utils import all, unimplemented
+
+from vistrails.gui.common_widgets import QStringEdit
+from vistrails.gui.modules.constant_configuration import ColorChooserButton
+from vistrails.gui.modules.python_source_configure import PythonEditor
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import show_warning
+from vistrails.core.utils import all, unimplemented
 
 ##############################################################################
 

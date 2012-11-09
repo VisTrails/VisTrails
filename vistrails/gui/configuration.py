@@ -38,15 +38,15 @@ import os
 import os.path
 from PyQt4 import QtGui, QtCore
 
-from core import debug
-from core.configuration import ConfigurationObject, \
+from vistrails.core import debug
+from vistrails.core.configuration import ConfigurationObject, \
                                get_vistrails_configuration
 
-from core.thumbnails import ThumbnailCache
-from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
-from gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
+from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
-import core.system
+import vistrails.core.system
 
 ##############################################################################
 
@@ -204,7 +204,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
                 print "dbDefault", new_value 
                 dbState = getattr(get_vistrails_configuration(), 'dbDefault')
                 if new_value != dbState:
-                    from gui.vistrails_window import _app
+                    from vistrails.gui.vistrails_window import _app
                     _app.setDBDefault(dbState)
 
             self.emit(QtCore.SIGNAL('configuration_changed'),
@@ -312,7 +312,7 @@ class QGeneralConfiguration(QtGui.QWidget):
                      self.multi_head_changed)
 
     def connect_other_signals(self):
-        if core.system.systemType in ['Darwin']:
+        if vistrails.core.system.systemType in ['Darwin']:
             self.connect(self._use_metal_style_cb,
                          QtCore.SIGNAL('stateChanged(int)'),
                          self.metalstyle_changed)
@@ -379,7 +379,7 @@ class QGeneralConfiguration(QtGui.QWidget):
         Creates system specific widgets in parent
         
         """
-        if core.system.systemType in ['Darwin']:
+        if vistrails.core.system.systemType in ['Darwin']:
             parent._use_metal_style_cb = QtGui.QCheckBox(parent)
             parent._use_metal_style_cb.setText('Use brushed metal appearance*')
             layout.addWidget(parent._use_metal_style_cb)
@@ -458,7 +458,7 @@ changes to take effect")
         
         Update the dialog state based on a new configuration
         """
-        if core.system.systemType in ['Darwin']:
+        if vistrails.core.system.systemType in ['Darwin']:
             self._use_metal_style_cb.setChecked(
                 self._configuration.check('useMacBrushedMetalStyle'))
             

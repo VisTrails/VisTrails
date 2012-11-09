@@ -36,20 +36,18 @@
 initializations to the theme, packages and the builder...
 
 """
-
-
 from PyQt4 import QtGui, QtCore, QtNetwork
-from core.application import VistrailsApplicationInterface, \
+from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
-from core import command_line
-from core import debug
-from core import system
-from core.db.locator import FileLocator, DBLocator
-import core.requirements
-from db import VistrailsDBException
-import db.services.io
-from gui import qt
-import gui.theme
+from vistrails.core import command_line
+from vistrails.core import debug
+from vistrails.core import system
+from vistrails.core.db.locator import FileLocator, DBLocator
+import vistrails.core.requirements
+from vistrails.db import VistrailsDBException
+import vistrails.db.services.io
+from vistrails.gui import qt
+import vistrails.gui.theme
 import os.path
 import getpass
 import sys
@@ -83,7 +81,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.view_notifications = {}
 
         if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
-            raise core.requirements.MissingRequirement("Qt version >= 4.2")
+            raise vistrails.core.requirements.MissingRequirement("Qt version >= 4.2")
         self._is_running = False
         self.shared_memory = None
         self.local_server = None
@@ -152,7 +150,7 @@ parameters from other instances")
         Create the application with a dict of settings
         
         """
-        gui.theme.initializeCurrentTheme()
+        vistrails.gui.theme.initializeCurrentTheme()
         # DAK this is handled by finalize_vistrails in core.application now
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         VistrailsApplicationInterface.init(self,optionsDict)
@@ -362,7 +360,7 @@ parameters from other instances")
                                  for x in ['host', 'port', 
                                            'db', 'user'])
                 try:
-                    db.services.io.test_db_connection(db_config)
+                    vistrails.db.services.io.test_db_connection(db_config)
                 except VistrailsDBException:
                     passwd = \
                         getpass.getpass("Connecting to %s:%s. Password for user '%s':" % (
@@ -371,7 +369,7 @@ parameters from other instances")
                                         self.temp_db_options.user))
                     db_config['passwd'] = passwd
                     try:
-                        db.services.io.test_db_connection(db_config)
+                        vistrails.db.services.io.test_db_connection(db_config)
                     except VistrailsDBException:
                         debug.critical("Cannot login to database")
                         return False
@@ -405,13 +403,13 @@ parameters from other instances")
                 if f_name and version:
                     w_list.append((locator, version))
                 vt_list.append(locator)
-            import core.console_mode
+            import vistrails.core.console_mode
             if self.temp_db_options.parameters == None:
                 self.temp_db_options.parameters = ''
             
             if self.temp_configuration.check('workflowGraph'):
                 workflow_graph = self.temp_configuration.workflowGraph
-                results = core.console_mode.get_wf_graph(w_list, workflow_graph,
+                results = vistrails.core.console_mode.get_wf_graph(w_list, workflow_graph,
                                      self.temp_configuration.spreadsheetDumpPDF)
                 failed = True
                 for r in results:
@@ -423,7 +421,7 @@ parameters from other instances")
             
             if self.temp_configuration.check('evolutionGraph'):
                 evolution_graph = self.temp_configuration.evolutionGraph
-                results = core.console_mode.get_vt_graph(vt_list, evolution_graph,
+                results = vistrails.core.console_mode.get_vt_graph(vt_list, evolution_graph,
                                      self.temp_configuration.spreadsheetDumpPDF)
                 
                 failed = True
@@ -449,10 +447,10 @@ parameters from other instances")
                 extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
 
             if self.temp_configuration.check('parameterExploration'):
-                errs = core.console_mode.run_parameter_explorations(w_list,
+                errs = vistrails.core.console_mode.run_parameter_explorations(w_list,
                                                                     extra_info=extra_info)
             else:
-                errs = core.console_mode.run(w_list,
+                errs = vistrails.core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
                                       workflow_info, update_vistrail=True,
                                       extra_info=extra_info)
@@ -469,7 +467,7 @@ parameters from other instances")
         """ setIcon() -> None
         Setup Vistrail Icon
         """
-        self.setWindowIcon(gui.theme.CurrentTheme.APPLICATION_ICON)
+        self.setWindowIcon(vistrails.gui.theme.CurrentTheme.APPLICATION_ICON)
         
     def setupSplashScreen(self):
         """ setupSplashScreen() -> None
@@ -481,7 +479,7 @@ parameters from other instances")
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
             self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
-            self.splashScreen.setFont(gui.theme.CurrentTheme.SPLASH_SCREEN_FONT)
+            self.splashScreen.setFont(vistrails.gui.theme.CurrentTheme.SPLASH_SCREEN_FONT)
             debug.DebugPrint.getInstance().register_splash(self)
             self.splashScreen.show()
             
@@ -504,7 +502,7 @@ parameters from other instances")
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.
         # from gui.builder_window import QBuilderWindow
-        from gui.vistrails_window import QVistrailsWindow
+        from vistrails.gui.vistrails_window import QVistrailsWindow
 
         # self.builderWindow = QBuilderWindow()
         self.builderWindow = QVistrailsWindow()
@@ -648,8 +646,8 @@ def start_application(optionsDict=None):
     set_vistrails_application(VistrailsApplication)
     
     try:
-        core.requirements.check_all_vistrails_requirements()
-    except core.requirements.MissingRequirement, e:
+        vistrails.core.requirements.check_all_vistrails_requirements()
+    except vistrails.core.requirements.MissingRequirement, e:
         msg = ("VisTrails requires %s to properly run.\n" %
                e.requirement)
         debug.critical("Missing requirement", msg)

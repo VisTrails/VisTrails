@@ -32,11 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
-import api
-from core.utils import DummyView
-from core.vistrail.controller import VistrailController
+import vistrails.api
+from vistrails.core.utils import DummyView
+from vistrails.core.vistrail.controller import VistrailController
 
 class QPipelineEditor(QtGui.QWidget):
     """QPipelineEditor is a simple widget that can load a vistrail,
@@ -96,7 +95,7 @@ class QPipelineEditor(QtGui.QWidget):
                                                'Vistrail (*.vt)')
         if not fn.isNull():
             self.filenameLabel.setText('Vistrail: %s' % fn)
-            self.vistrail = api.get_vistrail_from_file(str(fn))
+            self.vistrail = vistrails.api.get_vistrail_from_file(str(fn))
             for item in self.vistrail.get_tagMap().items():
                 self.versions.append(item)
             self.pipelineList.clear()

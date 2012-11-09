@@ -32,9 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.mashup import XMLObject
-from core.mashup.component import Component
-from core.system import get_elementtree_library
+from vistrails.core.mashup import XMLObject
+from vistrails.core.mashup.component import Component
+from vistrails.core.system import get_elementtree_library
+
+import unittest
+from vistrails.db.domain import IdScope
+import copy
+
 ElementTree = get_elementtree_library()
 
 ################################################################################
@@ -132,9 +137,6 @@ class Alias(XMLObject):
 
 ################################################################################
 
-import unittest
-from db.domain import IdScope
-import copy
 
 class TestAlias(unittest.TestCase):
     def create_alias(self, id_scope=IdScope()):

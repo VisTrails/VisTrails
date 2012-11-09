@@ -1,7 +1,7 @@
 from common_definitions import categories, capitalise, \
     type_conversion, batch_queue_list, remove_underscore, name_formatter, \
     generator_definitions, exporter_definitions
-from core.modules.vistrails_module import Module, ModuleError, \
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     NotCacheable, InvalidOutput, ModuleSuspended
 from batchq.core.batch import BatchQ, Function, Property, FunctionMessage, \
     Collection, Exportable

@@ -36,9 +36,8 @@
 
 QControlFlowAssistDialog
 """
-
 from PyQt4 import QtCore, QtGui
-from gui.utils import show_info
+from vistrails.gui.utils import show_info
 
 ################################################################################
 
@@ -129,8 +128,8 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         input_ports_info is a list of tuples containing: (module, portspec, outgoing_connections, halfwidth)
         
         """
-        from core.modules.basic_modules import identifier as bm_identifier
-        from packages.controlflow import identifier as cf_identifier
+        from vistrails.core.modules.basic_modules import identifier as bm_identifier
+        from vistrails.packages.controlflow import identifier as cf_identifier
         
         io_modules = []
         io_connections = []

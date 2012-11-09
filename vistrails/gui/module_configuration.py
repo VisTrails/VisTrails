@@ -37,10 +37,10 @@ the user selects a module's "Edit Configuration"
 
 """
 from PyQt4 import QtCore, QtGui
-from core.modules.module_registry import get_module_registry, \
+from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-from gui.modules.module_configure import DefaultModuleConfigurationWidget
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.modules.module_configure import DefaultModuleConfigurationWidget
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
@@ -145,7 +145,7 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.setWindowTitle("Module Configuration")
     
     def configureDone(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)  
         _app.notify('module_done_configure', self.module.id)
         

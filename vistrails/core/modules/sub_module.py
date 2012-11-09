@@ -34,10 +34,20 @@
 ###############################################################################
 
 """ Define facilities for setting up SubModule Module in VisTrails """
-
 from itertools import izip
 import random
 import uuid
+
+from vistrails.core.cache.hasher import Hasher
+from vistrails.core.cache.utils import hash_list
+from vistrails.core.modules import module_registry
+from vistrails.core.modules.basic_modules import String, Boolean, Variant, NotCacheable
+from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
+    ModuleError
+from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
+import os.path
+import vistrails.db
+
 try:
     import hashlib
     sha_hash = hashlib.sha1
@@ -45,14 +55,6 @@ except ImportError:
     import sha
     sha_hash = sha.new
 
-from core.cache.hasher import Hasher
-from core.cache.utils import hash_list
-from core.modules import module_registry
-from core.modules.basic_modules import String, Boolean, Variant, NotCacheable
-from core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError
-from core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
-import os.path
 
 ##############################################################################
 
@@ -135,7 +137,7 @@ class Group(Module):
 ###############################################################################
 
 def coalesce_port_specs(neighbors, type):
-    from core.modules.basic_modules import identifier as basic_pkg
+    from vistrails.core.modules.basic_modules import identifier as basic_pkg
     reg = module_registry.get_module_registry()
     cur_descs = None
     if type == 'input':
@@ -217,9 +219,9 @@ class Abstraction(Group):
     # the compute method is inherited from Group!
 
 def read_vistrail(vt_fname):
-    import db.services.io
-    from core.vistrail.vistrail import Vistrail
-    vistrail = db.services.io.open_vistrail_from_xml(vt_fname)
+    import vistrails.db.services.io
+    from vistrails.core.vistrail.vistrail import Vistrail
+    vistrail = vistrails.db.services.io.open_vistrail_from_xml(vt_fname)
     Vistrail.convert(vistrail)
     return vistrail
 
@@ -260,7 +262,7 @@ def get_cur_abs_annotation_key(vistrail):
     return '__abstraction_uuid_%d__' % (annotation_add - 1)
     
 def save_abstraction(vistrail, fname):
-    from core.db.io import save_vistrail_to_xml
+    from vistrails.core.db.io import save_vistrail_to_xml
 
     # check if vistrail is changed before calling this!
     new_namespace = str(uuid.uuid1())

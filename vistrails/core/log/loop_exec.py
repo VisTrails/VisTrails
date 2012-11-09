@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBLoopExec
+from vistrails.db.domain import DBLoopExec
 
 class LoopExec(DBLoopExec):
     """ Class that stores info for logging a loop execution. """
@@ -51,8 +50,8 @@ class LoopExec(DBLoopExec):
 
     @staticmethod
     def convert(_loop_exec):
-        from core.log.module_exec import ModuleExec
-        from core.log.group_exec import GroupExec
+        from vistrails.core.log.module_exec import ModuleExec
+        from vistrails.core.log.group_exec import GroupExec
 
         if _loop_exec.__class__ == LoopExec:
             return

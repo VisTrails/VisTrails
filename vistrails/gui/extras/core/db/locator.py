@@ -32,16 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.configuration import get_vistrails_persistent_configuration, \
+from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
-from gui.open_db_window import QOpenDBWindow, QConnectionDBSetupWindow
-from core.db.locator import DBLocator, FileLocator
-from db import VistrailsDBException
-from core import debug
-import db.services.io
+from vistrails.gui.open_db_window import QOpenDBWindow, QConnectionDBSetupWindow
+from vistrails.core.db.locator import DBLocator, FileLocator
+from vistrails.db import VistrailsDBException
+from vistrails.core import debug
+import vistrails.db.services.io
 from PyQt4 import QtGui, QtCore
-import core.system
+import vistrails.core.system
 import os
 
 ##############################################################################
@@ -92,7 +91,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                       'db': str(dialog.databaseEdt.text())
                       }
             try:
-                db.services.io.test_db_connection(config)
+                vistrails.db.services.io.test_db_connection(config)
                 config['succeeded'] = True
                 config['name'] = str(dialog.nameEdt.text())
                 config['id'] = dialog.id
@@ -110,7 +109,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
         del testconfig['id']
         del testconfig['name']
         try:
-            db.services.io.test_db_connection(testconfig)
+            vistrails.db.services.io.test_db_connection(testconfig)
             config['succeeded'] = True
         except VistrailsDBException, e:
             config = show_dialog(parent, config['id'],
@@ -142,7 +141,7 @@ def get_load_file_locator_from_gui(parent, obj_type):
     fileName = QtGui.QFileDialog.getOpenFileName(
         parent,
         "Open %s..." % obj_type.capitalize(),
-        core.system.vistrails_file_directory(),
+        vistrails.core.system.vistrails_file_directory(),
         "VisTrails files (%s)\nOther files (*)" % suffixes)
     if fileName.isEmpty():
         return None
@@ -150,7 +149,7 @@ def get_load_file_locator_from_gui(parent, obj_type):
     dirName = os.path.dirname(filename)
     setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
     setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
-    core.system.set_vistrails_file_directory(dirName)
+    vistrails.core.system.set_vistrails_file_directory(dirName)
     return FileLocator(filename)
 
 def get_save_file_locator_from_gui(parent, obj_type, locator=None):
@@ -161,7 +160,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
     fileName = QtGui.QFileDialog.getSaveFileName(
         parent,
         "Save Vistrail...",
-        core.system.vistrails_file_directory(),
+        vistrails.core.system.vistrails_file_directory(),
         "VisTrails files (%s)" % suffixes, # filetypes.strip()
         None,
         QtGui.QFileDialog.DontConfirmOverwrite)
@@ -193,7 +192,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
     dirName = os.path.dirname(str(f))
     setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
     setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
-    core.system.set_vistrails_file_directory(dirName)
+    vistrails.core.system.set_vistrails_file_directory(dirName)
     return FileLocator(f)
    
 def get_autosave_prompt(parent):

@@ -1,4 +1,5 @@
 import sys
+import vistrails.core
 ##
 # TODO list:
 # (V) 1) Write the JobInfo module
@@ -29,7 +30,7 @@ identifier = 'org.comp-phys.batchq'
 name = 'Job Submission'
 
 def package_requirements():
-    import core.requirements
-    if not core.requirements.python_module_exists('batchq'):
-        raise core.requirements.MissingRequirement('batchq')
+    import vistrails.core.requirements
+    if not vistrails.core.requirements.python_module_exists('batchq'):
+        raise vistrails.core.requirements.MissingRequirement('batchq')
 

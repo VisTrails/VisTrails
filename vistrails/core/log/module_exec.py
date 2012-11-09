@@ -32,10 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.vistrail.annotation import Annotation
-from core.log.loop_exec import LoopExec
-from db.domain import DBModuleExec
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.log.loop_exec import LoopExec
+from vistrails.db.domain import DBModuleExec
 
 class ModuleExec(DBModuleExec):
     """ Class that stores info for logging a module execution. """

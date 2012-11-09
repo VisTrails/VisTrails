@@ -33,8 +33,7 @@
 ##
 ###############################################################################
 """Hasher class for vistrail items."""
-
-from core.cache.utils import hash_list
+from vistrails.core.cache.utils import hash_list
 
 try:
     import hashlib

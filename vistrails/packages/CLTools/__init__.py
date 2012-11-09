@@ -34,8 +34,7 @@
 ###############################################################################
 """ This package provides a way to wrap command line tools into VisTrails modules
 """
-
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
 
 name = 'CLTools'
 identifier = "edu.utah.sci.vistrails.cltools"

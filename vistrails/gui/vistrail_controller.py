@@ -33,43 +33,49 @@
 ##
 ###############################################################################
 from PyQt4 import QtCore, QtGui
-from core.common import *
-from core.configuration import get_vistrails_configuration
-from core import debug
-import core.db.action
-import core.db.locator
-import core.modules.vistrails_module
-from core.utils import VistrailsInternalError, InvalidPipeline
-from core.layout.version_tree_layout import VistrailsTreeLayoutLW
-from core.log.opm_graph import OpmGraph
-from core.log.prov_model import ProvModel
-from core.modules.abstraction import identifier as abstraction_pkg
-from core.modules.module_registry import get_module_registry, MissingPort
-from core.modules.package import Package
-from core.packagemanager import PackageManager
-from core.query.version import TrueSearch
-from core.query.visual import VisualQuery
-from core.param_explore import ActionBasedParameterExploration
-import core.system
+from vistrails.core.common import *
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
+import vistrails.core.db.action
+import vistrails.core.db.locator
+import vistrails.core.modules.vistrails_module
+from vistrails.core.utils import VistrailsInternalError, InvalidPipeline
+from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
+from vistrails.core.log.opm_graph import OpmGraph
+from vistrails.core.log.prov_model import ProvModel
+from vistrails.core.modules.abstraction import identifier as abstraction_pkg
+from vistrails.core.modules.module_registry import get_module_registry, MissingPort
+from vistrails.core.modules.package import Package
+from vistrails.core.packagemanager import PackageManager
+from vistrails.core.query.version import TrueSearch
+from vistrails.core.query.visual import VisualQuery
+from vistrails.core.param_explore import ActionBasedParameterExploration
+import vistrails.core.system
 
-from core.vistrail.annotation import Annotation
-from core.vistrail.controller import VistrailController as BaseController, \
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.controller import VistrailController as BaseController, \
     vt_action
-from core.vistrail.location import Location
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.port_spec import PortSpec
-from core.vistrail.vistrail import Vistrail, TagExists
-from core.interpreter.default import get_default_interpreter
-from gui.theme import CurrentTheme
-from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.vistrail import Vistrail, TagExists
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 
-import core.analogy
+import vistrails.core.analogy
 import copy
 import os.path
 import math
+
+import unittest
+import vistrails.gui.utils
+import vistrails.api
+import os
+from vistrails.core.utils import DummyView
 
 ################################################################################
 
@@ -203,10 +209,10 @@ class VistrailController(QtCore.QObject, BaseController):
         self._auto_save = False
 
     def get_locator(self):
-        from gui.application import get_vistrails_application
+        from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
             get_vistrails_application().configuration.check('autosave')):
-            return self.locator or core.db.locator.untitled_locator()
+            return self.locator or vistrails.core.db.locator.untitled_locator()
         else:
             return None
 
@@ -342,7 +348,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return ([], False)
     
     def enable_missing_package(self, identifier, deps):
-        from gui.application import get_vistrails_application
+        from vistrails.gui.application import get_vistrails_application
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 
@@ -399,7 +405,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.do_version_switch(new_version, report_all_errors,
                                    do_validate, from_root)
         except InvalidPipeline, e:
-            from gui.application import get_vistrails_application
+            from vistrails.gui.application import get_vistrails_application
 
 
 #             def process_err(err):
@@ -995,7 +1001,7 @@ class VistrailController(QtCore.QObject, BaseController):
         for connection_id in connection_ids:
             connection = self.current_pipeline.connections[connection_id]
             pipeline.add_connection(connection)
-        return core.db.io.serialize(pipeline)
+        return vistrails.core.db.io.serialize(pipeline)
         
     def paste_modules_and_connections(self, str, center):
         """ paste_modules_and_connections(str,
@@ -1017,7 +1023,7 @@ class VistrailController(QtCore.QObject, BaseController):
                     _par.alias = ''
                                     
         self.flush_delayed_actions()
-        pipeline = core.db.io.unserialize(str, Pipeline)
+        pipeline = vistrails.core.db.io.unserialize(str, Pipeline)
         remove_duplicate_aliases(pipeline)
 
         modules = []
@@ -1038,7 +1044,7 @@ class VistrailController(QtCore.QObject, BaseController):
                     process_group(module)
 
             id_remap = {}
-            action = core.db.action.create_paste_action(pipeline, 
+            action = vistrails.core.db.action.create_paste_action(pipeline, 
                                                         self.vistrail.idScope,
                                                         id_remap)
 
@@ -1109,12 +1115,12 @@ class VistrailController(QtCore.QObject, BaseController):
     def do_save_dir_prompt(self):
         dialog = QtGui.QFileDialog.getExistingDirectory
         dir_name = dialog(None, "Save Subworkflows...",
-                          core.system.vistrails_file_directory())
+                          vistrails.core.system.vistrails_file_directory())
         if dir_name.isEmpty():
             return None
         dir_name = os.path.abspath(str(dir_name))
         setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
-        core.system.set_vistrails_file_directory(dir_name)
+        vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
     
     def export_abstractions(self, abstraction_ids):
@@ -1250,7 +1256,7 @@ class VistrailController(QtCore.QObject, BaseController):
     def write_opm(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
-                log = core.db.io.merge_logs(self.log, 
+                log = vistrails.core.db.io.merge_logs(self.log, 
                                             self.vistrail.db_log_filename)
             else:
                 log = self.log
@@ -1263,7 +1269,7 @@ class VistrailController(QtCore.QObject, BaseController):
     def write_prov(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
-                log = core.db.io.merge_logs(self.log, 
+                log = vistrails.core.db.io.merge_logs(self.log, 
                                             self.vistrail.db_log_filename)
             else:
                 log = self.log
@@ -1335,7 +1341,7 @@ class VistrailController(QtCore.QObject, BaseController):
             (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
             self._delayed_actions = []
                                                      
-        action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
+        action = vistrails.core.analogy.perform_analogy_on_vistrail(self.vistrail,
                                                           a, b, c, 
                                                           pipeline_a,
                                                           pipeline_c)
@@ -1357,7 +1363,7 @@ class VistrailController(QtCore.QObject, BaseController):
         corresponding to each dimension
         
         """
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
 
         if pe.action_id != self.current_version:
             self.change_selected_version(pe.action_id)
@@ -1371,8 +1377,8 @@ class VistrailController(QtCore.QObject, BaseController):
             dim = [max(1, len(a)) for a in actions]
             if (reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
                 reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
-                from gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
-                from gui.paramexplore.pe_view import QParamExploreView
+                from vistrails.gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
+                from vistrails.gui.paramexplore.pe_view import QParamExploreView
                 modifiedPipelines, pipelinePositions = positionPipelines(
                     'PE#%d %s' % (QParamExploreView.explorationId, self.name),
                     dim[2], dim[1], dim[0], pipelines, pe.layout, self)
@@ -1429,8 +1435,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 if showProgress:
                     kwargs['module_executed_hook'] = [moduleExecuted]
                 result = interpreter.execute(modifiedPipelines[pi], **kwargs)
-                import api
-                api.result = result
+                import vistrails.api
+                vistrails.api.result = result
                 for error in result.errors.itervalues():
                     pp = pipelinePositions[pi]
                     errors.append(((pp[1], pp[0], pp[2]), error))
@@ -1446,20 +1452,15 @@ class VistrailController(QtCore.QObject, BaseController):
 ################################################################################
 # Testing
 
-import unittest
-import gui.utils
-import api
-import os
-from core.utils import DummyView
 
-class TestVistrailController(gui.utils.TestVisTrailsGUI):
+class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
 
     # def test_add_module(self):
     #     v = api.new_vistrail()
        
     def tearDown(self):
-        from core.configuration import get_vistrails_configuration
-        gui.utils.TestVisTrailsGUI.tearDown(self)
+        from vistrails.core.configuration import get_vistrails_configuration
+        vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
 
         config = get_vistrails_configuration()
         filename = os.path.join(config.abstractionsDirectory,
@@ -1494,13 +1495,13 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
         self.assertEquals(len(p_module.functions), 4)
 
     def test_abstraction_create(self):
-        from core.db.locator import XMLFileLocator
-        import core.db.io
-        from core.configuration import get_vistrails_configuration
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.db.io
+        from vistrails.core.configuration import get_vistrails_configuration
         config = get_vistrails_configuration()
         filename = os.path.join(config.abstractionsDirectory,
                                 '__TestFloatList.xml')
-        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()
         controller = VistrailController(auto_save=False)

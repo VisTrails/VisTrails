@@ -34,11 +34,11 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 
-from core.utils import versions_increasing
-from gui.common_widgets import QDockPushButton
-from gui.module_annotation import QModuleAnnotationTable
-from gui.ports_pane import PortsList
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.utils import versions_increasing
+from vistrails.gui.common_widgets import QDockPushButton
+from vistrails.gui.module_annotation import QModuleAnnotationTable
+from vistrails.gui.ports_pane import PortsList
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, flags=QtCore.Qt.Widget):
@@ -191,11 +191,11 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                                   self.module.id)
             
     def configure(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.configure_module()
 
     def documentation(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.show_documentation()
         
     def update_entry_klass(self, entry_klass):

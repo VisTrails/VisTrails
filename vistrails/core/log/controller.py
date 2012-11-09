@@ -32,17 +32,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.log.workflow_exec import WorkflowExec
-from core.log.module_exec import ModuleExec
-from core.log.loop_exec import LoopExec
-from core.log.group_exec import GroupExec
-from core.log.machine import Machine
-from core.modules.sub_module import Group, Abstraction
-from core.vistrail.annotation import Annotation
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.vistrail import Vistrail
-import core.system
+from vistrails.core.log.workflow_exec import WorkflowExec
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.log.loop_exec import LoopExec
+from vistrails.core.log.group_exec import GroupExec
+from vistrails.core.log.machine import Machine
+from vistrails.core.modules.sub_module import Group, Abstraction
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.vistrail import Vistrail
+import vistrails.core.system
 
 class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
@@ -80,11 +79,11 @@ class LogControllerFactory(object):
     
     def __init__(self):
         self.machine = Machine(id=-1,
-                               name=core.system.current_machine(),
-                               os=core.system.systemType,
-                               architecture=core.system.current_architecture(),
-                               processor=core.system.current_processor(),
-                               ram=core.system.guess_total_memory())
+                               name=vistrails.core.system.current_machine(),
+                               os=vistrails.core.system.systemType,
+                               architecture=vistrails.core.system.current_architecture(),
+                               processor=vistrails.core.system.current_processor(),
+                               ram=vistrails.core.system.guess_total_memory())
     
     def create_logger(self, log):
         return LogController(log, self.machine)
@@ -120,11 +119,11 @@ class LogController(object):
         else:
             session = None
         self.workflow_exec = WorkflowExec(id=wf_exec_id,
-                                          user=core.system.current_user(),
-                                          ip=core.system.current_ip(),
+                                          user=vistrails.core.system.current_user(),
+                                          ip=vistrails.core.system.current_ip(),
                                           vt_version= \
-                                              core.system.vistrails_version(),
-                                          ts_start=core.system.current_time(),
+                                              vistrails.core.system.vistrails_version(),
+                                          ts_start=vistrails.core.system.current_time(),
                                           parent_type=parent_type,
                                           parent_id=parent_id,
                                           parent_version=currentVersion,
@@ -133,7 +132,7 @@ class LogController(object):
         self.log.add_workflow_exec(self.workflow_exec)
 
     def finish_workflow_execution(self, errors, suspended=False):
-        self.workflow_exec.ts_end = core.system.current_time()
+        self.workflow_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             self.workflow_exec.completed = -2
         elif len(errors) > 0:
@@ -156,7 +155,7 @@ class LogController(object):
                                  module_id=module_id,
                                  module_name=module_name,
                                  cached=cached,
-                                 ts_start=core.system.current_time(),
+                                 ts_start=vistrails.core.system.current_time(),
                                  completed=0)
         return module_exec
 
@@ -172,7 +171,7 @@ class LogController(object):
                                group_name=group_name,
                                group_type=group_type,
                                cached=cached,
-                               ts_start=core.system.current_time(),
+                               ts_start=vistrails.core.system.current_time(),
                                completed=0)
         return group_exec
 
@@ -180,7 +179,7 @@ class LogController(object):
         l_exec_id = self.log.id_scope.getNewId(LoopExec.vtType)
         loop_exec = LoopExec(id=l_exec_id,
                              iteration=iteration,
-                             ts_start=core.system.current_time())
+                             ts_start=vistrails.core.system.current_time())
         return loop_exec
 
     def start_execution(self, module, module_id, module_name, parent_execs,
@@ -231,7 +230,7 @@ class LogController(object):
 
     def finish_module_execution(self, module, error, errorTrace=None,
                                 suspended=False):
-        module.module_exec.ts_end = core.system.current_time()
+        module.module_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             module.module_exec.completed = -2
             module.module_exec.error = error
@@ -262,7 +261,7 @@ class LogController(object):
         return group_exec
 
     def finish_group_execution(self, group, error, suspended=False):
-        group.group_exec.ts_end = core.system.current_time()
+        group.group_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             group.group_exec.completed = -2
             group.group_exec.error = error
@@ -292,7 +291,7 @@ class LogController(object):
         return loop_exec
 
     def finish_loop_execution(self, module, error, loop_exec, suspended=True):
-        loop_exec.ts_end = core.system.current_time()
+        loop_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             loop_exec.completed = -2
             loop_exec.error = error

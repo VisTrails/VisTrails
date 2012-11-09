@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.bundles import py_import
-from core.requirements import MissingRequirement
+from vistrails.core.bundles import py_import
+from vistrails.core.requirements import MissingRequirement
 
 import sys
 import os.path
@@ -43,31 +42,34 @@ import httplib
 import urllib
 import time
 
-ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
-                        'linux-fedora': 'python-ZSI'})
-
 from ZSI.ServiceProxy import ServiceProxy
 from ZSI.generate.wsdl2python import WriteServiceModule
 from ZSI.wstools import WSDLTools
 
-import core.modules
-import core.modules.module_registry
-import core.modules.basic_modules
-from core.modules.vistrails_module import Module, ModuleError, new_module
+import vistrails.core.modules
+import vistrails.core.modules.module_registry
+import vistrails.core.modules.basic_modules
+from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 from PyQt4 import QtCore, QtGui
-from core.modules.constant_configuration import ConstantWidgetMixin
-from core.modules.basic_modules import Constant
+from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.core.modules.basic_modules import Constant
 import enumeration_widget
 
 import platform
 import cPickle
+
+ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
+                        'linux-fedora': 'python-ZSI'})
+
+
+
 
 package_directory = None
 #Dictionary that contains the methods and complex types of all the web services
 webServicesmodulesDict = {}
 complexsdict ={} 
 
-pm = core.packagemanager.get_package_manager()
+pm = vistrails.core.packagemanager.get_package_manager()
 ###############################################################################
 
 class WebService(Module):
@@ -163,7 +165,7 @@ def webServiceTypesDict(WBobj):
                     setattr(libobj,nameattrib,visdata)
 
     def compute(self):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         #Check if it is an enumeration
         if WBobj.typeobj == 'Enumeration':
             nameport = str(WBobj.ports[0][0])
@@ -334,7 +336,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
     inparams and outparams. Right now, only the first outparam is used
     for setting the result. """
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
 
     def wrapResponseobj(self,resp,visobj):
         if type(resp)==types.ListType:
@@ -728,7 +730,7 @@ def addTypesModules(w,modclient,server):
             reg.add_module(mt, namespace=namespace, 
                            package=identifier, package_version=version)    
              
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     namespace = w + "|Types"
     complexsdict = webServicesmodulesDict[namespace]
     keys = complexsdict.keys()
@@ -757,7 +759,7 @@ def addMethodsModules(w,modclient,server):
     """ Create a VisTrails module for each complex type specified in
     webservicesmodulesDict dictionary. """
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     namespace = w + "|Methods"
     complexsdict = webServicesmodulesDict[namespace]
     keys = complexsdict.keys()
@@ -779,7 +781,7 @@ def addMethodsModules(w,modclient,server):
 def addPortsToTypes(w):
     """ Add input and output ports to the VisTrails complex type modules. """
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     dictkey = w + "|Types"
     complexsdict = webServicesmodulesDict[dictkey]
     keys = complexsdict.keys()
@@ -837,7 +839,7 @@ def addPortsToTypes(w):
 def addPortsToMethods(w):
     """ Add input and output ports to the VisTrails complex type modules. """
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     dictkey = w + "|Methods"
     complexsdict = webServicesmodulesDict[dictkey]
     keys = complexsdict.keys()
@@ -891,52 +893,52 @@ def addPortsToMethods(w):
 
 #Dictionary of primitive types
 #list extracted from http://www.w3.org/2001/XMLSchema
-wsdlTypesDict = { 'string' : core.modules.basic_modules.String,
-                'float': core.modules.basic_modules.Float,
-                'decimal': core.modules.basic_modules.Float,
-                'double': core.modules.basic_modules.Float,
-                'boolean': core.modules.basic_modules.Boolean,
-                'anyType': core.modules.basic_modules.Variant,
-                'anyURI': core.modules.basic_modules.String,
-                'DataHandler':core.modules.basic_modules.String,
-                'dateTime': core.modules.basic_modules.String,
-                'duration': core.modules.basic_modules.String,
-                'time': core.modules.basic_modules.String,
-                'date': core.modules.basic_modules.String,
-                'gYearMonth': core.modules.basic_modules.String,
-                'gYear': core.modules.basic_modules.String,
-                'gMonthDay': core.modules.basic_modules.String,
-                'gDay': core.modules.basic_modules.String,
-                'gMonth': core.modules.basic_modules.String,
-                'hexBinary': core.modules.basic_modules.String,
-                'base64Binary': core.modules.basic_modules.String,
-                'QName': core.modules.basic_modules.String,
-                'normalizedString': core.modules.basic_modules.String,
-                'token': core.modules.basic_modules.String,
-                'language': core.modules.basic_modules.String,
-                'IDREFS': core.modules.basic_modules.String,
-                'ENTITIES': core.modules.basic_modules.String,
-                'NMTOKEN': core.modules.basic_modules.String,
-                'NMTOKENS': core.modules.basic_modules.String,
-                'Name': core.modules.basic_modules.String,
-                'NCName': core.modules.basic_modules.String,
-                'ID': core.modules.basic_modules.String,
-                'IDREF': core.modules.basic_modules.String,
-                'ENTITY': core.modules.basic_modules.String,
-                'integer' : core.modules.basic_modules.Integer,
-                'nonPositiveInteger' : core.modules.basic_modules.Integer,
-                'negativeInteger' : core.modules.basic_modules.Integer,
-                'long' : core.modules.basic_modules.Integer,
-                'int' : core.modules.basic_modules.Integer,
-                'short' : core.modules.basic_modules.Integer,
-                'byte' : core.modules.basic_modules.Integer,
-                'nonNegativeInteger' : core.modules.basic_modules.Integer,
-                'unsignedLong' : core.modules.basic_modules.Integer,
-                'unsignedInt' : core.modules.basic_modules.Integer,
-                'unsignedShort' : core.modules.basic_modules.Integer,
-                'unsignedByte' : core.modules.basic_modules.Integer,
-                'positiveInteger' : core.modules.basic_modules.Integer,
-                'Array': core.modules.basic_modules.List}
+wsdlTypesDict = { 'string' : vistrails.core.modules.basic_modules.String,
+                'float': vistrails.core.modules.basic_modules.Float,
+                'decimal': vistrails.core.modules.basic_modules.Float,
+                'double': vistrails.core.modules.basic_modules.Float,
+                'boolean': vistrails.core.modules.basic_modules.Boolean,
+                'anyType': vistrails.core.modules.basic_modules.Variant,
+                'anyURI': vistrails.core.modules.basic_modules.String,
+                'DataHandler':vistrails.core.modules.basic_modules.String,
+                'dateTime': vistrails.core.modules.basic_modules.String,
+                'duration': vistrails.core.modules.basic_modules.String,
+                'time': vistrails.core.modules.basic_modules.String,
+                'date': vistrails.core.modules.basic_modules.String,
+                'gYearMonth': vistrails.core.modules.basic_modules.String,
+                'gYear': vistrails.core.modules.basic_modules.String,
+                'gMonthDay': vistrails.core.modules.basic_modules.String,
+                'gDay': vistrails.core.modules.basic_modules.String,
+                'gMonth': vistrails.core.modules.basic_modules.String,
+                'hexBinary': vistrails.core.modules.basic_modules.String,
+                'base64Binary': vistrails.core.modules.basic_modules.String,
+                'QName': vistrails.core.modules.basic_modules.String,
+                'normalizedString': vistrails.core.modules.basic_modules.String,
+                'token': vistrails.core.modules.basic_modules.String,
+                'language': vistrails.core.modules.basic_modules.String,
+                'IDREFS': vistrails.core.modules.basic_modules.String,
+                'ENTITIES': vistrails.core.modules.basic_modules.String,
+                'NMTOKEN': vistrails.core.modules.basic_modules.String,
+                'NMTOKENS': vistrails.core.modules.basic_modules.String,
+                'Name': vistrails.core.modules.basic_modules.String,
+                'NCName': vistrails.core.modules.basic_modules.String,
+                'ID': vistrails.core.modules.basic_modules.String,
+                'IDREF': vistrails.core.modules.basic_modules.String,
+                'ENTITY': vistrails.core.modules.basic_modules.String,
+                'integer' : vistrails.core.modules.basic_modules.Integer,
+                'nonPositiveInteger' : vistrails.core.modules.basic_modules.Integer,
+                'negativeInteger' : vistrails.core.modules.basic_modules.Integer,
+                'long' : vistrails.core.modules.basic_modules.Integer,
+                'int' : vistrails.core.modules.basic_modules.Integer,
+                'short' : vistrails.core.modules.basic_modules.Integer,
+                'byte' : vistrails.core.modules.basic_modules.Integer,
+                'nonNegativeInteger' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedLong' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedInt' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedShort' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedByte' : vistrails.core.modules.basic_modules.Integer,
+                'positiveInteger' : vistrails.core.modules.basic_modules.Integer,
+                'Array': vistrails.core.modules.basic_modules.List}
 
 ################################################################################
 def load_wsdl_no_config(wsdlList):
@@ -988,7 +990,7 @@ be loaded again." % w
             continue
 
         #create a directory for each webservice if it does not exist
-        package_directory = os.path.join(core.system.default_dot_vistrails(),
+        package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                         "webServices")
         sys.path.append(package_directory)
         directoryname = urllib.quote_plus(w)
@@ -1026,8 +1028,8 @@ def load_wsdl_with_config(wsdlList):
     global schema
     global webServicesmodulesDict
     global complexsdict
-    reg = core.modules.module_registry.get_module_registry()
-    basic = core.modules.basic_modules
+    reg = vistrails.core.modules.module_registry.get_module_registry()
+    basic = vistrails.core.modules.basic_modules
     not_loaded = []
     result = True
     for w in wsdlList:
@@ -1083,7 +1085,7 @@ be loaded again: %s"% w
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
 
-        package_directory = os.path.join(core.system.default_dot_vistrails(),
+        package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                          "webServices")
         sys.path.append(package_directory)
         package_subdirectory = os.path.join(package_directory,
@@ -1291,7 +1293,7 @@ be loaded again: %s"% w
         webServicesmodulesDict[dictkey] = complexsdict        
     #Write modules.conf file that will contain the types and methods
     #dictionary of the web services.
-    namefile = os.path.join(core.system.default_dot_vistrails(),
+    namefile = os.path.join(vistrails.core.system.default_dot_vistrails(),
                             'webServices',
                             'modules.conf')    
     try:
@@ -1338,7 +1340,7 @@ def verify_wsdl(wsdlList):
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = os.path.join(core.system.default_dot_vistrails(),
+        package_subdirectory = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                             "webServices",
                                             directoryname)
         wsm = WriteServiceModule(wsdl)
@@ -1352,7 +1354,7 @@ def verify_wsdl(wsdlList):
         isoutdated = False
         if remoteHeader != None:
             localFile = client_file
-            reg = core.modules.module_registry.get_module_registry()
+            reg = vistrails.core.modules.module_registry.get_module_registry()
             httpfile = reg.get_descriptor_by_name('edu.utah.sci.vistrails.http',
                                                   'HTTPFile').module()
             try:
@@ -1367,7 +1369,7 @@ def verify_wsdl(wsdlList):
     return (outdated_list,updated_list, error_list)
             
 def initialize(*args, **keywords):
-    import core.packagemanager
+    import vistrails.core.packagemanager
     global schema
     global webServicesmodulesDict
     global complexsdict
@@ -1378,7 +1380,7 @@ next VisTrails release. Please consider using the new SUDS Web Services package.
 This message will not be shown again."
         pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
         try:
-            from gui.application import get_vistrails_application
+            from vistrails.gui.application import get_vistrails_application
             if get_vistrails_application() is not None:
                 configuration.showWarning = False
                 VisTrailsApplication.save_configuration()
@@ -1387,13 +1389,13 @@ This message will not be shown again."
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
 
-    reg = core.modules.module_registry.get_module_registry()
-    basic = core.modules.basic_modules
+    reg = vistrails.core.modules.module_registry.get_module_registry()
+    basic = vistrails.core.modules.basic_modules
     reg.add_module(WebService)
 
     #Create a directory for the webServices package
     global package_directory
-    package_directory = os.path.join(core.system.default_dot_vistrails(),
+    package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                      "webServices")
     if not os.path.isdir(package_directory):
         try:
@@ -1404,7 +1406,7 @@ This message will not be shown again."
             print "'%s' does not exist and parent directory is writable"
             sys.exit(1)
 
-    pathfile = os.path.join(core.system.default_dot_vistrails(),
+    pathfile = os.path.join(vistrails.core.system.default_dot_vistrails(),
                             "webServices",
                             "modules.conf")
     outdated_list = []
@@ -1476,7 +1478,7 @@ def handle_missing_module(*args, **kwargs):
         updated_list = []
         error_list = []
         print "Downloading %s and adding to the Module list..."%wsdl
-        pathfile = os.path.join(core.system.default_dot_vistrails(),
+        pathfile = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                 "webServices",
                                 "modules.conf")
         if os.path.isfile(pathfile):
