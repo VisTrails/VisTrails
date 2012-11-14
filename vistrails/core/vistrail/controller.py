@@ -59,7 +59,7 @@ from core.modules.module_registry import ModuleRegistryException, \
 from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail, \
     get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
-    get_next_abs_annotation_key, save_abstraction
+    get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
 from core.packagemanager import PackageManager, get_package_manager
 import core.packagerepository
 from core.thumbnails import ThumbnailCache
@@ -1736,23 +1736,6 @@ class VistrailController(object):
                                               namespace, None, module_version)
         return None
 
-    def parse_abstraction_name(self, filename, get_all_parts=False):
-        # assume only 1 possible prefix or suffix
-        import re
-        prefixes = ["abstraction_"]
-        suffixes = [".vt", ".xml"]
-        path, fname = os.path.split(filename)
-        hexpat = '[a-fA-F0-9]'
-        uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
-        prepat = '|'.join(prefixes).replace('.','\\.')
-        sufpat = '|'.join(suffixes).replace('.','\\.')
-        pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
-        matchobj = pattern.match(fname)
-        prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
-        if get_all_parts:
-            return (path, prefix, absname, uuid[1:-1], suffix)
-        return absname
-
     def add_abstraction_to_registry(self, abs_vistrail, abs_fname, name, 
                                     namespace=None, module_version=None,
                                     is_global=True, avail_fnames=[]):
@@ -1843,7 +1826,7 @@ class VistrailController(object):
     def load_abstraction(self, abs_fname, is_global=True, abs_name=None,
                          module_version=None, avail_fnames=[]):
         if abs_name is None:
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
         if abs_fname in self._loaded_abstractions:
             abs_vistrail = self._loaded_abstractions[abs_fname]
         else:
@@ -1898,7 +1881,7 @@ class VistrailController(object):
     def unload_abstractions(self):
         reg = core.modules.module_registry.get_module_registry()
         for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
             # FIXME? do we need to remove all versions (call
             # delete_module over and over?)
             for namespace in get_all_abs_namespaces(abs_vistrail):
@@ -1918,7 +1901,7 @@ class VistrailController(object):
         #         # in the module palette
         #         if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
         #             continue
-        #     abs_name = self.parse_abstraction_name(abs_fname)
+        #     abs_name = parse_abstraction_name(abs_fname)
         #     abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
         #     try:
         #         descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
@@ -2044,7 +2027,7 @@ class VistrailController(object):
         abs_fname = invalid_module.module_descriptor.module.vt_fname
         #print "&&& abs_fname", abs_fname
         (path, prefix, abs_name, abs_namespace, suffix) = \
-            self.parse_abstraction_name(abs_fname, True)
+            parse_abstraction_name(abs_fname, True)
         # abs_vistrail = invalid_module.vistrail
         abs_vistrail = read_vistrail(abs_fname)
         abs_namespace = get_cur_abs_namespace(abs_vistrail)
@@ -2254,26 +2237,31 @@ class VistrailController(object):
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
                 if (descriptor_tuple[1], '') not in lookup:
                     raise
-                abs_fname = lookup[(descriptor_tuple[1], '')]
+                abs_fnames = lookup[(descriptor_tuple[1], '')]
             else:
-                abs_fname = lookup[(descriptor_tuple[1], descriptor_tuple[2])]
-            new_desc = \
-                self.load_abstraction(abs_fname, False, 
-                                      descriptor_tuple[1],
-                                      descriptor_tuple[4],
-                                      lookup.values())
-            descriptor_tuple = (new_desc.package, new_desc.name, 
-                                new_desc.namespace, new_desc.package_version,
-                                str(new_desc.version))
+                abs_fnames = [lookup[(descriptor_tuple[1], descriptor_tuple[2])]]
+            for abs_fname in abs_fnames:
+                new_desc = \
+                    self.load_abstraction(abs_fname, False, 
+                                          descriptor_tuple[1],
+                                          descriptor_tuple[4],
+                                          [v for k, v in lookup.iteritems()
+                                           if k[1] != ''])
+                descriptor_tuple = (new_desc.package, new_desc.name, 
+                                    new_desc.namespace, new_desc.package_version,
+                                    str(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
         return None
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
         for abs_fname in abs_fnames:
-            path, prefix, abs_name, abs_namespace, suffix = self.parse_abstraction_name(abs_fname, True)
+            path, prefix, abs_name, abs_namespace, suffix = parse_abstraction_name(abs_fname, True)
             # abs_name = os.path.basename(abs_fname)[12:-4]
             lookup[(abs_name, abs_namespace)] = abs_fname
+            if (abs_name, '') not in lookup:
+                lookup[(abs_name, '')] = []
+            lookup[(abs_name, '')].append(abs_fname)
             
         # we're going to recurse manually (see
         # add_abstraction_to_regsitry) because we can't call
@@ -3235,7 +3223,7 @@ class VistrailController(object):
             # prevent conflicts and copies the abstraction to the new
             # path so save_bundle has a valid file
             path, prefix, absname, old_ns, suffix = \
-                self.parse_abstraction_name(abs_fname, True)
+                parse_abstraction_name(abs_fname, True)
             new_abs_fname = os.path.join(abs_save_dir, 
                                          '%s%s(%s)%s' % (prefix, absname, 
                                                          namespace, suffix))
@@ -3251,7 +3239,7 @@ class VistrailController(object):
                 if abs_module is not None:
                     abs_fname = abs_module.vt_fname
                     path, prefix, abs_name, old_ns, suffix = \
-                        self.parse_abstraction_name(abs_fname, True)
+                        parse_abstraction_name(abs_fname, True)
                     # do our indexing by abstraction name
                     # we know that abstractions with different names
                     # cannot overlap, but those that have the same
