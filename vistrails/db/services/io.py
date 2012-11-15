@@ -1482,7 +1482,8 @@ def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
             version = version if version else currentVersion
             if not abs.db_version:
                 abs.db_version = currentVersion
-            # Always copy
+            abs = translate_vistrail(abs, abs.db_version, version)
+            # Always copy for now
             getVersionDAO(version).save_to_db(db_connection, abs, True)
             db_connection.commit()
 
