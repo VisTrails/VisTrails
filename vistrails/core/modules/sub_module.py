@@ -91,6 +91,7 @@ class Group(Module):
                                          "remap dictionaries don't exist")
             
         res = self.interpreter.setup_pipeline(self.pipeline)
+        self.persistent_modules = res[0].values()
         if len(res[5]) > 0:
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n'.join(me.msg for me in res[5].itervalues()))
@@ -126,10 +127,7 @@ class Group(Module):
                                            **{'reset_computed': False})
 
     def is_cacheable(self):
-        for module in self.pipeline.modules.itervalues():
-            if not module.summon().is_cacheable():
-                return False
-        return True
+        return all(m.is_cacheable() for m in self.persistent_modules)
 
 ###############################################################################
 
