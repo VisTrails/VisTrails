@@ -11,6 +11,8 @@ class ArtistException(Exception):
 def translate_color(c):
     return c.tuple
 
+
+#wrapper class for matplotlib artist and patches
 class MplArtistProperties(Module):
     _input_ports = [
 ("agg_filter", "(edu.utah.sci.vistrails.basic:String)",
@@ -116,7 +118,7 @@ class MplArtistProperties(Module):
 #                      {"docstring": "Set the artist's visiblity.\nACCEPTS: [True | False]"}),
 #                     ("zorder", "(edu.utah.sci.vistrails.basic:Float)", True,
 #                      {"docstring": "Set the zorder for the artist.  Artists with lower zorder\nvalues are drawn first.\nACCEPTS: any number"})]
-
+    
     def get_translation(self, port, val):
         for klass in self.__class__.mro():
             if '_mpl_translations' in klass.__dict__ and \
@@ -132,7 +134,7 @@ class MplArtistProperties(Module):
                     print "trying to call"
                     return obj(val)
         return None
-
+    
     def get_kwargs(self):
         kwargs = {}
         for port in self.inputPorts:
@@ -325,6 +327,8 @@ class MplArtistProperties(Module):
     
 #     _mpl_translations = {'color': translate_color, 'markerfacecolor': translate_color, 'markeredgecolor': translate_color, 'marker': {'square': 's', 'point': '.', 'tickdown': 3, 'triangle_right': '>', 'tickup': 2, 'caretup': 6, 'hline': '_', 'vline': '|', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'caretright': 5, 'tickright': 1, 'render the string using mathtext': '$...$', 'tickleft': 0, 'tri_up': '2', 'circle': 'o', 'pixel': ',', 'diamond': 'D', 'star': '*', 'hexagon1': 'h', 'hexagon2': 'H', 'tri_right': '4', 'nothing': '', 'thin_diamond': 'd', 'tri_down': '1', 'triangle_left': '<', 'caretdown': 7, 'plus': '+', 'triangle_down': 'v', 'triangle_up': '^', 'x': 'x'}, 'markerfacecoloralt': translate_color, 'linestyle': {'solid': '-', 'dashed': '--', 'dash_dot': '-.', 'dotted': ':', 'draw nothing': ''}}
 
+
+#wrapper class for drawing options for 2D line plot
 class MplLine2DProperties(MplArtistProperties):
     _input_ports = [
         ("antialiased", "(edu.utah.sci.vistrails.basic:Boolean)",
@@ -423,6 +427,8 @@ class MplLine2DProperties(MplArtistProperties):
 
     _mpl_translations = {'color': translate_color, 'markerfacecolor': translate_color, 'markeredgecolor': translate_color, 'marker': {'caretright': 5, 'point': '.', 'triangle_right': '>', 'tickup': 2, 'square': 's', 'a regular polygon': 0, 'vline': '|', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'a circle (*numsides* and *angle* is ignored)': 3, 'x': 'x', 'tickright': 1, 'tri_right': '4', 'see below': '(*numsides*, *style*, *angle*)', 'tickleft': 0, 'tri_up': '2', 'circle': 'o', 'pixel': ',', 'diamond': 'D', 'star': '*', 'hexagon1': 'h', 'hexagon2': 'H', 'an asterisk': 2, 'octagon': '8', 'tickdown': 3, 'nothing': ' ', 'thin_diamond': 'd', 'tri_down': '1', 'triangle_left': '<', 'render the string using mathtext': '$...$', 'a star-like symbol': 1, 'a list of (x, y) pairs in range (0, 1)': '*verts*', 'caretdown': 7, 'hline': '_', 'plus': '+', 'triangle_down': 'v', 'triangle_up': '^', 'caretup': 6}, 'markerfacecoloralt': translate_color, 'linestyle': {'solid': '-', 'dashed': '--', 'dash_dot': '-.', 'dotted': ':', 'draw nothing': ''}}
 
+
+#patch properties for updating the plots
 class MplPatchProperties(MplArtistProperties):
     _input_ports = [
         ("alpha", "(edu.utah.sci.vistrails.basic:Float)",

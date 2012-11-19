@@ -55,6 +55,8 @@ except Exception, e:
 
 ################################################################################
 
+
+#base class for 2D plots
 class MplPlot(Module):
     _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",
                      {"defaults": ["1"]}),
@@ -73,6 +75,40 @@ class MplPlot(Module):
         if self.figInstance is None:
             self.figInstance = pylab.figure()
         return self.figInstance
+
+    def get_translation(self, port, val):
+        '''doing translation for enum type of the input ports'''
+        
+        for klass in self.__class__.mro():
+            if '_mpl_translations' in klass.__dict__ and \
+                    port in klass._mpl_translations:
+                obj = klass._mpl_translations[port]
+                if isinstance(obj, dict):
+                    if val in obj:
+                        return obj[val]
+                    else:
+                        raise ArtistException(
+                            "Value '%s' for input '%s' invalid." % (val, port))
+                else:
+                    print "trying to call"
+                    return obj(val)
+        return None
+    
+    def get_kwargs_except(self, listExcepts):
+        ''' getting all the input ports except those ports listed inside listExcepts
+            return format: {port_name:value,...}'''
+        kwargs = {}
+        for port in self.inputPorts:
+            if port not in listExcepts:
+                val = self.getInputFromPort(port)
+                translation = self.get_translation(port, val)
+                if translation is not None:
+                    kwargs[port] = translation
+                else:
+                    kwargs[port] = val
+        return kwargs
+            
+    
 
 class MplFigure(NotCacheable, Module):
     _input_ports = [("addPlot", "(MplPlot)"),
@@ -320,6 +356,8 @@ class MplFigure(NotCacheable, Module):
 from artists import MplArtistProperties, MplLine2DProperties, \
     MplPatchProperties, translate_color
 
+
+#class for enum types of marker and line style
 class MplArtistPlot(MplPlot):
     _port_types = {'color': '(edu.utah.sci.vistrails.basic:Color)',
                    'marker': '(edu.utah.sci.vistrails.basic:String)',
@@ -397,19 +435,30 @@ class MplArtistPlot(MplPlot):
                 translations[port_name] = \
                     MplArtistPlot._translations[port_type]
             if port_type in MplArtistPlot._port_dicts:
-                port_tuple = (port_name, port_spec, 
-                              MplArtistPlot._port_dicts[port_type])
+                port_tuple = (port_name, port_spec, MplArtistPlot._port_dicts[port_type])
             else:
                 port_tuple = (port_name, port_spec)
             port_tuples.append(port_tuple)
+##        print port_tuples
+##        print translations
         return (port_tuples, translations)
 
+#convert data in the list to type float
 def convert_to_numeric(data_list):
     if len(data_list) > 0 and isinstance(data_list[0], basestring):
         new_list = [float(d) for d in data_list]
         return new_list
     return data_list
 
+'''
+def get_kwargs_except_patches(ports, listPatches):
+    lis = 
+    
+    for port in ports:
+'''       
+
+
+#drawing 2D line plot
 class MplLinePlot(MplArtistPlot):
     _input_ports = [('xdata', '(edu.utah.sci.vistrails.basic:List)'),
                  ('ydata', '(edu.utah.sci.vistrails.basic:List)'),
@@ -426,7 +475,7 @@ class MplLinePlot(MplArtistPlot):
         # for k,v in kwargs.iteritems():
         #     print "ARG", k, v
         lines = pylab.plot(xdata, ydata) #, **kwargs)
-        if self.hasInputFromPort('properties'):
+        if self.hasInputFromPort('properties'): #change the plot using patches
             properties = self.getInputFromPort('properties')
             for line in lines:
                 for k, v in properties.kwargs.iteritems():
@@ -445,8 +494,31 @@ class MplLinePlot(MplArtistPlot):
         # # pylab.ylabel("Temperature")
         # self.setResult('self', self)
 
-class MplHistogram(MplArtistPlot): #, MplPatch):
-    _my_ports = [('xdata', '(edu.utah.sci.vistrails.basic:List)'),
+
+#class for drawing histograms
+class MplHistogram(MplArtistPlot):#,MplArtistProperties): #, MplPatch):
+##    _my_ports = [('xdata', '(edu.utah.sci.vistrails.basic:List)'),
+##                 ('bins', '(edu.utah.sci.vistrails.basic:Integer)'),
+##                 ('range', '(edu.utah.sci.vistrails.basic:Float, ' \
+##                      'edu.utah.sci.vistrails.basic:Float)'),
+##                 ('normed', '(edu.utah.sci.vistrails.basic:Boolean)'),
+##                 ('weights', '(edu.utah.sci.vistrails.basic:List)'),
+##                 ('cumulative', '(edu.utah.sci.vistrails.basic:Boolean)'),
+##                 ('histtype', '(edu.utah.sci.vistrails.basic:String)',
+##                  {"entry_types": ["enum"],
+##                   "values": [['bar', 'barstacked', 'step', 'stepfilled']]}),
+##                 ('align', '(edu.utah.sci.vistrails.basic:String)',
+##                  {"entry_types": ["enum"],
+##                   "values": [['left', 'mid', 'right']]}),
+##                 ('orientation', '(edu.utah.sci.vistrails.basic:String)',
+##                  {"entry_types": ["enum"],
+##                   "values": [["horizontal", "vertical"]]}),
+##                 ('rwidth', '(edu.utah.sci.vistrails.basic:Float)'),
+##                 ('log', '(edu.utah.sci.vistrails.basic:Boolean)'),
+                 
+    #_input_ports = MplArtistPlot.update_ports(MplPatchProperties._input_ports,
+    #                                             _my_ports)
+    _input_ports = [('xdata', '(edu.utah.sci.vistrails.basic:List)'),
                  ('bins', '(edu.utah.sci.vistrails.basic:Integer)'),
                  ('range', '(edu.utah.sci.vistrails.basic:Float, ' \
                       'edu.utah.sci.vistrails.basic:Float)'),
@@ -463,21 +535,39 @@ class MplHistogram(MplArtistPlot): #, MplPatch):
                   {"entry_types": ["enum"],
                    "values": [["horizontal", "vertical"]]}),
                  ('rwidth', '(edu.utah.sci.vistrails.basic:Float)'),
-                 ('log', '(edu.utah.sci.vistrails.basic:Boolean)')]
-    _input_ports = MplArtistPlot.update_ports(MplPatchProperties._input_ports,
-                                              _my_ports)
+                 ('log', '(edu.utah.sci.vistrails.basic:Boolean)'),
+                 ('histPatchProperties', 'MplPatchProperties')]
 
     def compute(self):
-        kwargs = self.get_kwargs()
+        listExcepts = ['histPatchProperties']
+        kwargs = self.get_kwargs_except(listExcepts) #get all the input ports except histPatchProperties
         fig = self.get_fig()
         if "xdata" in kwargs:
             xdata = convert_to_numeric(kwargs["xdata"])
             del kwargs["xdata"]
         if "subfigRow" in kwargs:
             subfigRow
-        pylab.hist(xdata, **kwargs)
+        n, bins, patches = pylab.hist(xdata, **kwargs)
+
+        properties = None
+        if self.hasInputFromPort('histPatchProperties'): #updating the patch properties
+            properties = self.getInputFromPort('histPatchProperties')
+            if properties is not None:
+                
+                for obj in patches:
+                    for (k,v) in properties.kwargs.iteritems():
+                        setter = 'set_%s' % k
+                        if not hasattr(obj, setter):
+                            raise ModuleError(self, 
+                                              "Cannot set property '%s' "
+                                              "here" % k)
+                    getattr(obj, setter)(v)
+
+        
         self.setResult('self', self)
 
+
+#class for drawing box plot
 class MplBoxPlot(MplArtistPlot):
     # _vt_ports = [('flier_color', 'color', 'fliers', 'markeredgecolor'),
     #              ('flier_marker', 'marker', 'fliers', 'marker'),
@@ -499,7 +589,7 @@ class MplBoxPlot(MplArtistPlot):
                     ('vert', '(edu.utah.sci.vistrails.basic:Boolean)'),
                     ('whis', '(edu.utah.sci.vistrails.basic:Float)'),
                     ('bootstrap', '(edu.utah.sci.vistrails.basic:Integer)'),
-                    ('width', '(edu.utah.sci.vistrails.basic:Float)'),
+                    ('widths', '(edu.utah.sci.vistrails.basic:Float)'),
                     ('patch_artist', '(edu.utah.sci.vistrails.basic:Boolean)'),
                     ('flierProperties', '(MplLine2DProperties)'),
                     ('medianProperties', '(MplLine2DProperties)'),
@@ -534,10 +624,16 @@ class MplBoxPlot(MplArtistPlot):
 
 
         # kwargs['patch_artist'] = True
-        xdata = self.getInputFromPort("xdata")
+
+        listExcepts = ['patch_artist', 'flierProperties','medianProperties', 'whiskerProperties', 'capProperties', 'boxPatchProperties','boxLineProperties']
+        kwargs = self.get_kwargs_except(listExcepts)
+        if "xdata" in kwargs:
+            xdata = convert_to_numeric(kwargs["xdata"])
+            del kwargs["xdata"]
+            
         fig = self.get_fig()
         patch_artist = self.forceGetInputFromPort('patch_artist', False)
-        output_dict = pylab.boxplot(xdata, patch_artist=patch_artist)
+        output_dict = pylab.boxplot(xdata, patch_artist=patch_artist, **kwargs)
         for output_type, objects in output_dict.iteritems():
             properties = None
             if output_type == 'boxes' and patch_artist:
@@ -569,19 +665,30 @@ class MplBoxPlot(MplArtistPlot):
         #                 getattr(elt, setter_name)(v)
         self.setResult('self', self)
 
-class MplScatterplot(MplArtistPlot):
+
+#class for drawing scatter plot
+class MplScatterPlot(MplArtistPlot):
     _vt_ports = [('c', 'color'),
-                 ('marker', 'marker')]
+                ('marker', 'marker')]
     _my_ports = [('xdata', '(edu.utah.sci.vistrails.basic:List)'),
                  ('ydata', '(edu.utah.sci.vistrails.basic:List)'),
                  ('s', '(edu.utah.sci.vistrails.basic:Float)'),
                  ('alpha', '(edu.utah.sci.vistrails.basic:Float)')]
-    
+
+
+    #building marker port as enum type
     extra_ports, _mpl_translations = MplArtistPlot.build_ports(_vt_ports)
     _input_ports = MplArtistPlot.update_ports(MplArtistProperties._input_ports,
                                               _my_ports) + extra_ports
+
+##    def __init__(self):
+##        self._mpl_translations = _mpl_translations
+##    print "extra ", extra_ports
+##    print _input_ports
     def compute(self):
-        kwargs = self.get_kwargs()
+  #      listExcept = ['scatterPatchProperties']
+        listExcept = []
+        kwargs = self.get_kwargs_except(listExcept)
         fig = self.get_fig()
         if "xdata" in kwargs:
             xdata = convert_to_numeric(kwargs["xdata"])
@@ -589,9 +696,12 @@ class MplScatterplot(MplArtistPlot):
         if "ydata" in kwargs:
             ydata = convert_to_numeric(kwargs["ydata"])
             del kwargs["ydata"]
-        # print "Marker:", kwargs['marker']
-        print "xdata:", xdata
-        print "ydata:", ydata
+##        if "marker" in kwargs:
+##            kwargs["marker"] = self._mpl_translations["marker"][kwargs["marker"]]
+##        print kwargs
+        #print "Marker:", kwargs['marker']
+##        print "xdata:", xdata
+##        print "ydata:", ydata
         retval = pylab.scatter(xdata, ydata, **kwargs)
         print "RETVAL:", retval
         self.setResult('self', self)
@@ -792,6 +902,8 @@ class MplMapContourf(Module):
 
 # want to be able to use normal plots
 
+
+#class for drawing bar graph
 class MplBar(MplArtistPlot): # , MplPatch):
     _input_ports = [
         ("linewidth", "(edu.utah.sci.vistrails.basic:Float)",
@@ -808,7 +920,7 @@ class MplBar(MplArtistPlot): # , MplPatch):
           "docstring": "None",
           "entry_types": ['None'],
           "values": [[]]}),
-        ("color", "(edu.utah.sci.vistrails.basic:Color)",
+        ("color", "(edu.utah.sci.vistrails.basic:List)",
          {"optional": True,
           "docstring": "the colors of the bars",
           "entry_types": ['None'],
@@ -834,28 +946,28 @@ class MplBar(MplArtistPlot): # , MplPatch):
         ("left", "(edu.utah.sci.vistrails.basic:List)",
          {"optional": False,
           "docstring": "the x coordinates of the left sides of the bars"}),
-        ("properties", "MplPatchProperties",
+        ("barPatchProperties", "MplPatchProperties",
          {"optional": False}),
         ]
     # _input_ports = MplArtistPlot.update_ports(MplPatchProperties._input_ports,
     #                                           _my_ports)
-    _mpl_translations = {'color': translate_color}
+ #   _mpl_translations = {'color': translate_color}
 
     
     def compute(self):
-        # kwargs = self.get_kwargs()
+        listExcept = ['barPatchProperties']
+        kwargs = self.get_kwargs_except(listExcept)
         fig = self.get_fig()
-        # if "left" in kwargs:
-        #     left = convert_to_numeric(kwargs["left"])
-        #     del kwargs["left"]
-        # if "height" in kwargs:
-        #     height = convert_to_numeric(kwargs["height"])
-        #     del kwargs["height"]
-        left = convert_to_numeric(self.getInputFromPort("left"))
-        height = convert_to_numeric(self.getInputFromPort("height"))
-        patches = pylab.bar(left, height) #, **kwargs)
-        if self.hasInputFromPort('properties'):
-            properties = self.getInputFromPort('properties')
+        if "left" in kwargs:
+            left = convert_to_numeric(kwargs["left"])
+            del kwargs["left"]
+        if "height" in kwargs:
+            height = convert_to_numeric(kwargs["height"])
+            del kwargs["height"]
+ 
+        patches = pylab.bar(left, height, **kwargs)
+        if self.hasInputFromPort('barPatchProperties'): #updating the patches
+            properties = self.getInputFromPort('barPatchProperties')
             for patch in patches:
                 for k, v in properties.kwargs.iteritems():
                     setter = 'set_%s' % k
@@ -868,16 +980,98 @@ class MplBar(MplArtistPlot): # , MplPatch):
         # pylab.ylabel("Temperature")
         self.setResult('self', self)
 
+
+#class for drawing pie chart
+class MplPie(MplArtistPlot):
+	_input_ports = [
+	("xdata", "(edu.utah.sci.vistrails.basic:List)",
+         {"optional": False,
+          "docstring": "Make a pie chart of array x. The fractional area of each wedge is given by x/sum(x). if sum(x) <=1, \
+          then the value of x give the fractional area directly and the array will not be normalized"}),
+         ("explode", "(edu.utah.sci.vistrails.basic:List)",
+                    {"optional": True,
+                     "docstring": "if not None, is a len(x) array which specifies the fraction of the radius to offset each wedge.",
+                     "entry_types": ['None'],
+              "values": [[]]}),
+         ("colors", "(edu.utah.sci.vistrails.basic:List)",
+             {"optional": True,
+              "docstring": "A sequence of matplotlib color args through which the pie chart will cycle",
+              "entry_types": ['None'],
+              "values": [[]]}),
+         ("labels", "(edu.utah.sci.vistrails.basic:List)",
+             {"optional": True,
+              "docstring": "A len(x) sequence of strings providing the labels for each wedge",
+              "entry_types": ['None'],
+              "values": [[]]}),
+            ("autopct", "(edu.utah.sci.vistrails.basic:String)",
+             {"optional": True,
+              "docstring": "if not None, is a string used to label the wedges with their numeric value. The label will be placed  \
+              inside the wedge. If it is a format string, the label will be fmt%pct. eg:%1.1f%%",
+              "entry_types": ['None'],
+              "values": [[]]}),
+         ("pctdistance", "(edu.utah.sci.vistrails.basic:Float)",
+             {"optional": True,
+              "docstring": "The ratio between the center of each pie slice and the start of the text generated by autopct. Ignored  \
+              if autopct is None; default is 0.6",
+              "entry_types": ['None'],
+              "values": [[]],
+              "defaults": [0.6]}),
+         ("labeldistance", "(edu.utah.sci.vistrails.basic:Float)",
+             {"optional": True,
+              "docstring": "The radial distance at which the pie labels are drawn; default is 1.1",
+              "entry_types": ["enum"],
+              "values": [[]],
+              "defaults": [1.1]}),
+         ("shadow", "(edu.utah.sci.vistrails.basic:Boolean)",
+             {"optional": True,
+              "docstring": "Draw a shadow beneath the pie" }),
+         ("piePatchProperties", "MplPatchProperties")]
+          
+          
+	 
+
+	def compute(self):
+            listExcept = ['piePatchProperties']
+            kwargs = self.get_kwargs_except(listExcept)
+            fig = self.get_fig()
+ 
+            if "xdata" in kwargs:
+                xdata = convert_to_numeric(kwargs["xdata"])
+                del kwargs["xdata"]
+        
+            patches, texts = pylab.pie(xdata, **kwargs)
+
+            properties = None
+            if self.hasInputFromPort('piePatchProperties'): #updating the patches
+                properties = self.getInputFromPort('piePatchProperties')
+                if properties is not None:
+                    
+                    for obj in patches:
+                        for (k,v) in properties.kwargs.iteritems():
+                            setter = 'set_%s' % k
+                            if not hasattr(obj, setter):
+                                raise ModuleError(self, 
+                                                  "Cannot set property '%s' "
+                                                  "here" % k)
+                        getattr(obj, setter)(v)
+
+            
+            self.setResult('self', self)
+    
+ 
+
 # _modules = [(MplPlot, {'abstract': True}), MplFigure, 
 #             (MplArtistPlot, {'abstract': True}), MplLinePlot, 
 #             MplHistogram, MplBoxPlot, MplScatterplot, MplBasemap, MplMapGrid,
 #             MplMapContourf, MplMapProject,
 #             MplBar]
 
+
+#list of modules to be displaced on matplotlib.new package
 _modules = [(MplPlot, {'abstract': True}), MplFigure, 
             MplArtistProperties, MplLine2DProperties, MplPatchProperties,
             (MplArtistPlot, {'abstract': True}), 
-            MplLinePlot, MplBoxPlot, MplBar]
+            MplLinePlot, MplBoxPlot, MplBar, MplPie, MplHistogram, MplScatterPlot]
 
 
 def initialize(*args, **kwargs):

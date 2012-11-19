@@ -45,9 +45,10 @@ version = '1.0.0'
 def package_dependencies():
     import core.packagemanager
     manager = core.packagemanager.get_package_manager()
-    deps = ['org.vistrails.dakoop.numpy']
+    #deps = ['org.vistrails.dakoop.numpy']
     if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-        return deps + ['edu.utah.sci.vistrails.spreadsheet']
+        #return deps + ['edu.utah.sci.vistrails.spreadsheet']
+        return ['edu.utah.sci.vistrails.spreadsheet']
     else:
         return deps
 
