@@ -58,7 +58,7 @@ import copy
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
-    DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvModel, DBAnnotation
+    DBRegistry, DBWorkflowExec, DBOpmGraph, DBAnnotation
 import db.services.abstraction
 import db.services.log
 import db.services.opm
