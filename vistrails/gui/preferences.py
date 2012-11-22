@@ -460,10 +460,6 @@ class QPackagesWidget(QtGui.QWidget):
         assert self._current_package
         p = self._current_package
 
-        # A delayed signal can result in the package already has been removed
-        pm = get_package_manager()
-        if not pm.has_package(p.identifier):
-            return
         try:
             p.load()
         except Exception, e:
@@ -506,6 +502,9 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         self._current_package = pm.get_package_by_codepath(codepath)
         self.set_buttons_to_enabled_package()
+        # A delayed signal can result in the package already has been removed
+        if not pm.has_package(self._current_package.identifier):
+            return
         self.set_package_information()
         self._enabled_packages_list.setFocus()
 
