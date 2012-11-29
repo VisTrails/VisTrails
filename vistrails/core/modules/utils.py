@@ -64,7 +64,7 @@ def parse_descriptor_string(d_string, cur_package=None):
     package = ''
     qual_name = ''
     name = ''
-    namespace = ''
+    namespace = None
     parts = d_string.strip().split(':', 1)
     if len(parts) > 1:
         qual_name = parts[1]
