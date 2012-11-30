@@ -134,7 +134,7 @@ suffix_map = {'vistrail': ['.vt', '.xml', '.vtl'],
               'log': ['.xml'],
               'registry': ['.xml'],
               'opm_graph': ['.xml'],
-              'prov_model': ['.xml']
+              'prov_document': ['.xml']
               }
 
 def get_load_file_locator_from_gui(parent, obj_type):

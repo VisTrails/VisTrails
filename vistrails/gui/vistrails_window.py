@@ -571,9 +571,9 @@ class QVistrailViewWindow(QBaseViewWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_view,
                                                        'save_opm')}),
-                       ('saveProv', "PROV Model...",
-                        {'statusTip': "Saves provenance according to the " \
-                             "PROV Model in XML",
+                       ('saveProv', "PROV Document...",
+                        {'statusTip': "Saves provenance according to " \
+                             "PROV-DM in XML",
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_view,
                                                        'save_prov')}),

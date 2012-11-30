@@ -58,7 +58,7 @@ import copy
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
-    DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvModel, DBAnnotation
+    DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation
 import db.services.abstraction
 import db.services.log
 import db.services.opm
@@ -543,7 +543,7 @@ def save_to_xml(obj, filename, version=None):
         return save_registry_to_xml(obj, filename, version)
     elif obj.vtType == DBOpmGraph.vtType:
         return save_opm_to_xml(obj, filename, version)
-    elif obj.vtType == DBProvModel.vtType:
+    elif obj.vtType == DBProvDocument.vtType:
         return save_prov_to_xml(obj, filename, version)
     else:
         raise VistrailsDBException("cannot save object of type "
@@ -1320,21 +1320,21 @@ def save_opm_to_xml(opm_graph, filename, version=None):
 ##############################################################################
 # PROV I/O
 
-def save_prov_to_xml(prov_model, filename, version=None):    
+def save_prov_to_xml(prov_document, filename, version=None):    
     # FIXME, we're using workflow, version, and log here...
-    # which aren't in DBProvModel...
+    # which aren't in DBProvDocument...
     if version is None:
         version = currentVersion
     daoList = getVersionDAO(version)
     tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
-            'xmlns:dcterms': 'http://purl.org/dc/terms/',
+            'xmlns:vt': 'http://www.vistrails.org/registry.xsd',
             }
-    prov_model = db.services.prov.create_prov(prov_model.workflow, 
-                                              prov_model.version,
-                                              prov_model.log,
-                                              prov_model.registry)
-    daoList.save_to_xml(prov_model, filename, tags, version)
-    return prov_model
+    prov_document = db.services.prov.create_prov(prov_document.workflow, 
+                                                 prov_document.version,
+                                                 prov_document.log,
+                                                 prov_document.registry)
+    daoList.save_to_xml(prov_document, filename, tags, version)
+    return prov_document
 
 ##############################################################################
 # Registry I/O

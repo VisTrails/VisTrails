@@ -104,6 +104,7 @@ class IPythonSet:
                                     log=self.logger,
                                     profile_dir=self.profile_dir)
         elif self.engine_type == 'ssh':
+            # TODO: How to execute this remotely!?
             e = SSHEngineLauncher(config=self.config,
                                   log=self.logger,
                                   profile_dir=self.profile_dir,
@@ -226,17 +227,17 @@ class QuestionDialog(QtGui.QDialog):
     def get_answer(self):
         return str(self.line_edit.text())
     
-class QIpDialog(QuestionDialog):
-    """
-    Gets the ip where the engines are located.
-    """
-    
-    def __init__(self, parent=None):
-        QuestionDialog.__init__(self,
-                                title="What is the IP for the engines?",
-                                label="IP where engines are located:",
-                                default="127.0.0.1",
-                                parent=parent)
+#class QIpDialog(QuestionDialog):
+#    """
+#    Gets the ip where the engines are located.
+#    """
+#    
+#    def __init__(self, parent=None):
+#        QuestionDialog.__init__(self,
+#                                title="What is the IP for the engines?",
+#                                label="IP where engines are located:",
+#                                default="127.0.0.1",
+#                                parent=parent)
     
 class QAddEnginesDialog(QuestionDialog):
     """
