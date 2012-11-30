@@ -2988,10 +2988,10 @@
       <xml name="prov:wasAssociatedWith" nodeType="xs:element"/>
     </property>
     
-    <property name="vt_part" ref="true" object="vt_part" type="list" 
+    <!--<property name="vt_part" ref="true" object="vt_part" type="list" 
           mapping="one-to-many">
       <xml name="vt:isPartOf" nodeType="xs:element"/>
-    </property>
+    </property>-->
     
   </object>
 
@@ -3050,6 +3050,10 @@
     
     <property name="vt_location_y" type="str">
       <xml name="vt:location_y" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
     </property>
     
   </object>
@@ -3129,6 +3133,10 @@
       <xml name="vt:error" nodeType="xs:element" type="xs:string"/>
     </property>
     
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
   </object>
   
   <!--++++++++++++++++++++++++++-->
@@ -3159,7 +3167,7 @@
       <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
     </property>
 
-    <property name="vt_id" type="str" primaryKey="true">
+    <property name="vt_id" type="str">
       <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
     </property>
     
@@ -3328,37 +3336,17 @@
   </object>
   
   <!--++++++++++++++++++++++++++-->
-  <!-- VT_PART +++++++++++++++++-->
+  <!-- IS_PART_OF ++++++++++++++-->
   <!--++++++++++++++++++++++++++-->
 
-  <object name="vt_part">
+  <object name="is_part_of">
     <layout>
-      <xml name="vt:isPartOf" nodeType="xs:element"/>
+      <xml name="dcterms:isPartOf" nodeType="xs:element"/>
     </layout>
-
-    <!--<property name="id" type="str" primaryKey="true">
-      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
-    </property>-->
     
-    <choice name="vt_super" type="str">
-      <property ref="true" object="ref_prov_entity" type="str">
-        <xml name="vt:super" nodeType="xs:element"/>
-      </property>
-
-      <property ref="true" object="ref_prov_activity" type="str">
-        <xml name="vt:super" nodeType="xs:element"/>
-      </property>
-    </choice>
-    
-    <choice name="vt_sub" type="str">
-      <property ref="true" object="ref_prov_entity" type="str">
-        <xml name="vt:sub" nodeType="xs:element"/>
-      </property>
-
-      <property ref="true" object="ref_prov_activity" type="str">
-        <xml name="vt:sub" nodeType="xs:element"/>
-      </property>
-    </choice>
+    <property name="prov_ref" type="str">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
     
   </object>
 

@@ -1984,7 +1984,7 @@ class DBProvDocument(object):
 
     vtType = 'prov_document'
 
-    def __init__(self, prov_entitys=None, prov_activitys=None, prov_agents=None, vt_connections=None, prov_usages=None, prov_generations=None, prov_associations=None, vt_parts=None):
+    def __init__(self, prov_entitys=None, prov_activitys=None, prov_agents=None, vt_connections=None, prov_usages=None, prov_generations=None, prov_associations=None):
         self.db_deleted_prov_entitys = []
         self.db_prov_entitys_id_index = {}
         if prov_entitys is None:
@@ -2032,11 +2032,6 @@ class DBProvDocument(object):
             self._db_prov_associations = []
         else:
             self._db_prov_associations = prov_associations
-        self.db_deleted_vt_parts = []
-        if vt_parts is None:
-            self._db_vt_parts = []
-        else:
-            self._db_vt_parts = vt_parts
         self.is_dirty = True
         self.is_new = True
     
@@ -2073,10 +2068,6 @@ class DBProvDocument(object):
             cp._db_prov_associations = []
         else:
             cp._db_prov_associations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_associations]
-        if self._db_vt_parts is None:
-            cp._db_vt_parts = []
-        else:
-            cp._db_vt_parts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vt_parts]
         
         # set new ids
         if new_ids:
@@ -2181,17 +2172,6 @@ class DBProvDocument(object):
             for obj in old_obj.db_deleted_prov_associations:
                 n_obj = DBProvAssociation.update_version(obj, trans_dict)
                 new_obj.db_deleted_prov_associations.append(n_obj)
-        if 'vt_parts' in class_dict:
-            res = class_dict['vt_parts'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_vt_part(obj)
-        elif hasattr(old_obj, 'db_vt_parts') and old_obj.db_vt_parts is not None:
-            for obj in old_obj.db_vt_parts:
-                new_obj.db_add_vt_part(DBVtPart.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_vt_parts') and hasattr(new_obj, 'db_deleted_vt_parts'):
-            for obj in old_obj.db_deleted_vt_parts:
-                n_obj = DBVtPart.update_version(obj, trans_dict)
-                new_obj.db_deleted_vt_parts.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -2247,13 +2227,6 @@ class DBProvDocument(object):
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_association(child)
-        to_del = []
-        for child in self.db_vt_parts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_vt_part(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
@@ -2265,7 +2238,6 @@ class DBProvDocument(object):
         children.extend(self.db_deleted_prov_usages)
         children.extend(self.db_deleted_prov_generations)
         children.extend(self.db_deleted_prov_associations)
-        children.extend(self.db_deleted_vt_parts)
         if remove:
             self.db_deleted_prov_entitys = []
             self.db_deleted_prov_activitys = []
@@ -2274,7 +2246,6 @@ class DBProvDocument(object):
             self.db_deleted_prov_usages = []
             self.db_deleted_prov_generations = []
             self.db_deleted_prov_associations = []
-            self.db_deleted_vt_parts = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -2298,9 +2269,6 @@ class DBProvDocument(object):
             if child.has_changes():
                 return True
         for child in self._db_prov_associations:
-            if child.has_changes():
-                return True
-        for child in self._db_vt_parts:
             if child.has_changes():
                 return True
         return False
@@ -2531,168 +2499,6 @@ class DBProvDocument(object):
         raise Exception('Cannot delete a non-keyed object')
     def db_get_prov_association(self, key):
         return None
-    
-    def __get_db_vt_parts(self):
-        return self._db_vt_parts
-    def __set_db_vt_parts(self, vt_parts):
-        self._db_vt_parts = vt_parts
-        self.is_dirty = True
-    db_vt_parts = property(__get_db_vt_parts, __set_db_vt_parts)
-    def db_get_vt_parts(self):
-        return self._db_vt_parts
-    def db_add_vt_part(self, vt_part):
-        self.is_dirty = True
-        self._db_vt_parts.append(vt_part)
-    def db_change_vt_part(self, vt_part):
-        self.is_dirty = True
-        self._db_vt_parts.append(vt_part)
-    def db_delete_vt_part(self, vt_part):
-        self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_vt_part(self, key):
-        return None
-    
-
-
-class DBVtPart(object):
-
-    vtType = 'vt_part'
-
-    def __init__(self, vt_super=None, vt_sub=None):
-        self.db_deleted_vt_super = []
-        self._db_vt_super = vt_super
-        self.db_deleted_vt_sub = []
-        self._db_vt_sub = vt_sub
-        self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBVtPart.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBVtPart()
-        if self._db_vt_super is not None:
-            cp._db_vt_super = self._db_vt_super.do_copy(new_ids, id_scope, id_remap)
-        if self._db_vt_sub is not None:
-            cp._db_vt_sub = self._db_vt_sub.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
-        # recreate indices and set flags
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBVtPart()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'vt_super' in class_dict:
-            res = class_dict['vt_super'](old_obj, trans_dict)
-            new_obj.db_vt_super = res
-        elif hasattr(old_obj, 'db_vt_super') and old_obj.db_vt_super is not None:
-            obj = old_obj.db_vt_super
-            if obj.vtType == 'ref_prov_entity':
-                new_obj.db_add_vt_super(DBRefProvEntity.update_version(obj, trans_dict))
-            elif obj.vtType == 'ref_prov_activity':
-                new_obj.db_add_vt_super(DBRefProvActivity.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_vt_super') and hasattr(new_obj, 'db_deleted_vt_super'):
-            for obj in old_obj.db_deleted_vt_super:
-                if obj.vtType == 'ref_prov_entity':
-                    n_obj = DBRefProvEntity.update_version(obj, trans_dict)
-                    new_obj.db_deleted_vt_super.append(n_obj)
-                elif obj.vtType == 'ref_prov_activity':
-                    n_obj = DBRefProvActivity.update_version(obj, trans_dict)
-                    new_obj.db_deleted_vt_super.append(n_obj)
-        if 'vt_sub' in class_dict:
-            res = class_dict['vt_sub'](old_obj, trans_dict)
-            new_obj.db_vt_sub = res
-        elif hasattr(old_obj, 'db_vt_sub') and old_obj.db_vt_sub is not None:
-            obj = old_obj.db_vt_sub
-            if obj.vtType == 'ref_prov_entity':
-                new_obj.db_add_vt_sub(DBRefProvEntity.update_version(obj, trans_dict))
-            elif obj.vtType == 'ref_prov_activity':
-                new_obj.db_add_vt_sub(DBRefProvActivity.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_vt_sub') and hasattr(new_obj, 'db_deleted_vt_sub'):
-            for obj in old_obj.db_deleted_vt_sub:
-                if obj.vtType == 'ref_prov_entity':
-                    n_obj = DBRefProvEntity.update_version(obj, trans_dict)
-                    new_obj.db_deleted_vt_sub.append(n_obj)
-                elif obj.vtType == 'ref_prov_activity':
-                    n_obj = DBRefProvActivity.update_version(obj, trans_dict)
-                    new_obj.db_deleted_vt_sub.append(n_obj)
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False):
-        children = []
-        if self._db_vt_super is not None:
-            children.extend(self._db_vt_super.db_children((self.vtType, self.db_id), orphan))
-            if orphan:
-                self._db_vt_super = None
-        if self._db_vt_sub is not None:
-            children.extend(self._db_vt_sub.db_children((self.vtType, self.db_id), orphan))
-            if orphan:
-                self._db_vt_sub = None
-        children.append((self, parent[0], parent[1]))
-        return children
-    def db_deleted_children(self, remove=False):
-        children = []
-        children.extend(self.db_deleted_vt_super)
-        children.extend(self.db_deleted_vt_sub)
-        if remove:
-            self.db_deleted_vt_super = []
-            self.db_deleted_vt_sub = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        if self._db_vt_super is not None and self._db_vt_super.has_changes():
-            return True
-        if self._db_vt_sub is not None and self._db_vt_sub.has_changes():
-            return True
-        return False
-    def __get_db_vt_super(self):
-        return self._db_vt_super
-    def __set_db_vt_super(self, vt_super):
-        self._db_vt_super = vt_super
-        self.is_dirty = True
-    db_vt_super = property(__get_db_vt_super, __set_db_vt_super)
-    def db_add_vt_super(self, vt_super):
-        self._db_vt_super = vt_super
-    def db_change_vt_super(self, vt_super):
-        self._db_vt_super = vt_super
-    def db_delete_vt_super(self, vt_super):
-        if not self.is_new:
-            self.db_deleted_vt_super.append(self._db_vt_super)
-        self._db_vt_super = None
-    
-    def __get_db_vt_sub(self):
-        return self._db_vt_sub
-    def __set_db_vt_sub(self, vt_sub):
-        self._db_vt_sub = vt_sub
-        self.is_dirty = True
-    db_vt_sub = property(__get_db_vt_sub, __set_db_vt_sub)
-    def db_add_vt_sub(self, vt_sub):
-        self._db_vt_sub = vt_sub
-    def db_change_vt_sub(self, vt_sub):
-        self._db_vt_sub = vt_sub
-    def db_delete_vt_sub(self, vt_sub):
-        if not self.is_new:
-            self.db_deleted_vt_sub.append(self._db_vt_sub)
-        self._db_vt_sub = None
     
 
 
@@ -7875,7 +7681,7 @@ class DBProvActivity(object):
 
     vtType = 'prov_activity'
 
-    def __init__(self, id=None, startTime=None, endTime=None, vt_id=None, vt_type=None, vt_cached=None, vt_completed=None, vt_machine_id=None, vt_error=None):
+    def __init__(self, id=None, startTime=None, endTime=None, vt_id=None, vt_type=None, vt_cached=None, vt_completed=None, vt_machine_id=None, vt_error=None, is_part_of=None):
         self._db_id = id
         self._db_startTime = startTime
         self._db_endTime = endTime
@@ -7885,6 +7691,8 @@ class DBProvActivity(object):
         self._db_vt_completed = vt_completed
         self._db_vt_machine_id = vt_machine_id
         self._db_vt_error = vt_error
+        self.db_deleted_is_part_of = []
+        self._db_is_part_of = is_part_of
         self.is_dirty = True
         self.is_new = True
     
@@ -7901,6 +7709,8 @@ class DBProvActivity(object):
                             vt_completed=self._db_vt_completed,
                             vt_machine_id=self._db_vt_machine_id,
                             vt_error=self._db_vt_error)
+        if self._db_is_part_of is not None:
+            cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
         
         # set new ids
         if new_ids:
@@ -7969,17 +7779,38 @@ class DBProvActivity(object):
             new_obj.db_vt_error = res
         elif hasattr(old_obj, 'db_vt_error') and old_obj.db_vt_error is not None:
             new_obj.db_vt_error = old_obj.db_vt_error
+        if 'is_part_of' in class_dict:
+            res = class_dict['is_part_of'](old_obj, trans_dict)
+            new_obj.db_is_part_of = res
+        elif hasattr(old_obj, 'db_is_part_of') and old_obj.db_is_part_of is not None:
+            obj = old_obj.db_is_part_of
+            new_obj.db_add_is_part_of(DBIsPartOf.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_is_part_of') and hasattr(new_obj, 'db_deleted_is_part_of'):
+            for obj in old_obj.db_deleted_is_part_of:
+                n_obj = DBIsPartOf.update_version(obj, trans_dict)
+                new_obj.db_deleted_is_part_of.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
-        return [(self, parent[0], parent[1])]
+        children = []
+        if self._db_is_part_of is not None:
+            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                self._db_is_part_of = None
+        children.append((self, parent[0], parent[1]))
+        return children
     def db_deleted_children(self, remove=False):
         children = []
+        children.extend(self.db_deleted_is_part_of)
+        if remove:
+            self.db_deleted_is_part_of = []
         return children
     def has_changes(self):
         if self.is_dirty:
+            return True
+        if self._db_is_part_of is not None and self._db_is_part_of.has_changes():
             return True
         return False
     def __get_db_id(self):
@@ -8098,6 +7929,21 @@ class DBProvActivity(object):
         self._db_vt_error = vt_error
     def db_delete_vt_error(self, vt_error):
         self._db_vt_error = None
+    
+    def __get_db_is_part_of(self):
+        return self._db_is_part_of
+    def __set_db_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+        self.is_dirty = True
+    db_is_part_of = property(__get_db_is_part_of, __set_db_is_part_of)
+    def db_add_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+    def db_change_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+    def db_delete_is_part_of(self, is_part_of):
+        if not self.is_new:
+            self.db_deleted_is_part_of.append(self._db_is_part_of)
+        self._db_is_part_of = None
     
     def getPrimaryKey(self):
         return self._db_id
@@ -9280,7 +9126,7 @@ class DBProvEntity(object):
 
     vtType = 'prov_entity'
 
-    def __init__(self, id=None, prov_type=None, prov_label=None, prov_value=None, vt_id=None, vt_type=None, vt_desc=None, vt_package=None, vt_version=None, vt_cache=None, vt_location_x=None, vt_location_y=None):
+    def __init__(self, id=None, prov_type=None, prov_label=None, prov_value=None, vt_id=None, vt_type=None, vt_desc=None, vt_package=None, vt_version=None, vt_cache=None, vt_location_x=None, vt_location_y=None, is_part_of=None):
         self._db_id = id
         self._db_prov_type = prov_type
         self._db_prov_label = prov_label
@@ -9293,6 +9139,8 @@ class DBProvEntity(object):
         self._db_vt_cache = vt_cache
         self._db_vt_location_x = vt_location_x
         self._db_vt_location_y = vt_location_y
+        self.db_deleted_is_part_of = []
+        self._db_is_part_of = is_part_of
         self.is_dirty = True
         self.is_new = True
     
@@ -9312,6 +9160,8 @@ class DBProvEntity(object):
                           vt_cache=self._db_vt_cache,
                           vt_location_x=self._db_vt_location_x,
                           vt_location_y=self._db_vt_location_y)
+        if self._db_is_part_of is not None:
+            cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
         
         # set new ids
         if new_ids:
@@ -9395,17 +9245,38 @@ class DBProvEntity(object):
             new_obj.db_vt_location_y = res
         elif hasattr(old_obj, 'db_vt_location_y') and old_obj.db_vt_location_y is not None:
             new_obj.db_vt_location_y = old_obj.db_vt_location_y
+        if 'is_part_of' in class_dict:
+            res = class_dict['is_part_of'](old_obj, trans_dict)
+            new_obj.db_is_part_of = res
+        elif hasattr(old_obj, 'db_is_part_of') and old_obj.db_is_part_of is not None:
+            obj = old_obj.db_is_part_of
+            new_obj.db_add_is_part_of(DBIsPartOf.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_is_part_of') and hasattr(new_obj, 'db_deleted_is_part_of'):
+            for obj in old_obj.db_deleted_is_part_of:
+                n_obj = DBIsPartOf.update_version(obj, trans_dict)
+                new_obj.db_deleted_is_part_of.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
-        return [(self, parent[0], parent[1])]
+        children = []
+        if self._db_is_part_of is not None:
+            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                self._db_is_part_of = None
+        children.append((self, parent[0], parent[1]))
+        return children
     def db_deleted_children(self, remove=False):
         children = []
+        children.extend(self.db_deleted_is_part_of)
+        if remove:
+            self.db_deleted_is_part_of = []
         return children
     def has_changes(self):
         if self.is_dirty:
+            return True
+        if self._db_is_part_of is not None and self._db_is_part_of.has_changes():
             return True
         return False
     def __get_db_id(self):
@@ -9563,6 +9434,21 @@ class DBProvEntity(object):
         self._db_vt_location_y = vt_location_y
     def db_delete_vt_location_y(self, vt_location_y):
         self._db_vt_location_y = None
+    
+    def __get_db_is_part_of(self):
+        return self._db_is_part_of
+    def __set_db_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+        self.is_dirty = True
+    db_is_part_of = property(__get_db_is_part_of, __set_db_is_part_of)
+    def db_add_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+    def db_change_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+    def db_delete_is_part_of(self, is_part_of):
+        if not self.is_new:
+            self.db_deleted_is_part_of.append(self._db_is_part_of)
+        self._db_is_part_of = None
     
     def getPrimaryKey(self):
         return self._db_id
@@ -12756,6 +12642,76 @@ class DBOpmProcess(object):
     
     def getPrimaryKey(self):
         return self._db_id
+
+class DBIsPartOf(object):
+
+    vtType = 'is_part_of'
+
+    def __init__(self, prov_ref=None):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBIsPartOf.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBIsPartOf(prov_ref=self._db_prov_ref)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBIsPartOf()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'prov_ref' in class_dict:
+            res = class_dict['prov_ref'](old_obj, trans_dict)
+            new_obj.db_prov_ref = res
+        elif hasattr(old_obj, 'db_prov_ref') and old_obj.db_prov_ref is not None:
+            new_obj.db_prov_ref = old_obj.db_prov_ref
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_prov_ref(self):
+        return self._db_prov_ref
+    def __set_db_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+    db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+    def db_add_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_change_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_delete_prov_ref(self, prov_ref):
+        self._db_prov_ref = None
+    
+
 
 class DBOpmWasTriggeredBy(object):
 

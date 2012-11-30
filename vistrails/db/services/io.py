@@ -1327,6 +1327,7 @@ def save_prov_to_xml(prov_document, filename, version=None):
         version = currentVersion
     daoList = getVersionDAO(version)
     tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
+            'xmlns:dcterms': 'http://purl.org/dc/terms/',
             'xmlns:vt': 'http://www.vistrails.org/registry.xsd',
             }
     prov_document = db.services.prov.create_prov(prov_document.workflow, 
