@@ -165,11 +165,26 @@ def create_prov_entity_from_function(id_scope, function):
     
     return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=function.id,
-                        prov_type='vt:input_data',
+                        prov_type='vt:data',
                         prov_label=function.name,
                         prov_value=value,
                         vt_type=type,
                         vt_desc=alias,
+                        vt_package=None,
+                        vt_version=None,
+                        vt_cache=None,
+                        vt_location_x=None,
+                        vt_location_y=None,
+                        is_part_of=None)
+    
+def create_prov_entity_for_data(id_scope, conn):
+    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+                        vt_id=conn.id,
+                        prov_type='vt:data',
+                        prov_label=None,
+                        prov_value=None,
+                        vt_type=None,
+                        vt_desc=None,
                         vt_package=None,
                         vt_version=None,
                         vt_cache=None,
@@ -214,7 +229,7 @@ def create_prov_association(prov_activity, prov_agent, prov_entity):
     return DBProvAssociation(prov_activity=ref_prov_activity,
                              prov_agent=ref_prov_agent,
                              prov_plan=ref_prov_entity,
-                             prov_role='executor')
+                             prov_role=None)
     
 def create_prov_activity_from_wf_exec(id_scope, wf_exec):
     return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
@@ -254,7 +269,15 @@ def create_prov_usage(prov_activity, prov_entity):
     
     return DBProvUsage(prov_activity=ref_prov_activity,
                        prov_entity=ref_prov_entity,
-                       prov_role='consumer')
+                       prov_role=None)
+    
+def create_prov_generation(prov_entity, prov_activity):
+    ref_prov_entity = DBRefProvEntity(prov_ref=prov_entity._db_id)
+    ref_prov_activity = DBRefProvActivity(prov_ref=prov_activity._db_id)
+    
+    return DBProvGeneration(prov_entity=ref_prov_entity,
+                            prov_activity=ref_prov_activity,
+                            prov_role=None)
 
 def create_prov(workflow, version, log, reg):
     id_scope = IdScope()
@@ -273,6 +296,18 @@ def create_prov(workflow, version, log, reg):
     # mapping between module ids and their functions
     module_functions = {}
     
+    # mapping between module ids and module objects
+    module_list = {}
+    
+    # mapping between module ids and source connections
+    source_conn = {}
+    
+    # mapping between module ids and destination connections
+    dest_conn = {}
+    
+    # mapping between connection ids and PROV entities for data
+    prov_data_conn = {}
+    
     # mapping between function ids and their PROV entities
     prov_functions = {}
     
@@ -286,6 +321,8 @@ def create_prov(workflow, version, log, reg):
         for module in workflow.module_list:
 #            print "Entity name:", module.name
 #            print module.id
+
+            module_list[module.id] = module
             
             # group
             if module.is_group():
@@ -323,6 +360,18 @@ def create_prov(workflow, version, log, reg):
         
         # connections
         for conn in workflow.connection_list:
+            # storing information about connections
+            # used to create entities for input and output data
+            if not source_conn.has_key(conn.source.moduleId):
+                source_conn[conn.source.moduleId] = []
+            if not dest_conn.has_key(conn.dest.moduleId):
+                dest_conn[conn.dest.moduleId] = []
+            source_conn[conn.source.moduleId].append(conn)
+            dest_conn[conn.dest.moduleId].append(conn)
+            
+            prov_data = create_prov_entity_for_data(id_scope, conn)
+            prov_data_conn[conn.id] = [prov_data, False]
+            
             vt_connection = create_vt_connection(id_scope, conn.source, conn.dest, entities_map)
             connections.append(vt_connection)
             
@@ -358,6 +407,29 @@ def create_prov(workflow, version, log, reg):
                 
                 prov_usage = create_prov_usage(prov_activity, prov_data)
                 usages.append(prov_usage)
+                
+            if dest_conn.has_key(exec_.module_id):
+                connections = dest_conn[exec_.module_id]
+                for connection in connections:
+                    prov_input_data, inserted = prov_data_conn[connection.id]
+                    if not inserted:
+                        entities.append(prov_input_data)
+                        prov_data_conn[connection.id][1] = True
+                    
+                    prov_usage = create_prov_usage(prov_activity, prov_input_data)
+                    usages.append(prov_usage)
+                
+            if (prov_activity._db_vt_error == None) or (prov_activity._db_vt_error == ''):
+                if source_conn.has_key(exec_.module_id):
+                    connections = source_conn[exec_.module_id]
+                    for connection in connections:
+                        prov_output_data, inserted = prov_data_conn[connection.id]
+                        if not inserted:
+                            entities.append(prov_output_data)
+                            prov_data_conn[connection.id][1] = True
+                            
+                        prov_generation = create_prov_generation(prov_output_data, prov_activity)
+                        generations.append(prov_generation)
             
             activities.append(prov_activity)
             
