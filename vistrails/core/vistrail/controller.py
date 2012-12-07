@@ -2462,6 +2462,9 @@ class VistrailController(object):
                       'reason': reason,
                       'extra_info': extra_info,
                       }    
+            if self.get_vistrail_variables():
+                kwargs['vistrail_variables'] = \
+                    self.get_vistrail_variable_by_uuid
             result = interpreter.execute(pipeline, **kwargs)
             
             thumb_cache = ThumbnailCache.getInstance()

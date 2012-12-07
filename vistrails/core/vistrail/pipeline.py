@@ -1090,6 +1090,16 @@ class Pipeline(DBWorkflow):
         exceptions = set()
         for module in self.modules.itervalues():
             if module.is_vistrail_var():
+                # first check if value is already set
+                # (used by parameter explorations)
+                value_set = False
+                for func in module.functions:
+                    if func.name == 'value':
+                        if func.params[0].strValue:
+                            value_set = True
+                            continue
+                if value_set:
+                    continue
                 var_uuid = module.get_vistrail_var()
                 if var_uuid not in var_uuids:
                     e = MissingVistrailVariable(var_uuid, module.package, 
