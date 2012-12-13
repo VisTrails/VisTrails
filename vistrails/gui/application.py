@@ -137,8 +137,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 else:
                     if self.found_another_instance_running(local_socket, args):
                         return APP_DONE # success, we should shut down
-                    else:
-                        return APP_FAIL  # error, we should shut down
+                    else:  # This is bad, but not fatal. Let's keep going...
+                        debug.critical("Failed to communicate with existing "
+                                       "instance")
+                        return
 
             if not self.shared_memory.create(1):
                 debug.critical("Unable to create single instance "
