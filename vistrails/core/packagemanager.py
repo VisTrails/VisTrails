@@ -465,17 +465,22 @@ Returns true if given package identifier is present."""
                 package.load(prefix_dictionary.get(package.codepath, None),
                              existing_paths)
             except Package.LoadFailed, e:
-                debug.critical("Package %s failed to load and will be "
-                               "disabled" % package.name, str(e))
+                debug.critical(
+                        "Package %s failed to load and will be disabled" % (
+                                package.name or
+                                ("<codepath %s>" % package.codepath)),
+                        str(e))
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
                 package.remove_own_dom_element()
                 failed.append(package)
             except Package.InitializationFailed, e:
-                debug.critical("Initialization of package <codepath %s> "
-                               "failed and will be disabled" % \
-                                   package.codepath, str(e))
+                debug.critical(
+                        "Initialization of package %s failed, disabling" % (
+                                package.name or
+                                ("<codepath %s>" % package.codepath)),
+                        str(e))
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list

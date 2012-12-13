@@ -162,8 +162,7 @@ parameters from other instances")
             if self._is_running:
                 if self.found_another_instance_running() is True:
                     return True
-                else:
-                    return False
+                # else: this is bad, but not fatal. Let's keep going...
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
