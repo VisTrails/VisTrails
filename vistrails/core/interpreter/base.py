@@ -205,11 +205,12 @@ class BaseInterpreter(object):
                 except Exception, e:
                     debug.debug("Problem when updating params: %s"%str(e))
 
-    def resolve_variables(self, controller, pipeline):
+    def resolve_variables(self, vistrail_variables, pipeline):
         for m in pipeline.module_list:
             if m.is_vistrail_var():
-                vistrail_var = controller.get_vistrail_variable_by_uuid(
-                    m.get_vistrail_var())
+                vistrail_var = vistrail_variables(m.get_vistrail_var())
+                if vistrail_var is None: # assume set in parameter exploration
+                    continue
                 strValue = vistrail_var.value
                 for func in m.functions:
                     if func.name == 'value':

@@ -47,7 +47,7 @@ from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.log import Log
 from vistrails.core.log.opm_graph import OpmGraph
-from vistrails.core.log.prov_model import ProvModel
+from vistrails.core.log.prov_document import ProvDocument
 from vistrails.core.db.locator import FileLocator, XMLFileLocator
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.configuration import get_vistrails_configuration
@@ -1039,14 +1039,14 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         if force_choose_locator:
-            locator = gui_get(self, ProvModel.vtType,
+            locator = gui_get(self, ProvDocument.vtType,
                               self.controller.locator)
         else:
             locator = (self.controller.locator or
-                       gui_get(self, ProvModel.vtType,
+                       gui_get(self, ProvDocument.vtType,
                                self.controller.locator))
         if locator == untitled_locator():
-            locator = gui_get(self, ProvModel.vtType,
+            locator = gui_get(self, ProvDocument.vtType,
                               self.controller.locator)
         if not locator:
             return False

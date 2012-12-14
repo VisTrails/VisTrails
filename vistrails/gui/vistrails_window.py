@@ -570,9 +570,9 @@ class QVistrailViewWindow(QBaseViewWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_view,
                                                        'save_opm')}),
-                       ('saveProv', "PROV Model...",
-                        {'statusTip': "Saves provenance according to the " \
-                             "PROV Model in XML",
+                       ('saveProv', "PROV Document...",
+                        {'statusTip': "Saves provenance according to " \
+                             "PROV-DM in XML",
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_view,
                                                        'save_prov')}),
@@ -2087,8 +2087,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                       
     def showRepositoryOptions(self):
         """ Displays Repository Options for authentication and pushing VisTrail to Repository """
-        dialog = QRepositoryDialog(self)
-        dialog.exec_()
+        self.publish_to_crowdlabs()
 
     def setDBDefault(self, dbState):
         """ setDBDefault(on: bool) -> None
@@ -2452,8 +2451,9 @@ class QVistrailsWindow(QVistrailViewWindow):
         
     def publish_to_crowdlabs(self):
         dialog = QRepositoryDialog(self)
-        dialog.exec_()
-        
+        if QRepositoryDialog.cookiejar:
+            dialog.exec_()
+
     def invalidate_pipelines(self):
         """ invalidate_pipelines() -> None
             Clears the cache and reloads the current pipelines in all views

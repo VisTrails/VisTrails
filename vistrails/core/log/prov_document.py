@@ -32,9 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.db.domain import DBProvModel
+from vistrails.db.domain import DBProvDocument
 
-class ProvModel(DBProvModel):
+class ProvDocument(DBProvDocument):
     """ Class that stores info for generating PROV model. """
 
     def __init__(self, *args, **kwargs):
@@ -58,14 +58,14 @@ class ProvModel(DBProvModel):
             del kwargs['version']
         else:
             self.version = None
-        DBProvModel.__init__(self, *args, **kwargs)
+        DBProvDocument.__init__(self, *args, **kwargs)
 
     def __copy__(self):
         return self.do_copy()
 
     def do_copy(self):
-        cp = DBProvModel.__copy__(self)
-        cp.__class__ = ProvModel
+        cp = DBProvDocument.__copy__(self)
+        cp.__class__ = ProvDocument
         cp.log = self.log
         cp.workflow = self.workflow
         cp.version = self.version
@@ -74,9 +74,9 @@ class ProvModel(DBProvModel):
 
     @staticmethod
     def convert(_graph):
-        if _graph.__class__ == ProvModel:
+        if _graph.__class__ == ProvDocument:
             return
-        _graph.__class__ = ProvModel
+        _graph.__class__ = ProvDocument
 
     ##########################################################################
     # Properties

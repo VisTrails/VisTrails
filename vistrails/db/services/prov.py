@@ -34,42 +34,25 @@
 ###############################################################################
 import copy
 import vistrails.db.services.io
-from vistrails.db.domain import DBProvModel, DBProvEntities, DBProvEntity, \
-    DBProvActivities, DBProvActivity, DBProvAgents, DBProvAgent, \
-    DBProvGeneration, DBProvUsage, DBProvAssociation, DBVtConnections, \
-    DBVtConnection, IdScope, DBGroupExec, DBLoopExec, DBModuleExec, \
+from vistrails.db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
+    DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \
+    DBVtConnection, DBRefProvEntity, DBRefProvPlan, DBRefProvActivity, \
+    DBRefProvAgent, DBIsPartOf, IdScope, DBGroupExec, DBLoopExec, DBModuleExec, \
     DBWorkflowExec, DBFunction, DBParameter
 from vistrails.db.services.vistrail import materializeWorkflow
 
-def create_prov_model(entities, activities, agents, connections):
-    return DBProvModel(entities=entities,
-                       activities=activities,
-                       agents=agents,
-                       connections=connections)
-    
-def create_prov_entities(prov_entities):
-    return DBProvEntities(prov_entitys=prov_entities)
-
-def create_prov_activities(prov_activities):
-    return DBProvActivities(prov_activitys=prov_activities)
-
-def create_prov_agents(prov_agents):
-    return DBProvAgents(prov_agents=prov_agents)
-
-def create_vt_connections(vt_connections):
-    return DBVtConnections(vt_connections=vt_connections)
-
-#def create_prov_generations(prov_generations):
-#    return DBProvGenerations(prov_generations=prov_generations)
-#
-#def create_prov_usages(prov_usages):
-#    return DBProvUsages(prov_usages=prov_usages)
-#
-#def create_prov_associations(prov_associations):
-#    return DBProvAssociations(prov_associations=prov_associations)
+def create_prov_document(entities, activities, agents, connections, usages,
+                         generations, associations):
+    return DBProvDocument(prov_entitys=entities,
+                          prov_activitys=activities,
+                          prov_agents=agents,
+                          vt_connections=connections,
+                          prov_usages=usages,
+                          prov_generations=generations,
+                          prov_associations=associations)
 
 def create_prov_entity_from_workflow(id_scope, workflow):
-    return DBProvEntity(id=id_scope.getNewId(DBProvEntity.vtType),
+    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=workflow.id,
                         prov_type='prov:Plan',
                         prov_label=workflow.name,
@@ -81,10 +64,9 @@ def create_prov_entity_from_workflow(id_scope, workflow):
                         vt_cache=None,
                         vt_location_x=None,
                         vt_location_y=None,
-                        isPartOf=None,
-                        prov_generations=None)
+                        is_part_of=None)
 
-def create_prov_entity_from_module(id_scope, module, workflow):
+def create_prov_entity_from_module(id_scope, module, is_part_of):
 
     # getting module label defined by the user
     desc = None
@@ -93,7 +75,7 @@ def create_prov_entity_from_module(id_scope, module, workflow):
             desc = db_annotation._db_value
             break
     
-    return DBProvEntity(id=id_scope.getNewId(DBProvEntity.vtType),
+    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=module.id,
                         prov_type='prov:Plan',
                         prov_label=module.name,
@@ -105,10 +87,12 @@ def create_prov_entity_from_module(id_scope, module, workflow):
                         vt_cache=module.cache,
                         vt_location_x=module.location._db_x,
                         vt_location_y=module.location._db_y,
-                        isPartOf=workflow._db_id,
-                        prov_generations=None)
+                        is_part_of=is_part_of)
     
-def create_prov_entity_from_group(id_scope, group, workflow):
+def create_is_part_of(prov_object):
+    return DBIsPartOf(prov_ref=prov_object._db_id)
+    
+def create_prov_entity_from_group(id_scope, group, is_part_of):
 
     # getting group label defined by the user
     desc = None
@@ -117,7 +101,7 @@ def create_prov_entity_from_group(id_scope, group, workflow):
             desc = db_annotation._db_value
             break
     
-    return DBProvEntity(id=id_scope.getNewId(DBProvEntity.vtType),
+    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=group.id,
                         prov_type='prov:Plan',
                         prov_label=group.name,
@@ -129,10 +113,9 @@ def create_prov_entity_from_group(id_scope, group, workflow):
                         vt_cache=group.cache,
                         vt_location_x=group.location._db_x,
                         vt_location_y=group.location._db_y,
-                        isPartOf=workflow._db_id,
-                        prov_generations=None)
+                        is_part_of=is_part_of)
     
-def create_prov_entity_from_abstraction(id_scope, abstraction, workflow):
+def create_prov_entity_from_abstraction(id_scope, abstraction, is_part_of):
 
     # getting abstraction label defined by the user
     desc = None
@@ -141,7 +124,7 @@ def create_prov_entity_from_abstraction(id_scope, abstraction, workflow):
             desc = db_annotation._db_value
             break
     
-    return DBProvEntity(id=id_scope.getNewId(DBProvEntity.vtType),
+    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=abstraction.id,
                         prov_type='prov:Plan',
                         prov_label=abstraction.name,
@@ -153,8 +136,7 @@ def create_prov_entity_from_abstraction(id_scope, abstraction, workflow):
                         vt_cache=abstraction.cache,
                         vt_location_x=abstraction.location._db_x,
                         vt_location_y=abstraction.location._db_y,
-                        isPartOf=workflow._db_id,
-                        prov_generations=None)
+                        is_part_of=is_part_of)
     
 def create_prov_entity_from_function(id_scope, function):
     values = []
@@ -180,9 +162,9 @@ def create_prov_entity_from_function(id_scope, function):
         type = '(' + ','.join(types) + ')'
         alias = '(' + ','.join(aliases) + ')'
     
-    return DBProvEntity(id=id_scope.getNewId(DBProvEntity.vtType),
+    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=function.id,
-                        prov_type='vt:input_data',
+                        prov_type='vt:data',
                         prov_label=function.name,
                         prov_value=value,
                         vt_type=type,
@@ -192,11 +174,25 @@ def create_prov_entity_from_function(id_scope, function):
                         vt_cache=None,
                         vt_location_x=None,
                         vt_location_y=None,
-                        isPartOf=None,
-                        prov_generations=None)
+                        is_part_of=None)
+    
+def create_prov_entity_for_data(id_scope, conn):
+    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+                        vt_id=conn.id,
+                        prov_type='vt:data',
+                        prov_label=None,
+                        prov_value=None,
+                        vt_type=None,
+                        vt_desc=None,
+                        vt_package=None,
+                        vt_version=None,
+                        vt_cache=None,
+                        vt_location_x=None,
+                        vt_location_y=None,
+                        is_part_of=None)
     
 def create_vt_connection(id_scope, source, dest, mapping):
-    return DBVtConnection(id=id_scope.getNewId(DBVtConnection.vtType),
+    return DBVtConnection(id='c' + str(id_scope.getNewId(DBVtConnection.vtType)),
                           vt_source=mapping[source.moduleId]._db_id,
                           vt_dest=mapping[dest.moduleId]._db_id,
                           vt_source_port=source.name,
@@ -205,7 +201,7 @@ def create_vt_connection(id_scope, source, dest, mapping):
                           vt_dest_signature=dest.sigstring)
     
 def create_prov_agent_from_user(id_scope, user):
-    return DBProvAgent(id=id_scope.getNewId(DBProvAgent.vtType),
+    return DBProvAgent(id='ag' + str(id_scope.getNewId(DBProvAgent.vtType)),
                        vt_id=None,
                        prov_type='prov:Person',
                        prov_label=user,
@@ -215,7 +211,7 @@ def create_prov_agent_from_user(id_scope, user):
                        vt_machine_ram=None)
     
 def create_prov_agent_from_machine(id_scope, machine):
-    return DBProvAgent(id=id_scope.getNewId(DBProvAgent.vtType),
+    return DBProvAgent(id='ag' + str(id_scope.getNewId(DBProvAgent.vtType)),
                        vt_id=machine.id,
                        prov_type='vt:machine',
                        prov_label=machine.name,
@@ -224,14 +220,18 @@ def create_prov_agent_from_machine(id_scope, machine):
                        vt_machine_processor=machine.processor,
                        vt_machine_ram=machine.ram)
     
-def create_prov_association(id_scope, prov_agent, prov_entity):
-    return DBProvAssociation(id=id_scope.getNewId(DBProvAssociation.vtType),
-                             prov_hadRole='executor',
-                             prov_hadPlan=prov_entity._db_id,
-                             prov_agent=prov_agent._db_id)
+def create_prov_association(prov_activity, prov_agent, prov_entity):
+    ref_prov_activity = DBRefProvActivity(prov_ref=prov_activity._db_id)
+    ref_prov_agent = DBRefProvAgent(prov_ref=prov_agent._db_id)
+    ref_prov_entity = DBRefProvPlan(prov_ref=prov_entity._db_id)
     
-def create_prov_activity_from_wf_exec(id_scope, wf_exec, association):
-    return DBProvActivity(id=id_scope.getNewId(DBProvActivity.vtType),
+    return DBProvAssociation(prov_activity=ref_prov_activity,
+                             prov_agent=ref_prov_agent,
+                             prov_plan=ref_prov_entity,
+                             prov_role=None)
+    
+def create_prov_activity_from_wf_exec(id_scope, wf_exec):
+    return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
                           vt_id=wf_exec.id,
                           startTime=wf_exec.ts_start,
                           endTime=wf_exec.ts_end,
@@ -240,28 +240,43 @@ def create_prov_activity_from_wf_exec(id_scope, wf_exec, association):
                           vt_completed=wf_exec.completed,
                           vt_machine_id=None,
                           vt_error=None,
-                          isPartOf=None,
-                          usages=None,
-                          associations=[association])
+                          is_part_of=None)
     
-def create_prov_activity_from_exec(id_scope, module_exec, parent_exec, machine_id, association, usages):
-    return DBProvActivity(id=id_scope.getNewId(DBProvActivity.vtType),
+def create_prov_activity_from_exec(id_scope, module_exec, machine_id, is_part_of):
+    type = ''
+    if module_exec.vtType == DBModuleExec.vtType:
+        type = 'vt:module_exec'
+    elif module_exec.vtType == DBGroupExec.vtType:
+        type = 'vt:group_exec'
+    else:
+        # something is wrong...
+        pass
+    return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
                           vt_id=module_exec.id,
                           startTime=module_exec.ts_start,
                           endTime=module_exec.ts_end,
-                          vt_type='vt:module_exec',
+                          vt_type=type,
                           vt_cached=module_exec.cached,
                           vt_completed=module_exec.completed,
                           vt_machine_id=machine_id,
                           vt_error=module_exec.error,
-                          isPartOf=parent_exec._db_id,
-                          usages=usages,
-                          associations=[association])
+                          is_part_of=is_part_of)
     
-def create_prov_usage(id_scope, prov_entity):
-    return DBProvUsage(id=id_scope.getNewId(DBProvUsage.vtType),
-                       prov_hadRole='consumer', # consumer!?
-                       prov_entity=prov_entity._db_id)
+def create_prov_usage(prov_activity, prov_entity):
+    ref_prov_activity = DBRefProvActivity(prov_ref=prov_activity._db_id)
+    ref_prov_entity = DBRefProvEntity(prov_ref=prov_entity._db_id)
+    
+    return DBProvUsage(prov_activity=ref_prov_activity,
+                       prov_entity=ref_prov_entity,
+                       prov_role=None)
+    
+def create_prov_generation(prov_entity, prov_activity):
+    ref_prov_entity = DBRefProvEntity(prov_ref=prov_entity._db_id)
+    ref_prov_activity = DBRefProvActivity(prov_ref=prov_activity._db_id)
+    
+    return DBProvGeneration(prov_entity=ref_prov_entity,
+                            prov_activity=ref_prov_activity,
+                            prov_role=None)
 
 def create_prov(workflow, version, log, reg):
     id_scope = IdScope()
@@ -269,9 +284,9 @@ def create_prov(workflow, version, log, reg):
     activities = []
     agents = []
     connections = []
-    #usages = []
-    #generations = []
-    #associations = []
+    usages = []
+    generations = []
+    associations = []
     
     # mapping between VT ids and PROV objects
     entities_map = {}
@@ -279,6 +294,18 @@ def create_prov(workflow, version, log, reg):
     
     # mapping between module ids and their functions
     module_functions = {}
+    
+    # mapping between module ids and module objects
+    module_list = {}
+    
+    # mapping between module ids and source connections
+    source_conn = {}
+    
+    # mapping between module ids and destination connections
+    dest_conn = {}
+    
+    # mapping between connection ids and PROV entities for data
+    prov_data_conn = {}
     
     # mapping between function ids and their PROV entities
     prov_functions = {}
@@ -293,30 +320,35 @@ def create_prov(workflow, version, log, reg):
         for module in workflow.module_list:
 #            print "Entity name:", module.name
 #            print module.id
+
+            module_list[module.id] = module
             
             # group
             if module.is_group():
+                vt_part = create_is_part_of(prov_workflow)
                 prov_group = create_prov_entity_from_group(id_scope=id_scope,
                                                            group=module,
-                                                           workflow=prov_workflow)
+                                                           is_part_of=vt_part)
                 entities_map[module.id] = prov_group
                 entities.append(prov_group)
                 get_modules_and_conn(prov_group, module.workflow)
             
             # abstraction (subworkflow)
             elif module.is_abstraction():
+                vt_part = create_is_part_of(prov_workflow)
                 prov_abstraction = create_prov_entity_from_abstraction(id_scope=id_scope,
                                                                        abstraction=module,
-                                                                       workflow=prov_workflow)
+                                                                       is_part_of=vt_part)
                 entities_map[module.id] = prov_abstraction
                 entities.append(prov_abstraction)
                 get_modules_and_conn(prov_abstraction, module.pipeline)
             
             # module
             else:
+                vt_part = create_is_part_of(prov_workflow)
                 prov_module = create_prov_entity_from_module(id_scope=id_scope,
                                                              module=module,
-                                                             workflow=prov_workflow)
+                                                             is_part_of=vt_part)
                 entities_map[module.id] = prov_module
                 entities.append(prov_module)
                 
@@ -327,6 +359,18 @@ def create_prov(workflow, version, log, reg):
         
         # connections
         for conn in workflow.connection_list:
+            # storing information about connections
+            # used to create entities for input and output data
+            if not source_conn.has_key(conn.source.moduleId):
+                source_conn[conn.source.moduleId] = []
+            if not dest_conn.has_key(conn.dest.moduleId):
+                dest_conn[conn.dest.moduleId] = []
+            source_conn[conn.source.moduleId].append(conn)
+            dest_conn[conn.dest.moduleId].append(conn)
+            
+            prov_data = create_prov_entity_for_data(id_scope, conn)
+            prov_data_conn[conn.id] = [prov_data, False]
+            
             vt_connection = create_vt_connection(id_scope, conn.source, conn.dest, entities_map)
             connections.append(vt_connection)
             
@@ -349,28 +393,49 @@ def create_prov(workflow, version, log, reg):
 #                agents.append(prov_machine)
 #                machines[exec_.machine_id][1] = True
             
-            # PROV entity associated
-            prov_module_entity = entities_map[exec_.module_id]
-            prov_association = create_prov_association(id_scope, prov_agent, prov_module_entity)
-            
-            # Input Data
-            usages = []
+            # PROV activity
+            vt_part = create_is_part_of(parent_exec)
+            prov_activity = create_prov_activity_from_exec(id_scope,
+                                                           exec_,
+                                                           machine_id,
+                                                           vt_part)
             
             functions = module_functions[exec_.module_id]
             for function in functions:
                 prov_data = prov_functions[function.id]
                 
-                prov_usage = create_prov_usage(id_scope, prov_data)
+                prov_usage = create_prov_usage(prov_activity, prov_data)
                 usages.append(prov_usage)
+                
+            if dest_conn.has_key(exec_.module_id):
+                connections = dest_conn[exec_.module_id]
+                for connection in connections:
+                    prov_input_data, inserted = prov_data_conn[connection.id]
+                    if not inserted:
+                        entities.append(prov_input_data)
+                        prov_data_conn[connection.id][1] = True
+                    
+                    prov_usage = create_prov_usage(prov_activity, prov_input_data)
+                    usages.append(prov_usage)
+                
+            if (prov_activity._db_vt_error == None) or (prov_activity._db_vt_error == ''):
+                if source_conn.has_key(exec_.module_id):
+                    connections = source_conn[exec_.module_id]
+                    for connection in connections:
+                        prov_output_data, inserted = prov_data_conn[connection.id]
+                        if not inserted:
+                            entities.append(prov_output_data)
+                            prov_data_conn[connection.id][1] = True
+                            
+                        prov_generation = create_prov_generation(prov_output_data, prov_activity)
+                        generations.append(prov_generation)
             
-            # PROV activity
-            prov_activity = create_prov_activity_from_exec(id_scope,
-                                                           exec_,
-                                                           parent_exec,
-                                                           machine_id,
-                                                           prov_association,
-                                                           usages)
             activities.append(prov_activity)
+            
+            # PROV entity associated
+            prov_module_entity = entities_map[exec_.module_id]
+            prov_association = create_prov_association(prov_activity, prov_agent, prov_module_entity)
+            associations.append(prov_association)
             
             if exec_.vtType == DBModuleExec.vtType:
                 for loop_exec in exec_.loop_execs:
@@ -413,8 +478,8 @@ def create_prov(workflow, version, log, reg):
         entities.append(prov_functions[id])
     
     # machines
-#    for machine in log.machine_list:
-#        machines[machine.id] = (create_prov_agent_from_machine(id_scope, machine), False)
+    for machine in log.machine_list:
+        machines[machine.id] = (create_prov_agent_from_machine(id_scope, machine), False)
     
     # executions
     for exec_ in log.workflow_execs:
@@ -428,40 +493,22 @@ def create_prov(workflow, version, log, reg):
         else:
             prov_agent = agents_map[exec_.user]
         
-        # creating association with PROV entity
-        prov_association = create_prov_association(id_scope, prov_agent, prov_workflow)
-        
         # creating PROV activity
-        prov_activity = create_prov_activity_from_wf_exec(id_scope, exec_, prov_association)
+        prov_activity = create_prov_activity_from_wf_exec(id_scope, exec_)
         activities.append(prov_activity)
+        
+        # creating association with PROV entity
+        prov_association = create_prov_association(prov_activity, prov_agent, prov_workflow)
         
         for item in exec_.item_execs:
             get_execs(item, prov_activity, prov_agent)
     
-    # entities
-    prov_entities = create_prov_entities(entities)
-    
-    # activities
-    prov_activities = create_prov_activities(activities)
-    
-    # agents
-    prov_agents = create_prov_agents(agents)
-    
-    # connections
-    vt_connections = create_vt_connections(connections)
-    
-#    # generations
-#    prov_generations = create_prov_generations(generations)
-#    
-#    # usages
-#    prov_usages = create_prov_usages(usages)
-#    
-#    # associations
-#    prov_associations = create_prov_associations(associations)
-    
-    # PROV Model
-    return create_prov_model(entities=prov_entities,
-                             activities=prov_activities,
-                             agents=prov_agents,
-                             connections=vt_connections)
+    # PROV Document
+    return create_prov_document(entities=entities,
+                                activities=activities,
+                                agents=agents,
+                                connections=connections,
+                                usages=usages,
+                                generations=generations,
+                                associations=associations)
 

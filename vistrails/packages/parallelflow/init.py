@@ -2,7 +2,9 @@ from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import String, Variant, List
 
-from ipython_set import IPythonSet, QWarningDialog, QAddEnginesDialog, QIpDialog
+import socket
+
+from ipython_set import IPythonSet, QWarningDialog, QAddEnginesDialog
 
 from map import Map
 
@@ -22,27 +24,16 @@ def initialize(*args,**keywords):
     
 #################################################################################
 
-def start_local_controller(ip=None):
+def start_local_controller():
     """
     Starts a local IPython controller.
     """
     global ipythonSet, profile_dir
     
     if not ipythonSet:
-        if ip:
-            ipythonSet = IPythonSet(ip)
-            profile_dir = ipythonSet.profile_dir
-        else:
-            ip_widget = QIpDialog()
-            if ip_widget.exec_():
-                ip = ip_widget.get_answer()
-                ipythonSet = IPythonSet(ip)
-                profile_dir = ipythonSet.profile_dir
-#    else:
-#        warning_widget = QWarningDialog('A local controller is already running. Would you like to restart it?')
-#        if warning_widget.exec_():
-#            if warning_widget.is_ok():
-#                ipythonSet.restart_controller()
+        ip = socket.gethostbyname(socket.gethostname())
+        ipythonSet = IPythonSet(ip)
+        profile_dir = ipythonSet.profile_dir
         
         
 def add_engines(engine_type):
@@ -65,16 +56,8 @@ def add_engines(engine_type):
                                    engine_type=engine_type)
     
     if not ipythonSet:
-        if engine_type=='local':
-            start_local_controller(ip='127.0.0.1')
-        else:
-            start_local_controller()
+        start_local_controller()
         add_engines_ipython_set(engine_type)
-#        warning_widget = QWarningDialog('No local controller was found. Would you like to start a local controller and add %s engines?' %engine_type)
-#        if warning_widget.exec_():
-#            if warning_widget.is_ok():
-#                start_local_controller()
-#                add_engines_ipython_set(engine_type)
     else:
         if (ipythonSet.engine_type != engine_type) and (ipythonSet.engine_type != None):
             warning_widget = QWarningDialog("Existing engines are of type '%s'." %ipythonSet.engine_type,
@@ -138,10 +121,8 @@ def menu_items():
     
     """
     lst = []
-    #lst.append(("Start Local Controller", start_local_controller))
     lst.append(("Add Local Engines", add_local_engines))
     lst.append(("Add SSH Engines", add_ssh_engines))
-    #lst.append(("Restart Controller", restart_controller))
     lst.append(("Restart Engines", restart_engines))
     lst.append(("Stop Engines", stop_controller))
     return tuple(lst)

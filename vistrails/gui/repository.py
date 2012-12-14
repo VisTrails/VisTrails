@@ -161,7 +161,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
                              QtGui.QDialogButtonBox.ActionRole)
         bottom_layout.addWidget(button_box)
 
-
     def populate_table(self):
         self._unrunnable_table.clear()
 
@@ -226,7 +225,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
                 self._repository_status['details'] = ""
                 if e.code == 500:
                     self._repository_status['support_status'] = \
-                            ("Error connecting to repository (server side issues)")
+                            ("Error checking user projects (server side issues)")
+                    debug.critical("Error checking user projects (server side issues)")
                 else:
                     debug.critical(str(e))
 
@@ -274,7 +274,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
                 self._repository_status['details'] = ""
                 if e.code == 500:
                     self._repository_status['support_status'] = \
-                            ("Error connecting to repository (server side issues)")
+                            ("Error when checking dependencies (server side issues)")
+                    debug.critical("Error when checking dependencies (server side issues)")
                 else:
                     debug.critical(str(e))
 
@@ -383,7 +384,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                                  controller.vistrail.get_annotation('repository_vt_id').value)
 
                         self._repository_status['support_status'] = \
-                                ("You are attempting to update this vistrail: "
+                                ("You are attempting to update this Vistrail: "
                                  "<a href='%s'>%s</a>. This will possibly update your local version with changes from the web repository<br><br>") % \
                                 (vistrail_link, vistrail_link)
 
@@ -396,12 +397,12 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             if self.repository_supports_vt:
                 self._repository_status['support_status'] += \
-                        ("All of this VisTrail's tagged versions are supported"
-                         " on the VisTrails Repository.")
+                        ("All of this Vistrail's tagged versions are supported"
+                         " by the Repository.")
             else:
                 self._repository_status['support_status'] += \
-                        ("This VisTrail contains packages or modules that are"
-                         " not supported by the VisTrails Repository.<br>"
+                        ("This Vistrail contains packages or modules that are"
+                         " not supported by the Repository.<br>"
                          "You may still upload the VisTrail but it will "
                          "not be run by the Repository.")
 
@@ -473,12 +474,13 @@ class QRepositoryPushWidget(QtGui.QWidget):
                 if result.code != 200:
                     self._repository_status['details'] = \
                             "Push to repository failed"
+                    debug.critical("Push to repository failed (Please contact an administrator)")
                 else:
                     repository_vt_id = int(updated_response[8:])
                     controller.vistrail.set_annotation('repository_vt_id',
                                                        repository_vt_id)
                     controller.vistrail.set_annotation('repository_creator',
-                                                       self.dialog.loginUser.text())
+                                                       self.dialog.loginUser)
                     # ensure that the annotations get saved
                     controller.set_changed(True)
                     self._repository_status['details'] = \
@@ -487,6 +489,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                 # update, load updated vistrail
                 if result.code != 200:
                     self._repository_status['details'] = "Update Failed"
+                    debug.critical("Update vistrail in web repository failed (Please contact an administrator)")
                 else:
                     debug.log("getting version from web")
                     # request file to download
@@ -531,123 +534,101 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             "Update to repository was successful"
 
         except Exception, e:
-            debug.critical(str(e))
+            debug.critical("An error occurred", str(e))
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()
 
-class QRepositoryLoginWidget(QtGui.QWidget):
-    """ Tab that shows repository authentication """
+class QRepositoryLoginPopup(QtGui.QDialog):
+    """ Dialog that shows repository authentication """
 
     def __init__(self, parent, status_bar, dialog):
-        QtGui.QWidget.__init__(self, parent)
+        QtGui.QDialog.__init__(self, parent)
         self._status_bar = status_bar
         self.dialog = dialog
-
-        base_layout = QtGui.QHBoxLayout(self)
-
-        main = QtGui.QFrame(self)
-
-        base_layout.addWidget(main)
+        self.dialog.cookiejar = None
 
         self.config = get_vistrails_configuration()
         # TODO: this '/' check should probably be done in core/configuration.py
         if self.config.webRepositoryURL[-1] == '/':
             self.config.webRepositoryURL = self.config.webRepositoryURL[:-1]
 
-        ######################################################################
-        # main half, Login info
-        main_layout = QtGui.QVBoxLayout(main)
-        login_frame = QtGui.QFrame(main)
+        self.setWindowTitle('Log in to Web Repository')
 
-        login_layout = QtGui.QVBoxLayout(login_frame)
-        grid_frame = QtGui.QFrame(login_frame)
-        grid_frame.setSizePolicy(QtGui.QSizePolicy.Minimum,
-                                 QtGui.QSizePolicy.Minimum)
-
-        login_layout.addWidget(grid_frame)
-        grid_layout = QtGui.QGridLayout(grid_frame)
+        grid_layout = QtGui.QGridLayout(self)
         grid_layout.setSpacing(10)
 
-
         l1 = QtGui.QLabel("Repository location: %s" % \
-                          self.config.webRepositoryURL, grid_frame)
-        grid_layout.addWidget(l1, 0, 0)
+                          self.config.webRepositoryURL, self)
+        grid_layout.addWidget(l1, 0, 0, 1, 2)
 
-        l2 = QtGui.QLabel("Username:", grid_frame)
+        l2 = QtGui.QLabel("Username:", self)
         grid_layout.addWidget(l2, 1, 0)
 
         if self.config.check('webRepositoryLogin'):
-            self.dialog.loginUser = QtGui.QLineEdit(self.config.webRepositoryLogin, grid_frame)
+            self.loginUser = QtGui.QLineEdit(self.config.webRepositoryLogin, self)
         else:
-            self.dialog.loginUser = QtGui.QLineEdit("", grid_frame)
+            self.loginUser = QtGui.QLineEdit("", self)
 
-        self.dialog.loginUser.setFixedWidth(200)
-        self.dialog.loginUser.setSizePolicy(QtGui.QSizePolicy.Fixed,
+        self.loginUser.setFixedWidth(200)
+        self.loginUser.setSizePolicy(QtGui.QSizePolicy.Fixed,
                                      QtGui.QSizePolicy.Fixed)
-        grid_layout.addWidget(self.dialog.loginUser, 1, 1)
+        grid_layout.addWidget(self.loginUser, 1, 1)
 
-        l3 = QtGui.QLabel("Password:", grid_frame)
+        l3 = QtGui.QLabel("Password:", self)
         grid_layout.addWidget(l3, 2, 0)
 
-        self.loginPassword = QtGui.QLineEdit("", grid_frame)
+        self.loginPassword = QtGui.QLineEdit("", self)
         self.loginPassword.setEchoMode(2)
         self.loginPassword.setFixedWidth(200)
         self.loginPassword.setSizePolicy(QtGui.QSizePolicy.Fixed,
                                      QtGui.QSizePolicy.Fixed)
         grid_layout.addWidget(self.loginPassword, 2, 1)
 
-        self.saveLogin = QtGui.QCheckBox("Save username", grid_frame)
+        self.saveLogin = QtGui.QCheckBox("Save username", self)
         if self.config.check('webRepositoryLogin'):
             self.saveLogin.setChecked(True)
         grid_layout.addWidget(self.saveLogin, 3, 0)
 
-        self._login_status_label= QtGui.QLabel("", grid_frame)
+        self._login_status_label= QtGui.QLabel("", self)
         grid_layout.addWidget(self._login_status_label, 4, 0)
 
-        self._login_button = QtGui.QPushButton("&Login", grid_frame)
-        self._logout_button = QtGui.QPushButton("Log&out", grid_frame)
+        self._login_button = QtGui.QPushButton("&Login", self)
+        self._cancel_button = QtGui.QPushButton("&Cancel", self)
 
         self.connect(self._login_button,
                      QtCore.SIGNAL("clicked()"),
                      self.clicked_on_login)
 
-        self.connect(self._logout_button,
+        self.connect(self._cancel_button,
                      QtCore.SIGNAL("clicked()"),
-                     self.clicked_on_logout)
+                     self.clicked_on_cancel)
+
         button_box = QtGui.QDialogButtonBox()
         button_box.addButton(self._login_button,
                              QtGui.QDialogButtonBox.ActionRole)
-        button_box.addButton(self._logout_button,
+        button_box.addButton(self._cancel_button,
                              QtGui.QDialogButtonBox.ActionRole)
 
         grid_layout.addWidget(button_box, 5, 0)
 
-        for lbl in [l1, l2, l3, self.dialog.loginUser, self.loginPassword, self._login_status_label]:
+        for lbl in [l1, l2, l3, self.loginUser, self.loginPassword, self._login_status_label]:
             lbl.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
 
         grid_layout.setRowStretch(1, 1)
         grid_layout.setColumnStretch(1, 1)
 
-        main_layout.addWidget(login_frame)
-
-
-
-        self.dialog.loginUser.setEnabled(True)
+        self.loginUser.setEnabled(True)
         self.loginPassword.setEnabled(True)
-        self._logout_button.setEnabled(False)
         self._login_button.setEnabled(True)
         self.saveLogin.setEnabled(True)
 
 
         if self.dialog.cookiejar and \
            'sessionid' in [cookie.name for cookie in self.dialog.cookiejar]:
-            self.dialog.loginUser.setEnabled(False)
+            self.loginUser.setEnabled(False)
             self.loginPassword.setEnabled(False)
             self._login_button.setEnabled(False)
             self.saveLogin.setEnabled(False)
-            self._logout_button.setEnabled(True)
-        else:
-            self.clicked_on_logout()
 
     def show_login_information(self):
         """ display/update login info text """
@@ -663,7 +644,8 @@ class QRepositoryLoginWidget(QtGui.QWidget):
         """
         from vistrails.gui.application import get_vistrails_application
 
-        params = urllib.urlencode({'username':self.dialog.loginUser.text(),
+        self.dialog.loginUser = self.loginUser.text()
+        params = urllib.urlencode({'username':self.dialog.loginUser,
                                    'password':self.loginPassword.text()})
         self.dialog.cookiejar = cookielib.CookieJar()
 
@@ -679,43 +661,39 @@ class QRepositoryLoginWidget(QtGui.QWidget):
 
         # login failed
         if not 'sessionid' in [cookie.name for cookie in self.dialog.cookiejar]:
-            self._login_status = "incorrect username or password"
-
+            debug.critical("Incorrect username or password")
+            self.dialog.cookiejar = None
         else: # login successful
+
             self._login_status = "login successful"
 
-            self.dialog.loginUser.setEnabled(False)
+            self.loginUser.setEnabled(False)
             self.loginPassword.setEnabled(False)
             self._login_button.setEnabled(False)
             self.saveLogin.setEnabled(False)
-            self._logout_button.setEnabled(True)
 
             # add association between VisTrails user and web repository user
             if self.saveLogin.checkState():
-                if not (self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin == self.dialog.loginUser.text()):
-                    self.config.webRepositoryLogin = str(self.dialog.loginUser.text())
+                if not (self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin == self.loginUser.text()):
+                    self.config.webRepositoryLogin = str(self.loginUser.text())
                     pers_config = get_vistrails_persistent_configuration()
                     pers_config.webRepositoryLogin = self.config.webRepositoryLogin
                     get_vistrails_application().save_configuration()
 
-            # remove assiciation between VisTrails user and web repository user
+            # remove association between VisTrails user and web repository user
             else:
                 if self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin:
                     self.config.webRepositoryLogin = ""
                     pers_config = get_vistrails_persistent_configuration()
                     pers_config.webRepositoryLogin = ""
                     get_vistrails_application().save_configuration()
+            self.close_dialog(0)
 
-        self.show_login_information()
-
-    def clicked_on_logout(self):
-        """ Reset cookie, text fields and gui buttons """
-        self.dialog.loginUser.setEnabled(True)
-        self.loginPassword.setEnabled(True)
-        self._logout_button.setEnabled(False)
-        self._login_button.setEnabled(True)
-        self.saveLogin.setEnabled(True)
-        self.dialog.cookiejar = None
+    def clicked_on_cancel(self):
+        self.reject()
+ 
+    def close_dialog(self, status=0):
+        self.accept()
 
 class QRepositoryDialog(QtGui.QDialog):
     """ Dialog that shows repository options """
@@ -726,53 +704,62 @@ class QRepositoryDialog(QtGui.QDialog):
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
         self._status_bar = QtGui.QStatusBar(self)
-        self.setWindowTitle('Web Repository Options')
-        layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
-        layout.setSpacing(0)
-        self.setLayout(layout)
+        self.setWindowTitle('Push vistrail to Web Repository')
 
-        f = QtGui.QFrame()
-        layout.addWidget(f)
+        l = QtGui.QVBoxLayout(self)
+        l.setMargin(0)
+        l.setSpacing(0)
 
-        l = QtGui.QVBoxLayout(f)
-        f.setLayout(l)
-
-        self._tab_widget = QtGui.QTabWidget(f)
-        l.addWidget(self._tab_widget)
-        self._tab_widget.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                       QtGui.QSizePolicy.Expanding)
-
-        self._push_tab = self.create_push_tab()
-        self._login_tab = self.create_login_tab()
-
-        self._tab_widget.addTab(self._login_tab, 'Login to Repository')
-        self._tab_widget.addTab(self._push_tab, 'Push VisTrails to Repository')
+        widget = QtGui.QWidget(self)
+        user_layout = QtGui.QHBoxLayout(widget)
+        self._user_text = QtGui.QLabel('N/A')
+        user_layout.addWidget(self._user_text)
+        self._logout_button = QtGui.QPushButton('Log out')
+        #self._logout_button.setFixedWidth(100)
+        user_layout.addWidget(self._logout_button)
+        user_layout.addStretch(1)
+        l.addWidget(widget)
+        self._push_widget = QRepositoryPushWidget(self, self._status_bar,
+                                                  self.__class__)
+        l.addWidget(self._push_widget)
 
         self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
                                                   QtCore.Qt.Horizontal,
-                                                  f)
+                                                  self)
+        
         self.connect(self._button_box,
                      QtCore.SIGNAL('clicked(QAbstractButton *)'),
                      self.close_dialog)
 
-        self.connect(self._tab_widget,
-                     QtCore.SIGNAL('currentChanged(int)'),
-                     self.tab_changed)
+        self.connect(self._logout_button,
+                     QtCore.SIGNAL('clicked()'),
+                     self.clicked_on_logout)
 
         l.addWidget(self._button_box)
         l.addWidget(self._status_bar)
 
+        self.show_login_dialog()
+
+        self._push_widget.check_user_projects()
+
+    def clicked_on_logout(self):
+        """ Reset cookie and show login dialog """
+        self.cookiejar = None
+        self.show_login_dialog()
+
+    def show_login_dialog(self):
+        """ Prompt for login """
+        if not self.cookiejar:
+            loginDialog = QRepositoryLoginPopup(self, self._status_bar, self.__class__)
+            res = loginDialog.exec_()
+            if res == QtGui.QDialog.Rejected:
+                self.close_dialog()
+                return
+        self._user_text.setText('Logged in as: %s@%s' % (self.loginUser, self.cookie_url))
+        self._push_widget.check_user_projects()
+
     def close_dialog(self):
         self.done(0)
-
-    def create_push_tab(self):
-        """ create_push_tab() -> QRepositoryPushWidget """
-        return QRepositoryPushWidget(self, self._status_bar, self.__class__)
-
-    def create_login_tab(self):
-        """ create_login_tab() -> QRepositoryLoginWidget """
-        return QRepositoryLoginWidget(self, self._status_bar, self.__class__)
 
     def tab_changed(self, index):
         """ tab_changed(index: int) -> None """

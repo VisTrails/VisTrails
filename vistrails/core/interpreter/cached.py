@@ -128,6 +128,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -178,9 +179,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             pipeline.validate()
 
         self.resolve_aliases(pipeline, aliases)
-        if controller is not None:
-            # Controller is none for sub_modules, so we can't resolve variables
-            self.resolve_variables(controller, pipeline)
+        if vistrail_variables:
+            self.resolve_variables(vistrail_variables,  pipeline)
 
         self.update_params(pipeline, params)
         
@@ -283,6 +283,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -591,6 +592,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)

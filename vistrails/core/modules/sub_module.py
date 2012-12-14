@@ -94,6 +94,7 @@ class Group(Module):
                                          "remap dictionaries don't exist")
             
         res = self.interpreter.setup_pipeline(self.pipeline)
+        self.persistent_modules = res[0].values()
         if len(res[5]) > 0:
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n'.join(me.msg for me in res[5].itervalues()))
@@ -129,10 +130,7 @@ class Group(Module):
                                            **{'reset_computed': False})
 
     def is_cacheable(self):
-        for module in self.pipeline.modules.itervalues():
-            if not module.summon().is_cacheable():
-                return False
-        return True
+        return all(m.is_cacheable() for m in self.persistent_modules)
 
 ###############################################################################
 
@@ -222,6 +220,13 @@ def read_vistrail(vt_fname):
     import vistrails.db.services.io
     from vistrails.core.vistrail.vistrail import Vistrail
     vistrail = vistrails.db.services.io.open_vistrail_from_xml(vt_fname)
+    Vistrail.convert(vistrail)
+    return vistrail
+
+def read_vistrail_from_db(db_connection, abs_id):
+    import db.services.io
+    from core.vistrail.vistrail import Vistrail
+    vistrail = db.services.io.open_vistrail_from_db(db_connection, abs_id)
     Vistrail.convert(vistrail)
     return vistrail
 
@@ -435,6 +440,24 @@ def group_signature(pipeline, module, chm):
     for m_id in module.pipeline.graph.sinks():
         sig_list.append(module.pipeline.subpipeline_signature(m_id))
     return Hasher.compound_signature(sig_list)
+
+def parse_abstraction_name(filename, get_all_parts=False):
+    # assume only 1 possible prefix or suffix
+    import re
+    prefixes = ["abstraction_"]
+    suffixes = [".vt", ".xml"]
+    path, fname = os.path.split(filename)
+    hexpat = '[a-fA-F0-9]'
+    uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
+    prepat = '|'.join(prefixes).replace('.','\\.')
+    sufpat = '|'.join(suffixes).replace('.','\\.')
+    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
+    matchobj = pattern.match(fname)
+    prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
+    if get_all_parts:
+        return (path, prefix, absname, uuid[1:-1], suffix)
+    return absname
+
 
 ###############################################################################
 

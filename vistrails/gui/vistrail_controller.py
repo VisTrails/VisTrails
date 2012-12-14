@@ -42,7 +42,7 @@ import vistrails.core.modules.vistrails_module
 from vistrails.core.utils import VistrailsInternalError, InvalidPipeline
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from vistrails.core.log.opm_graph import OpmGraph
-from vistrails.core.log.prov_model import ProvModel
+from vistrails.core.log.prov_document import ProvDocument
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg
 from vistrails.core.modules.module_registry import get_module_registry, MissingPort
 from vistrails.core.modules.package import Package
@@ -1273,11 +1273,11 @@ class VistrailController(QtCore.QObject, BaseController):
                                             self.vistrail.db_log_filename)
             else:
                 log = self.log
-            prov_model = ProvModel(log=log, 
-                                   version=self.current_version,
-                                   workflow=self.current_pipeline,
-                                   registry=get_module_registry())
-            locator.save_as(prov_model)
+            prov_document = ProvDocument(log=log, 
+                                         version=self.current_version,
+                                         workflow=self.current_pipeline,
+                                         registry=get_module_registry())
+            locator.save_as(prov_document)
 
     def query_by_example(self, pipeline):
         """ query_by_example(pipeline: Pipeline) -> None
@@ -1367,7 +1367,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
         if pe.action_id != self.current_version:
             self.change_selected_version(pe.action_id)
-        actions, pre_actions = pe.collectParameterActions(self.current_pipeline)
+        actions, pre_actions, vistrail_vars = \
+                        pe.collectParameterActions(self.current_pipeline)
 
         if self.current_pipeline and actions:
             explorer = ActionBasedParameterExploration()
@@ -1434,9 +1435,12 @@ class VistrailController(QtCore.QObject, BaseController):
                     kwargs['view'] = view
                 if showProgress:
                     kwargs['module_executed_hook'] = [moduleExecuted]
+                if self.get_vistrail_variables():
+                    # remove vars used in pe
+                    vars = dict([(v.uuid, v) for v in self.get_vistrail_variables()
+                            if v.uuid not in vistrail_vars])
+                    kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
                 result = interpreter.execute(modifiedPipelines[pi], **kwargs)
-                import vistrails.api
-                vistrails.api.result = result
                 for error in result.errors.itervalues():
                     pp = pipelinePositions[pi]
                     errors.append(((pp[1], pp[0], pp[2]), error))
