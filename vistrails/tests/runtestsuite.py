@@ -63,6 +63,7 @@ else:
 sys.path.append(root_directory)
 
 import tests
+import core
 
 ###############################################################################
 # Testing Examples
@@ -218,6 +219,68 @@ for (p, subdirs, files) in os.walk(root_directory):
         elif verbose >= 2:
             print msg, "Ok: %s test cases." % len(test_cases)
 
+############## TEST VISTRAIL IMAGES ####################
+# Compares thumbnails with the generated images to detect broken visualizations
+
+image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
+                                  ("terminator_VRHW", "Volume Rendering HW"),
+                                  ("terminator_VRSW", "Volume Rendering SW"),
+                                  ("terminator_CPHW", "Clipping Plane HW"),
+                                  ("terminator_CPSW", "Clipping Plane SW"),
+                                  ("terminator_CRHW", "Combined Rendering HW"),
+                                  ("terminator_CRSW", "Combined Rendering SW"),
+                                  ("terminator_ISHW", "Image Slices HW"),
+                                  ("terminator_ISSW", "Image Slices SW")])
+               ]
+def compare_thumbnails(prev, next):
+    import vtk
+    #vtkImageDifference assumes RGB, so strip alpha
+    def removeAlpha(file):
+        freader = vtk.vtkPNGReader()
+        freader.SetFileName(file)
+        removealpha = vtk.vtkImageExtractComponents()
+        removealpha.SetComponents(0,1,2)
+        removealpha.SetInputConnection(freader.GetOutputPort())
+        removealpha.Update()
+        return removealpha.GetOutput()            
+    #do the image comparison
+    a = removeAlpha(prev)
+    b = removeAlpha(next)
+    idiff = vtk.vtkImageDifference()
+    idiff.SetInput(a)
+    idiff.SetImage(b)
+    idiff.Update()
+    return idiff.GetThresholdedError()
+
+def image_test_generator(vtfile, version):
+    def test(self):
+        try:
+            errs = []
+            filename = os.path.join(EXAMPLES_PATH, vtfile)
+            locator = core.db.locator.FileLocator(os.path.abspath(filename))
+            (v, abstractions, thumbnails, mashups) = core.db.io.load_vistrail(locator)
+            errs = core.console_mode.run([(locator, version)], update_vistrail=False,
+                        extra_info={'compare_thumbnails': compare_thumbnails})
+            if len(errs) > 0:
+                for err in errs:
+                    print("   *** Error in %s:%s:%s -- %s" % err)
+                    self.fail(str(err))
+        except Exception, e:
+            self.fail(str(e))
+    return test
+
+class TestVistrailImages(unittest.TestCase):
+    pass
+
+for vt, t in image_tests:
+    for name, version in t:
+        test_name = 'test_%s' % name
+        test = image_test_generator(vt, version)
+        setattr(TestVistrailImages, test_name, test)
+        main_test_suite.addTest(TestVistrailImages(test_name))
+
+############## RUN TEST SUITE ####################
+
 result = unittest.TextTestRunner().run(main_test_suite)
 
 if not result.wasSuccessful():
@@ -271,6 +334,7 @@ if test_examples:
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
+
 gui.application.get_vistrails_application().finishSession()
 gui.application.stop_application()
 # Test Runners can use the return value to know if the tests passed
