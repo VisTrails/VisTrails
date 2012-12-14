@@ -33,8 +33,8 @@
 ##
 ###############################################################################
 """Main file for the VisTrails distribution."""
-import vistrails.core
-import vistrails.gui
+import os, os.path
+import sys
 def disable_lion_restore():
     """ Prevent Mac OS 10.7 to restore windows state since it would
     make Qt 4.7.3 unstable due to its lack of handling Cocoa's Main
@@ -46,13 +46,26 @@ def disable_lion_restore():
     major = int(release[0])
     minor = int(release[1])
     if major*100+minor<107: return
-    import os
     ssPath = os.path.expanduser('~/Library/Saved Application State/org.vistrails.savedState')
     if os.path.exists(ssPath):
         os.system('rm -rf "%s"' % ssPath)
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
 if __name__ == '__main__':
+    # Fix import path: add parent directory(so that we can
+    # import vistrails.[gui|...] and remove other paths below it (we might have
+    # been started from a subdir)
+    vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+    i = 0
+    while i < len(sys.path):
+        rpath = os.path.realpath(sys.path[i])
+        if rpath.startswith(vistrails_dir):
+            del sys.path[i]
+        else:
+            i += 1
+    sys.path.insert(0, vistrails_dir)
+    print sys.path
+
     disable_lion_restore()
 
     # does not work because it checks if gui already running
@@ -75,8 +88,6 @@ if __name__ == '__main__':
 
     from PyQt4 import QtGui
     import vistrails.gui.application
-    import sys
-    import os
     try:
         v = vistrails.gui.application.start_application()
         if v != 0:
