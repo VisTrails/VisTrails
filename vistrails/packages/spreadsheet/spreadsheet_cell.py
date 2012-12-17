@@ -673,6 +673,21 @@ class QCellContainer(CellContainerInterface, QtGui.QWidget):
                 widget.show()
             self.containedWidget = widget
 
+    def takeWidget(self):
+        """ widget() -> QWidget
+        Take the contained widget out without deleting
+        
+        """
+        # Overridden so that we don't call setWidget(), we don't want to call
+        # deleteLater() on the widget
+        widget = self.containedWidget
+        if self.containedWidget:
+            self.layout().removeWidget(self.containedWidget)
+            self.containedWidget.setParent(None)
+            self.containedWidget = None
+        self.toolBar = None
+        return widget
+
 ################################################################################
 
 class QCellPresenter(QtGui.QLabel):
