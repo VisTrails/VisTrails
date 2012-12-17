@@ -47,7 +47,7 @@ import vistrails.core.interpreter.cached
 import vistrails.core.system
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
-from vistrails.gui.application import VistrailsApplication
+from vistrails.core.application import get_vistrails_application
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import QInteractiveGraphicsView
 from vistrails.gui.module_palette import QModulePalette
@@ -1200,7 +1200,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         tconf = get_vistrails_configuration()
         conf.recentVistrailList = self.recentVistrailLocators.serialize()
         tconf.recentVistrailList = conf.recentVistrailList
-        VistrailsApplication.save_configuration()
+        get_vistrails_application().save_configuration()
         
     def set_current_locator(self, locator):
         """ set_current_locator(locator: CoreLocator)
@@ -1337,7 +1337,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.save_registry(True)
 
     def save_pdf(self):
-        active_window = VistrailsApplication.activeWindow()
+        active_window = get_vistrails_application.activeWindow()
         view = None
         if active_window and active_window.centralWidget() and \
                 hasattr(active_window.centralWidget(), 'saveToPDF'):
