@@ -151,7 +151,8 @@ import gui.application
 # We need the windows so we can test events, etc.
 v = gui.application.start_application({'interactiveMode': True,
                                        'nologger': True,
-                                       'singleInstance': False})
+                                       'singleInstance': False,
+                                       'fixedSpreadsheetCells': True})
 if v != 0:
     app = gui.application.get_vistrails_application()
     if app:
@@ -223,13 +224,9 @@ for (p, subdirs, files) in os.walk(root_directory):
 # Compares thumbnails with the generated images to detect broken visualizations
 
 image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
-                                  ("terminator_VRHW", "Volume Rendering HW"),
                                   ("terminator_VRSW", "Volume Rendering SW"),
-                                  ("terminator_CPHW", "Clipping Plane HW"),
                                   ("terminator_CPSW", "Clipping Plane SW"),
-                                  ("terminator_CRHW", "Combined Rendering HW"),
                                   ("terminator_CRSW", "Combined Rendering SW"),
-                                  ("terminator_ISHW", "Image Slices HW"),
                                   ("terminator_ISSW", "Image Slices SW")])
                ]
 def compare_thumbnails(prev, next):
