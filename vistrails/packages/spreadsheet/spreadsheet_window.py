@@ -47,7 +47,7 @@ import tempfile
 from vistrails.core.modules import module_utils
 
 from .spreadsheet_base import StandardSheetReference
-from .spreadsheet_cell import QCellContainer
+from .spreadsheet_cell import CellContainerInterface
 from .spreadsheet_config import configuration
 from .spreadsheet_event import BatchDisplayCellEventType, \
     DisplayCellEventType, RepaintCurrentSheetEventType
@@ -408,8 +408,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         # Perform single-click event on the spread sheet
         if (not self.tabController.editingMode and
             eType==QtCore.QEvent.MouseButtonPress):
-            if isinstance(q, QCellContainer):
-                return q.containedWidget!=None
+            if isinstance(q, CellContainerInterface):
+                return q.widget() != None
             p = q
             while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet) and p.parent):
                 p = p.parent()

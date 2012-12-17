@@ -756,7 +756,46 @@ class QCellToolBarClearHistory(QtGui.QAction):
             self.setVisible(False)
 
 
-class QCellContainer(QtGui.QWidget):
+class CellContainerInterface(object):
+    def __init__(self, widget=None):
+        self.containedWidget = widget
+
+        if isinstance(widget, CellContainerInterface):
+            import StringIO, traceback, warnings
+            msg = StringIO.StringIO()
+            msg.write("a CellContainerInterface was nested into another!\n")
+            traceback.print_stack(file=msg)
+            msg.write('\n')
+            warnings.warn(msg)
+
+    def setWidget(self, widget):
+        if isinstance(widget, CellContainerInterface):
+            import StringIO, traceback, warnings
+            msg = StringIO.StringIO()
+            msg.write("a CellContainerInterface was nested into another!\n")
+            traceback.print_stack(file=msg)
+            msg.write('\n')
+            warnings.warn(msg)
+        self.containedWidget = widget
+
+    def widget(self):
+        """ widget() -> QWidget
+        Return the contained widget
+        
+        """
+        return self.containedWidget
+
+    def takeWidget(self):
+        """ widget() -> QWidget
+        Take the contained widget out without deleting
+        
+        """
+        widget = self.containedWidget
+        self.setWidget(None)
+        return widget
+
+
+class QCellContainer(CellContainerInterface, QtGui.QWidget):
     """ QCellContainer is a simple QWidget containing the actual cell
     widget as a child. This also acts as a sentinel protecting the
     actual cell widget from being destroyed by sheet widgets
@@ -768,12 +807,12 @@ class QCellContainer(QtGui.QWidget):
         Create an empty container
 
         """
+        CellContainerInterface.__init__(self)
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)
         layout.setMargin(0)
         self.setLayout(layout)
-        self.containedWidget = None
         self.setWidget(widget)
         self.toolBar = None
 
@@ -793,18 +832,13 @@ class QCellContainer(QtGui.QWidget):
                 widget.show()
             self.containedWidget = widget
 
-    def widget(self):
-        """ widget() -> QWidget
-        Return the contained widget
-
-        """
-        return self.containedWidget
-
     def takeWidget(self):
         """ widget() -> QWidget
         Take the contained widget out without deleting
 
         """
+        # Overridden so that we don't call setWidget(), we don't want to call
+        # deleteLater() on the widget
         widget = self.containedWidget
         if self.containedWidget:
             self.layout().removeWidget(self.containedWidget)
