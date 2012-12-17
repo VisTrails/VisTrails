@@ -46,7 +46,7 @@ from PyQt4 import QtCore, QtGui
 import os.path
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
+from spreadsheet_cell import QCellPresenter, QCellContainer, CellContainerInterface, QCellToolBar
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 from spreadsheet_config import configuration
@@ -192,7 +192,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cellWidget = self.getCellWidget(row, col)
-        if type(cellWidget)==QCellContainer:
+        if isinstance(cellWidget, CellContainerInterface):
             return cellWidget.widget()
         return cellWidget
 
@@ -222,8 +222,9 @@ class StandardWidgetSheetTabInterface(object):
         Put the cellWidget inside a container and place it on the sheet
 
         """
-        if type(cellWidget)!=QCellContainer:
-            container = QCellContainer(cellWidget)
+        if (cellWidget is not None and
+                not isinstance(cellWidget, CellContainerInterface)):
+            container = QCellContainer(cellWidget) # FIXME : correct container class
         else:
             container = cellWidget
         self.setCellWidget(row, col, container)
@@ -241,7 +242,7 @@ class StandardWidgetSheetTabInterface(object):
             else:
                 toolBarType = QCellToolBar
             container = self.getCellWidget(row, col)
-            if type(container)==QCellContainer:
+            if isinstance(container, CellContainerInterface):
                 if container.toolBar==None:
                     container.toolBar = toolBarType(self)
                 return container.toolBar
@@ -376,7 +377,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cell = self.getCellWidget(row, col)
-        if type(cell)==QCellContainer:
+        if isinstance(cell, CellContainerInterface):
             widget = cell.takeWidget()
             self.setCellWidget(row, col, None)
             return widget
