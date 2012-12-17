@@ -150,7 +150,7 @@ The builder window can be accessed by a spreadsheet menu option.")
             help="The workflows will be executed")
         add("-F", "--fixedcells", action="store_true",
             default = None,
-            help="Use a fixed spreadsheet cell size of 400*360")
+            help="Use a fixed spreadsheet cell size of 200*180")
         add("-I", "--workflowinfo", action="store",
             default = None,
             help=("Save workflow graph and spec in specified directory "

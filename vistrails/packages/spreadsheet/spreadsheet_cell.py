@@ -78,7 +78,7 @@ class QCellWidget(QtGui.QWidget):
                      self.playNextFrame)
         if getattr(get_vistrails_configuration(),'fixedSpreadsheetCells',False):
             self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-            self.setFixedSize(400, 360)
+            self.setFixedSize(200, 180)
 
     def setAnimationEnabled(self, enabled):
         """ setAnimationEnabled(enabled: bool) -> None
