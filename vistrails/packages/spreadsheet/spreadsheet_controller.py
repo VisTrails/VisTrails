@@ -43,6 +43,7 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 
+from .spreadsheet_cell import QCellContainer
 from .spreadsheet_window import SpreadsheetWindow
 
 
@@ -60,7 +61,9 @@ class SpreadsheetController(object):
         This class is more like an interface where there is no data inside
 
         """
-        pass
+        self._cellContainerClass = QCellContainer
+                # This could be in SpreadsheetWindow but findSpreadsheetWindow
+                # is unnecessarily slow
 
     def findSpreadsheetWindow(self, show=True):
         """ findSpreadsheetWindow() -> QWidget
@@ -133,6 +136,11 @@ class SpreadsheetController(object):
             return events
         return None
 
+    def getCellContainerClass(self):
+        return self._cellContainerClass
+
+    def setCellContainerClass(self, containerclass):
+        self._cellContainerClass = containerclass
 
 spreadsheetController = SpreadsheetController()
 registeredWidgets = {}
