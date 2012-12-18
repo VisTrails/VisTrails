@@ -46,9 +46,10 @@ from PyQt4 import QtCore, QtGui
 import os.path
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellPresenter, QCellContainer, CellContainerInterface, QCellToolBar
+from spreadsheet_cell import QCellPresenter, CellContainerInterface, QCellToolBar
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
+import spreadsheet_controller
 from spreadsheet_config import configuration
 from vistrails.core.inspector import PipelineInspector
 import spreadsheet_rc
@@ -187,8 +188,8 @@ class StandardWidgetSheetTabInterface(object):
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget        
         Get cell at a specific row and column. In reality, this cell
-        widget is inside a QCellContainer and the cell container is
-        the actual widget under the cell
+        widget is inside a cell container, which is the actual widget
+        under the cell
         
         """
         cellWidget = self.getCellWidget(row, col)
@@ -234,7 +235,9 @@ class StandardWidgetSheetTabInterface(object):
             prev_container.setWidget(cellWidget)
         # Other cases: build a new container for this cell
         else:
-            container = QCellContainer(cellWidget) # FIXME : correct container class
+            ContainerClass = (spreadsheet_controller.spreadsheetController
+                    .getCellContainerClass())
+            container = ContainerClass(cellWidget)
         self.setCellWidget(row, col, container)
         self.lastCellLocation = (row, col)
 
@@ -312,7 +315,7 @@ class StandardWidgetSheetTabInterface(object):
                 self.setCellByWidget(row, col, None)
             if hasattr(oldCell, 'deleteLater'):
                 oldCell.deleteLater()
-        else:
+        elif oldCell:
             oldCell.updateContents(inputPorts)
         self.lastCellLocation = (row, col)
 
@@ -363,7 +366,9 @@ class StandardWidgetSheetTabInterface(object):
         Delete a cell in the sheet
         
         """
-        self.setCellByType(row, col, None, None)
+        ContainerClass = (spreadsheet_controller.spreadsheetController
+                .getCellContainerClass())
+        self.setCellByWidget(row, col, ContainerClass())
         self.setCellPipelineInfo(row, col, None)
         
     def deleteAllCells(self):
@@ -602,6 +607,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)
         self.sheet.setFitToWindow(True)
+        self.createContainers()
         self.toolBar = StandardWidgetToolBar(self)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
@@ -612,6 +618,17 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.pipelineInfo = {}
         self.setAcceptDrops(True)
 
+    def createContainers(self):
+        row_count, col_count = self.getDimension()
+        ContainerClass = (spreadsheet_controller.spreadsheetController
+                .getCellContainerClass())
+        for r in xrange(row_count):
+            for c in xrange(col_count):
+                w = self.getCellWidget(r, c)
+                if w is None:
+                    cellWidget = ContainerClass()
+                    self.setCellByWidget(r, c, cellWidget)
+
     def rowSpinBoxChanged(self):
         """ rowSpinBoxChanged() -> None
         Handle the number of row changed
@@ -620,6 +637,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         if self.toolBar.rowSpinBox.value()!=self.sheet.rowCount():
             self.sheet.setRowCount(self.toolBar.rowSpinBox.value())
             self.sheet.stretchCells()
+            self.createContainers()
             self.setEditingMode(self.tabWidget.editingMode)
         
     def colSpinBoxChanged(self):
@@ -630,6 +648,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         if self.toolBar.colSpinBox.value()!=self.sheet.columnCount():
             self.sheet.setColumnCount(self.toolBar.colSpinBox.value())
             self.sheet.stretchCells()
+            self.createContainers()
             self.setEditingMode(self.tabWidget.editingMode)
 
     ### Belows are API Wrappers to connect to self.sheet
