@@ -40,6 +40,9 @@ import shutil
 import time
 import uuid
 import mimetypes
+# mimetypes are broken by default on windows so use the builtins
+# Remove line below when it is fixed here: http://bugs.python.org/issue15207
+mimetypes.init(files=[])
 from core import debug
 from core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
