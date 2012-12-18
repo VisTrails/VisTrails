@@ -599,6 +599,7 @@ class QCellToolBarClearHistory(QtGui.QAction):
 
 class CellContainerInterface(object):
     def __init__(self, widget=None):
+        self.toolBar = None
         self.containedWidget = widget
 
         if isinstance(widget, CellContainerInterface):
@@ -632,8 +633,15 @@ class CellContainerInterface(object):
         
         """
         widget = self.containedWidget
-        self.setWidget(None)
+        if widget:
+            widget.setParent(None)
+            self.setWidget(None)
+        self.toolBar = None
         return widget
+
+    def should_be_reused(self, new_content):
+        return False # We usually don't need that; other software embedding
+                # VisTrails might, though
 
 
 class QCellContainer(CellContainerInterface, QtGui.QWidget):
@@ -655,7 +663,6 @@ class QCellContainer(CellContainerInterface, QtGui.QWidget):
         layout.setMargin(0)
         self.setLayout(layout)
         self.setWidget(widget)
-        self.toolBar = None
 
     def setWidget(self, widget):
         """ setWidget(widget: QWidget) -> None

@@ -222,11 +222,19 @@ class StandardWidgetSheetTabInterface(object):
         Put the cellWidget inside a container and place it on the sheet
 
         """
-        if (cellWidget is not None and
-                not isinstance(cellWidget, CellContainerInterface)):
-            container = QCellContainer(cellWidget) # FIXME : correct container class
-        else:
+        prev_container = self.getCellWidget(row, col)
+        # If we were given a container, this is what we'll display
+        if cellWidget is None or isinstance(cellWidget, CellContainerInterface):
             container = cellWidget
+        # In some cases, we might want to reuse the previous container and
+        # simply put the new cell content there
+        # It might not always make sense, so we ask the container class first
+        elif (prev_container is not None and
+                prev_container.should_be_reused(cellWidget)):
+            prev_container.setWidget(cellWidget)
+        # Other cases: build a new container for this cell
+        else:
+            container = QCellContainer(cellWidget) # FIXME : correct container class
         self.setCellWidget(row, col, container)
         self.lastCellLocation = (row, col)
 
@@ -430,6 +438,8 @@ class StandardWidgetSheetTabInterface(object):
         Swap the (row, col) of this sheet to (newRow, newCol) of newSheet
         
         """
+        # TODO-dat : We should really swap the containers here, not the content
+        # Any idea why we can't?
         myWidget = self.takeCell(row, col)
         theirWidget = newSheet.takeCell(newRow, newCol)
         self.setCellByWidget(row, col, theirWidget)
