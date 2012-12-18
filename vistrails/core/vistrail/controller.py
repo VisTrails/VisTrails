@@ -2247,9 +2247,9 @@ class VistrailController(object):
                 raise
         except MissingModule, e:
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
-                if (descriptor_tuple[1], '') not in lookup:
+                if (descriptor_tuple[1], None) not in lookup:
                     raise
-                abs_fnames = lookup[(descriptor_tuple[1], '')]
+                abs_fnames = lookup[(descriptor_tuple[1], None)]
             else:
                 abs_fnames = [lookup[(descriptor_tuple[1], descriptor_tuple[2])]]
             for abs_fname in abs_fnames:
@@ -2258,7 +2258,7 @@ class VistrailController(object):
                                           descriptor_tuple[1],
                                           descriptor_tuple[4],
                                           [v for k, v in lookup.iteritems()
-                                           if k[1] != ''])
+                                           if k[1] != None])
                 descriptor_tuple = (new_desc.package, new_desc.name, 
                                     new_desc.namespace, new_desc.package_version,
                                     str(new_desc.version))
@@ -2271,9 +2271,9 @@ class VistrailController(object):
             path, prefix, abs_name, abs_namespace, suffix = parse_abstraction_name(abs_fname, True)
             # abs_name = os.path.basename(abs_fname)[12:-4]
             lookup[(abs_name, abs_namespace)] = abs_fname
-            if (abs_name, '') not in lookup:
-                lookup[(abs_name, '')] = []
-            lookup[(abs_name, '')].append(abs_fname)
+            if (abs_name, None) not in lookup:
+                lookup[(abs_name, None)] = []
+            lookup[(abs_name, None)].append(abs_fname)
             
         # we're going to recurse manually (see
         # add_abstraction_to_regsitry) because we can't call
