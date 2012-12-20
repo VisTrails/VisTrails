@@ -305,7 +305,7 @@ class TestConsoleMode(unittest.TestCase):
         if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
             return
 
-        d = {'console_mode_test': 'tests.resources.'}
+        d = {'console_mode_test': 'vistrails.tests.resources.'}
         manager.late_enable_package('console_mode_test',d)
 
     def tearDown(self):
