@@ -40,6 +40,9 @@ import shutil
 import time
 import uuid
 import mimetypes
+# mimetypes are broken by default on windows so use the builtins
+# Remove line below when it is fixed here: http://bugs.python.org/issue15207
+mimetypes.init(files=[])
 from vistrails.core import debug
 from vistrails.core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
@@ -243,6 +246,8 @@ class ThumbnailCache(object):
         height = 0
         width = 0
         pixmaps = []
+        # OS may return wrong order so  we need to sort
+        fnames.sort()
         for fname in fnames:
             pix = QtGui.QPixmap(fname)
             if pix.height() > 0 and pix.width() > 0:
