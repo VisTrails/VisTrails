@@ -38,8 +38,8 @@ import sqlite3
 import uuid
 
 from vistrails.core.modules.basic_modules import Path
-from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
-from vistrails.core.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
 from db_utils import DatabaseAccessSingleton
 

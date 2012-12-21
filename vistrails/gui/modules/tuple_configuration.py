@@ -35,8 +35,8 @@
 """ This file specifies the configuration widget for Tuple
 module. This should be used as a template for creating a configuration
 for other modules. The widget here should inherit from
-core.modules.module_configure.StandardModuleConfigurationWidget, which
-is also a QWidget.
+vistrails.gui.modules.module_configure.StandardModuleConfigurationWidget,
+which is also a QWidget.
 
 """
 from PyQt4 import QtCore, QtGui
