@@ -529,7 +529,7 @@ Makes sure input port 'name' is filled."""
         for use in creating the object output by a Module.
         """
         # FIXME (DAK): I don't get this, shouldn't we import module_registry?
-        import core.modules.vistrails_module
+        import vistrails.core.modules.vistrails_module
         try:
             reg = core.modules.module_registry.get_module_registry()
             m = reg.get_module_by_name(ident, name, ns)
