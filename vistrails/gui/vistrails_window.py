@@ -579,7 +579,7 @@ class QVistrailViewWindow(QBaseViewWindow):
                                                        'save_prov')}),
                        ('saveLog', "Log to XML...",
                         {'statusTip': "Save the execution log to a file",
-                         'enabled': False,
+                         'enabled': True,
                          'callback': \
                              _app.pass_through_locator(self.get_current_view,
                                                        'save_log',
