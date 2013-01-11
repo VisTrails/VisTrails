@@ -707,6 +707,7 @@ class QCellPresenter(QtGui.QLabel):
     info bar on top and control dragable icons on the bottom
     
     """
+    # TODO-dat : merge this with QCellContainer/CellContainerInterface
     def __init__(self, parent=None):
         """ QCellPresenter(parent: QWidget) -> QCellPresenter
         Create the layout of the widget

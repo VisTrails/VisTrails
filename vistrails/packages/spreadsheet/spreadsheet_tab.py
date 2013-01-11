@@ -333,8 +333,6 @@ class StandardWidgetSheetTabInterface(object):
         information, info, for the cell (row, col)
         
         """
-        if not (row,col) in self.pipelineInfo:
-            self.pipelineInfo[(row,col)] = {}
         self.pipelineInfo[(row,col)] = info
 
     def getCellPipelineInfo(self, row, col):
@@ -342,10 +340,8 @@ class StandardWidgetSheetTabInterface(object):
         Provide a way for the spreadsheet to extract vistrail
         information, info, for the cell (row, col)
         
-        """        
-        if not (row,col) in self.pipelineInfo:
-            return None
-        return self.pipelineInfo[(row,col)]
+        """
+        return self.pipelineInfo.get((row, col), None)
 
     def getSelectedLocations(self):
         """ getSelectedLocations() -> list
@@ -402,6 +398,8 @@ class StandardWidgetSheetTabInterface(object):
         Turn on/off the editing mode of a single cell
         
         """
+        # TODO-dat : this QCellPresenter packing/unpacking should be made
+        # simpler and put in QCellContainer
         if editing:
             cellWidget = self.getCell(r, c)
             if type(cellWidget)==QCellPresenter:
