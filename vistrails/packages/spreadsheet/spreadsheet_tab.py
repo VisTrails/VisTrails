@@ -328,8 +328,6 @@ class StandardWidgetSheetTabInterface(object):
         information, info, for the cell (row, col)
 
         """
-        if not (row,col) in self.pipelineInfo:
-            self.pipelineInfo[(row,col)] = {}
         self.pipelineInfo[(row,col)] = info
 
     def getCellPipelineInfo(self, row, col):
@@ -338,9 +336,7 @@ class StandardWidgetSheetTabInterface(object):
         information, info, for the cell (row, col)
 
         """
-        if not (row,col) in self.pipelineInfo:
-            return None
-        return self.pipelineInfo[(row,col)]
+        return self.pipelineInfo.get((row, col), None)
 
     def getSelectedLocations(self):
         """ getSelectedLocations() -> list
