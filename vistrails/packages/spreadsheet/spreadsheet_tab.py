@@ -615,7 +615,6 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)
         self.sheet.setFitToWindow(True)
-        self.createContainers()
         self.toolBar = StandardWidgetToolBar(self)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
@@ -625,6 +624,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.setLayout(self.vLayout)
         self.pipelineInfo = {}
         self.setAcceptDrops(True)
+        self.createContainers()
 
     def createContainers(self):
         row_count, col_count = self.getDimension()
