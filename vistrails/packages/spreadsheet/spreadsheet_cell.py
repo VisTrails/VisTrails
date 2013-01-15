@@ -40,6 +40,7 @@
 ################################################################################
 from PyQt4 import QtCore, QtGui
 import datetime
+import functools
 import os
 from vistrails.core import system, debug
 import cell_rc
@@ -601,6 +602,30 @@ class QCellToolBarClearHistory(QtGui.QAction):
 
 ################################################################################
 
+@functools.total_ordering
+class CellInformation(object):
+    def __init__(self, tab, row, column):
+        self.tab = tab
+        self.row = row
+        self.column = column
+
+    def __eq__(self, other):
+        if not isinstance(other, CellInformation):
+            raise TypeError
+        return ((self.tab, self.row, self.column) ==
+                (other.tab, other.row, other.column))
+
+    def __lt__(self, other):
+        if not isinstance(other, CellInformation):
+            raise TypeError
+        return ((self.tab, self.row, self.column) <
+                (other.tab, other.row, other.column))
+
+    def __hash__(self):
+        return hash((self.tab, self.row, self.column))
+
+################################################################################
+
 class CellContainerInterface(object):
     def __init__(self, widget=None):
         self.toolBar = None
@@ -613,6 +638,11 @@ class CellContainerInterface(object):
             traceback.print_stack(file=msg)
             msg.write('\n')
             warnings.warn(msg)
+
+        self.cellInfo = None
+
+    def setCellInfo(self, cellInfo):
+        self.cellInfo = cellInfo
 
     def setWidget(self, widget):
         if isinstance(widget, CellContainerInterface):
@@ -707,7 +737,6 @@ class QCellPresenter(QtGui.QLabel):
     info bar on top and control dragable icons on the bottom
     
     """
-    # TODO-dat : merge this with QCellContainer/CellContainerInterface
     def __init__(self, parent=None):
         """ QCellPresenter(parent: QWidget) -> QCellPresenter
         Create the layout of the widget
@@ -754,16 +783,16 @@ class QCellPresenter(QtGui.QLabel):
         painter.end()
         self.setPixmap(bgPixmap)
 
-    def assignCell(self, sheet, row, col):
-        """ assignCell(sheet: Sheet, row: int, col: int) -> None
+    def assignCell(self, cellInfo):
+        """ assignCell(cellInfo: CellInformation) -> None
         Assign a sheet cell to the presenter
         
         """
-        self.manipulator.assignCell(sheet, row, col)
-        self.assignCellWidget(sheet.getCell(row, col))
-        info = sheet.getCellPipelineInfo(row, col)
+        self.manipulator.assignCell(cellInfo)
+        self.assignCellWidget(cellInfo.tab.getCell(cellInfo.row, cellInfo.column))
+        info = cellInfo.tab.getCellPipelineInfo(cellInfo.row, cellInfo.column)
         self.info.updateInfo(info)
-        
+
     def releaseCellWidget(self):
         """ releaseCellWidget() -> QWidget
         Return the ownership of self.cellWidget to the caller
@@ -771,7 +800,7 @@ class QCellPresenter(QtGui.QLabel):
         """
         cellWidget = self.cellWidget
         self.assignCellWidget(None)
-        self.manipulator.assignCell(None, -1, -1)
+        self.manipulator.assignCell(CellInformation(None, -1, -1))
         if cellWidget:
             cellWidget.setParent(None)
         return cellWidget
@@ -978,7 +1007,6 @@ class QCellManipulator(QtGui.QFrame):
                      self.locateVersion)
         self.buttons.append(self.locateButton)
 
-        
         uLayout = QtGui.QHBoxLayout()
         uLayout.addStretch()
         uLayout.addWidget(self.locateButton)
@@ -992,28 +1020,32 @@ class QCellManipulator(QtGui.QFrame):
 
         self.innerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
                                                  self)
-        
-    def assignCell(self, sheet, row, col):
-        """ assignCell(sheet: Sheet, row: int, col: int) -> None
+
+    def assignCell(self, cellInfo):
+        """ assignCell(cellInfo: CellInformation) -> None
         Assign a cell to the manipulator, so it knows where to drag
         and drop
         
         """
-        self.cellInfo = (sheet, row, col)
+        self.cellInfo = cellInfo
+        if (cellInfo.tab and
+                cellInfo.tab.getCell(cellInfo.row, cellInfo.column) is not None):
+            widget = cellInfo.tab.getCell(cellInfo.row, cellInfo.column)
+            visible = (not isinstance(widget, QCellPresenter) or
+                       widget.cellWidget is not None)
+        else:
+            visible = False
         for b in self.buttons:
             if hasattr(b, 'updateCellInfo'):
                 b.updateCellInfo(self.cellInfo)
-            if sheet and sheet.getCell(row, col)!=None:
-                widget = sheet.getCell(row, col)
-                b.setVisible(type(widget)!=QCellPresenter or
-                             widget.cellWidget!=None)
-            else:
-                b.setVisible(False)
+            b.setVisible(visible)
         self.updateButton.setVisible(False)
-        if sheet:
-            info = sheet.getCellPipelineInfo(row, col)
+        if cellInfo.tab:
+            info = cellInfo.tab.getCellPipelineInfo(
+                    cellInfo.row,
+                    cellInfo.column)
             if info:
-                self.updateButton.setVisible(len(info[0]['actions'])>0)
+                self.updateButton.setVisible(len(info[0]['actions']) > 0)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -1022,9 +1054,9 @@ class QCellManipulator(QtGui.QFrame):
         """
         mimeData = event.mimeData()
         if hasattr(mimeData, 'cellInfo'):
-            if (mimeData.cellInfo==self.cellInfo or
-                mimeData.cellInfo[0]==None or
-                self.cellInfo[0]==None):
+            if (mimeData.cellInfo == self.cellInfo or
+                    mimeData.cellInfo.tab is None or
+                    self.cellInfo.tab is None):
                 event.ignore()
             else:
                 event.setDropAction(QtCore.Qt.MoveAction)
@@ -1055,33 +1087,37 @@ class QCellManipulator(QtGui.QFrame):
             event.accept()
             
             if action=='move':
-                self.cellInfo[0].swapCell(self.cellInfo[1], self.cellInfo[2],
-                                          cellInfo[0], cellInfo[1], cellInfo[2])
-                manipulator.assignCell(*self.cellInfo)
-                self.assignCell(*cellInfo)
+                self.cellInfo.tab.swapCell(
+                        self.cellInfo.row, self.cellInfo.column,
+                        cellInfo.tab, cellInfo.row, cellInfo.column)
+                manipulator.assignCell(self.cellInfo)
+                self.assignCell(cellInfo)
                 
-            if action=='copy':
-                cellInfo[0].copyCell(cellInfo[1], cellInfo[2],
-                                     self.cellInfo[0], self.cellInfo[1],
-                                     self.cellInfo[2])
+            elif action=='copy':
+                cellInfo.tab.copyCell(
+                        cellInfo.row, cellInfo.column,
+                        self.cellInfo.tab,
+                        self.cellInfo.row, self.cellInfo.column)
                 
-            if action=='create_analogy':
-                p1Info = cellInfo[0].getPipelineInfo(cellInfo[1], cellInfo[2])
-                p2Info = self.cellInfo[0].getPipelineInfo(self.cellInfo[1],
-                                                          self.cellInfo[2])
+            elif action=='create_analogy':
+                p1Info = cellInfo.tab.getPipelineInfo(cellInfo.row,
+                                                      cellInfo.column)
+                p2Info = self.cellInfo.tab.getPipelineInfo(
+                        self.cellInfo.row, self.cellInfo.column)
                 if p1Info!=None and p2Info!=None:
                     analogy = analogy_api.SpreadsheetAnalogy()
                     analogy.createAnalogy(p1Info, p2Info)
 
-            if action=='apply_analogy':
-                p1Info = cellInfo[0].getPipelineInfo(cellInfo[1], cellInfo[2])
+            elif action=='apply_analogy':
+                p1Info = cellInfo.tab.getPipelineInfo(cellInfo.row,
+                                                      cellInfo.column)
                 analogy = analogy_api.SpreadsheetAnalogy()
                 newPipeline = analogy.applyAnalogy(p1Info)
                 if newPipeline:
-                    self.cellInfo[0].executePipelineToCell(newPipeline,
-                                                           self.cellInfo[1],
-                                                           self.cellInfo[2],
-                                                           'Apply Analogy')
+                    self.cellInfo.tab.executePipelineToCell(
+                            newPipeline,
+                            self.cellInfo.row, self.cellInfo.column,
+                            'Apply Analogy')
 
         else:
             event.ignore()
@@ -1107,8 +1143,8 @@ class QCellManipulator(QtGui.QFrame):
         spreadsheetController = spreadsheet_controller.spreadsheetController
         builderWindow = spreadsheetController.getBuilderWindow()
         if builderWindow:
-            info = self.cellInfo[0].getCellPipelineInfo(self.cellInfo[1],
-                                                        self.cellInfo[2])
+            info = self.cellInfo.tab.getCellPipelineInfo(self.cellInfo.row,
+                                                         self.cellInfo.column)
             if info:
                 info = info[0]
                 view = builderWindow.ensureVistrail(info['locator'])
@@ -1126,8 +1162,8 @@ class QCellManipulator(QtGui.QFrame):
         spreadsheetController = spreadsheet_controller.spreadsheetController
         builderWindow = spreadsheetController.getBuilderWindow()
         if builderWindow:
-            info = self.cellInfo[0].getCellPipelineInfo(self.cellInfo[1],
-                                                        self.cellInfo[2])
+            info = self.cellInfo.tab.getCellPipelineInfo(self.cellInfo.row,
+                                                         self.cellInfo.column)
             if info:
                 info = info[0]
                 view = builderWindow.ensureVistrail(info['locator'])
@@ -1164,7 +1200,7 @@ class QCellDragLabel(QtGui.QLabel):
         self.cursorPixmap = pixmap.scaled(self.size())
 
         self.startPos = None
-        self.cellInfo = (None, -1, -1)
+        self.cellInfo = CellInformation(None, -1, -1)
         self.action = None
         
     def updateCellInfo(self, cellInfo):
