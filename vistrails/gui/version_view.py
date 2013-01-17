@@ -47,6 +47,7 @@ QVersionTreeView
 from PyQt4 import QtCore, QtGui
 from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
@@ -702,7 +703,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.setSelected(True)
         self.scene().emit_selection = True
         self.scene().emit(
-            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+            QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
             self.id, True, False, True, True)
             
     def construct_from_root(self):
@@ -712,7 +713,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.setSelected(True)
         self.scene().emit_selection = True
         self.scene().emit(
-            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+            QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
             self.id, True, True, True, True)
 
     def contextMenuEvent(self, event):
@@ -834,7 +835,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         otherMaxRank = 0
         am = controller.vistrail.actionMap
         for nodeId in sorted(self.versions.keys()):
-            if nodeId!=0:
+            if nodeId != Vistrail.ROOT_VERSION:
                 nodeUser = am[nodeId].user
                 if nodeUser==currentUser:
                     ranks[nodeId] = ourMaxRank
@@ -843,11 +844,11 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                     ranks[nodeId] = otherMaxRank
                     otherMaxRank += 1
         for (nodeId, item) in self.versions.iteritems():
-            if nodeId == 0:
+            if nodeId == Vistrail.ROOT_VERSION:
                 item.setGhosted(True)
                 continue
             nodeUser = am[nodeId].user
-            if controller.search and nodeId!=0:
+            if controller.search and nodeId != Vistrail.ROOT_VERSION:
                 ghosted = not controller.search.match(controller.vistrail, 
                                                       am[nodeId])
             else:
@@ -1020,7 +1021,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                             target not in tm and # target has no tag
                             target not in last_n and # not one of the last n modules
                             (source in tm or # source has a tag
-                             source == 0 or # source is root node
+                             source == Vistrail.ROOT_VERSION or # source is root node
                              len(sourceChildren) > 1 or # source is branching node 
                              source == controller.current_version)) # source is selected
                 if self.edges.has_key((source,target)):
@@ -1094,7 +1095,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         selected_items = self.selectedItems()
         if len(selected_items) == 1:
             # emit versionSelected selected_id
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+            self.emit(QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
                       selected_items[0].id, self.select_by_click, 
                       True, False, False)
         else:
@@ -1102,17 +1103,17 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             for item in selected_items:
                 if item.text.isEditable:
                     item.text.setEditable(False)
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                      -1, self.select_by_click, True, False, False)
+            self.emit(QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
+                      Vistrail.ROOT_VERSION, self.select_by_click, True, False, False)
 
         if len(selected_items) == 2:
             self.emit(
-                QtCore.SIGNAL('twoVersionsSelected(int, int)'),
+                QtCore.SIGNAL('twoVersionsSelected(strx, str)'),
                 selected_items[0].id, selected_items[1].id)
 
     def double_click(self, version_id):
         self.mouseGrabberItem().ungrabMouse()
-        self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+        self.emit(QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
                   version_id, self.select_by_click, True, False, True)
 
 class QVersionTreeView(QInteractiveGraphicsView, BaseView):

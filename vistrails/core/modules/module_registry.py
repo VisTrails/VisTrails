@@ -1421,6 +1421,8 @@ class ModuleRegistry(DBRegistry):
                  port_sigstring=None, optional=False, sort_key=-1,
                  labels=None, defaults=None, values=None, entry_types=None, 
                  docstring=None, shape=None, min_conns=0, max_conns=-1):
+        if sort_key == -1:
+            sort_key = len(descriptor.port_specs_list)
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
                                      labels, defaults, values, entry_types,

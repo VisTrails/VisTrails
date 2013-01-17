@@ -33,4 +33,9 @@
 ##
 ###############################################################################
 
-from db.versions.v2_0_0.domain import *
+from auto_gen import *
+from registry import DBRegistry
+from workflow import DBWorkflow
+from vistrail import DBVistrail
+from log import DBLog
+from id_scope import IdScope

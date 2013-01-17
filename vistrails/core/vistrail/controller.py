@@ -160,6 +160,9 @@ class VistrailController(object):
     def _get_current_version(self):
         return self._current_version
     def _set_current_version(self, version):
+        if version == 0:
+            raise Exception("Should not set version to 0. "
+                            "Use Vistrail.ROOT_VERSION instead.")
         self._current_version = version
     current_version = property(_get_current_version, _set_current_version)
 
@@ -170,7 +173,7 @@ class VistrailController(object):
     current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
     def flush_pipeline_cache(self):
-        self._pipelines = {0: Pipeline()}
+        self._pipelines = {Vistrail.ROOT_VERSION: Pipeline()}
 
     def logging_on(self):
         return not get_vistrails_configuration().check('nologger')
@@ -199,7 +202,7 @@ class VistrailController(object):
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
             if mashups is not None:
                 self._mashups = mashups
-        self.current_version = -1
+        self.current_version = Vistrail.ROOT_VERSION # -1
         self.current_pipeline = Pipeline()
         if self.locator != locator and self.locator is not None:
             self.locator.clean_temporaries()
@@ -701,6 +704,8 @@ class VistrailController(object):
     def create_port_spec_static(id_scope, module, port_type, port_name, 
                                 port_sigstring, port_sort_key=-1):
         p_id = id_scope.getNewId(PortSpec.vtType)
+        if port_spec_key == -1:
+            port_spec_key = len(module.module_descriptor.port_specs_list)
         port_spec = PortSpec(id=p_id,
                              type=port_type,
                              name=port_name,
@@ -2541,7 +2546,7 @@ class VistrailController(object):
         fullVersionTree = self.vistrail.tree.getVersionTree()
 
         # create tersed tree
-        x = [(0,None)]
+        x = [(Vistrail.ROOT_VERSION,None)]
         tersedVersionTree = Graph()
 
         # cache actionMap and tagMap because they're properties, sort
@@ -2566,7 +2571,7 @@ class VistrailController(object):
                                             to == self.current_version)]
 
             if (self.full_tree or
-                (current == 0) or  # is root
+                (current == Vistrail.ROOT_VERSION) or  # is root
                 (current in tm) or # hasTag:
                 (len(children) <> 1) or # not oneChild:
                 (current == self.current_version) or # isCurrentVersion
@@ -2578,7 +2583,7 @@ class VistrailController(object):
                 # the non matching elements
                 if( (not self.refine) or
                     (self.refine and not self.search) or
-                    (current == 0) or
+                    (current == Vistrail.ROOT_VERSION) or
                     (self.refine and self.search and
                      self.search.match(self.vistrail,am[current]) or
                      current == self.current_version)):
@@ -3020,7 +3025,7 @@ class VistrailController(object):
             cost = 0
             am = self.vistrail.actionMap
             if descendant == -1:
-                descendant = 0
+                descendant = Vistrail.ROOT_VERSION
             while descendant != ancestor:
                 descendant = am[descendant].parent
                 cost += 1
@@ -3037,7 +3042,7 @@ class VistrailController(object):
                 if len(self._delayed_actions) > 0:
                     self._delayed_actions = []
                     self.current_pipeline = Pipeline()
-                    self.current_version = 0
+                    self.current_version = Vistrail.ROOT_VERSION
             if version == -1:
                 return None
 
@@ -3074,7 +3079,7 @@ class VistrailController(object):
                 # FIXME I'm assuming copying the pipeline has zero cost.
                 # Formulate a better cost model
                 if cost_to_closest_version < cost_to_current_version:
-                    if closest == 0:
+                    if closest == Vistrail.ROOT_VERSION:
                         result = self.vistrail.getPipeline(version)
                     else:
                         result = copy.copy(self._pipelines[closest])
@@ -3085,13 +3090,14 @@ class VistrailController(object):
                     action = \
                         self.vistrail.general_action_chain(self.current_version,
                                                            version)
-                    if self.current_version == -1 or self.current_version == 0:
+                    if self.current_version == -1 or \
+                            self.current_version == Vistrail.ROOT_VERSION:
                         result = Pipeline()
                     else:
                         result = copy.copy(self.current_pipeline)
                     result.perform_action(action)
                 if self._cache_pipelines and \
-                        self.vistrail.has_tag(long(version)):
+                        self.vistrail.has_tag(version):
                     # stash a copy for future use
                     if do_validate:
                         try:

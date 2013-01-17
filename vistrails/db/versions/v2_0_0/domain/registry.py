@@ -33,4 +33,31 @@
 ##
 ###############################################################################
 
-from db.versions.v2_0_0.domain import *
+from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
+    DBPortSpec
+from id_scope import IdScope
+
+class DBRegistry(_DBRegistry):
+    def __init__(self, *args, **kwargs):
+	_DBRegistry.__init__(self, *args, **kwargs)
+        self.idScope = IdScope()
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBRegistry()
+        new_obj = _DBRegistry.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        return new_obj
+    
+    def update_id_scope(self):
+        for package in self.db_packages:
+            self.idScope.updateBeginId(DBPackage.vtType, package.db_id+1)
+            for descriptor in package.db_module_descriptors:
+                self.idScope.updateBeginId(DBModuleDescriptor.vtType,
+                                           descriptor.db_id+1)
+                for port_spec in descriptor.db_portSpecs:
+                    self.idScope.updateBeginId(DBPortSpec.vtType, 
+                                               port_spec.db_id+1)
+
+

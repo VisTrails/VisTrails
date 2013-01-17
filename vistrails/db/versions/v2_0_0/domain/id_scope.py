@@ -33,4 +33,46 @@
 ##
 ###############################################################################
 
-from db.versions.v2_0_0.domain import *
+import copy
+import uuid
+
+class IdScope:
+    def __init__(self, beginId=0L, remap=None):
+        self.ids = {}
+        self.beginId = beginId
+        if remap is None:
+            self.remap = {}
+        else:
+            self.remap = remap
+
+    def __copy__(self):
+        cp = IdScope(beginId=self.beginId)
+        cp.ids = copy.copy(self.ids)
+        cp.remap = copy.copy(self.remap)
+        return cp
+
+    def __str__(self):
+        return str(self.ids)
+
+    def getNewId(self, objType):
+        return str(uuid.uuid4())
+
+    def updateBeginId(self, objType, beginId):
+        return
+
+        try:
+            objType = self.remap[objType]
+        except KeyError:
+            pass
+        try:
+            if self.ids[objType] <= beginId:
+                self.ids[objType] = beginId
+        except KeyError:
+            self.ids[objType] = beginId
+        
+    def setBeginId(self, objType, beginId):
+        try:
+            objType = self.remap[objType]
+        except KeyError:
+            pass
+        self.ids[objType] = beginId

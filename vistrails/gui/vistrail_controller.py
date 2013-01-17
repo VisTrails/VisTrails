@@ -649,7 +649,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.change_selected_version(new_version)
             # case 1:
             if not dest_node_in_terse_tree and \
-                    not current_node_will_be_visible and not current == 0:
+                    not current_node_will_be_visible and \
+                    not current == Vistrail.ROOT_VERSION:
                 # we're going from one boring node to another,
                 # so just rename the node on the terse graph
                 self._current_terse_graph.rename_vertex(current, new_version)
@@ -674,7 +675,7 @@ class VistrailController(QtCore.QObject, BaseController):
         try:
             prev = self._current_full_graph.parent(self.current_version)
         except Graph.VertexHasNoParentError:
-            prev = 0
+            prev = Vistrail.ROOT_VERSION
 
         self._change_version_short_hop(prev)
 
@@ -687,6 +688,19 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         self._change_version_short_hop(which_child)
         
+
+    def prune_version(self, version):
+        tagMap = self.vistrail.get_tagMap()
+        if version != Vistrail.ROOT_VERSION:
+            def delete_tag(version):
+                if version in tagMap:
+                    # delete tag
+                    self.set_tag(version, '')
+            current_graph = self._current_full_graph
+            # current_graph = self.getVersionGraph()
+            current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
+            self.vistrail.set_prune(version, str(True))
+
 
     def prune_versions(self, versions):
         """ prune_versions(versions: list of version numbers) -> None
@@ -702,7 +716,7 @@ class VistrailController(QtCore.QObject, BaseController):
         changed = False
         new_current_version = None
         for v in versions:
-            if v!=0: # not root
+            if v != Vistrail.ROOT_VERSION: # not root
                 highest = v
                 while True:
                     p = full.parent(highest)
@@ -711,11 +725,11 @@ class VistrailController(QtCore.QObject, BaseController):
                     if p in current.vertices:
                         break
                     highest = p
-                if highest!=0:
+                if highest != Vistrail.ROOT_VERSION:
                     changed = True
                     if highest == self.current_version:
                         new_current_version = full.parent(highest)
-                self.vistrail.pruneVersion(highest)
+                self.prune_version(highest)
         if changed:
             self.set_changed(True)
         if new_current_version is not None:
@@ -730,7 +744,7 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         if v is None:
             v = self.current_version
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         x = [v]
 
         am = self.vistrail.actionMap
@@ -762,7 +776,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Unprune (graft?) all pruned versions
 
         """
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         am = self.vistrail.actionMap
         for a in am.iterkeys():
             self.vistrail.showVersion(a)
@@ -775,10 +789,10 @@ class VistrailController(QtCore.QObject, BaseController):
         Expand all versions between v1 and v2
         
         """
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         changed = False
         p = full.parent(v2)
-        while p>v1:
+        while p != v1:
             self.vistrail.expandVersion(p)
             changed = True
             p = full.parent(p)
@@ -792,7 +806,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Collapse all versions including and under version v until the next tag or branch
         
         """
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         x = [v]
 
         am = self.vistrail.actionMap
@@ -831,7 +845,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if v is None:
             v = self.current_version
 
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         x = [v]
         
         am = self.vistrail.actionMap
@@ -947,7 +961,7 @@ class VistrailController(QtCore.QObject, BaseController):
             version = self.current_version
         count = 0
         while True:
-            if version in tag_map or version <= 0:
+            if version in tag_map or version == Vistrail.ROOT_VERSION:
                 if version in tag_map:
                     name = tag_map[version]
                 else:

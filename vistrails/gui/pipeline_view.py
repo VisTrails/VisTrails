@@ -113,7 +113,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         # local lookups are faster than global lookups..
         self._rect = CurrentTheme.PORT_RECT.translated(x,y)
         QtGui.QAbstractGraphicsShapeItem.__init__(self, parent)
-        self.setZValue(1)
+        # self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.controller = None
         self.port = port
@@ -359,7 +359,9 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         """
         if self.dragging:
             if not self.tmp_connection_item:
-                z_val = max(self.controller.current_pipeline.modules) + 1
+                z_val = max(m.zValue() 
+                            for m in self.scene().modules.itervalues()) + 1
+                # z_val = max(self.controller.current_pipeline.modules) + 1
                 self.tmp_connection_item = QGraphicsTmpConnItem(self, z_val,
                                                                 True)
                 self.scene().addItem(self.tmp_connection_item)
@@ -545,7 +547,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         _brush = CurrentTheme.CONFIGURE_BRUSH
         _shape = CurrentTheme.CONFIGURE_SHAPE
         QtGui.QGraphicsPolygonItem.__init__(self, _shape, parent, scene)
-        self.setZValue(1)
+        # self.setZValue(1)
         self.setPen(_pen)
         self.setBrush(_brush)
         self.ghosted = False
@@ -800,8 +802,8 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         QtGui.QGraphicsPathItem.__init__(self, path, parent)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         # Bump it slightly higher than the highest module
-        self.setZValue(max(srcModule.id,
-                           dstModule.id) + 0.1)
+        self.setZValue(max(srcModule.zValue(),
+                           dstModule.zValue()) + 0.1)
         self.srcPortItem = srcPortItem
         self.dstPortItem = dstPortItem
         self.connectionPen = CurrentTheme.CONNECTION_PEN
@@ -1343,7 +1345,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         # Update module info and visual
         self.id = module.id
-        self.setZValue(float(self.id))
+        # FIXME determine how z-value should work...
+        # self.setZValue(float(self.id))
+        self.setZValue(0.5)
         self.module = module
         self.center = copy.copy(module.center)
         if '__desc__' in module.db_annotations_key_index:

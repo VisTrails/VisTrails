@@ -38,7 +38,7 @@ import os
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
 
-currentVersion = '1.0.3'
+currentVersion = '2.0.0'
 
 def getVersionDAO(version=None):
     if version is None:

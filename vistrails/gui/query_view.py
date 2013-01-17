@@ -464,7 +464,7 @@ class QQueryView(QtGui.QWidget, BaseView):
             self.stacked_widget.addWidget(self.global_result_view)
         self.version_result_view = QQueryResultVersionView()
         self.connect(self.version_result_view.scene(), 
-                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+                     QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
                      self.result_version_selected)
         # self.version_result_view.set_controller(self.vt_controller)
         QQueryView.VERSION_RESULT_VIEW = \

@@ -33,10 +33,12 @@
 ##
 ###############################################################################
 
-def getActionChain(obj, version, start=0):
+from vistrails.db.domain import DBVistrail
+
+def getActionChain(obj, version, start=DBVistrail.ROOT_VERSION):
     result = []
     currentId = version
-    while currentId > start: #and currentId > 0:
+    while currentId != start:
         action = obj.db_get_action_by_id(currentId)
         result.append(action)
         currentId = action.db_prevId
@@ -78,6 +80,73 @@ def simplify_ops(ops):
     adds = addDict.values()
     adds.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
     return deletes + adds
+
+def get_reduced_operations(actions):
+    current_ops = []
+    current_ops_lookup = {}
+    
+    for action in actions:
+        for op in action.db_operations:
+            add_t = None
+            del_t = None
+            if op.vtType == 'add':
+                add_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'delete':
+                del_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'change':
+                del_t = (op.db_what, op.db_oldObjId)
+                add_t = (op.db_what, op.db_newObjId)
+            else:
+                raise Exception('Unrecognized operation "%s"' % op.vtType)
+            
+            if del_t is not None:
+                if del_t in current_ops_lookup:
+                    idx = current_ops_lookup[del_t]
+                    current_ops[idx] = None
+                    del current_ops_lookup[del_t]
+            if add_t is not None:
+                current_ops_lookup[add_t] = len(current_ops)
+                current_ops.append(op)
+
+    return (current_ops, current_ops_lookup)
+
+    # return [op for op in current_ops if op is not None]
+
+def get_operation_diff(actions, ops, ops_lookup):
+    add_ops = []
+    add_ops_lookup = {}
+    del_ops = []
+    del_ops_lookup = {}
+
+    for action in actions:
+        for op in action.db_operations:
+            add_t = None
+            del_t = None
+            if op.vtType == 'add':
+                add_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'delete':
+                del_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'change':
+                del_t = (op.what, op.db_oldObjId)
+                add_t = (op.what, op.db_newObjId)
+            else:
+                raise Exception('Unrecognized operation "%s"' % op.vtType)
+
+            if del_t is not None:
+                if del_t in ops_lookup:
+                    del_ops_lookup[del_t] = len(del_ops)
+                    del_ops.append(op)
+                elif del_t in add_ops_lookup:
+                    idx = add_ops_lookup[del_t]
+                    add_ops[idx] = None
+                    del add_ops_lookup[del_t]
+            if add_t is not None:
+                add_ops_lookup[add_t] = len(add_ops)
+                add_ops.append(op)
+            
+
+    return (add_ops, add_ops_lookup, del_ops, del_ops_lookup)
+
 
 def getCurrentOperationDict(actions, currentOperations=None):
     if currentOperations is None:
@@ -122,7 +191,4 @@ def getCurrentOperationDict(actions, currentOperations=None):
 
 def getCurrentOperations(actions):
     # sort the values left in the hash and return the list
-    sortedOperations = getCurrentOperationDict(actions).values()
-    sortedOperations.sort(key=lambda x: x.db_id)
-    return sortedOperations
-
+    return get_reduced_operations(actions)[0]

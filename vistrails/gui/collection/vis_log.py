@@ -156,10 +156,12 @@ class QExecutionListWidget(QtGui.QTreeWidget):
 
     def add_workflow_exec(self, workflow_exec):
         # mark as recent
-        workflow_exec.db_name = workflow_exec.db_name + '*' \
-                             if workflow_exec.db_name \
-          else '%s*' % self.controller.get_pipeline_name(
-                        int(workflow_exec.parent_version))[10:]
+        if workflow_exec.db_name:
+            workflow_exec.db_name = workflow_exec.db_name + '*'
+        else:
+            get_pipeline_name = self.controller.get_pipeline_name
+            workflow_exec.db_name = \
+                get_pipeline_name(workflow_exec.parent_version)[10:]
         
         self.addTopLevelItem(QExecutionItem(workflow_exec))
        

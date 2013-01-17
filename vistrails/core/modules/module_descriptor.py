@@ -393,7 +393,7 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     def add_input_port(self, name, signature, optional):
         # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
+        sort_key = len(self.port_specs_list)
         result = self.new_port_spec(name, 'input', signature=signature, 
                                     optional=optional, sort_key=sort_key)
         self.add_port_spec(result)
@@ -401,7 +401,7 @@ class ModuleDescriptor(DBModuleDescriptor):
         
     def add_output_port(self, name, signature, optional):
         # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
+        sort_key = len(self.port_specs_list)
         result = self.new_port_spec(name, 'output', signature=signature, 
                                     optional=optional, sort_key=sort_key)
         self.add_port_spec(result)

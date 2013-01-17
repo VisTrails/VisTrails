@@ -261,7 +261,7 @@ class Pipeline(DBWorkflow):
         vistrail for permanent ids.
         """
 
-        return -self.tmp_id.getNewId(type)
+        return self.tmp_id.getNewId(type)
 
     def fresh_module_id(self):
         return self.get_tmp_id(Module.vtType)

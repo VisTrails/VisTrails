@@ -33,4 +33,40 @@
 ##
 ###############################################################################
 
-from db.versions.v2_0_0.domain import *
+from auto_gen import DBLog as _DBLog
+from auto_gen import DBAbstraction, DBModule, DBGroup, DBLoopExec, \
+    DBGroupExec, DBModuleExec
+from id_scope import IdScope
+
+import copy
+
+class DBLog(_DBLog):
+
+    def __init__(self, *args, **kwargs):
+	_DBLog.__init__(self, *args, **kwargs)
+        self.id_scope = IdScope(1,
+                                {DBLoopExec.vtType: 'item_exec',
+                                 DBModuleExec.vtType: 'item_exec',
+                                 DBGroupExec.vtType: 'item_exec',
+                                 DBAbstraction.vtType: DBModule.vtType,
+                                 DBGroup.vtType: DBModule.vtType})
+
+    def __copy__(self):
+        return DBLog.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = _DBLog.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = DBLog
+        cp.id_scope = copy.copy(self.id_scope)
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBLog()
+        new_obj = _DBLog.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        return new_obj
+
+    def update_id_scope(self):
+        pass

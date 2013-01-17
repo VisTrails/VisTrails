@@ -286,7 +286,10 @@ class Vistrail(DBVistrail):
 
         """
         try:
-            return Vistrail.getPipelineDispatcher[type(version)](self, version)
+            if self.has_tag_str(str(version)):
+                return self.getPipelineVersionName(str(version))
+            else:
+                return self.getPipelineVersionNumber(version)
         except Exception, e:
             raise InvalidPipeline([e])
     
@@ -984,30 +987,6 @@ class Vistrail(DBVistrail):
                     description += "s"
         return description
 
-    # FIXME: remove this function (left here only for transition)
-    def getVersionGraph(self):
-        """getVersionGraph() -> Graph 
-        Returns the version graph
-        
-        """
-        result = Graph()
-        result.add_vertex(0)
-
-        # the sorting is for the display using graphviz
-        # we want to always add nodes from left to right
-        for action in sorted(self.actionMap.itervalues(), 
-                             key=lambda x: x.timestep):
-            # We need to check the presence of the parent's timestep
-            # on the graph because it might have been previously
-            # pruned. Remember that pruning is only marked for the
-            # topmost invisible action.
-            if (action.parent in result.vertices and
-                not self.is_pruned(action.id)):
-                result.add_edge(action.parent,
-                                action.timestep,
-                               0)
-        return result
-
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
     #	return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
@@ -1019,23 +998,6 @@ class Vistrail(DBVistrail):
 
     def serialize(self, filename):
         pass
-
-    def pruneVersion(self, version):
-        """ pruneVersion(version: int) -> None
-        Add a version into the prunedVersion set
-        
-        """
-        tagMap = self.get_tagMap()
-        if version!=0: # not root
-            def delete_tag(version):
-                if version in tagMap:
-                    # delete tag
-                    self.set_tag(version, '')
-            current_graph = self.getVersionGraph()
-            current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
-            self.set_prune(version, str(True))
-
-            # self.prunedVersions.add(version)
 
     def hideVersion(self, version):
         """ hideVersion(version: int) -> None
@@ -1075,12 +1037,6 @@ class Vistrail(DBVistrail):
         
         """
         self.savedQueries = savedQueries
-
-    # Dispatch in runtime according to type
-    getPipelineDispatcher = {}
-    getPipelineDispatcher[type(0)] = getPipelineVersionNumber
-    getPipelineDispatcher[type(0L)] = getPipelineVersionNumber
-    getPipelineDispatcher[type('0')] = getPipelineVersionName
 
     class InvalidAbstraction(Exception):
         pass
@@ -1151,7 +1107,7 @@ class ExplicitExpandedVersionTree(object):
     def __init__(self, vistrail):
         self.vistrail = vistrail
         self.expandedVersionTree = Graph()
-        self.expandedVersionTree.add_vertex(0)
+        self.expandedVersionTree.add_vertex(Vistrail.ROOT_VERSION)
         self.tersedVersionTree = Graph()
 
     def addVersion(self, id, prevId):
@@ -1299,13 +1255,6 @@ class TestVistrail(unittest.TestCase):
         """
         v = Vistrail()
         self.assertRaises(InvalidPipeline, lambda: v.getPipeline(-1))
-
-    def test_version_graph(self):
-        from vistrails.core.db.locator import XMLFileLocator
-        import vistrails.core.system
-        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                           '/tests/resources/dummy.xml').load()
-        v.getVersionGraph()
 
     def test_plugin_info(self):
         import vistrails.core.db.io
