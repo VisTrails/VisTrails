@@ -1220,11 +1220,21 @@ class QCellDragLabel(QtGui.QLabel):
         self.startPos = QtCore.QPoint(event.pos())
         QtGui.QLabel.mousePressEvent(self, event)
 
+    def mouseReleaseEvent(self, event):
+        """ mouseReleaseEvent(event: QMouseEvent) -> None
+        Note that dragging ended
+
+        """
+        self.startPos = None
+
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None
         Prepare to drag
         
         """
+        if self.startPos is None:
+            return
+
         p = event.pos() - self.startPos
         if p.manhattanLength()>=QtGui.QApplication.startDragDistance():
             drag = QtGui.QDrag(self)
