@@ -782,7 +782,7 @@ class CellInformation(object):
 ################################################################################
 
 class CellContainerInterface(object):
-    def __init__(self, widget=None):
+    def __init__(self, cellInfo=None, widget=None):
         self.toolBar = None
         self.containedWidget = widget
 
@@ -795,6 +795,8 @@ class CellContainerInterface(object):
             warnings.warn(msg)
 
         self.cellInfo = None
+        if cellInfo is not None:
+            self.setCellInfo(cellInfo)
 
     def setCellInfo(self, cellInfo):
         self.cellInfo = cellInfo
@@ -840,12 +842,12 @@ class QCellContainer(CellContainerInterface, QtGui.QWidget):
     (e.g. QTableWidget) where they take control of the cell widget.
 
     """
-    def __init__(self, widget=None, parent=None):
+    def __init__(self, cellInfo=None, widget=None, parent=None):
         """ QCellContainer(parent: QWidget) -> QCellContainer
         Create an empty container
 
         """
-        CellContainerInterface.__init__(self)
+        CellContainerInterface.__init__(self, cellInfo)
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)

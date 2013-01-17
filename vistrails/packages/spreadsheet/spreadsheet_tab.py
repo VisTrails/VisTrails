@@ -245,8 +245,9 @@ class StandardWidgetSheetTabInterface(object):
         else:
             ContainerClass = (spreadsheet_controller.spreadsheetController
                     .getCellContainerClass())
-            container = ContainerClass(cellWidget)
-            container.setCellInfo(CellInformation(self, row, col))
+            container = ContainerClass(
+                    CellInformation(self, row, col),
+                    cellWidget)
         self.setCellWidget(row, col, container)
         self.lastCellLocation = (row, col)
 
@@ -374,8 +375,7 @@ class StandardWidgetSheetTabInterface(object):
         """
         ContainerClass = (spreadsheet_controller.spreadsheetController
                 .getCellContainerClass())
-        container = ContainerClass()
-        container.setCellInfo(CellInformation(self, row, col))
+        container = ContainerClass(CellInformation(self, row, col))
         self.setCellByWidget(row, col, container)
         self.setCellPipelineInfo(row, col, None)
 
@@ -403,8 +403,7 @@ class StandardWidgetSheetTabInterface(object):
             self.setCellWidget(row, col, None)
             ContainerClass = (spreadsheet_controller.spreadsheetController
                     .getCellContainerClass())
-            container = ContainerClass()
-            container.setCellInfo(CellInformation(self, row, col))
+            container = ContainerClass(CellInformation(self, row, col))
             self.setCellByWidget(row, col, container)
             return widget
         else:
@@ -644,8 +643,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
             for c in xrange(col_count):
                 w = self.getCellWidget(r, c)
                 if w is None:
-                    cellWidget = ContainerClass()
-                    cellWidget.setCellInfo(CellInformation(self, r, c))
+                    cellWidget = ContainerClass(CellInformation(self, r, c))
                     self.setCellByWidget(r, c, cellWidget)
 
     def rowSpinBoxChanged(self):
