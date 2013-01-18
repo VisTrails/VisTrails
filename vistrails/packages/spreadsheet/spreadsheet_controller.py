@@ -43,6 +43,8 @@ from vistrails.packages.spreadsheet.spreadsheet_cell import QCellContainer
 
 ################################################################################
 
+spreadsheetWindow = None
+
 class SpreadsheetController(object):
     """
     SpreadsheetController will act like an event dispatcher to
@@ -64,11 +66,14 @@ class SpreadsheetController(object):
         Looking for the spreadsheet window
         
         """
+        global spreadsheetWindow
+        if spreadsheetWindow is not None:
+            return spreadsheetWindow
         wList = QtGui.QApplication.topLevelWidgets()
         for w in wList:
-            if type(w)==SpreadsheetWindow:
+            if isinstance(w, SpreadsheetWindow):
+                spreadsheetWindow = w
                 return w
-        global spreadsheetWindow
         spreadsheetWindow = SpreadsheetWindow()
         if show:
             spreadsheetWindow.configShow()
