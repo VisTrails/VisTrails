@@ -34,12 +34,14 @@
 ###############################################################################
 
 import copy
-import db.services.io
+import sys
+import os
+#sys.path.append(os.getenv('VISTRAILS', ''))
 from db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
     DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \
     DBVtConnection, DBRefProvEntity, DBRefProvPlan, DBRefProvActivity, \
     DBRefProvAgent, DBIsPartOf, IdScope, DBGroupExec, DBLoopExec, DBModuleExec, \
-    DBWorkflowExec, DBFunction, DBParameter
+    DBWorkflowExec, DBFunction, DBParameter, DBGroup
 from db.services.vistrail import materializeWorkflow
 
 def create_prov_document(entities, activities, agents, connections, usages,
@@ -54,9 +56,9 @@ def create_prov_document(entities, activities, agents, connections, usages,
 
 def create_prov_entity_from_workflow(id_scope, workflow):
     return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
-                        vt_id=workflow.id,
+                        vt_id=workflow.db_id,
                         prov_type='prov:Plan',
-                        prov_label=workflow.name,
+                        prov_label=workflow._db_name,
                         prov_value=None,
                         vt_type='vt:workflow',
                         vt_desc=None,
@@ -71,23 +73,23 @@ def create_prov_entity_from_module(id_scope, module, is_part_of):
 
     # getting module label defined by the user
     desc = None
-    for db_annotation in module.annotations:
+    for db_annotation in module.db_annotations:
         if db_annotation._db_key == '__desc__':
             desc = db_annotation._db_value
             break
     
     return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
-                        vt_id=module.id,
+                        vt_id=module._db_id,
                         prov_type='prov:Plan',
-                        prov_label=module.name,
+                        prov_label=module.db_name,
                         prov_value=None,
                         vt_type='vt:module',
                         vt_desc=desc,
-                        vt_package=module.package,
-                        vt_version=module.version,
-                        vt_cache=module.cache,
-                        vt_location_x=module.location._db_x,
-                        vt_location_y=module.location._db_y,
+                        vt_package=module.db_package,
+                        vt_version=module.db_version,
+                        vt_cache=module.db_cache,
+                        vt_location_x=module.db_location._db_x,
+                        vt_location_y=module.db_location._db_y,
                         is_part_of=is_part_of)
     
 def create_is_part_of(prov_object):
@@ -97,57 +99,57 @@ def create_prov_entity_from_group(id_scope, group, is_part_of):
 
     # getting group label defined by the user
     desc = None
-    for db_annotation in group.annotations:
+    for db_annotation in group.db_annotations:
         if db_annotation._db_key == '__desc__':
             desc = db_annotation._db_value
             break
     
     return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
-                        vt_id=group.id,
+                        vt_id=group.db_id,
                         prov_type='prov:Plan',
-                        prov_label=group.name,
+                        prov_label=group.db_name,
                         prov_value=None,
                         vt_type='vt:group',
                         vt_desc=desc,
                         vt_package=None,
                         vt_version=None,
-                        vt_cache=group.cache,
-                        vt_location_x=group.location._db_x,
-                        vt_location_y=group.location._db_y,
+                        vt_cache=group.db_cache,
+                        vt_location_x=group.db_location._db_x,
+                        vt_location_y=group.db_location._db_y,
                         is_part_of=is_part_of)
     
 def create_prov_entity_from_abstraction(id_scope, abstraction, is_part_of):
 
     # getting abstraction label defined by the user
     desc = None
-    for db_annotation in abstraction.annotations:
+    for db_annotation in abstraction.db_annotations:
         if db_annotation._db_key == '__desc__':
             desc = db_annotation._db_value
             break
     
     return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
-                        vt_id=abstraction.id,
+                        vt_id=abstraction.db_id,
                         prov_type='prov:Plan',
-                        prov_label=abstraction.name,
+                        prov_label=abstraction.db_name,
                         prov_value=None,
                         vt_type='vt:subworkflow',
                         vt_desc=desc,
                         vt_package=None,
                         vt_version=None,
-                        vt_cache=abstraction.cache,
-                        vt_location_x=abstraction.location._db_x,
-                        vt_location_y=abstraction.location._db_y,
+                        vt_cache=abstraction.db_cache,
+                        vt_location_x=abstraction.db_location._db_x,
+                        vt_location_y=abstraction.db_location._db_y,
                         is_part_of=is_part_of)
     
 def create_prov_entity_from_function(id_scope, function):
     values = []
     types = []
     aliases = []
-    for parameter in function.parameters:
-        values.append(parameter.strValue)
-        types.append(parameter.typeStr)
-        if parameter.alias:
-            aliases.append(parameter.alias)
+    for parameter in function._db_parameters:
+        values.append(str(parameter._db_val))
+        types.append(str(parameter._db_type))
+        if parameter._db_alias:
+            aliases.append(parameter._db_alias)
         else:
             aliases.append('None')
         
@@ -164,9 +166,9 @@ def create_prov_entity_from_function(id_scope, function):
         alias = '(' + ','.join(aliases) + ')'
     
     return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
-                        vt_id=function.id,
+                        vt_id=function.db_id,
                         prov_type='vt:data',
-                        prov_label=function.name,
+                        prov_label=function.db_name,
                         prov_value=value,
                         vt_type=type,
                         vt_desc=alias,
@@ -179,7 +181,7 @@ def create_prov_entity_from_function(id_scope, function):
     
 def create_prov_entity_for_data(id_scope, conn):
     return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
-                        vt_id=conn.id,
+                        vt_id=conn.db_id,
                         prov_type='vt:data',
                         prov_label=None,
                         prov_value=None,
@@ -194,12 +196,12 @@ def create_prov_entity_for_data(id_scope, conn):
     
 def create_vt_connection(id_scope, source, dest, mapping):
     return DBVtConnection(id='c' + str(id_scope.getNewId(DBVtConnection.vtType)),
-                          vt_source=mapping[source.moduleId]._db_id,
-                          vt_dest=mapping[dest.moduleId]._db_id,
-                          vt_source_port=source.name,
-                          vt_dest_port=dest.name,
-                          vt_source_signature=source.sigstring,
-                          vt_dest_signature=dest.sigstring)
+                          vt_source=mapping[source._db_moduleId]._db_id,
+                          vt_dest=mapping[dest._db_moduleId]._db_id,
+                          vt_source_port=source.db_name,
+                          vt_dest_port=dest.db_name,
+                          vt_source_signature=source._db_signature,
+                          vt_dest_signature=dest._db_signature)
     
 def create_prov_agent_from_user(id_scope, user):
     return DBProvAgent(id='ag' + str(id_scope.getNewId(DBProvAgent.vtType)),
@@ -213,13 +215,13 @@ def create_prov_agent_from_user(id_scope, user):
     
 def create_prov_agent_from_machine(id_scope, machine):
     return DBProvAgent(id='ag' + str(id_scope.getNewId(DBProvAgent.vtType)),
-                       vt_id=machine.id,
+                       vt_id=machine.db_id,
                        prov_type='vt:machine',
-                       prov_label=machine.name,
-                       vt_machine_os=machine.os,
-                       vt_machine_architecture=machine.architecture,
-                       vt_machine_processor=machine.processor,
-                       vt_machine_ram=machine.ram)
+                       prov_label=machine.db_name,
+                       vt_machine_os=machine._db_os,
+                       vt_machine_architecture=machine._db_architecture,
+                       vt_machine_processor=machine._db_processor,
+                       vt_machine_ram=machine._db_ram)
     
 def create_prov_association(prov_activity, prov_agent, prov_entity):
     ref_prov_activity = DBRefProvActivity(prov_ref=prov_activity._db_id)
@@ -233,12 +235,12 @@ def create_prov_association(prov_activity, prov_agent, prov_entity):
     
 def create_prov_activity_from_wf_exec(id_scope, wf_exec):
     return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
-                          vt_id=wf_exec.id,
-                          startTime=wf_exec.ts_start,
-                          endTime=wf_exec.ts_end,
+                          vt_id=wf_exec._db_id,
+                          startTime=wf_exec._db_ts_start,
+                          endTime=wf_exec._db_ts_end,
                           vt_type='vt:wf_exec',
                           vt_cached=None,
-                          vt_completed=wf_exec.completed,
+                          vt_completed=wf_exec._db_completed,
                           vt_machine_id=None,
                           vt_error=None,
                           is_part_of=None)
@@ -253,14 +255,14 @@ def create_prov_activity_from_exec(id_scope, module_exec, machine_id, is_part_of
         # something is wrong...
         pass
     return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
-                          vt_id=module_exec.id,
-                          startTime=module_exec.ts_start,
-                          endTime=module_exec.ts_end,
+                          vt_id=module_exec._db_id,
+                          startTime=module_exec._db_ts_start,
+                          endTime=module_exec._db_ts_end,
                           vt_type=type,
-                          vt_cached=module_exec.cached,
-                          vt_completed=module_exec.completed,
+                          vt_cached=module_exec._db_cached,
+                          vt_completed=module_exec._db_completed,
                           vt_machine_id=machine_id,
-                          vt_error=module_exec.error,
+                          vt_error=module_exec._db_error,
                           is_part_of=is_part_of)
     
 def create_prov_usage(prov_activity, prov_entity):
@@ -279,7 +281,7 @@ def create_prov_generation(prov_entity, prov_activity):
                             prov_activity=ref_prov_activity,
                             prov_role=None)
 
-def create_prov(workflow, version, log, reg):
+def create_prov(workflow, version, log):
     id_scope = IdScope()
     entities = []
     activities = []
@@ -318,31 +320,31 @@ def create_prov(workflow, version, log, reg):
     def get_modules_and_conn(prov_workflow, workflow):
         
         # modules
-        for module in workflow.module_list:
+        for module in workflow._db_modules:
 #            print "Entity name:", module.name
 #            print module.id
 
-            module_list[module.id] = module
+            module_list[module._db_id] = module
             
-            # group
-            if module.is_group():
+            # group or abstraction
+            if module.vtType == DBGroup.vtType:
                 vt_part = create_is_part_of(prov_workflow)
                 prov_group = create_prov_entity_from_group(id_scope=id_scope,
                                                            group=module,
                                                            is_part_of=vt_part)
-                entities_map[module.id] = prov_group
+                entities_map[module._db_id] = prov_group
                 entities.append(prov_group)
-                get_modules_and_conn(prov_group, module.workflow)
+                get_modules_and_conn(prov_group, module.db_workflow)
             
             # abstraction (subworkflow)
-            elif module.is_abstraction():
-                vt_part = create_is_part_of(prov_workflow)
-                prov_abstraction = create_prov_entity_from_abstraction(id_scope=id_scope,
-                                                                       abstraction=module,
-                                                                       is_part_of=vt_part)
-                entities_map[module.id] = prov_abstraction
-                entities.append(prov_abstraction)
-                get_modules_and_conn(prov_abstraction, module.pipeline)
+#            elif module.is_abstraction():
+#                vt_part = create_is_part_of(prov_workflow)
+#                prov_abstraction = create_prov_entity_from_abstraction(id_scope=id_scope,
+#                                                                       abstraction=module,
+#                                                                       is_part_of=vt_part)
+#                entities_map[module._db_id] = prov_abstraction
+#                entities.append(prov_abstraction)
+#                get_modules_and_conn(prov_abstraction, module.db_pipeline)
             
             # module
             else:
@@ -350,29 +352,31 @@ def create_prov(workflow, version, log, reg):
                 prov_module = create_prov_entity_from_module(id_scope=id_scope,
                                                              module=module,
                                                              is_part_of=vt_part)
-                entities_map[module.id] = prov_module
+                entities_map[module._db_id] = prov_module
                 entities.append(prov_module)
                 
-            module_functions[module.id] = module.functions
-            for function in module.functions:
+            module_functions[module._db_id] = module._db_functions
+            for function in module._db_functions:
                 prov_data = create_prov_entity_from_function(id_scope, function)
-                prov_functions[function.id] = prov_data
+                prov_functions[function.db_id] = prov_data
         
         # connections
-        for conn in workflow.connection_list:
+        for conn in workflow._db_connections:
             # storing information about connections
             # used to create entities for input and output data
-            if not source_conn.has_key(conn.source.moduleId):
-                source_conn[conn.source.moduleId] = []
-            if not dest_conn.has_key(conn.dest.moduleId):
-                dest_conn[conn.dest.moduleId] = []
-            source_conn[conn.source.moduleId].append(conn)
-            dest_conn[conn.dest.moduleId].append(conn)
+            source = conn.db_ports_type_index['source']
+            dest = conn.db_ports_type_index['destination']
+            if not source_conn.has_key(source._db_moduleId):
+                source_conn[source._db_moduleId] = []
+            if not dest_conn.has_key(dest._db_moduleId):
+                dest_conn[dest._db_moduleId] = []
+            source_conn[source._db_moduleId].append(conn)
+            dest_conn[dest._db_moduleId].append(conn)
             
             prov_data = create_prov_entity_for_data(id_scope, conn)
-            prov_data_conn[conn.id] = [prov_data, False]
+            prov_data_conn[conn.db_id] = [prov_data, False]
             
-            vt_connection = create_vt_connection(id_scope, conn.source, conn.dest, entities_map)
+            vt_connection = create_vt_connection(id_scope, source, dest, entities_map)
             connections.append(vt_connection)
             
         return True
@@ -401,32 +405,32 @@ def create_prov(workflow, version, log, reg):
                                                            machine_id,
                                                            vt_part)
             
-            functions = module_functions[exec_.module_id]
+            functions = module_functions[exec_._db_module_id]
             for function in functions:
-                prov_data = prov_functions[function.id]
+                prov_data = prov_functions[function.db_id]
                 
                 prov_usage = create_prov_usage(prov_activity, prov_data)
                 usages.append(prov_usage)
                 
-            if dest_conn.has_key(exec_.module_id):
-                connections = dest_conn[exec_.module_id]
+            if dest_conn.has_key(exec_._db_module_id):
+                connections = dest_conn[exec_._db_module_id]
                 for connection in connections:
-                    prov_input_data, inserted = prov_data_conn[connection.id]
+                    prov_input_data, inserted = prov_data_conn[connection.db_id]
                     if not inserted:
                         entities.append(prov_input_data)
-                        prov_data_conn[connection.id][1] = True
+                        prov_data_conn[connection.db_id][1] = True
                     
                     prov_usage = create_prov_usage(prov_activity, prov_input_data)
                     usages.append(prov_usage)
                 
             if (prov_activity._db_vt_error == None) or (prov_activity._db_vt_error == ''):
-                if source_conn.has_key(exec_.module_id):
-                    connections = source_conn[exec_.module_id]
+                if source_conn.has_key(exec_._db_module_id):
+                    connections = source_conn[exec_._db_module_id]
                     for connection in connections:
-                        prov_output_data, inserted = prov_data_conn[connection.id]
+                        prov_output_data, inserted = prov_data_conn[connection.db_id]
                         if not inserted:
                             entities.append(prov_output_data)
-                            prov_data_conn[connection.id][1] = True
+                            prov_data_conn[connection.db_id][1] = True
                             
                         prov_generation = create_prov_generation(prov_output_data, prov_activity)
                         generations.append(prov_generation)
@@ -434,15 +438,15 @@ def create_prov(workflow, version, log, reg):
             activities.append(prov_activity)
             
             # PROV entity associated
-            prov_module_entity = entities_map[exec_.module_id]
+            prov_module_entity = entities_map[exec_._db_module_id]
             prov_association = create_prov_association(prov_activity, prov_agent, prov_module_entity)
             associations.append(prov_association)
             
             if exec_.vtType == DBModuleExec.vtType:
-                for loop_exec in exec_.loop_execs:
+                for loop_exec in exec_._db_loop_execs:
                     get_execs(loop_exec, prov_activity, prov_agent)
             elif exec_.vtType == DBGroupExec.vtType:
-                for item in exec_.item_execs:
+                for item in exec_._db_item_execs:
                     get_execs(item, prov_activity, prov_agent)
             else:
                 # something is wrong...
@@ -468,7 +472,7 @@ def create_prov(workflow, version, log, reg):
     
     # workflow
     prov_workflow = create_prov_entity_from_workflow(id_scope, workflow)
-    entities_map[workflow.id] = prov_workflow
+    entities_map[workflow.db_id] = prov_workflow
     entities.append(prov_workflow)
     
     # getting modules and connections 
@@ -479,20 +483,20 @@ def create_prov(workflow, version, log, reg):
         entities.append(prov_functions[id])
     
     # machines
-    for machine in log.machine_list:
-        machines[machine.id] = (create_prov_agent_from_machine(id_scope, machine), False)
+    for machine in log._db_machines:
+        machines[machine.db_id] = (create_prov_agent_from_machine(id_scope, machine), False)
     
     # executions
-    for exec_ in log.workflow_execs:
-        if exec_.parent_version != version:
+    for exec_ in log._db_workflow_execs:
+        if exec_._db_parent_version != version:
             continue
         prov_agent = None
-        if exec_.user not in agents_map:
-            prov_agent = create_prov_agent_from_user(id_scope, exec_.user)
-            agents_map[exec_.user] = prov_agent
+        if exec_._db_user not in agents_map:
+            prov_agent = create_prov_agent_from_user(id_scope, exec_._db_user)
+            agents_map[exec_._db_user] = prov_agent
             agents.append(prov_agent)
         else:
-            prov_agent = agents_map[exec_.user]
+            prov_agent = agents_map[exec_._db_user]
         
         # creating PROV activity
         prov_activity = create_prov_activity_from_wf_exec(id_scope, exec_)
@@ -501,7 +505,7 @@ def create_prov(workflow, version, log, reg):
         # creating association with PROV entity
         prov_association = create_prov_association(prov_activity, prov_agent, prov_workflow)
         
-        for item in exec_.item_execs:
+        for item in exec_._db_item_execs:
             get_execs(item, prov_activity, prov_agent)
     
     # PROV Document
@@ -512,4 +516,66 @@ def create_prov(workflow, version, log, reg):
                                 usages=usages,
                                 generations=generations,
                                 associations=associations)
+    
+def add_group_portSpecs_index(workflow):
+    def process_group(group):
+        def get_port_name(module):
+            port_name = None
+            for function in module._db_functions:
+                if function.db_name == 'name':
+                    port_name = function.db_parameters[0].db_val
+            return port_name
+        g_workflow = group.db_workflow
+        group.db_portSpecs_name_index = {}
+        for module in g_workflow.db_modules:
+            if module.db_name == 'InputPort' and \
+                    module.db_package == 'edu.utah.sci.vistrails.basic':
+                port_name = get_port_name(module)
+                # FIXME add sigstring to DBPortSpec
+                group.db_portSpecs_name_index[(port_name, 'input')] = \
+                    DBPortSpec(id=-1,
+                               name=port_name,
+                               type='input')
+            elif module.db_name == 'OutputPort' and \
+                    module.db_package == 'edu.utah.sci.vistrails.basic':
+                port_name = get_port_name(module)
+                # FIXME add sigstring to DBPortSpec
+                group.db_portSpecs_name_index[(port_name, 'output')] = \
+                    DBPortSpec(id=-1,
+                               name=port_name,
+                               type='output')
+            elif module.db_name == 'Group' and \
+                    module.db_package == 'edu.utah.sci.vistrails.basic':
+                process_group(module)
+
+    for module in workflow.db_modules:
+        if module.vtType == DBGroup.vtType:
+            process_group(module)
+    
+def create_prov_from_vistrail(vistrail, version, log):
+    workflow = materializeWorkflow(vistrail, version)
+    add_group_portSpecs_index(workflow)
+    return create_prov(workflow, version, log)
+    
+def run(vistrail_xml, version, log_xml, output_fname):
+    from db.persistence import DAOList
+    from core.vistrail.vistrail import Vistrail
+    import db.services.io
+    
+    vistrail = db.services.io.open_vistrail_from_xml(vistrail_xml)
+    log = db.services.io.open_log_from_xml(log_xml, was_appended=True)
+    version_id = vistrail.db_get_actionAnnotation_by_key((Vistrail.TAG_ANNOTATION, version)).db_action_id
+    prov_document = create_prov_from_vistrail(vistrail, int(version_id), log)
+    dao_list = DAOList()
+    tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
+            'xmlns:dcterms': 'http://purl.org/dc/terms/',
+            'xmlns:vt': 'http://www.vistrails.org/registry.xsd',
+            }
+    dao_list.save_to_xml(prov_document, output_fname, tags)
+
+if __name__ == '__main__':
+    if len(sys.argv) < 4:
+        print "Usage: python %s <vt_xml> <version> <log_xml> <out_xml>" % sys.argv[0]
+        sys.exit(1)
+    run(*sys.argv[1:])
 

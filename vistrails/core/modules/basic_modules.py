@@ -57,7 +57,7 @@ try:
 except ImportError:
     import sha
     sha_hash = sha.new
-import zipfile
+#import zipfile
 import urllib
 
 ###############################################################################

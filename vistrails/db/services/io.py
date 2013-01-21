@@ -1332,8 +1332,7 @@ def save_prov_to_xml(prov_document, filename, version=None):
             }
     prov_document = db.services.prov.create_prov(prov_document.workflow, 
                                                  prov_document.version,
-                                                 prov_document.log,
-                                                 prov_document.registry)
+                                                 prov_document.log)
     daoList.save_to_xml(prov_document, filename, tags, version)
     return prov_document
 
