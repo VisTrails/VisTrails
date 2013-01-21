@@ -107,6 +107,18 @@ def vt_action(description_or_f=None):
     else:
         return get_f(description_or_f)
 
+class CompareThumbnailsError(Exception):
+
+    def __init__(self, msg, first=None, second=None):
+        Exception.__init__(self, msg)
+        self._msg = msg
+        self._first = first
+        self._second = second
+        
+    def __str__(self):
+        return "Comparing thumbnails failed.\n%s\n%s\n%s" % \
+            (self._msg, self._first, self._second)
+
 class VistrailController(object):
     def __init__(self, vistrail=None, id_scope=None, auto_save=True):
         self.vistrail = vistrail
@@ -2235,9 +2247,9 @@ class VistrailController(object):
                 raise
         except MissingModule, e:
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
-                if (descriptor_tuple[1], '') not in lookup:
+                if (descriptor_tuple[1], None) not in lookup:
                     raise
-                abs_fnames = lookup[(descriptor_tuple[1], '')]
+                abs_fnames = lookup[(descriptor_tuple[1], None)]
             else:
                 abs_fnames = [lookup[(descriptor_tuple[1], descriptor_tuple[2])]]
             for abs_fname in abs_fnames:
@@ -2246,7 +2258,7 @@ class VistrailController(object):
                                           descriptor_tuple[1],
                                           descriptor_tuple[4],
                                           [v for k, v in lookup.iteritems()
-                                           if k[1] != ''])
+                                           if k[1] != None])
                 descriptor_tuple = (new_desc.package, new_desc.name, 
                                     new_desc.namespace, new_desc.package_version,
                                     str(new_desc.version))
@@ -2259,9 +2271,9 @@ class VistrailController(object):
             path, prefix, abs_name, abs_namespace, suffix = parse_abstraction_name(abs_fname, True)
             # abs_name = os.path.basename(abs_fname)[12:-4]
             lookup[(abs_name, abs_namespace)] = abs_fname
-            if (abs_name, '') not in lookup:
-                lookup[(abs_name, '')] = []
-            lookup[(abs_name, '')].append(abs_fname)
+            if (abs_name, None) not in lookup:
+                lookup[(abs_name, None)] = []
+            lookup[(abs_name, None)].append(abs_fname)
             
         # we're going to recurse manually (see
         # add_abstraction_to_regsitry) because we can't call
@@ -2442,8 +2454,8 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
+            error = None
             (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
-            
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
                 not extra_info['pathDumpCells']):
@@ -2462,16 +2474,48 @@ class VistrailController(object):
                       'reason': reason,
                       'extra_info': extra_info,
                       }    
+            if self.get_vistrail_variables():
+                kwargs['vistrail_variables'] = \
+                    self.get_vistrail_variable_by_uuid
             result = interpreter.execute(pipeline, **kwargs)
             
             thumb_cache = ThumbnailCache.getInstance()
             
-            if len(result.errors) == 0 and thumb_cache.conf.autoSave:
+            if len(result.errors) == 0 and \
+            (thumb_cache.conf.autoSave or 'compare_thumbnails' in extra_info):
                 old_thumb_name = self.vistrail.get_thumbnail(version)
+                if 'compare_thumbnails' in extra_info:
+                    old_thumb_name = None
                 fname = thumb_cache.add_entry_from_cell_dump(
-                                        extra_info['pathDumpCells'], 
+                                        extra_info['pathDumpCells'],
                                         old_thumb_name)
-                if fname is not None: 
+                if 'compare_thumbnails' in extra_info:
+                    # check thumbnail difference
+                    prev = None
+                    if self.vistrail.has_thumbnail(version):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(version))
+                    elif version in self.vistrail.actionMap and \
+                        int(self.vistrail.get_upgrade(self.vistrail.actionMap[version].parent)) == version and \
+                        self.vistrail.has_thumbnail(self.vistrail.actionMap[version].parent):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(self.vistrail.actionMap[version].parent))
+                    else:
+                        error = CompareThumbnailsError("No thumbnail exist for version %s" % version)
+                    if prev:
+                        if not prev:
+                            error = CompareThumbnailsError("No thumbnail file exist for version %s" % version)
+                        elif not fname:
+                            raise CompareThumbnailsError("No thumbnail generated")
+                        else:
+                            next = thumb_cache.get_abs_name_entry(fname)
+                            if not next:
+                                raise CompareThumbnailsError("No thumbnail file generated for version %s" % version)
+                            else:
+                                min_err = extra_info['compare_thumbnails'](prev, next)
+                                treshold = 0.1
+                                if min_err > treshold:
+                                    raise CompareThumbnailsError("Thumbnails are different with value %s" % min_err, prev, next)
+
+                if fname is not None:
                     self.vistrail.set_thumbnail(version, fname)
                     changed = True
               
@@ -2484,7 +2528,9 @@ class VistrailController(object):
                 changed = True
             
             results.append(result)
-            
+            if error:
+                result.errors[version] = error
+                return ([result], False)
         if self.logging_on():
             self.set_changed(True)
             
