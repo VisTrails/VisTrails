@@ -704,8 +704,8 @@ class VistrailController(object):
     def create_port_spec_static(id_scope, module, port_type, port_name, 
                                 port_sigstring, port_sort_key=-1):
         p_id = id_scope.getNewId(PortSpec.vtType)
-        if port_spec_key == -1:
-            port_spec_key = len(module.module_descriptor.port_specs_list)
+        if port_sort_key == -1:
+            port_sort_key = len(module.module_descriptor.port_specs_list)
         port_spec = PortSpec(id=p_id,
                              type=port_type,
                              name=port_name,
