@@ -675,10 +675,6 @@ class CellContainerInterface(object):
         self.toolBar = None
         return widget
 
-    def should_be_reused(self, new_content):
-        return False # We usually don't need that; other software embedding
-                # VisTrails might, though
-
 
 class QCellContainer(CellContainerInterface, QtGui.QWidget):
     """ QCellContainer is a simple QWidget containing the actual cell

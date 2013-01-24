@@ -224,24 +224,21 @@ class StandardWidgetSheetTabInterface(object):
         Put the cellWidget inside a container and place it on the sheet
 
         """
-        prev_container = self.getCellWidget(row, col)
         # If we were given a container, this is what we'll display
         if cellWidget is None or isinstance(cellWidget, CellContainerInterface):
             container = cellWidget
-        # In some cases, we might want to reuse the previous container and
-        # simply put the new cell content there
-        # It might not always make sense, so we ask the container class first
-        elif (prev_container is not None and
-                prev_container.should_be_reused(cellWidget)):
-            prev_container.setWidget(cellWidget)
-            return
-        # Other cases: build a new container for this cell
+        # Else, build a new container for this cell
         else:
             ContainerClass = (spreadsheet_controller.spreadsheetController
                     .getCellContainerClass())
             container = ContainerClass(
                     CellInformation(self, row, col),
                     cellWidget)
+
+        prev_container = self.getCellWidget(row, col)
+        if prev_container is not None:
+            prev_container.setCellInfo(None)
+
         self.setCellWidget(row, col, container)
         self.lastCellLocation = (row, col)
 
