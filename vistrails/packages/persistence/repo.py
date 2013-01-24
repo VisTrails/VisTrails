@@ -73,7 +73,6 @@ class GitRepo(object):
         tree = self.repo.tree(commit.tree)
         if name not in tree:
             raise Exception('Cannot find object "%s"' % name)
-        print "TUPLE:", tree[name]
         if tree[name][0] & stat.S_IFDIR:
             return "tree"
         else:
