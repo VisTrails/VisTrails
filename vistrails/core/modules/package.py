@@ -247,15 +247,27 @@ class Package(DBPackage):
             self._existing_paths = existing_paths
         else:
             self._existing_paths = set(sys.modules.iterkeys())
+        self._warn_vistrails_prefix = False
         __builtin__.__import__ = self._import
         
     def _reset_import(self):
         __builtin__.__import__ = self._real_import
+        if self._warn_vistrails_prefix:
+            debug.warning('In package "%s", Please use the "vistrails." prefix when importing vistrails packages.' % self.identifier)
         return self._imported_paths
 
     def _import(self, name, globals=None, locals=None, fromlist=None, level=-1):
         # if name != 'core.modules.module_registry':
         #     print 'running import', name, fromlist
+
+        # backward compatibility for packages that import without
+        # "vistrails." prefix
+        fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
+        for pkg in fix_pkgs:
+            if name == pkg or name.startswith(pkg + '.'):
+                self._warn_vistrails_prefix = True
+                name = "vistrails." + name
+
         res = apply(self._real_import, 
                     (name, globals, locals, fromlist, level))
         if len(name) > len(res.__name__):
@@ -272,7 +284,7 @@ class Package(DBPackage):
             # else:
             #     if name != 'core.modules.module_registry':
             #         print '  already exists', name, res.__name__
-	    qual_name += '.'
+            qual_name += '.'
         if fromlist is not None:
             for from_module in fromlist:
                 qual_name = res_name + '.' + from_module
