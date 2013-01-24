@@ -63,6 +63,7 @@ from widgets import PersistentRefInlineWidget, \
     PersistentInputDirConfiguration, PersistentOutputDirConfiguration, \
     PersistentRefModel, PersistentConfiguration
 from db_utils import DatabaseAccessSingleton
+import repo
 
 global_db = None
 local_db = None
@@ -72,7 +73,6 @@ git_bin = "@executable_path/git"
 tar_bin = "@executable_path/tar"
 compress_by_default = False
 debug = False
-temp_persist_files = []
 
 def debug_print(*args):
     global debug
@@ -142,248 +142,7 @@ class PersistentPath(Module):
     def __init__(self):
         Module.__init__(self)
 
-    @staticmethod
-    def git_command():
-        global git_bin
-        if systemType == "Windows":
-            return [ "%s:" % local_db[0], "&&","cd", "%s" % local_db, "&&", git_bin]
-        return ["cd", "%s" % local_db, "&&", git_bin]
-
-    @staticmethod
-    def git_get_path(name, version="HEAD", path_type=None, 
-                     out_name=None, out_suffix=''):
-        if path_type is None:
-            path_type = PersistentPath.git_get_type(name, version)
-        if path_type == 'tree':
-            return PersistentPath.git_get_dir(name, version, out_name,
-                                              out_suffix)
-        elif path_type == 'blob':
-            return PersistentPath.git_get_file(name, version, out_name,
-                                               out_suffix)
-        
-        raise ModuleError(self, "Unknown path type '%s'" % path_type)
-
-    @staticmethod
-    def git_get_file(name, version="HEAD", out_fname=None, out_suffix=''):
-        global temp_persist_files
-        if out_fname is None:
-            # create a temporary file
-            (fd, out_fname) = tempfile.mkstemp(suffix=out_suffix,
-                                               prefix='vt_persist')
-            os.close(fd)
-            temp_persist_files.append(out_fname)
-            
-        cmd_line =  PersistentPath.git_command() + ["show",
-                                                    str(version + ':' + name),
-                                                    '>', out_fname]
-        debug_print('executing command', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print('stdout:', type(output), output)
-        debug_print('stderr:', type(errs), errs)
-        if result != 0:
-            # check output for error messages
-            raise ModuleError(self, "Error retrieving file '%s'\n" % name +
-                              errs)
-        return out_fname
-
-    @staticmethod
-    def git_get_dir(name, version="HEAD", out_dirname=None, 
-                    out_suffix=''):
-        global temp_persist_files, tar_bin
-        if out_dirname is None:
-            # create a temporary directory
-            out_dirname = tempfile.mkdtemp(suffix=out_suffix,
-                                           prefix='vt_persist')
-            temp_persist_files.append(out_dirname)
-        elif not os.path.exists(out_dirname):
-            os.makedirs(out_dirname)
-        if systemType == "Windows":
-            cmd_list = [PersistentPath.git_command() + \
-                        ["archive", str(version + ':' + name)],
-                    ["%s:" % out_dirname[0], "&&", "cd", "%s"%out_dirname, "&&", tar_bin, '-xf-']]
-        else:
-            cmd_list = [PersistentPath.git_command() + \
-                        ["archive", str(version + ':' + name)],
-                    [tar_bin, '-C', out_dirname, '-xf-']]
-        debug_print('executing commands', cmd_list)
-        result, output, errs = execute_piped_cmdlines(cmd_list)
-        debug_print('stdout:', type(output), output)
-        debug_print('stderr:', type(errs), errs)
-        if result != 0:
-            # check output for error messages
-            raise ModuleError(self, "Error retrieving file '%s'\n" % name +
-                              errs)
-        return out_dirname
-
-    # def git_get_hash(self, name, version="HEAD"):
-    #     cmd_list = [["echo", str(version + ':' + name)],
-    #                 self.git_command() + ["cat-file", "--batch-check"]]
-    @staticmethod
-    def git_get_hash(name, version="HEAD", path_type=None):
-        if path_type is None:
-            path_type = PersistentPath.git_get_type(name, version)
-        if path_type == 'blob':
-            cmd_list = [PersistentPath.git_command() + ["ls-files", "--stage",
-                                                        str(version),
-                                                        str(name)]]
-            debug_print('executing commands', cmd_list)
-            result, output, errs = execute_piped_cmdlines(cmd_list)
-            debug_print('stdout:', type(output), output)
-            debug_print('stderr:', type(errs), errs)
-            if result != 0:
-                # check output for error messages
-                raise ModuleError(self, "Error retrieving path '%s'\n" % name +
-                                  errs)
-            return output.split(None, 2)[1]
-        elif path_type == 'tree':
-            cmd_list = [PersistentPath.git_command() + ["ls-tree", "-d",
-                                                        str(version),
-                                                        str(name)]]
-            debug_print('executing commands', cmd_list)
-            result, output, errs = execute_piped_cmdlines(cmd_list)
-            debug_print('stdout:', type(output), output)
-            debug_print('stderr:', type(errs), errs)
-            if result != 0:
-                # check output for error messages
-                raise ModuleError(self, "Error retrieving path '%s'\n" % name +
-                                  errs)
-            return output.split(None, 3)[2]
-        return None
-
-    @staticmethod
-    def git_get_type(name, version="HEAD"):
-        #cmd_list = [["echo", str(version + ':' + name)],
-        #            self.git_command() + ["cat-file", "--batch-check"]]
-        cmd_list = [PersistentPath.git_command() + ["cat-file", "-t",
-                                                    str(version + ':'+name)]]
-        debug_print('executing commands', cmd_list)
-        result, output, errs = execute_piped_cmdlines(cmd_list)
-        debug_print('stdout:', type(output), output)
-        debug_print('stderr:', type(errs), errs)
-        if result != 0:
-            # check output for error messages
-            raise ModuleError(self, "Error retrieving file '%s'" % name +
-                              errs)
-        return output.split(None,1)[0]
-        #return output.split(None, 2)[1]
-
-    @staticmethod
-    def git_add_commit(filename):
-        cmd_line = PersistentPath.git_command() + ['add', filename]
-        debug_print('executing', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print(output)
-        debug_print('***')
-
-        cmd_line = PersistentPath.git_command() + ['commit', '-q', '-m', 
-                                         'Updated %s' % filename]
-        debug_print('executing', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print('result:', result)
-        debug_print('stdout:', type(output), output)
-        debug_print('stderr:', type(errs), errs)
-        debug_print('***')
-
-        if len(output) > 1:
-            # failed b/c file is the same
-            # return 
-            debug_print('got unexpected output')
-            return None
-
-        cmd_line = PersistentPath.git_command() + ['log', '-1']
-        debug_print('executing', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print(output)
-        debug_print('***')
-
-        if output.startswith('commit'):
-            return output.split(None, 2)[1]
-        return None
-
-    @staticmethod
-    def git_get_latest_version(filename):
-        cmd_line = PersistentPath.git_command() + ['log', '-1', filename]
-        debug_print('executing', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print(output)
-        if output.startswith('commit'):
-            return output.split(None, 2)[1]
-        return None
-
-    @staticmethod
-    def git_compute_hash(path, path_type=None):
-        if path_type is None:
-            if os.path.isdir(path):
-                path_type = 'tree'
-            elif os.path.isfile(path):
-                path_type = 'blob'
-        if path_type == 'tree':
-            return PersistentPath.git_compute_tree_hash(path)
-        elif path_type == 'blob':
-            return PersistentPath.git_compute_file_hash(path)
-        
-        raise ModuleError(None, "Unknown path type '%s'" % path_type)
-        
-
-    @staticmethod
-    def git_compute_file_hash(filename):
-        # run git hash-object filename
-        cmd_line = PersistentPath.git_command() + ['hash-object', filename]
-        debug_print('executing', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print('result:', result)
-        debug_print('stdout:', type(output), output)
-        debug_print('stderr:', type(errs), errs)
-        debug_print('***')
-
-        if result != 0:
-            raise ModuleError(None, "Error retrieving file '%s'\n" % filename +
-                              errs)
-        return output.strip()
-
-    @staticmethod
-    def git_compute_tree_hash(dirname):
-        lines = []
-        for file in os.listdir(dirname):
-            fname = os.path.join(dirname, file)
-            if os.path.isdir(fname):
-                hash = PersistentPath.git_compute_tree_hash(fname)
-                lines.append("040000 tree " + hash + '\t' + file)
-            elif os.path.isfile(fname):
-                hash = PersistentPath.git_compute_file_hash(fname)
-                lines.append("100644 blob " + hash + '\t' + file)
-
-        (fd, tree_fname) = tempfile.mkstemp(prefix='vt_persist')
-        os.close(fd)
-        
-        tree_f = open(tree_fname, 'w')
-        for line in lines:
-            print >>tree_f, line
-        tree_f.close()
-
-        cmd_line = PersistentPath.git_command() + ['mktree', '--missing',
-                                                   '<', tree_fname]
-        debug_print('executing', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print('result:', result)
-        debug_print(output)
-        debug_print('***')
-        os.remove(tree_fname)
-        if result != 0:
-            raise ModuleError(self, "Error retrieving file '%s'\n" % dirname +
-                              errs)
-        tree_hash = output.rsplit(None, 1)[-1].strip()
-        debug_print('hash:', tree_hash)
-
-        cmd_line = PersistentPath.git_command() + ['prune']
-        debug_print('executing', cmd_line)
-        result, output, errs = execute_cmdline2(cmd_line)
-        debug_print('result:', result)
-        debug_print(output)
-        debug_print('***')
-        
-        return tree_hash
-
+    # FIXME find a way to do this through dulwich and move to repo.py
     @staticmethod
     def git_remove_path(path):
         global git_bin, local_db
@@ -442,7 +201,7 @@ class PersistentPath(Module):
         self.setResult("value", persistent_path)
 
     def updateUpstream(self, is_input=None, path_type=None):
-        global local_db, db_access
+        global db_access
 
         if is_input is None:
             if not self.hasInputFromPort('value'):
@@ -477,7 +236,8 @@ class PersistentPath(Module):
                 ref = self.getInputFromPort('ref')
                 if db_access.ref_exists(ref.id, ref.version):
                     if ref.version is None:
-                        ref.version = self.git_get_latest_version(ref.id)
+                        ref.version = \
+                            repo.get_current_repo().get_latest_version(ref.id)
                     signature = db_access.get_signature(ref.id, ref.version)
                     if signature == self.signature:
                         # don't need to create a new version
@@ -489,10 +249,10 @@ class PersistentPath(Module):
             # FIXME also need to check that the file actually exists here!
             if self.persistent_ref is not None:
                 _, suffix = os.path.splitext(self.persistent_ref.name)
-                self.persistent_path = \
-                    self.git_get_path(self.persistent_ref.id, 
-                                      self.persistent_ref.version,
-                                      out_suffix=suffix)
+                self.persistent_path = repo.get_current_repo().get_path(
+                    self.persistent_ref.id, 
+                    self.persistent_ref.version,
+                    out_suffix=suffix)
                 debug_print("FOUND persistent path")
                 debug_print(self.persistent_path)
                 debug_print(self.persistent_ref.local_path)
@@ -547,11 +307,11 @@ class PersistentPath(Module):
                 raise ModuleError(self, "Persistent entity '%s' does not "
                                   "exist in the local repository." % ref.id)
             if ref.version is None:
-                ref.version = self.git_get_latest_version(ref.id)
+                ref.version = repo.get_current_repo().get_latest_version(ref.id)
 
             # get specific ref.uuid, ref.version combo
-            path = self.git_get_path(ref.id, ref.version, 
-                                     out_suffix=suffix)
+            path = repo.get_current_repo().get_path(ref.id, ref.version, 
+                                                    out_suffix=suffix)
             
         elif self.persistent_path is None:
             # copy path to persistent directory with uuid as name
@@ -562,14 +322,15 @@ class PersistentPath(Module):
                 path = self.getInputFromPort('value').name
             # this is a static method so we need to add module ourselves
             try:
-                new_hash = self.git_compute_hash(path, path_type)
+                new_hash = repo.get_current_repo().compute_hash(path)
             except ModuleError, e:
                 e.module = self
                 raise e
             rep_path = os.path.join(local_db, ref.id)
             do_update = True
             if os.path.exists(rep_path):
-                old_hash = self.git_get_hash(ref.id, path_type=path_type)
+                old_hash = repo.get_current_repo().get_hash(ref.id, 
+                                                            path_type=path_type)
                 debug_print('old_hash:', old_hash)
                 debug_print('new_hash:', new_hash)
                 if old_hash == new_hash:
@@ -582,7 +343,7 @@ class PersistentPath(Module):
                 # commit (and add to) repository
                 # get commit id as version id
                 # persist object-hash, commit-version to repository
-                version = self.git_add_commit(ref.id)
+                version = repo.get_current_repo().add_commit(ref.id)
                 ref.version = version
 
                 # write object-hash, commit-version to provenance
@@ -743,7 +504,7 @@ def persistent_module_hasher(pipeline, module, chm):
                 Boolean.translate_to_python(function.params[0].strValue)
     if ref and not read_local and db_access.ref_exists(ref.id, ref.version):
         if ref.version is None:
-            ref.version = PersistentPath.git_get_latest_version(ref.id)
+            ref.version = repo.get_current_repo().get_latest_version(ref.id)
         return Hasher.compound_signature([current_hash, str(ref.id),
                                           str(ref.version)])
     return current_hash
@@ -774,20 +535,9 @@ _modules = [PersistentRef, PersistentPath, PersistentFile, PersistentDir,
                                         'signatureCallable': \
                                             persistent_module_hasher})]
 
-def git_init(dir):
-    global git_bin
-    if systemType == "Windows":
-        cmd = ["%s:" % dir[0], "&&", "cd", "%s" % dir, "&&", git_bin, "init"]
-    else:
-        cmd = ["cd", "%s" % dir, "&&", git_bin, "init"]
-    debug_print('cmd:', cmd)
-    result, output, errs = execute_cmdline2(cmd)
-    debug_print('init result', result)
-    debug_print('init output', output)
-
 def initialize():
     global global_db, local_db, search_dbs, compress_by_default, db_access, \
-        git_bin, tar_bin, debug
+        git_bin, debug
     
     if configuration.check('git_bin'):
         git_bin = configuration.git_bin
@@ -799,17 +549,6 @@ def initialize():
     if git_bin is None:
         git_bin = 'git'
         configuration.git_bin = git_bin
-
-    if configuration.check('tar_bin'):
-        tar_bin = configuration.tar_bin
-    if tar_bin.startswith("@executable_path/"):
-        non_expand_path = tar_bin
-        tar_bin = get_executable_path(tar_bin[len("@executable_path/"):])
-        if tar_bin is not None:
-            configuration.tar_bin = non_expand_path
-    if tar_bin is None:
-        tar_bin = 'tar'
-        configuration.tar_bin = tar_bin
         
     if configuration.check('compress_by_default'):
         compress_by_default = configuration.compress_by_default
@@ -829,7 +568,9 @@ def initialize():
             except:
                 raise Exception('local_db "%s" does not exist' % local_db)
 
-    git_init(local_db)
+    local_repo = repo.get_repo(local_db)
+    repo.set_current_repo(local_repo)
+
     debug_print('creating DatabaseAccess')
     db_path = os.path.join(local_db, '.files.db')
     db_access = DatabaseAccessSingleton(db_path)
@@ -851,9 +592,9 @@ _configuration_widget = None
 
 def finalize():
     # delete all temporary files/directories used by zip
-    global temp_persist_files, db_access, _configuration_widget
+    global db_access, _configuration_widget
 
-    for fname in temp_persist_files:
+    for fname in repo.get_current_repo().temp_persist_files:
         if os.path.isfile(fname):
             os.remove(fname)
         elif os.path.isdir(fname):
