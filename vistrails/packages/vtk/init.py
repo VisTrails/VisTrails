@@ -1403,3 +1403,69 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         build_remap(module_name)
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               _remap)
+
+###############################################################################
+
+# Define DAT plots
+try:
+    from dat.vistrails_interface import Plot, Port, \
+        Variable, FileVariableLoader
+    from dat.gui import translate
+except ImportError:
+    pass # We are not running DAT; skip plot/variable/operation definition
+else:
+    from PyQt4 import QtGui
+
+    _ = translate('packages.vtk')
+
+    # Builds a DAT variable from a data file
+    def build_variable(filename):
+        var = Variable(type='edu.utah.sci.vistrails.vtk:vtkAlgorithmOutput')
+        # We use the high-level interface to build the variable pipeline
+        file_mod = var.add_module(File)
+        file_mod.add_function('name', String, filename)
+        datasetreader_mod = var.add_module('vtkDataSetReader')
+        file_mod.connect_outputport_to('value', datasetreader_mod, 'SetFile')
+        # We select the 'value' output port of the NumPyArray module as the
+        # port that will be connected to plots when this variable is used
+        var.select_output_port(datasetreader_mod, 'GetOutputPort0')
+        return var
+
+    ########################################
+    # Defines a plot from a subworkflow file
+    #
+    _plots = [
+        Plot(name="VTK Render",
+             subworkflow='{package_dir}/dat-plots/vtk_render.xml',
+             description=_("Renders a VTK dataset"),
+             ports=[Port(name='dataset', type='vtkAlgorithmOutput')])
+    ]
+
+    ########################################
+    # Defines a variable loader
+    #
+    class DatasetLoader(FileVariableLoader):
+        """Loads a VTK dataset.
+        """
+        @classmethod
+        def can_load(cls, filename):
+            return filename.lower().endswith('.vtk')
+
+        def __init__(self, filename):
+            FileVariableLoader.__init__(self)
+            self.filename = filename
+
+            layout = QtGui.QVBoxLayout()
+            layout.addWidget(
+                    QtGui.QLabel(_("This loader has no parameters.")))
+            self.setLayout(layout)
+
+        def load(self):
+            return build_variable(self.filename)
+
+        def get_default_variable_name(self):
+            return "vtk_dataset"
+
+    _variable_loaders = {
+            DatasetLoader: _("VTK dataset"),
+    }
