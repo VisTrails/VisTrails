@@ -35,7 +35,7 @@
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
-from vistrails.core.modules.basic_modules import File, String, Boolean
+from vistrails.core.modules.basic_modules import File, String, Boolean, Integer
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from plot import MplPlot, MplPlotConfigurationWidget
 import time
@@ -165,6 +165,42 @@ class MplScatterplot(NotCacheable, Module):
         pylab.get_current_fig_manager().toolbar.hide()
         self.setResult('source', "")
 
+class NumPyArray(Module):
+    """
+    A Numpy Array, that can be loaded from a file.
+
+    This is not currently used by the other modules that accept lists instead,
+    but might be useful someday. It is also used by the DAT plot.
+    """
+    _input_ports = [('file', '(edu.utah.sci.vistrails.basic:File)'),
+                    ('datatype', '(edu.utah.sci.vistrails.basic:String)')]
+    _output_ports = [('value', '(edu.utah.sci.vistrails.matplotlib:NumPyArray)')]
+
+    FORMAT_MAP = dict(
+          int8 = pylab.int8,
+         uint8 = pylab.uint8,
+         int16 = pylab.int16,
+        uint16 = pylab.uint16,
+         int32 = pylab.int32,
+        uint32 = pylab.uint32,
+         int64 = pylab.int64,
+        uint64 = pylab.uint64,
+
+         float32 = pylab.float32,
+         float64 = pylab.float64,
+
+         complex64 = pylab.complex64,
+        complex128 = pylab.complex128,
+    )
+
+    def compute(self):
+        if self.hasInputFromPort('datatype'):
+            dtype = NumPyArray.FORMAT_MAP[self.getInputFromPort('datatype')]
+        else:
+            dtype = pylab.float32
+        self.array = pylab.fromfile(self.getInputFromPort('file').name, dtype)
+        self.setResult('value', self)
+
 ################################################################################
 
 def initialize(*args, **keywords):    
@@ -190,4 +226,111 @@ def initialize(*args, **keywords):
         reg.add_module(MplFigureCell)
         reg.add_input_port(MplFigureCell, 'FigureManager', MplFigureManager)
 
-_modules = [MplScatterplot, MplHistogram]
+_modules = [MplScatterplot, MplHistogram, NumPyArray]
+
+###############################################################################
+
+# Define DAT plots
+try:
+    from dat.vistrails_interface import Plot, Port, \
+        Variable, FileVariableLoader
+    from dat.gui import translate
+except ImportError:
+    pass # We are not running DAT; skip plot/variable/operation definition
+else:
+    from PyQt4 import QtGui
+
+    _ = translate('packages.HTTP')
+
+    # Builds a DAT variable from a data file
+    def build_variable(filename, dtype):
+        var = Variable(type=NumPyArray)
+        # We use the high-level interface to build the variable pipeline
+        mod = var.add_module(NumPyArray)
+        mod.add_function('file', File, filename)
+        mod.add_function('datatype', String, dtype)
+        # We select the 'value' output port of the NumPyArray module as the
+        # port that will be connected to plots when this variable is used
+        var.select_output_port(mod, 'value')
+        return var
+
+    ########################################
+    # Defines a plot from a subworkflow file
+    #
+    _plots = [
+        Plot(name="MplHistogramPlot",
+             subworkflow='{package_dir}/dat-plots/histogram.xml',
+             description=_("Build a histogram out of a numpy array"),
+             ports=[
+                     Port(name='np_array', type=NumPyArray, optional=False),
+                     Port(name='xlabel', type=String, optional=True),
+                     Port(name='ylabel', type=String, optional=True)])
+    ]
+
+    ########################################
+    # Defines a variable loader
+    #
+    class NumPyArrayLoader(FileVariableLoader):
+        """Loads a NumPy array using numpy:fromfile().
+        """
+        FORMATS = [
+                ("%s (%s)" % (_("byte"), 'numpy.int8'),
+                 'int8'),
+                ("%s (%s)" % (_("unsigned byte"), 'numpy.uint8'),
+                 'uint8'),
+                ("%s (%s)" % (_("short"), 'numpy.int16'),
+                 'int16'),
+                ("%s (%s)" % (_("unsigned short"), 'numpy.uint16'),
+                 'uint16'),
+                ("%s (%s)" % (_("32-bit integer"), 'numpy.int32'),
+                 'int32'),
+                ("%s (%s)" % (_("32-bit unsigned integer"), 'numpy.uint32'),
+                 'uint32'),
+                ("%s (%s)" % (_("64-bit integer"), 'numpy.int64'),
+                 'int64'),
+                ("%s (%s)" % (_("64-bit unsigned integer"), 'numpy.uint64'),
+                 'uint64'),
+
+                ("%s (%s)" % (_("32-bit floating number"), 'numpy.float32'),
+                 'float32'),
+                ("%s (%s)" % (_("64-bit floating number"), 'numpy.float64'),
+                 'float64'),
+                ("%s (%s)" % (_("128-bit floating number"), 'numpy.float128'),
+                 'float128'),
+
+                ("%s (%s)" % (_("64-bit complex number"), 'numpy.complex64'),
+                 'complex64'),
+                ("%s (%s)" % (_("128-bit complex number"), 'numpy.complex128'),
+                 'complex128'),
+                ("%s (%s)" % (_("256-bit complex number"), 'numpy.complex256'),
+                 'complex128'),
+        ]
+
+        @classmethod
+        def can_load(cls, filename):
+            return filename.lower().endswith('.dat')
+
+        def __init__(self, filename):
+            FileVariableLoader.__init__(self)
+            self.filename = filename
+
+            self._format_field = QtGui.QComboBox()
+            for label, dtype in NumPyArrayLoader.FORMATS:
+                self._format_field.addItem(label)
+
+            layout = QtGui.QFormLayout()
+            layout.addRow(_("Data &format:"), self._format_field)
+            self.setLayout(layout)
+
+        def load(self):
+            return build_variable(
+                    self.filename,
+                    NumPyArrayLoader.FORMATS[
+                            self._format_field.currentIndex()][1])
+
+        def get_default_variable_name(self):
+            return "numpy_array"
+
+    _variable_loaders = {
+            NumPyArrayLoader: _("NumPy array"),
+    }
