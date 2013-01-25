@@ -417,6 +417,106 @@ def initialize(*args, **keywords):
                             package_directory)
             sys.exit(1)
 
+
+###############################################################################
+
+
+# Define DAT plots
+try:
+    from dat.vistrails_interface import Plot, Port, \
+        Variable, \
+        CustomVariableLoader, FileVariableLoader
+    from dat.gui import translate
+except ImportError:
+    pass # We are not running DAT; skip plot/variable/operation definition
+else:
+    from PyQt4 import QtGui
+
+    basic = vistrails.core.modules.basic_modules
+
+    _ = translate('packages.HTTP')
+
+    # Build a DAT variable from a URL string
+    def build_variable(url):
+        var = Variable(type=basic.String)
+        # We use the high-level interface to build the variable pipeline
+        mod = var.add_module(basic.String)
+        mod.add_function('value', basic.String, url)
+        # We select the 'value' output port of the String module as the port
+        # that will be connected to plots when this variable is used
+        var.select_output_port(mod, 'value')
+        return var
+
+    ########################################
+    # Defines a plot from a subworkflow file
+    #
+    _plots = [
+        Plot(name="ImageFromWeb",
+             subworkflow='{package_dir}/dat-plots/ImageFromWeb.xml',
+             description=_("A very simple plot, retrieving an image from its "
+                         "URL"),
+             ports=[
+                     Port(name='url', type=basic.String, optional=False)]),
+    ]
+
+    ########################################
+    # Defines two variable loaders
+    #
+    class DirectInputLoader(CustomVariableLoader):
+        """Loads a URL from direct input.
+
+        This loader will show up in a tab of its own.
+        """
+        def __init__(self):
+            CustomVariableLoader.__init__(self)
+
+            self._url_field = QtGui.QLineEdit()
+            layout = QtGui.QFormLayout()
+            layout.addRow(_("&URL:"), self._url_field)
+            self.setLayout(layout)
+
+        def reset(self):
+            self._url_field.setText('')
+
+        def load(self):
+            return build_variable(self._url_field.text())
+
+        def get_default_variable_name(self):
+            return "url"
+
+    class FileLoader(FileVariableLoader):
+        """Loads a URL from a plain text file.
+
+        This loader will appear in the 'File' tab if the selected file has a
+        matching extension.
+        """
+        @classmethod
+        def can_load(cls, filename):
+            return filename.lower().endswith('.url')
+
+        def __init__(self, filename):
+            FileVariableLoader.__init__(self)
+            self.filename = filename
+
+            layout = QtGui.QVBoxLayout()
+            layout.addWidget(
+                    QtGui.QLabel(_("This loader has no parameters.")))
+            self.setLayout(layout)
+
+        def load(self):
+            with open(self.filename) as f:
+                url = f.read()
+            return build_variable(url)
+
+        def get_default_variable_name(self):
+            return "file_url"
+
+    _variable_loaders = {
+            DirectInputLoader: _("URL from direct input"),
+            FileLoader: _("URL from text file"),
+    }
+
+
 ##############################################################################
 
 
