@@ -454,6 +454,7 @@ class DummyView(object):
     def set_module_active(self, *args, **kwargs): pass
     def set_module_computing(self, *args, **kwargs): pass
     def set_module_success(self, *args, **kwargs): pass
+    def set_module_suspended(self, *args, **kwargs): pass
     def set_module_error(self, *args, **kwargs): pass
     def set_module_not_executed(self, *args, **kwargs): pass
     def set_module_progress(self, *args, **kwargs): pass
