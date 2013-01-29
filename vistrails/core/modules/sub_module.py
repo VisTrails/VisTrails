@@ -50,7 +50,7 @@ from core.cache.utils import hash_list
 from core.modules import module_registry
 from core.modules.basic_modules import String, Boolean, Variant, NotCacheable
 from core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError
+    ModuleError, ModuleSuspended
 from core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 
@@ -79,6 +79,7 @@ class Group(Module):
     def __init__(self):
         Module.__init__(self)
         self.is_group = True
+        self.persistent_modules = []
 
     def compute(self):
         if not hasattr(self, 'pipeline') or self.pipeline is None:
@@ -118,6 +119,9 @@ class Group(Module):
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n '.join(me.module.__class__.__name__ + ': ' + \
                                             me.msg for me in res[2].itervalues()))
+        if len(res[4]) > 0:
+            raise ModuleSuspended(self, '\n'.join(tmp_id_to_module_map[module_id].__class__.__name__ + ': ' + \
+                                            msg for module_id, msg in res[4].iteritems()))
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
