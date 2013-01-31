@@ -656,6 +656,17 @@ class CellContainerInterface(object):
             warnings.warn(msg)
         self.containedWidget = widget
 
+    def contentsUpdated(self):
+        """ contentsUpdated() -> None
+
+        Called to notify that the cell's contents were changed, even if the
+        containedWidget itself is still the same object.
+
+        The new pipelineInfo can be retrieved using the cellInfo we have if
+        something needs to be updated.
+        """
+        # Do nothing
+
     def widget(self):
         """ widget() -> QWidget
         Return the contained widget

@@ -319,6 +319,7 @@ class StandardWidgetSheetTabInterface(object):
                 oldCell.deleteLater()
         elif oldCell:
             oldCell.updateContents(inputPorts)
+            self.getCellWidget(row, col).contentsUpdated()
         self.lastCellLocation = (row, col)
 
     def showHelpers(self, show, globalPos):
