@@ -247,6 +247,7 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
             del oldCell
         else:
             oldCell.updateContents(inputPorts)
+            self.getCellWidget(row, col).contentsUpdated()
 
     def showHelpers(self, show, globalPos):
         """ showHelpers(show: boolean, globalPos: QPoint) -> None
