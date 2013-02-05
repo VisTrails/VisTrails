@@ -224,9 +224,9 @@ def read_vistrail(vt_fname):
     return vistrail
 
 def read_vistrail_from_db(db_connection, abs_id):
-    import db.services.io
-    from core.vistrail.vistrail import Vistrail
-    vistrail = db.services.io.open_vistrail_from_db(db_connection, abs_id)
+    import vistrails.db.services.io
+    from vistrails.core.vistrail.vistrail import Vistrail
+    vistrail = vistrails.db.services.io.open_vistrail_from_db(db_connection, abs_id)
     Vistrail.convert(vistrail)
     return vistrail
 

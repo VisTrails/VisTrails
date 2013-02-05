@@ -55,14 +55,21 @@ if __name__ == '__main__':
     # Fix import path: add parent directory(so that we can
     # import vistrails.[gui|...] and remove other paths below it (we might have
     # been started from a subdir)
+
+    # DAK: the deletes screw things up in the binary (definitely for
+    #   Mac) and since subdir is unlikely, I'm commenting them out. A
+    #   better solution is probably to move vistrails.py up a
+    #   directory in the repo
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-    i = 0
-    while i < len(sys.path):
-        rpath = os.path.realpath(sys.path[i])
-        if rpath.startswith(vistrails_dir):
-            del sys.path[i]
-        else:
-            i += 1
+    # i = 0
+    # print "vistrails_dir:", vistrails_dir
+    # while i < len(sys.path):
+    #     rpath = os.path.realpath(sys.path[i])
+    #     if rpath.startswith(vistrails_dir):
+    #         print " deleting", rpath, sys.path[i]
+    #         del sys.path[i]
+    #     else:
+    #         i += 1
     sys.path.insert(0, vistrails_dir)
     print sys.path
 

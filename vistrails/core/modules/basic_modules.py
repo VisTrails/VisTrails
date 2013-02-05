@@ -50,7 +50,7 @@ import re
 import os
 import os.path
 import shutil
-import zipfile
+#import zipfile
 import urllib
 
 try:

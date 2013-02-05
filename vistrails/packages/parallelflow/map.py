@@ -106,7 +106,7 @@ def execute_wf(wf, output_ports):
             if output[0] == port:
                 # checking if output port needs to be serialized
                 base_classes = inspect.getmro(type(output[1]))
-                if eval('core.modules.vistrails_module.Module') in base_classes:
+                if eval('vistrails.core.modules.vistrails_module.Module') in base_classes:
                     ports.append(output[0])
                     outputs.append(output[1].serialize())
                     serializable.append(reg.get_descriptor(type(output[1])).sigstring)

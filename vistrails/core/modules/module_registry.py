@@ -1601,6 +1601,7 @@ class ModuleRegistry(DBRegistry):
                                    descriptor.namespace)
         package._abs_pkg_upgrades.clear()
         
+        package.unload()
         self.delete_package(package)
         self.signals.emit_deleted_package(package)
 

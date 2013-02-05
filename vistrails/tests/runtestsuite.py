@@ -47,29 +47,19 @@ import sys
 import unittest
 import os.path
 import optparse
-
-import vistrails.tests
-
 from optparse import OptionParser
-import vistrails.gui.application
-import vistrails.core
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
-if __name__ == '__main__':
-    _this_dir = sys.argv[0]
-else:
-    _this_dir = sys.modules[__name__].__file__
-_this_dir = os.path.split(_this_dir)[0]
-if not _this_dir:
-    root_directory = os.path.join('.','..',)
-else:
-    root_directory = os.path.join(_this_dir,  '..')
-sys.path.append(root_directory)
+_this_dir = os.path.dirname(os.path.realpath(__file__))
+root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
+sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
 
 import vistrails.tests
+import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
+import vistrails.gui.application
 
 ###############################################################################
 # Testing Examples
@@ -175,7 +165,7 @@ if test_modules:
 else:
     sub_print("Trying to import all modules")
 
-for (p, subdirs, files) in os.walk(root_directory):
+for (p, subdirs, files) in os.walk(os.path.join(root_directory)):
     # skip subversion subdirectories
     if p.find('.svn') != -1 or p.find('.git') != -1 :
         continue
@@ -185,7 +175,7 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         module = os.path.join("vistrails", p[len(root_directory)+1:], 
                               filename[:-3])
-        if (module.startswith('tests') or
+        if (module.startswith('vistrails.tests') or
             module.startswith(os.sep) or
             module.startswith('\\') or
             ('#' in module)):
@@ -289,8 +279,6 @@ if not result.wasSuccessful():
     tests_passed = False
 
 if test_examples:
-    import vistrails.core.db.io
-    import vistrails.core.db.locator
     import vistrails.core.console_mode
     print "Testing examples:"
     summary = {}
