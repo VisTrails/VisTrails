@@ -61,26 +61,34 @@ class SpreadsheetController(object):
                 # This could be in SpreadsheetWindow but findSpreadsheetWindow
                 # is unnecessarily slow
 
-    def findSpreadsheetWindow(self, show=True):
-        """ findSpreadsheetWindow() -> QWidget
-        Looking for the spreadsheet window
-        
+    def findSpreadsheetWindow(self, show=True, **kwargs):
+        """ findSpreadsheetWindow(...) -> QWidget
+        Returns (and optionally creates) the spreadsheet window.
+
+        You can pass keyword parameters to the constructor. A warning will be
+        issued if they were ignored because the window already existed.
+
         """
         global spreadsheetWindow
-        if spreadsheetWindow is not None:
-            return spreadsheetWindow
-        else:
+        created = False
+        if spreadsheetWindow is None:
             from spreadsheet_window import SpreadsheetWindow
             wList = QtGui.QApplication.topLevelWidgets()
             for w in wList:
                 if isinstance(w, SpreadsheetWindow):
                     spreadsheetWindow = w
-                    return w
-            spreadsheetWindow = SpreadsheetWindow()
-            if show:
-                spreadsheetWindow.configShow()
-            return spreadsheetWindow
-        
+                    break
+            if spreadsheetWindow is None:
+                spreadsheetWindow = SpreadsheetWindow(**kwargs)
+                created = True
+                if show:
+                    spreadsheetWindow.configShow()
+        if kwargs and not created:
+            warnings.warn("spreadsheetController.findSpreadsheetWindow() was "
+                          "called with kwargs for the\nconstructor, but the "
+                          "window already existed. Ignored.")
+        return spreadsheetWindow
+
     def postEventToSpreadsheet(self, event):
         """ postEventToSpreadsheet(event: QEvent) -> None
         Post an event to the spreadsheet to make thread-safe connection
