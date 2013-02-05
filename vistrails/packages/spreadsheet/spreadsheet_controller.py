@@ -38,8 +38,8 @@
 #   SpreadsheetController
 ################################################################################
 from PyQt4 import QtCore, QtGui
-from spreadsheet_window import SpreadsheetWindow
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellContainer
+
+import warnings
 
 ################################################################################
 
@@ -57,7 +57,7 @@ class SpreadsheetController(object):
         This class is more like an interface where there is no data inside
         
         """
-        self._cellContainerClass = QCellContainer
+        self._cellContainerClass = None
                 # This could be in SpreadsheetWindow but findSpreadsheetWindow
                 # is unnecessarily slow
 
@@ -69,15 +69,17 @@ class SpreadsheetController(object):
         global spreadsheetWindow
         if spreadsheetWindow is not None:
             return spreadsheetWindow
-        wList = QtGui.QApplication.topLevelWidgets()
-        for w in wList:
-            if isinstance(w, SpreadsheetWindow):
-                spreadsheetWindow = w
-                return w
-        spreadsheetWindow = SpreadsheetWindow()
-        if show:
-            spreadsheetWindow.configShow()
-        return spreadsheetWindow
+        else:
+            from spreadsheet_window import SpreadsheetWindow
+            wList = QtGui.QApplication.topLevelWidgets()
+            for w in wList:
+                if isinstance(w, SpreadsheetWindow):
+                    spreadsheetWindow = w
+                    return w
+            spreadsheetWindow = SpreadsheetWindow()
+            if show:
+                spreadsheetWindow.configShow()
+            return spreadsheetWindow
         
     def postEventToSpreadsheet(self, event):
         """ postEventToSpreadsheet(event: QEvent) -> None
@@ -134,9 +136,23 @@ class SpreadsheetController(object):
         return None
 
     def getCellContainerClass(self):
+        if self._cellContainerClass is None:
+            from vistrails.packages.spreadsheet import spreadsheet_cell
+            self._cellContainerClass = spreadsheet_cell.QCellContainer
         return self._cellContainerClass
 
     def setCellContainerClass(self, containerclass):
+        if (self._cellContainerClass is not None and
+                containerclass != self._cellContainerClass):
+            warnings.warn(
+                    "spreadsheetController: the container class was changed!\n"
+                    "This shouldn't happen and could have unknown effects on "
+                    "the application\n"
+                    "It either means that two different module try to set a "
+                    "different container\nclass, or that "
+                    "setCellContainerClass() was called after the first "
+                    "access to\ngetCellContainerClass()",
+                    stacklevel=2)
         self._cellContainerClass = containerclass
 
 spreadsheetController = SpreadsheetController()
