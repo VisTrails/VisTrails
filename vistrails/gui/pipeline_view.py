@@ -2998,12 +2998,24 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        text = "Module is suspended, reason: %s" % error
+        msg = error if type(error) == str else error.msg
+        text = "Module is suspended, reason: %s" % msg
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, text))
         QtCore.QCoreApplication.processEvents()
-
-
+        # add to suspended modules dialog
+        if type(error) == str:
+            return
+        from gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        try:
+            result = jobView.add_job(self.controller, error)
+            if result:
+                jobView.set_visible(True)
+        except Exception, e:
+            import traceback
+            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
+            
     def reset_module_colors(self):
         for module in self.modules.itervalues():
             module.statusBrush = None
@@ -3138,6 +3150,11 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     
     def execute(self):
         # view.checkModuleConfigPanel()
+        # reset job view
+        from gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        jobView.delete_job(self.controller)
+
         self.controller.execute_current_workflow()
         from gui.vistrails_window import _app
         _app.notify('execution_updated')

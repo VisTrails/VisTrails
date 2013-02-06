@@ -120,8 +120,11 @@ class Group(Module):
                               '\n '.join(me.module.__class__.__name__ + ': ' + \
                                             me.msg for me in res[2].itervalues()))
         if len(res[4]) > 0:
-            raise ModuleSuspended(self, '\n'.join(tmp_id_to_module_map[module_id].__class__.__name__ + ': ' + \
-                                            msg for module_id, msg in res[4].iteritems()))
+            # extract messages and previous ModuleSuspended exceptions
+            message = '\n'.join([msg for msg in res[4].itervalues()])
+            children = [tmp_id_to_module_map[module_id]._module_suspended
+                        for module_id in res[4]]
+            raise ModuleSuspended(self, message, children=children)
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
