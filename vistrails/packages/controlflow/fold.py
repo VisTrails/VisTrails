@@ -129,8 +129,7 @@ class Fold(Module, NotCacheable):
                 connector.obj.update()
                 if hasattr(connector.obj, 'suspended') and \
                    connector.obj.suspended:
-                    print "suspended:", connector.obj.suspended
-                    suspended.append(connector.obj.suspended)
+                    suspended.append(connector.obj._module_suspended)
                     connector.obj.suspended = False
                     continue
                 ## Getting the result from the output port
@@ -140,7 +139,9 @@ class Fold(Module, NotCacheable):
                 self.elementResult = connector.obj.get_output(nameOutput)
             self.operation()
         if suspended:
-            self.suspended = "%s: %s module(s) suspended: %s" % (self.__class__.__name__, len(suspended), suspended[0])
+            self.suspended = "%s module(s) suspended: %s" % \
+                               (len(suspended), suspended[0].msg)
+            self._module_suspended = suspended
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -218,7 +219,7 @@ class Fold(Module, NotCacheable):
                 self.element = element
                 self.operation()
         if self.suspended:
-            raise ModuleSuspended(self, self.suspended)
+            raise ModuleSuspended(self, self.suspended, children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
     def setInitialValue(self):

@@ -347,6 +347,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             if was_suspended:
                 view.set_module_suspended(i, error)
+                error = error.msg
             elif not error:
                 view.set_module_success(i)
             else:

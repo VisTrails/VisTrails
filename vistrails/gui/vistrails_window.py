@@ -946,6 +946,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def init_palettes(self):
         # palettes are global!
         from gui.debug import DebugView
+        from gui.job_monitor import QJobView
         from gui.debugger import QDebugger
         from gui.module_configuration import QModuleConfiguration
         from gui.module_documentation import QModuleDocumentation
@@ -1016,6 +1017,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                ((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
+               (QJobView, True),
                (QExplorerWindow, True),
 #               ((QLatexAssistant, True),
 #                (('controller_changed', 'set_controller'),)),
