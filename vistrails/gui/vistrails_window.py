@@ -2120,6 +2120,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         conf.subscribe('maxRecentVistrails', self.max_recent_vistrails_changed)
         self.update_recent_vistrail_actions()
 
+    def check_running_jobs(self):
+        from gui.job_monitor import QJobView
+        QJobView.instance().load_running_jobs()
+
     def open_recent_vistrail(self):
         """ open_recent_vistrail() -> None
         Opens a vistrail from Open Recent menu list
