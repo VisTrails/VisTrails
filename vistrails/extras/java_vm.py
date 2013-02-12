@@ -80,14 +80,20 @@ def _find_java_dll():
         # Else, look for a Java distribution in standard locations
         for path in ['C:/Program Files/Java',
                      'C:/Program Files (x86)/Java']:
-            # First attempt to use the 'jre6' version
-            if os.stat(os.path.join(path, 'jre6')):
-                return os.path.join(path, 'jre6/bin/client/jvm.dll')
+            # First attempt to use the 'jre7' version
+            try:
+                if os.stat(os.path.join(path, 'jre7')):
+                    return os.path.join(path, 'jre7/bin/client/jvm.dll')
+            except OSError:
+                pass
             # Else, any version
             for subdir in os.listdir(path):
                 dll = os.path.join(path, subdir, 'bin/client/jvm.dll')
-                if os.stat(dll):
-                    return dll
+                try:
+                    if os.stat(dll):
+                        return dll
+                except OSError:
+                    pass
         return None
     else:
         # Assume UNIX
@@ -114,7 +120,12 @@ def get_java_vm():
     # Build the classpath parameter
 
     # CLASSPATH environment variable
-    classpath = os.environ['classpath'].split(os.pathsep)
+    try:
+        classpath = os.environ['classpath']
+    except KeyError:
+        classpath = []
+    else:
+        classpath = classpath.split(os.pathsep)
 
     # Application library directory
     for d in ['../javalibs', '../libs', '../lib', '../jars', '../jar',
