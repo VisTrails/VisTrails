@@ -1711,6 +1711,10 @@ class QVistrailsWindow(QVistrailViewWindow):
             current_view = self.get_current_view()
         if current_view:
             locator = current_view.controller.locator
+            from gui.job_monitor import QJobView
+            jobView = QJobView.instance()
+            jobView.delete_job(current_view.controller, all=True)
+
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
             text = current_view.controller.name
