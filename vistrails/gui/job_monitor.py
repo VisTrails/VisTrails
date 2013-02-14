@@ -132,9 +132,6 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 
     def update_jobs(self):
         # check all jobs
-        state_icons = [theme.get_current_theme().JOB_SCHEDULED,
-                       theme.get_current_theme().JOB_FINISHED]
- 
         for workflow in self.workflowItems.values():
             # jobs without a queue can also be checked
             if not workflow.has_queue:
@@ -143,22 +140,22 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 continue
             if workflow.workflowFinished:
                 continue
-            workflow.setIcon(0, theme.get_current_theme().JOB_CHECKING)
             for job in workflow.jobs.itervalues():
                 if job.jobFinished:
                     continue
-                job.setIcon(0, theme.get_current_theme().JOB_CHECKING)
                 try:
                     # call queue
                     job.jobFinished = job.queue.finished().val()
                 except Exception, e:
                     debug.critical("Error checking job %s: %s" %
                                    (workflow.name, str(e)))
-                job.setIcon(0, state_icons[job.jobFinished])
+                if job.jobFinished:
+                    job.setIcon(0, theme.get_current_theme().JOB_FINISHED)
                 workflow.countJobs()
             workflow.workflowFinished = len(workflow.jobs) == \
                          sum(j.jobFinished for j in workflow.jobs.itervalues())
-            workflow.setIcon(0, state_icons[workflow.workflowFinished])
+            if workflow.workflowFinished:
+                workflow.setIcon(0, theme.get_current_theme().JOB_FINISHED)
             workflow.countJobs()
             if workflow.workflowFinished:
                 if self.autorun.isChecked():
@@ -251,7 +248,16 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     added = True
         return added
                         
-    def delete_job(self, controller, version_id=None):
+    def delete_job(self, controller, version_id=None, all=True):
+        if all:
+            for k in self.workflowItems.keys():
+                workflow = self.workflowItems[k]
+                if workflow.controller is controller:
+                    self.jobView.takeTopLevelItem(
+                        self.jobView.indexOfTopLevelItem(
+                            self.workflowItems[k]))
+                    del self.workflowItems[k]
+                
         if not version_id:
             version_id = controller.current_version
         if controller.locator:
