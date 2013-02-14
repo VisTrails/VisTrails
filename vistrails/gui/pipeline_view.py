@@ -3085,6 +3085,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.set_title('Pipeline')
         self.controller = None
         self.detachable = True
+        self._view_fitted = False
 
     def set_default_layout(self):
         from vistrails.gui.module_palette import QModulePalette
@@ -3259,6 +3260,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return self.controller
 
     def version_changed(self):
+        self._view_fitted = False
         self.scene().setupScene(self.controller.current_pipeline)
 
     def run_control_flow_assist(self):
@@ -3285,6 +3287,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def paintModuleToPixmap(self, module_item):
         m = self.matrix()
         return module_item.paintToPixmap(m.m11(), m.m22())
+
+    def viewSelected(self):
+        if not self._view_fitted and self.isVisible():
+            # We only do this once after a version_changed() call
+            self.zoomToFit()
+            self._view_fitted = True
 
 ################################################################################
 # Testing

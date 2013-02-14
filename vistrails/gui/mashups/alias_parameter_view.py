@@ -97,7 +97,6 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         #self.pipeline_view.scene().setupScene(self.mshpController.vtPipeline)
         self.pipeline_view.scene().clear()
         self.pipeline_view.version_changed()
-        self.pipeline_view.zoomToFit()
         self.pipeline_view.updateAnnotatedIds(
                         self.mshpController.vtPipeline)
         #_app.notify('mashup_pipeline_view_set')

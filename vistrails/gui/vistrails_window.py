@@ -1503,7 +1503,6 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.view_changed(view)
             self.reset_toolbar_for_view(view)
             self.qactions['history'].trigger()
-            view.version_view.zoomToFit()
             try:
                 version = int(version)
             except ValueError:
