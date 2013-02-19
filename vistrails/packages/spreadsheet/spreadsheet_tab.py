@@ -634,12 +634,28 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                     cellWidget = ContainerClass(CellInformation(self, r, c))
                     self.setCellByWidget(r, c, cellWidget)
 
+    def removeContainers(self, new_rows=None, new_cols=None):
+        if new_rows is not None and new_cols is not None:
+            self.removeContainers(new_rows=new_rows)
+            self.removeContainers(new_cols=new_cols)
+            return
+        elif new_rows is not None:
+            rows = xrange(new_rows, self.sheet.rowCount())
+            cols = xrange(self.sheet.columnCount())
+        elif new_cols is not None:
+            rows = xrange(self.sheet.rowCount())
+            cols = xrange(new_cols, self.sheet.columnCount())
+        for row in rows:
+            for col in cols:
+                self.setCellByWidget(row, col, None)
+
     def rowSpinBoxChanged(self):
         """ rowSpinBoxChanged() -> None
         Handle the number of row changed
         
         """
         if self.toolBar.rowSpinBox.value()!=self.sheet.rowCount():
+            self.removeContainers(new_rows=self.toolBar.rowSpinBox.value())
             self.sheet.setRowCount(self.toolBar.rowSpinBox.value())
             self.sheet.stretchCells()
             self.createContainers()
@@ -651,6 +667,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         if self.toolBar.colSpinBox.value()!=self.sheet.columnCount():
+            self.removeContainers(new_cols=self.toolBar.colSpinBox.value())
             self.sheet.setColumnCount(self.toolBar.colSpinBox.value())
             self.sheet.stretchCells()
             self.createContainers()
