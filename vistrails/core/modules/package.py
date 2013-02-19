@@ -295,16 +295,23 @@ class Package(DBPackage):
                  not qual_name.endswith('_rc'):
                 self._imported_paths.add(qual_name)
 
-        # backward compatibility for packages that import without
-        # "vistrails." prefix
-        fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
-        for pkg in fix_pkgs:
-            if name == pkg or name.startswith(pkg + '.'):
-                self._warn_vistrails_prefix = True
-                name = "vistrails." + name
-
-        res = apply(self._real_import, 
-                    (name, globals, locals, fromlist, level))
+        try:
+            res = self._real_import(name, globals, locals, fromlist, level)
+        except ImportError:
+            # backward compatibility for packages that import without
+            # "vistrails." prefix
+            fixed = False
+            fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
+            for pkg in fix_pkgs:
+                if name == pkg or name.startswith(pkg + '.'):
+                    self._warn_vistrails_prefix = True
+                    fixed = True
+                    name = "vistrails." + name
+                    break
+            if fixed:
+                res = self._real_import(name, globals, locals, fromlist, level)
+            else:
+                raise
         mod = res
         if not fromlist or len(fromlist) < 1:
             checked_add_package(mod.__name__, mod)
