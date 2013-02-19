@@ -130,7 +130,7 @@ class MplFigureCellWidget(QCellWidget):
             self.mplToolbar = MplNavigationToolbar(self.canvas, None)
             self.canvas.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                       QtGui.QSizePolicy.Expanding)
-            self.figManager = FigureManagerBase(self.canvas, self.figure.number)
+            # self.figManager = FigureManagerBase(self.canvas, self.figure.number)
             self.layout().addWidget(self.canvas)
 
             # Update the new figure canvas
@@ -187,6 +187,8 @@ class MplFigureCellWidget(QCellWidget):
         # Destroy the old one if possible
         if self.figure is not None:
             # self.getFigManager().window.deleteLater()
+            print "pylab:", pylab
+            print "self.figure:", self.figure
             pylab.close(self.figure)
             
         # if self.figManager:

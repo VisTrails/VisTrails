@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,39 +33,46 @@
 ##
 ###############################################################################
 
-import copy
-import time
-import urllib
+import os
+import shutil
 
-import core.modules
-import core.modules.module_registry
-from core import debug
-from core.modules.basic_modules import File, String, Boolean
-from core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
+from parse import run as run_parse
+from diff import compute_diff, apply_diff
+from generate import run as run_generate
 
-from core.bundles import py_import
-try:
-    mpl_dict = {'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg', warn=False)
-    pylab = py_import('pylab', mpl_dict)
-    import matplotlib.transforms as mtransforms
-except Exception, e:
-    debug.critical("Exception: %s" % e)
+_bases = ["artists", "plots"]
 
-from bases import _modules as _base_modules
-from plots import _modules as _plot_modules
-from artists import _modules as _artist_modules
+def backup():
+    if not os.path.exists("backup"):
+        os.mkdir("backup")
+    backup_files = ["mpl_%s_raw.xml", "mpl_%s.xml", "mpl_%s_diff.xml"]
+    for base in _bases:
+        for fname_base in backup_files:
+            fname = fname_base % base
+            shutil.copy(fname, "backup")
 
-################################################################################
+def run(which="all"):
+    backup()
+    if which == "all":
+        bases = _bases
+    else:
+        bases = [which]
+    for base in bases:
+        compute_diff("mpl_%s_raw.xml" % base, 
+                     "mpl_%s.xml" % base, 
+                     "mpl_%s_diff.xml" % base)
+        run_parse(base)
+        apply_diff("mpl_%s_raw.xml" % base,
+                   "mpl_%s_diff.xml" % base,
+                   "mpl_%s.xml" % base)
+        run_generate(base)
 
-#list of modules to be displaced on matplotlib.new package
-_modules = _base_modules + _plot_modules + _artist_modules
-
-def initialize(*args, **kwargs):
-    reg = core.modules.module_registry.get_module_registry()
-    if reg.has_module('edu.utah.sci.vistrails.spreadsheet',
-                      'SpreadsheetCell'):
-        from figure_cell import MplFigureCell
-        _modules.append(MplFigureCell)
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'backup':
+            backup()
+        else:
+            run(sys.argv[1])
+    else:
+        run()

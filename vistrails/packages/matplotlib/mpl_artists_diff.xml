@@ -1,0 +1,21 @@
+<diff>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.artist.Artist" port="picker" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="picker" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <addPortSpec code_ref="matplotlib.axes.Axes" port="title" type="output">
+    <value>
+      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" output_type="__property__" plural="False" property_key="__none__" property_type="matplotlib.text.Text">
+        <docstring />
+      </outputPortSpec>
+    </value>
+  </addPortSpec>
+</diff>

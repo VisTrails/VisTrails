@@ -1,0 +1,3306 @@
+<specs>
+  <customCode />
+  <moduleSpec code_ref="matplotlib.pyplot.acorr" name="MplAcorr" superclass="MplPlot">
+    <docstring>call signature:
+
+acorr(x, normed=True, detrend=mlab.detrend_none, usevlines=True,       maxlags=10, **kwargs)
+
+Plot the autocorrelation of x.  If normed = True, normalize the data by the autocorrelation at 0-th lag.  x is detrended by the detrend callable (default no normalization).
+
+Data are plotted as plot(lags, c, **kwargs)
+
+Return value is a tuple (lags, c, line) where:
+
+lags are a length 2*maxlags+1 lag vector
+
+c is the 2*maxlags+1 auto correlation vector
+
+line is a :class:`~matplotlib.lines.Line2D` instance returned by :meth:`plot`
+
+The default linestyle is None and the default marker is 'o', though these can be overridden with keyword args. The cross correlation is performed with :func:`numpy.correlate` with mode = 2.
+
+If usevlines is True, :meth:`~matplotlib.axes.Axes.vlines` rather than :meth:`~matplotlib.axes.Axes.plot` is used to draw vertical lines from the origin to the acorr.  Otherwise, the plot style is determined by the kwargs, which are :class:`~matplotlib.lines.Line2D` properties.
+
+maxlags is a positive integer detailing the number of lags to show.  The default value of None will return all :math:`2        imes \mathrm{len}(x) - 1` lags.
+
+The return value is a tuple (lags, c, linecol, b) where
+
+linecol is the :class:`~matplotlib.collections.LineCollection`
+
+b is the x-axis.
+
+Example:
+
+:func:`~matplotlib.pyplot.xcorr` above, and :func:`~matplotlib.pyplot.acorr` below.
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="normed" hide="False" in_kwargs="True" name="normed" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="usevlines" hide="False" in_kwargs="True" name="usevlines" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="detrend" hide="False" in_kwargs="True" name="detrend" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="maxlags" hide="False" in_kwargs="True" name="maxlags" port_type="basic:Integer" required="False">
+      <defaults>['10']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.arrow" name="MplArrow" superclass="MplPlot">
+    <docstring>call signature:
+
+arrow(x, y, dx, dy, **kwargs)
+
+Draws arrow on specified axis from (x, y) to (x + dx, y + dy).
+
+Optional kwargs control the arrow properties:
+
+%(FancyArrow)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="dx" hide="False" in_kwargs="True" name="dx" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="dy" hide="False" in_kwargs="True" name="dy" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.axhline" name="MplAxhline" superclass="MplPlot">
+    <docstring>call signature:
+
+axhline(y=0, xmin=0, xmax=1, **kwargs)
+
+Axis Horizontal Line
+
+Draw a horizontal line at y from xmin to xmax.  With the default values of xmin = 0 and xmax = 1, this line will always span the horizontal extent of the axes, regardless of the xlim settings, even if you change them, eg. with the :meth:`set_xlim` command.  That is, the horizontal extent is in axes coords: 0=left, 0.5=middle, 1.0=right but the y location is in data coordinates.
+
+Return value is the :class:`~matplotlib.lines.Line2D` instance.  kwargs are the same as kwargs to plot, and can be used to control the line properties.  Eg.,
+
+draw a thick red hline at y = 0 that spans the xrange
+
+&gt;&gt;&gt; axhline(linewidth=4, color='r')
+
+draw a default hline at y = 1 that spans the xrange
+
+&gt;&gt;&gt; axhline(y=1)
+
+draw a default hline at y = .5 that spans the the middle half of the xrange
+
+&gt;&gt;&gt; axhline(y=.5, xmin=0.25, xmax=0.75)
+
+Valid kwargs are :class:`~matplotlib.lines.Line2D` properties, with the exception of 'transform':
+
+%(Line2D)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="xmin" hide="False" in_kwargs="True" name="xmin" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="xmax" hide="False" in_kwargs="True" name="xmax" port_type="basic:Integer" required="False">
+      <defaults>['1']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.axhspan" name="MplAxhspan" superclass="MplPlot">
+    <docstring>call signature:
+
+axhspan(ymin, ymax, xmin=0, xmax=1, **kwargs)
+
+Axis Horizontal Span.
+
+y coords are in data units and x coords are in axes (relative 0-1) units.
+
+Draw a horizontal span (rectangle) from ymin to ymax. With the default values of xmin = 0 and xmax = 1, this always spans the xrange, regardless of the xlim settings, even if you change them, eg. with the :meth:`set_xlim` command. That is, the horizontal extent is in axes coords: 0=left, 0.5=middle, 1.0=right but the y location is in data coordinates.
+
+Return value is a :class:`matplotlib.patches.Polygon` instance.
+
+Examples:
+
+draw a gray rectangle from y = 0.25-0.75 that spans the horizontal extent of the axes
+
+&gt;&gt;&gt; axhspan(0.25, 0.75, facecolor='0.5', alpha=0.5)
+
+Valid kwargs are :class:`~matplotlib.patches.Polygon` properties:
+
+%(Polygon)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="xmin" hide="False" in_kwargs="True" name="xmin" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymin" hide="False" in_kwargs="True" name="ymin" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymax" hide="False" in_kwargs="True" name="ymax" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="xmax" hide="False" in_kwargs="True" name="xmax" port_type="basic:Integer" required="False">
+      <defaults>['1']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.axvline" name="MplAxvline" superclass="MplPlot">
+    <docstring>call signature:
+
+axvline(x=0, ymin=0, ymax=1, **kwargs)
+
+Axis Vertical Line
+
+Draw a vertical line at x from ymin to ymax.  With the default values of ymin = 0 and ymax = 1, this line will always span the vertical extent of the axes, regardless of the ylim settings, even if you change them, eg. with the :meth:`set_ylim` command.  That is, the vertical extent is in axes coords: 0=bottom, 0.5=middle, 1.0=top but the x location is in data coordinates.
+
+Return value is the :class:`~matplotlib.lines.Line2D` instance.  kwargs are the same as kwargs to plot, and can be used to control the line properties.  Eg.,
+
+draw a thick red vline at x = 0 that spans the yrange
+
+&gt;&gt;&gt; axvline(linewidth=4, color='r')
+
+draw a default vline at x = 1 that spans the yrange
+
+&gt;&gt;&gt; axvline(x=1)
+
+draw a default vline at x = .5 that spans the the middle half of the yrange
+
+&gt;&gt;&gt; axvline(x=.5, ymin=0.25, ymax=0.75)
+
+Valid kwargs are :class:`~matplotlib.lines.Line2D` properties, with the exception of 'transform':
+
+%(Line2D)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymin" hide="False" in_kwargs="True" name="ymin" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymax" hide="False" in_kwargs="True" name="ymax" port_type="basic:Integer" required="False">
+      <defaults>['1']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.axvspan" name="MplAxvspan" superclass="MplPlot">
+    <docstring>call signature:
+
+axvspan(xmin, xmax, ymin=0, ymax=1, **kwargs)
+
+Axis Vertical Span.
+
+x coords are in data units and y coords are in axes (relative 0-1) units.
+
+Draw a vertical span (rectangle) from xmin to xmax.  With the default values of ymin = 0 and ymax = 1, this always spans the yrange, regardless of the ylim settings, even if you change them, eg. with the :meth:`set_ylim` command.  That is, the vertical extent is in axes coords: 0=bottom, 0.5=middle, 1.0=top but the y location is in data coordinates.
+
+Return value is the :class:`matplotlib.patches.Polygon` instance.
+
+Examples:
+
+draw a vertical green translucent rectangle from x=1.25 to 1.55 that spans the yrange of the axes
+
+&gt;&gt;&gt; axvspan(1.25, 1.55, facecolor='g', alpha=0.5)
+
+Valid kwargs are :class:`~matplotlib.patches.Polygon` properties:
+
+%(Polygon)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="xmin" hide="False" in_kwargs="True" name="xmin" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymin" hide="False" in_kwargs="True" name="ymin" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymax" hide="False" in_kwargs="True" name="ymax" port_type="basic:Integer" required="False">
+      <defaults>['1']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="xmax" hide="False" in_kwargs="True" name="xmax" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.bar" name="MplBar" superclass="MplPlot">
+    <docstring>call signature:
+
+bar(left, height, width=0.8, bottom=0, **kwargs)
+
+Make a bar plot with rectangles bounded by:
+
+
+
+left, height, width, and bottom can be either scalars or sequences
+
+Return value is a list of :class:`matplotlib.patches.Rectangle` instances.
+
+Required arguments:
+
+
+
+Optional keyword arguments:
+
+
+
+For vertical bars, align = 'edge' aligns bars by their left edges in left, while align = 'center' interprets these values as the x coordinates of the bar centers. For horizontal bars, align = 'edge' aligns bars by their bottom edges in bottom, while align = 'center' interprets these values as the y coordinates of the bar centers.
+
+The optional arguments color, edgecolor, linewidth, xerr, and yerr can be either scalars or sequences of length equal to the number of bars.  This enables you to use bar as the basis for stacked bar charts, or candlestick plots. Detail: xerr and yerr are passed directly to :meth:`errorbar`, so they can also have shape 2xN for independent specification of lower and upper errors.
+
+Other optional kwargs:
+
+%(Rectangle)s
+
+Example: A stacked bar chart.
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="edgecolor" hide="False" in_kwargs="True" name="edgecolor" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>the colors of the bar edges</docstring>
+    </portSpec>
+    <portSpec arg="linewidth" hide="False" in_kwargs="True" name="linewidth" port_type="__unknown__" required="False">
+      <docstring>width of bar edges; None means use default linewidth; 0 means don't draw edges.</docstring>
+    </portSpec>
+    <portSpec arg="capsize" hide="False" in_kwargs="True" name="capsize" port_type="basic:Integer" required="False">
+      <defaults>['3']</defaults>
+      <docstring>(default 3) determines the length in points of the error bar caps</docstring>
+    </portSpec>
+    <portSpec arg="orientation" hide="False" in_kwargs="True" name="orientation" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['vertical', 'horizontal']]</values>
+      <docstring>'vertical' | 'horizontal'</docstring>
+    </portSpec>
+    <portSpec arg="bottom" hide="False" in_kwargs="True" name="bottom" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring>the y coordinates of the bottom edges of the bars</docstring>
+    </portSpec>
+    <portSpec arg="color" hide="False" in_kwargs="True" name="color" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>the colors of the bars</docstring>
+    </portSpec>
+    <portSpec arg="xerr" hide="False" in_kwargs="True" name="xerr" port_type="__unknown__" required="False">
+      <docstring>if not None, will be used to generate errorbars on the bar chart</docstring>
+    </portSpec>
+    <portSpec arg="align" hide="False" in_kwargs="True" name="align" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['edge', 'center']]</values>
+      <defaults>['edge']</defaults>
+      <docstring>'edge' (default) | 'center'</docstring>
+    </portSpec>
+    <portSpec arg="ecolor" hide="False" in_kwargs="True" name="ecolor" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>specifies the color of any errorbar</docstring>
+    </portSpec>
+    <portSpec arg="height" hide="False" in_kwargs="True" name="height" port_type="__unknown__" required="True">
+      <docstring>the heights of the bars</docstring>
+    </portSpec>
+    <portSpec arg="width" hide="False" in_kwargs="True" name="width" port_type="basic:Float" required="False">
+      <defaults>['0.8']</defaults>
+      <docstring>the widths of the bars</docstring>
+    </portSpec>
+    <portSpec arg="error_kw" hide="False" in_kwargs="True" name="error_kw" port_type="__unknown__" required="False">
+      <docstring>dictionary of kwargs to be passed to errorbar method. ecolor and capsize may be specified here rather than as independent kwargs.</docstring>
+    </portSpec>
+    <portSpec arg="log" hide="False" in_kwargs="True" name="log" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>[False|True] False (default) leaves the orientation axis as-is; True sets it to log scale</docstring>
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="yerr" hide="False" in_kwargs="True" name="yerr" port_type="__unknown__" required="False">
+      <docstring>if not None, will be used to generate errorbars on the bar chart</docstring>
+    </portSpec>
+    <portSpec arg="left" hide="False" in_kwargs="True" name="left" port_type="__unknown__" required="True">
+      <docstring>the x coordinates of the left sides of the bars</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.barh" name="MplBarh" superclass="MplPlot">
+    <docstring>call signature:
+
+barh(bottom, width, height=0.8, left=0, **kwargs)
+
+Make a horizontal bar plot with rectangles bounded by:
+
+
+
+bottom, width, height, and left can be either scalars or sequences
+
+Return value is a list of :class:`matplotlib.patches.Rectangle` instances.
+
+Required arguments:
+
+
+
+Optional keyword arguments:
+
+
+
+Setting align = 'edge' aligns bars by their bottom edges in bottom, while align = 'center' interprets these values as the y coordinates of the bar centers.
+
+The optional arguments color, edgecolor, linewidth, xerr, and yerr can be either scalars or sequences of length equal to the number of bars.  This enables you to use barh as the basis for stacked bar charts, or candlestick plots.
+
+other optional kwargs:
+
+%(Rectangle)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="edgecolor" hide="False" in_kwargs="True" name="edgecolor" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>the colors of the bar edges</docstring>
+    </portSpec>
+    <portSpec arg="linewidth" hide="False" in_kwargs="True" name="linewidth" port_type="__unknown__" required="False">
+      <docstring>width of bar edges; None means use default linewidth; 0 means don't draw edges.</docstring>
+    </portSpec>
+    <portSpec arg="capsize" hide="False" in_kwargs="True" name="capsize" port_type="basic:Integer" required="False">
+      <defaults>['3']</defaults>
+      <docstring>(default 3) determines the length in points of the error bar caps</docstring>
+    </portSpec>
+    <portSpec arg="log" hide="False" in_kwargs="True" name="log" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>[False|True] False (default) leaves the horizontal axis as-is; True sets it to log scale</docstring>
+    </portSpec>
+    <portSpec arg="bottom" hide="False" in_kwargs="True" name="bottom" port_type="__unknown__" required="True">
+      <docstring>the vertical positions of the bottom edges of the bars</docstring>
+    </portSpec>
+    <portSpec arg="color" hide="False" in_kwargs="True" name="color" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>the colors of the bars</docstring>
+    </portSpec>
+    <portSpec arg="xerr" hide="False" in_kwargs="True" name="xerr" port_type="__unknown__" required="False">
+      <docstring>if not None, will be used to generate errorbars on the bar chart</docstring>
+    </portSpec>
+    <portSpec arg="align" hide="False" in_kwargs="True" name="align" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['edge', 'center']]</values>
+      <defaults>['edge']</defaults>
+      <docstring>'edge' (default) | 'center'</docstring>
+    </portSpec>
+    <portSpec arg="ecolor" hide="False" in_kwargs="True" name="ecolor" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>specifies the color of any errorbar</docstring>
+    </portSpec>
+    <portSpec arg="height" hide="False" in_kwargs="True" name="height" port_type="basic:Float" required="False">
+      <defaults>['0.8']</defaults>
+      <docstring>the heights (thicknesses) of the bars</docstring>
+    </portSpec>
+    <portSpec arg="width" hide="False" in_kwargs="True" name="width" port_type="__unknown__" required="True">
+      <docstring>the lengths of the bars</docstring>
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="yerr" hide="False" in_kwargs="True" name="yerr" port_type="__unknown__" required="False">
+      <docstring>if not None, will be used to generate errorbars on the bar chart</docstring>
+    </portSpec>
+    <portSpec arg="left" hide="False" in_kwargs="True" name="left" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring>the x coordinates of the left edges of the bars</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.broken_barh" name="MplBroken_barh" superclass="MplPlot">
+    <docstring>call signature:
+
+broken_barh(self, xranges, yrange, **kwargs)
+
+A collection of horizontal bars spanning yrange with a sequence of xranges.
+
+Required arguments:
+
+
+
+kwargs are :class:`matplotlib.collections.BrokenBarHCollection` properties:
+
+%(BrokenBarHCollection)s
+
+these can either be a single argument, ie:
+
+facecolors = 'black'
+
+or a sequence of arguments for the various bars, ie:
+
+facecolors = ('black', 'red', 'green')
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="xranges" hide="False" in_kwargs="True" name="xranges" port_type="basic:List" required="True">
+      <docstring>sequence of (xmin, xwidth)</docstring>
+    </portSpec>
+    <portSpec arg="self" hide="False" in_kwargs="True" name="self" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="yrange" hide="False" in_kwargs="True" name="yrange" port_type="basic:List" required="True">
+      <docstring>sequence of (ymin, ywidth)</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.boxplot" name="MplBoxplot" superclass="MplPlot">
+    <docstring>call signature:
+
+boxplot(x, notch=0, sym='+', vert=1, whis=1.5,         positions=None, widths=None, patch_artist=False)
+
+Make a box and whisker plot for each column of x or each vector in sequence x.  The box extends from the lower to upper quartile values of the data, with a line at the median. The whiskers extend from the box to show the range of the data.  Flier points are those past the end of the whiskers.
+
+x is an array or a sequence of vectors.
+
+notch = 0 (default) produces a rectangular box plot.
+
+notch = 1 will produce a notched box plot
+
+sym (default 'b+') is the default symbol for flier points. Enter an empty string ('') if you don't want to show fliers.
+
+vert = 1 (default) makes the boxes vertical.
+
+vert = 0 makes horizontal boxes.  This seems goofy, but that's how MATLAB did it.
+
+whis (default 1.5) defines the length of the whiskers as a function of the inner quartile range.  They extend to the most extreme data point within ( whis*(75%-25%) ) data range.
+
+bootstrap (default None) specifies whether to bootstrap the confidence intervals around the median for notched boxplots. If bootstrap==None, no bootstrapping is performed, and notches are calculated using a Gaussian-based asymptotic approximation (see McGill, R., Tukey, J.W., and Larsen, W.A., 1978, and Kendall and Stuart, 1967). Otherwise, bootstrap specifies the number of times to bootstrap the median to determine it's 95% confidence intervals. Values between 1000 and 10000 are recommended.
+
+positions (default 1,2,...,n) sets the horizontal positions of the boxes. The ticks and limits are automatically set to match the positions.
+
+widths is either a scalar or a vector and sets the width of each box. The default is 0.5, or 0.15*(distance between extreme positions) if that is smaller.
+
+patch_artist = False (default) produces boxes with the Line2D artist
+
+patch_artist = True produces boxes with the Patch artist
+
+Returns a dictionary mapping each component of the boxplot to a list of the :class:`matplotlib.lines.Line2D` instances created.
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="vert" hide="False" in_kwargs="True" name="vert" port_type="basic:Integer" required="False">
+      <defaults>['1']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="positions" hide="False" in_kwargs="True" name="positions" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="bootstrap" hide="False" in_kwargs="True" name="bootstrap" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="sym" hide="False" in_kwargs="True" name="sym" port_type="basic:String" required="False">
+      <defaults>['b+']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="widths" hide="False" in_kwargs="True" name="widths" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="patch_artist" hide="False" in_kwargs="True" name="patch_artist" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="notch" hide="False" in_kwargs="True" name="notch" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="whis" hide="False" in_kwargs="True" name="whis" port_type="basic:Float" required="False">
+      <defaults>['1.5']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.cohere" name="MplCohere" superclass="MplPlot">
+    <docstring>call signature:
+
+cohere(x, y, NFFT=256, Fs=2, Fc=0, detrend = mlab.detrend_none,        window = mlab.window_hanning, noverlap=0, pad_to=None,        sides='default', scale_by_freq=None, **kwargs)
+
+:meth:`cohere` the coherence between x and y.  Coherence is the normalized cross spectral density:
+
+%(PSD)s
+
+
+
+The return value is a tuple (Cxy, f), where f are the frequencies of the coherence vector.
+
+kwargs are applied to the lines.
+
+References:
+
+Bendat &amp; Piersol -- Random Data: Analysis and Measurement Procedures, John Wiley &amp; Sons (1986)
+
+kwargs control the :class:`~matplotlib.lines.Line2D` properties of the coherence plot:
+
+%(Line2D)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="Fs" hide="False" in_kwargs="True" name="Fs" port_type="basic:Integer" required="False">
+      <defaults>['2']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="pad_to" hide="False" in_kwargs="True" name="pad_to" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="scale_by_freq" hide="False" in_kwargs="True" name="scale_by_freq" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="detrend" hide="False" in_kwargs="True" name="detrend" port_type="__unknown__" required="False">
+      <defaults>['&lt;function detrend_none at 0x101f3b0c8&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="window" hide="False" in_kwargs="True" name="window" port_type="__unknown__" required="False">
+      <defaults>['&lt;function window_hanning at 0x101f367d0&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="Fc" hide="False" in_kwargs="True" name="Fc" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="NFFT" hide="False" in_kwargs="True" name="NFFT" port_type="basic:Integer" required="False">
+      <defaults>['256']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="sides" hide="False" in_kwargs="True" name="sides" port_type="basic:String" required="False">
+      <defaults>['default']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="noverlap" hide="False" in_kwargs="True" name="noverlap" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.clabel" name="MplClabel" superclass="MplPlot">
+    <docstring>call signature:
+
+clabel(cs, **kwargs)
+
+adds labels to line contours in cs, where cs is a :class:`~matplotlib.contour.ContourSet` object returned by contour.
+
+clabel(cs, v, **kwargs)
+
+only labels contours listed in v.
+
+Optional keyword arguments:
+
+
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="inline_spacing" hide="False" in_kwargs="True" name="inline_spacing" port_type="__unknown__" required="False">
+      <docstring>space in pixels to leave on each side of label when placing inline.  Defaults to 5.  This spacing will be exact for labels at locations where the contour is straight, less so for labels on curved contours.</docstring>
+    </portSpec>
+    <portSpec arg="use_clabeltext" hide="False" in_kwargs="True" name="use_clabeltext" port_type="basic:String" required="False">
+      <defaults>['False)']</defaults>
+      <docstring>if True (default is False), ClabelText class (instead of matplotlib.Text) is used to create labels. ClabelText recalculates rotation angles of texts during the drawing time, therefore this can be used if aspect of the axes changes.</docstring>
+    </portSpec>
+    <portSpec arg="fmt" hide="False" in_kwargs="True" name="fmt" port_type="basic:String" required="False">
+      <defaults>['%1.3f']</defaults>
+      <docstring>a format string for the label. Default is '%1.3f' Alternatively, this can be a dictionary matching contour levels with arbitrary strings to use for each contour level (i.e., fmt[level]=string), or it can be any callable, such as a :class:`~matplotlib.ticker.Formatter` instance, that returns a string when called with a numeric contour level.</docstring>
+    </portSpec>
+    <portSpec arg="manual" hide="False" in_kwargs="True" name="manual" port_type="__unknown__" required="False">
+      <docstring>if True, contour labels will be placed manually using mouse clicks.  Click the first button near a contour to add a label, click the second button (or potentially both mouse buttons at once) to finish adding labels.  The third button can be used to remove the last label added, but only if labels are not inline.  Alternatively, the keyboard can be used to select label locations (enter to end label placement, delete or backspace act like the third mouse button, and any other key will select a label location).</docstring>
+    </portSpec>
+    <portSpec arg="cs" hide="False" in_kwargs="True" name="cs" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colors" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>if None, the color of each label matches the color of the corresponding contour
+
+if one string color, e.g. colors = 'r' or colors = 'red', all labels will be plotted in this color
+
+if a tuple of matplotlib color args (string, float, rgb, etc), different labels will be plotted in different colors in the order specified</docstring>
+    </portSpec>
+    <portSpec arg="fontsize" hide="False" in_kwargs="True" name="fontsize" port_type="__unknown__" required="False">
+      <docstring>See http://matplotlib.sf.net/fonts.html</docstring>
+    </portSpec>
+    <portSpec arg="rightside_up" hide="False" in_kwargs="True" name="rightside_up" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring>if True (default), label rotations will always be plus or minus 90 degrees from level.</docstring>
+    </portSpec>
+    <portSpec arg="CS" hide="False" in_kwargs="True" name="CS" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="inline" hide="False" in_kwargs="True" name="inline" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring>controls whether the underlying contour is removed or not. Default is True.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.contour" name="MplContour" superclass="MplPlot">
+    <docstring>:func:`~matplotlib.pyplot.contour` and :func:`~matplotlib.pyplot.contourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
+
+:func:`~matplotlib.pyplot.contourf` differs from the MATLAB version in that it does not draw the polygon edges. To draw edges, add line contours with calls to :func:`~matplotlib.pyplot.contour`.
+
+call signatures:
+
+contour(Z)
+
+make a contour plot of an array Z. The level values are chosen automatically.
+
+contour(X,Y,Z)
+
+X, Y specify the (x, y) coordinates of the surface
+
+contour(Z,N) contour(X,Y,Z,N)
+
+contour N automatically-chosen levels.
+
+contour(Z,V) contour(X,Y,Z,V)
+
+draw contour lines at the values specified in sequence V
+
+contourf(..., V)
+
+fill the (len(V)-1) regions between the values in V
+
+contour(Z, **kwargs)
+
+Use keyword args to control colors, linewidth, origin, cmap ... see below for more details.
+
+X and Y must both be 2-D with the same shape as Z, or they must both be 1-D such that len(X) is the number of columns in Z and len(Y) is the number of rows in Z.
+
+C = contour(...) returns a :class:`~matplotlib.contour.QuadContourSet` object.
+
+Optional keyword arguments:
+
+
+
+contour-only keyword arguments:
+
+
+
+contourf-only keyword arguments:
+
+
+
+Note: contourf fills intervals that are closed at the top; that is, for boundaries z1 and z2, the filled region is:
+
+z1 &lt; z &lt;= z2
+
+There is one exception: if the lowest boundary coincides with the minimum value of the z array, then that minimum value will be included in the lowest interval.
+
+Examples:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="origin" hide="False" in_kwargs="True" name="origin" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['upper', 'lower', 'image']]</values>
+      <docstring>If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.
+
+This keyword is not active if X and Y are specified in the call to contour.</docstring>
+    </portSpec>
+    <portSpec arg="xunits" hide="False" in_kwargs="True" name="xunits" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['registered units']]</values>
+      <docstring>Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.</docstring>
+    </portSpec>
+    <portSpec arg="linestyles" hide="False" in_kwargs="True" name="linestyles" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <docstring>If linestyles is None, the 'solid' is used.
+
+linestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.
+
+If contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.</docstring>
+    </portSpec>
+    <portSpec arg="extend" hide="False" in_kwargs="True" name="extend" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['neither', 'both', 'min', 'max']]</values>
+      <docstring>Unless this is 'neither', contour levels are automatically added to one or both ends of the range so that all data are included. These added ranges are then mapped to the special colormap values which default to the ends of the colormap range, but can be set via :meth:`matplotlib.colors.Colormap.set_under` and :meth:`matplotlib.colors.Colormap.set_over` methods.</docstring>
+    </portSpec>
+    <portSpec arg="levels" hide="False" in_kwargs="True" name="levelsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="levelsScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]</docstring>
+    </portSpec>
+    <portSpec arg="linewidths" hide="False" in_kwargs="True" name="linewidths" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['number', 'tuple of numbers']]</values>
+      <docstring>If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.
+
+If a number, all levels will be plotted with this linewidth.
+
+If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
+    </portSpec>
+    <portSpec arg="locator" hide="False" in_kwargs="True" name="locator" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['ticker.Locator subclass']]</values>
+      <docstring>If locator is None, the default :class:`~matplotlib.ticker.MaxNLocator` is used. The locator is used to determine the contour levels if they are not given explicitly via the V argument.</docstring>
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colors" port_type="basic:Color" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['(mpl_colors)']]</values>
+      <translations>translate_color</translations>
+      <docstring>If None, the colormap specified by cmap will be used.
+
+If a string, like 'r' or 'red', all levels will be plotted in this color.
+
+If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
+    </portSpec>
+    <portSpec arg="yunits" hide="False" in_kwargs="True" name="yunits" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['registered units']]</values>
+      <docstring>Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.</docstring>
+    </portSpec>
+    <portSpec arg="extent" hide="False" in_kwargs="True" name="extent" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['(x0,x1,y0,y1)']]</values>
+      <docstring>If origin is not None, then extent is interpreted as in :func:`matplotlib.pyplot.imshow`: it gives the outer pixel boundaries. In this case, the position of Z[0,0] is the center of the pixel, not a corner. If origin is None, then (x0, y0) is the position of Z[0,0], and (x1, y1) is the position of Z[-1,-1].
+
+This keyword is not active if X and Y are specified in the call to contour.</docstring>
+    </portSpec>
+    <portSpec arg="nchunk" hide="False" in_kwargs="True" name="nchunk" port_type="basic:Integer" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[[0]]</values>
+      <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>The alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="antialiased" hide="False" in_kwargs="True" name="antialiased" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring>enable antialiasing, overriding the defaults.  For filled contours, the default is True.  For line contours, it is taken from rcParams['lines.antialiased'].</docstring>
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Normalize']]</values>
+      <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.contourf" name="MplContourf" superclass="MplPlot">
+    <docstring>:func:`~matplotlib.pyplot.contour` and :func:`~matplotlib.pyplot.contourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
+
+:func:`~matplotlib.pyplot.contourf` differs from the MATLAB version in that it does not draw the polygon edges. To draw edges, add line contours with calls to :func:`~matplotlib.pyplot.contour`.
+
+call signatures:
+
+contour(Z)
+
+make a contour plot of an array Z. The level values are chosen automatically.
+
+contour(X,Y,Z)
+
+X, Y specify the (x, y) coordinates of the surface
+
+contour(Z,N) contour(X,Y,Z,N)
+
+contour N automatically-chosen levels.
+
+contour(Z,V) contour(X,Y,Z,V)
+
+draw contour lines at the values specified in sequence V
+
+contourf(..., V)
+
+fill the (len(V)-1) regions between the values in V
+
+contour(Z, **kwargs)
+
+Use keyword args to control colors, linewidth, origin, cmap ... see below for more details.
+
+X and Y must both be 2-D with the same shape as Z, or they must both be 1-D such that len(X) is the number of columns in Z and len(Y) is the number of rows in Z.
+
+C = contour(...) returns a :class:`~matplotlib.contour.QuadContourSet` object.
+
+Optional keyword arguments:
+
+extent: [ None | (x0,x1,y0,y1) ]
+
+If origin is not None, then extent is interpreted as in :func:`matplotlib.pyplot.imshow`: it gives the outer pixel boundaries. In this case, the position of Z[0,0] is the center of the pixel, not a corner. If origin is None, then (x0, y0) is the position of Z[0,0], and (x1, y1) is the position of Z[-1,-1].
+
+This keyword is not active if X and Y are specified in the call to contour.
+
+contour-only keyword arguments:
+
+
+
+contourf-only keyword arguments:
+
+
+
+Note: contourf fills intervals that are closed at the top; that is, for boundaries z1 and z2, the filled region is:
+
+z1 &lt; z &lt;= z2
+
+There is one exception: if the lowest boundary coincides with the minimum value of the z array, then that minimum value will be included in the lowest interval.
+
+Examples:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="origin" hide="False" in_kwargs="True" name="origin" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['upper', 'lower', 'image']]</values>
+      <docstring>If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.
+
+This keyword is not active if X and Y are specified in the call to contour.</docstring>
+    </portSpec>
+    <portSpec arg="linestyles" hide="False" in_kwargs="True" name="linestyles" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <docstring>If linestyles is None, the 'solid' is used.
+
+linestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.
+
+If contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.</docstring>
+    </portSpec>
+    <portSpec arg="levels" hide="False" in_kwargs="True" name="levelsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="levelsScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]</docstring>
+    </portSpec>
+    <portSpec arg="linewidths" hide="False" in_kwargs="True" name="linewidths" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['number', 'tuple of numbers']]</values>
+      <docstring>If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.
+
+If a number, all levels will be plotted with this linewidth.
+
+If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colors" port_type="basic:Color" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['(mpl_colors)']]</values>
+      <translations>translate_color</translations>
+      <docstring>If None, the colormap specified by cmap will be used.
+
+If a string, like 'r' or 'red', all levels will be plotted in this color.
+
+If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
+    </portSpec>
+    <portSpec arg="nchunk" hide="False" in_kwargs="True" name="nchunk" port_type="basic:Integer" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[[0]]</values>
+      <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>The alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Normalize']]</values>
+      <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.csd" name="MplCsd" superclass="MplPlot">
+    <docstring>call signature:
+
+csd(x, y, NFFT=256, Fs=2, Fc=0, detrend=mlab.detrend_none,     window=mlab.window_hanning, noverlap=0, pad_to=None,     sides='default', scale_by_freq=None, **kwargs)
+
+The cross spectral density :math:`P_{xy}` by Welch's average periodogram method.  The vectors x and y are divided into NFFT length segments.  Each segment is detrended by function detrend and windowed by function window.  The product of the direct FFTs of x and y are averaged over each segment to compute :math:`P_{xy}`, with a scaling to correct for power loss due to windowing.
+
+Returns the tuple (Pxy, freqs).  P is the cross spectrum (complex valued), and :math:`10\log_{10}|P_{xy}|` is plotted.
+
+%(PSD)s
+
+
+
+kwargs control the Line2D properties:
+
+%(Line2D)s
+
+Example:
+
+seealso:  :meth:`psd`     For a description of the optional parameters.
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="Fs" hide="False" in_kwargs="True" name="Fs" port_type="basic:Integer" required="False">
+      <defaults>['2']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="pad_to" hide="False" in_kwargs="True" name="pad_to" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="scale_by_freq" hide="False" in_kwargs="True" name="scale_by_freq" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="detrend" hide="False" in_kwargs="True" name="detrend" port_type="__unknown__" required="False">
+      <defaults>['&lt;function detrend_none at 0x101f3b0c8&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="window" hide="False" in_kwargs="True" name="window" port_type="__unknown__" required="False">
+      <defaults>['&lt;function window_hanning at 0x101f367d0&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="Fc" hide="False" in_kwargs="True" name="Fc" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="NFFT" hide="False" in_kwargs="True" name="NFFT" port_type="basic:Integer" required="False">
+      <defaults>['256']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="sides" hide="False" in_kwargs="True" name="sides" port_type="basic:String" required="False">
+      <defaults>['default']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="noverlap" hide="False" in_kwargs="True" name="noverlap" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.errorbar" name="MplErrorbar" superclass="MplPlot">
+    <docstring>call signature:
+
+errorbar(x, y, yerr=None, xerr=None,          fmt='-', ecolor=None, elinewidth=None, capsize=3,          barsabove=False, lolims=False, uplims=False,          xlolims=False, xuplims=False)
+
+Plot x versus y with error deltas in yerr and xerr. Vertical errorbars are plotted if yerr is not None. Horizontal errorbars are plotted if xerr is not None.
+
+x, y, xerr, and yerr can all be scalars, which plots a single error bar at x, y.
+
+Optional keyword arguments:
+
+
+
+All other keyword arguments are passed on to the plot command for the markers. For example, this code makes big red squares with thick green edges:
+
+x,y,yerr = rand(3,10) errorbar(x, y, yerr, marker='s',          mfc='red', mec='green', ms=20, mew=4)
+
+where mfc, mec, ms and mew are aliases for the longer property names, markerfacecolor, markeredgecolor, markersize and markeredgewith.
+
+valid kwargs for the marker properties are
+
+%(Line2D)s
+
+Returns (plotline, caplines, barlinecols):
+
+
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="lolims" hide="False" in_kwargs="True" name="lolims" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
+    </portSpec>
+    <portSpec arg="capsize" hide="False" in_kwargs="True" name="capsize" port_type="basic:Float" required="False">
+      <defaults>['3']</defaults>
+      <docstring>the size of the error bar caps in points</docstring>
+    </portSpec>
+    <portSpec arg="uplims" hide="False" in_kwargs="True" name="uplims" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
+    </portSpec>
+    <portSpec arg="xlolims" hide="False" in_kwargs="True" name="xlolims" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
+    </portSpec>
+    <portSpec arg="barsabove" hide="False" in_kwargs="True" name="barsabove" port_type="__unknown__" required="False">
+      <defaults>['below']</defaults>
+      <docstring>if True, will plot the errorbars above the plot symbols. Default is below.</docstring>
+    </portSpec>
+    <portSpec arg="xerr" hide="False" in_kwargs="True" name="xerr" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['N, Nx1, or 2xN array-like']]</values>
+      <docstring>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.
+
+If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
+    </portSpec>
+    <portSpec arg="fmt" hide="False" in_kwargs="True" name="fmt" port_type="basic:String" required="False">
+      <defaults>['-']</defaults>
+      <docstring>The plot format symbol. If fmt is None, only the errorbars are plotted.  This is used for adding errorbars to a bar plot, for example.</docstring>
+    </portSpec>
+    <portSpec arg="ecolor" hide="False" in_kwargs="True" name="ecolor" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['mpl color']]</values>
+      <docstring>a matplotlib color arg which gives the color the errorbar lines; if None, use the marker color.</docstring>
+    </portSpec>
+    <portSpec arg="xuplims" hide="False" in_kwargs="True" name="xuplims" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
+    </portSpec>
+    <portSpec arg="elinewidth" hide="False" in_kwargs="True" name="elinewidth" port_type="basic:Float" required="False">
+      <docstring>the linewidth of the errorbar lines. If None, use the linewidth.</docstring>
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="yerr" hide="False" in_kwargs="True" name="yerr" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['N, Nx1, or 2xN array-like']]</values>
+      <docstring>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.
+
+If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.fill" name="MplFill" superclass="MplPlot">
+    <docstring>call signature:
+
+fill(*args, **kwargs)
+
+Plot filled polygons.  args is a variable length argument, allowing for multiple x, y pairs with an optional color format string; see :func:`~matplotlib.pyplot.plot` for details on the argument parsing.  For example, to plot a polygon with vertices at x, y in blue.:
+
+ax.fill(x,y, 'b' )
+
+An arbitrary number of x, y, color groups can be specified:
+
+ax.fill(x1, y1, 'g', x2, y2, 'r')
+
+Return value is a list of :class:`~matplotlib.patches.Patch` instances that were added.
+
+The same color strings that :func:`~matplotlib.pyplot.plot` supports are supported by the fill format string.
+
+If you would like to fill below a curve, eg. shade a region between 0 and y along x, use :meth:`fill_between`
+
+The closed kwarg will close the polygon when True (default).
+
+kwargs control the Polygon properties:
+
+%(Polygon)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.fill_between" name="MplFill_between" superclass="MplPlot">
+    <docstring>call signature:
+
+fill_between(x, y1, y2=0, where=None, **kwargs)
+
+Create a :class:`~matplotlib.collections.PolyCollection` filling the regions between y1 and y2 where where==True
+
+kwargs control the Polygon properties:
+
+%(PolyCollection)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="y2" hide="False" in_kwargs="True" name="y2" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="interpolate" hide="False" in_kwargs="True" name="interpolate" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="y1" hide="False" in_kwargs="True" name="y1" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="where" hide="False" in_kwargs="True" name="where" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.fill_betweenx" name="MplFill_betweenx" superclass="MplPlot">
+    <docstring>call signature:
+
+fill_between(y, x1, x2=0, where=None, **kwargs)
+
+Create a :class:`~matplotlib.collections.PolyCollection` filling the regions between x1 and x2 where where==True
+
+kwargs control the Polygon properties:
+
+%(PolyCollection)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x2" hide="False" in_kwargs="True" name="x2" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x1" hide="False" in_kwargs="True" name="x1" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="where" hide="False" in_kwargs="True" name="where" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.hexbin" name="MplHexbin" superclass="MplPlot">
+    <docstring>call signature:
+
+hexbin(x, y, C = None, gridsize = 100, bins = None,        xscale = 'linear', yscale = 'linear',        cmap=None, norm=None, vmin=None, vmax=None,        alpha=None, linewidths=None, edgecolors='none'        reduce_C_function = np.mean, mincnt=None, marginals=True        **kwargs)
+
+Make a hexagonal binning plot of x versus y, where x, y are 1-D sequences of the same length, N. If C is None (the default), this is a histogram of the number of occurences of the observations at (x[i],y[i]).
+
+If C is specified, it specifies values at the coordinate (x[i],y[i]). These values are accumulated for each hexagonal bin and then reduced according to reduce_C_function, which defaults to numpy's mean function (np.mean). (If C is specified, it must also be a 1-D sequence of the same length as x and y.)
+
+x, y and/or C may be masked arrays, in which case only unmasked points will be plotted.
+
+Optional keyword arguments:
+
+Other keyword arguments controlling color mapping and normalization arguments:
+
+Other keyword arguments controlling the Collection properties:
+
+Here are the standard descriptions of all the :class:`~matplotlib.collections.Collection` kwargs:
+
+%(Collection)s
+
+The return value is a :class:`~matplotlib.collections.PolyCollection` instance; use :meth:`~matplotlib.collection.PolyCollection.get_array` on this :class:`~matplotlib.collections.PolyCollection` to get the counts in each hexagon. If marginals is True, horizontal bar and vertical bar (both PolyCollections) will be attached to the return collection as attributes hbar and vbar
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="vmax" hide="False" in_kwargs="True" name="vmax" port_type="basic:Float" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="edgecolors" hide="False" in_kwargs="True" name="edgecolorsSequence" port_type="basic:List" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['mpl color']]</values>
+      <defaults>['none']</defaults>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="edgecolorsScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>If 'none', draws the edges in the same color as the fill color. This is the default, as it avoids unsightly unpainted pixels between the hexagons.
+
+If None, draws the outlines in the default color.
+
+If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the specified color.</docstring>
+    </portSpec>
+    <portSpec arg="C" hide="False" in_kwargs="True" name="C" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="gridsize" hide="False" in_kwargs="True" name="gridsize" port_type="basic:Integer" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[[100]]</values>
+      <defaults>['100']</defaults>
+      <docstring>The number of hexagons in the x-direction, default is 100. The corresponding number of hexagons in the y-direction is chosen such that the hexagons are approximately regular. Alternatively, gridsize can be a tuple with two elements specifying the number of hexagons in the x-direction and the y-direction.</docstring>
+    </portSpec>
+    <portSpec arg="vmin" hide="False" in_kwargs="True" name="vmin" port_type="basic:Float" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="yscale" hide="False" in_kwargs="True" name="yscale" port_type="basic:String" required="False">
+      <defaults>['linear']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="reduce_C_function" hide="False" in_kwargs="True" name="reduce_C_function" port_type="__unknown__" required="False">
+      <defaults>['&lt;function mean at 0x10166f2a8&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="linewidths" hide="False" in_kwargs="True" name="linewidthsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="linewidthsScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
+    </portSpec>
+    <portSpec arg="xscale" hide="False" in_kwargs="True" name="xscale" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['linear', 'log']]</values>
+      <defaults>['linear']</defaults>
+      <docstring>Use a linear or log10 scale on the horizontal axis.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>a :class:`matplotlib.cm.Colormap` instance. If None, defaults to rc image.cmap.</docstring>
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Normalize']]</values>
+      <docstring>:class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1.</docstring>
+    </portSpec>
+    <portSpec arg="extent" hide="False" in_kwargs="True" name="extent" port_type="basic:Float" required="False">
+      <docstring>The limits of the bins. The default assigns the limits based on gridsize, x, y, xscale and yscale.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>the alpha value for the patches</docstring>
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="mincnt" hide="False" in_kwargs="True" name="mincnt" port_type="basic:Integer" required="False">
+      <docstring>If not None, only display cells with more than mincnt number of points in the cell</docstring>
+    </portSpec>
+    <portSpec arg="marginals" hide="False" in_kwargs="True" name="marginals" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis</docstring>
+    </portSpec>
+    <portSpec arg="bins" hide="False" in_kwargs="True" name="bins" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['log']]</values>
+      <docstring>If None, no binning is applied; the color of each hexagon directly corresponds to its count value.
+
+If 'log', use a logarithmic scale for the color map. Internally, :math:`log_{10}(i+1)` is used to determine the hexagon color.
+
+If an integer, divide the counts in the specified number of bins, and color the hexagons accordingly.
+
+If a sequence of values, the values of the lower bound of the bins to be used.</docstring>
+    </portSpec>
+    <portSpec arg="scale" hide="False" in_kwargs="True" name="scale" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['linear', 'log']]</values>
+      <docstring>Use a linear or log10 scale on the vertical axis.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.hist" name="MplHist" superclass="MplPlot">
+    <docstring>call signature:
+
+def hist(x, bins=10, range=None, normed=False, weights=None,        cumulative=False, bottom=None, histtype='bar', align='mid',        orientation='vertical', rwidth=None, log=False,        color=None, label=None,        **kwargs):
+
+Compute and draw the histogram of x. The return value is a tuple (n, bins, patches) or ([n0, n1, ...], bins, [patches0, patches1,...]) if the input contains multiple data.
+
+Multiple data can be provided via x as a list of datasets of potentially different length ([x0, x1, ...]), or as a 2-D ndarray in which each column is a dataset.  Note that the ndarray form is transposed relative to the list form.
+
+Masked arrays are not supported at present.
+
+Keyword arguments:
+
+
+
+kwargs are used to update the properties of the :class:`~matplotlib.patches.Patch` instances returned by hist:
+
+%(Patch)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="rwidth" hide="False" in_kwargs="True" name="rwidth" port_type="__unknown__" required="False">
+      <docstring>The relative width of the bars as a fraction of the bin width.  If None, automatically compute the width. Ignored if histtype = 'step' or 'stepfilled'.</docstring>
+    </portSpec>
+    <portSpec arg="normed" hide="False" in_kwargs="True" name="normed" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>If True, the first element of the return tuple will be the counts normalized to form a probability density, i.e., n/(len(x)*dbin).  In a probability density, the integral of the histogram should be 1; you can verify that with a trapezoidal integration of the probability density function:
+
+pdf, bins, patches = ax.hist(...) print np.sum(pdf * np.diff(bins))
+
+Until numpy release 1.5, the underlying numpy histogram function was incorrect with normed*=*True if bin sizes were unequal.  MPL inherited that error.  It is now corrected within MPL when using earlier numpy versions</docstring>
+    </portSpec>
+    <portSpec arg="orientation" hide="False" in_kwargs="True" name="orientation" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['horizontal', 'vertical']]</values>
+      <defaults>['vertical']</defaults>
+      <docstring>If 'horizontal', :func:`~matplotlib.pyplot.barh` will be used for bar-type histograms and the bottom kwarg will be the left edges.</docstring>
+    </portSpec>
+    <portSpec arg="bottom" hide="False" in_kwargs="True" name="bottom" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="color" hide="False" in_kwargs="True" name="color" port_type="basic:List" required="False">
+      <docstring>Color spec or sequence of color specs, one per dataset.  Default (None) uses the standard line color sequence.</docstring>
+    </portSpec>
+    <portSpec arg="histtype" hide="False" in_kwargs="True" name="histtype" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['bar', 'barstacked', 'step', 'stepfilled']]</values>
+      <defaults>['bar']</defaults>
+      <docstring>The type of histogram to draw.
+
+'bar' is a traditional bar-type histogram.  If multiple data are given the bars are aranged side by side.
+
+'barstacked' is a bar-type histogram where multiple data are stacked on top of each other.
+
+'step' generates a lineplot that is by default unfilled.
+
+'stepfilled' generates a lineplot that is by default filled.</docstring>
+    </portSpec>
+    <portSpec arg="align" hide="False" in_kwargs="True" name="align" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['left', 'mid', 'right']]</values>
+      <defaults>['mid']</defaults>
+      <docstring>Controls how the histogram is plotted.
+
+'left': bars are centered on the left bin edges.
+
+'mid': bars are centered between the bin edges.
+
+'right': bars are centered on the right bin edges.</docstring>
+    </portSpec>
+    <portSpec arg="cumulative" hide="False" in_kwargs="True" name="cumulative" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>If True, then a histogram is computed where each bin gives the counts in that bin plus all bins for smaller values. The last bin gives the total number of datapoints.  If normed is also True then the histogram is normalized such that the last bin equals 1. If cumulative evaluates to less than 0 (e.g. -1), the direction of accumulation is reversed.  In this case, if normed is also True, then the histogram is normalized such that the first bin equals 1.</docstring>
+    </portSpec>
+    <portSpec arg="label" hide="False" in_kwargs="True" name="labelSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="labelScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:
+
+ax.hist(10+2*np.random.randn(1000), label='men') ax.hist(12+3*np.random.randn(1000), label='women', alpha=0.5) ax.legend()</docstring>
+    </portSpec>
+    <portSpec arg="range" hide="False" in_kwargs="True" name="range" port_type="basic:List" required="False">
+      <docstring>The lower and upper range of the bins. Lower and upper outliers are ignored. If not provided, range is (x.min(), x.max()). Range has no effect if bins is a sequence.
+
+If bins is a sequence or range is specified, autoscaling is based on the specified bin range instead of the range of x.</docstring>
+    </portSpec>
+    <portSpec arg="weights" hide="False" in_kwargs="True" name="weights" port_type="__unknown__" required="False">
+      <docstring>An array of weights, of the same shape as x.  Each value in x only contributes its associated weight towards the bin count (instead of 1).  If normed is True, the weights are normalized, so that the integral of the density over the range remains 1.</docstring>
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="bins" hide="False" in_kwargs="True" name="binsSequence" port_type="basic:List" required="False">
+      <defaults>['10']</defaults>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="binsScalar" port_type="basic:Integer" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version &gt;= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.</docstring>
+    </portSpec>
+    <portSpec arg="log" hide="False" in_kwargs="True" name="log" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>If True, the histogram axis will be set to a log scale. If log is True and x is a 1D array, empty bins will be filtered out and only the non-empty (n, bins, patches) will be returned.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.hist2d" name="MplHist2d" superclass="MplPlot">
+    <docstring>call signature:
+
+def hist(x, bins=10, range=None, normed=False, weights=None,        cumulative=False, bottom=None, histtype='bar', align='mid',        orientation='vertical', rwidth=None, log=False,        color=None, label=None,        **kwargs):
+
+Compute and draw the histogram of x. The return value is a tuple (n, bins, patches) or ([n0, n1, ...], bins, [patches0, patches1,...]) if the input contains multiple data.
+
+Multiple data can be provided via x as a list of datasets of potentially different length ([x0, x1, ...]), or as a 2-D ndarray in which each column is a dataset.  Note that the ndarray form is transposed relative to the list form.
+
+Masked arrays are not supported at present.
+
+Keyword arguments:
+
+
+
+kwargs are used to update the properties of the :class:`~matplotlib.patches.Patch` instances returned by hist:
+
+%(Patch)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="rwidth" hide="False" in_kwargs="True" name="rwidth" port_type="__unknown__" required="False">
+      <docstring>The relative width of the bars as a fraction of the bin width.  If None, automatically compute the width. Ignored if histtype = 'step' or 'stepfilled'.</docstring>
+    </portSpec>
+    <portSpec arg="normed" hide="False" in_kwargs="True" name="normed" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>If True, the first element of the return tuple will be the counts normalized to form a probability density, i.e., n/(len(x)*dbin).  In a probability density, the integral of the histogram should be 1; you can verify that with a trapezoidal integration of the probability density function:
+
+pdf, bins, patches = ax.hist(...) print np.sum(pdf * np.diff(bins))
+
+Until numpy release 1.5, the underlying numpy histogram function was incorrect with normed*=*True if bin sizes were unequal.  MPL inherited that error.  It is now corrected within MPL when using earlier numpy versions</docstring>
+    </portSpec>
+    <portSpec arg="orientation" hide="False" in_kwargs="True" name="orientation" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['horizontal', 'vertical']]</values>
+      <defaults>['vertical']</defaults>
+      <docstring>If 'horizontal', :func:`~matplotlib.pyplot.barh` will be used for bar-type histograms and the bottom kwarg will be the left edges.</docstring>
+    </portSpec>
+    <portSpec arg="bottom" hide="False" in_kwargs="True" name="bottom" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="color" hide="False" in_kwargs="True" name="color" port_type="basic:List" required="False">
+      <docstring>Color spec or sequence of color specs, one per dataset.  Default (None) uses the standard line color sequence.</docstring>
+    </portSpec>
+    <portSpec arg="histtype" hide="False" in_kwargs="True" name="histtype" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['bar', 'barstacked', 'step', 'stepfilled']]</values>
+      <defaults>['bar']</defaults>
+      <docstring>The type of histogram to draw.
+
+'bar' is a traditional bar-type histogram.  If multiple data are given the bars are aranged side by side.
+
+'barstacked' is a bar-type histogram where multiple data are stacked on top of each other.
+
+'step' generates a lineplot that is by default unfilled.
+
+'stepfilled' generates a lineplot that is by default filled.</docstring>
+    </portSpec>
+    <portSpec arg="align" hide="False" in_kwargs="True" name="align" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['left', 'mid', 'right']]</values>
+      <defaults>['mid']</defaults>
+      <docstring>Controls how the histogram is plotted.
+
+'left': bars are centered on the left bin edges.
+
+'mid': bars are centered between the bin edges.
+
+'right': bars are centered on the right bin edges.</docstring>
+    </portSpec>
+    <portSpec arg="cumulative" hide="False" in_kwargs="True" name="cumulative" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>If True, then a histogram is computed where each bin gives the counts in that bin plus all bins for smaller values. The last bin gives the total number of datapoints.  If normed is also True then the histogram is normalized such that the last bin equals 1. If cumulative evaluates to less than 0 (e.g. -1), the direction of accumulation is reversed.  In this case, if normed is also True, then the histogram is normalized such that the first bin equals 1.</docstring>
+    </portSpec>
+    <portSpec arg="label" hide="False" in_kwargs="True" name="labelSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="labelScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:
+
+ax.hist(10+2*np.random.randn(1000), label='men') ax.hist(12+3*np.random.randn(1000), label='women', alpha=0.5) ax.legend()</docstring>
+    </portSpec>
+    <portSpec arg="range" hide="False" in_kwargs="True" name="range" port_type="basic:List" required="False">
+      <docstring>The lower and upper range of the bins. Lower and upper outliers are ignored. If not provided, range is (x.min(), x.max()). Range has no effect if bins is a sequence.
+
+If bins is a sequence or range is specified, autoscaling is based on the specified bin range instead of the range of x.</docstring>
+    </portSpec>
+    <portSpec arg="weights" hide="False" in_kwargs="True" name="weights" port_type="__unknown__" required="False">
+      <docstring>An array of weights, of the same shape as x.  Each value in x only contributes its associated weight towards the bin count (instead of 1).  If normed is True, the weights are normalized, so that the integral of the density over the range remains 1.</docstring>
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="bins" hide="False" in_kwargs="True" name="binsSequence" port_type="basic:List" required="False">
+      <defaults>['10']</defaults>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="binsScalar" port_type="basic:Integer" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version &gt;= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.</docstring>
+    </portSpec>
+    <portSpec arg="log" hide="False" in_kwargs="True" name="log" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>If True, the histogram axis will be set to a log scale. If log is True and x is a 1D array, empty bins will be filtered out and only the non-empty (n, bins, patches) will be returned.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.hlines" name="MplHlines" superclass="MplPlot">
+    <docstring>call signature:
+
+hlines(y, xmin, xmax, colors='k', linestyles='solid', **kwargs)
+
+Plot horizontal lines at each y from xmin to xmax.
+
+Returns the :class:`~matplotlib.collections.LineCollection` that was added.
+
+Required arguments:
+
+
+
+Optional keyword arguments:
+
+
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="linestyles" hide="False" in_kwargs="True" name="linestyles" port_type="basic:String" required="False">
+      <defaults>['solid']</defaults>
+      <docstring>[ 'solid' | 'dashed' | 'dashdot' | 'dotted' ]</docstring>
+    </portSpec>
+    <portSpec arg="label" hide="False" in_kwargs="True" name="label" port_type="basic:String" required="False">
+      <defaults>['']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="xmin" hide="False" in_kwargs="True" name="xmin" port_type="basic:Float" required="True">
+      <docstring>can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.</docstring>
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colorsSequence" port_type="basic:List" required="False">
+      <defaults>['k']</defaults>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="colorsScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>a line collections color argument, either a single color or a len(y) list of colors</docstring>
+    </portSpec>
+    <portSpec arg="xmax" hide="False" in_kwargs="True" name="xmax" port_type="basic:Float" required="True">
+      <docstring>can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.</docstring>
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring>a 1-D numpy array or iterable.</docstring>
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.imshow" name="MplImshow" superclass="MplPlot">
+    <docstring>call signature:
+
+imshow(X, cmap=None, norm=None, aspect=None, interpolation=None,        alpha=None, vmin=None, vmax=None, origin=None, extent=None,        **kwargs)
+
+Display the image in X to current axes.  X may be a float array, a uint8 array or a PIL image. If X is an array, X can have the following shapes:
+
+MxN -- luminance (grayscale, float array only)
+
+MxNx3 -- RGB (float or uint8 array)
+
+MxNx4 -- RGBA (float or uint8 array)
+
+The value for each component of MxNx3 and MxNx4 float arrays should be in the range 0.0 to 1.0; MxN float arrays may be normalised.
+
+An :class:`matplotlib.image.AxesImage` instance is returned.
+
+Keyword arguments:
+
+interpolation:
+
+Acceptable values are None, 'none', 'nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos'
+
+If interpolation is None, default to rc image.interpolation. See also the filternorm and filterrad parameters
+
+If interpolation is 'none', then no interpolation is performed on the Agg, ps and pdf backends. Other backends will fall back to 'nearest'.
+
+Additional kwargs are :class:`~matplotlib.artist.Artist` properties:
+
+%(Artist)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="origin" hide="False" in_kwargs="True" name="origin" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="imlim" hide="False" in_kwargs="True" name="imlim" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="extent" hide="False" in_kwargs="True" name="extent" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="vmin" hide="False" in_kwargs="True" name="vmin" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="url" hide="False" in_kwargs="True" name="url" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="resample" hide="False" in_kwargs="True" name="resample" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="shape" hide="False" in_kwargs="True" name="shape" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A :class:`matplotlib.cm.Colormap` instance, eg. cm.jet. If None, default to rc image.cmap value.
+
+cmap is ignored when X has RGB(A) information</docstring>
+    </portSpec>
+    <portSpec arg="filterrad" hide="False" in_kwargs="True" name="filterrad" port_type="basic:Float" required="False">
+      <defaults>['4.0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="filternorm" hide="False" in_kwargs="True" name="filternorm" port_type="basic:Integer" required="False">
+      <defaults>['1']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="aspect" hide="False" in_kwargs="True" name="aspect" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['auto', 'equal']]</values>
+      <docstring>If 'auto', changes the image aspect ratio to match that of the axes
+
+If 'equal', and extent is None, changes the axes aspect ratio to match that of the image. If extent is not None, the axes aspect ratio is changed to match that of the extent.
+
+If None, default to rc image.aspect value.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="vmax" hide="False" in_kwargs="True" name="vmax" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="X" hide="False" in_kwargs="True" name="X" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="interpolation" hide="False" in_kwargs="True" name="interpolation" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.loglog" name="MplLoglog" superclass="MplPlot">
+    <docstring>call signature:
+
+loglog(*args, **kwargs)
+
+Make a plot with log scaling on the x and y axis.
+
+:func:`~matplotlib.pyplot.loglog` supports all the keyword arguments of :func:`~matplotlib.pyplot.plot` and :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale`.
+
+Notable keyword arguments:
+
+
+
+The remaining valid kwargs are :class:`~matplotlib.lines.Line2D` properties:
+
+%(Line2D)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="nonposx" hide="False" in_kwargs="True" name="nonposx" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['mask', 'clip']]</values>
+      <docstring>non-positive values in x or y can be masked as invalid, or clipped to a very small positive number</docstring>
+    </portSpec>
+    <portSpec arg="nonposy" hide="False" in_kwargs="True" name="nonposy" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['mask', 'clip']]</values>
+      <docstring>non-positive values in x or y can be masked as invalid, or clipped to a very small positive number</docstring>
+    </portSpec>
+    <portSpec arg="basex" hide="False" in_kwargs="True" name="basex" port_type="basic:Float" required="False">
+      <docstring>base of the x/y logarithm</docstring>
+    </portSpec>
+    <portSpec arg="basey" hide="False" in_kwargs="True" name="basey" port_type="basic:Float" required="False">
+      <docstring>base of the x/y logarithm</docstring>
+    </portSpec>
+    <portSpec arg="subsx" hide="False" in_kwargs="True" name="subsx" port_type="basic:List" required="False">
+      <docstring>the location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details</docstring>
+    </portSpec>
+    <portSpec arg="subsy" hide="False" in_kwargs="True" name="subsy" port_type="basic:List" required="False">
+      <docstring>the location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.pcolor" name="MplPcolor" superclass="MplPlot">
+    <docstring>call signatures:
+
+pcolor(C, **kwargs) pcolor(X, Y, C, **kwargs)
+
+Create a pseudocolor plot of a 2-D array.
+
+C is the array of color values.
+
+X and Y, if given, specify the (x, y) coordinates of the colored quadrilaterals; the quadrilateral for C[i,j] has corners at:
+
+(X[i,   j],   Y[i,   j]), (X[i,   j+1], Y[i,   j+1]), (X[i+1, j],   Y[i+1, j]), (X[i+1, j+1], Y[i+1, j+1]).
+
+Ideally the dimensions of X and Y should be one greater than those of C; if the dimensions are the same, then the last row and column of C will be ignored.
+
+Note that the the column index corresponds to the x-coordinate, and the row index corresponds to y; for details, see the :ref:`Grid Orientation &lt;axes-pcolor-grid-orientation&gt;` section below.
+
+If either or both of X and Y are 1-D arrays or column vectors, they will be expanded as needed into the appropriate 2-D arrays, making a rectangular grid.
+
+X, Y and C may be masked arrays.  If either C[i, j], or one of the vertices surrounding C[i,j] (X or Y at [i, j], [i+1, j], [i, j+1],[i+1, j+1]) is masked, nothing is plotted.
+
+Keyword arguments:
+
+
+
+Return value is a :class:`matplotlib.collection.Collection` instance.
+
+The grid orientation follows the MATLAB convention: an array C with shape (nrows, ncolumns) is plotted with the column number as X and the row number as Y, increasing up; hence it is plotted the way the array would be printed, except that the Y axis is reversed.  That is, C is taken as C*(*y, x).
+
+Similarly for :func:`~matplotlib.pyplot.meshgrid`:
+
+x = np.arange(5) y = np.arange(3) X, Y = meshgrid(x,y)
+
+is equivalent to:
+
+
+
+so if you have:
+
+C = rand( len(x), len(y))
+
+then you need:
+
+pcolor(X, Y, C.T)
+
+or:
+
+pcolor(C.T)
+
+MATLAB :func:`pcolor` always discards the last row and column of C, but matplotlib displays the last row and column if X and Y are not specified, or if X and Y have one more row and column than C.
+
+kwargs can be used to control the :class:`~matplotlib.collection.PolyCollection` properties:
+
+%(PolyCollection)s
+
+Note: the default antialiaseds is False if the default edgecolors*="none" is used.  This eliminates artificial lines at patch boundaries, and works regardless of the value of alpha.  If *edgecolors is not "none", then the default antialiaseds is taken from rcParams['patch.antialiased'], which defaults to True. Stroking the edges may be preferred if alpha is 1, but will cause artifacts otherwise.
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="edgecolors" hide="False" in_kwargs="True" name="edgecolorsSequence" port_type="basic:List" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['none', 'color']]</values>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="edgecolorsScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>If None, the rc setting is used by default.
+
+If 'none', edges will not be visible.
+
+An mpl color or sequence of colors will set the edge color</docstring>
+    </portSpec>
+    <portSpec arg="None" hide="False" in_kwargs="True" name="None" port_type="basic:Float" required="False">
+      <docstring>the alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="vmin" hide="False" in_kwargs="True" name="vmin" port_type="basic:Float" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A :class:`matplotlib.cm.Colormap` instance. If None, use rc settings.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>the alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="vmax" hide="False" in_kwargs="True" name="vmax" port_type="basic:Float" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="shading" hide="False" in_kwargs="True" name="shading" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['flat', 'faceted']]</values>
+      <defaults>['flat']</defaults>
+      <docstring>If 'faceted', a black grid is drawn around each rectangle; if 'flat', edges are not drawn. Default is 'flat', contrary to MATLAB.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.pcolormesh" name="MplPcolormesh" superclass="MplPlot">
+    <docstring>call signatures:
+
+pcolormesh(C) pcolormesh(X, Y, C) pcolormesh(C, **kwargs)
+
+C may be a masked array, but X and Y may not.  Masked array support is implemented via cmap and norm; in contrast, :func:`~matplotlib.pyplot.pcolor` simply does not draw quadrilaterals with masked colors or vertices.
+
+Keyword arguments:
+
+
+
+Return value is a :class:`matplotlib.collection.QuadMesh` object.
+
+kwargs can be used to control the :class:`matplotlib.collections.QuadMesh` properties:
+
+%(QuadMesh)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="edgecolors" hide="False" in_kwargs="True" name="edgecolorsSequence" port_type="basic:List" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['None', 'color']]</values>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="edgecolorsScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>If None, the rc setting is used by default.
+
+If 'None', edges will not be visible.
+
+An mpl color or sequence of colors will set the edge color</docstring>
+    </portSpec>
+    <portSpec arg="None" hide="False" in_kwargs="True" name="None" port_type="basic:Float" required="False">
+      <docstring>the alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="vmin" hide="False" in_kwargs="True" name="vmin" port_type="basic:Float" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A :class:`matplotlib.cm.Colormap` instance. If None, use rc settings.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>the alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="vmax" hide="False" in_kwargs="True" name="vmax" port_type="basic:Float" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="shading" hide="False" in_kwargs="True" name="shading" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['flat', 'faceted', 'gouraud']]</values>
+      <defaults>['flat']</defaults>
+      <docstring>If 'faceted', a black grid is drawn around each rectangle; if 'flat', edges are not drawn. Default is 'flat', contrary to MATLAB.</docstring>
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Normalize']]</values>
+      <docstring>A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1. If None, defaults to :func:`normalize`.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.pie" name="MplPie" superclass="MplPlot">
+    <docstring>call signature:
+
+pie(x, explode=None, labels=None,     colors=('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w'),     autopct=None, pctdistance=0.6, labeldistance=1.1, shadow=False)
+
+Make a pie chart of array x.  The fractional area of each wedge is given by x/sum(x).  If sum(x) &lt;= 1, then the values of x give the fractional area directly and the array will not be normalized.
+
+Keyword arguments:
+
+
+
+The pie chart will probably look best if the figure and axes are square.  Eg.:
+
+figure(figsize=(8,8)) ax = axes([0.1, 0.1, 0.8, 0.8])
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="autopct" hide="False" in_kwargs="True" name="autopct" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['format function']]</values>
+      <docstring>If not None, is a string or function used to label the wedges with their numeric value.  The label will be placed inside the wedge.  If it is a format string, the label will be fmt%pct. If it is a function, it will be called.</docstring>
+    </portSpec>
+    <portSpec arg="pctdistance" hide="False" in_kwargs="True" name="pctdistance" port_type="basic:Float" required="False">
+      <defaults>['0.6']</defaults>
+      <docstring>The ratio between the center of each pie slice and the start of the text generated by autopct.  Ignored if autopct is None; default is 0.6.</docstring>
+    </portSpec>
+    <portSpec arg="labels" hide="False" in_kwargs="True" name="labelsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="labelsScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>A sequence of strings providing the labels for each wedge</docstring>
+    </portSpec>
+    <portSpec arg="explode" hide="False" in_kwargs="True" name="explode" port_type="basic:List" required="False">
+      <docstring>If not None, is a len(x) array which specifies the fraction of the radius with which to offset each wedge.</docstring>
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colors" port_type="basic:List" required="False">
+      <defaults>["('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')"]</defaults>
+      <docstring>A sequence of matplotlib color args through which the pie chart will cycle.</docstring>
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="shadow" hide="False" in_kwargs="True" name="shadow" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>Draw a shadow beneath the pie.</docstring>
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="labeldistance" hide="False" in_kwargs="True" name="labeldistance" port_type="basic:Float" required="False">
+      <defaults>['1.1']</defaults>
+      <docstring>The radial distance at which the pie labels are drawn</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.plot_date" name="MplPlot_date" superclass="MplPlot">
+    <docstring>call signature:
+
+plot_date(x, y, fmt='bo', tz=None, xdate=True, ydate=False, **kwargs)
+
+Similar to the :func:`~matplotlib.pyplot.plot` command, except the x or y (or both) data is considered to be dates, and the axis is labeled accordingly.
+
+x and/or y can be a sequence of dates represented as float days since 0001-01-01 UTC.
+
+Keyword arguments:
+
+Note if you are using custom date tickers and formatters, it may be necessary to set the formatters/locators after the call to :meth:`plot_date` since :meth:`plot_date` will set the default tick locator to :class:`matplotlib.dates.AutoDateLocator` (if the tick locator is not already set to a :class:`matplotlib.dates.DateLocator` instance) and the default tick formatter to :class:`matplotlib.dates.AutoDateFormatter` (if the tick formatter is not already set to a :class:`matplotlib.dates.DateFormatter` instance).
+
+Valid kwargs are :class:`~matplotlib.lines.Line2D` properties:
+
+%(Line2D)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="tz" hide="False" in_kwargs="True" name="tz" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[[':class:`tzinfo` instance']]</values>
+      <docstring>The time zone to use in labeling dates. If None, defaults to rc value.</docstring>
+    </portSpec>
+    <portSpec arg="fmt" hide="False" in_kwargs="True" name="fmt" port_type="basic:String" required="False">
+      <defaults>['bo']</defaults>
+      <docstring>The plot format string.</docstring>
+    </portSpec>
+    <portSpec arg="ydate" hide="False" in_kwargs="True" name="ydate" port_type="basic:Boolean" required="False">
+      <defaults>['False']</defaults>
+      <docstring>If True, the y-axis will be labeled with dates.</docstring>
+    </portSpec>
+    <portSpec arg="xdate" hide="False" in_kwargs="True" name="xdate" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring>If True, the x-axis will be labeled with dates.</docstring>
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.psd" name="MplPsd" superclass="MplPlot">
+    <docstring>call signature:
+
+psd(x, NFFT=256, Fs=2, Fc=0, detrend=mlab.detrend_none,     window=mlab.window_hanning, noverlap=0, pad_to=None,     sides='default', scale_by_freq=None, **kwargs)
+
+The power spectral density by Welch's average periodogram method.  The vector x is divided into NFFT length segments.  Each segment is detrended by function detrend and windowed by function window.  noverlap gives the length of the overlap between segments.  The :math:`|\mathrm{fft}(i)|^2` of each segment :math:`i` are averaged to compute Pxx, with a scaling to correct for power loss due to windowing.  Fs is the sampling frequency.
+
+%(PSD)s
+
+
+
+Returns the tuple (Pxx, freqs).
+
+For plotting, the power is plotted as :math:`10\log_{10}(P_{xx})` for decibels, though Pxx itself is returned.
+
+kwargs control the :class:`~matplotlib.lines.Line2D` properties:
+
+%(Line2D)s
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="Fs" hide="False" in_kwargs="True" name="Fs" port_type="basic:Integer" required="False">
+      <defaults>['2']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="pad_to" hide="False" in_kwargs="True" name="pad_to" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="scale_by_freq" hide="False" in_kwargs="True" name="scale_by_freq" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="detrend" hide="False" in_kwargs="True" name="detrend" port_type="__unknown__" required="False">
+      <defaults>['&lt;function detrend_none at 0x101f3b0c8&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="window" hide="False" in_kwargs="True" name="window" port_type="__unknown__" required="False">
+      <defaults>['&lt;function window_hanning at 0x101f367d0&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="Fc" hide="False" in_kwargs="True" name="Fc" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="NFFT" hide="False" in_kwargs="True" name="NFFT" port_type="basic:Integer" required="False">
+      <defaults>['256']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="sides" hide="False" in_kwargs="True" name="sides" port_type="basic:String" required="False">
+      <defaults>['default']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="noverlap" hide="False" in_kwargs="True" name="noverlap" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.quiver" name="MplQuiver" superclass="MplPlot">
+    <docstring>Plot a 2-D field of arrows.
+
+call signatures:
+
+quiver(U, V, **kw) quiver(U, V, C, **kw) quiver(X, Y, U, V, **kw) quiver(X, Y, U, V, C, **kw)
+
+Arguments:
+
+X, Y:
+
+The x and y coordinates of the arrow locations (default is tail of arrow; see pivot kwarg)
+
+U, V:
+
+give the x and y components of the arrow vectors
+
+All arguments may be 1-D or 2-D arrays or sequences. If X and Y are absent, they will be generated as a uniform grid.  If U and V are 2-D arrays but X and Y are 1-D, and if len(X) and len(Y) match the column and row dimensions of U, then X and Y will be expanded with :func:`numpy.meshgrid`.
+
+U, V, C may be masked arrays, but masked X, Y are not supported at present.
+
+Keyword arguments:
+
+
+
+The defaults give a slightly swept-back arrow; to make the head a triangle, make headaxislength the same as headlength. To make the arrow more pointed, reduce headwidth or increase headlength and headaxislength. To make the head smaller relative to the shaft, scale down all the head parameters. You will probably do best to leave minshaft alone.
+
+linewidths and edgecolors can be used to customize the arrow outlines. Additional :class:`~matplotlib.collections.PolyCollection` keyword arguments:
+
+agg_filter: unknown alpha: float or None animated: [True | False] antialiased or antialiaseds: Boolean or sequence of booleans array: unknown axes: an :class:`~matplotlib.axes.Axes` instance clim: a length 2 sequence of floats clip_box: a :class:`matplotlib.transforms.Bbox` instance clip_on: [True | False] clip_path: [ (:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`) |         :class:`~matplotlib.patches.Patch` | None ] cmap: a colormap or registered colormap name color: matplotlib color arg or sequence of rgba tuples colorbar: unknown contains: a callable function edgecolor or edgecolors: matplotlib color arg or sequence of rgba tuples facecolor or facecolors: matplotlib color arg or sequence of rgba tuples figure: a :class:`matplotlib.figure.Figure` instance gid: an id string label: any string linestyle or linestyles or dashes: ['solid' | 'dashed', 'dashdot', 'dotted' |         (offset, on-off-dash-seq) ] linewidth or lw or linewidths: float or sequence of floats lod: [True | False] norm: unknown offsets: float or sequence of floats paths: unknown picker: [None|float|boolean|callable] pickradius: unknown rasterized: [True | False | None] snap: unknown transform: :class:`~matplotlib.transforms.Transform` instance url: a url string urls: unknown visible: [True | False] zorder: any number
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="scale" hide="False" in_kwargs="True" name="scaleSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="scaleScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>data units per arrow length unit, e.g. m/s per plot width; a smaller scale parameter makes the arrow longer.  If None, a simple autoscaling algorithm is used, based on the average vector length and the number of vectors.  The arrow length unit is given by the scale_units parameter</docstring>
+    </portSpec>
+    <portSpec arg="headaxislength" hide="False" in_kwargs="True" name="headaxislength" port_type="basic:Float" required="False">
+      <defaults>['4.5']</defaults>
+      <docstring>head length at shaft intersection, default is 4.5</docstring>
+    </portSpec>
+    <portSpec arg="headlength" hide="False" in_kwargs="True" name="headlength" port_type="basic:Float" required="False">
+      <defaults>['5']</defaults>
+      <docstring>head length as multiple of shaft width, default is 5</docstring>
+    </portSpec>
+    <portSpec arg="minlength" hide="False" in_kwargs="True" name="minlength" port_type="basic:Float" required="False">
+      <defaults>['1']</defaults>
+      <docstring>minimum length as a multiple of shaft width; if an arrow length is less than this, plot a dot (hexagon) of this diameter instead. Default is 1.</docstring>
+    </portSpec>
+    <portSpec arg="minshaft" hide="False" in_kwargs="True" name="minshaft" port_type="basic:Float" required="False">
+      <defaults>['1']</defaults>
+      <docstring>length below which arrow scales, in units of head length. Do not set this to less than 1, or small arrows will look terrible! Default is 1</docstring>
+    </portSpec>
+    <portSpec arg="width" hide="False" in_kwargs="True" name="width" port_type="basic:List" required="False">
+      <docstring>shaft width in arrow units; default depends on choice of units, above, and number of vectors; a typical starting value is about 0.005 times the width of the plot.</docstring>
+    </portSpec>
+    <portSpec arg="headwidth" hide="False" in_kwargs="True" name="headwidth" port_type="basic:Float" required="False">
+      <defaults>['3']</defaults>
+      <docstring>head width as multiple of shaft width, default is 3</docstring>
+    </portSpec>
+    <portSpec arg="units" hide="False" in_kwargs="True" name="units" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['width', 'height', 'dots', 'inches', 'x', 'y', 'xy']]</values>
+      <docstring>arrow units; the arrow dimensions except for length are in multiples of this unit.
+
+'width' or 'height': the width or height of the axes
+
+'dots' or 'inches': pixels or inches, based on the figure dpi
+
+'x', 'y', or 'xy': X, Y, or sqrt(X^2+Y^2) data units
+
+The arrows scale differently depending on the units.  For 'x' or 'y', the arrows get larger as one zooms in; for other units, the arrow size is independent of the zoom state.  For 'width or 'height', the arrow size increases with the width and height of the axes, respectively, when the the window is resized; for 'dots' or 'inches', resizing does not change the arrows.</docstring>
+    </portSpec>
+    <portSpec arg="pivot" hide="False" in_kwargs="True" name="pivot" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['tail', 'middle', 'tip']]</values>
+      <docstring>The part of the arrow that is at the grid point; the arrow rotates about this point, hence the name pivot.</docstring>
+    </portSpec>
+    <portSpec arg="color" hide="False" in_kwargs="True" name="colorSequence" port_type="basic:List" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['color']]</values>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="colorScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.quiverkey" name="MplQuiverkey" superclass="MplPlot">
+    <docstring>Add a key to a quiver plot.
+
+call signature:
+
+quiverkey(Q, X, Y, U, label, **kw)
+
+Arguments:
+
+
+
+Keyword arguments:
+
+
+
+Any additional keyword arguments are used to override vector properties taken from Q.
+
+The positioning of the key depends on X, Y, coordinates, and labelpos.  If labelpos is 'N' or 'S', X, Y give the position of the middle of the key arrow.  If labelpos is 'E', X, Y positions the head, and if labelpos is 'W', X, Y positions the tail; in either of these two cases, X, Y is somewhere in the middle of the arrow+label key object.
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="color" hide="False" in_kwargs="True" name="color" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>overrides face and edge colors from Q.</docstring>
+    </portSpec>
+    <portSpec arg="coordinates" hide="False" in_kwargs="True" name="coordinatesSequence" port_type="basic:List" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['axes', 'figure', 'data', 'inches']]</values>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="coordinatesScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>Coordinate system and units for X, Y: 'axes' and 'figure' are normalized coordinate systems with 0,0 in the lower left and 1,1 in the upper right; 'data' are the axes data coordinates (used for the locations of the vectors in the quiver plot itself); 'inches' is position in the figure in inches, with 0,0 at the lower left corner.</docstring>
+    </portSpec>
+    <portSpec arg="label" hide="False" in_kwargs="True" name="label" port_type="basic:String" required="False">
+      <docstring>a string with the length and units of the key</docstring>
+    </portSpec>
+    <portSpec arg="Q" hide="False" in_kwargs="True" name="Q" port_type="__unknown__" required="False">
+      <docstring>The Quiver instance returned by a call to quiver.</docstring>
+    </portSpec>
+    <portSpec arg="labelcolor" hide="False" in_kwargs="True" name="labelcolor" port_type="basic:Color" required="False">
+      <translations>translate_color</translations>
+      <docstring>defaults to default :class:`~matplotlib.text.Text` color.</docstring>
+    </portSpec>
+    <portSpec arg="fontproperties" hide="False" in_kwargs="True" name="fontproperties" port_type="__unknown__" required="False">
+      <docstring>A dictionary with keyword arguments accepted by the :class:`~matplotlib.font_manager.FontProperties` initializer: family, style, variant, size, weight</docstring>
+    </portSpec>
+    <portSpec arg="U" hide="False" in_kwargs="True" name="U" port_type="__unknown__" required="False">
+      <docstring>The length of the key</docstring>
+    </portSpec>
+    <portSpec arg="labelpos" hide="False" in_kwargs="True" name="labelpos" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['N', 'S', 'E', 'W']]</values>
+      <docstring>Position the label above, below, to the right, to the left of the arrow, respectively.</docstring>
+    </portSpec>
+    <portSpec arg="Y" hide="False" in_kwargs="True" name="Y" port_type="__unknown__" required="False">
+      <docstring>The location of the key; additional explanation follows.</docstring>
+    </portSpec>
+    <portSpec arg="X" hide="False" in_kwargs="True" name="X" port_type="__unknown__" required="False">
+      <docstring>The location of the key; additional explanation follows.</docstring>
+    </portSpec>
+    <portSpec arg="labelsep" hide="False" in_kwargs="True" name="labelsep" port_type="basic:Float" required="False">
+      <defaults>['0.1']</defaults>
+      <docstring>Distance in inches between the arrow and the label.  Default is 0.1</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.scatter" name="MplScatter" superclass="MplPlot">
+    <docstring>call signatures:
+
+scatter(x, y, s=20, c='b', marker='o', cmap=None, norm=None,         vmin=None, vmax=None, alpha=None, linewidths=None,         verts=None, **kwargs)
+
+Make a scatter plot of x versus y, where x, y are converted to 1-D sequences which must be of the same length, N.
+
+Keyword arguments:
+
+
+
+Any or all of x, y, s, and c may be masked arrays, in which case all masks will be combined and only unmasked points will be plotted.
+
+Other keyword arguments: the color mapping and normalization arguments will be used only if c is an array of floats.
+
+
+
+Optional kwargs control the :class:`~matplotlib.collections.Collection` properties; in particular:
+
+
+
+Here are the standard descriptions of all the :class:`~matplotlib.collections.Collection` kwargs:
+
+%(Collection)s
+
+A :class:`~matplotlib.collections.Collection` instance is returned.
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="vmax" hide="False" in_kwargs="True" name="vmax" port_type="__unknown__" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="edgecolors" hide="False" in_kwargs="True" name="edgecolors" port_type="basic:String" required="False">
+      <docstring>The string 'none' to plot faces with no outlines</docstring>
+    </portSpec>
+    <portSpec arg="c" hide="False" in_kwargs="True" name="cSequence" port_type="basic:List" required="False">
+      <defaults>['b']</defaults>
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="cScalar" port_type="basic:String" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>a color. c can be a single color format string, or a sequence of color specifications of length N, or a sequence of N numbers to be mapped to colors using the cmap and norm specified via kwargs (see below). Note that c should not be a single numeric RGB or RGBA sequence because that is indistinguishable from an array of values to be colormapped.  c can be a 2-D array in which the rows are RGB or RGBA, however.</docstring>
+    </portSpec>
+    <portSpec arg="vmin" hide="False" in_kwargs="True" name="vmin" port_type="__unknown__" required="False">
+      <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.</docstring>
+    </portSpec>
+    <portSpec arg="faceted" hide="False" in_kwargs="True" name="faceted" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="linewidths" hide="False" in_kwargs="True" name="linewidthsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="linewidthsScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>If None, defaults to (lines.linewidth,).  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
+    </portSpec>
+    <portSpec arg="marker" hide="False" in_kwargs="True" name="marker" port_type="basic:String" required="False">
+      <defaults>['o']</defaults>
+      <docstring>can be one of:
+
+%(MarkerTable)s</docstring>
+    </portSpec>
+    <portSpec arg="s" hide="False" in_kwargs="True" name="s" port_type="basic:Float" required="False">
+      <defaults>['20']</defaults>
+      <docstring>size in points^2.  It is a scalar or an array of the same length as x and y.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A :class:`matplotlib.colors.Colormap` instance or registered name. If None, defaults to rc image.cmap. cmap is only used if c is an array of floats.</docstring>
+    </portSpec>
+    <portSpec arg="verts" hide="False" in_kwargs="True" name="verts" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>The alpha value for the patches</docstring>
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="facecolors" hide="False" in_kwargs="True" name="facecolors" port_type="basic:String" required="False">
+      <docstring>The string 'none' to plot unfilled outlines</docstring>
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Normalize']]</values>
+      <docstring>A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0, 1. If None, use the default :func:`normalize`. norm is only used if c is an array of floats.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.semilogx" name="MplSemilogx" superclass="MplPlot">
+    <docstring>call signature:
+
+semilogx(*args, **kwargs)
+
+Make a plot with log scaling on the x axis.
+
+:func:`semilogx` supports all the keyword arguments of :func:`~matplotlib.pyplot.plot` and :meth:`matplotlib.axes.Axes.set_xscale`.
+
+Notable keyword arguments:
+
+
+
+The remaining valid kwargs are :class:`~matplotlib.lines.Line2D` properties:
+
+%(Line2D)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="basex" hide="False" in_kwargs="True" name="basex" port_type="basic:Float" required="False">
+      <docstring>base of the x logarithm</docstring>
+    </portSpec>
+    <portSpec arg="nonposx" hide="False" in_kwargs="True" name="nonposx" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['mask', 'clip']]</values>
+      <docstring>non-positive values in x can be masked as invalid, or clipped to a very small positive number</docstring>
+    </portSpec>
+    <portSpec arg="subsx" hide="False" in_kwargs="True" name="subsx" port_type="basic:List" required="False">
+      <docstring>The location of the minor xticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_xscale` for details.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.semilogy" name="MplSemilogy" superclass="MplPlot">
+    <docstring>call signature:
+
+semilogy(*args, **kwargs)
+
+Make a plot with log scaling on the y axis.
+
+:func:`semilogy` supports all the keyword arguments of :func:`~matplotlib.pylab.plot` and :meth:`matplotlib.axes.Axes.set_yscale`.
+
+Notable keyword arguments:
+
+
+
+The remaining valid kwargs are :class:`~matplotlib.lines.Line2D` properties:
+
+%(Line2D)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="basey" hide="False" in_kwargs="True" name="basey" port_type="basic:Float" required="False">
+      <docstring>Base of the y logarithm</docstring>
+    </portSpec>
+    <portSpec arg="nonposy" hide="False" in_kwargs="True" name="nonposy" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['mask', 'clip']]</values>
+      <docstring>non-positive values in y can be masked as invalid, or clipped to a very small positive number</docstring>
+    </portSpec>
+    <portSpec arg="subsy" hide="False" in_kwargs="True" name="subsy" port_type="basic:List" required="False">
+      <docstring>The location of the minor yticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_yscale` for details.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.specgram" name="MplSpecgram" superclass="MplPlot">
+    <docstring>call signature:
+
+specgram(x, NFFT=256, Fs=2, Fc=0, detrend=mlab.detrend_none,          window=mlab.window_hanning, noverlap=128,          cmap=None, xextent=None, pad_to=None, sides='default',          scale_by_freq=None, **kwargs)
+
+Compute a spectrogram of data in x.  Data are split into NFFT length segments and the PSD of each section is computed.  The windowing function window is applied to each segment, and the amount of overlap of each segment is specified with noverlap.
+
+%(PSD)s
+
+kwargs:
+
+Additional kwargs are passed on to imshow which makes the specgram image
+
+Return value is (Pxx, freqs, bins, im):
+
+bins are the time points the spectrogram is calculated over
+
+freqs is an array of frequencies
+
+Pxx is a len(times) x len(freqs) array of power
+
+im is a :class:`matplotlib.image.AxesImage` instance
+
+Note: If x is real (i.e. non-complex), only the positive spectrum is shown.  If x is complex, both positive and negative parts of the spectrum are shown.  This can be overridden using the sides keyword argument.
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="Fs" hide="False" in_kwargs="True" name="Fs" port_type="basic:Integer" required="False">
+      <defaults>['2']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="pad_to" hide="False" in_kwargs="True" name="pad_to" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="scale_by_freq" hide="False" in_kwargs="True" name="scale_by_freq" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="xextent" hide="False" in_kwargs="True" name="xextent" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="detrend" hide="False" in_kwargs="True" name="detrend" port_type="__unknown__" required="False">
+      <defaults>['&lt;function detrend_none at 0x101f3b0c8&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="window" hide="False" in_kwargs="True" name="window" port_type="__unknown__" required="False">
+      <defaults>['&lt;function window_hanning at 0x101f367d0&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="Fc" hide="False" in_kwargs="True" name="Fc" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="NFFT" hide="False" in_kwargs="True" name="NFFT" port_type="basic:Integer" required="False">
+      <defaults>['256']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="sides" hide="False" in_kwargs="True" name="sides" port_type="basic:String" required="False">
+      <defaults>['default']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="noverlap" hide="False" in_kwargs="True" name="noverlap" port_type="basic:Integer" required="False">
+      <defaults>['128']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.stackplot" name="MplStackplot" superclass="MplPlot">
+    <docstring>call signature:
+
+specgram(x, NFFT=256, Fs=2, Fc=0, detrend=mlab.detrend_none,          window=mlab.window_hanning, noverlap=128,          cmap=None, xextent=None, pad_to=None, sides='default',          scale_by_freq=None, **kwargs)
+
+Compute a spectrogram of data in x.  Data are split into NFFT length segments and the PSD of each section is computed.  The windowing function window is applied to each segment, and the amount of overlap of each segment is specified with noverlap.
+
+%(PSD)s
+
+kwargs:
+
+Additional kwargs are passed on to imshow which makes the specgram image
+
+Return value is (Pxx, freqs, bins, im):
+
+bins are the time points the spectrogram is calculated over
+
+freqs is an array of frequencies
+
+Pxx is a len(times) x len(freqs) array of power
+
+im is a :class:`matplotlib.image.AxesImage` instance
+
+Note: If x is real (i.e. non-complex), only the positive spectrum is shown.  If x is complex, both positive and negative parts of the spectrum are shown.  This can be overridden using the sides keyword argument.
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="Fs" hide="False" in_kwargs="True" name="Fs" port_type="basic:Integer" required="False">
+      <defaults>['2']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="pad_to" hide="False" in_kwargs="True" name="pad_to" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="scale_by_freq" hide="False" in_kwargs="True" name="scale_by_freq" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="xextent" hide="False" in_kwargs="True" name="xextent" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="detrend" hide="False" in_kwargs="True" name="detrend" port_type="__unknown__" required="False">
+      <defaults>['&lt;function detrend_none at 0x101f3b0c8&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="window" hide="False" in_kwargs="True" name="window" port_type="__unknown__" required="False">
+      <defaults>['&lt;function window_hanning at 0x101f367d0&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="Fc" hide="False" in_kwargs="True" name="Fc" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="NFFT" hide="False" in_kwargs="True" name="NFFT" port_type="basic:Integer" required="False">
+      <defaults>['256']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="sides" hide="False" in_kwargs="True" name="sides" port_type="basic:String" required="False">
+      <defaults>['default']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="noverlap" hide="False" in_kwargs="True" name="noverlap" port_type="basic:Integer" required="False">
+      <defaults>['128']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.stem" name="MplStem" superclass="MplPlot">
+    <docstring>call signature:
+
+stem(x, y, linefmt='b-', markerfmt='bo', basefmt='r-')
+
+A stem plot plots vertical lines (using linefmt) at each x location from the baseline to y, and places a marker there using markerfmt.  A horizontal line at 0 is is plotted using basefmt.
+
+Return value is a tuple (markerline, stemlines, baseline).
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="linefmt" hide="False" in_kwargs="True" name="linefmt" port_type="basic:String" required="False">
+      <defaults>['b-']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="markerfmt" hide="False" in_kwargs="True" name="markerfmt" port_type="basic:String" required="False">
+      <defaults>['bo']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="basefmt" hide="False" in_kwargs="True" name="basefmt" port_type="basic:String" required="False">
+      <defaults>['r-']</defaults>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.step" name="MplStep" superclass="MplPlot">
+    <docstring>call signature:
+
+step(x, y, *args, **kwargs)
+
+Make a step plot. Additional keyword args to :func:`step` are the same as those for :func:`~matplotlib.pyplot.plot`.
+
+x and y must be 1-D sequences, and it is assumed, but not checked, that x is uniformly increasing.
+
+Keyword arguments:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="where" hide="False" in_kwargs="True" name="where" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['pre', 'post', 'mid']]</values>
+      <docstring>If 'pre', the interval from x[i] to x[i+1] has level y[i+1]
+
+If 'post', that interval has level y[i]
+
+If 'mid', the jumps in y occur half-way between the x-values.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.streamplot" name="MplStreamplot" superclass="MplPlot">
+    <docstring>call signature:
+
+step(x, y, *args, **kwargs)
+
+Make a step plot. Additional keyword args to :func:`step` are the same as those for :func:`~matplotlib.pyplot.plot`.
+
+x and y must be 1-D sequences, and it is assumed, but not checked, that x is uniformly increasing.
+
+Keyword arguments:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="where" hide="False" in_kwargs="True" name="where" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['pre', 'post', 'mid']]</values>
+      <docstring>If 'pre', the interval from x[i] to x[i+1] has level y[i+1]
+
+If 'post', that interval has level y[i]
+
+If 'mid', the jumps in y occur half-way between the x-values.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.tricontour" name="MplTricontour" superclass="MplPlot">
+    <docstring>:func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively, on an unstructured triangular grid.  Except as noted, function signatures and return values are the same for both versions.
+
+The triangulation can be specified in one of two ways; either:
+
+tricontour(triangulation, ...)
+
+where triangulation is a :class:`~matplotlib.tri.Triangulation` object, or
+
+tricontour(x, y, ...) tricontour(x, y, triangles, ...) tricontour(x, y, triangles=triangles, ...) tricontour(x, y, mask=mask, ...) tricontour(x, y, triangles, mask=mask, ...)
+
+in which case a Triangulation object will be created.  See :class:`~matplotlib.tri.Triangulation` for a explanation of these possibilities.
+
+The remaining arguments may be:
+
+tricontour(..., Z)
+
+where Z is the array of values to contour, one per point in the triangulation.  The level values are chosen automatically.
+
+tricontour(..., Z, N)
+
+contour N automatically-chosen levels.
+
+tricontour(..., Z, V)
+
+draw contour lines at the values specified in sequence V
+
+tricontourf(..., Z, V)
+
+fill the (len(V)-1) regions between the values in V
+
+tricontour(Z, **kwargs)
+
+Use keyword args to control colors, linewidth, origin, cmap ... see below for more details.
+
+C = tricontour(...) returns a :class:`~matplotlib.contour.TriContourSet` object.
+
+Optional keyword arguments:
+
+extent: [ None | (x0,x1,y0,y1) ]
+
+If origin is not None, then extent is interpreted as in :func:`matplotlib.pyplot.imshow`: it gives the outer pixel boundaries. In this case, the position of Z[0,0] is the center of the pixel, not a corner. If origin is None, then (x0, y0) is the position of Z[0,0], and (x1, y1) is the position of Z[-1,-1].
+
+This keyword is not active if X and Y are specified in the call to contour.
+
+tricontour-only keyword arguments:
+
+
+
+tricontourf-only keyword arguments:
+
+
+
+Note: tricontourf fills intervals that are closed at the top; that is, for boundaries z1 and z2, the filled region is:
+
+z1 &lt; z &lt;= z2
+
+There is one exception: if the lowest boundary coincides with the minimum value of the z array, then that minimum value will be included in the lowest interval.
+
+Examples:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="origin" hide="False" in_kwargs="True" name="origin" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['upper', 'lower', 'image']]</values>
+      <docstring>If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.
+
+This keyword is not active if X and Y are specified in the call to contour.</docstring>
+    </portSpec>
+    <portSpec arg="linestyles" hide="False" in_kwargs="True" name="linestyles" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <docstring>If linestyles is None, the 'solid' is used.
+
+linestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.
+
+If contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.</docstring>
+    </portSpec>
+    <portSpec arg="levels" hide="False" in_kwargs="True" name="levelsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="levelsScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]</docstring>
+    </portSpec>
+    <portSpec arg="linewidths" hide="False" in_kwargs="True" name="linewidths" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['number', 'tuple of numbers']]</values>
+      <docstring>If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.
+
+If a number, all levels will be plotted with this linewidth.
+
+If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colors" port_type="basic:Color" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['(mpl_colors)']]</values>
+      <translations>translate_color</translations>
+      <docstring>If None, the colormap specified by cmap will be used.
+
+If a string, like 'r' or 'red', all levels will be plotted in this color.
+
+If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
+    </portSpec>
+    <portSpec arg="antialiased" hide="False" in_kwargs="True" name="antialiased" port_type="basic:Boolean" required="False">
+      <docstring>enable antialiasing</docstring>
+    </portSpec>
+    <portSpec arg="nchunk" hide="False" in_kwargs="True" name="nchunk" port_type="basic:Integer" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[[0]]</values>
+      <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>The alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Normalize']]</values>
+      <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.tricontourf" name="MplTricontourf" superclass="MplPlot">
+    <docstring>:func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively, on an unstructured triangular grid.  Except as noted, function signatures and return values are the same for both versions.
+
+The triangulation can be specified in one of two ways; either:
+
+tricontour(triangulation, ...)
+
+where triangulation is a :class:`~matplotlib.tri.Triangulation` object, or
+
+tricontour(x, y, ...) tricontour(x, y, triangles, ...) tricontour(x, y, triangles=triangles, ...) tricontour(x, y, mask=mask, ...) tricontour(x, y, triangles, mask=mask, ...)
+
+in which case a Triangulation object will be created.  See :class:`~matplotlib.tri.Triangulation` for a explanation of these possibilities.
+
+The remaining arguments may be:
+
+tricontour(..., Z)
+
+where Z is the array of values to contour, one per point in the triangulation.  The level values are chosen automatically.
+
+tricontour(..., Z, N)
+
+contour N automatically-chosen levels.
+
+tricontour(..., Z, V)
+
+draw contour lines at the values specified in sequence V
+
+tricontourf(..., Z, V)
+
+fill the (len(V)-1) regions between the values in V
+
+tricontour(Z, **kwargs)
+
+Use keyword args to control colors, linewidth, origin, cmap ... see below for more details.
+
+C = tricontour(...) returns a :class:`~matplotlib.contour.TriContourSet` object.
+
+Optional keyword arguments:
+
+extent: [ None | (x0,x1,y0,y1) ]
+
+If origin is not None, then extent is interpreted as in :func:`matplotlib.pyplot.imshow`: it gives the outer pixel boundaries. In this case, the position of Z[0,0] is the center of the pixel, not a corner. If origin is None, then (x0, y0) is the position of Z[0,0], and (x1, y1) is the position of Z[-1,-1].
+
+This keyword is not active if X and Y are specified in the call to contour.
+
+tricontour-only keyword arguments:
+
+
+
+tricontourf-only keyword arguments:
+
+
+
+Note: tricontourf fills intervals that are closed at the top; that is, for boundaries z1 and z2, the filled region is:
+
+z1 &lt; z &lt;= z2
+
+There is one exception: if the lowest boundary coincides with the minimum value of the z array, then that minimum value will be included in the lowest interval.
+
+Examples:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="origin" hide="False" in_kwargs="True" name="origin" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['upper', 'lower', 'image']]</values>
+      <docstring>If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.
+
+This keyword is not active if X and Y are specified in the call to contour.</docstring>
+    </portSpec>
+    <portSpec arg="linestyles" hide="False" in_kwargs="True" name="linestyles" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <docstring>If linestyles is None, the 'solid' is used.
+
+linestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.
+
+If contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.</docstring>
+    </portSpec>
+    <portSpec arg="levels" hide="False" in_kwargs="True" name="levelsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="levelsScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]</docstring>
+    </portSpec>
+    <portSpec arg="linewidths" hide="False" in_kwargs="True" name="linewidths" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['number', 'tuple of numbers']]</values>
+      <docstring>If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.
+
+If a number, all levels will be plotted with this linewidth.
+
+If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colors" port_type="basic:Color" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['(mpl_colors)']]</values>
+      <translations>translate_color</translations>
+      <docstring>If None, the colormap specified by cmap will be used.
+
+If a string, like 'r' or 'red', all levels will be plotted in this color.
+
+If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
+    </portSpec>
+    <portSpec arg="cmap" hide="False" in_kwargs="True" name="cmap" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Colormap']]</values>
+      <docstring>A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
+    </portSpec>
+    <portSpec arg="antialiased" hide="False" in_kwargs="True" name="antialiased" port_type="basic:Boolean" required="False">
+      <docstring>enable antialiasing</docstring>
+    </portSpec>
+    <portSpec arg="nchunk" hide="False" in_kwargs="True" name="nchunk" port_type="basic:Integer" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[[0]]</values>
+      <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
+    </portSpec>
+    <portSpec arg="alpha" hide="False" in_kwargs="True" name="alpha" port_type="basic:Float" required="False">
+      <docstring>The alpha blending value</docstring>
+    </portSpec>
+    <portSpec arg="norm" hide="False" in_kwargs="True" name="norm" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['Normalize']]</values>
+      <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.tripcolor" name="MplTripcolor" superclass="MplPlot">
+    <docstring>Create a pseudocolor plot of an unstructured triangular grid to the :class:`~matplotlib.axes.Axes`.
+
+The triangulation can be specified in one of two ways; either:
+
+tripcolor(triangulation, ...)
+
+where triangulation is a :class:`~matplotlib.tri.Triangulation` object, or
+
+tripcolor(x, y, ...) tripcolor(x, y, triangles, ...) tripcolor(x, y, triangles=triangles, ...) tripcolor(x, y, mask=mask, ...) tripcolor(x, y, triangles, mask=mask, ...)
+
+in which case a Triangulation object will be created.  See :class:`~matplotlib.tri.Triangulation` for a explanation of these possibilities.
+
+The next argument must be C, the array of color values, one per point in the triangulation.  The colors used for each triangle are from the mean C of the triangle's three points.
+
+The remaining kwargs are the same as for :meth:`~matplotlib.axes.Axes.pcolor`.
+
+Example:
+
+
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.triplot" name="MplTriplot" superclass="MplPlot">
+    <docstring>Draw a unstructured triangular grid as lines and/or markers to the :class:`~matplotlib.axes.Axes`.
+
+The triangulation to plot can be specified in one of two ways; either:
+
+triplot(triangulation, ...)
+
+where triangulation is a :class:`~matplotlib.tri.Triangulation` object, or
+
+triplot(x, y, ...) triplot(x, y, triangles, ...) triplot(x, y, triangles=triangles, ...) triplot(x, y, mask=mask, ...) triplot(x, y, triangles, mask=mask, ...)
+
+in which case a Triangulation object will be created.  See :class:`~matplotlib.tri.Triangulation` for a explanation of these possibilities.
+
+The remaining args and kwargs are the same as for :meth:`~matplotlib.axes.Axes.plot`.
+
+Example:
+
+
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.vlines" name="MplVlines" superclass="MplPlot">
+    <docstring>call signature:
+
+vlines(x, ymin, ymax, color='k', linestyles='solid')
+
+Plot vertical lines at each x from ymin to ymax.  ymin or ymax can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the heights of the lines are determined by ymin and ymax.
+
+linestyles
+
+one of [ 'solid' | 'dashed' | 'dashdot' | 'dotted' ]
+
+Returns the :class:`matplotlib.collections.LineCollection` that was added.
+
+kwargs are :class:`~matplotlib.collections.LineCollection` properties:
+
+%(LineCollection)s
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymax" hide="False" in_kwargs="True" name="ymax" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="linestyles" hide="False" in_kwargs="True" name="linestyles" port_type="basic:String" required="False">
+      <defaults>['solid']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="color" hide="False" in_kwargs="True" name="color" port_type="basic:String" required="False">
+      <defaults>['k']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="label" hide="False" in_kwargs="True" name="label" port_type="basic:String" required="False">
+      <defaults>['']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="colors" hide="False" in_kwargs="True" name="colors" port_type="basic:String" required="False">
+      <defaults>['k']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="ymin" hide="False" in_kwargs="True" name="ymin" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.xcorr" name="MplXcorr" superclass="MplPlot">
+    <docstring>call signature:
+
+def xcorr(self, x, y, normed=True, detrend=mlab.detrend_none,   usevlines=True, maxlags=10, **kwargs):
+
+Plot the cross correlation between x and y.  If normed = True, normalize the data by the cross correlation at 0-th lag.  x and y are detrended by the detrend callable (default no normalization).  x and y must be equal length.
+
+Data are plotted as plot(lags, c, **kwargs)
+
+Return value is a tuple (lags, c, line) where:
+
+lags are a length 2*maxlags+1 lag vector
+
+c is the 2*maxlags+1 auto correlation vector
+
+The default linestyle is None and the default marker is 'o', though these can be overridden with keyword args.  The cross correlation is performed with :func:`numpy.correlate` with mode = 2.
+
+If usevlines is True:
+
+:func:`~matplotlib.pyplot.vlines` rather than :func:`~matplotlib.pyplot.plot` is used to draw vertical lines from the origin to the xcorr.  Otherwise the plotstyle is determined by the kwargs, which are :class:`~matplotlib.lines.Line2D` properties.
+
+The return value is a tuple (lags, c, linecol, b) where linecol is the :class:`matplotlib.collections.LineCollection` instance and b is the x-axis.
+
+maxlags is a positive integer detailing the number of lags to show. The default value of None will return all (2*len(x)-1) lags.
+
+Example:
+
+:func:`~matplotlib.pyplot.xcorr` above, and :func:`~matplotlib.pyplot.acorr` below.
+
+Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="normed" hide="False" in_kwargs="True" name="normed" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="usevlines" hide="False" in_kwargs="True" name="usevlines" port_type="basic:Boolean" required="False">
+      <defaults>['True']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="self" hide="False" in_kwargs="True" name="self" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="detrend" hide="False" in_kwargs="True" name="detrend" port_type="__unknown__" required="False">
+      <defaults>['&lt;function detrend_none at 0x101f3b0c8&gt;']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="maxlags" hide="False" in_kwargs="True" name="maxlags" port_type="basic:Integer" required="False">
+      <defaults>['10']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="y" hide="False" in_kwargs="True" name="y" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="x" hide="False" in_kwargs="True" name="x" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.barbs" name="MplBarbs" superclass="MplPlot">
+    <docstring>%(barbs_doc)s Example:
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.spy" name="MplSpy" superclass="MplPlot">
+    <docstring>call signature:
+
+spy(Z, precision=0, marker=None, markersize=None,     aspect='equal', **kwargs)
+
+spy(Z) plots the sparsity pattern of the 2-D array Z.
+
+If precision is 0, any non-zero value will be plotted; else, values of :math:`|Z| &gt; precision` will be plotted.
+
+For :class:`scipy.sparse.spmatrix` instances, there is a special case: if precision is 'present', any value present in the array will be plotted, even if it is identically zero.
+
+The array will be plotted as it would be printed, with the first index (row) increasing down and the second index (column) increasing to the right.
+
+By default aspect is 'equal', so that each array element occupies a square space; set the aspect kwarg to 'auto' to allow the plot to fill the plot box, or to any scalar number to specify the aspect ratio of an array element directly.
+
+Two plotting styles are available: image or marker. Both are available for full arrays, but only the marker style works for :class:`scipy.sparse.spmatrix` instances.
+
+If marker and markersize are None, an image will be returned and any remaining kwargs are passed to :func:`~matplotlib.pyplot.imshow`; else, a :class:`~matplotlib.lines.Line2D` object will be returned with the value of marker determining the marker type, and any remaining kwargs passed to the :meth:`~matplotlib.axes.Axes.plot` method.
+
+If marker and markersize are None, useful kwargs include:
+
+cmap
+
+alpha
+
+For controlling colors, e.g. cyan background and red marks, use:
+
+cmap = mcolors.ListedColormap(['c','r'])
+
+If marker or markersize is not None, useful kwargs include:
+
+marker
+
+markersize
+
+color
+
+Useful values for marker include:
+
+'s'  square (default)
+
+'o'  circle
+
+'.'  point
+
+','  pixel
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="hold" hide="False" in_kwargs="True" name="hold" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="markersize" hide="False" in_kwargs="True" name="markersize" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="precision" hide="False" in_kwargs="True" name="precision" port_type="basic:Integer" required="False">
+      <defaults>['0']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="aspect" hide="False" in_kwargs="True" name="aspect" port_type="basic:String" required="False">
+      <defaults>['equal']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="marker" hide="False" in_kwargs="True" name="marker" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="Z" hide="False" in_kwargs="True" name="Z" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.polar" name="MplPolar" superclass="MplPlot">
+    <docstring>call signature:
+
+polar(theta, r, **kwargs)
+
+Make a polar plot.  Multiple theta, r arguments are supported, with format strings, as in :func:`~matplotlib.pyplot.plot`.
+
+An optional kwarg resolution sets the number of vertices to interpolate between each pair of points.  The default is 1, which disables interpolation.</docstring>
+    <portSpec arg="theta" hide="False" in_kwargs="True" name="theta" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="r" hide="False" in_kwargs="True" name="r" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.legend" name="MplLegend" superclass="MplPlot">
+    <docstring>call signature:
+
+legend(*args, **kwargs)
+
+Place a legend on the current axes at location loc.  Labels are a sequence of strings and loc can be a string or an integer specifying the legend location.
+
+To make a legend with existing lines:
+
+legend()
+
+:meth:`legend` by itself will try and build a legend using the label property of the lines/patches/collections.  You can set the label of a line by doing:
+
+plot(x, y, label='my data')
+
+or:
+
+line.set_label('my data').
+
+If label is set to '_nolegend_', the item will not be shown in legend.
+
+To automatically generate the legend from labels:
+
+legend( ('label1', 'label2', 'label3') )
+
+To make a legend for a list of lines and labels:
+
+legend( (line1, line2, line3), ('label1', 'label2', 'label3') )
+
+To make a legend at a given location, using a location argument:
+
+legend( ('label1', 'label2', 'label3'), loc='upper left')
+
+or:
+
+legend( (line1, line2, line3),  ('label1', 'label2', 'label3'), loc=2)
+
+The location codes are
+
+
+
+Users can specify any arbitrary location for the legend using the bbox_to_anchor keyword argument. bbox_to_anchor can be an instance of BboxBase(or its derivatives) or a tuple of 2 or 4 floats. For example,
+
+loc = 'upper right', bbox_to_anchor = (0.5, 0.5)
+
+will place the legend so that the upper right corner of the legend at the center of the axes.
+
+The legend location can be specified in other coordinate, by using the bbox_transform keyword.
+
+The loc itslef can be a 2-tuple giving x,y of the lower-left corner of the legend in axes coords (bbox_to_anchor is ignored).
+
+Keyword arguments:
+
+
+
+Padding and spacing between various elements use following keywords parameters. These values are measure in font-size units. E.g., a fontsize of 10 points and a handlelength=5 implies a handlelength of 50 points.  Values from rcParams will be used if None.
+
+Not all kinds of artist are supported by the legend command. See LINK (FIXME) for details.
+
+Example:
+
+Also see :ref:`plotting-guide-legend`.</docstring>
+    <portSpec arg="loc" hide="False" in_kwargs="True" name="loc" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']]</values>
+      <translations>{'right': 5, 'center': 10, 'lower left': 3, 'center right': 7, 'upper left': 2, 'center left': 6, 'upper right': 1, 'lower right': 4, 'upper center': 9, 'lower center': 8, 'best': 0}</translations>
+      <docstring />
+    </portSpec>
+    <portSpec arg="fancybox" hide="False" in_kwargs="True" name="fancybox" port_type="basic:Boolean" required="False">
+      <docstring>if True, draw a frame with a round fancybox.  If None, use rc</docstring>
+    </portSpec>
+    <portSpec arg="bbox_to_anchor" hide="False" in_kwargs="True" name="bbox_to_anchor" port_type="__unknown__" required="False">
+      <docstring>the bbox that the legend will be anchored.</docstring>
+    </portSpec>
+    <portSpec arg="title" hide="False" in_kwargs="True" name="title" port_type="__unknown__" required="False">
+      <docstring>the legend title</docstring>
+    </portSpec>
+    <portSpec arg="handlelength" hide="False" in_kwargs="True" name="handlelength" port_type="__unknown__" required="False">
+      <docstring>the length of the legend handles</docstring>
+    </portSpec>
+    <portSpec arg="markerscale" hide="False" in_kwargs="True" name="markerscale" port_type="basic:Float" required="False">
+      <docstring>The relative size of legend markers vs. original. If None, use rc settings.</docstring>
+    </portSpec>
+    <portSpec arg="numpoints" hide="False" in_kwargs="True" name="numpoints" port_type="basic:Integer" required="False">
+      <docstring>The number of points in the legend for line</docstring>
+    </portSpec>
+    <portSpec arg="labelspacing" hide="False" in_kwargs="True" name="labelspacing" port_type="__unknown__" required="False">
+      <docstring>the vertical space between the legend entries</docstring>
+    </portSpec>
+    <portSpec arg="scatterpoints" hide="False" in_kwargs="True" name="scatterpoints" port_type="basic:Integer" required="False">
+      <docstring>The number of points in the legend for scatter plot</docstring>
+    </portSpec>
+    <portSpec arg="frameon" hide="False" in_kwargs="True" name="frameon" port_type="basic:Boolean" required="False">
+      <docstring>if True, draw a frame around the legend. The default is set by the rcParam 'legend.frameon'</docstring>
+    </portSpec>
+    <portSpec arg="columnspacing" hide="False" in_kwargs="True" name="columnspacing" port_type="__unknown__" required="False">
+      <docstring>the spacing between columns</docstring>
+    </portSpec>
+    <portSpec arg="handletextpad" hide="False" in_kwargs="True" name="handletextpad" port_type="__unknown__" required="False">
+      <docstring>the pad between the legend handle and text</docstring>
+    </portSpec>
+    <portSpec arg="scatteroffsets" hide="False" in_kwargs="True" name="scatteroffsetsSequence" port_type="basic:List" required="False">
+      <alternateSpec arg="" hide="False" in_kwargs="True" name="scatteroffsetsScalar" port_type="basic:Float" required="False">
+        <docstring />
+      </alternateSpec>
+      <docstring>a list of yoffsets for scatter symbols in legend</docstring>
+    </portSpec>
+    <portSpec arg="mode" hide="False" in_kwargs="True" name="mode" port_type="__unknown__" required="False">
+      <docstring>if mode is "expand", the legend will be horizontally expanded to fill the axes area (or bbox_to_anchor)</docstring>
+    </portSpec>
+    <portSpec arg="ncol" hide="False" in_kwargs="True" name="ncol" port_type="basic:Integer" required="False">
+      <defaults>['1']</defaults>
+      <docstring>number of columns. default is 1</docstring>
+    </portSpec>
+    <portSpec arg="shadow" hide="False" in_kwargs="True" name="shadow" port_type="basic:Boolean" required="False">
+      <docstring>If True, draw a shadow behind legend. If None, use rc settings.</docstring>
+    </portSpec>
+    <portSpec arg="prop" hide="False" in_kwargs="True" name="prop" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['FontProperties', None]]</values>
+      <docstring>A :class:`matplotlib.font_manager.FontProperties` instance. If prop is a dictionary, a new instance will be created with prop. If None, use rc settings.</docstring>
+    </portSpec>
+    <portSpec arg="borderpad" hide="False" in_kwargs="True" name="borderpad" port_type="__unknown__" required="False">
+      <docstring>the fractional whitespace inside the legend border</docstring>
+    </portSpec>
+    <portSpec arg="bbox_transform" hide="False" in_kwargs="True" name="bbox_transform" port_type="__unknown__" required="False">
+      <docstring>the transform for the bbox. transAxes if None.</docstring>
+    </portSpec>
+    <portSpec arg="borderaxespad" hide="False" in_kwargs="True" name="borderaxespad" port_type="__unknown__" required="False">
+      <docstring>the pad between the axes and legend border</docstring>
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.annotate" name="MplAnnotate" superclass="MplPlot">
+    <docstring>call signature:
+
+annotate(s, xy, xytext=None, xycoords='data',          textcoords='data', arrowprops=None, **kwargs)
+
+Keyword arguments:
+
+Annotate the x, y point xy with text s at x, y location xytext.  (If xytext = None, defaults to xy, and if textcoords = None, defaults to xycoords).
+
+arrowprops, if not None, is a dictionary of line properties (see :class:`matplotlib.lines.Line2D`) for the arrow that connects annotation to the point.
+
+If the dictionary has a key arrowstyle, a FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a YAArow patch instance is created and drawn. Valid keys for YAArow are
+
+Valid keys for FancyArrowPatch are
+
+xycoords and textcoords are strings that indicate the coordinates of xy and xytext.
+
+If a 'points' or 'pixels' option is specified, values will be added to the bottom-left and if negative, values will be subtracted from the top-right.  Eg:
+
+# 10 points to the right of the left border of the axes and # 5 points below the top border xy=(10,-5), xycoords='axes points'
+
+You may use an instance of :class:`~matplotlib.transforms.Transform` or :class:`~matplotlib.artist.Artist`. See :ref:`plotting-guide-annotation` for more details.
+
+The annotation_clip attribute contols the visibility of the annotation when it goes outside the axes area. If True, the annotation will only be drawn when the xy is inside the axes. If False, the annotation will always be drawn regardless of its position.  The default is None, which behave as True only if xycoords is"data".
+
+Additional kwargs are Text properties:
+
+%(Text)s</docstring>
+    <portSpec arg="xycoords" hide="False" in_kwargs="True" name="xycoords" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]</values>
+      <defaults>['data']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="xytext" hide="False" in_kwargs="True" name="xytext" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+    <portSpec arg="s" hide="False" in_kwargs="True" name="s" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="xy" hide="False" in_kwargs="True" name="xy" port_type="__unknown__" required="True">
+      <docstring />
+    </portSpec>
+    <portSpec arg="textcoords" hide="False" in_kwargs="True" name="textcoords" port_type="basic:String" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]</values>
+      <defaults>['data']</defaults>
+      <docstring />
+    </portSpec>
+    <portSpec arg="arrowprops" hide="False" in_kwargs="True" name="arrowprops" port_type="__unknown__" required="False">
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.pyplot.plot" name="MplLinePlot" superclass="MplPlot">
+    <docstring>Plot lines and/or markers to the :class:`~matplotlib.axes.Axes`.  args is a variable length argument, allowing for multiple x, y pairs with an optional format string.  For example, each of the following is legal:
+
+plot(x, y)         # plot x and y using default line style and color plot(x, y, 'bo')   # plot x and y using blue circle markers plot(y)            # plot y using x as index array 0..N-1 plot(y, 'r+')      # ditto, but with red plusses
+
+If x and/or y is 2-dimensional, then the corresponding columns will be plotted.
+
+An arbitrary number of x, y, fmt groups can be specified, as in:
+
+a.plot(x1, y1, 'g^', x2, y2, 'g-')
+
+Return value is a list of lines that were added.
+
+The following format string characters are accepted to control the line style or marker:
+
+The following color abbreviations are supported:
+
+In addition, you can specify colors in many weird and wonderful ways, including full names ('green'), hex strings ('#008000'), RGB or RGBA tuples ((0,1,0,1)) or grayscale intensities as a string ('0.8').  Of these, the string specifications can be used in place of a fmt group, but the tuple forms can be used only as kwargs.
+
+Line styles and colors are combined in a single format string, as in 'bo' for blue circles.
+
+The kwargs can be used to set line properties (any property that has a set_* method).  You can use this to set a line label (for auto legends), linewidth, anitialising, marker face color, etc.  Here is an example:
+
+plot([1,2,3], [1,2,3], 'go-', label='line 1', linewidth=2) plot([1,2,3], [1,4,9], 'rs',  label='line 2') axis([0, 4, 0, 10]) legend()
+
+If you make multiple lines with one plot command, the kwargs apply to all those lines, e.g.:
+
+plot(x1, y1, x2, y2, antialised=False)
+
+Neither line will be antialiased.
+
+You do not need to use format strings, which are just abbreviations.  All of the line properties can be controlled by keyword arguments.  For example, you can set the color, marker, linestyle, and markercolor with:
+
+plot(x, y, color='green', linestyle='dashed', marker='o',      markerfacecolor='blue', markersize=12).  See      :class:`~matplotlib.lines.Line2D` for details.
+
+The kwargs are :class:`~matplotlib.lines.Line2D` properties:
+
+%(Line2D)s
+
+kwargs scalex and scaley, if defined, are passed on to :meth:`~matplotlib.axes.Axes.autoscale_view` to determine whether the x and y axes are autoscaled; the default is True.
+
+Additional kwargs: hold = [True|False] overrides default hold state</docstring>
+    <portSpec arg="marker" hide="False" in_kwargs="True" name="marker" port_type="__unknown__" required="False">
+      <entry_types>['enum']</entry_types>
+      <values>[['solid line style', 'dashed line style', 'dash-dot line style', 'dotted line style', 'point marker', 'pixel marker', 'circle marker', 'triangle_down marker', 'triangle_up marker', 'triangle_left marker', 'triangle_right marker', 'tri_down marker', 'tri_up marker', 'tri_left marker', 'tri_right marker', 'square marker', 'pentagon marker', 'star marker', 'hexagon1 marker', 'hexagon2 marker', 'plus marker', 'x marker', 'diamond marker', 'thin_diamond marker', 'vline marker', 'hline marker']]</values>
+      <translations>{'tri_down marker': '1', 'pentagon marker': 'p', 'hline marker': '_', 'pixel marker': ',', 'triangle_up marker': '^', 'point marker': '.', 'square marker': 's', 'hexagon2 marker': 'H', 'tri_right marker': '4', 'plus marker': '+', 'vline marker': '|', 'triangle_left marker': '&lt;', 'triangle_down marker': 'v', 'triangle_right marker': '&gt;', 'tri_left marker': '3', 'x marker': 'x', 'circle marker': 'o', 'dashed line style': '--', 'hexagon1 marker': 'h', 'dash-dot line style': '-.', 'dotted line style': ':', 'solid line style': '-', 'tri_up marker': '2', 'star marker': '*', 'diamond marker': 'D', 'thin_diamond marker': 'd'}</translations>
+      <docstring />
+    </portSpec>
+  </moduleSpec>
+</specs>

@@ -1,515 +1,937 @@
+import ast
+import re
+import sys
 from xml.etree import ElementTree as ET
+import docutils.core
+import docutils.nodes
 from itertools import izip
 import inspect
 import matplotlib
 matplotlib.use('Qt4Agg')
+import matplotlib.docstring
+def new_call(self, func):
+    # print "!!!CALLING NEW CALL!!!"
+    return func
+# print id(matplotlib.docstring.interpd.__call__)
+
+# DON'T DO THIS FOR ARTISTS
+matplotlib.docstring.Substitution.__call__ = new_call
+
+# def test_func():
+#     """this is something cool %(Line2D)s"""
+#     pass
+# # matplotlib.docstring.interpd(test_func)
+# print "docstring:", test_func.__doc__
+# print id(matplotlib.docstring.interpd.__call__), id(new_call)
+
+
 import matplotlib.pyplot
-import sys
-import re
+from matplotlib.artist import Artist, ArtistInspector
+import matplotlib.cbook
+# want to get lowercase accepts too
+ArtistInspector._get_valid_values_regex = re.compile(
+    r"\n\s*ACCEPTS:\s*((?:.|\n)*?)(?:$|(?:\n\n))", re.IGNORECASE)
+
+from specs import SpecList, ModuleSpec, PortSpec, OutputPortSpec, \
+    AlternatePortSpec
 
 sys.path.append('/vistrails/src/git/vistrails')
 from core.modules.utils import expand_port_spec_string
 
-plot_types = ['acorr', 'bar', 'barbs', 'barh', 'boxplot', 'broken_barh', 'cohere', 'contour', 'contourf', 'csd', 'errorbar', 'hexbin', 'hist', 'loglog', 'pcolor', 'pcolormesh', 'pie', 'plot', 'plot_date', 'pie', 'polar', 'psd', 'quiver', 'scatter', 'semilogx', 'semilogy', 'specgram', 'spy', 'stem', 'tricontour', 'tricontourf', 'tripcolor', 'triplot', 'xcorr']
+##############################################################################
+# docutils parsing code
+##############################################################################
 
-plot_types = ['bar', 'boxplot', 'contour', 'hist', 'plot', 'scatter', 'legend']
+def parse_docutils_thead(elt):
+    header = []
+    for child in elt.children:
+        if child.__class__ == docutils.nodes.row:
+            if len(header) > 0:
+                raise Exception("More than one row in header")
+            for subchild in child.children:
+                if subchild.__class__ == docutils.nodes.entry:
+                    header.append(parse_docutils_elt(subchild)[0].strip())
+    return header
 
-class SpecList(object):
-    def __init__(self, module_specs=[]):
-        self.module_specs = module_specs
-
-    def write_to_xml(self, fname):
-        root = ET.Element("specs")
-        for spec in self.module_specs:
-            root.append(spec.to_xml())
-        tree = ET.ElementTree(root)
-
-        def indent(elem, level=0):
-            i = "\n" + level*"  "
-            if len(elem):
-                if not elem.text or not elem.text.strip():
-                    elem.text = i + "  "
-                if not elem.tail or not elem.tail.strip():
-                    elem.tail = i
-                for elem in elem:
-                    indent(elem, level+1)
-                if not elem.tail or not elem.tail.strip():
-                    elem.tail = i
-            else:
-                if level and (not elem.tail or not elem.tail.strip()):
-                    elem.tail = i
-        indent(tree.getroot())
-
-        tree.write(fname)
-
-    @staticmethod
-    def read_from_xml(fname):
-        module_specs = []
-        tree = ET.parse(fname)
-        for elt in tree.getroot():
-            module_specs.append(ModuleSpec.from_xml(elt))
-        return SpecList(module_specs)
-
-class ModuleSpec(object):
-    def __init__(self, name, superklass, plot_type, port_specs=[]):
-        self.name = name
-        self.superklass = superklass
-        self.plot_type = plot_type
-        self.port_specs = port_specs
-
-    def to_xml(self):
-        elt = ET.Element("moduleSpec")
-        elt.set("name", self.name)
-        elt.set("superclass", self.superklass)
-        elt.set("plot_type", self.plot_type)
-        for port_spec in self.port_specs:
-            subelt = port_spec.to_xml()
-            elt.append(subelt)
-        return elt
-
-    @staticmethod
-    def from_xml(elt):
-        name = elt.get("name", "")
-        superklass = elt.get("superclass", "")
-        plot_type = elt.get("plot_type", "")
-        port_specs = []
-        for child in elt.getchildren():
-            port_specs.append(PortSpec.from_xml(child))
-        return ModuleSpec(name, superklass, plot_type, port_specs)
-
-
-class PortSpec(object):
-    # FIXME add optional
-    def __init__(self, name, port_type, docstring, hide=False,
-                 entry_types=None, values=None, defaults=None,
-                 translations=None):
-        self.name = name
-        self.port_type = port_type
-        self.docstring = docstring
-        self.hide = hide
-        self.entry_types = entry_types
-        self.values = values
-        self.defaults = defaults
-        self.translations = translations
-
-    def to_xml(self):
-        elt = ET.Element("portSpec")
-        elt.set("name", self.name)
-        elt.set("port_type", self.port_type)
-        elt.set("hide", str(self.hide))
-        if self.entry_types is not None and self.values is not None and \
-                self.defaults is not None and self.translations is not None:
-            for entry_type, value, default, translation in \
-                    izip(self.entry_types, self.values, self.defaults,
-                         self.translations):
-                subelt = ET.Element("entry")
-                subelt.set("type", str(entry_type))
-                valueselt = ET.Element("values")
-                valueselt.text = str(value)
-                subelt.append(valueselt)
-                transelt = ET.Element("translation")
-                transelt.text = str(translation)
-                subelt.append(transelt)
-                defaultelt = ET.Element("default")
-                if isinstance(default, basestring):
-                    defaultelt.text = "'%s'" % default
-                else:
-                    defaultelt.text = str(default)
-                subelt.append(defaultelt)
-                elt.append(subelt)
-        docelt = ET.Element("docstring")
-        docelt.text = self.docstring
-        elt.append(docelt)
-        return elt
-
-    @staticmethod
-    def from_xml(elt):
-        name = elt.get("name", "")
-        port_type = elt.get("port_type", "")
-        hide = eval(elt.get("hide", "False"))
-        entry_types = None
-        values = None
-        defaults = None
-        translations = None
-        docstring = ""
-        for child in elt.getchildren():
-            if child.tag == "entry":
-                if entry_types is None:
-                    entry_types = []
-                    values = []
-                    defaults = []
-                    translations = []
-                entry_types.append(child.get("type", None))
-                for subchild in child.getchildren():
-                    if subchild.tag == "values":
-                        values.append(eval(subchild.text))
-                    elif subchild.tag == "translation":
-                        try:
-                            translation = eval(subchild.text)
-                        except NameError:
-                            translation = subchild.text
-                        translations.append(translation)
-                    elif subchild.tag == "default":
-                        defaults.append(eval(subchild.text))
-            elif child.tag == "docstring":
-                docstring = child.text
-        return PortSpec(name, port_type, docstring, hide, entry_types, values,
-                        defaults, translations)
-
-def get_translate_dict(klass, attr, docstring):
-    attr = "set_%s" % attr
-    # print "== %s.%s ==" % (klass.__name__, attr)
-    line_iter = docstring.split('\n').__iter__()
-    table_dict = {}
-    for line in line_iter:
-        table_start = ''.join(line.strip().split())
-        if len(table_start) > 0 and table_start == '=' * len(table_start):
-            header_line = line_iter.next()
-            header_line2 = line_iter.next()
-            # print header_line2.strip().split()
-            lengths = [len(x) for x in header_line2.strip().split()]
-            starts = [sum(lengths[:i]) for i in xrange(len(lengths))]
-            for line in line_iter:
-                table_end = ''.join(line.strip().split())
-                if len(table_end) > 0 and table_end == '=' * len(table_end):
-                    break
-                # line = line.strip().replace('``','')
-                # # for col in line.split():
-                # (arg, desc) = line.split(None, 1)
-                # print "+%s+%s+" % (arg.strip(), desc.strip())
-                # table_dict[desc.strip()] = arg.strip()[1:-1]
-                line = line.strip()
-                fields = []
-                for i in xrange(len(starts)):
-                    if i < len(starts)-1:
-                        fields.append(line[starts[i]:starts[i]+lengths[i]])
-                    else:
-                        fields.append(line[starts[i]:].strip())
-                # print "fields:", fields
-                arg = fields[0].strip().replace('``','')
-                if arg[0] == arg[-1] == "'":
-                    arg = arg[1:-1]
-                else:
-                    try:
-                        arg = getattr(sys.modules[klass.__module__], arg)
-                    except AttributeError:
-                        try:
-                            arg = eval(arg)
-                        except SyntaxError:
-                            pass
-                desc = fields[1].strip()
-                table_dict[desc] = arg
-    return table_dict
-
-def parse_table(line_iter, line):
-    if line.replace(' ', '=') != '=' * len(line):
-        raise Exception("Not the start of a table")
-    col_lens = [len(x) for x in line.split()]
-    col_spaces = [len(x) for x in re.split("=+", line) if len(x) > 0]
-    # print col_lens, col_spaces
-    col_idxs = [sum(col_lens[:i]) + sum(col_spaces[:i]) for i in xrange(len(col_lens)+1)]
-    header_line = line_iter.next().strip()
-    headers = [header_line[col_idxs[i]:col_idxs[i+1]].strip() 
-               for i in xrange(len(col_lens))]
-    # print "HEADERS:", headers
-    line = line_iter.next()
+def parse_docutils_tbody(elt):
     rows = []
-    for line in line_iter:
-        line = line.strip()
-        if line.replace(' ', '=') == '=' * len(line):
-            break
-        rows.append([line[col_idxs[i]:col_idxs[i+1]].strip() 
-                     for i in xrange(len(col_lens))])
-    # print "COLS:", cols
-    return rows, headers
+    for child in elt.children:
+        if child.__class__ == docutils.nodes.row:
+            row = []
+            for subchild in child.children:
+                if subchild.__class__ == docutils.nodes.entry:
+                    row.append(parse_docutils_elt(subchild)[0].strip())
+            rows.append(row)
+    return rows
 
-def process_accepts(value_lines):
-    line = ' '.join(x.strip() for x in value_lines)
-    vals = [v.strip() for v in line[line.find('[')+1:line.find(']')].split('|')]
-    clean_vals = []
-    for v in vals:
-        if v.startswith("'") and v.endswith("'"):
-            clean_vals.append(v[1:-1])
+def parse_docutils_table(elt):
+    header = []
+    rows = []
+    for child in elt.children:
+        if child.__class__ == docutils.nodes.tgroup:
+            for subchild in child.children:
+                if subchild.__class__ == docutils.nodes.thead:
+                    header = parse_docutils_thead(subchild)
+                elif subchild.__class__ == docutils.nodes.tbody:
+                    rows = parse_docutils_tbody(subchild)
+    print "== TABLE =="
+    print "HEADER:", header
+    print "ROWS:", '\n'.join(str(r) for r in rows)
+    return (header, rows)
+
+def parse_docutils_term(elt):
+    # term = ""
+    terms = []
+    accepts = ""
+    for child in elt.children:
+        if child.__class__ == docutils.nodes.emphasis:
+            term = parse_docutils_elt(child)[0]
+            terms.append(term.strip())
+        elif child.__class__ == docutils.nodes.Text:
+            accepts += str(child)
         else:
-            clean_vals.append(v)
-    # print "$$$$ VALUES:", clean_vals
-    return clean_vals
+            accepts += parse_docutils_elt(child)[0]
+    accepts = accepts.strip()
+    if accepts.startswith(':'):
+        accepts = accepts[1:].strip()
+    return terms, accepts
 
-def parse_desc(port_desc):
-    option_strs = []
-    port_types = []
-    if port_desc.startswith('['):
-        # have a list of possible
-        options = port_desc[1:-1].split('|')
-        allows_none = False
-        for option in options:
-            option = option.strip()
-            if option.startswith("'") or option.startswith('"'):
-                option_strs.append(option[1:-1])
-                port_types.append("String")
-            elif option.lower() == 'string':
-                port_types.append("String")
-            elif option.lower() == 'integer':
-                port_types.append("Integer")
-            elif option.lower() == 'sequence':
-                port_types.append("List")
-            elif option.lower() == 'float':
-                port_types.append("Float")
-            elif option.lower() == 'true':
-                port_types.append("Boolean")
-            elif option.lower() == 'false':
-                port_types.append("Boolean")
-            elif option.lower() == 'none':
-                allows_none = True
-            # print "OPTIONS:", options
-        print "PORT TYPES:", port_types
-        print "OPTION STRS:", option_strs
-        print "ALLOWS NONE:", allows_none
-    else:
-        print "UNKNOWN:", port_desc
-    return port_types, option_strs
+def parse_docutils_deflist(elt):
+    print "GOT DEFLIST!"
+    args = []
+    term = None
+    definition = None
+    for child in elt.children:
+        if child.__class__ != docutils.nodes.definition_list_item:
+            raise Exception("NO DEF LIST ITEM!")
+        else:
+            for subchild in child.children:
+                if subchild.__class__ == docutils.nodes.term:
+                    terms, accepts = parse_docutils_term(subchild)
+                    print "TERMS:", terms
+                    if accepts:
+                        print "ACCEPTS:", accepts
+                elif subchild.__class__ == docutils.nodes.definition:
+                    definition = parse_docutils_elt(subchild)[0].rstrip()
+                    print "DEFINITION:", definition
+                    for term in terms:
+                        args.append((term, accepts, definition))
+    return args
+
+def parse_docutils_elt(elt, last_text=""):
+    def get_last_block(cur_text):
+        num_newlines = 1
+        end_idx = len(cur_text)
+        while cur_text.endswith("\n\n" * num_newlines):
+            num_newlines += 1
+            end_idx -= 2
+        idx = cur_text.rfind("\n\n",0,end_idx)
+        if idx < 0:
+            idx = 0
+        else:
+            idx += 2
+        return cur_text[idx:].strip()
+
+    text = ""
+    args = []
+    tables = []
+    call_signatures = []
+    for child in elt.children:
+        if child.__class__ == docutils.nodes.Text:
+            # cur_block.extend(s.strip() for s in str(child).split('\n'))
+            ntext = ' '.join(s for s in str(child).split('\n'))
+            text += ntext
+        elif child.__class__ == docutils.nodes.system_message:
+            pass
+        elif child.__class__ == docutils.nodes.definition_list:
+            # print "DEFLIST BLOCK:", text[-20:]
+            # print get_last_block(last_text + text)
+            args.append((get_last_block(last_text + text), 
+                         parse_docutils_deflist(child)))
+        elif child.__class__ == docutils.nodes.table:
+            # print "TABLE BLOCK:", text[-20:]
+            # print get_last_block(last_text + text)
+            tables.append((get_last_block(last_text + text),) + \
+                              parse_docutils_table(child))
+        elif isinstance(child, docutils.nodes.Inline):
+            (ntext, nargs, ntables, ncall_sigs) = \
+                parse_docutils_elt(child, last_text + text)
+            text += ntext
+            args += nargs
+            tables += ntables
+            call_signatures += ncall_sigs
+        else:
+            (ntext, nargs, ntables, ncall_sigs) = \
+                parse_docutils_elt(child, last_text + text)
+            if child.__class__ == docutils.nodes.literal_block:
+                check_str = (last_text + text).lower().strip()
+                if check_str == "call signature:" or \
+                        check_str == "call signatures:":
+                    call_signatures.append(ntext)
+            text += ntext.strip() + "\n\n"
+            args += nargs
+            tables += ntables
+            call_signatures += ncall_sigs
+    return (text.rstrip(), args, tables, call_signatures)
+            
+def parse_docutils_str(docstring, should_print=False):
+    root = docutils.core.publish_doctree(docstring)
+    if should_print:
+        print root
+    # for child in root.children:
+    #     print "CHILD:", child.__class__, child
+    #     for subchild in child.children:
+    #         print "SUBCHILD:", subchild.__class__, subchild
+    return parse_docutils_elt(root)
+    
+##############################################################################
+# util methods
+##############################################################################
+
+def capfirst(s):
+    return s[0].upper() + s[1:]
+
+def get_value_and_type(s):
+    try:
+        val = eval(s)
+        if isinstance(val, type):
+            return (None, None)
+    except:
+        val = s
+    port_type = get_type_from_val(val)
+    return (val, port_type)
 
 def get_type_from_val(val):
     if type(val) == float:
-        return "Float"
+        return "basic:Float"
     elif type(val) == int:
-        return "Integer"
+        return "basic:Integer"
     elif isinstance(val, basestring):
-        return "String"
+        return "basic:String"
     elif type(val) == bool:
-        return "Boolean"
+        return "basic:Boolean"
     elif type(val) == list:
-        return "List"
-    return "UNKNOWN"
+        return "basic:List"
+    return None        
 
-def parse_plots():
+def resolve_port_type(port_types, port_spec):
+    if port_spec.name == 'uplims':
+        print "RESOLVING uplims:", port_types
+    port_types_set = set(port_types)
+    was_set = False
+    if port_spec.port_type is not None:
+        port_types_set.add(port_spec.port_type)
+    if len(port_types_set) == 1:
+        port_spec.port_type = next(iter(port_types_set))
+        was_set = True
+    elif len(port_types_set) == 2:
+        if 'basic:Float' in port_types_set and \
+                'basic:Integer' in port_types_set:
+            port_spec.port_type = 'basic:Float'
+            was_set = True
+        elif 'basic:List' in port_types_set:
+            port_spec.port_type = 'basic:List'
+            base_name = port_spec.name
+            port_spec.name = base_name + "Sequence"
+            port_types_set.discard('basic:List')
+            alternate_spec = \
+                AlternatePortSpec(name=base_name + "Scalar",
+                                  port_type=next(iter(port_types_set)))
+            port_spec.alternate_specs.append(alternate_spec)
+            was_set = True
+    if not was_set:
+        if "color" in port_spec.name:
+            port_spec.port_type = "basic:Color"
+            port_spec.translations = "translate_color"
+        else:
+            port_spec.port_type = None
+
+    # # FIXME
+    # # what to do with scalar/sequence-type args
+    # elif len(port_types_set) == 2 and 'basic:List' in port_types_set:
+    #     port_type = 'basic:List'
+    # else:
+    #     port_type = None
+    # return port_type
+
+def parse_description(desc):
+    key_to_type = {'string': 'basic:String',
+                   'integer': 'basic:Integer',
+                   'sequence': 'basic:List',
+                   'float': 'basic:Float',
+                   'boolean': 'basic:Boolean',
+                   'scalar': 'basic:Float',
+                   'vector': 'basic:List',
+                   'list': 'basic:List'}
+    port_types = []
+    option_strs = []
+    default_val = None
+    allows_none = False
+    default_paren_re = re.compile(r"((\S*)\s+)?\(default:?(\s+(\S*))?\)", 
+                                  re.IGNORECASE)
+    default_is_re = re.compile(r"default\s+is\s+(\S*)", re.IGNORECASE)
+
+    if '|' in desc:
+        m = re.search("\[([\s\S]*?)\]", desc)
+        if m:
+            opt_str = m.group(1)
+        else:
+            opt_str = desc
+        opts = opt_str.split('|')
+        for opt in opts:
+            opt = opt.strip()
+            m = default_paren_re.search(opt)
+            if m:
+                (_, before_res, _, after_res) = m.groups()
+                if after_res:
+                    if default_val is not None:
+                        raise Exception('Multiple defaults: "%s" "%s"' % \
+                                            (default_val, after_res))
+                    default_val = after_res
+                    opt = after_res
+                elif before_res:
+                    if default_val is not None:
+                        raise Exception('Multiple defaults: "%s" "%s"' % \
+                                            (default_val, after_res))
+                    default_val = before_res
+                    opt = before_res
+            found_type = False
+            opt_lower = opt.lower()
+            if opt_lower == "none":
+                found_type = True
+                allows_none = True
+            elif opt_lower == "true" or opt_lower == "false":
+                found_type = True
+                port_types.append("basic:Boolean")
+            else:
+                for key in key_to_type:
+                    if key in opt_lower:
+                        found_type = True
+                        port_types.append(key_to_type[key])
+
+            if not found_type:
+                (val, port_type) = get_value_and_type(opt)
+                option_strs.append(val)
+                if port_type is not None:
+                    port_types.append(port_type)
+                    found_type = True
+                # option_strs.append(opt)
+                # if opt.startswith("'") or opt.startswith('"'):
+                #     port_types.append("basic:String")
+                #     found_type = True
+                    
+    if default_val is None:
+        m = default_paren_re.search(desc)
+        if m:
+            (_, before_res, _, after_res) = m.groups()
+            if after_res:
+                default_val = after_res
+            elif before_res:
+                default_val = before_res
+        else:
+            m = default_is_re.search(desc)
+            if m:
+                (default_val,) = m.groups()
+                if default_val.endswith('.') or default_val.endswith(','):
+                    default_val = default_val[:-1]
+
+    if default_val:
+        (default_val, port_type) = get_value_and_type(default_val)
+        if port_type is not None:
+            port_types.append(port_type)
+
+    should_print = False
+    if len(port_types) == 0:
+        for key, port_type in key_to_type.iteritems():
+            if key in desc:
+                port_types.append(port_type)
+
+    # port_type = resolve_port_type(port_types)
+        
+    return (port_types, option_strs, default_val, allows_none)
+
+def parse_translation(rows, should_reverse=True):
+    t = {}
+    port_types = []
+    values = []
+    for row in rows:
+        (val1, port_type1) = get_value_and_type(row[0])
+        (val2, port_type2) = get_value_and_type(row[1])
+        if should_reverse:
+            if val2 != None:
+                port_types.append(port_type2)
+                values.append(val2)
+                t[val2] = val1
+        else:
+            if val1 != None:
+                port_types.append(port_type1)
+                values.append(val1)
+                t[val1] = val2
+
+    # port_type = resolve_port_type(port_types)
+    return (t, port_types, values)
+
+def do_translation_override(port_specs, names, rows, opts):
+    if 'name' in opts:
+        names = opts['name']
+    if names is None:
+        raise Exception("Must specify name of port to use translation for")
+    if isinstance(names, basestring) or not matplotlib.cbook.iterable(names):
+        names = [names]
+    should_reverse = opts.get('reverse', True)
+    values_only = opts.get('values_only', False)
+    (t, port_type, values) = \
+        parse_translation(rows, should_reverse)
+    for name in names:
+        print "TRANSLATING", name
+        if name not in port_specs:
+            port_specs[name] = PortSpec(name, name) 
+        port_specs[name].entry_types = ['enum']
+        port_specs[name].values = [values]
+        if not values_only:
+            port_specs[name].translations = t
+
+def get_names(obj, default_module_base, default_super_base, 
+              prefix="Mpl", suffix=""):
+    module_name = None
+    super_name = None
+    if type(obj) == tuple:
+        if len(obj) > 2:
+            super_name = obj[2]
+        if len(obj) < 2:
+            raise Exception("Need to specify 2- or 3-tuple")
+        (obj, module_name) = obj[:2]
+    if module_name is None:
+        module_name = "%s%s%s" % (prefix, capfirst(default_module_base(obj)), 
+                                  suffix)
+    if super_name is None:
+        super_name = "%s%s%s" % (prefix, capfirst(default_super_base(obj)), 
+                                 suffix)
+
+    return (obj, module_name, super_name)
+
+##############################################################################
+# main methods
+##############################################################################
+
+def parse_argspec(obj_or_str):
+    if isinstance(obj_or_str, basestring):
+        obj_or_str = obj_or_str.strip()
+        if not obj_or_str.endswith(":"):
+            obj_or_str += ":"
+        if not obj_or_str.startswith("def "):
+            obj_or_str = "def " + obj_or_str
+        try:
+            tree = ast.parse(obj_or_str + "\n  pass")
+        except SyntaxError:
+            # cannot parse the argspec
+            print "*** CANNOT PARSE", obj_or_str
+            return []
+        argspec_name = tree.body[0].name
+        argspec_args = [a.id for a in tree.body[0].args.args]
+        print tree.body[0].args.defaults
+        argspec_defaults = []
+        for i, d in enumerate(tree.body[0].args.defaults):
+            try:
+                d_val = ast.literal_eval(d)
+            except ValueError:
+                d_val = None
+            argspec_defaults.append(d_val)
+        # argspec_defaults = \
+        #     [ast.literal_eval(d) for d in tree.body[0].args.defaults]
+    else:
+        argspec = inspect.getargspec(obj_or_str)
+        argspec_args = argspec.args
+        argspec_defaults = argspec.defaults
+
+    # print argspec
+    if not argspec_defaults:
+        start_defaults = len(argspec_args) + 1
+    else:
+        start_defaults = len(argspec_args) - len(argspec_defaults)
+    port_specs_list = []
+    for i, arg in enumerate(argspec_args):
+        port_spec = PortSpec(arg, arg)
+        if i >= start_defaults:
+            port_spec.required = False
+            default_val = argspec_defaults[i-start_defaults]
+            if default_val is not None:
+                port_spec.defaults = [str(default_val)]
+                port_type = get_type_from_val(default_val)
+                if port_type is not None:
+                    port_spec.port_type = port_type
+        else:
+            port_spec.required = True
+            # port_specs[arg].entry_types = [None,]
+            # port_specs[arg].values = [[]]
+            # port_specs[arg].translations = [None,]
+        port_specs_list.append(port_spec)
+    return port_specs_list
+
+def parse_plots(plot_types, table_overrides):
+    def get_module_base(n):
+        return n
+    def get_super_base(n):
+        return "plot"
+
     module_specs = []
     for plot in plot_types:
         port_specs = {}
         print "========================================"
         print plot
         print "========================================"
-        plot_obj = getattr(matplotlib.pyplot, plot)
-        argspec = inspect.getargspec(plot_obj)
-        print argspec
-        if argspec.defaults is None:
-            start_defaults = len(argspec.args) + 1
-        else:
-            start_defaults = len(argspec.args) - len(argspec.defaults)
-        for i, arg in enumerate(argspec.args):
-            port_specs[arg] = PortSpec(arg, "UNKNOWN", "")
-            if i >= start_defaults:
-                default_val = argspec.defaults[i-start_defaults]
-                port_specs[arg].defaults = [default_val]
-                if default_val is not None:
-                    print "GOT DEFAULT_VAL:", default_val
-                    port_specs[arg].port_type = get_type_from_val(default_val)
-                port_specs[arg].entry_types = [None,]
-                port_specs[arg].values = [[]]
-                port_specs[arg].translations = [None,]
-        # print "ARGS:", argspec.args
-        # print "ARG_DEFAULTS:", arg_defaults
-        print "========================================"
+        
+        (plot, module_name, super_name) = \
+            get_names(plot, get_module_base, get_super_base, "Mpl", "")
+
+        try:
+            plot_obj = getattr(matplotlib.pyplot, plot)
+        except AttributeError:
+            print '*** CANNOT ADD PLOT "%s";' \
+                'IT DOES NOT EXIST IN THIS MPL VERSION ***' % plot
+        # argspec = inspect.getargspec(plot_obj)
+        # print argspec
+        # if argspec.defaults is None:
+        #     start_defaults = len(argspec.args) + 1
+        # else:
+        #     start_defaults = len(argspec.args) - len(argspec.defaults)
+        # for i, arg in enumerate(argspec.args):
+        #     port_specs[arg] = PortSpec(arg, arg)
+        #     if i >= start_defaults:
+        #         port_specs[arg].required = False
+        #         default_val = argspec.defaults[i-start_defaults]
+        #         if default_val is not None:
+        #             port_specs[arg].defaults = [str(default_val)]
+        #             port_type = get_type_from_val(default_val)
+        #             if port_type is not None:
+        #                 port_specs[arg].port_type = port_type
+        #     else:
+        #         port_specs[arg].required = True
+        #         # port_specs[arg].entry_types = [None,]
+        #         # port_specs[arg].values = [[]]
+        #         # port_specs[arg].translations = [None,]
+        
+        port_specs_list = parse_argspec(plot_obj)
+        for port_spec in port_specs_list:
+            port_specs[port_spec.arg] = port_spec
+
         docstring = plot_obj.__doc__
-        line_iter = iter(docstring.split('\n'))
-        in_table = False
-        for line in line_iter:
-            if line.startswith("  *"):
-                # print line
-                port_name = line[3:line.index('*',3)]
-                port_values_str = ""
-                if in_table:
-                    # docstring here
-                    first_line = line[line.index('*',3)+1:].strip()
-                    if first_line.startswith('['):
-                        port_values_str = first_line[:first_line.index(']')+1]
-                        port_docs = []
+        if plot == 'contour':
+            # want to change the double newline to single newline...
+            print "&*&* FINDING:", \
+                docstring.find("*extent*: [ None | (x0,x1,y0,y1) ]\n\n")
+            docstring = docstring.replace("*extent*: [ None | (x0,x1,y0,y1) ]\n\n", 
+                              "*extent*: [ None | (x0,x1,y0,y1) ]\n")
+        if plot == 'annotate':
+            docstring = docstring % dict((k,v) for k, v in matplotlib.docstring.interpd.params.iteritems() if k == 'Annotation')
+        (cleaned_docstring, args, tables, call_sigs) = \
+            parse_docutils_str(docstring)
+
+        if len(call_sigs) > 0:
+            for call_sig in call_sigs:
+                port_specs_list = parse_argspec(call_sig)
+                for port_spec in port_specs_list:
+                    if port_spec.arg in port_specs:
+                        # have to reconcile the two
+                        old_port_spec = port_specs[port_spec.arg]
+                        resolve_port_type([port_spec.port_type], old_port_spec)
+                        if old_port_spec.defaults is None:
+                            old_port_spec.defaults = port_spec.defaults
+                        elif old_port_spec.defaults != port_spec.defaults:
+                            # keep it as the old spec is
+                            print "*** Different defaults!" + \
+                                str(old_port_spec.defaults) + \
+                                " : " + str(port_spec.defaults)
+                            # raise Exception("Different defaults!" + \
+                            #                     str(old_port_spec.defaults) + \
+                            #                     " : " + str(port_spec.defaults))
                     else:
-                        port_docs = [first_line]
-                else:
-                    port_values_str = line[line.index('*',3)+2:].strip()
-                    port_docs = []
+                        port_specs[port_spec.arg] = port_spec
 
-                    print "%%%", port_name, ":", port_values_str
-                if port_name not in port_specs:
-                    port_specs[port_name] = \
-                        PortSpec(port_name, "UNKNOWN", "")
-                if port_values_str:
-                    (port_types, option_strs) = parse_desc(port_values_str)
-                    port_type_set = set(port_types)
-                    print port_name, "PORT_TYPES:", port_type_set
-                    if len(port_type_set) == 1:
-                        port_specs[port_name].port_type = port_types[0]
+        output_port_specs = []
+        for (deflist_intro, deflist) in args:
+            print "PROCESSING DEFLIST", deflist_intro
+            if re.search("return value", deflist_intro, re.IGNORECASE):
+                print "  -> RETURN VALUE"
+                for (name, accepts, port_doc) in deflist:
+                    (port_types, option_strs, default_val, allows_none) = \
+                        parse_description(accepts)
+                    (pt2, _, dv2, _) = parse_description(port_doc)
+                    port_types.extend(pt2)
+                    if default_val is None:
+                        default_val = dv2
+                    oport = OutputPortSpec(name, name, name, None, port_doc)
+                    resolve_port_type(port_types, oport)
+                    output_port_specs.append(oport)
+            elif (re.search("argument", deflist_intro, re.IGNORECASE) or
+                  re.search("kwarg", deflist_intro, re.IGNORECASE)):
+                print "  -> ARGUMENTS"
+                for (name, accepts, port_doc) in deflist:
+                    if name not in port_specs:
+                        port_specs[name] = PortSpec(name, name, None, 
+                                                    port_doc)
+                    else:
+                        port_specs[name].docstring = port_doc
+                    (port_types, option_strs, default_val, allows_none) = \
+                        parse_description(accepts)
+                    (pt2, _, dv2, _) = parse_description(port_doc)
+                    port_types.extend(pt2)
+                    if default_val is None:
+                        default_val = dv2
+                    resolve_port_type(port_types, port_specs[name])
                     if len(option_strs) > 0:
-                        port_specs[port_name].entry_types = ['enum']
-                        port_specs[port_name].values = [option_strs]
-                spec = port_specs[port_name]
-                line = line_iter.next()
-                while line.startswith("   "):
-                    port_docs.append(line.strip())
-                    line = line_iter.next()
-                # print "DOC:", ' '.join(port_docs)
-                port_specs[port_name].docstring = ' '.join(port_docs)
-            elif len(line.strip()) > 1 and line.strip().replace(" ", "=") == "=" * len(line.strip()):
-                if not in_table:
-                    in_table = True
-                    # skip headers
-                    line = line_iter.next()
-                    line = line_iter.next()
-                else:
-                    in_table = False
+                        port_specs[name].entry_types = ['enum']
+                        port_specs[name].values = [option_strs]
+                    if default_val is not None:
+                        port_specs[name].defaults = [str(default_val)]
 
+        for (table_intro, header, rows) in tables:
+            print "GOT TABLE", table_intro, rows[0]
+            if (plot, table_intro) in table_overrides:
+                (override_type, opts) = table_overrides[(plot, table_intro)]
+                if override_type == "translation":
+                    do_translation_override(port_specs, None, rows, opts)
+                    continue
+                elif override_type == "ports":
+                    table_intro = "kwarg"
+                elif override_type == "skip":
+                    continue
+                    
+            if re.search("return value", table_intro, re.IGNORECASE):
+                print "  -> RETURN"
+                if len(rows[0]) != 2:
+                    raise Exception("row that has more/less than 2 columns!")
+                for (name, port_doc) in rows:
+                    (port_types, option_strs, default_val, allows_none) = \
+                        parse_description(port_doc)
+                    # (port_types, option_strs) = parse_desc(port_doc)
+                    # port_type_set = set(port_types)
+                    # # print port_name, "PORT_TYPES:", port_type_set
+                    # port_type = "UNKNOWN"
+                    # if len(port_type_set) == 1:
+                    #     port_type = port_types[0]
+                    oport = OutputPortSpec(name, name, name, 
+                                           None, port_doc)
+                    resolve_port_type(oport, port_types)
+                    output_port_specs.append(oport)
+            elif (re.search("argument", table_intro, re.IGNORECASE) or
+                  re.search("kwarg", table_intro, re.IGNORECASE)):
+                print "  -> ARGUMENT"
+                if len(rows[0]) != 2:
+                    raise Exception("row that has more/less than 2 columns!")
+                for (name, port_doc) in rows:
+                    if name not in port_specs:
+                        port_specs[name] = PortSpec(name, name, None, 
+                                                    port_doc)
+                    else:
+                        port_specs[name].docstring = port_doc
+                    (port_types, option_strs, default_val, allows_none) = \
+                        parse_description(port_doc)
+                    # (port_types, option_strs) = parse_desc(port_doc)
+                    # port_type_set = set(port_types)
+                    # # print port_name, "PORT_TYPES:", port_type_set
+                    # port_type = "UNKNOWN"
+                    # if len(port_type_set) == 1:
+                    #     port_specs[name].port_type = port_types[0]
+                    resolve_port_type(port_types, port_specs[name])
+                    if len(option_strs) > 0:
+                        port_specs[name].entry_types = ['enum']
+                        port_specs[name].values = [option_strs]
+                    if default_val is not None:
+                        port_specs[name].defaults = [str(default_val)]
+            else:
+                raise Exception("Unknown table: %s\n  %s %s" % \
+                                    (plot, table_intro, str(header)))
+                print "HIT SPEC:", name
+                # if name not in port_specs:
+                #     port_specs[name] = PortSpec(name, name, "UNKNOWN", "")
+                # port_specs[name].translations = dict(reversed(r) for r in rows)
 
-        print "========================================"
-        module_specs.append(ModuleSpec("Mpl%s" % plot.capitalize(), "object",
-                                       plot, 
-                                       port_specs.values()))
+        module_specs.append(ModuleSpec(module_name, super_name,
+                                       "matplotlib.pyplot.%s" % plot, 
+                                       cleaned_docstring, port_specs.values(),
+                                       output_port_specs))
     my_specs = SpecList(module_specs)
     return my_specs
         
+_get_accepts_regex = re.compile(
+    r"([\s\S]*)\n\s*ACCEPTS:\s*((?:.|\n)*?)(?:$|(?:\n\n))([\s\S]*)",
+    re.IGNORECASE)
 
-def parse_bases():
-    from matplotlib.artist import Artist
-    from matplotlib.lines import Line2D
-    from matplotlib.patches import Patch
+def parse_artists(artist_types, table_overrides={}):
+    def get_module_name(obj):
+        return obj.__name__
+    def get_super_name(obj):
+        for base in obj.__bases__:
+            if issubclass(base, Artist):
+                return base.__name__
+        return ""
+        # if obj.__bases__[0].__name__ != 'object':
+        #     return obj.__bases__[0].__name__
+        # else:
+        #     return ""
 
-    tables = [(Line2D, "linestyle"), (Line2D, "marker")]
-    for klass in [Artist, Line2D, Patch]:
-        # print "========================================"
-        # print "== %s ==" % klass.__name__
-        # print "========================================"
-        if klass.__bases__[0].__name__ != "object":
-            superklass = "Mpl%s" % klass.__bases__[0].__name__
-        else:
-            superklass = "object"
-        print "class Mpl%s(%s):" % (klass.__name__, superklass)
-        print "    _input_ports = ["
-        translations = {}
-        for attr in sorted(klass.__dict__):
-            if attr.startswith("set_"):
-                attr_no_set = attr[4:]
-                # print "== %s ==" % attr
-                # print getattr(klass, attr).__doc__
-                docstring = getattr(klass, attr).__doc__
-                cleaned_docstrings = []
-                if docstring.startswith("alias"):
-                    continue
-                line_iter = docstring.split('\n').__iter__()
-                in_value_str = False
-                value_lines = []
-                values = None
-                port_type = "String"
-                for line in line_iter:
-                    line = line.strip()
-                    if line:
-                        cleaned_docstrings.append(line)
-                    if in_value_str:
-                        value_lines.append(line)
-                    elif line.startswith("ACCEPTS:") and line.find('[') >= 0:
-                        in_value_str = True
-                        value_lines.append(line)
-                    elif line.startswith("ACCEPTS:"):
-                        if "array" in line:
-                            port_type = "List"
-                        elif "color" in line:
-                            port_type = "Color"
-                            translations[attr_no_set] = "translate_color"
-                        elif "float" in line or "number" in line:
-                            port_type = "Float"
-                        elif "integer" in line:
-                            port_type = "Integer"
-                    if in_value_str and line.find(']') >= 0:
-                        values = process_accepts(value_lines)
-                        value_lines = []
-                        in_value_str = False
-                if (klass, attr_no_set) in tables:
-                    translations[attr_no_set] = \
-                        get_translate_dict(klass, attr_no_set, docstring)
-                    values = translations[attr_no_set].keys()
-                    values.sort()
-                if values:
-                    if 'True' not in values:
-                        values_str = ',\n "entry_types": ["enum"],\n ' + \
-                            '"values": [%s]' % str(values)
-                    else:
-                        values_str = ""
-                        port_type = "Boolean"
+    module_specs = []
+    for klass in artist_types:
+        (klass, module_name, super_name) = \
+            get_names(klass, get_module_name, get_super_name, "Mpl", 
+                      "Properties")
+
+        port_specs = {}
+        insp = ArtistInspector(klass)
+        klass_name = klass.__name__
+        klass_qualname = klass.__module__ + "." + klass_name
+        for (s, t) in insp._get_setters_and_targets():
+            print "** %s **" % s
+            if t.rsplit('.',1)[0] != klass_qualname:
+                # let inheritance work
+                continue
+
+            if s in port_specs:
+                raise Exception('duplicate port "%s"' % s)
+            port_spec = PortSpec(s, s)
+            port_specs[s] = port_spec
+
+            accepts_raw = insp.get_valid_values(s)
+            (accepts, deflists, tables, call_sigs) = \
+                parse_docutils_str(accepts_raw)
+            if len(deflists) + len(tables) > 0:
+                raise Exception("accepts has deflists and/or tables")
+            (port_types, option_strs, default_val, allows_none) = \
+                parse_description(accepts)
+            # port_spec.port_type = port_type
+            if default_val is not None:
+                port_spec.default_val = default_val
+            if len(option_strs) > 0:
+                port_spec.entry_types = ['enum']
+                port_spec.values = [option_strs]
+            port_spec.hide = False
+
+            docstring = getattr(insp.o, 'set_' + s).__doc__
+            if docstring is None:
+                docstring = ""
+            else:
+                docstring = docstring % matplotlib.docstring.interpd.params
+            match = _get_accepts_regex.search(docstring)
+            if match is not None:
+                print "STARTING DOCSTRING:", docstring
+                groups = match.groups()
+                if len(groups) > 2 and groups[2]:
+                    # raise Exception("GOT LAST" + str(docstring) + str(groups))
+                    docstring = groups[0] + groups[2]
                 else:
-                    values_str = ""
-                print '("%s", "(%s)",\n {"optional": True,\n ' \
-                    '"docstring": "%s"%s}),' % \
-                    (attr_no_set, 
-                     'edu.utah.sci.vistrails.basic:%s' % port_type, 
-                     '\\n'.join(cleaned_docstrings), values_str)
-                # print docstring
-        print "    ]"
-        print "    _mpl_translations = {%s}" % \
-            ', '.join("'%s': %s" % (x[0], str(x[1])) \
-                          # if isinstance(x[1], dict) else (x[0], x[1] \
-                          for x in translations.iteritems())
+                    docstring = groups[0]
+                print "FIXED DOCSTRING:", docstring
+            
+            (cleaned_docstring, args, tables, call_sigs) = \
+                parse_docutils_str(docstring)
+            port_spec.docstring = cleaned_docstring
 
-def write_specs(fname, f=sys.stdout):
-    spec_list = SpecList.read_from_xml(fname)
-    for spec in spec_list.module_specs:
-        print >>f, "class %s(%s):" % (spec.name, spec.superklass)
-        print >>f, "    _input_ports = ["
-        translations = {}
-        for port_spec in spec.port_specs:
-            if port_spec.translations:
-                for t in port_spec.translations:
-                    if t is not None:
-                        translations[port_spec.name] = t
-            spec_str = expand_port_spec_string(port_spec.port_type,
-                                               "edu.utah.sci.vistrails.basic")
-            values_str = ''
-            if port_spec.values:
-                values_str = ',\n "entry_types": %s,\n "values": %s' % \
-                    (str(port_spec.entry_types), str(port_spec.values))
-            should_print_defaults = False
-            defaults_str = ""
-            if port_spec.defaults:
-                for d in port_spec.defaults:
-                    if d is not None:
-                        should_print_defaults = True
-                        break
-            if should_print_defaults:
-                defaults_str = ',\n "defaults": %s' % str(port_spec.defaults)
-            print >>f, '("%s", "%s",\n {"optional": True,\n ' \
-                '"docstring": "%s"%s%s}),' % (port_spec.name, spec_str,
-                                              port_spec.docstring, values_str,
-                                              defaults_str)
-        print >>f, "    ]"
-        print >>f, "    _mpl_translations = {%s}" % \
-            ', '.join("'%s': %s" % (x[0], str(x[1])) \
-                          # if isinstance(x[1], dict) else (x[0], x[1] \
-                          for x in translations.iteritems())
+            translations = None
+            for (table_intro, header, rows) in tables:
+                print "TABLE:", table_intro
+                if (s, table_intro) in table_overrides:
+                    (override_type, opts) = table_overrides[(s, table_intro)]
+                    if override_type == "translation":
+                        do_translation_override(port_specs, s, rows, opts)
+                        continue
+                    elif override_type == "ports":
+                        table_intro = "kwarg"
+                    elif override_type == "skip":
+                        continue
+                if len(header) != 2:
+                    raise Exception("Table not two columns!")
+                if translations is not None:
+                    raise Exception("Two translations in one attr")
+                (translations, pt2, values) = parse_translation(rows)
+                port_spec.translations = translations
+                port_spec.values = [values]
+                port_types.extend(pt2)  
+            resolve_port_type(port_types, port_spec)
+            
+        module_spec = ModuleSpec(module_name, super_name, klass_qualname,
+                                 klass.__doc__, port_specs.values())
+        module_specs.append(module_spec)
 
-def test_xml():
-    port_spec = PortSpec("bins", "Integer", "Some documentation", True)
-    spec = ModuleSpec("MplHistogram", "object", "hist", [port_spec])
-    specs_list = SpecList([spec])
-    specs_list.write_to_xml("test.xml")
+    my_specs = SpecList(module_specs)
+    return my_specs
+
+def run_artists():
+    import matplotlib.axes
+    import matplotlib.axis
+    import matplotlib.collections
+    import matplotlib.figure
+    import matplotlib.image
+    import matplotlib.lines
+    import matplotlib.patches
+    import matplotlib.text
+    
+    artist_py_modules = [matplotlib.axes,
+                         matplotlib.axis,
+                         matplotlib.collections,
+                         matplotlib.figure,
+                         matplotlib.image,
+                         matplotlib.lines,
+                         matplotlib.patches,
+                         matplotlib.text,
+                         ]
+
+    exclude = set([])
+
+    artist_types = set() # (Artist, None, "MplProperties")]
+    for py_module in artist_py_modules:
+        for cls_name, cls in inspect.getmembers(py_module, inspect.isclass):
+            if cls_name in exclude:
+                continue
+            if issubclass(cls, Artist) and cls != Artist:
+                artist_types.add(cls)
+
+    print "ARTIST TYPES:", artist_types
+    artist_types = [(Artist, None, "MplProperties")] + \
+        list(sorted(artist_types, key=lambda x: list(reversed(x.mro()))))
+    print "SORTED ARTIST TYPES:", artist_types
+
+    # from matplotlib.collections import Collection, PathCollection, \
+    #     LineCollection
+    # from matplotlib.lines import Line2D
+    # from matplotlib.patches import Patch, Rectangle, PathPatch, Wedge, \
+    #     FancyArrowPatch, YAArrow
+    # from matplotlib.text import Text, Annotation
+    # from matplotlib.axes import Axes
+    # from matplotlib.figure import Figure
+
+    # artist_types = [(Artist, None, "MplProperties"), 
+    #                 Line2D, Patch, Rectangle, Axes, Figure, PathPatch, Wedge, 
+    #                 Collection, PathCollection, LineCollection, Text, 
+    #                 Annotation, FancyArrowPatch, YAArrow]
+    
+    artist_overrides = {('aspect', 'aspect'):
+                            ('translation', {'reverse': False,
+                                             'values_only': True}),
+                        # FIXME may want documentation from adjustable?
+                        ('aspect', 'adjustable'):
+                            ('skip', {}),
+                        # FIXME may want documentation from anchor?
+                        ('aspect', 'anchor'):
+                            ('skip', {}),
+                        }
+
+    # test_xml()
+    specs = parse_artists(artist_types, artist_overrides)
+    specs.write_to_xml("mpl_artists_raw.xml")
 
 
-def test_table():
-    table1 = "  ===============   =============\n  Location String   Location Code\n  ===============   =============\n  \'best\'            0\n  \'upper right\'     1\n  \'upper left\'      2\n  \'lower left\'      3\n  \'lower right\'     4\n  \'right\'           5\n  \'center left\'     6\n  \'center right\'    7\n  \'lower center\'    8\n  \'upper center\'    9\n  \'center\'          10\n  ===============   =============\n"
-    table2 = "================   ==================================================================\nKeyword            Description\n================   ==================================================================\nborderpad          the fractional whitespace inside the legend border\nlabelspacing       the vertical space between the legend entries\nhandlelength       the length of the legend handles\nhandletextpad      the pad between the legend handle and text\nborderaxespad      the pad between the axes and legend border\ncolumnspacing      the spacing between columns\n================   ==================================================================\n\n"
-    line_iter = table2.split('\n').__iter__()
-    line = line_iter.next().strip()
-    rows, headers = parse_table(line_iter, line)
-    print "ROWS:", rows
-    print "HEADERS:", headers
+def run_plots():
+    # from matplotlib's boilerplate.py
+    plot_types = ['acorr',
+                  'arrow',
+                  'axhline',
+                  'axhspan',
+                  'axvline',
+                  'axvspan',
+                  'bar',
+                  'barh',
+                  'broken_barh',
+                  'boxplot',
+                  'cohere',
+                  'clabel',
+                  'contour',
+                  'contourf',
+                  'csd',
+                  'errorbar',
+                  'fill',
+                  'fill_between',
+                  'fill_betweenx',
+                  'hexbin',
+                  'hist',
+                  'hist2d',
+                  'hlines',
+                  'imshow',
+                  'loglog',
+                  'pcolor',
+                  'pcolormesh',
+                  'pie',
+                  # add plot later
+                  # 'plot',
+                  'plot_date',
+                  'psd',
+                  'quiver',
+                  'quiverkey',
+                  'scatter',
+                  'semilogx',
+                  'semilogy',
+                  'specgram',
+                  'stackplot',
+                  'stem',
+                  'step',
+                  'streamplot',
+                  'tricontour',
+                  'tricontourf',
+                  'tripcolor',
+                  'triplot',
+                  'vlines',
+                  'xcorr',
+                  'barbs',
+                  ]
+
+    plot_types += ['spy',
+                   'polar',
+                   ]
+
+    # FIXME added to keep existing code happy for now
+    plot_types += ['legend',
+                   'annotate',
+                   ('plot', 'MplLinePlot')]
+
+    # others = ['plotfile', 'legend', 'matshow',]
+
+    # plot_types = ['acorr', 'bar', 'barbs', 'barh', 'boxplot', 'broken_barh', 'cohere', 'contour', 'contourf', 'csd', 'errorbar', 'hexbin', 'hist', 'loglog', 'pcolor', 'pcolormesh', 'pie', 'plot', 'plot_date', 'pie', 'polar', 'psd', 'quiver', 'scatter', 'semilogx', 'semilogy', 'specgram', 'spy', 'stem', 'tricontour', 'tricontourf', 'tripcolor', 'triplot', 'xcorr']
+
+    # plot_types = ['bar', 'boxplot', 'contour', 'hist', ('plot', "MplLinePlot"), 
+    #               'scatter', 'pie', 'legend', 'annotate', 'hlines', 
+    #               'axvline', 'axhline', 'errorbar']
+
+    table_overrides = {('plot', 'The following format string characters are accepted to control the line style or marker:'):
+                           ('translation', {'name': 'marker'}),
+                       ('plot', 'The following color abbreviations are supported:'):
+                           ('skip', {}),
+                       ('legend', 'The location codes are'):
+                           ('translation', {'name': 'loc',
+                                            'reverse': False}),
+                       ('legend', 'Padding and spacing between various elements use following keywords parameters. These values are measure in font-size units. E.g., a fontsize of 10 points and a handlelength=5 implies a handlelength of 50 points.  Values from rcParams will be used if None.'):
+                           ('ports', {}),
+                       ('annotate', "If the dictionary has a key arrowstyle, a FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a YAArow patch instance is created and drawn. Valid keys for YAArow are"):
+                           ('skip', {}),
+                       ('annotate', "Valid keys for FancyArrowPatch are"):
+                           ('skip', {}),
+                       ('annotate', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext."):
+                           ('translation', {'name': ['xycoords', 'textcoords'],
+                                            'reverse': False,
+                                            'values_only': True}),
+                       }
+
+
+
+    specs = parse_plots(plot_types, table_overrides)
+    specs.write_to_xml("mpl_plots_raw.xml")
     
 
-def run():
-    # test_xml()
-    # parse_bases()
-    # specs = parse_plots()
-    # specs.write_to_xml("test.xml")
+def run(which="all"):
+    if which == "all" or which == "artists":
+        run_artists()
+    if which == "all" or which == "plots":
+        run_plots()
+
     # write_specs("test.xml")
     # write_specs("mpl.xml")
-    test_table()
+    # test_table()
 
+def get_docutils(plot):
+    import matplotlib.pyplot
+    plot_obj = getattr(matplotlib.pyplot, plot)
+    (_, _, _, call_sigs) = parse_docutils_str(plot_obj.__doc__, True)
+    print call_sigs
     
 if __name__ == '__main__':
     run()
+    # get_docutils("axhline")

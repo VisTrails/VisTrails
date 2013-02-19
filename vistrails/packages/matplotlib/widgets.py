@@ -32,39 +32,18 @@
 ##
 ###############################################################################
 
-import copy
-import time
-import urllib
+from gui.modules.python_source_configure import PythonEditor
+from gui.modules.source_configure import SourceConfigurationWidget
 
-import core.modules
-import core.modules.module_registry
-from core import debug
-from core.modules.basic_modules import File, String, Boolean
-from core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
-
-from core.bundles import py_import
-try:
-    mpl_dict = {'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg', warn=False)
-    pylab = py_import('pylab', mpl_dict)
-    import matplotlib.transforms as mtransforms
-except Exception, e:
-    debug.critical("Exception: %s" % e)
-
-from bases import _modules as _base_modules
-from plots import _modules as _plot_modules
-from artists import _modules as _artist_modules
-
-################################################################################
-
-#list of modules to be displaced on matplotlib.new package
-_modules = _base_modules + _plot_modules + _artist_modules
-
-def initialize(*args, **kwargs):
-    reg = core.modules.module_registry.get_module_registry()
-    if reg.has_module('edu.utah.sci.vistrails.spreadsheet',
-                      'SpreadsheetCell'):
-        from figure_cell import MplFigureCell
-        _modules.append(MplFigureCell)
+class MplSourceConfigurationWidget(SourceConfigurationWidget):
+    def __init__(self, module, controller, parent=None):
+        """ MplSourceConfigurationWidget(module: Module,
+                                         controller: VistrailController,
+                                         parent: QWidget)
+                                         -> MplSourceConfigurationWidget
+        Setup the dialog to similar to PythonSource but with a
+        different name
+        
+        """
+        SourceConfigurationWidget.__init__(self, module, controller, 
+                                           PythonEditor, True, False, parent)
