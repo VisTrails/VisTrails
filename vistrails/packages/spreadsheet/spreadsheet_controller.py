@@ -61,7 +61,7 @@ class SpreadsheetController(object):
                 # This could be in SpreadsheetWindow but findSpreadsheetWindow
                 # is unnecessarily slow
 
-    def findSpreadsheetWindow(self, show=True, **kwargs):
+    def findSpreadsheetWindow(self, show=True, create=True, **kwargs):
         """ findSpreadsheetWindow(...) -> QWidget
         Returns (and optionally creates) the spreadsheet window.
 
@@ -71,7 +71,7 @@ class SpreadsheetController(object):
         """
         global spreadsheetWindow
         created = False
-        if spreadsheetWindow is None:
+        if spreadsheetWindow is None and create:
             from spreadsheet_window import SpreadsheetWindow
             wList = QtGui.QApplication.topLevelWidgets()
             for w in wList:
