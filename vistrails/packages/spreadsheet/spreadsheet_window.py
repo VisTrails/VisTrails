@@ -60,15 +60,17 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     mode
     
     """
-    MENU_MAIN = 1
-    MENU_VIEW = 2
-    MENU_WINDOW = 4
-    QUIT_ACTION = 8
-    CREATE_FIRST_SHEET = 16
+    MENU_MAIN = 1 << 0
+    MENU_VIEW = 1 << 1
+    MENU_WINDOW = 1 << 2
+    QUIT_ACTION = 1 << 3
+    CREATE_FIRST_SHEET = 1 << 4
+    CREATE_CHANGE_SHEETS = 1 << 5
     DEFAULTS = (
             MENU_MAIN | MENU_VIEW | MENU_WINDOW |
             QUIT_ACTION |
-            CREATE_FIRST_SHEET)
+            CREATE_FIRST_SHEET |
+            CREATE_CHANGE_SHEETS)
 
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(),
                  menuBar=None, flags=DEFAULTS):
@@ -85,7 +87,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
             self.stackedCentralWidget,
-            create_firsttab=bool(flags & SpreadsheetWindow.CREATE_FIRST_SHEET))
+            create_firsttab=bool(flags & SpreadsheetWindow.CREATE_FIRST_SHEET),
+            allow_change=bool(flags & SpreadsheetWindow.CREATE_CHANGE_SHEETS))
         self.stackedCentralWidget.addWidget(self.tabController)
         self.fullScreenStackedWidget = QtGui.QStackedWidget(
             self.stackedCentralWidget)
@@ -153,7 +156,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             mainMenu.addAction(self.tabController.saveAsAction())
             mainMenu.addAction(self.tabController.openAction())
             mainMenu.addSeparator()
-            mainMenu.addAction(self.tabController.newSheetAction())
+            if flags & SpreadsheetWindow.CREATE_CHANGE_SHEETS:
+                mainMenu.addAction(self.tabController.newSheetAction())
             mainMenu.addAction(self.tabController.deleteSheetAction())
         if flags & SpreadsheetWindow.MENU_VIEW:
             viewMenu = QtGui.QMenu('&View', self.menuBar())

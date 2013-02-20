@@ -89,14 +89,15 @@ class StandardWidgetToolBar(QtGui.QToolBar):
     included
     
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, allow_create_sheet=True):
         """ StandardWidgetToolBar(parent: QWidget) -> StandardWidgetToolBar
         Init the toolbar with default actions
         
         """
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
-        self.addAction(self.sheetTab.tabWidget.newSheetAction())
+        if allow_create_sheet:
+            self.addAction(self.sheetTab.tabWidget.newSheetAction())
         self.addAction(self.sheetTab.tabWidget.openAction())
         self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
@@ -595,7 +596,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     displaying the spreadsheet.
     
     """
-    def __init__(self, tabWidget,row=None , col=None):
+    def __init__(self, tabWidget,row=None , col=None, allow_create_sheet=True):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
                                 col: int) -> StandardWidgetSheet
@@ -612,7 +613,9 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)
         self.sheet.setFitToWindow(True)
-        self.toolBar = StandardWidgetToolBar(self)
+        self.toolBar = StandardWidgetToolBar(
+                self,
+                allow_create_sheet=allow_create_sheet)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
         self.vLayout.setMargin(0)
@@ -868,7 +871,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     to change tab name
     
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, allow_renaming=True):
         """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
         
@@ -890,14 +893,18 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                                                  self)
         self.outerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
                                                  None)
+        self._allow_renaming = allow_renaming
 
     def mouseDoubleClickEvent(self, e):
         """ mouseDoubleClickEvent(e: QMouseEvent) -> None
         Handle Double-Click event to start the editor
         
         """
-        if e.buttons()!=QtCore.Qt.LeftButton or self.editor: return
-        
+        if (not self._allow_renaming or 
+                e.buttons() != QtCore.Qt.LeftButton or
+                self.editor):
+            return
+
         # Update the current editing tab widget
         self.editingIndex = self.currentIndex()
         

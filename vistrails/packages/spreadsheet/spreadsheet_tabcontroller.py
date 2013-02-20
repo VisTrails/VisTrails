@@ -62,7 +62,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
-    def __init__(self, parent=None, create_firsttab=True):
+    def __init__(self, parent=None, create_firsttab=True, allow_change=True):
         """ StandardWidgetTabController(parent: QWidget)
                                         -> StandardWidgetTabController
         Initialize signals/slots and widgets for the tab bar
@@ -71,13 +71,18 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         QtGui.QTabWidget.__init__(self, parent)
         self.operatingWidget = self
-        self.setTabBar(StandardWidgetTabBar(self))
+        self.setTabBar(StandardWidgetTabBar(self, allow_renaming=allow_change))
         self.setTabShape(QtGui.QTabWidget.Triangular)
         self.setTabPosition(QtGui.QTabWidget.South)
         self.tabWidgets = []
         self.floatingTabWidgets = []
+        self._allow_change = allow_change
         if create_firsttab:
-            self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
+            self.addTabWidget(
+                    StandardWidgetSheetTab(
+                            self,
+                            allow_create_sheet=allow_change),
+                    'Sheet 1')
         self.connect(self.tabBar(),
                      QtCore.SIGNAL('tabMoveRequest(int,int)'),
                      self.moveTab)
@@ -299,8 +304,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Actual code to create a new sheet
         
         """
-        self.setCurrentIndex(self.addTabWidget(StandardWidgetSheetTab(self),
-                                               'Sheet %d' % (self.count()+1)))
+        self.setCurrentIndex(
+                self.addTabWidget(
+                        StandardWidgetSheetTab(
+                                self,
+                                allow_create_sheet=self._allow_change),
+                        'Sheet %d' % (self.count()+1)))
         self.currentWidget().sheet.stretchCells()
         
     def tabInserted(self, index):
