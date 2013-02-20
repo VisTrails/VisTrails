@@ -66,7 +66,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, create_firsttab=True):
         """ StandardWidgetTabController(parent: QWidget)
                                         -> StandardWidgetTabController
         Initialize signals/slots and widgets for the tab bar
@@ -80,7 +80,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.setTabPosition(QtGui.QTabWidget.South)
         self.tabWidgets = []
         self.floatingTabWidgets = []
-        self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
+        if create_firsttab:
+            self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
         self.connect(self.tabBar(),
                      QtCore.SIGNAL('tabMoveRequest(int,int)'),
                      self.moveTab)
