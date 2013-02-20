@@ -44,6 +44,7 @@ from spreadsheet_tabcontroller import StandardWidgetTabController
 from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import CellContainerInterface
 from spreadsheet_config import configuration
+from vistrails.core.application import get_vistrails_application
 from vistrails.core.modules import module_utils
 from vistrails.core.utils import trace_method
 import ctypes
@@ -118,6 +119,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         # this will cause the spreadsheet to have each cell
         # 550 x 450 size in the server
         #self.resize(1156, 599)
+
+        app = get_vistrails_application()
+        app.create_notification('spreadsheet_sheet_changed')
 
     def quitActionTriggered(self):
         if self.visApp and hasattr(self.visApp, 'builderWindow') and \

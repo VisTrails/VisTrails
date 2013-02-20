@@ -38,6 +38,7 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
+from vistrails.core.application import get_vistrails_application
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.db.services.io import SaveBundle
@@ -86,6 +87,16 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.connect(self.tabBar(),
                      QtCore.SIGNAL('tabTextChanged(int,QString)'),
                      self.changeTabText)
+        app = get_vistrails_application()
+        def sheet_changed(idx):
+            if idx >= 0:
+                tab = self.widget(idx)
+            else:
+                tab = None
+            app.send_notification('spreadsheet_sheet_changed', tab)
+        self.connect(self.tabBar(),
+                     QtCore.SIGNAL('currentChanged(int)'),
+                     sheet_changed)
         self.addAction(self.showNextTabAction())
         self.addAction(self.showPrevTabAction())
         self.executedPipelines = [[],{},{}]
