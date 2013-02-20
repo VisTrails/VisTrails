@@ -44,6 +44,7 @@ import os.path
 from PyQt4 import QtCore, QtGui
 import tempfile
 
+from vistrails.core.application import get_vistrails_application
 from vistrails.core.modules import module_utils
 
 from .spreadsheet_base import StandardSheetReference
@@ -121,6 +122,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         # this will cause the spreadsheet to have each cell
         # 550 x 450 size in the server
         #self.resize(1156, 599)
+
+        app = get_vistrails_application()
+        app.create_notification('spreadsheet_sheet_changed')
 
     def quitActionTriggered(self):
         if self.visApp and hasattr(self.visApp, 'builderWindow') and \
