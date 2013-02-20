@@ -63,7 +63,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     MENU_VIEW = 2
     MENU_WINDOW = 4
     QUIT_ACTION = 8
-    DEFAULTS = MENU_MAIN | MENU_VIEW | MENU_WINDOW | QUIT_ACTION
+    CREATE_FIRST_SHEET = 16
+    DEFAULTS = (
+            MENU_MAIN | MENU_VIEW | MENU_WINDOW |
+            QUIT_ACTION |
+            CREATE_FIRST_SHEET)
 
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(),
                  menuBar=None, flags=DEFAULTS):
@@ -79,7 +83,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.shownConfig = False #flag to control the window setup code is done only once
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
-            self.stackedCentralWidget)
+            self.stackedCentralWidget,
+            create_firsttab=bool(flags & SpreadsheetWindow.CREATE_FIRST_SHEET))
         self.stackedCentralWidget.addWidget(self.tabController)
         self.fullScreenStackedWidget = QtGui.QStackedWidget(
             self.stackedCentralWidget)
