@@ -1867,6 +1867,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return False
         
         if locator is not None:
+            self.notify('controller_closed', current_view.controller)
             get_vistrails_application().close_vistrail(locator, current_view.controller)
         return True
 
