@@ -1770,6 +1770,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         elif res == 2:
             return False
         if current_view is not None:
+            self.notify('controller_closed', current_view.controller)
             current_view.closeDetachedViews()
             current_view.controller.close_vistrail(locator)
             current_view.controller.cleanup()
