@@ -343,14 +343,17 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if self.count()>0:
             widget = self.currentWidget()
-            self.tabWidgets.remove(widget)
-            self.removeTab(self.currentIndex())
-            self.removeSheetReference(widget)
-            widget.deleteAllCells()
-            widget.deleteLater()
-            QtCore.QCoreApplication.processEvents()
-            gc.collect()
-            
+            self.deleteSheet(widget)
+
+    def deleteSheet(self, widget):
+        self.tabWidgets.remove(widget)
+        self.removeTab(self.currentIndex())
+        self.removeSheetReference(widget)
+        widget.deleteAllCells()
+        widget.deleteLater()
+        QtCore.QCoreApplication.processEvents()
+        gc.collect()
+
     def clearTabs(self):
         """ clearTabs() -> None
         Clear and reset the controller
