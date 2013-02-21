@@ -41,7 +41,7 @@ from db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
     DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \
     DBVtConnection, DBRefProvEntity, DBRefProvPlan, DBRefProvActivity, \
     DBRefProvAgent, DBIsPartOf, IdScope, DBGroupExec, DBLoopExec, DBModuleExec, \
-    DBWorkflowExec, DBFunction, DBParameter, DBGroup
+    DBWorkflowExec, DBFunction, DBParameter, DBGroup, DBAbstraction
 from db.services.vistrail import materializeWorkflow
 
 def create_prov_document(entities, activities, agents, connections, usages,
@@ -326,7 +326,7 @@ def create_prov(workflow, version, log):
 
             module_list[module._db_id] = module
             
-            # group or abstraction
+            # group
             if module.vtType == DBGroup.vtType:
                 vt_part = create_is_part_of(prov_workflow)
                 prov_group = create_prov_entity_from_group(id_scope=id_scope,
@@ -337,14 +337,14 @@ def create_prov(workflow, version, log):
                 get_modules_and_conn(prov_group, module.db_workflow)
             
             # abstraction (subworkflow)
-#            elif module.is_abstraction():
-#                vt_part = create_is_part_of(prov_workflow)
-#                prov_abstraction = create_prov_entity_from_abstraction(id_scope=id_scope,
-#                                                                       abstraction=module,
-#                                                                       is_part_of=vt_part)
-#                entities_map[module._db_id] = prov_abstraction
-#                entities.append(prov_abstraction)
-#                get_modules_and_conn(prov_abstraction, module.db_pipeline)
+            elif module.vtType == DBAbstraction.vtType:
+                vt_part = create_is_part_of(prov_workflow)
+                prov_abstraction = create_prov_entity_from_abstraction(id_scope=id_scope,
+                                                                       abstraction=module,
+                                                                       is_part_of=vt_part)
+                entities_map[module._db_id] = prov_abstraction
+                entities.append(prov_abstraction)
+                #get_modules_and_conn(prov_abstraction, module.db_workflow)
             
             # module
             else:
@@ -405,7 +405,12 @@ def create_prov(workflow, version, log):
                                                            machine_id,
                                                            vt_part)
             
-            functions = module_functions[exec_._db_module_id]
+            try:
+                functions = module_functions[exec_._db_module_id]
+            except:
+                activities.append(prov_activity)
+                return True
+                
             for function in functions:
                 prov_data = prov_functions[function.db_id]
                 
