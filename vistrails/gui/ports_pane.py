@@ -448,6 +448,19 @@ class PortsList(QtGui.QTreeWidget):
             self.entry_klass = entry_klass
             self.update_module(self.module)
 
+    def include_port(self, port_spec):
+        """Determines whether or not a port should show up in this list.
+        """
+        return True
+
+    def create_port_item(self, port_spec, is_connected, is_optional,
+                 is_visible, is_editable, parent=None):
+        """Creates the port item
+        """
+        return PortItem(port_spec,
+                        is_connected, is_optional, is_visible, is_editable,
+                        parent)
+
     def update_module(self, module):
         """ update_module(module: Module) -> None        
         Setup this tree widget to show functions of module
@@ -482,13 +495,15 @@ class PortsList(QtGui.QTreeWidget):
                 raise TypeError("Unknown port type: '%s'" % self.port_type)
             
             for port_spec in sorted(port_specs, key=lambda x: x.name):
+                if not self.include_port(port_spec): continue
                 connected = port_spec.name in connected_ports and \
                     connected_ports[port_spec.name] > 0
-                item = PortItem(port_spec,
-                                connected,
-                                port_spec.optional,
-                                port_spec.name in visible_ports,
-                                port_spec.name in module.editable_input_ports)
+                item = self.create_port_item(
+                        port_spec,
+                        connected,
+                        port_spec.optional,
+                        port_spec.name in visible_ports,
+                        port_spec.name in module.editable_input_ports)
                 self.addTopLevelItem(item)
                 self.port_spec_items[port_spec.name] = (port_spec, item)
 
@@ -496,6 +511,7 @@ class PortsList(QtGui.QTreeWidget):
                 for function in module.functions:
                     if not function.is_valid:
                         continue
+                    if function.name not in self.port_spec_items: continue
                     port_spec, item = self.port_spec_items[function.name]
                     subitem = self.entry_klass(port_spec, function,
                                                self.types_visible)
@@ -576,7 +592,8 @@ class PortsList(QtGui.QTreeWidget):
                          for i in xrange(len(function.parameters))])
                     port_spec = PortSpec(name=function.name, type='input',
                                          sigstring=sigstring)
-                    item = PortItem(port_spec,  False, False, False)
+                    item = self.create_port_item(port_spec,
+                                                 False, False, False, False)
                 self.addTopLevelItem(item)
                 self.port_spec_items[port_spec.name] = (port_spec, item)
                 subitem = self.entry_klass(port_spec, function)
@@ -590,45 +607,58 @@ class PortsList(QtGui.QTreeWidget):
         if item.parent() is not None:
             return
 
+        if col == 0:
+            self.edit_clicked(item)
+        elif col == 1:
+            self.visible_clicked(item)
+        elif col == 3:
+            self.label_clicked(item)
+
+    def visible_clicked(self, item):
         if self.port_type == 'input':
             visible_ports = self.module.visible_input_ports
-            editable_ports = self.module.editable_input_ports
         elif self.port_type == 'output':
             visible_ports = self.module.visible_output_ports
         else:
             raise TypeError("Unknown port type: '%s'" % self.port_type)
 
-        if col == 0:
-            if item.is_constant() and len(item.port_spec.port_spec_items)>0:
-                item.set_editable(not item.is_editable)
-                if item.is_editable:
-                    editable_ports.add(item.port_spec.name)
-                else:
-                    editable_ports.discard(item.port_spec.name)
-                self.controller.flush_delayed_actions()
-                self.controller.add_annotation((self.module.INLINE_WIDGET_ANNOTATION,
-                                                ','.join(editable_ports)),
-                                               self.module.id)
-                self.controller.current_pipeline_scene.recreate_module(
-                    self.controller.current_pipeline, self.module.id)
-        if col == 1:
-            if item.is_optional:
-                item.set_visible(not item.is_visible)
-                if item.is_visible:
-                    visible_ports.add(item.port_spec.name)
-                else:
-                    visible_ports.discard(item.port_spec.name)
-                self.controller.flush_delayed_actions()
-                self.controller.current_pipeline_scene.recreate_module(
-                    self.controller.current_pipeline, self.module.id)
-        if col == 3:
-            if item.isExpanded():
-                item.setExpanded(False)
-            elif item.childCount() > 0:
-                item.setExpanded(True)
-            elif item.childCount() == 0 and item.is_constant():
-                self.do_add_method(item.port_spec, item)
-        
+        if item.is_optional:
+            item.set_visible(not item.is_visible)
+            if item.is_visible:
+                visible_ports.add(item.port_spec.name)
+            else:
+                visible_ports.discard(item.port_spec.name)
+            self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_scene.recreate_module(
+                self.controller.current_pipeline, self.module.id)
+
+    def edit_clicked(self, item):
+        if self.port_type == 'input':
+            editable_ports = self.module.editable_input_ports
+        else:
+            raise TypeError("Wrong port type: '%s'" % self.port_type)
+
+        if item.is_constant() and len(item.port_spec.port_spec_items)>0:
+            item.set_editable(not item.is_editable)
+            if item.is_editable:
+                editable_ports.add(item.port_spec.name)
+            else:
+                editable_ports.discard(item.port_spec.name)
+            self.controller.flush_delayed_actions()
+            self.controller.add_annotation((self.module.INLINE_WIDGET_ANNOTATION,
+                                            ','.join(editable_ports)),
+                                           self.module.id)
+            self.controller.current_pipeline_scene.recreate_module(
+                self.controller.current_pipeline, self.module.id)
+
+    def label_clicked(self, item):
+        if item.isExpanded():
+            item.setExpanded(False)
+        elif item.childCount() > 0:
+            item.setExpanded(True)
+        elif item.childCount() == 0 and item.is_constant():
+            self.do_add_method(item.port_spec, item)
+
     def set_controller(self, controller):
         self.controller = controller
 
