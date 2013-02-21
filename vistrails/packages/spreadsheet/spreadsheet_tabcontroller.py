@@ -350,6 +350,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.removeTab(self.currentIndex())
         self.removeSheetReference(widget)
         widget.deleteAllCells()
+        widget.removeContainers()
         widget.deleteLater()
         QtCore.QCoreApplication.processEvents()
         gc.collect()

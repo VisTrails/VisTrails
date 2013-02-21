@@ -648,6 +648,9 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         elif new_cols is not None:
             rows = xrange(self.sheet.rowCount())
             cols = xrange(new_cols, self.sheet.columnCount())
+        else:
+            rows = xrange(self.sheet.rowCount())
+            cols = xrange(self.sheet.columnCount())
         for row in rows:
             for col in cols:
                 self.setCellByWidget(row, col, None)
