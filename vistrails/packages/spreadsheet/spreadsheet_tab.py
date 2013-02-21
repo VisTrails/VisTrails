@@ -694,7 +694,9 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         self.toolBar.rowCountSpinBox().setValue(rc)
+        self.rowSpinBoxChanged()
         self.toolBar.colCountSpinBox().setValue(cc)
+        self.colSpinBoxChanged()
             
     def getCellWidget(self, row, col):
         """ getCellWidget(row: int, col: int) -> QWidget
