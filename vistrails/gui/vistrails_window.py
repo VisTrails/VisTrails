@@ -904,6 +904,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.register_notification(notification_id, method, True, view)
 
         QWorkspaceWindow.instance().add_vt_window(view)
+        self.notify('view_created', view.controller, view)
 
         return view
 
@@ -1568,6 +1569,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             from vistrails.gui.collection.workspace import QWorkspaceWindow
             QWorkspaceWindow.instance().remove_vt_window(view)
             QWorkspaceWindow.instance().add_vt_window(view)
+            self.notify('view_created', view.controller, view)
             return view
         except Exception, e:
             import traceback
