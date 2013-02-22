@@ -145,7 +145,9 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     continue
                 try:
                     # call queue
-                    job.jobFinished = job.queue.finished().val()
+                    job.jobFinished = job.queue.finished()
+                    if type(job.jobFinished) != bool:
+                        job.jobFinished = job.jobFinished.val()
                 except Exception, e:
                     debug.critical("Error checking job %s: %s" %
                                    (workflow.name, str(e)))
@@ -159,14 +161,18 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             workflow.countJobs()
             if workflow.workflowFinished:
                 if self.autorun.isChecked():
+                    self.updating_now = False
                     workflow.execute()
+                    self.updating_now = True
                     continue
                 ret = QtGui.QMessageBox.information(self, "Job Ready",
                         'Pending Jobs in workflow "%s" has finished, do you want '
                         'to continue the execution now?' % workflow.name,
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                 if ret == QtGui.QMessageBox.Ok:
+                    self.updating_now = False
                     workflow.execute()
+                    self.updating_now = True
 
     def timerEvent(self, id=None):
         if self.updating_now:
