@@ -3153,9 +3153,16 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         # reset job view
         from gui.job_monitor import QJobView
         jobView = QJobView.instance()
+        if jobView.updating_now:
+            debug.critical("Execution Aborted: Job Monitor is updating. Please wait a few seconds and try again.")
+            return
         jobView.delete_job(self.controller)
+        jobView.updating_now = True
 
         self.controller.execute_current_workflow()
+        
+        jobView.updating_now = False
+
         from gui.vistrails_window import _app
         _app.notify('execution_updated')
         
