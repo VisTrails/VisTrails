@@ -232,9 +232,8 @@ _modules = [MplScatterplot, MplHistogram, NumPyArray]
 
 # Define DAT plots
 try:
-    from dat.vistrails_interface import Plot, Port, \
-        Variable, FileVariableLoader
-    from dat.gui import translate
+    from dat.packages import Plot, Port, Variable, FileVariableLoader, \
+        translate
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:

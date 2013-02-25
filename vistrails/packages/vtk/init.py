@@ -1408,9 +1408,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
 # Define DAT plots
 try:
-    from dat.vistrails_interface import Plot, Port, \
-        Variable, FileVariableLoader
-    from dat.gui import translate
+    from dat.packages import Plot, Port, \
+        Variable, FileVariableLoader, \
+        translate
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:

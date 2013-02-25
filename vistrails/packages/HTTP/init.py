@@ -423,10 +423,10 @@ def initialize(*args, **keywords):
 
 # Define DAT plots
 try:
-    from dat.vistrails_interface import Plot, Port, \
+    from dat.packages import Plot, Port, \
         Variable, \
-        CustomVariableLoader, FileVariableLoader
-    from dat.gui import translate
+        CustomVariableLoader, FileVariableLoader, \
+        translate
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:
