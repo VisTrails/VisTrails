@@ -1408,7 +1408,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
 # Define DAT plots
 try:
-    from dat.packages import Plot, Port, \
+    from dat.packages import Plot, DataPort, \
         Variable, FileVariableLoader, \
         translate
 except ImportError:
@@ -1438,7 +1438,7 @@ else:
         Plot(name="VTK Render",
              subworkflow='{package_dir}/dat-plots/vtk_render.xml',
              description=_("Renders a VTK dataset"),
-             ports=[Port(name='dataset', type='vtkAlgorithmOutput')])
+             ports=[DataPort(name='dataset', type='vtkAlgorithmOutput')])
     ]
 
     ########################################

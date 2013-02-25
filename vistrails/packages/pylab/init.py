@@ -232,8 +232,8 @@ _modules = [MplScatterplot, MplHistogram, NumPyArray]
 
 # Define DAT plots
 try:
-    from dat.packages import Plot, Port, Variable, FileVariableLoader, \
-        translate
+    from dat.packages import Plot, DataPort, ConstantPort, Variable, \
+        FileVariableLoader, translate
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:
@@ -261,9 +261,9 @@ else:
              subworkflow='{package_dir}/dat-plots/histogram.xml',
              description=_("Build a histogram out of a numpy array"),
              ports=[
-                     Port(name='np_array', type=NumPyArray, optional=False),
-                     Port(name='xlabel', type=String, optional=True),
-                     Port(name='ylabel', type=String, optional=True)])
+                     DataPort(name='np_array', type=NumPyArray),
+                     ConstantPort(name='xlabel', type=String, optional=True),
+                     ConstantPort(name='ylabel', type=String, optional=True)])
     ]
 
     ########################################
