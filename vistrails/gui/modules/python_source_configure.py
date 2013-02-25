@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -179,6 +180,8 @@ def NewPythonEditor(parent):
         
             # folding margin colors (foreground,background)
             self.setFoldMarginColors(QtGui.QColor("#DDDDDD"),QtGui.QColor("#DDDDDD"))
+            # do not use tabs
+            self.setIndentationsUseTabs(False)
             self.setTabWidth(4)
             self.setTabIndents(True)
         
@@ -209,10 +212,10 @@ def NewPythonEditor(parent):
             """
             return self.text()
     
-        def focusOutEvent(self, event):
-            if self.parent():
-                QtCore.QCoreApplication.sendEvent(self.parent(), event)
-            QsciScintilla.focusOutEvent(self, event)
+#        def focusOutEvent(self, event):
+#            if self.parent():
+#                QtCore.QCoreApplication.sendEvent(self.parent(), event)
+#            QsciScintilla.focusOutEvent(self, event)
 
     return _PythonEditor(parent)
 
@@ -242,10 +245,10 @@ class OldPythonEditor(QtGui.QTextEdit):
             # super(PythonEditor, self).keyPressEvent(event)
             QtGui.QTextEdit.keyPressEvent(self, event)
             
-    def focusOutEvent(self, event):
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QTextEdit.focusOutEvent(self, event)
+#    def focusOutEvent(self, event):
+#        if self.parent():
+#            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+#        QtGui.QTextEdit.focusOutEvent(self, event)
 
 class PythonSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):

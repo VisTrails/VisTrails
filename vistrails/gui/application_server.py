@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -626,8 +627,8 @@ class RequestHandler(object):
                     locator = DBLocator(host=db_host,
                                         port=3306,
                                         database='vistrails',
-                                        user='vtserver',
-                                        passwd='',
+                                        user=db_write_user,
+                                        passwd=db_write_pass,
                                         obj_id=medley._vtid,
                                         obj_type=None,
                                         connection_id=None)
@@ -1104,13 +1105,12 @@ class RequestHandler(object):
 
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                controller.change_selected_version(version)
-
                 from gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 controller.current_pipeline_view = pipeline_view.scene()
                 controller.set_vistrail(v, locator, abstractions, 
                                         thumbnails, mashups)
+                controller.change_selected_version(version)
                 p = controller.current_pipeline
                 pipeline_view.scene().setupScene(p)
                 pipeline_view.scene().saveToPDF(filename)
@@ -1923,8 +1923,10 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.temp_xml_rpc_options = InstanceObject(server=None,
                                                    port=None,
                                                    log_file=None)
-
         qt.allowQObjects()
+
+    def is_running_gui(self):
+        return True
 
     def make_logger(self, filename, label):
         """self.make_logger(filename:str) -> logger. Creates a logging object to
@@ -2165,7 +2167,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver.stop = True
         return result
 
-    def setupOptions(self):
+    def setupOptions(self, args=None):
         """ setupOptions() -> None
         Check and store all command-line arguments
 
@@ -2190,7 +2192,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             default=os.path.join(system.vistrails_root_directory(),
                                  'server.cfg'),
             help="config file for server connection options")
-        VistrailsApplicationInterface.setupOptions(self)
+        VistrailsApplicationInterface.setupOptions(self, args)
 
     def readOptions(self):
         """ readOptions() -> None

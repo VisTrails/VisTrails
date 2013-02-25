@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -75,8 +76,11 @@ warnings.filterwarnings("ignore",
                         message="integer argument expected, got float")
 
 ################################################################################
-
-if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '0', '4'):
+v = vtk.vtkVersion()
+version = [v.GetVTKMajorVersion(),
+           v.GetVTKMinorVersion(),
+           v.GetVTKBuildVersion()]
+if version < [5, 0, 4]:
     def get_description_class(klass):
         """Because sometimes we need to patch VTK classes, the klass that
         has the methods is different than the klass we want to
@@ -347,6 +351,7 @@ def prune_signatures(module, name, signatures, output=False):
     
 disallowed_classes = set(
     [
+    'simplewrapper', # ticket 464: VTK 5.10 on OpenSuSE needs this
     'vtkCriticalSection',
     'vtkDataArraySelection',
     'vtkDebugLeaks',
@@ -456,7 +461,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
             if is_class_allowed(class_):
                 port_name = 'Get'+name
                 registry.add_output_port(module, port_name, class_, True,
-                                         module.get_doc(port_name))
+                                         docstring=module.get_doc(port_name))
         if len(setterSig) > 1:
             prune_signatures(module, 'Set%s'%name, setterSig)
         for ix, setter in enumerate(setterSig):
@@ -466,7 +471,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 registry.add_input_port(module, n,
                                         typeMap(setter[1][0]),
                                         setter[1][0] in typeMapDict,
-                                        module.get_doc(n))
+                                        docstring=module.get_doc(n))
             else:
                 classes = [typeMap(i) for i in setter[1]]
 
@@ -1097,7 +1102,11 @@ def createAllModules(g):
     Traverse the VTK class tree and add all modules into the module registry
     
     """
-    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+    v = vtk.vtkVersion()
+    version = [v.GetVTKMajorVersion(),
+               v.GetVTKMinorVersion(),
+               v.GetVTKBuildVersion()]
+    if version < [5, 7, 0]:
         assert len(g.tree[0]) == 1
         base = g.tree[0][0]
         assert base.name == 'vtkObjectBase'
@@ -1106,7 +1115,7 @@ def createAllModules(g):
     vtkObjectBase.vtkClass = vtk.vtkObjectBase
     registry = get_module_registry()
     registry.add_module(vtkObjectBase)
-    if tuple(vtk.vtkVersion().GetVTKVersion().split('.')) < ('5', '7', '0'):
+    if version < [5, 7, 0]:
         for child in base.children:
             if child.name in disallowed_classes:
                 continue

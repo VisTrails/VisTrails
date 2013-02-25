@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -59,10 +60,10 @@ class SourceEditor(QtGui.QTextEdit):
     def formatChanged(self, f):
         self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)
         
-    def focusOutEvent(self, event):
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QTextEdit.focusOutEvent(self, event)
+#    def focusOutEvent(self, event):
+#        if self.parent():
+#            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+#        QtGui.QTextEdit.focusOutEvent(self, event)
     
 class SourceWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, editor_class=None,
@@ -399,7 +400,7 @@ class SourceConfigurationWidget(SourceWidget):
             self.state_changed = True
             self.emit(QtCore.SIGNAL("stateChanged"))
     
-    def focusOutEvent(self, event):
-        if not self.mouseOver:
-            self.askToSaveChanges()
-        QtGui.QWidget.focusOutEvent(self, event)  
+#    def focusOutEvent(self, event):
+        #if not self.mouseOver:
+        #    self.askToSaveChanges()
+#        QtGui.QWidget.focusOutEvent(self, event)  

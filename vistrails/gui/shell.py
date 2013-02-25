@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -52,6 +53,7 @@ import api
 from core.configuration import get_vistrails_configuration
 from core.interpreter.default import get_default_interpreter
 import core.modules.module_registry
+from core.modules.utils import create_port_spec_string
 import core.system
 from core.vistrail.port_spec import PortSpec
 from gui.vistrails_palette import QVistrailsPaletteInterface
@@ -274,7 +276,7 @@ class vistrails_module(object):
             assert len(port_spec.descriptors()) == len(args)
             for i, descriptor in enumerate(port_spec.descriptors()):
                 arg_name = 'arg%d' % i
-                sigstring = "(" + descriptor.sigstring + ")"
+                sigstring = create_port_spec_string([descriptor.spec_tuple])
                 tuple_port_spec = PortSpec(id=-1,
                                            name=arg_name,
                                            type='input',

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -98,10 +99,12 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         """clean_non_cacheable_modules() -> None
 
         Removes all modules that are not cacheable from the persistent
-        pipeline, and the modules that depend on them."""
+        pipeline, and the modules that depend on them, and 
+        previously suspended modules """
         non_cacheable_modules = [i for
                                  (i, mod) in self._objects.iteritems()
-                                 if not mod.is_cacheable()]
+                                 if not mod.is_cacheable() or \
+                                 mod.suspended]
         self.clean_modules(non_cacheable_modules)
         
 
@@ -122,6 +125,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -172,9 +176,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             pipeline.validate()
 
         self.resolve_aliases(pipeline, aliases)
-        if controller is not None:
-            # Controller is none for sub_modules, so we can't resolve variables
-            self.resolve_variables(controller, pipeline)
+        if vistrail_variables:
+            self.resolve_variables(vistrail_variables,  pipeline)
 
         self.update_params(pipeline, params)
         
@@ -193,6 +196,13 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
             obj.signature = module._signature
+            
+            # Checking if output should be stored
+            if module.has_annotation_with_key('annotate_output'):
+                annotate_output = module.get_annotation_by_key('annotate_output')
+                #print annotate_output
+                if annotate_output:
+                    obj.annotate_output = True
                 
             reg = modules.module_registry.get_module_registry()
             for f in module.functions:
@@ -270,6 +280,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -307,6 +318,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             suspended[obj.id] = obj.suspended
             for callable_ in module_suspended_hook:
                 callable_(obj.id)
+                
+        def set_computing(obj):
+            i = get_remapped_id(obj.id)
+            view.set_module_computing(i)
 
         # views work on local ids
         def begin_compute(obj):
@@ -336,6 +351,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             logger.start_execution(obj, i, module_name,
                                    parent_execs=self.parent_execs,
                                    cached=1)
+            view.set_module_not_executed(i)
             num_pops = logger.finish_execution(obj,'', self.parent_execs)
 
         # views and loggers work on local ids
@@ -343,6 +359,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             if was_suspended:
                 view.set_module_suspended(i, error)
+                error = error.msg
             elif not error:
                 view.set_module_success(i)
             else:
@@ -362,6 +379,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             view.set_module_progress(i, percentage)
             
+        def add_exec(exec_):
+            logger.add_exec(exec_, self.parent_execs)
+            
         logging_obj = InstanceObject(signalSuccess=add_to_executed,
                                      signalSuspended=add_to_suspended,
                                      begin_update=begin_update,
@@ -369,6 +389,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                      update_progress=update_progress,
                                      end_update=end_update,
                                      update_cached=update_cached,
+                                     set_computing=set_computing,
+                                     add_exec = add_exec,
                                      annotate=annotate,
                                      log=logger)
 
@@ -568,6 +590,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)

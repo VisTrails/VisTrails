@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -62,13 +63,14 @@ else:
 sys.path.append(root_directory)
 
 import tests
+import core
 
 ###############################################################################
 # Testing Examples
 
 EXAMPLES_PATH = os.path.join(_this_dir, '..', '..', 'examples')
 #dictionary of examples that will be run with the workflows that will be ignored
-VT_EXAMPLES = { 'EMBOSS_webservices.vt': [],
+VT_EXAMPLES = { 'EMBOSS_webservices.vt': ["ProphetOutput"],
                 'KEGGPathway.vt': [],
                 'KEGG_SearchEntities_webservice.vt': [],
                 'KEGG_webservices.vt': [],
@@ -127,6 +129,8 @@ parser.add_option("-e", "--examples", action="store_true",
                   help="will run vistrails examples")
 
 (options, args) = parser.parse_args()
+# remove empty strings
+args = filter(len, args)
 verbose = 0
 if options.verbose:
     verbose = options.verbose
@@ -145,10 +149,20 @@ sys.argv = sys.argv[:1]
 import gui.application
 
 # We need the windows so we can test events, etc.
-gui.application.start_application({'interactiveMode': True,
-                                   'nologger': True})
+v = gui.application.start_application({'interactiveMode': True,
+                                       'nologger': True,
+                                       'singleInstance': False,
+                                       'fixedSpreadsheetCells': True})
+if v != 0:
+    app = gui.application.get_vistrails_application()
+    if app:
+        app.finishSession()
+    sys.exit(v)
+
 
 print "Test Suite for VisTrails"
+
+tests_passed = True
 
 main_test_suite = unittest.TestSuite()
 
@@ -159,7 +173,7 @@ else:
 
 for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
-    if p.find('.svn') != -1:
+    if p.find('.svn') != -1 or p.find('.git') != -1 :
         continue
     for filename in files:
         # skip files that don't look like VisTrails python modules
@@ -207,7 +221,69 @@ for (p, subdirs, files) in os.walk(root_directory):
         elif verbose >= 2:
             print msg, "Ok: %s test cases." % len(test_cases)
 
-unittest.TextTestRunner().run(main_test_suite)
+############## TEST VISTRAIL IMAGES ####################
+# Compares thumbnails with the generated images to detect broken visualizations
+
+image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
+                                  ("terminator_VRSW", "Volume Rendering SW"),
+                                  ("terminator_CPSW", "Clipping Plane SW"),
+                                  ("terminator_CRSW", "Combined Rendering SW"),
+                                  ("terminator_ISSW", "Image Slices SW")])
+               ]
+def compare_thumbnails(prev, next):
+    import vtk
+    #vtkImageDifference assumes RGB, so strip alpha
+    def removeAlpha(file):
+        freader = vtk.vtkPNGReader()
+        freader.SetFileName(file)
+        removealpha = vtk.vtkImageExtractComponents()
+        removealpha.SetComponents(0,1,2)
+        removealpha.SetInputConnection(freader.GetOutputPort())
+        removealpha.Update()
+        return removealpha.GetOutput()            
+    #do the image comparison
+    a = removeAlpha(prev)
+    b = removeAlpha(next)
+    idiff = vtk.vtkImageDifference()
+    idiff.SetInput(a)
+    idiff.SetImage(b)
+    idiff.Update()
+    return idiff.GetThresholdedError()
+
+def image_test_generator(vtfile, version):
+    def test(self):
+        try:
+            errs = []
+            filename = os.path.join(EXAMPLES_PATH, vtfile)
+            locator = core.db.locator.FileLocator(os.path.abspath(filename))
+            (v, abstractions, thumbnails, mashups) = core.db.io.load_vistrail(locator)
+            errs = core.console_mode.run([(locator, version)], update_vistrail=False,
+                        extra_info={'compare_thumbnails': compare_thumbnails})
+            if len(errs) > 0:
+                for err in errs:
+                    print("   *** Error in %s:%s:%s -- %s" % err)
+                    self.fail(str(err))
+        except Exception, e:
+            self.fail(str(e))
+    return test
+
+class TestVistrailImages(unittest.TestCase):
+    pass
+
+for vt, t in image_tests:
+    for name, version in t:
+        test_name = 'test_%s' % name
+        test = image_test_generator(vt, version)
+        setattr(TestVistrailImages, test_name, test)
+        main_test_suite.addTest(TestVistrailImages(test_name))
+
+############## RUN TEST SUITE ####################
+
+result = unittest.TextTestRunner().run(main_test_suite)
+
+if not result.wasSuccessful():
+    tests_passed = False
+
 if test_examples:
     import core.db.io
     import core.db.locator
@@ -252,8 +328,12 @@ if test_examples:
             print "  Ok."
     print "-----------------------------------------------------------------"
     if errors:
+        tests_passed = False
         print "There were errors. See summary for more information"
     else:
         print "Examples ran successfully."
+
 gui.application.get_vistrails_application().finishSession()
 gui.application.stop_application()
+# Test Runners can use the return value to know if the tests passed
+sys.exit(0 if tests_passed else 1)

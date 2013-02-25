@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,6 +38,7 @@ from PyQt4 import QtCore, QtGui
 from core.utils.color import ColorByName
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.pipeline import Pipeline
+from core.vistrail.port_spec import PortSpec
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
 from gui.vistrail_controller import VistrailController
@@ -624,17 +626,17 @@ class QDiffView(QPipelineView):
                     #if we add this port, we will get port overloading.
                     #To avoid this, just cast the current port to be of
                     # Module or Variant type.
-                    var_port_spec = port_specs[p_key]
-                    m1.delete_port_spec(var_port_spec)
-                    if var_port_spec.type == 'input':
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Module)'
+                    old_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(old_port_spec)
+                    if old_port_spec.type == 'input':
+                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
                     else:
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Variant)'
-                    var_port_spec.create_entries_and_descriptors()
-                    var_port_spec.create_tooltip()
-                    m1.add_port_spec(var_port_spec)
+                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                    new_port_spec = PortSpec(id=old_port_spec.id,
+                                             name=old_port_spec.name,
+                                             type=old_port_spec.type,
+                                             sigstring=m_sig)
+                    m1.add_port_spec(new_port_spec)
 
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
@@ -667,17 +669,17 @@ class QDiffView(QPipelineView):
                     #if we add this port, we will get port overloading.
                     #To avoid this, just cast the current port to be of
                     # Module or Variant type.
-                    var_port_spec = port_specs[p_key]
-                    m1.delete_port_spec(var_port_spec)
-                    if var_port_spec.type == 'input':
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Module)'
+                    old_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(old_port_spec)
+                    if old_port_spec.type == 'input':
+                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
                     else:
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Variant)'
-                    var_port_spec.create_entries_and_descriptors()
-                    var_port_spec.create_tooltip()
-                    m1.add_port_spec(var_port_spec)
+                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                    new_port_spec = PortSpec(id=old_port_spec.id,
+                                             name=old_port_spec.name,
+                                             type=old_port_spec.type,
+                                             sigstring=m_sig)
+                    m1.add_port_spec(new_port_spec)
                             
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
@@ -1119,17 +1121,17 @@ class QVisualDiff(QtGui.QMainWindow):
                     #if we add this port, we will get port overloading.
                     #To avoid this, just cast the current port to be of
                     # Module or Variant type.
-                    var_port_spec = port_specs[p_key]
-                    m1.delete_port_spec(var_port_spec)
-                    if var_port_spec.type == 'input':
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Module)'
+                    old_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(old_port_spec)
+                    if old_port_spec.type == 'input':
+                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
                     else:
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Variant)'
-                    var_port_spec.create_entries_and_descriptors()
-                    var_port_spec.create_tooltip()
-                    m1.add_port_spec(var_port_spec)
+                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                    new_port_spec = PortSpec(id=old_port_spec.id,
+                                             name=old_port_spec.name,
+                                             type=old_port_spec.type,
+                                             sigstring=m_sig)
+                    m1.add_port_spec(new_port_spec)
 
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_MATCH_BRUSH)
@@ -1160,18 +1162,18 @@ class QVisualDiff(QtGui.QMainWindow):
                     #if we add this port, we will get port overloading.
                     #To avoid this, just cast the current port to be of
                     # Module or Variant type.
-                    var_port_spec = port_specs[p_key]
-                    m1.delete_port_spec(var_port_spec)
-                    if var_port_spec.type == 'input':
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Module)'
+                    old_port_spec = port_specs[p_key]
+                    m1.delete_port_spec(old_port_spec)
+                    if old_port_spec.type == 'input':
+                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
                     else:
-                        var_port_spec.sigstring = \
-                            '(edu.utah.sci.vistrails.basic:Variant)'
-                    var_port_spec.create_entries_and_descriptors()
-                    var_port_spec.create_tooltip()
-                    m1.add_port_spec(var_port_spec)
-                            
+                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                    new_port_spec = PortSpec(id=old_port_spec.id,
+                                             name=old_port_spec.name,
+                                             type=old_port_spec.type,
+                                             sigstring=m_sig)
+                    m1.add_port_spec(new_port_spec)
+
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
             item.controller = controller

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -53,7 +54,7 @@ class Alias(DBMashupAlias):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBMashupAlias.do_copy(self, new_ids, id_scope, id_remap)
-        cp.__class__ = Alias
+        Alias.convert(cp)
         return cp
     
     ##########################################################################
@@ -132,12 +133,12 @@ import copy
 
 class TestAlias(unittest.TestCase):
     def create_alias(self, id_scope=IdScope()):
-        c1 = Component(id=id_scope.getNewId('component'),
+        c1 = Component(id=id_scope.getNewId('mashup_component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
-        a1 = Alias(id=id_scope.getNewId('alias'), name='alias1', component=c1)
+        a1 = Alias(id=id_scope.getNewId('mashup_alias'), name='alias1', component=c1)
         return a1
     
     def test_copy(self):

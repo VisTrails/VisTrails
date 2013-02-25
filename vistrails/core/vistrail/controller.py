@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,6 +34,7 @@
 ###############################################################################
 
 import copy
+from itertools import izip
 import os
 import uuid
 import shutil
@@ -53,11 +55,11 @@ from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort, \
-    MissingPackage
+    MissingPackage, PortsIncompatible
 from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail, \
     get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
-    get_next_abs_annotation_key, save_abstraction
+    get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
 from core.packagemanager import PackageManager, get_package_manager
 import core.packagerepository
 from core.thumbnails import ThumbnailCache
@@ -105,6 +107,18 @@ def vt_action(description_or_f=None):
     else:
         return get_f(description_or_f)
 
+class CompareThumbnailsError(Exception):
+
+    def __init__(self, msg, first=None, second=None):
+        Exception.__init__(self, msg)
+        self._msg = msg
+        self._first = first
+        self._second = second
+        
+    def __str__(self):
+        return "Comparing thumbnails failed.\n%s\n%s\n%s" % \
+            (self._msg, self._first, self._second)
+
 class VistrailController(object):
     def __init__(self, vistrail=None, id_scope=None, auto_save=True):
         self.vistrail = vistrail
@@ -147,6 +161,13 @@ class VistrailController(object):
         # This will just store the mashups in memory and send them to SaveBundle
         # when writing the vistrail
         self._mashups = []
+
+        # the redo stack stores the undone action ids 
+        # (undo is automatic with us, through the version tree)
+        self.redo_stack = []
+
+        # this is a reference to the current parameter exploration
+        self.current_parameter_exploration = None
         
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
@@ -177,13 +198,14 @@ class VistrailController(object):
         return self.locator
     
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None):
+                     thumbnails=None, mashups=None, set_log_on_vt=True):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
             self.vistrail.current_session = self.current_session
-            self.vistrail.log = self.log
+            if set_log_on_vt:
+                self.vistrail.log = self.log
             if abstractions is not None:
                 self.ensure_abstractions_loaded(self.vistrail, abstractions)
             if thumbnails is not None:
@@ -380,6 +402,27 @@ class VistrailController(object):
         #                                      action.id)
         return (to_delete_modules, to_delete_conns)
 
+    def getParameterExplorationById(self, id):
+        """ getParameterExplorationById(self, id) -> ParameterExploration
+        Returns a ParameterExploration given its id
+        """
+        if self.vistrail and \
+           self.vistrail.db_has_parameter_exploration_with_id(id):
+            return  self.vistrail.db_get_parameter_exploration_by_id(id)
+        return None
+
+    def getLatestParameterExplorationByVersion(self, id):
+        """ getLatestParameterExplorationByVersion(self, version) ->
+                                                        ParameterExploration
+        Returns a parameter exploration given its action_id and
+        that it has not been named
+        """
+        for i in xrange(len(self.vistrail.db_parameter_explorations)):
+            pe = self.vistrail.db_parameter_explorations[i]
+            if pe.action_id == id and not pe.name:
+                return pe
+        return None
+
     def invalidate_version_tree(self, *args, **kwargs):
         """ invalidate_version_tree(self, *args, **kwargs) -> None
         Does nothing, gui/vistrail_controller.py does, though
@@ -550,6 +593,16 @@ class VistrailController(object):
             raise VistrailsInternalError("output port spec is None")
         if input_port_spec is None:
             raise VistrailsInternalError("input port spec is None")
+        reg = core.modules.module_registry.get_module_registry()
+        if not reg.ports_can_connect(output_port_spec, input_port_spec):
+            raise PortsIncompatible(output_module.package,
+                                    output_module.name,
+                                    output_module.namespace,
+                                    output_port_spec.name,
+                                    input_module.package,
+                                    input_module.name,
+                                    input_module.namespace,
+                                    input_port_spec.name)
         output_port_id = id_scope.getNewId(Port.vtType)
         output_port = Port(id=output_port_id,
                            spec=output_port_spec,
@@ -755,31 +808,48 @@ class VistrailController(object):
         # shouldn't be replaced
         if should_replace and old_id >= 0:
             function = module.function_idx[old_id]
-            for i, new_param_value in enumerate(param_values):
-                old_param = function.params[i]
-                if ((len(aliases) > i and old_param.alias != aliases[i]) or
-                    (len(query_methods) > i and 
-                     old_param.queryMethod != query_methods[i]) or
-                    (old_param.strValue != new_param_value)):
-                    if len(aliases) > i:
-                        alias = aliases[i]
-                    else:
-                        alias = ''
-                    if len(query_methods) > i:
-                        query_method = query_methods[i]
-                    else:
-                        query_method = None
-                    new_param = self.create_param(port_spec, i, 
-                                                  new_param_value, alias,
-                                                  query_method)
-                    op_list.append(('change', old_param, new_param,
-                                    function.vtType, function.real_id))
-        else:
-            new_function = self.create_function(module, function_name,
-                                                param_values, aliases,
-                                                query_methods)
-            op_list.append(('add', new_function,
-                            module.vtType, module.id))        
+            if param_values is None:
+                op_list.append(('delete', function, module.vtType, module.id))
+            else:
+                for i, new_param_value in enumerate(param_values):
+                    old_param = function.params[i]
+                    if ((len(aliases) > i and old_param.alias != aliases[i]) or
+                        (len(query_methods) > i and 
+                         old_param.queryMethod != query_methods[i]) or
+                        (old_param.strValue != new_param_value)):
+                        if len(aliases) > i:
+                            alias = aliases[i]
+                        else:
+                            alias = ''
+                        if len(query_methods) > i:
+                            query_method = query_methods[i]
+                        else:
+                            query_method = None
+                        new_param = self.create_param(port_spec, i, 
+                                                      new_param_value, alias,
+                                                      query_method)
+                        op_list.append(('change', old_param, new_param,
+                                        function.vtType, function.real_id))
+        elif param_values is not None:
+            if len(param_values) < 1:
+                new_function = self.create_function(module, function_name,
+                                                    param_values, aliases,
+                                                    query_methods)
+                op_list.append(('add', new_function,
+                                module.vtType, module.id))        
+            else:
+                psis = port_spec.port_spec_items
+                found = False
+                for param_value, psi in izip(param_values, psis):
+                    if param_value != psi.default:
+                        found = True
+                        break
+                if found:
+                    new_function = self.create_function(module, function_name,
+                                                        param_values, aliases,
+                                                        query_methods)
+                    op_list.append(('add', new_function,
+                                    module.vtType, module.id))
         return op_list
 
     def update_functions_ops(self, module, functions):
@@ -978,8 +1048,10 @@ class VistrailController(object):
                                            old_id, aliases=aliases,
                                            query_methods=query_methods,
                                            should_replace=should_replace)
-        action = core.db.action.create_action(op_list)
-        return action
+        if len(op_list) > 0:
+            action = core.db.action.create_action(op_list)
+            return action
+        return None
 
     @vt_action
     def update_parameter(self, function, old_param_id, new_value):
@@ -1067,7 +1139,10 @@ class VistrailController(object):
     @vt_action
     def update_functions(self, module, functions):
         op_list = self.update_functions_ops(module, functions)
-        action = core.db.action.create_action(op_list)
+        if len(op_list) > 0:
+            action = core.db.action.create_action(op_list)
+        else:
+            action = None
         return action
 
     @vt_action
@@ -1673,23 +1748,6 @@ class VistrailController(object):
                                               namespace, None, module_version)
         return None
 
-    def parse_abstraction_name(self, filename, get_all_parts=False):
-        # assume only 1 possible prefix or suffix
-        import re
-        prefixes = ["abstraction_"]
-        suffixes = [".vt", ".xml"]
-        path, fname = os.path.split(filename)
-        hexpat = '[a-fA-F0-9]'
-        uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
-        prepat = '|'.join(prefixes).replace('.','\\.')
-        sufpat = '|'.join(suffixes).replace('.','\\.')
-        pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
-        matchobj = pattern.match(fname)
-        prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
-        if get_all_parts:
-            return (path, prefix, absname, uuid[1:-1], suffix)
-        return absname
-
     def add_abstraction_to_registry(self, abs_vistrail, abs_fname, name, 
                                     namespace=None, module_version=None,
                                     is_global=True, avail_fnames=[]):
@@ -1780,7 +1838,7 @@ class VistrailController(object):
     def load_abstraction(self, abs_fname, is_global=True, abs_name=None,
                          module_version=None, avail_fnames=[]):
         if abs_name is None:
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
         if abs_fname in self._loaded_abstractions:
             abs_vistrail = self._loaded_abstractions[abs_fname]
         else:
@@ -1835,7 +1893,7 @@ class VistrailController(object):
     def unload_abstractions(self):
         reg = core.modules.module_registry.get_module_registry()
         for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
             # FIXME? do we need to remove all versions (call
             # delete_module over and over?)
             for namespace in get_all_abs_namespaces(abs_vistrail):
@@ -1855,7 +1913,7 @@ class VistrailController(object):
         #         # in the module palette
         #         if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
         #             continue
-        #     abs_name = self.parse_abstraction_name(abs_fname)
+        #     abs_name = parse_abstraction_name(abs_fname)
         #     abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
         #     try:
         #         descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
@@ -1981,7 +2039,7 @@ class VistrailController(object):
         abs_fname = invalid_module.module_descriptor.module.vt_fname
         #print "&&& abs_fname", abs_fname
         (path, prefix, abs_name, abs_namespace, suffix) = \
-            self.parse_abstraction_name(abs_fname, True)
+            parse_abstraction_name(abs_fname, True)
         # abs_vistrail = invalid_module.vistrail
         abs_vistrail = read_vistrail(abs_fname)
         abs_namespace = get_cur_abs_namespace(abs_vistrail)
@@ -2189,28 +2247,33 @@ class VistrailController(object):
                 raise
         except MissingModule, e:
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
-                if (descriptor_tuple[1], '') not in lookup:
+                if (descriptor_tuple[1], None) not in lookup:
                     raise
-                abs_fname = lookup[(descriptor_tuple[1], '')]
+                abs_fnames = lookup[(descriptor_tuple[1], None)]
             else:
-                abs_fname = lookup[(descriptor_tuple[1], descriptor_tuple[2])]
-            new_desc = \
-                self.load_abstraction(abs_fname, False, 
-                                      descriptor_tuple[1],
-                                      descriptor_tuple[4],
-                                      lookup.values())
-            descriptor_tuple = (new_desc.package, new_desc.name, 
-                                new_desc.namespace, new_desc.package_version,
-                                str(new_desc.version))
+                abs_fnames = [lookup[(descriptor_tuple[1], descriptor_tuple[2])]]
+            for abs_fname in abs_fnames:
+                new_desc = \
+                    self.load_abstraction(abs_fname, False, 
+                                          descriptor_tuple[1],
+                                          descriptor_tuple[4],
+                                          [v for k, v in lookup.iteritems()
+                                           if k[1] != None])
+                descriptor_tuple = (new_desc.package, new_desc.name, 
+                                    new_desc.namespace, new_desc.package_version,
+                                    str(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
         return None
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
         for abs_fname in abs_fnames:
-            path, prefix, abs_name, abs_namespace, suffix = self.parse_abstraction_name(abs_fname, True)
+            path, prefix, abs_name, abs_namespace, suffix = parse_abstraction_name(abs_fname, True)
             # abs_name = os.path.basename(abs_fname)[12:-4]
             lookup[(abs_name, abs_namespace)] = abs_fname
+            if (abs_name, None) not in lookup:
+                lookup[(abs_name, None)] = []
+            lookup[(abs_name, None)].append(abs_fname)
             
         # we're going to recurse manually (see
         # add_abstraction_to_regsitry) because we can't call
@@ -2391,8 +2454,8 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
+            error = None
             (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
-            
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
                 not extra_info['pathDumpCells']):
@@ -2411,16 +2474,48 @@ class VistrailController(object):
                       'reason': reason,
                       'extra_info': extra_info,
                       }    
+            if self.get_vistrail_variables():
+                kwargs['vistrail_variables'] = \
+                    self.get_vistrail_variable_by_uuid
             result = interpreter.execute(pipeline, **kwargs)
             
             thumb_cache = ThumbnailCache.getInstance()
             
-            if len(result.errors) == 0 and thumb_cache.conf.autoSave:
+            if len(result.errors) == 0 and \
+            (thumb_cache.conf.autoSave or 'compare_thumbnails' in extra_info):
                 old_thumb_name = self.vistrail.get_thumbnail(version)
+                if 'compare_thumbnails' in extra_info:
+                    old_thumb_name = None
                 fname = thumb_cache.add_entry_from_cell_dump(
-                                        extra_info['pathDumpCells'], 
+                                        extra_info['pathDumpCells'],
                                         old_thumb_name)
-                if fname is not None: 
+                if 'compare_thumbnails' in extra_info:
+                    # check thumbnail difference
+                    prev = None
+                    if self.vistrail.has_thumbnail(version):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(version))
+                    elif version in self.vistrail.actionMap and \
+                        int(self.vistrail.get_upgrade(self.vistrail.actionMap[version].parent)) == version and \
+                        self.vistrail.has_thumbnail(self.vistrail.actionMap[version].parent):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(self.vistrail.actionMap[version].parent))
+                    else:
+                        error = CompareThumbnailsError("No thumbnail exist for version %s" % version)
+                    if prev:
+                        if not prev:
+                            error = CompareThumbnailsError("No thumbnail file exist for version %s" % version)
+                        elif not fname:
+                            raise CompareThumbnailsError("No thumbnail generated")
+                        else:
+                            next = thumb_cache.get_abs_name_entry(fname)
+                            if not next:
+                                raise CompareThumbnailsError("No thumbnail file generated for version %s" % version)
+                            else:
+                                min_err = extra_info['compare_thumbnails'](prev, next)
+                                treshold = 0.1
+                                if min_err > treshold:
+                                    raise CompareThumbnailsError("Thumbnails are different with value %s" % min_err, prev, next)
+
+                if fname is not None:
                     self.vistrail.set_thumbnail(version, fname)
                     changed = True
               
@@ -2433,7 +2528,9 @@ class VistrailController(object):
                 changed = True
             
             results.append(result)
-            
+            if error:
+                result.errors[version] = error
+                return ([result], False)
         if self.logging_on():
             self.set_changed(True)
             
@@ -2578,18 +2675,6 @@ class VistrailController(object):
         """callback for try_to_enable_package"""
         return True
        
-    def handleMissingSUDSWebServicePackage(self, identifier):
-        pm = get_package_manager()
-        suds_i = 'edu.utah.sci.vistrails.sudswebservices'
-        pkg = pm.identifier_is_available(suds_i)
-        if pkg:
-            pm.late_enable_package(pkg.codepath)
-        package = pm.get_package_by_identifier(suds_i)
-        if not package or \
-           not hasattr(package._init_module, 'load_from_signature'):
-            return False
-        return package._init_module.load_from_signature(identifier)
-
     def try_to_enable_package(self, identifier, dep_graph, confirmed=False):
         """try_to_enable_package(identifier: str,
                                  dep_graph: Graph,
@@ -2603,35 +2688,46 @@ class VistrailController(object):
 
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
-        if not pkg and identifier.startswith('SUDS#'):
-            self.handleMissingSUDSWebServicePackage(identifier)
-        if not pm.has_package(identifier) and pkg:
+        if pkg and not pm.has_package(pkg.identifier):
             deps = pm.all_dependencies(identifier, dep_graph)[:-1]
-            if identifier in self._asked_packages:
+            if pkg.identifier in self._asked_packages:
                 return False
             if not confirmed and \
-                    not self.enable_missing_package(identifier, deps):
-                self._asked_packages.add(identifier)
+                    not self.enable_missing_package(pkg.identifier, deps):
+                self._asked_packages.add(pkg.identifier)
                 return False
             # Ok, user wants to late-enable it. Let's give it a shot
             try:
                 pm.late_enable_package(pkg.codepath)
+                pkg = pm.get_package_by_codepath(pkg.codepath)
+                if pkg.identifier != identifier:
+                    # pkg is probably a parent of the "identifier" package
+                    # try to load it
+                    if hasattr(pkg.module, "can_handle_identifier") and \
+                        pkg.module.can_handle_identifier(identifier):
+                        pkg.init_module.load_from_identifier(identifier)
             except pkg.MissingDependency, e:
                 for dependency in e.dependencies:
                     print 'MISSING DEPENDENCY:', dependency
                     if not self.try_to_enable_package(dependency[0], dep_graph,
                                                       True):
                         return False
-                return self.try_to_enable_package(identifier, dep_graph, True)
+                return self.try_to_enable_package(pkg.identifier, dep_graph, True)
             except pkg.InitializationFailed:
-                self._asked_packages.add(identifier)
+                self._asked_packages.add(pkg.identifier)
                 raise
             # there's a new package in the system, so we retry
             # changing the version by recursing, since other
             # packages/modules might still be needed.
-            self._asked_packages.add(identifier)
+            self._asked_packages.add(pkg.identifier)
             return True
-
+        # identifier may refer to a subpackage
+        if pkg and pkg.identifier != identifier and \
+           hasattr(pkg.module, "can_handle_identifier") and \
+           pkg.module.can_handle_identifier(identifier) and \
+           hasattr(pkg.init_module, "load_from_identifier"):
+            pkg.init_module.load_from_identifier(identifier)
+            return True
         # Package is not available, let's try to fetch it
         rep = core.packagerepository.get_repository()
         if rep:
@@ -2925,9 +3021,9 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            details = '\n'.join(str(e) for e in left_exceptions + \
-                                    new_exceptions)
-            debug.critical("Some exceptions could not be handled", details)
+            details = '\n'.join(set(str(e) for e in left_exceptions + \
+                                    new_exceptions))
+            # debug.critical("Some exceptions could not be handled", details)
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
@@ -2969,7 +3065,7 @@ class VistrailController(object):
             if self.current_version != -1 and not self.current_pipeline:
                 debug.warning("current_version is not -1 and "
                               "current_pipeline is None")
-            if version != self.current_pipeline:
+            if version != self.current_version:
                 # clear delayed actions
                 # FIXME: invert the delayed actions and integrate them into
                 # the general_action_chain?
@@ -3173,7 +3269,7 @@ class VistrailController(object):
             # prevent conflicts and copies the abstraction to the new
             # path so save_bundle has a valid file
             path, prefix, absname, old_ns, suffix = \
-                self.parse_abstraction_name(abs_fname, True)
+                parse_abstraction_name(abs_fname, True)
             new_abs_fname = os.path.join(abs_save_dir, 
                                          '%s%s(%s)%s' % (prefix, absname, 
                                                          namespace, suffix))
@@ -3189,7 +3285,7 @@ class VistrailController(object):
                 if abs_module is not None:
                     abs_fname = abs_module.vt_fname
                     path, prefix, abs_name, old_ns, suffix = \
-                        self.parse_abstraction_name(abs_fname, True)
+                        parse_abstraction_name(abs_fname, True)
                     # do our indexing by abstraction name
                     # we know that abstractions with different names
                     # cannot overlap, but those that have the same
@@ -3391,7 +3487,7 @@ class VistrailController(object):
         """ Returns the saved log from zip or DB
         
         """
-        return self.vistrail.get_log()
+        return self.vistrail.get_persisted_log()
  
     def write_registry(self, locator):
         registry = core.modules.module_registry.get_module_registry()
@@ -3400,3 +3496,38 @@ class VistrailController(object):
 
     def update_checkout_version(self, app=''):
         self.vistrail.update_checkout_version(app)
+
+    def reset_redo_stack(self):
+        self.redo_stack = []
+
+    def undo(self):
+        """Performs one undo step, moving up the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        self.redo_stack.append(self.current_version)
+        self.show_parent_version()
+        new_action = action_map.get(self.current_version, None)
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'undo')
+        # return self.current_version
+
+    def redo(self):
+        """Performs one redo step if possible, moving down the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        if len(self.redo_stack) < 1:
+            debug.critical("Redo on an empty redo stack. Ignoring.")
+            return
+        next_version = self.redo_stack[-1]
+        self.redo_stack = self.redo_stack[:-1]
+        self.show_child_version(next_version)
+        new_action = action_map[self.current_version]
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'redo')
+        # return next_version
+
+    def can_redo(self):
+        return (len(self.redo_stack) > 0)
+
+    def can_undo(self):
+        return self.current_version > 0

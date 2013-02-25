@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -139,6 +140,13 @@ class LogController(object):
             self.workflow_exec.completed = -1
         else:
             self.workflow_exec.completed = 1
+            
+    def add_exec(self, exec_, parent_execs):
+        parent_exec = parent_execs[-1]
+        if parent_exec:
+            parent_exec.add_item_exec(exec_)
+        else:
+            self.workflow_exec.add_item_exec(exec_)
 
     def create_module_exec(self, module, module_id, module_name,
                            cached):

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,11 +38,12 @@ from datetime import datetime
 from core import debug
 from core.bundles import py_import
 from core.system import get_elementtree_library, temporary_directory,\
-     execute_cmdline, systemType
+     execute_cmdline, systemType, get_executable_path
 from core.utils import Chdir
 from core.log.log import Log
 from core.mashup.mashup_trail import Mashuptrail
-
+from core.modules.sub_module import get_cur_abs_namespace,\
+    parse_abstraction_name, read_vistrail_from_db
 
 import core.requirements
 ElementTree = get_elementtree_library()
@@ -55,10 +57,12 @@ import copy
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
-    DBRegistry, DBWorkflowExec, DBOpmGraph, DBMashuptrail
+    DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
+    DBMashuptrail
 import db.services.abstraction
 import db.services.log
 import db.services.opm
+import db.services.prov
 import db.services.registry
 import db.services.workflow
 import db.services.vistrail
@@ -228,6 +232,7 @@ def translate_to_tbl_name(obj_type):
            DBLog.vtType: 'log_tbl',
            DBRegistry.vtType: 'registry',
            DBAbstraction.vtType: 'abstraction',
+           DBAnnotation.vtType: 'annotation',
            }
     return map[obj_type]
 
@@ -242,9 +247,20 @@ def get_db_object_list(config, obj_type):
     #FIXME Create a DBGetVistrailListSQLDAOBase for this
     # and maybe there's another way to build this query
     command = """SELECT o.id, o.name, o.last_modified
-    FROM %s o
-    ORDER BY o.name
-    """
+    FROM %s o ORDER BY o.name"""
+
+    # if it is a vistrail we need to remove abstractions
+    if obj_type == DBVistrail.vtType:
+        id_key = '__abstraction_uuid__'
+        command = """SELECT o.id, o.name, o.last_modified
+        FROM %s o"""
+        command += """ WHERE o.id not in ( SELECT o.id
+          FROM %s o, %s a
+          WHERE o.id = a.parent_id AND '%s' = a.parent_type AND a.akey = '%s')
+        ORDER BY o.name""" % (translate_to_tbl_name(obj_type),
+                              translate_to_tbl_name(DBAnnotation.vtType),
+                              translate_to_tbl_name(obj_type),
+                              id_key)
 #     command = """SELECT o.id, v.name, a.date, a.user
 #     FROM %s o, action a,
 #     (SELECT a.entity_id, MAX(a.date) as recent, a.user
@@ -353,6 +369,60 @@ def get_db_id_from_name(db_connection, obj_type, name):
         c.close()
         msg = "Connection error when trying to get db id from name"
         raise VistrailsDBException(msg)
+
+def get_db_abstraction_modification_time(db_connection, abstraction):
+    id_key = '__abstraction_vistrail_id__'
+    command = """
+    SELECT o.last_modified
+    FROM %s o, %s a
+    WHERE o.id = %s AND
+          o.id = a.parent_id AND
+          '%s' = a.parent_type AND
+          a.akey = '""" + id_key + """' AND
+          a.value = '%s'
+    """
+
+    if abstraction.db_has_annotation_with_key(id_key):
+        id_value = abstraction.db_get_annotation_by_key(id_key).db_value
+    else:
+        return None
+
+    try:
+        c = db_connection.cursor()
+        c.execute(command % (translate_to_tbl_name(DBVistrail.vtType), 
+                             translate_to_tbl_name(DBAnnotation.vtType),
+                             abstraction.db_id,
+                             translate_to_tbl_name(DBVistrail.vtType),
+                             id_value))
+        modtime = c.fetchall()[0][0]
+        c.close()
+    except get_db_lib().Error, e:
+        msg = "Couldn't get modification time from db (%d : %s)" % \
+            (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
+    return modtime
+
+def get_db_abstraction_ids_from_vistrail(db_connection, vt_id):
+    """ get_db_abstractions_from_vistrail(db_connection: DBConnection,
+                                          vt_id: int): List
+        Returns abstractions associated with a vistrail
+    """
+    
+    id_key = '__abstraction_vistrail_id__'
+    command = """
+    SELECT a.parent_id FROM %s a
+    WHERE a.akey = '""" + id_key + """' AND a.value = '%s'"""
+
+    try:
+        c = db_connection.cursor()
+        c.execute(command%(translate_to_tbl_name(DBAnnotation.vtType), vt_id))
+        abs_ids = c.fetchall()
+        c.close()
+    except get_db_lib().Error, e:
+        msg = "Couldn't get modification time from db (%d : %s)" % \
+            (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
+    return [i[0] for i in abs_ids]
 
 def get_matching_abstraction_id(db_connection, abstraction):
     last_action_id = -1
@@ -473,6 +543,8 @@ def save_to_xml(obj, filename, version=None):
         return save_registry_to_xml(obj, filename, version)
     elif obj.vtType == DBOpmGraph.vtType:
         return save_opm_to_xml(obj, filename, version)
+    elif obj.vtType == DBProvDocument.vtType:
+        return save_prov_to_xml(obj, filename, version)
     else:
         raise VistrailsDBException("cannot save object of type "
                                    "'%s' to xml" % type)
@@ -645,7 +717,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
                 elif fname.startswith('abstraction_'):
                     abstraction_file = os.path.join(root, fname)
                     abstraction_files.append(abstraction_file)
-                elif (fname.endswith('.png') and 
+                elif (fname.endswith('.png') and
                       root == os.path.join(vt_save_dir,'thumbs')):
                     thumbnail_file = os.path.join(root, fname)
                     thumbnail_files.append(thumbnail_file)
@@ -654,7 +726,15 @@ def open_vistrail_bundle_from_zip_xml(filename):
                     mashup = open_mashuptrail_from_xml(mashup_file)
                     mashups.append(mashup)
                 else:
-                    unknown_files.append(os.path.join(root, fname))
+                    handled = False
+                    from core.packagemanager import get_package_manager
+                    pm = get_package_manager()
+                    for package in pm.enabled_package_list():
+                        if package.can_handle_vt_file(fname):
+                            handled = True
+                            continue
+                    if not handled:
+                        unknown_files.append(os.path.join(root, fname))
     except OSError, e:
         raise VistrailsDBException("Error when reading vt file")
     if len(unknown_files) > 0:
@@ -663,6 +743,12 @@ def open_vistrail_bundle_from_zip_xml(filename):
     if vistrail is None:
         raise VistrailsDBException("vt file does not contain vistrail")
     vistrail.db_log_filename = log_fname
+
+    # call package hooks
+    from core.packagemanager import get_package_manager
+    pm = get_package_manager()
+    for package in pm.enabled_package_list():
+        package.loadVistrailFileHook(vistrail, vt_save_dir)
 
     save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
                              abstractions=abstraction_files, 
@@ -674,13 +760,28 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
        Open a vistrail bundle from the database.
 
     """
+    vt_abs_dir = tempfile.mkdtemp(prefix='vt_abs')
     vistrail = open_vistrail_from_db(db_connection, vistrail_id)
     # FIXME open log from db
     log = None
     # FIXME open abstractions from db
     abstractions = []
-    thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType, vistrail_id, tmp_dir)
-    return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=abstractions, thumbnails=thumbnails)
+    try:
+        for abs_id in get_db_abstraction_ids_from_vistrail(db_connection, vistrail.db_id):
+            abs = read_vistrail_from_db(db_connection, abs_id)
+            abs_fname = '%s%s(%s)%s' % ('abstraction_', abs.db_name, 
+                                      get_cur_abs_namespace(abs), '.xml')
+            fname = os.path.join(vt_abs_dir, abs_fname)
+            save_vistrail_to_xml(abs, fname)
+            abstractions.append(fname)
+    except Exception, e:
+        import traceback
+        debug.critical('Could not load abstraction from database: %s' % str(e),
+                                              traceback.format_exc())
+    thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType,
+                                         vistrail_id, tmp_dir)
+    return SaveBundle(DBVistrail.vtType, vistrail, log,
+                      abstractions=abstractions, thumbnails=thumbnails)
 
 def open_vistrail_from_db(db_connection, id, lock=False, version=None):
     """open_vistrail_from_db(db_connection, id : long, lock: bool, 
@@ -831,16 +932,26 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'when saving mashup: %s'%str(e))
 
+    # call package hooks
+    # it will fail if package manager has not been constructed yet
+    try:
+        from core.packagemanager import get_package_manager
+        pm = get_package_manager()
+        for package in pm.enabled_package_list():
+            package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
+    except Exception, e:
+        debug.warning("Could not call package hooks", str(e))
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
     output = []
     rel_vt_save_dir = os.path.split(vt_save_dir)[1]
+
     # on windows, we assume zip.exe is in the current directory when
     # running from the binary install
     zipcmd = 'zip'
     if systemType in ['Windows', 'Microsoft']:
-        zipcmd = os.path.join(os.getcwd(),'zip.exe')
-        if not os.path.exists(zipcmd):
+        zipcmd = get_executable_path('zip.exe')
+        if not zipcmd or not os.path.exists(zipcmd):
             zipcmd = 'zip.exe' #assume zip is in path
     cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
     try:
@@ -878,7 +989,7 @@ def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, versio
         # Set foreign key 'vistrail_id' for the log to point at its vistrail
         log.db_vistrail_id = vistrail.db_id
         log = save_log_to_db(log, db_connection, do_copy, version)
-    # FIXME Save abstractions to the db
+    save_abstractions_to_db(save_bundle.abstractions, vistrail.db_id, db_connection, do_copy)
     save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
     return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))
 
@@ -909,7 +1020,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
                                                    DBVistrail.vtType)
         if new_time > vistrail.db_last_modified:
             # need synchronization
-            old_vistrail = open_vistrail_from_db(db_connection, 
+            old_vistrail = open_vistrail_from_db(db_connection,
                                                  vistrail.db_id,
                                                  True, version)
             old_vistrail = translate_vistrail(old_vistrail, version)
@@ -929,11 +1040,15 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     vistrail.db_currentVersion = current_action
 
     # update all missing tagged workflows
+    tagMap = {}
+    for annotation in vistrail.db_actionAnnotations:
+        if annotation.db_key == '__tag__':
+            tagMap[annotation.db_action_id] = annotation.db_value
     wfToSave = []
-    for id, name in vistrail.get_tagMap().iteritems():
+    for id, name in tagMap.iteritems():
         if id not in workflowIds:
             #print "creating workflow", vistrail.db_id, id, name,
-            workflow = vistrail.getPipeline(id)
+            workflow = db.services.vistrail.materializeWorkflow(vistrail, id)
             workflow.db_id = None
             workflow.db_vistrail_id = vistrail.db_id
             workflow.db_parent_id = id
@@ -1203,6 +1318,25 @@ def save_opm_to_xml(opm_graph, filename, version=None):
     return opm_graph
 
 ##############################################################################
+# PROV I/O
+
+def save_prov_to_xml(prov_document, filename, version=None):    
+    # FIXME, we're using workflow, version, and log here...
+    # which aren't in DBProvDocument...
+    if version is None:
+        version = currentVersion
+    daoList = getVersionDAO(version)
+    tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
+            'xmlns:dcterms': 'http://purl.org/dc/terms/',
+            'xmlns:vt': 'http://www.vistrails.org/registry.xsd',
+            }
+    prov_document = db.services.prov.create_prov(prov_document.workflow, 
+                                                 prov_document.version,
+                                                 prov_document.log)
+    daoList.save_to_xml(prov_document, filename, tags, version)
+    return prov_document
+
+##############################################################################
 # Registry I/O
 
 def open_registry_from_xml(filename):
@@ -1288,7 +1422,7 @@ def save_registry_bundle_to_db(save_bundle, db_connection, do_copy=False,
 def open_abstraction_from_db(db_connection, id, lock=False):
     """open_abstraction_from_db(db_connection, id : long: lock: bool) 
          -> DBAbstraction 
-    
+    DEPRECATED
     """
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
@@ -1305,6 +1439,7 @@ def open_abstraction_from_db(db_connection, id, lock=False):
     return abstraction
 
 def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
+    """ DEPRECATED """
     db_connection.begin()
     if abstraction.db_last_modified is None:
         do_copy = True
@@ -1337,6 +1472,48 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
     write_sql_objects(db_connection, [abstraction], do_copy)
     db_connection.commit()
     return abstraction
+
+def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
+    """save_abstraction_to_db(abs: DBVistrail, db_connection) -> None
+    Saves an abstraction to db, and updating existing abstractions
+
+    """
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+
+    for abs_name in abstractions:
+        try: 
+            abs = open_vistrail_from_xml(abs_name)
+            abs.db_name = parse_abstraction_name(abs_name)
+            id_key = '__abstraction_vistrail_id__'
+            id_value = str(vt_id)
+            if abs.db_has_annotation_with_key(id_key):
+                annotation = abs.db_get_annotation_by_key(id_key)
+                annotation.db_value = id_value
+            else:
+                annotation=DBAnnotation(abs.idScope.getNewId(DBAnnotation.vtType),
+                                        id_key, id_value)
+                abs.db_add_annotation(annotation)
+            db_mod_time = None if not abs.db_id else \
+                          get_db_abstraction_modification_time(db_connection, abs)
+
+            if db_mod_time:
+                delete_entity_from_db(db_connection, abs.vtType, abs.db_id)
+
+            abs.db_id = None
+            abs.db_last_modified = get_current_time(db_connection)
+            version = get_db_version(db_connection)
+            version = version if version else currentVersion
+            if not abs.db_version:
+                abs.db_version = currentVersion
+            abs = translate_vistrail(abs, abs.db_version, version)
+            # Always copy for now
+            getVersionDAO(version).save_to_db(db_connection, abs, True)
+            db_connection.commit()
+
+        except Exception, e:
+            debug.critical('Could not save abstraction to db: %s' % str(e))
 
 ##############################################################################
 # Thumbnail I/O
@@ -1467,7 +1644,7 @@ def save_thumbnails_to_db(absfnames, db_connection):
         raise VistrailsDBException(msg)
     return None
 ##############################################################################
-# Mashup I/O 
+# Mashup I/O
 def open_mashuptrail_from_xml(filename):
     """open_mashuptrail_from_xml(filename) -> Mashuptrail"""
     tree = ElementTree.parse(filename)

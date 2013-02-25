@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -39,13 +40,16 @@ import core.db.action
 import core.db.locator
 import core.modules.vistrails_module
 from core.utils import VistrailsInternalError, InvalidPipeline
+from core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from core.log.opm_graph import OpmGraph
+from core.log.prov_document import ProvDocument
 from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.module_registry import get_module_registry, MissingPort
 from core.modules.package import Package
 from core.packagemanager import PackageManager
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
+from core.param_explore import ActionBasedParameterExploration
 import core.system
 
 from core.vistrail.annotation import Annotation
@@ -58,8 +62,9 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail, TagExists
+from core.interpreter.default import get_default_interpreter
+from gui.theme import CurrentTheme
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
-from gui.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 
 import core.analogy
 import copy
@@ -120,7 +125,14 @@ class VistrailController(QtCore.QObject, BaseController):
             self.setup_timer()
         
         self._previous_graph_layout = None
-        self._current_graph_layout = VistrailsTreeLayoutLW()
+
+        def width_f(text):
+            return CurrentTheme.VERSION_FONT_METRIC.width(text)
+        self._current_graph_layout = \
+            VistrailsTreeLayoutLW(width_f, 
+                                  CurrentTheme.VERSION_FONT_METRIC.height(), 
+                                  CurrentTheme.VERSION_LABEL_MARGIN[0], 
+                                  CurrentTheme.VERSION_LABEL_MARGIN[1])
         self.animate_layout = False
         #this was moved to BaseController
         #self.num_versions_always_shown = 1
@@ -206,14 +218,15 @@ class VistrailController(QtCore.QObject, BaseController):
             self.stop_timer()
 
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None):
+                     thumbnails=None, mashups=None, set_log_on_vt=True):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         # self.vistrail = vistrail
         BaseController.set_vistrail(self, vistrail, locator, abstractions,
-                                    thumbnails, mashups)
+                                    thumbnails, mashups, 
+                                    set_log_on_vt=set_log_on_vt)
         if locator != None:
             self.set_file_name(locator.name)
         else:
@@ -297,6 +310,8 @@ class VistrailController(QtCore.QObject, BaseController):
     def execute_workflow_list(self, vistrails):
         old_quiet = self.quiet
         self.quiet = True
+        self.current_pipeline_view.reset_module_colors()
+        self.current_pipeline_view.update()
         (results, changed) = BaseController.execute_workflow_list(self, 
                                                                   vistrails)        
         self.quiet = old_quiet
@@ -431,8 +446,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
 #                msg_box.setDetailedText(str(e))
 #                msg_box.exec_()
-                text = "The current workflow could not be validated."
-                debug.critical('%s\n%s' % (text, str(e)))
+                # text = "The current workflow could not be validated."
+                # debug.critical('%s\n%s' % (text, str(e)))
+                debug.critical(str(e))
 
 #                 print 'got to exception set'
 #                 # Process all errors as usual
@@ -1210,8 +1226,9 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         BaseController.set_changed(self, changed)
-        # FIXME: emit different signal in the future
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        if changed:
+            # FIXME: emit different signal in the future
+            self.emit(QtCore.SIGNAL('stateChanged'))
 
     def set_file_name(self, file_name):
         """ set_file_name(file_name: str) -> None
@@ -1242,6 +1259,19 @@ class VistrailController(QtCore.QObject, BaseController):
                                  workflow=self.current_pipeline,
                                  registry=get_module_registry())
             locator.save_as(opm_graph)
+            
+    def write_prov(self, locator):
+        if self.log:
+            if self.vistrail.db_log_filename is not None:
+                log = core.db.io.merge_logs(self.log, 
+                                            self.vistrail.db_log_filename)
+            else:
+                log = self.log
+            prov_document = ProvDocument(log=log, 
+                                         version=self.current_version,
+                                         workflow=self.current_pipeline,
+                                         registry=get_module_registry())
+            locator.save_as(prov_document)
 
     def query_by_example(self, pipeline):
         """ query_by_example(pipeline: Pipeline) -> None
@@ -1288,6 +1318,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
         (a, b) = self.analogy[analogy_name]
         c = analogy_target
+        if self.current_version != c:
+            self.change_selected_version(c)
 
         try:
             pipeline_a = self.vistrail.getPipeline(a)
@@ -1295,11 +1327,13 @@ class VistrailController(QtCore.QObject, BaseController):
         except InvalidPipeline, e:
             (_, pipeline_a) = \
                 self.handle_invalid_pipeline(e, a, Vistrail())
+            self._delayed_actions = []
         try:
             pipeline_c = self.vistrail.getPipeline(c)
             self.validate(pipeline_c)
         except InvalidPipeline, e:
             (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
+            self._delayed_actions = []
                                                      
         action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
                                                           a, b, c, 
@@ -1309,10 +1343,110 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.change_description("Analogy", action.id)
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
                                           action.id)
-        self.perform_action(action)
-        self.validate(self.current_pipeline, False)
-        self.current_pipeline_view.setupScene(self.current_pipeline)
-    
+        
+        # make sure that the output from the analogy is as up-to-date
+        # as we can make it
+        self.change_selected_version(action.id, from_root=True)
+        self.flush_delayed_actions()
+        self.invalidate_version_tree()
+        
+    def executeParameterExploration(self, pe, view=None, extra_info={}, showProgress=True):
+        """ execute(pe: ParameterExploration, view: QVistrailView,
+            extra_info: dict, showProgress: bool) -> None
+        Perform the exploration by collecting a list of actions
+        corresponding to each dimension
+        
+        """
+        reg = core.modules.module_registry.get_module_registry()
+
+        if pe.action_id != self.current_version:
+            self.change_selected_version(pe.action_id)
+        actions, pre_actions, vistrail_vars = \
+                        pe.collectParameterActions(self.current_pipeline)
+
+        if self.current_pipeline and actions:
+            explorer = ActionBasedParameterExploration()
+            (pipelines, performedActions) = explorer.explore(
+                self.current_pipeline, actions, pre_actions)
+            
+            dim = [max(1, len(a)) for a in actions]
+            if (reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
+                reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
+                from gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
+                from gui.paramexplore.pe_view import QParamExploreView
+                modifiedPipelines, pipelinePositions = positionPipelines(
+                    'PE#%d %s' % (QParamExploreView.explorationId, self.name),
+                    dim[2], dim[1], dim[0], pipelines, pe.layout, self)
+            else:
+                modifiedPipelines = pipelines
+
+            mCount = []
+            for p in modifiedPipelines:
+                if len(mCount)==0:
+                    mCount.append(0)
+                else:
+                    mCount.append(len(p.modules)+mCount[len(mCount)-1])
+                
+            # Now execute the pipelines
+            if showProgress:
+                totalProgress = sum([len(p.modules) for p in modifiedPipelines])
+                progress = QtGui.QProgressDialog('Performing Parameter '
+                                                 'Exploration...',
+                                                 '&Cancel',
+                                                 0, totalProgress)
+                progress.setWindowTitle('Parameter Exploration')
+                progress.setWindowModality(QtCore.Qt.WindowModal)
+                progress.show()
+
+            QParamExploreView.explorationId += 1
+            interpreter = get_default_interpreter()
+            
+            images = {}
+            errors = []
+            for pi in xrange(len(modifiedPipelines)):
+                if showProgress:
+                    progress.setValue(mCount[pi])
+                    QtCore.QCoreApplication.processEvents()
+                    if progress.wasCanceled():
+                        break
+                    def moduleExecuted(objId):
+                        if not progress.wasCanceled():
+                            progress.setValue(progress.value()+1)
+                            QtCore.QCoreApplication.processEvents()
+                name = os.path.splitext(self.name)[0] + \
+                                         ("_%s_%s_%s" % pipelinePositions[pi])
+                extra_info['nameDumpCells'] = name
+                if 'pathDumpCells' in extra_info:
+                    images[pipelinePositions[pi]] = \
+                               os.path.join(extra_info['pathDumpCells'], name)
+                kwargs = {'locator': self.locator,
+                          'current_version': self.current_version,
+                          'reason': 'Parameter Exploration',
+                          'actions': performedActions[pi],
+                          'extra_info': extra_info
+                          }
+                if view:
+                    kwargs['view'] = view
+                if showProgress:
+                    kwargs['module_executed_hook'] = [moduleExecuted]
+                if self.get_vistrail_variables():
+                    # remove vars used in pe
+                    vars = dict([(v.uuid, v) for v in self.get_vistrail_variables()
+                            if v.uuid not in vistrail_vars])
+                    kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
+                result = interpreter.execute(modifiedPipelines[pi], **kwargs)
+                for error in result.errors.itervalues():
+                    pp = pipelinePositions[pi]
+                    errors.append(((pp[1], pp[0], pp[2]), error))
+
+            if showProgress:
+                progress.setValue(totalProgress)
+            if 'pathDumpCells' in extra_info:
+                filename = os.path.join(extra_info['pathDumpCells'],
+                                        os.path.splitext(self.name)[0])
+                assembleThumbnails(images, filename)
+            return errors
+
 ################################################################################
 # Testing
 
@@ -1385,8 +1519,10 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
         # module_ids = [1, 2, 3]
         # connection_ids = [1, 2, 3]
         module_ids = [4, 5, 6]
-        connection_ids = [6, 8, 9]
-        
-        controller.create_abstraction(module_ids, connection_ids, 
+        #connection_ids = [6, 8, 9]
+        # TE: changed again because upgrades produced different id:s
+        # also saved upgrade in test_abstraction.xml
+        connection_ids = [6, 7, 9]
+        controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))

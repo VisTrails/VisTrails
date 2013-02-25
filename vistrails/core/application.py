@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -70,10 +71,10 @@ def is_running_gui():
     app = get_vistrails_application()
     return app.is_running_gui()
 
-def init(options_dict={}):
+def init(options_dict={}, args=None):
     app = VistrailsCoreApplication()
     set_vistrails_application(app)
-    app.init(options_dict)
+    app.init(optionsDict=options_dict, args=args)
     return app
 
 class VistrailsApplicationInterface(object):
@@ -81,7 +82,7 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setupOptions(self):
+    def setupOptions(self, args=None):
         """ setupOptions() -> None
         Check and store all command-line arguments
         
@@ -123,7 +124,7 @@ class VistrailsApplicationInterface(object):
             "spreadsheet cells before exiting")
         add("-p", "--pdf", action="store_true",
             default = None,
-            help="dump files in pdf format (only valid in console mode)")
+            help="dump files in pdf format (non-interactive mode only)")
         add("-l", "--nologger", action="store_true",
             default = None,
             help="disable the logging")
@@ -147,6 +148,9 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-w", "--executeworkflows", action="store_true",
             default = None,
             help="The workflows will be executed")
+        add("-F", "--fixedcells", action="store_true",
+            default = None,
+            help="Use a fixed spreadsheet cell size of 200*180")
         add("-I", "--workflowinfo", action="store",
             default = None,
             help=("Save workflow graph and spec in specified directory "
@@ -158,6 +162,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             help="Start VisTrails using the specified static registry")
         add("-D", "--detachHistoryView", action="store_true",
             help="Detach the history view from the builder windows")
+        add("-P", "--parameterExploration", action="store_true",
+            help="Execute Parameter Exploration")
         add("-G", "--workflowgraph", action="store",
             default = None,
             help=("Save workflow graph in specified directory without running "
@@ -166,7 +172,13 @@ The builder window can be accessed by a spreadsheet menu option.")
             default = None,
             help=("Save evolution graph in specified directory without running "
                   "any workflow (only valid in console mode)."))
-        command_line.CommandLineParser.parse_options()
+        add ("-g", "--noSingleInstance", action="store_true",
+             help=("Run VisTrails without the single instance restriction."))
+        
+        if args != None:
+            command_line.CommandLineParser.parse_options(args=args)
+        else:
+            command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
         """ printVersion() -> None
@@ -213,6 +225,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.useCache = bool(get('cache'))
         if get('verbose')!=None:
             self.temp_configuration.verbosenessLevel = get('verbose')
+        if get('fixedcells') != None:
+            self.temp_configuration.fixedSpreadsheetCells = str(get('fixedcells'))
         if get('noninteractive')!=None:
             self.temp_configuration.interactiveMode = \
                                                   not bool(get('noninteractive'))
@@ -250,11 +264,15 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.nologger = bool(get('nologger'))
         if get('quickstart') != None:
             self.temp_configuration.staticRegistry = str(get('quickstart'))
+        if get('parameterExploration')!= None:
+            self.temp_configuration.parameterExploration = \
+                str(get('parameterExploration'))
         if get('detachHistoryView')!= None:
             self.temp_configuration.detachHistoryView = bool(get('detachHistoryView'))
+        if get('noSingleInstance')!=None:
+            self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         self.input = command_line.CommandLineParser().positional_arguments()
-    
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -268,7 +286,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.configuration = core.configuration.default()
         
         self.keyChain = keychain.KeyChain()
-        self.setupOptions()
+        self.setupOptions(args)
         
         # self.temp_configuration is the configuration that will be updated 
         # with the command line and custom options dictionary. 
@@ -389,6 +407,7 @@ after self.init()"""
         return (name, version)
     
     def process_interactive_input(self):
+        pe = None
         usedb = False
         if self.temp_db_options.host:
             usedb = True
@@ -415,14 +434,18 @@ after self.init()"""
                                         obj_type=None,
                                         connection_id=None)
                 if locator:
-                    if hasattr(locator, '_vnode') and \
-                            locator._vnode is not None:
-                        version = locator._vnode
-                    if hasattr(locator,'_vtag'):
-                        # if a tag is set, it should be used instead of the
-                        # version number
-                        if locator._vtag != '':
-                            version = locator._vtag
+                    if self.temp_configuration.check('parameterExploration'):
+                        pe = version
+                        version = None
+                    else:
+                        if hasattr(locator, '_vnode') and \
+                                locator._vnode is not None:
+                            version = locator._vnode
+                        if hasattr(locator,'_vtag'):
+                            # if a tag is set, it should be used instead of the
+                            # version number
+                            if locator._vtag != '':
+                                version = locator._vtag
                     execute = self.temp_configuration.executeWorkflows
                     mashuptrail = None
                     mashupversion = None
@@ -436,8 +459,14 @@ after self.init()"""
                                                                     version, execute,
                                                                     mashuptrail=mashuptrail, 
                                                                     mashupVersion=mashupversion)
+
+                    if self.temp_configuration.check('parameterExploration'):
+                        self.builderWindow.executeParameterExploration(pe)
+                
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
+
+
                 
     def finishSession(self):
         core.interpreter.cached.CachedInterpreter.cleanup()
@@ -501,8 +530,8 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._controller = None
         self._vistrail = None
 
-    def init(self, optionsDict=None):
-        VistrailsApplicationInterface.init(self, optionsDict)
+    def init(self, optionsDict=None, args=None):
+        VistrailsApplicationInterface.init(self, optionsDict=optionsDict, args=args)
         self.vistrailsStartup.init()
 
     def is_running_gui(self):

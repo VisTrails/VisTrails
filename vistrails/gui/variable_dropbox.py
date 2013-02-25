@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -224,19 +225,21 @@ class QVerticalWidget(QPromptWidget):
         """
         self.setEnabled(False)
         for v in self._variable_widgets:
+            self.disconnect(v, QtCore.SIGNAL('deleted(QWidget*)'), 
+                         self.delete_form)
             self.layout().removeWidget(v)
-            v.hide()
             v.setParent(None)
             v.deleteLater()
         self._variable_widgets = []
         self.setEnabled(True)
 
     def delete_form(self, input_form):
+        self.disconnect(input_form, QtCore.SIGNAL('deleted(QWidget*)'), 
+                     self.delete_form)
         var_name = input_form.var_name
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
         self._variable_widgets.remove(input_form)
-        input_form.hide()
         input_form.setParent(None)
         input_form.deleteLater()
         self.showPromptByChildren()

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -31,15 +32,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from core.modules.vistrails_module import Module
 """ The file describes the parameter exploration table for VisTrails
 
 QParameterExplorationTable
 """
-
+from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
 from xml.dom.minidom import parseString
-from xml.sax.saxutils import escape
+from xml.sax.saxutils import escape, unescape
 from gui.theme import CurrentTheme
 from gui.common_widgets import QPromptWidget
 from gui.modules.paramexplore import QParameterEditor
@@ -50,6 +52,9 @@ from core.modules.basic_modules import Constant
 from core.modules.module_registry import get_module_registry
 from core.system import current_time
 from core.vistrail.module_param import ModuleParam
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module import Module as VistrailModule
+from core.paramexplore.paramexplore import ParameterExploration
 import core.db.action
 
 ################################################################################
@@ -113,18 +118,13 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         """
         self.table.setPipeline(pipeline)
         # Update the UI with the most recent parameter exploration
-        # TODO: For now, we just strip the root tags since there's only one
-        #       exploration - Later we should parse the root tree and select
-        #       the active exploration based on date, or user choice
         if self.controller:
             currentVersion = self.controller.current_version
-            xmlString = self.controller.vistrail.get_paramexp(currentVersion)
-            if xmlString is not None:
-                striplen = len("<paramexps>")
-                xmlString = xmlString[striplen:-(striplen+1)].strip()
-                self.setParameterExploration(xmlString)
-        
-    def getParameterExploration(self):
+            pe = self.controller.vistrail.get_paramexp(currentVersion)
+            self.controller.current_parameter_exploration = pe
+            self.setParameterExploration(pe)
+
+    def getParameterExplorationOld(self):
         """ getParameterExploration() -> string
         Generates an XML string that represents the current
         parameter exploration, and which can be loaded with
@@ -163,7 +163,126 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         xml += '\n\t</paramexp>'
         return xml
     
-    def setParameterExploration(self, xmlString):
+    def getParameterExploration(self):
+        """ getParameterExploration() -> ParameterExploration
+        Generates a ParameterExploration object hat represents the current
+        parameter exploration, and which can be loaded with
+        setParameterExploration().
+        
+        """
+        # Construct xml for persisting parameter exploration
+        escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
+        palette = self.get_palette()
+        functions = []
+        for i in xrange(self.table.layout().count()):
+            pEditor = self.table.layout().itemAt(i).widget()
+            if pEditor and type(pEditor)==QParameterSetEditor:
+                function = None
+                firstParam = True
+                for paramWidget in pEditor.paramWidgets:
+                    paramInfo = paramWidget.param
+                    interpolator = paramWidget.editor.stackedEditors.currentWidget()
+                    intType = interpolator.exploration_name
+                    # Write function tag prior to the first parameter of the function
+                    if firstParam:
+                        function = ModuleFunction(id=paramInfo.module_id,
+                                                  name=paramInfo.name,
+                                                  pos=1 if paramInfo.is_alias else 0)
+                        firstParam = False
+
+                    if intType in ['Linear Interpolation', 'RGB Interpolation',
+                                   'HSV Interpolation']:
+                        value = '["%s", "%s"]' % (interpolator.fromEdit.get_value(),
+                                                  interpolator.toEdit.get_value())
+                    elif intType == 'List':
+                        value = '%s' % escape(str(interpolator._str_values), escape_dict)
+                    elif intType == 'User-defined Function':
+                        value ='%s' % escape(interpolator.function, escape_dict)
+                    # Write parameter tag
+                    param = ModuleParam(id=paramWidget.getDimension(),
+                                        pos=paramInfo.pos,
+                                        type=intType,
+                                        val=value)
+                    function.addParameter(param)
+                functions.append(function)
+        pe = ParameterExploration(dims=str(self.table.label.getCounts()),
+                      layout=repr(palette.virtual_cell.getConfiguration()[2]),
+                      date=current_time().strftime('%Y-%m-%d %H:%M:%S'),
+                      user=getuser(),
+                      functions=functions)
+        return pe
+
+    def setParameterExploration(self, pe, update_inspector=True):
+        """ setParameterExploration(pe: ParameterExploration) -> None
+        Sets the current parameter exploration to the one defined by pe
+        
+        """
+        self.table.clear()
+        palette = self.get_palette()
+        if update_inspector:
+            palette.stateChanged()
+        if not pe:
+            return
+        unescape_dict = { "&apos;":"'", '&quot;':'"', '&#xa;':'\n' }
+        paramView = self.get_param_view()
+        # Set the exploration dimensions
+        self.table.label.setCounts(pe.dims)
+        # Set the virtual cell layout
+        palette.virtual_cell.setConfiguration(pe.layout)
+        # Populate parameter exploration window with stored functions and aliases
+        for f in pe.functions:
+            # Search the parameter treeWidget for this function and add it directly
+            newEditor = None
+            for tidx in xrange(paramView.treeWidget.topLevelItemCount()):
+                moduleItem = paramView.treeWidget.topLevelItem(tidx)
+                for cidx in xrange(moduleItem.childCount()):
+                    paramInfo = moduleItem.child(cidx).parameter
+                    name, params = paramInfo
+                    if params[0].module_id == f.real_id and \
+                       params[0].name == f.name and \
+                       params[0].is_alias == f.pos:
+                        newEditor = self.table.addParameter(paramInfo)
+            # Retrieve params for this function and set their values in the UI
+            if newEditor:
+                for p in f.parameters:
+                    # Locate the param in the newly added param editor and set values
+                    for paramWidget in newEditor.paramWidgets:
+                        if paramWidget.param.pos == p.pos:
+                            # Set Parameter Dimension (radio button)
+                            paramWidget.setDimension(p.real_id)
+                            # Set Interpolator Type (dropdown list)
+                            paramWidget.editor.selectInterpolator(p.type)
+                            # Set Interpolator Value(s)
+                            interpolator = paramWidget.editor.stackedEditors.currentWidget()
+                            if p.type in ['Linear Interpolation', 'RGB Interpolation',
+                                             'HSV Interpolation']:
+                                try:
+                                    # Set min/max
+                                    i_range = eval('%s' % unescape(p.strValue,
+                                                               unescape_dict))
+                                    p_min = str(i_range[0])
+                                    p_max =str(i_range[1])
+                                    interpolator.fromEdit.set_value(p_min)
+                                    interpolator.toEdit.set_value(p_max)
+                                except:
+                                    pass
+                            elif p.type == 'List':
+                                p_values = '%s' % unescape(p.strValue,
+                                                        unescape_dict)
+                                # Set internal list structure
+                                interpolator._str_values = eval(p_values)
+                                # Update UI list
+                                if interpolator.type == 'String':
+                                    interpolator.listValues.setText(p_values)
+                                else:
+                                    interpolator.listValues.setText(
+                                     p_values.replace("'","").replace('"',''))
+                            elif p.type == 'User-defined Function':
+                                # Set function code
+                                interpolator.function = '%s' % unescape(
+                                                    str(p.strValue), unescape_dict)
+
+    def setParameterExplorationOld(self, xmlString):
         """ setParameterExploration(xmlString: string) -> None
         Sets the current parameter exploration to the one
         defined by 'xmlString'.
@@ -241,8 +360,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                 interpolator.function = p_code
 
     def get_palette(self):
-        from gui.paramexplore.pe_palette import QParamExplorePalette
-        return QParamExplorePalette.instance()
+        from gui.paramexplore.pe_inspector import QParamExploreInspector
+        return QParamExploreInspector.instance()
     
     def get_param_view(self):
         from gui.paramexplore.param_view import QParameterView
@@ -404,7 +523,10 @@ class QParameterExplorationTable(QPromptWidget):
                 pEditor = self.layout().itemAt(i).widget()
                 if pEditor and type(pEditor)==QParameterSetEditor:
                     for param in pEditor.info[1]:
-                        if not pipeline.db_has_object(param.type, param.id):
+                        # We no longer require the parameter to exist
+                        # we check if the module still exists
+                        if not pipeline.db_has_object(VistrailModule.vtType,
+                                                      param.module_id):
                             to_be_deleted.append(pEditor)
             for pEditor in to_be_deleted:
                 pEditor.removeSelf()
@@ -447,6 +569,7 @@ class QParameterExplorationTable(QPromptWidget):
                         old_param = self.pipeline.db_get_object(pType,pId)
                         pName = old_param.name
                         pAlias = old_param.alias
+                        pIdentifier = old_param.identifier
                         actions = []
                         tmp_id = -1L
                         for v in values:
@@ -463,7 +586,8 @@ class QParameterExplorationTable(QPromptWidget):
                                                     name=pName,
                                                     alias=pAlias,
                                                     val=str_value,
-                                                    type=paramInfo.type
+                                                    type=paramInfo.type,
+                                                    identifier=pIdentifier
                                                     )
                             action_spec = ('change', old_param, new_param,
                                            parentType, function.real_id)
@@ -752,14 +876,12 @@ class QParameterWidget(QtGui.QWidget):
 
         hLayout.addSpacing(5+16+5)
 
-        self.label = QtGui.QLabel(param.type)
+        self.label = QtGui.QLabel(param.spec.module)
         self.label.setFixedWidth(50)
         hLayout.addWidget(self.label)
 
         registry = get_module_registry()
-        module = registry.get_module_by_name(param.identifier,
-                                             param.type,
-                                             param.namespace)
+        module = param.spec.descriptor.module
         assert issubclass(module, Constant)
 
         self.editor = QParameterEditor(param, size)

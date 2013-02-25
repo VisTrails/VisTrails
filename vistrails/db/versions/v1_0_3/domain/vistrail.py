@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -118,6 +119,9 @@ class DBVistrail(_DBVistrail):
             self.idScope.updateBeginId('annotation', annotation.db_id+1)
         for annotation in self.db_actionAnnotations:
             self.idScope.updateBeginId('annotation', annotation.db_id+1)
+        for paramexp in self.db_parameter_explorations:
+            self.idScope.updateBeginId('parameter_exploration',
+                                       paramexp.db_id+1)
 
     def db_add_object(self, obj):
         self.db_objects[(obj.vtType, obj.db_id)] = obj

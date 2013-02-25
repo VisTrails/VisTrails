@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -86,7 +87,7 @@ exception is recognized by the interpreter and allows meaningful error
 reporting to the user and to the logging mechanism."""
     
     def __init__(self, module, errormsg):
-        """ModuleError should be passed the module that signaled the
+        """ModuleError should be passed the module instance that signaled the
 error and the error message as a string."""
         Exception.__init__(self, errormsg)
         self.module = module
@@ -95,15 +96,24 @@ error and the error message as a string."""
         self.errorTrace = traceback.format_exc()
 
 class ModuleSuspended(ModuleError):
-
     """Exception representing a VisTrails module being suspended. Raising 
     ModuleSuspended flags that the module is not ready to finish yet and
     that the workflow should be executed later.  A suspended module does
-    not execute the modules downstream but all modules upstream will be
+    not execute the modules downstream but all other branches will be
     executed. This is useful when executing external jobs where you do not
-    want to block vistrails while waiting for the execution to finish.  """
+    want to block vistrails while waiting for the execution to finish.
+
+    'queue' is a class instance that should provide a finished() method for
+    checking if the job has finished
+
+    'children' is a list of ModuleSuspended instances that is used for nested
+    modules
     
-    def __init__(self, module, errormsg):
+    """
+    
+    def __init__(self, module, errormsg, queue=None, children=None):
+        self.queue = queue
+        self.children = children
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
@@ -136,9 +146,30 @@ class DummyModuleLogging(object):
 _dummy_logging = DummyModuleLogging()
 
 ################################################################################
+# Serializable
+
+class Serializable(object):
+    """
+    Serializable is a mixin class used to define methods to serialize and
+    deserialize modules. 
+    """
+    
+    def serialize(self):
+        """
+        Method used to serialize a module.
+        """
+        raise Exception('The serialize method is not defined for this module.')
+    
+    def deserialize(self):
+        """
+        Method used to deserialize a module.
+        """
+        raise Exception('The deserialize method is not defined for this module.')
+
+################################################################################
 # Module
 
-class Module(object):
+class Module(Serializable):
 
     """Module is the base module from which all module functionality
 is derived from in VisTrails. It defines a set of basic interfaces to
@@ -254,6 +285,10 @@ Designing New Modules
         self.suspended = False
 
         self.signature = None
+        
+        # stores whether the output of the module should be annotated in the
+        # execution log
+        self.annotate_output = False
 
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -328,7 +363,8 @@ context."""
             self.computed = True
         except ModuleSuspended, e:
             self.suspended = e.msg
-            self.logging.end_update(self, e.msg, was_suspended=True)
+            self._module_suspended = e
+            self.logging.end_update(self, e, was_suspended=True)
             self.logging.signalSuspended(self)
             return
         except ModuleError, me:
@@ -348,6 +384,8 @@ context."""
             import traceback
             traceback.print_exc()
             raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
+        if self.annotate_output:
+            self.annotate_output_values()
         self.upToDate = True
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
@@ -363,6 +401,12 @@ Makes sure input port 'name' is filled."""
 
     def setResult(self, port, value):
         self.outputPorts[port] = value
+        
+    def annotate_output_values(self):
+        output_values = []
+        for port in self.outputPorts:
+            output_values.append((port, self.outputPorts[port]))
+        self.logging.annotate(self, {'output': output_values})
 
     def get_output(self, port):
         # if self.outputPorts.has_key(port) or not self.outputPorts[port]: 
@@ -375,8 +419,51 @@ Makes sure input port 'name' is filled."""
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         return self.inputPorts[inputPort][0]
 
-    def getInputFromPort(self, inputPort):
-        if not self.inputPorts.has_key(inputPort):
+    def getDefaultValue(self, inputPort):
+        reg = self.registry
+
+        d = None
+        try:
+            d = reg.get_descriptor(self.__class__)
+        except:
+            pass
+        if not d:
+            return None
+
+        ps = None
+        try:
+            ps = reg.get_port_spec_from_descriptor(d, inputPort, 'input')
+        except:
+            pass
+        if not ps:
+            return None
+
+        if len(ps.port_spec_items) == 1:
+            psi = ps.port_spec_items[0]
+            if psi.default is not None:
+                m_klass = psi.descriptor.module
+                return m_klass.translate_to_python(psi.default)
+        else:
+            default_val = []
+            default_valid = True
+            for psi in ps.port_spec_items:
+                if psi.default is None:
+                    default_valid = False
+                    break
+                m_klass = psi.descriptor.module
+                default_val.append(
+                    m_klass.translate_to_python(psi.default))
+            if default_valid:
+                return tuple(default_val)
+
+        return None
+
+    def getInputFromPort(self, inputPort, allowDefault=True):
+        if inputPort not in self.inputPorts:
+            if allowDefault and self.registry:
+                defaultValue = self.getDefaultValue(inputPort)
+                if defaultValue is not None:
+                    return defaultValue
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         # Cannot resolve circular reference here, need to be fixed later
         from core.modules.sub_module import InputPort

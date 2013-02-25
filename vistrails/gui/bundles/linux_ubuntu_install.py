@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -82,6 +83,9 @@ class GUIInstallProgress(InstallProgress):
     def pulse(self):
         QtGui.qApp.processEvents()
         return InstallProgress.pulse(self)
+    def finishUpdate(self):
+        InstallProgress.finishUpdate(self)
+        self.quit()
     def conffile(self,current,new):
         print "WARNING: conffile prompt: %s %s" % (current,new)
     def error(self, errorstr):

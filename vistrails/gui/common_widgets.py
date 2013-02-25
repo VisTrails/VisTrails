@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -162,6 +163,9 @@ class QToolWindowInterface(object):
             hasattr(self, '_toolWindow')):
             if self.parent()!=self._toolWindow:
                 self._toolWindow.setParent(self.parent())
+
+    def setToolWindowAcceptDrops(self, value):
+        self.toolWindow().setAcceptDrops(value)
 
 ###############################################################################
 

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -31,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from core.paramexplore.paramexplore import ParameterExploration
 """ This file contains the definition of the class Vistrail """
 
 import copy
@@ -130,6 +132,9 @@ class Vistrail(DBVistrail):
         for variable in _vistrail.vistrail_variables:
             VistrailVariable.convert(variable)
 
+        for pe in _vistrail.parameter_explorations:
+            ParameterExploration.convert(pe)
+
         _vistrail.set_defaults()
 
     ##########################################################################
@@ -152,6 +157,7 @@ class Vistrail(DBVistrail):
     annotations = DBVistrail.db_annotations
     action_annotations = DBVistrail.db_actionAnnotations
     vistrail_variables = DBVistrail.db_vistrailVariables
+    parameter_explorations = DBVistrail.db_parameter_explorations
     
     def _get_actionMap(self):
         return self.db_actions_id_index
@@ -728,18 +734,43 @@ class Vistrail(DBVistrail):
                                           value)
 
     def has_paramexp(self, action_id):
-        return self.has_action_annotation(action_id,
-                                          Vistrail.PARAMEXP_ANNOTATION)
+        """ Check if vistrail has a latest paramexp for action action_id
+        """
+        return len(self.get_paramexps(action_id))>0
     def get_paramexp(self, action_id):
-        a = self.get_action_annotation(action_id, 
-                                       Vistrail.PARAMEXP_ANNOTATION)
-        if a is not None:
-            return a.value
+        """ Check if vistrail has a default paramexp for action action_id
+            and returns it (using latest id)
+        """
+        pes = self.get_paramexps(action_id)
+        if not len(pes):
+            return None
+        pes.sort(key=lambda x: x.id)
+        return pes[-1]
+    def get_paramexps(self, action_id):
+        """ return all pe:s for this action
+        """
+        return [pe for pe in self.parameter_explorations if pe.action_id == action_id]
+    def has_named_paramexp(self, name):
+        """ Check if vistrail has a paramexp named "name"
+        """
+        if not name:
+            return False
+        for pe in self.parameter_explorations:
+            if pe.name == name:
+                return True 
+        return False
+    def get_named_paramexp(self, name):
+        """ Returns the paramexp named "name" or None
+        """
+        for pe in self.parameter_explorations:
+            if pe.name == name:
+                return pe 
         return None
-    def set_paramexp(self, action_id, value):
-        return self.set_action_annotation(action_id,
-                                          Vistrail.PARAMEXP_ANNOTATION,
-                                          value)
+    def delete_paramexp(self, param_exp):
+        self.db_delete_parameter_exploration(param_exp)
+    def add_paramexp(self, param_exp):
+        param_exp.id = self.idScope.getNewId(param_exp.vtType)
+        self.db_add_parameter_exploration(param_exp)
 
     def has_thumbnail(self, action_id):
         return self.has_action_annotation(action_id,
@@ -1077,7 +1108,7 @@ class Vistrail(DBVistrail):
 
         raise Exception("not finished")
     
-    def get_log(self):
+    def get_persisted_log(self):
         """
         Returns the log object for this vistrail if available
         """
@@ -1090,6 +1121,18 @@ class Vistrail(DBVistrail):
             log = open_vt_log_from_db(connection, self.db_id)
         Log.convert(log)
         return log
+    
+    def get_used_packages(self):
+        package_list = {}
+        for action in self.actions:
+            for op in action.operations:
+                try:
+                    if type(op) == AddOp and op.what == 'module':
+                        package_list[op.data.package] = op.data.package
+                except:
+                    pass
+        return package_list
+                    
 
 ##############################################################################
 

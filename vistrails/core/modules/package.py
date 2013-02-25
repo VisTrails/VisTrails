@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +36,7 @@
 import __builtin__
 import copy
 import os
+import re
 import sys
 import traceback
 import xml.dom
@@ -54,10 +56,9 @@ class Package(DBPackage):
     Base, User, Other = 0, 1, 2
 
     class InitializationFailed(Exception):
-        def __init__(self, package, exception, traceback):
+        def __init__(self, package, tracebacks):
             self.package = package
-            self.exception = exception
-            self.traceback = traceback
+            self.tracebacks = tracebacks
         def __str__(self):
             try:
                 name = self.package.name
@@ -65,11 +66,9 @@ class Package(DBPackage):
                     name = 'codepath <%s>' % self.package.codepath
             except AttributeError:
                 name = 'codepath <%s>' % self.package.codepath
-            return ("Package '%s' failed to initialize, raising '%s: %s'. Traceback:\n%s" %
-                    (name,
-                     self.exception.__class__.__name__,
-                     self.exception,
-                     self.traceback))
+            return ("Package '%s' failed to initialize because of the "
+                    "following exceptions:\n%s" % \
+                        (name, "\n".join(self.tracebacks)))
 
     class LoadFailed(Exception):
         def __init__(self, package, exception, traceback):
@@ -243,13 +242,19 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
     
-    def _override_import(self, existing_paths=None):
+    def _override_import(self, existing_paths=None, 
+                         force_no_unload_pkg_list=[], 
+                         force_unload_pkg_list=[], 
+                         force_sys_unload=False):
         self._real_import = __builtin__.__import__
         self._imported_paths = set()
         if existing_paths is not None:
             self._existing_paths = existing_paths
         else:
             self._existing_paths = set(sys.modules.iterkeys())
+        self._force_no_unload = force_no_unload_pkg_list
+        self._force_unload = force_unload_pkg_list
+        self._force_sys_unload = force_sys_unload
         __builtin__.__import__ = self._import
         
     def _reset_import(self):
@@ -259,31 +264,52 @@ class Package(DBPackage):
     def _import(self, name, globals=None, locals=None, fromlist=None, level=-1):
         # if name != 'core.modules.module_registry':
         #     print 'running import', name, fromlist
+        def in_package_list(pkg_name, pkg_list):
+            for pkg in pkg_list:
+                if pkg_name == pkg or pkg_name.startswith(pkg + '.'):
+                    return True
+            return False
+            
+        def is_sys_pkg(pkg):
+            try:
+                pkg_fname = pkg.__file__
+            except AttributeError:
+                return True
+            if "site-packages" in pkg_fname:
+                return True
+            if os.sep != '/':
+                pkg_fname = pkg_fname.replace(os.sep, '/')
+            return (re.search(r'python[0-9.]+[a-z]?/lib/', 
+                              pkg_fname, re.IGNORECASE) or
+                    re.search(r'lib/python[0-9.]+[a-z]?/', 
+                              pkg_fname, re.IGNORECASE))
+
+        def checked_add_package(qual_name, pkg):
+            if qual_name not in self._existing_paths and \
+                not in_package_list(qual_name, self._force_no_unload) and \
+                (not self._force_sys_unload or not is_sys_pkg(pkg)
+                 or in_package_list(qual_name, self._force_unload)) and \
+                 not qual_name.endswith('_rc'):
+                self._imported_paths.add(qual_name)
+
         res = apply(self._real_import, 
                     (name, globals, locals, fromlist, level))
-        if len(name) > len(res.__name__):
-            res_name = name
+        mod = res
+        if not fromlist or len(fromlist) < 1:
+            checked_add_package(mod.__name__, mod)
+            for comp in name.split('.')[1:]:
+                try:
+                    mod = getattr(mod, comp)
+                    checked_add_package(mod.__name__, mod)
+                except AttributeError:
+                    break
         else:
-            res_name = res.__name__
-        qual_name = ''
-        for m in res_name.split('.'):
-            qual_name += m
-            if qual_name not in self._existing_paths and \
-                    not qual_name.endswith('_rc'):
-                # print '  adding', name, qual_name
-                self._imported_paths.add(qual_name)
-            # else:
-            #     if name != 'core.modules.module_registry':
-            #         print '  already exists', name, res.__name__
-	    qual_name += '.'
-        if fromlist is not None:
-            for from_module in fromlist:
-                qual_name = res_name + '.' + from_module
-                if qual_name not in self._existing_paths and \
-                        not qual_name.endswith('_rc'):
-                    # print '  adding222', name, qual_name
-                    self._imported_paths.add(qual_name)
-
+            res_name = mod.__name__
+            checked_add_package(mod.__name__, mod)
+            for from_name in fromlist:
+                qual_name = res_name + '.' + from_name
+                checked_add_package(qual_name, mod)
+                    
         return res
 
     def get_py_deps(self):
@@ -317,7 +343,7 @@ class Package(DBPackage):
                 self._package_type = self.Base
                 self.prefix = p_path
             except ImportError, e:
-                errors.append((e, traceback.format_exc()))
+                errors.append(traceback.format_exc())
                 return False
             return True
 
@@ -339,13 +365,7 @@ class Package(DBPackage):
             self.py_dependencies.update(self._reset_import())
             
         if r:
-            debug.critical("Could not enable package %s" % self.codepath)
-            for e in errors:
-                debug.critical("Exceptions/tracebacks raised:")
-                debug.critical(str(e[0]))
-                debug.critical(str(e[1]))
-            raise self.InitializationFailed(self,
-                                            errors[-1][0], errors[-1][1])
+            raise self.InitializationFailed(self, errors)
 
         # Sometimes we don't want to change startup.xml, for example
         # when peeking at a package that's on the available package list
@@ -362,7 +382,20 @@ class Package(DBPackage):
         self.set_properties()
 
     def initialize(self, existing_paths=None):
-        self._override_import(existing_paths)
+        if hasattr(self._module, "_force_no_unload_pkg_list"):
+            force_no_unload = self._module._force_no_unload_pkg_list
+        else:
+            force_no_unload = []
+        if hasattr(self._module, "_force_unload_pkg_list"):
+            force_unload = self._module._force_unload_pkg_list
+        else:
+            force_unload = []
+        if hasattr(self._module, "_force_sys_unload"):
+            force_sys_unload = self._module._force_sys_unload
+        else:
+            force_sys_unload = False
+        self._override_import(existing_paths, force_no_unload, force_unload, 
+                              force_sys_unload)
         try:
             name = self.prefix + self.codepath + '.init'
             try:
@@ -379,7 +412,11 @@ class Package(DBPackage):
                 self._init_module = sys.modules[name]
                 self._imported_paths.add(name)
                 # Copy attributes (shallow) from _module into _init_module's namespace and point _module to _init_module
-                module_attributes = ['identifier', 'name', 'version', 'configuration', 'package_dependencies', 'package_requirements']
+                module_attributes = ['identifier', 'name', 'version',
+                                     'configuration', 'package_dependencies',
+                                     'package_requirements',
+                                     'can_handle_identifier',
+                                     'can_handle_vt_file']
                 for attr in module_attributes:
                     if hasattr(self._module, attr):
                         setattr(self._init_module, attr, getattr(self._module, attr))
@@ -401,7 +438,7 @@ class Package(DBPackage):
     def unload(self):
         for path in self.py_dependencies:
             if path not in sys.modules:
-                # print "skipping %s"%path
+                # print "skipping %s" % path
                 pass
             else:
                 # print 'deleting path:', path, path in sys.modules
@@ -420,7 +457,6 @@ class Package(DBPackage):
                 v = self._module.__file__
             except AttributeError:
                 v = self._module
-            debug.critical("Package %s is missing necessary attribute" % v)
             raise e
         if hasattr(self._module, '__doc__') and self._module.__doc__:
             self.description = self._module.__doc__
@@ -431,27 +467,27 @@ class Package(DBPackage):
         return hasattr(self._init_module, 'handle_all_errors')
 
     def can_handle_upgrades(self):
-        # redirect webservices to SUDSWebServices
-        if self.package.startswith("SUDS#"):
-            return True
         return hasattr(self._init_module, 'handle_module_upgrade_request')
+
+    def can_handle_identifier(self, identifier):
+        """ Asks package if it can handle this package
+        """
+        return hasattr(self.init_module, 'can_handle_identifier') and \
+            self.init_module.can_handle_identifier(identifier)
+
+    def can_handle_vt_file(self, name):
+        """ Asks package if it can handle a file inside a zipped vt file
+        """
+        return hasattr(self.init_module, 'can_handle_vt_file') and \
+            self.init_module.can_handle_vt_file(name)
     
     def can_handle_missing_modules(self):
-        # redirect webservices to SUDSWebServices
-        if self.identifier.startswith("SUDS#"):
-            return True
         return hasattr(self._init_module, 'handle_missing_module')
 
     def handle_all_errors(self, *args, **kwargs):
         return self._init_module.handle_all_errors(*args, **kwargs)
 
     def handle_module_upgrade_request(self, *args, **kwargs):
-        # redirect webservices to SUDSWebServices
-        if self.identifier.startswith("SUDS#"):
-            from core.packagemanager import get_package_manager
-            pm = get_package_manager()
-            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
-            return package._init_module.handle_module_upgrade_request(*args, **kwargs)
         return self._init_module.handle_module_upgrade_request(*args, **kwargs)
         
     def handle_missing_module(self, *args, **kwargs):
@@ -462,12 +498,6 @@ class Package(DBPackage):
         module.
         """
         
-        # redirect webservices to SUDSWebServices
-        if self.identifier.startswith("SUDS#"):
-            from core.packagemanager import get_package_manager
-            pm = get_package_manager()
-            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
-            return package._init_module.handle_missing_module(*args, **kwargs)
         return self._init_module.handle_missing_module(*args, **kwargs)
 
     def add_abs_upgrade(self, new_desc, name, namespace, module_version):
@@ -496,34 +526,24 @@ class Package(DBPackage):
         return None
 
     def has_contextMenuName(self):
-        # redirect webservices to SUDSWebServices
-        if self.identifier.startswith("SUDS#"):
-            return True
         return hasattr(self._init_module, 'contextMenuName')
 
     def contextMenuName(self, signature):
-        # redirect webservices to SUDSWebServices
-        if self.identifier.startswith("SUDS#"):
-            from core.packagemanager import get_package_manager
-            pm = get_package_manager()
-            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
-            return package._init_module.contextMenuName(signature)
         return self._init_module.contextMenuName(signature)
     
     def has_callContextMenu(self):
-        # redirect webservices to SUDSWebServices
-        if self.identifier.startswith("SUDS#"):
-            return True
         return hasattr(self._init_module, 'callContextMenu')
 
     def callContextMenu(self, signature):
-        # redirect webservices to SUDSWebServices
-        if self.identifier.startswith("SUDS#"):
-            from core.packagemanager import get_package_manager
-            pm = get_package_manager()
-            package = pm.get_package_by_identifier('edu.utah.sci.vistrails.sudswebservices')
-            return package._init_module.callContextMenu(signature)
         return self._init_module.callContextMenu(signature)
+
+    def loadVistrailFileHook(self, vistrail, tmp_dir):
+        if hasattr(self._init_module, 'loadVistrailFileHook'):
+            self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
+
+    def saveVistrailFileHook(self, vistrail, tmp_dir):
+        if hasattr(self._init_module, 'saveVistrailFileHook'):
+            self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
 
     def check_requirements(self):
         try:

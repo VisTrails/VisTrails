@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,14 +36,15 @@
 # and updates 2007 year with 2008 in the file header. 
 import re
 import os
-new_copyright = ["## Copyright (C) 2006-2010 University of Utah. All rights reserved.\n"]
+new_copyright = ["## Copyright (C) 2011-2012, NYU-Poly.\n"]
 
-re_copyright = re.compile(r"\s+## Copyright \(C\) 2006-2008 University of Utah\. All rights reserved\.\s+")
-
+re_copyright = re.compile(r"\s+## Copyright \(C\) 2006-2011, University of Utah\. \s+")
+line_copyright = re.compile(r"## Copyright \(C\) 2006-2011, University of Utah\.")
+IGNORE_LIST = ["update_copyright_year.py"]
 files = []
 for (path, dnames, fnames) in os.walk('.'):
     for fn in fnames:
-        if fn.endswith(".py"):
+        if fn not in IGNORE_LIST and fn.endswith(".py"):
             files.append(os.path.join(path, fn))
 
 print len(files), " files found"
@@ -54,12 +56,18 @@ for fname in files:
     all_lines = fin.read()
     fin.close()
     if re_copyright.search(all_lines) > 0:
-        newlines = lines[:2]
-        newlines.extend(new_copyright)
-        cropped = lines[3:]
-        newlines.extend(cropped)
-        fout = file(fname, 'w')
-        fout.writelines(newlines)
-        fout.close()
-        count += 1
+        #Search through the first lines because sometimes it's not exactly in the second line:
+        for i in [2,3,4,5]:
+            if line_copyright.search(lines[i]) > 0:
+                print "Updating: %s"%fname
+                newlines = lines[:i]
+                newlines.extend(new_copyright)
+                cropped = lines[i:] #Replace by i+1 when it is to update just the year.
+                newlines.extend(cropped)
+                fout = file(fname, 'w')
+                fout.writelines(newlines)
+                fout.close()
+                count += 1
+                break
+
 print count, " files updated"

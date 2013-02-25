@@ -1,6 +1,7 @@
 #!/bin/bash
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -44,13 +45,13 @@ then
     exit 65
 fi
 
-if [ -e "$2/$BIN_PATH_27/$dir" ]
+if [ -e "$2/$BIN_PATH_27" ]
 then
     BIN_PATH=$BIN_PATH_27
-elif [ -e "$2/$BIN_PATH_26/$dir" ]
+elif [ -e "$2/$BIN_PATH_26" ]
 then
     BIN_PATH=$BIN_PATH_26
-elif [ -e "$2/$BIN_PATH_25/$dir" ]
+elif [ -e "$2/$BIN_PATH_25" ]
 then
     BIN_PATH=$BIN_PATH_25
 fi
@@ -59,15 +60,15 @@ for dir in $DIRS
 do
     if [ -e "$2/$BIN_PATH/$dir" ]
     then
-	rm -r $2/$BIN_PATH/$dir
+    	rm -r $2/$BIN_PATH/$dir
     fi
-    ln -s $1/$SRC_PATH/$dir $2/$BIN_PATH/$dir
+    ln -s -f -F $1/$SRC_PATH/$dir $2/$BIN_PATH/$dir
 done
 
 if [ -e "$2/$BIN_PATH/../../vistrails.py" ]
 then
     rm $2/$BIN_PATH/../../vistrails.py
 fi
-ln -s $1/$SRC_PATH/vistrails.py $2/$BIN_PATH/../../vistrails.py
+ln -s -f -F $1/$SRC_PATH/vistrails.py $2/$BIN_PATH/../../vistrails.py
 
 exit 0

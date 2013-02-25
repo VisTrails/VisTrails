@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -141,16 +142,14 @@ class MplFigureCellWidget(QCellWidget):
 
     def dumpToFile(self, filename):
         #resizing to default size so the image is not clipped
-        previous_size = self.figManager.canvas.figure.get_size_inches()
+        previous_size = tuple(self.figManager.canvas.figure.get_size_inches())
         self.figManager.canvas.figure.set_size_inches(8.0,6.0)
-        #self.figManager.canvas.figure.set_size_inches(previous_size, forward=True)
         self.figManager.canvas.print_figure(filename)
-        self.figManager.canvas.figure.set_size_inches(previous_size, forward=True)
+        self.figManager.canvas.figure.set_size_inches(*previous_size, forward=True)
         
     def saveToPDF(self, filename):
         #resizing to default size so the image is not clipped
-        previous_size = self.figManager.canvas.figure.get_size_inches()
+        previous_size = tuple(self.figManager.canvas.figure.get_size_inches())
         self.figManager.canvas.figure.set_size_inches(8.0,6.0)
-        #self.figManager.canvas.figure.set_size_inches(previous_size, forward=True)
         self.figManager.canvas.print_figure(filename)
-        self.figManager.canvas.figure.set_size_inches(previous_size, forward=True)
+        self.figManager.canvas.figure.set_size_inches(*previous_size, forward=True)

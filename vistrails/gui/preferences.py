@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,11 +36,13 @@
 from PyQt4 import QtGui, QtCore
 from core import get_vistrails_application
 from core.packagemanager import get_package_manager
+from core.utils import InvalidPipeline
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
                                QThumbnailConfiguration)
 from gui.module_palette import QModulePalette
+from gui.pipeline_view import QPipelineView
 from core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
 from core import debug
@@ -259,6 +262,8 @@ class QPackagesWidget(QtGui.QWidget):
         app = get_vistrails_application()
         app.register_notification("pm_reloading_package", 
                                   self.reload_current_package_finisher)
+        app.register_notification("package_added", self.package_added)
+        app.register_notification("package_removed", self.package_removed)
         
         self.populate_lists()
 
@@ -315,11 +320,9 @@ class QPackagesWidget(QtGui.QWidget):
             finally:
                 palette.setUpdatesEnabled(True)
                 palette.treeWidget.expandAll()
-            av.takeItem(pos)
-            inst.addItem(item)
-            inst.sortItems()
-            self.erase_cache = True
-            self.select_package_after_update(codepath)
+            # the old code that used to be here to update the lists
+            # has been moved to package_added
+            self.invalidate_current_pipeline()
 
     def disable_current_package(self):
         av = self._available_packages_list
@@ -339,11 +342,9 @@ class QPackagesWidget(QtGui.QWidget):
                             "Please disable those first.") % rev_deps)
         else:
             pm.late_disable_package(codepath)
-            inst.takeItem(pos)
-            av.addItem(item)
-            av.sortItems()
-            self.erase_cache = True
-            self.select_package_after_update(codepath)
+            self.invalidate_current_pipeline()
+            # the old code that used to be here to update the lists
+            # has been moved to package_removed
 
     def configure_current_package(self):
         dlg = QPackageConfigurationDialog(self, self._current_package)
@@ -375,6 +376,37 @@ class QPackagesWidget(QtGui.QWidget):
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(True)
             palette.treeWidget.expandAll()
+            self.erase_cache = True
+            self.select_package_after_update(codepath)
+            self.invalidate_current_pipeline()
+
+    def package_added(self, codepath):
+        # package was added, we need to update list
+        av = self._available_packages_list
+        inst = self._enabled_packages_list
+        items = av.findItems(codepath, QtCore.Qt.MatchExactly)
+        if len(items) < 1:
+            # this is required for basic_modules and abstraction since
+            # they are not in available_package_names_list initially
+            self.populate_lists()
+            items = av.findItems(codepath, QtCore.Qt.MatchExactly)
+        for item in items:
+            pos = av.indexFromItem(item).row()
+            av.takeItem(pos)
+            inst.addItem(item)
+            inst.sortItems()
+            self.erase_cache = True
+            self.select_package_after_update(codepath)
+
+    def package_removed(self, codepath):
+        # package was removed, we need to update list
+        av = self._available_packages_list
+        inst = self._enabled_packages_list
+        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
+            pos = inst.indexFromItem(item).row()
+            inst.takeItem(pos)
+            av.addItem(item)
+            av.sortItems()
             self.erase_cache = True
             self.select_package_after_update(codepath)
 
@@ -427,6 +459,7 @@ class QPackagesWidget(QtGui.QWidget):
         """
         assert self._current_package
         p = self._current_package
+
         try:
             p.load()
         except Exception, e:
@@ -469,6 +502,9 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         self._current_package = pm.get_package_by_codepath(codepath)
         self.set_buttons_to_enabled_package()
+        # A delayed signal can result in the package already has been removed
+        if not pm.has_package(self._current_package.identifier):
+            return
         self.set_package_information()
         self._enabled_packages_list.setFocus()
 
@@ -484,8 +520,10 @@ class QPackagesWidget(QtGui.QWidget):
         self.set_package_information()
         self._available_packages_list.setFocus()
 
-
-
+    def invalidate_current_pipeline(self):
+        from gui.vistrails_window import _app
+        _app.invalidate_pipelines()
+        
 class QPreferencesDialog(QtGui.QDialog):
 
     def __init__(self, parent):
@@ -547,18 +585,7 @@ class QPreferencesDialog(QtGui.QDialog):
         l.addWidget(self._status_bar)
 
     def close_dialog(self):
-        # pm = get_package_manager()
-        # self.disconnect(pm,
-        #                 pm.reloading_package_signal,
-        #                 self._packages_tab.reload_current_package_finisher)
-        app = get_vistrails_application()
-        app.unregister_notification("pm_reloading_package", 
-                                    self._packages_tab.reload_current_package_finisher)
-
-        retval = 0
-        if self._packages_tab.erase_cache:
-            retval = 1
-        self.done(retval)
+        self.done(0)
 
     def create_general_tab(self):
         """ create_general_tab() -> QGeneralConfiguration

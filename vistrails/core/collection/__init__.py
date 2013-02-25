@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,6 +43,7 @@ from workflow import WorkflowEntity
 from workflow_exec import WorkflowExecEntity
 from thumbnail import ThumbnailEntity
 from mashup import MashupEntity
+from parameter_exploration import ParameterExplorationEntity
 
 from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
 from core.db.io import load_vistrail
@@ -62,7 +64,7 @@ class Collection(object):
     entity_types = dict((x.type_id, x)
                         for x in [VistrailEntity, WorkflowEntity, 
                                   WorkflowExecEntity, ThumbnailEntity,
-                                  MashupEntity])
+                                  MashupEntity, ParameterExplorationEntity])
     def __init__(self, database=None):
         if database is None:
             self.database = ':memory:'

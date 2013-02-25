@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,6 +47,7 @@ import core.modules
 import core.modules.vistrails_module
 from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.package import Package
+import core.modules.utils
 from core.utils import VistrailsInternalError, memo_method, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
      all, profile, versions_increasing, InvalidPipeline
@@ -315,6 +317,13 @@ class MissingPackage(ModuleRegistryException):
     def __str__(self):
         return "Missing package: %s" % self._identifier
 
+    def _get_module_id(self):
+        return None
+    def _set_module_id(self, m_id):
+        # do not set
+        pass
+    _module_id = property(_get_module_id, _set_module_id)
+
 class MissingModule(ModuleRegistryException):
     def __init__(self, identifier, name, namespace, package_version=None,
                  module_id=None):
@@ -386,6 +395,37 @@ class PortMismatch(MissingPort):
                 (self._port_type.capitalize(), self._port_name,
                  self._port_sigstring, self._module_name, self._package_name)
 
+class PortsIncompatible(ModuleRegistryException):
+
+    def __init__(self, output_identifier, output_name, output_namespace,
+                 output_port, input_identifier, input_name, input_namespace,
+                 input_port):
+        ModuleRegistryException.__init__(self, output_identifier, output_name,
+                                         output_namespace)
+        self._output_port = output_port
+        self._input_identifier = input_identifier
+        self._input_name = input_name
+        self._input_namespace = input_namespace
+        self._input_port = input_port
+
+    def __str__(self):
+        if self._namespace:
+            out_name = "%s:%s|%s" % (self._identifier, self._namespace,
+                                     self._name)
+        else:
+            out_name = "%s:%s" % (self._identifier, self._name)
+        if self._input_namespace:
+            in_name = "%s:%s|%s" % (self._input_identifier,
+                                    self._input_namespace,
+                                    self._input_name)
+        else:
+            in_name = "%s:%s" % (self._input_identifier, self._input_name)
+        return ('Output port "%s" from module "%s" cannot connect to '
+                'input port "%s" from module "%s".' % (self._output_port,
+                                                       out_name,
+                                                       self._input_port,
+                                                       in_name))
+
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
                  new_namespace):
@@ -415,6 +455,22 @@ class DuplicateIdentifier(ModuleRegistryException):
     def __str__(self):
         return "There is already a module %s in package %s" % \
             (self._module_name, self._package_name)
+
+class InvalidPortSpec(ModuleRegistryException):
+    def __init__(self, descriptor, port_name, port_type, exc):
+        ModuleRegistryException.__init__(self,
+                                         descriptor.identifier,
+                                         descriptor.name,
+                                         descriptor.namespace)
+        self._port_name = port_name
+        self._port_type = port_type[0].capitalize() + port_type[1:]
+        self._exc = exc
+        
+    def __str__(self):
+        return ('%s port "%s" from module %s in package %s '
+                'has bad specification\n  %s' % \
+            (self._port_type, self._port_name, self._module_name,
+             self._package_name, str(self._exc)))
 
 class MissingBaseClass(Exception):
     def __init__(self, base):
@@ -912,44 +968,34 @@ class ModuleRegistry(DBRegistry):
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        if hasattr(module, '_input_ports'):
-            for port_info in module._input_ports:
-                added = False
-                if len(port_info) >= 2:
-                    port_name, port_sig = port_info[:2]
-                    if len(port_info) > 2 and type(port_info[2]) == dict:
-                        kwargs = port_info[2]
-                        self.add_input_port(module, port_name, port_sig, 
-                                            **kwargs)
+        for (port_key, adder_f) in [('_input_ports', self.add_input_port),
+                                    ('_output_ports', self.add_output_port)]:
+            if port_key in module.__dict__:
+                for port_info in module.__dict__[port_key]:
+                    added = False
+                    if type(port_info) == PortSpec:
+                        # force port type to match list it occurs in
+                        # we just need "input" or "output"
+                        port_info.type = port_key[1:-6]
+                        descriptor = self.get_descriptor(module)
+                        self.add_port_spec(descriptor, port_info)
                         added = True
-                    else:
-                        args = port_info[2:]
-                        self.add_input_port(module, port_name, port_sig, 
-                                            *args)
-                        added = True
-                if not added:
-                    raise TypeError("Expected (port_name, port_signature, "
-                                    "kwargs_dict) or (port_name, "
-                                    "port_signature, *args)")
-        if hasattr(module, '_output_ports'):
-            for port_info in module._output_ports:
-                added = False
-                if len(port_info) >= 2:
-                    port_name, port_sig = port_info[:2]
-                    if len(port_info) > 2 and type(port_info[2]) == dict:
-                        kwargs = port_info[2]
-                        self.add_output_port(module, port_name, port_sig, 
-                                             **kwargs)
-                        added = True
-                    else:
-                        args = port_info[2:]
-                        self.add_output_port(module, port_name, port_sig, 
-                                             *args)
-                        added = True
-                if not added:
-                    raise TypeError("Expected (port_name, port_signature, "
-                                    "kwargs_dict) or (port_name, "
-                                    "port_signature, *args)")
+                    elif len(port_info) >= 2:
+                        port_name, port_sig = port_info[:2]
+                        if len(port_info) > 2 and \
+                                type(port_info[2]) == dict:
+                            kwargs = port_info[2]
+                            adder_f(module, port_name, port_sig, **kwargs)
+                            added = True
+                        else:
+                            args = port_info[2:]
+                            adder_f(module, port_name, port_sig, *args)
+                            added = True
+                        
+                    if not added:
+                        raise TypeError("Expected (port_name, port_signature, "
+                                        "kwargs_dict) or (port_name, "
+                                        "port_signature, *args)")
 
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module
@@ -1305,7 +1351,8 @@ class ModuleRegistry(DBRegistry):
 
     def create_port_spec(self, name, type, signature=None, sigstring=None,
                          optional=False, sort_key=-1, labels=None, 
-                         defaults=None, docstring=None, shape=None, 
+                         defaults=None, values=None, entry_types=None,
+                         docstring=None, shape=None, 
                          min_conns=0, max_conns=-1):
         if signature is None and sigstring is None:
             raise VistrailsInternalError("create_port_spec: one of signature "
@@ -1320,14 +1367,28 @@ class ModuleRegistry(DBRegistry):
                         sort_key=sort_key,
                         labels=labels,
                         defaults=defaults,
+                        values=values,
+                        entry_types=entry_types,
                         docstring=docstring,
                         shape=shape,
                         min_conns=min_conns,
                         max_conns=max_conns)
         return spec
 
-    def add_port_spec(self, descriptor, port_spec):
-        descriptor.add_port_spec(port_spec)
+    def add_port_spec(self, descriptor, spec):
+        # check if the spec is valid
+        try:
+            spec.descriptors()
+        except ModuleRegistryException, e:
+            raise InvalidPortSpec(descriptor, spec.name, spec.type, e)
+
+        descriptor.add_port_spec(spec)
+        if spec.type == 'input':
+            self.signals.emit_new_input_port(descriptor.identifier,
+                                             descriptor.name, spec.name, spec)
+        elif spec.type == 'output':
+            self.signals.emit_new_output_port(descriptor.identifier,
+                                              descriptor.name, spec.name, spec)
 
     def get_port_spec_from_descriptor(self, desc, port_name, port_type):
         for d in self.get_module_hierarchy(desc):
@@ -1339,14 +1400,9 @@ class ModuleRegistry(DBRegistry):
 
     def get_port_spec(self, package, module_name, namespace, 
                       port_name, port_type):
-        try:
-            desc = self.get_descriptor_by_name(package, module_name, namespace)
-            return self.get_port_spec_from_descriptor(desc, port_name, 
-                                                      port_type)
-        except ModuleRegistryException, e:
-            debug.critical(str(e))
-            raise
-        return None
+        desc = self.get_descriptor_by_name(package, module_name, namespace)
+        return self.get_port_spec_from_descriptor(desc, port_name, 
+                                                  port_type)
 
     def has_port_spec_from_descriptor(self, desc, port_name, port_type):
         for d in self.get_module_hierarchy(desc):
@@ -1356,46 +1412,35 @@ class ModuleRegistry(DBRegistry):
 
     def has_port_spec(self, package, module_name, namespace,
                       port_name, port_type):
-        try:
-            desc = self.get_descriptor_by_name(package, module_name, namespace)
-            return self.has_port_spec_from_descriptor(desc, port_name, 
-                                                      port_type)
-        except ModuleRegistryException, e:
-            debug.critical(str(e))
-            raise
-        return None        
+        desc = self.get_descriptor_by_name(package, module_name, namespace)
+        return self.has_port_spec_from_descriptor(desc, port_name, 
+                                                  port_type)
 
     def add_port(self, descriptor, port_name, port_type, port_sig=None, 
                  port_sigstring=None, optional=False, sort_key=-1,
-                 labels=None, defaults=None, docstring=None, shape=None, 
-                 min_conns=0, max_conns=-1):
+                 labels=None, defaults=None, values=None, entry_types=None, 
+                 docstring=None, shape=None, min_conns=0, max_conns=-1):
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
-                                     labels, defaults, docstring, shape,
+                                     labels, defaults, values, entry_types,
+                                     docstring, shape,
                                      min_conns, max_conns)
 
-        # need to check if the spec is valid
-        if spec._entries is None:
-            spec.create_entries_and_descriptors()
-
-        descriptor.add_port_spec(spec)
-        if port_type == 'input':
-            self.signals.emit_new_input_port(descriptor.identifier,
-                                             descriptor.name, port_name, spec)
-        elif port_type == 'output':
-            self.signals.emit_new_output_port(descriptor.identifier,
-                                             descriptor.name, port_name, spec)
+        self.add_port_spec(descriptor, spec)
 
     def add_input_port(self, module, portName, portSignature, optional=False, 
-                       sort_key=-1, labels=None, defaults=None, 
-                       docstring=None, shape=None, min_conns=0, max_conns=-1):
+                       sort_key=-1, labels=None, defaults=None, values=None,
+                       entry_types=None, docstring=None, shape=None, 
+                       min_conns=0, max_conns=-1):
         """add_input_port(module: class,
                           portName: string,
                           portSignature: string,
                           optional: bool,
                           sort_key: int,
-                          label: tuple(string),
+                          labels: tuple(string),
                           defaults: tuple(string),
+                          values: list(list(string)),
+                          entry_types: list(string),
                           docstring: string,
                           shape: tuple,
                           min_conns: int,
@@ -1409,12 +1454,12 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor(module)
         if type(portSignature) == type(""):
             self.add_port(descriptor, portName, 'input', None, portSignature, 
-                          optional, sort_key, labels, defaults, docstring,
-                          shape, min_conns, max_conns)
+                          optional, sort_key, labels, defaults, values,
+                          entry_types, docstring, shape, min_conns, max_conns)
         else:
             self.add_port(descriptor, portName, 'input', portSignature, None, 
-                          optional, sort_key, labels, defaults, docstring, 
-                          shape, min_conns, max_conns)
+                          optional, sort_key, labels, defaults, values,
+                          entry_types, docstring, shape, min_conns, max_conns)
 
 
     def add_output_port(self, module, portName, portSignature, optional=False, 
@@ -1425,8 +1470,6 @@ class ModuleRegistry(DBRegistry):
                            portSignature: string,
                            optional: bool,
                            sort_key: int,
-                           label: tuple(string),
-                           defaults: tuple(string),
                            docstring: string,
                            shape: tuple,
                            min_conns: int,
@@ -1440,12 +1483,12 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor(module)
         if type(portSignature) == type(""):
             self.add_port(descriptor, portName, 'output', None, portSignature, 
-                          optional, sort_key, None, None, docstring, shape,
-                          min_conns, max_conns)
+                          optional, sort_key, None, None, None, None, 
+                          docstring, shape, min_conns, max_conns)
         else:
             self.add_port(descriptor, portName, 'output', portSignature, None, 
-                          optional, sort_key, None, None, docstring, shape,
-                          min_conns, max_conns)
+                          optional, sort_key, None, None, None, None, 
+                          docstring, shape, min_conns, max_conns)
 
     def create_package(self, codepath, load_configuration=True):
         package_id = self.idScope.getNewId(Package.vtType)
@@ -1504,8 +1547,8 @@ class ModuleRegistry(DBRegistry):
                         self.auto_add_ports(descriptor.module)
                         added_descriptors.add(descriptor)
         except Exception, e:
-            raise package.InitializationFailed(package, e, 
-                                               traceback.format_exc())
+            raise package.InitializationFailed(package, 
+                                               [traceback.format_exc()])
 
         # The package might have decided to rename itself, let's store that
         self.set_current_package(None)
@@ -1547,7 +1590,8 @@ class ModuleRegistry(DBRegistry):
         top_sort = graph.vertices_topological_sort()
         # set up fast removal of model
         for sigstring in top_sort:
-            self.delete_module(*(sigstring.split(':',2)))
+            self.delete_module(
+                *core.modules.utils.parse_descriptor_string(sigstring))
         
         # Remove upgraded package subworkflows from registry
         for key, version_dict in package._abs_pkg_upgrades.iteritems():
@@ -1556,6 +1600,7 @@ class ModuleRegistry(DBRegistry):
                                    descriptor.namespace)
         package._abs_pkg_upgrades.clear()
         
+        package.unload()
         self.delete_package(package)
         self.signals.emit_deleted_package(package)
 
@@ -1625,10 +1670,18 @@ class ModuleRegistry(DBRegistry):
                 if self.is_method(spec)]
 
     def port_and_port_spec_match(self, port, port_spec):
-        """port_and_port_spec_match(port: Port, port_spec: PortSpec) -> bool
+        """port_and_port_spec_match(port: Port | PortSpec, 
+                                    port_spec: PortSpec
+                                    ) -> bool
         Checks if port is similar to port_spec or not.  These ports must
         have the same name and type"""
-        if PortSpec.port_type_map.inverse[port.type] != port_spec.type:
+        if port.type in PortSpec.port_type_map:
+            port_type = port.type
+        elif port.type in PortSpec.port_type_map.inverse:
+            port_type = PortSpec.port_type_map.inverse[port.type]
+        else:
+            raise Exception('Port type "%s" invalid' % str(port.type))
+        if port_type != port_spec.type:
             return False
         if port.name != port_spec.name:
             return False
@@ -1843,91 +1896,10 @@ class ModuleRegistry(DBRegistry):
     def update_module(self, old_descriptor, new_descriptor):
         self.signals.emit_module_updated(old_descriptor, new_descriptor)
 
-    def create_descriptor_string(self, package, name, namespace=None,
-                                 use_package=False):
-        package_str = ""
-        namespace_str = ""
-        if use_package:
-            package_str = "%s:" % package
-        if namespace:
-            namespace_str = "%s|" % namespace
-        return "%s%s%s" % (package_str, namespace_str, name)
-
-    def expand_descriptor_string(self, d_string, cur_package=None):
-        """expand_descriptor_string will expand names of modules using
-        information about the current package and allowing shortcuts
-        for any bundled vistrails packages (e.g. "basic" for
-        "edu.utah.sci.vistrails.basic").  It also allows a nicer
-        format for namespace/module specification (namespace comes
-        fist unlike port specifications where it is after the module
-        name...
-
-        Examples:
-          "persistence:PersistentInputFile", None -> 
-              ("edu.utah.sci.vistrails.persistence", PersistentInputFile", "")
-          "basic:String", None ->
-              ("edu.utah.sci.vistrails.basic", "String", "")
-          "NamespaceA|NamespaceB|Module", "org.example.my" ->
-              ("org.example.my", "Module", "NamespaceA|NamespaceB")
-        """
-
-        package = ''
-        qual_name = ''
-        name = ''
-        namespace = ''
-        parts = d_string.strip().split(':', 1)
-        if len(parts) > 1:
-            qual_name = parts[1]
-            if '.' in parts[0]:
-                package = parts[0]
-            else:
-                package = 'edu.utah.sci.vistrails.' + parts[0]
-        else:
-            qual_name = d_string
-            if cur_package is None:
-                basic_pkg = core.modules.basic_modules.identifier
-                package = basic_pkg
-            else:
-                package = cur_package
-        qual_parts = qual_name.rsplit('|', 1)
-        if len(qual_parts) > 1:
-            namespace, name = qual_parts
-        else:
-            name = qual_name
-        return (package, name, namespace)
-        
-    def expand_port_spec_string(self, p_string, cur_package=None):
-        """Similar to expand_descriptor_string but for full port
-        specifications.  Allows you to omit the beginning and ending
-        parens and shorten the names of each port type
-
-        Example:
-          "basic:String, basic:Integer" -> 
-              "(edu.utah.sci.vistrails.basic:String, 
-                edu.utah.sci.vistrails.basic:Integer)"
-        """
-
-        port_spec = p_string.strip()
-        if port_spec.startswith('('):
-            port_spec = port_spec[1:]
-        if port_spec.endswith(')'):
-            port_spec = port_spec[:-1]
-        if port_spec.strip() == '':
-            return '()'
-        new_spec_list = []
-        for spec in port_spec.split(','):
-            spec_arr = spec.split(':', 2)
-            if len(spec_arr) > 2:
-                # switch format of spec to more natural
-                # <package>:<namespace>|<name> for descriptor parsing
-                spec = '%s:%s|%s' % (spec_arr[0], spec_arr[2], spec_arr[1])
-            (package, name, namespace) = \
-                self.expand_descriptor_string(spec, cur_package)
-            if namespace:
-                namespace = ':' + namespace
-            new_spec_list.append('%s:%s%s' % \
-                                     (package, name, namespace))
-        return '(' + ','.join(new_spec_list) + ')'
+    def expand_port_spec_string(self, p_string, cur_package=None, 
+                                old_style=False):
+        return core.modules.utils.expand_port_spec_string(p_string, cur_package,
+                                                          old_style)
 
 ###############################################################################
 

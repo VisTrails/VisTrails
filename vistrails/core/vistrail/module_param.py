@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,6 +37,8 @@
 
  """
 from db.domain import DBParameter
+from core.modules.utils import parse_port_spec_item_string, \
+    create_port_spec_item_string
 from core.utils import enum
 
 ################################################################################
@@ -82,6 +85,9 @@ class ModuleParam(DBParameter):
         # This is used for visual query and will not get serialized
         self.queryMethod = None
 
+        # this is used for parameter settings
+        self._port_spec_item = None
+
     def __copy__(self):
         return ModuleParam.do_copy(self)
 
@@ -92,6 +98,7 @@ class ModuleParam(DBParameter):
         cp.maxValue = self.maxValue
         cp.evaluatedStrValue = self.evaluatedStrValue
         cp.queryMethod = self.queryMethod
+        cp._port_spec_item = self._port_spec_item
 
         # cp.identifier = self.identifier
         # cp.namespace = self.namespace
@@ -109,6 +116,7 @@ class ModuleParam(DBParameter):
         _parameter.minValue = ""
         _parameter.maxValue = ""
         _parameter.evaluatedStrValue = ""
+        _parameter._port_spec_item = None
 
         # _parameter.identifier = ""
         # _parameter.namespace = ""
@@ -128,32 +136,21 @@ class ModuleParam(DBParameter):
 
     def parse_db_type(self):
         if self.db_type:
-            k = self.db_type.split(':', 2)
+            (self._identifier, self._type, self._namespace) = \
+                parse_port_spec_item_string(self.db_type,
+                                            "edu.utah.sci.vistrails.basic")
         else:
-            k = []
-        if len(k) < 2:
-            # FIXME don't hardcode this
-            self._identifier = "edu.utah.sci.vistrails.basic"
+            self._identifier = None
+            self._type = None
             self._namespace = None
-            self._type = self.db_type
-        else:
-            self._identifier, self._type = k[:2]
-            if len(k) > 2:
-                self._namespace = k[2]
-            else:
-                self._namespace = None
 
     def update_db_type(self):
         if not self._type:
             self.db_type = None
         else:
-            if not self._identifier:
-                # FIXME don't hardcode this
-                self._identifier = "edu.utah.sci.vistrails.basic"
-            type_list = [self._identifier, self._type]
-            if self._namespace:
-                type_list.append(self._namespace)
-            self.db_type = ':'.join(type_list)
+            self.db_type = create_port_spec_item_string(self._identifier,
+                                                        self._type,
+                                                        self._namespace)
 
     def _get_type(self):
         if not hasattr(self, '_type'):
@@ -182,6 +179,16 @@ class ModuleParam(DBParameter):
         self.update_db_type()
     identifier = property(_get_identifier, _set_identifier)
         
+    def _get_port_spec_item(self):
+        return self._port_spec_item
+    def _set_port_spec_item(self, psi):
+        self._port_spec_item = psi
+    port_spec_item = property(_get_port_spec_item, _set_port_spec_item)
+
+    def _get_spec_tuple(self):
+        return (self._identifier, self._type, self._namespace)
+    spec_tuple = property(_get_spec_tuple)
+
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 
         Writes itself in XML 
@@ -377,3 +384,10 @@ class TestModuleParam(unittest.TestCase):
     def test_str(self):
         p = ModuleParam(type='Float', val='1.5')
         str(p)
+
+
+    def test_parse(self):
+        p = ModuleParam(type='Integer', val='1.5')
+        assert p.identifier == 'edu.utah.sci.vistrails.basic'
+        assert p.type == 'Integer'
+        assert not p.namespace

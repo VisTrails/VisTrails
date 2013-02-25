@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -143,6 +144,9 @@ class Pipeline(DBWorkflow):
                                       fun.vtType,
                                       fun.real_id,
                                       m_id)
+            module.connected_input_ports = {}
+            module.connected_output_ports = {}
+
         for connection in self.connection_list:
             self.graph.add_edge(connection.source.moduleId,
                                 connection.destination.moduleId,
@@ -901,7 +905,8 @@ class Pipeline(DBWorkflow):
                                     module.is_abstraction()):
                 try:
                     subpipeline = module.pipeline
-                    subpipeline.validate()
+                    if subpipeline is not None:
+                        subpipeline.validate()
                 except InvalidPipeline, e:
                     module.is_valid = False
                     e._module_id = module.id
@@ -962,6 +967,7 @@ class Pipeline(DBWorkflow):
         # print 'ensure_connection_specs:', sorted(self.modules.keys())
 
         def find_spec(port):
+            port.is_valid = False
             module = self.get_module_by_id(port.moduleId)
             port_type_map = PortSpec.port_type_map
             try:
@@ -970,7 +976,7 @@ class Pipeline(DBWorkflow):
                                             port_type_map.inverse[port.type])
                 # print 'got spec', spec, spec.sigstring
             except ModuleRegistryException, e:
-                debug.critical('CONNECTION EXCEPTION: %s' % e)
+                # debug.critical('CONNECTION EXCEPTION: %s' % e)
                 exceptions.add(e)
             else:
                 if port.spec.is_valid:
@@ -1022,6 +1028,7 @@ class Pipeline(DBWorkflow):
             exceptions = set()
             for mid in module_ids:
                 module = pipeline.modules[mid]
+                module.is_valid = False
                 if not module.version:
                     module.version = '0'
                 try:
@@ -1083,6 +1090,16 @@ class Pipeline(DBWorkflow):
         exceptions = set()
         for module in self.modules.itervalues():
             if module.is_vistrail_var():
+                # first check if value is already set
+                # (used by parameter explorations)
+                value_set = False
+                for func in module.functions:
+                    if func.name == 'value':
+                        if func.params[0].strValue:
+                            value_set = True
+                            continue
+                if value_set:
+                    continue
                 var_uuid = module.get_vistrail_var()
                 if var_uuid not in var_uuids:
                     e = MissingVistrailVariable(var_uuid, module.package, 
@@ -1098,7 +1115,8 @@ class Pipeline(DBWorkflow):
             try:
                 for port_spec in module.port_specs.itervalues():
                     try:
-                        port_spec.create_entries_and_descriptors()
+                        # port_spec.create_entries_and_descriptors()
+                        port_spec.descriptors()
                     except ModuleRegistryException, e:
                         e = PortMismatch(module.package, module.name,
                                          module.namespace, port_spec.name,

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,7 +37,7 @@ import copy
 import sys
 sys.path.append('/vistrails/src/trunk/vistrails')
 import db.services.io
-from db.versions.v1_0_0.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
+from db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
     DBOpmArtifactIdCause, DBOpmArtifactIdEffect, DBOpmRole, DBOpmAccountId, \
     DBOpmAccount, DBOpmAccounts, DBOpmGraph, DBOpmArtifacts, \
@@ -45,7 +46,6 @@ from db.versions.v1_0_0.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy, DBFunction, \
     DBParameter
 from db.services.vistrail import materializeWorkflow
-from db.versions.v1_0_0.persistence import DAOList
 
 def create_process(item_exec, account, id_scope):
     return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
@@ -224,9 +224,22 @@ def create_opm(workflow, version, log, reg):
                     if spec_t in module_desc.db_portSpecs_name_index:
                         port_spec = module_desc.db_portSpecs_name_index[spec_t]
                     base_id = module_desc.db_base_descriptor_id
-                    pkg = get_package(reg, module_desc.db_package, 
-                                      module_desc.db_package_version)
-                    module_desc = pkg.db_module_descriptors_id_index[base_id]
+
+                   # inefficient spin through db_packages but we do
+                   # not have the descriptors_by_id index that exists
+                   # on core.module_registry.ModuleRegistry here
+                    module_desc = None
+                    for pkg in reg.db_packages:
+                        if base_id in pkg.db_module_descriptors_id_index:
+                            module_desc = \
+                                pkg.db_module_descriptors_id_index[base_id]
+                            break
+                    if module_desc is None:
+                        raise Exception("Cannot find base descriptor id %d" % \
+                                            base_id)
+                    # pkg = get_package(reg, module_desc.db_package,
+                    #                   module_desc.db_package_version)
+                    # module_desc = pkg.db_module_descriptors_id_index[base_id]
                 if port_spec is None:
                     port_spec = module_desc.db_portSpecs_name_index[spec_t]
                 print module_desc.db_name
@@ -747,6 +760,8 @@ def create_opm_from_vistrail(vistrail, version, log, registry):
     return create_opm(workflow, version, log, registry)
 
 def run(vistrail_xml, version, log_xml, registry_xml, output_fname):
+    from db.persistence import DAOList
+
     vistrail = db.services.io.open_vistrail_from_xml(vistrail_xml)
     log = db.services.io.open_log_from_xml(log_xml)
     registry = db.services.io.open_registry_from_xml(registry_xml)

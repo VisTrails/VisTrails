@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,6 +38,7 @@
 """
 
 from db.domain import DBFunction
+from core.modules.utils import create_port_spec_string
 from core.utils import enum, VistrailsInternalError, all, eprint
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.port_spec import PortSpec
@@ -106,7 +108,7 @@ class ModuleFunction(DBFunction):
     name = DBFunction.db_name   
 
     def _get_sigstring(self):
-        return '(' + ','.join(p.typeStr for p in self.params) + ')'
+        return create_port_spec_string([p.spec_tuple for p in self.params])
     sigstring = property(_get_sigstring)
 
     def _get_params(self):
@@ -155,7 +157,7 @@ class ModuleFunction(DBFunction):
         simply gets set on the spec being returned.
         """
         assert port_type == 'input' or port_type == 'output'
-        result = PortSpec(signature=self.sigstring)
+        result = PortSpec(sigstring=self.sigstring)
         result.type = port_type
         return result
 

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -65,6 +66,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         centralWidget.setLayout(self.mainLayout)
         self.setCentralWidget(centralWidget)
         self.numberOfCells = 0
+        self.is_executing = False
         #self.resize(100,100)
         self.dumpcells = dumpcells
         self.view = vistrail_view
@@ -149,7 +151,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         buttonLayout.addWidget(self.quitButton, 1, 3, QtCore.Qt.AlignRight)
         self.connect(self.updateButton,
                      QtCore.SIGNAL('clicked(bool)'),
-                     self.updateCells)
+                     self.updateButtonClick)
         buttonDock.setWidget(buttonWidget)
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, buttonDock)
         self.controlDocks["__buttons__"] = buttonDock
@@ -197,8 +199,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         return (cellEvents, errors)
     
     def updateCells(self):
+        self.is_executing = True
         (cellEvents, errors) = self.runAndGetCellEvents()
-        
+        self.is_executing = False
         if len(cellEvents) != self.numberOfCells:
             raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
 Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
@@ -214,6 +217,13 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
             else:
                 self.cellWidgets[i].updateContents(cellEvents[i].inputPorts)
         
+    def updateButtonClick(self):
+        self.updateButton.setEnabled(False)
+        try:
+            self.updateCells()
+        finally:
+            self.updateButton.setEnabled(True
+                                         )
     def toggleEditingMode(self):
         if len(self.controlDocks) > 0:
             for dock in self.controlDocks.itervalues():
@@ -346,8 +356,9 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
         self.controlDocks["_stretch_"] = stretchDock
             
     def widget_changed(self, info):
-        if self.cb_auto_update.isChecked():
+        if self.cb_auto_update.isChecked() and not self.is_executing:
             self.updateCells()
+        
             
     def run(self, useDefaultValues=False):
         

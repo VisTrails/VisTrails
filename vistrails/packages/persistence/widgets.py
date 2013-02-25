@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,7 +43,7 @@ from gui.common_widgets import QSearchBox, QSearchEditBox
 from gui.modules.constant_configuration import ConstantWidgetMixin
 from gui.modules.module_configure import StandardModuleConfigurationWidget
 from db_utils import DatabaseAccessSingleton
-
+import repo
 
 class IntegerWrapper(object):
     def __init__(self, idx):
@@ -713,7 +714,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.ref_widget = self.existing_group.ref_widget
         self.connect(self.ref_widget,
                      QtCore.SIGNAL("clicked(QModelIndex)"),
-                     self.stateChange)
+                     self.ref_changed)
         layout.addWidget(self.existing_group)
 
         self.keep_local = QtGui.QCheckBox("Keep Local Version")
@@ -794,6 +795,8 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.stateChange()
         self.new_group.setEnabled(checked)
         self.existing_group.setEnabled(not checked)
+        if not checked and self.keep_local.isChecked():
+            self.keep_local.setChecked(False)
 
     def existing_toggle(self, checked):
         self.stateChange()
@@ -814,6 +817,11 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.local_path.set_path(new_file)
         self.r_priority_local.setChecked(True)
         self.write_managed_checkbox.setChecked(False)
+
+    def ref_changed(self, index):
+        self.stateChange()
+        if self.keep_local.isChecked():
+            self.keep_local.setChecked(False)
 
     def set_values(self):
         from core.modules.module_registry import get_module_registry
@@ -910,8 +918,13 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
                                        'PersistentRef').module
 
         functions = []
-        if self.new_file and self.new_file.get_path():
+        if self.new_file and self.new_file.get_path() and \
+                self.managed_new.isChecked():
+        # if self.new_file and self.new_file.get_path():
             functions.append(('value', [self.new_file.get_path()]))
+        else:
+            functions.append(('value', None))
+            pass
         ref = PersistentRef()
         if self.managed_new.isChecked():
             if self.existing_ref and not self.existing_ref._exists:
@@ -937,7 +950,10 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
 #             ref.local_writeback = self.write_managed_checkbox.isChecked()
         else:
             ref.local_path = None
-            
+            # functions.append(('localPath', None))
+            functions.append(('readLocal', None))
+            functions.append(('writeLocal', None))
+            pass
         functions.append(('ref', [PersistentRef.translate_to_string(ref)]))
         self.controller.update_functions(self.module, functions)
 
@@ -1045,7 +1061,6 @@ class PersistentConfiguration(QtGui.QDialog):
         return QtCore.QSize(800,320)
 
     def write(self):
-        from init import PersistentPath
         info_list = self.ref_search.ref_widget.get_info_list()
         if len(info_list) < 1:
             return
@@ -1061,18 +1076,17 @@ class PersistentConfiguration(QtGui.QDialog):
 
             # FIXME really should move this calls to a higher level so
             # we don't need to instantiate a module
-            git_util = PersistentPath()
             if info[1] is None:
                 version = "HEAD"
             else:
                 version = info[1]
-            git_util.git_get_path(info[0], version, None, chosen_path)
+            repo.get_current_repo().get_path(info[0], version, None, 
+                                             chosen_path)
         else:
             # have multiple files/dirs
             get_dir = QtGui.QFileDialog.getExistingDirectory
             chosen_path = str(get_dir(self,
                                       'Save All to Directory...'))
-            git_util = PersistentPath()
             has_overwrite = False
             # if untitled (no name, use the uuid)
             for info in info_list:
@@ -1105,7 +1119,8 @@ class PersistentConfiguration(QtGui.QDialog):
                 else:
                     name = info[0]
                 full_path = os.path.join(chosen_path, name)
-                git_util.git_get_path(info[0], version, None, full_path)
+                repo.get_current_repo().git_get_path(info[0], version, None, 
+                                                     full_path)
             
     def delete(self):
         from init import PersistentPath

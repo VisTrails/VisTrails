@@ -1,5 +1,6 @@
 --#############################################################################
 --
+-- Copyright (C) 2011-2012, NYU-Poly.
 -- Copyright (C) 2006-2011, University of Utah. 
 -- All rights reserved.
 -- Contact: contact@vistrails.org
@@ -38,4 +39,4 @@ DROP TABLE IF EXISTS thumbnail;
 
 -- genereated automatically by generate.py
 
-DROP TABLE IF EXISTS vistrail_variable, port_spec, module, module_descriptor, tag, port, group_tbl, log_tbl, mashup, mashup_alias, machine, add_tbl, other, location, parameter, plugin_data, function, action_annotation, abstraction, workflow, mashup_action, mashuptrail, registry, mashup_component, annotation, change_tbl, group_exec, package, workflow_exec, loop_exec, mashup_action_annotation, connection_tbl, action, delete_tbl, vistrail, module_exec;
+DROP TABLE IF EXISTS vistrail_variable, port_spec, module, module_descriptor, tag, port, group_tbl, log_tbl, mashup_alias, mashup, port_spec_item, machine, add_tbl, other, location, parameter, plugin_data, function, action_annotation, abstraction, workflow, mashup_action, mashuptrail, registry, mashup_component, annotation, change_tbl, group_exec, package, workflow_exec, parameter_exploration, loop_exec, mashup_action_annotation, connection_tbl, action, delete_tbl, vistrail, module_exec;

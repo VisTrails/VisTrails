@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,7 +42,8 @@ is also a QWidget.
 from PyQt4 import QtCore, QtGui
 from core import debug
 from core.utils import VistrailsInternalError
-from core.modules.module_registry import get_module_registry
+from core.modules.module_registry import get_module_registry, \
+    ModuleRegistryException
 from core.utils import PortAlreadyExists
 from gui.modules.module_configure import StandardModuleConfigurationWidget
 from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
@@ -65,8 +67,8 @@ class PortTable(QtGui.QTableWidget):
         self.connect(self.delegate, QtCore.SIGNAL("modelDataChanged"),
                      self, QtCore.SIGNAL("contentsChanged"))
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMouseTracking(True)
-        self.mouseOver = False
+        #self.setMouseTracking(True)
+        #self.mouseOver = False
         
     def sizeHint(self):
         return QtCore.QSize()
@@ -130,10 +132,10 @@ class PortTable(QtGui.QTableWidget):
                 ports.append((name, '(' + sigstring + ')', i))
         return ports
         
-    def focusOutEvent(self, event):
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QTableWidget.focusOutEvent(self, event)
+#    def focusOutEvent(self, event):
+#        if self.parent():
+#            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+#        QtGui.QTableWidget.focusOutEvent(self, event)
         
 class PortTableItemDelegate(QtGui.QItemDelegate):
 
@@ -214,8 +216,6 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
         self.module : the Module object int the pipeline        
-        self.module_descriptor: the descriptor for the type registered in the registry,
-                          i.e. Tuple
         self.controller: the current vistrail controller
                                        
         """
@@ -282,7 +282,14 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
             getter = registry.source_ports_from_descriptor
         else:
             raise VistrailsInternalError("Unrecognized port type '%s'", type)
-        return [(p.name, p.sigstring) for p in getter(self.module_descriptor)]
+
+        ports = []
+        try:
+            ports = [(p.name, p.sigstring) 
+                     for p in getter(self.module.module_descriptor)] 
+        except ModuleRegistryException:
+            pass
+        return ports
         
     def registryChanges(self, old_ports, new_ports):
         deleted_ports = [p for p in old_ports if p not in new_ports]
@@ -319,8 +326,6 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
         self.module : the Module object int the pipeline        
-        self.module_descriptor: the descriptor for the type registered in 
-           the registry, i.e. Tuple
         self.controller: the current vistrail controller
                                        
         """
@@ -361,14 +366,14 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
                      self.updateState)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMouseTracking(True)
-        self.mouseOver = False
-        
-    def enterEvent(self, event):
-        self.mouseOver = True
-        
-    def leaveEvent(self, event):
-        self.mouseOver = False
+        #self.setMouseTracking(True)
+        #self.mouseOver = False
+#        
+#    def enterEvent(self, event):
+#        self.mouseOver = True
+#        
+#    def leaveEvent(self, event):
+#        self.mouseOver = False
         
 
     def updateVistrail(self):
@@ -413,10 +418,10 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
             self.state_changed = True
             self.emit(QtCore.SIGNAL("stateChanged"))
             
-    def focusOutEvent(self, event):
-        if not self.mouseOver:
-            self.askToSaveChanges()
-        QtGui.QWidget.focusOutEvent(self, event)
+#    def focusOutEvent(self, event):
+        #if not self.mouseOver:
+        #    self.askToSaveChanges()
+#        QtGui.QWidget.focusOutEvent(self, event)
                 
 class UntupleConfigurationWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -430,8 +435,6 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
         self.module : the Module object int the pipeline        
-        self.module_descriptor: the descriptor for the type registered in the registry,
-                          i.e. Tuple
         self.controller: the current vistrail controller
                                        
         """
@@ -472,8 +475,8 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
                      self.updateState)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMouseTracking(True)
-        self.mouseOver = False
+        #self.setMouseTracking(True)
+        #self.mouseOver = False
         
     def updateVistrail(self):
         """ updateVistrail() -> None
@@ -508,16 +511,16 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
             self.state_changed = True
             self.emit(QtCore.SIGNAL("stateChanged"))
             
-    def focusOutEvent(self, event):
-        if not self.mouseOver:
-            self.askToSaveChanges()
-        QtGui.QWidget.focusOutEvent(self, event)
-        
-    def enterEvent(self, event):
-        self.mouseOver = True
-        
-    def leaveEvent(self, event):
-        self.mouseOver = False
+#    def focusOutEvent(self, event):
+#        #if not self.mouseOver:
+#        #    self.askToSaveChanges()
+#        QtGui.QWidget.focusOutEvent(self, event)
+#        
+#    def enterEvent(self, event):
+#        self.mouseOver = True
+#        
+#    def leaveEvent(self, event):
+#        self.mouseOver = False
     
     def resetTriggered(self, checked = False):
         self.portTable.clearContents()

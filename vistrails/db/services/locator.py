@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,7 +38,7 @@ import core.configuration
 import core.system
 from db.services import io
 from db.services.io import SaveBundle
-from db.domain import DBVistrail
+from db.domain import DBVistrail, DBWorkflow
 import urllib
 import urlparse
 import cgi
@@ -123,6 +124,8 @@ class BaseLocator(object):
                 args['version_tag'] = workflow_arg
         if 'workflow_exec' in parsed_dict:
             args['workflow_exec'] = parsed_dict['workflow_exec'][0]
+        if 'parameterExploration' in parsed_dict:
+            args['parameterExploration'] = parsed_dict['parameterExploration'][0]
         return args
 
     @staticmethod
@@ -136,6 +139,8 @@ class BaseLocator(object):
             generate_dict['workflow'] = args['version_node']
         elif 'version_tag' in args and args['version_tag']:
             generate_dict['workflow'] = args['version_tag']
+        if 'parameterExploration' in args and args['parameterExploration']:
+            generate_dict['parameterExploration'] = args['parameterExploration']
         return urllib.urlencode(generate_dict)
 
 
@@ -163,6 +168,7 @@ class XMLFileLocator(BaseLocator):
         self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
         self._mshpversion = kwargs.get('mashupVersion', None)
+        self._parameterexploration = kwargs.get('parameterExploration', None)
         config = core.configuration.get_vistrails_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
@@ -503,6 +509,7 @@ class DBLocator(BaseLocator):
         self._vtag = self.kwargs.get('version_tag', None)
         self._mshptrail = self.kwargs.get('mashuptrail', None)
         self._mshpversion = self.kwargs.get('mashupVersion', None)
+        self._parameterexploration = self.kwargs.get('parameterExploration', None)
         
     def _get_host(self):
         return self._host
@@ -604,6 +611,8 @@ class DBLocator(BaseLocator):
                 return save_bundle
         #debug.log("loading vistrail from db")
         connection = self.get_connection()
+        if type == DBWorkflow.vtType:
+            return io.open_from_db(connection, type, self.obj_id)
         save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
         primary_obj = save_bundle.get_primary_obj()
         self._name = primary_obj.db_name

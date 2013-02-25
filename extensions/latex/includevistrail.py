@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -147,7 +148,7 @@ def build_vtl_file(download_url, filename, version, tag,
         basename += ".vtl"
         vtl_filename = os.path.join(download_url, basename)
         header = '<vtlink filename="%s" version="%s" execute="%s" showSpreadsheetOnly="%s" \
-forceDB="%s" tag="%s"/>'%(os.path.abspath(filename),
+forceDB="%s" tag="%s"/>'%(filename,#os.path.abspath(filename),
               str(version),
               str(execute),
               str(showspreadsheetonly),

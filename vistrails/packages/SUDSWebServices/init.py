@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,16 +35,18 @@
 
 import sys
 import os.path
+import shutil
 import hashlib
 import core.system
 import core.modules.module_registry
 import core.modules.basic_modules
+import traceback
+from core.packagemanager import get_package_manager
 from core.modules import vistrails_module
 from core.modules.package import Package
 from core.modules.vistrails_module import Module, ModuleError, new_module
 from core.upgradeworkflow import UpgradeWorkflowHandler
 from core import debug
-from core import configuration
 
 from core.bundles import py_import
 try:
@@ -69,18 +72,6 @@ def toAddress(s):
     return s[5:].replace('$', ':')
 
 ###############################################################################
-
-class SUDSWebService(Module):
-    """ SUDSWebService is the base Module.
-     We will create a SUDSWebService Module for each method published by 
-     the web service.
-
-    """
-    def __init__(self):
-        Module.__init__(self)
-
-    def compute(self):
-        raise vistrails_module.IncompleteImplementation
 
 wsdlSchemas = ['http://www.w3.org/2001/XMLSchema',
               'http://xml.apache.org/xml-soap',
@@ -165,13 +156,17 @@ def initialize(*args, **keywords):
     suds.client.ObjectCache.protocol = 0 # windows needs this
     package_cache = suds.client.ObjectCache(location, days=days)
 
-    reg = core.modules.module_registry.get_module_registry()
-    reg.add_module(SUDSWebService, **{'hide_descriptor':True})
+    #reg = core.modules.module_registry.get_module_registry()
+    #reg.add_module(SUDSWebService, abstract=True)
 
     wsdlList = []
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
+    else:
+        configuration.wsdlList = ''
     for wsdl in wsdlList:
+        if not wsdl:
+            break
         if not wsdl.startswith('http://'):
             wsdl = 'http://' + wsdl
         if wsdl in webServicesDict:
@@ -187,7 +182,6 @@ def finalize():
     for s in webServicesDict.itervalues():
         if s.package:
             reg.remove_package(s.package)
-
 
 class WSMethod:
     """ A WSDL method
@@ -229,7 +223,7 @@ class Service:
         self.modules = []
         self.package = None
         debug.log("Installing Web Service from WSDL: %s"% address)
- #       try:
+
         options = dict(cachingpolicy=1, cache=package_cache)
         
         proxy_types = ['http']
@@ -242,23 +236,40 @@ class Service:
                     options['proxy'] = {t:proxy}
         try:
             self.service = suds.client.Client(address, **options)
-            self.createPackage()
-            self.setTypes()
-            self.setMethods()
-            self.createTypeClasses()
-            self.createMethodClasses()
+            self.backUpCache()
         except Exception, e:
-            import traceback
-            debug.critical("Could not load WSDL: %s" % address,
-                           str(e) + '\n' + str(traceback.format_exc()))
             self.service = None
-            if self.wsdlHash == '-1':
-                # create empty package
-                self.createFailedPackage()
+            # We may be offline and the cache may have expired,
+            # try to use backup
+            if self.restoreFromBackup():
+                try:
+                    self.service = suds.client.Client(address, **options)
+                except Exception, e:
+                    self.service = None
+                    debug.critical("Could not load WSDL: %s" % address,
+                           str(e) + '\n' + str(traceback.format_exc()))
+            else:
+                debug.critical("Could not load WSDL: %s" % address,
+                       str(e) + '\n' + str(traceback.format_exc()))
+        if self.service:
+            try:
+                self.createPackage()
+                self.setTypes()
+                self.setMethods()
+                self.createTypeClasses()
+                self.createMethodClasses()
+            except Exception, e:
+                debug.critical("Could not create Web Service: %s" % address,
+                               str(e) + '\n' + str(traceback.format_exc()))
+                self.service = None
+        if self.wsdlHash == '-1':
+            # create empty package so that it can be reloaded/deleted
+            self.createFailedPackage()
         
     def makeDictType(self, obj):
         """ Create recursive dict from SUDS object
-            ignore attributes with None and empty dicts and handle lists """
+            ignore attributes with None and empty dicts and handle lists
+        """
         if not hasattr(obj,'__keylist__'):
             return obj
         if isinstance(obj, list):
@@ -273,8 +284,34 @@ class Service:
                     d[str(o)] = self.makeDictType(e)
         return d
             
+    def backUpCache(self):
+        """ We back up the cache for situations where the cache is expired and
+            the web service can not be reached. This allows working offline.
+        """ 
+        cached = os.path.join(package_cache.location,
+                              "suds-%s-wsdl.px" % abs(hash(self.address)))
+        backup = os.path.join(package_cache.location,
+                              "suds-%s-wsdl.px" % hashlib.md5(self.address
+                                                              ).hexdigest())
+        if os.path.exists(cached):
+            shutil.copyfile(cached, backup)
+
+    def restoreFromBackup(self):
+        """ Restore from backup into cache with reset cache time""" 
+        cached = os.path.join(package_cache.location,
+                              "suds-%s-wsdl.px" % abs(hash(self.address)))
+        backup = os.path.join(package_cache.location,
+                              "suds-%s-wsdl.px" % hashlib.md5(self.address
+                                                              ).hexdigest())
+        if not os.path.exists(cached) and os.path.exists(backup):
+            shutil.copyfile(backup, cached)
+            return True
+        return False
+
     def createPackage(self):
         reg = core.modules.module_registry.get_module_registry()
+        if self.signature in reg.packages:
+            reg.remove_package(reg.packages[self.signature])
 
         # create a document hash integer from the cached sax tree
         # "name" is what suds use as the cache key
@@ -288,14 +325,19 @@ class Service:
 
         package_id = reg.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
-                          codepath=__file__,
                           load_configuration=False,
                           name="SUDS#" + self.address,
                           identifier=self.signature,
                           version=self.wsdlHash,
                           )
+        suds_package = reg.get_package_by_name(identifier)
+        package._module = suds_package.module
+        package._init_module = suds_package.init_module
+        
         self.package = package
         reg.add_package(package)
+        reg.signals.emit_new_package(self.signature)
+
         self.module = new_module(Module, str(self.signature))
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,
@@ -304,6 +346,10 @@ class Service:
     def createFailedPackage(self):
         """ Failed package is created so that the user can remove
         it manually using package submenu """
+        pm = get_package_manager()
+        if pm.has_package(self.signature):
+            # do nothing
+            return
         reg = core.modules.module_registry.get_module_registry()
 
         # create a document hash integer from the cached sax tree
@@ -313,14 +359,17 @@ class Service:
 
         package_id = reg.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
-                          codepath=__file__,
                           load_configuration=False,
                           name="SUDS#" + self.address,
                           identifier=self.signature,
                           version=self.wsdlHash,
                           )
+        suds_package = reg.get_package_by_name(identifier)
+        package._module = suds_package.module
+        package._init_module = suds_package.init_module
         self.package = package
         reg.add_package(package)
+        reg.signals.emit_new_package(self.signature)
         self.module = new_module(Module, str(self.signature))
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,
@@ -565,7 +614,7 @@ It is a WSDL type with signature:
                     elif qtype[0] == 'Array':
                         # if result is a type but type is a list try to extract the correct element
                         if len(result.__keylist__):
-                             self.setResult(name, getattr(result, result.__keylist__[0]))
+                            self.setResult(name, getattr(result, result.__keylist__[0]))
                         else:
                             self.setResult(name, result)
                     elif result.__class__.__name__ == 'Text':
@@ -700,7 +749,30 @@ def handle_missing_module(controller, module_id, pipeline):
         wsdl = get_wsdl_from_namespace(m_namespace)
     else:
         # v1.1 new style
-        wsdl = toAddress(m.name)
+        wsdl = toAddress(m.package)
+    
+    wsdlList = []
+    if configuration.check('wsdlList'):
+        wsdlList = configuration.wsdlList.split(";")
+    if wsdl in wsdlList:
+        # it is already loaded
+        return True
+
+    service = Service(wsdl)
+    if not service.service:
+        return False
+
+    webServicesDict[wsdl] = service
+    wsdlList.append(wsdl)
+    configuration.wsdlList = ';'.join(wsdlList)
+    return True
+
+def load_from_identifier(service_identifier):
+    """ Loads a web service from its package identifier """
+    global webServicesDict
+    global package_cache
+
+    wsdl = toAddress(service_identifier)
     
     wsdlList = []
     if configuration.check('wsdlList'):
@@ -727,12 +799,45 @@ def contextMenuName(signature):
     elif signature.startswith('SUDS#'):
         return "Remove this Web Service"
     return None
+
+def saveVistrailFileHook(vistrail, temp_dir):
+    """ This is called when a vistrail is loaded
+        We should copy all used Web Services in temp_dir to .vistrails
+        """
+
+    
+    packages = vistrail.get_used_packages()
+    # clear old files
+    for name in os.listdir(temp_dir):
+        if name.endswith("-wsdl.px"):
+            os.remove(os.path.join(temp_dir, name))
+
+    for package in packages:
+        if package.startswith("SUDS#"):
+            address = toAddress(package)
+            name = "suds-%s-wsdl.px" % hashlib.md5(address).hexdigest()
+            cached = os.path.join(package_cache.location, name)
+            vt_cached = os.path.join(temp_dir, name)
+            if os.path.exists(cached):
+                shutil.copyfile(cached, vt_cached)
+
+def loadVistrailFileHook(vistrail, temp_dir):
+    """ This is called when a vistrail is saved
+        We should copy all cached Web Services in vistrail to temp_dir
+        if they do not exist
+    """
+    for name in os.listdir(temp_dir):
+        src = os.path.join(temp_dir, name)
+        dest = os.path.join(package_cache.location, name)
+        if name.endswith("-wsdl.px") and not os.path.exists(dest):
+            shutil.copyfile(src, dest)
     
 def callContextMenu(signature):
     global webServicesDict
     if signature == name:
         from PyQt4 import QtGui 
-        wsdl, ret = QtGui.QInputDialog.getText(None, 'Add Web Service', 'Enter the location of the WSDL:')
+        wsdl, ret = QtGui.QInputDialog.getText(None, 'Add Web Service',
+                                           'Enter the location of the WSDL:')
         wsdl = str(wsdl)
         if not wsdl:
             return
@@ -750,10 +855,11 @@ def callContextMenu(signature):
     elif signature.startswith('SUDS#'):
         address = toAddress(signature)
         from PyQt4 import QtGui 
-        res = QtGui.QMessageBox.question(None, 'Remove the following web service from vistrails?',
-                                   address,
-                                   buttons=QtGui.QMessageBox.Yes,
-                                   defaultButton=QtGui.QMessageBox.No)
+        res = QtGui.QMessageBox.question(None,
+                           'Remove the following web service from vistrails?',
+                           address,
+                           buttons=QtGui.QMessageBox.Yes,
+                           defaultButton=QtGui.QMessageBox.No)
         if res == QtGui.QMessageBox.Yes:
             # Remove this Web Service
             s = webServicesDict[address]

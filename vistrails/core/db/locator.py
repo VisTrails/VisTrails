@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -47,6 +48,7 @@ from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     BaseLocator as _BaseLocator
 from db.services.io import SaveBundle, test_db_connection
 from db import VistrailsDBException
+from db.domain import DBWorkflow
 ElementTree = get_elementtree_library()
 
 class BaseLocator(_BaseLocator):
@@ -203,6 +205,12 @@ class DBLocator(_DBLocator, CoreLocator):
         if klass is None:
             klass = Vistrail
         save_bundle = _DBLocator.load(self, klass.vtType, ThumbnailCache.getInstance().get_directory())
+        if klass.vtType == DBWorkflow.vtType:
+            wf = save_bundle
+            klass = self.get_convert_klass(wf.vtType)
+            klass.convert(wf)
+            wf.locator = self
+            return wf
         for obj in save_bundle.get_db_objs():
             klass = self.get_convert_klass(obj.vtType)
             klass.convert(obj)
@@ -646,6 +654,8 @@ class FileLocator(CoreLocator):
         mashuptrail = convert_from_str(data, 'str')
         data = node.get('mashupVersion', None)
         mashupVersion = convert_from_str(data, 'int')
+        data = node.get('parameterExploration', None)
+        parameterExploration = convert_from_str(data, 'int')
         
         #if execute is False, we will show the builder too
         if showSpreadsheetOnly and not execute:
@@ -700,22 +710,31 @@ class FileLocator(CoreLocator):
                     f.write(vtcontent)
                     f.close()
                 return FileLocator(fname, version_node=version, version_tag=tag,
-                                   mashuptrail=mashuptrail, 
-                                   mashupVersion=mashupVersion)
+                                   mashuptrail=mashuptrail,
+                                   mashupVersion=mashupVersion,
+                                   parameterExploration=parameterExploration)
         if host is not None:
             user = ""
             passwd = ""
             
             return DBLocator(host, port, database,
-                             user, passwd, None, obj_id=vt_id, 
-                             obj_type='vistrail',connection_id=None, 
+                             user, passwd, None, obj_id=vt_id,
+                             obj_type='vistrail',connection_id=None,
                              version_node=version, version_tag=tag,
-                             mashuptrail=mashuptrail, 
-                             mashupVersion=mashupVersion)
+                             mashuptrail=mashuptrail,
+                             mashupVersion=mashupVersion,
+                             parameterExploration=parameterExploration)
         elif vtname is not None:
-            return FileLocator(vtname, version_node=version, versin_tag=tag,
-                               mashuptrail=mashuptrail, 
-                               mashupVersion=mashupVersion)
+            if os.path.dirname(vtname) == '':
+                #check if file exists in the same directory as the .vtl file
+                dirname = os.path.dirname(filename)
+                newvtname = os.path.join(dirname,vtname)
+                if os.path.exists(newvtname):
+                    vtname = newvtname
+            return FileLocator(vtname, version_node=version, version_tag=tag,
+                               mashuptrail=mashuptrail,
+                               mashupVersion=mashupVersion,
+                               parameterExploration=parameterExploration)
         
         
     ##########################################################################

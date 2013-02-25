@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -105,7 +106,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.addLayout(h_layout)
         
         self.tab_widget = QtGui.QTabWidget()
-        self.tab_widget.setDocumentMode(True)
+        # this causes a crash when undocking the palette in Mac OS X
+        # see https://bugreports.qt-project.org/browse/QTBUG-16851
+        # self.tab_widget.setDocumentMode(True)
         self.input_ports_list = PortsList('input')
         self.tab_widget.addTab(self.input_ports_list, 'Inputs')
         self.output_ports_list = PortsList('output')

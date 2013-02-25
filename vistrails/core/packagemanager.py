@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -218,6 +219,8 @@ To do so, call initialize_packages()"""
         pkg.finalize()
         del self._package_list[codepath]
         self._registry.remove_package(pkg)
+        app = get_vistrails_application()
+        app.send_notification("package_removed", codepath)
 
     def has_package(self, identifier, version=None):
         """has_package(identifer: string) -> Boolean.
@@ -374,12 +377,10 @@ Returns true if given package identifier is present."""
             #check_requirements is now called in pkg.initialize()
             #pkg.check_requirements()
             self._registry.initialize_package(pkg)
-            # FIXME Empty packages still need to be added, but currently they are not
-            # because newPackage is typically only called for the first module inside
-            # a package.
-            from core.modules.abstraction import identifier as abstraction_identifier
-            if pkg.identifier == abstraction_identifier:
-                self._registry.signals.emit_new_package(abstraction_identifier, True)
+            self._registry.signals.emit_new_package(pkg.identifier, True)
+            app = get_vistrails_application()
+            app.send_notification("package_added", package_codepath)
+            self.add_menu_items(pkg)
         except Exception, e:
             del self._package_versions[pkg.identifier][pkg.version]
             if len(self._package_versions[pkg.identifier]) == 0:
@@ -394,13 +395,22 @@ Returns true if given package identifier is present."""
             except MissingPackage:
                 pass
             raise e
-        self.add_menu_items(pkg)
 
     def late_disable_package(self, package_codepath):
         """late_disable_package disables a package 'late', that is,
         after VisTrails initialization. All reverse dependencies need to be
         already disabled.
         """
+        # if parallel flow, stop controller, if still running
+        if 'parallelflow' in package_codepath:
+            try:
+                from packages.parallelflow.init import ipythonSet
+                if ipythonSet:
+                    ipythonSet.stop_engines()
+                    ipythonSet.stop_controller()
+            except:
+                pass
+        
         pkg = self.get_package_by_codepath(package_codepath)
         self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
@@ -455,18 +465,17 @@ Returns true if given package identifier is present."""
                 package.load(prefix_dictionary.get(package.codepath, None),
                              existing_paths)
             except Package.LoadFailed, e:
-                debug.critical("Will disable package %s" % package.name)
-                debug.critical(str(e))
-                # print "FAILED TO LOAD, let's disable it"
+                debug.critical("Package %s failed to load and will be "
+                               "disabled" % package.name, str(e))
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
                 package.remove_own_dom_element()
                 failed.append(package)
             except Package.InitializationFailed, e:
-                debug.critical("Will disable package <codepath %s>" % package.codepath)
-                debug.critical(str(e))
-                # print "FAILED TO LOAD, let's disable it"
+                debug.critical("Initialization of package <codepath %s> "
+                               "failed and will be disabled" % \
+                                   package.codepath, str(e))
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
@@ -482,7 +491,7 @@ Returns true if given package identifier is present."""
                                                  "'%s' (version %s) in %s" % \
                                                      (package.identifier, 
                                                       package.version, 
-                                                      package_codepath))
+                                                      package.codepath))
                 else:
                     debug.warning('Duplicate package identifier: %s' % \
                                       package.identifier)
@@ -498,9 +507,8 @@ Returns true if given package identifier is present."""
             try:
                 self.add_dependencies(package)
             except Package.MissingDependency, e:
-                debug.critical("Will disable package %s" % package.name)
-                debug.critical(str(e))
-                # print "DEPENDENCIES FAILED TO LOAD, let's disable this"
+                debug.critical("Dependencies of package %s are missing "
+                               "so it will be disabled" % package.name, str(e))
                 package.remove_own_dom_element()
                 self._dependency_graph.delete_vertex(package.identifier)
                 del self._package_versions[package.identifier][package.version]
@@ -527,10 +535,9 @@ Returns true if given package identifier is present."""
                 try:
                     self._registry.initialize_package(pkg)
                 except Package.InitializationFailed, e:
-                    debug.critical("Package initialization failed <codepath %s>" % pkg.codepath)
-                    debug.critical("Will disable package <codepath %s>" % pkg.codepath)
-                    debug.critical(str(e))
-                    # print "FAILED TO LOAD, let's disable it"
+                    debug.critical("Initialization of package <codepath %s> "
+                                   "failed and will be disabled" % \
+                                       pkg.codepath, str(e))
                     # We disable the package manually to skip over things
                     # we know will not be necessary - the only thing needed is
                     # the reference in the package list
@@ -541,6 +548,9 @@ Returns true if given package identifier is present."""
                     pkg.remove_py_deps(existing_paths)
                     existing_paths.update(pkg.get_py_deps())
                     self.add_menu_items(pkg)
+                    app = get_vistrails_application()
+                    app.send_notification("package_added", pkg.codepath)
+
 
     def add_menu_items(self, pkg):
         """add_menu_items(pkg: Package) -> None
@@ -600,14 +610,19 @@ Returns true if given package identifier is present."""
                 pkg = self.get_package_by_codepath(codepath)
             except self.MissingPackage:
                 pkg = self.look_at_available_package(codepath)
-                try:
-                    pkg.load()
-                except pkg.LoadFailed:
-                    pass
-                except pkg.InitializationFailed:
-                    pass
+            try:
+                pkg.load()
                 if pkg.identifier == identifier:
                     return pkg
+                if hasattr(pkg._module, "can_handle_identifier") and \
+                    pkg._module.can_handle_identifier(identifier):
+                    return pkg
+            except pkg.LoadFailed:
+                pass
+            except pkg.InitializationFailed:
+                pass
+            except Exception, e:
+                pass
         return None
 
     def available_package_names_list(self):
@@ -618,7 +633,7 @@ Returns true if given package identifier is present."""
         code-paths is described in doc/package_system.txt
         """
 
-        lst = []
+        pkg_name_set = set()
 
         def is_vistrails_package(path):
             return ((path.endswith('.py') and
@@ -632,7 +647,7 @@ Returns true if given package identifier is present."""
                 if is_vistrails_package(os.path.join(dirname, name)):
                     if name.endswith('.py'):
                         name = name[:-3]
-                    lst.append(name)
+                    pkg_name_set.add(name)
             # We want a shallow walk, so we prune the names list
             del names[:]
 
@@ -642,7 +657,8 @@ Returns true if given package identifier is present."""
         userpackages = self.import_user_packages_module()
         os.path.walk(os.path.dirname(userpackages.__file__), visit, None)
 
-        return lst
+        pkg_name_set.update(self._package_list)
+        return list(pkg_name_set)
 
     def dependency_graph(self):
         """dependency_graph() -> Graph.  Returns a graph with package

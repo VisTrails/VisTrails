@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -59,71 +60,82 @@ def default_dir():
         os.mkdir(default_dir)
     return default_dir
     
-    
-
 class QCLToolsWizard(QtGui.QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent, reload_scripts=None):
         QtGui.QWidget.__init__(self, parent)
+
         self.vbox = QtGui.QVBoxLayout()
+        self.vbox.setContentsMargins(5,5,5,5)
+
         self.setLayout(self.vbox)
         self.setTitle()
         self.file = None
+        self.conf = None
+        self.reload_scripts = reload_scripts
 
         self.toolBar = QtGui.QToolBar()
         self.layout().addWidget(self.toolBar)
-        p = os.path.dirname(__file__) + "/%s"
         self.newFileAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-new.png'), 'New', self)
+            self.get_icon('document-new'), 'New', self)
         self.newFileAction.setToolTip('Start on a new Wrapper')
         self.connect(self.newFileAction, QtCore.SIGNAL('triggered()'),
                      self.newFile)
         self.toolBar.addAction(self.newFileAction)
         self.openFileAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-open.png'), 'Open', self)
+            self.get_icon('document-open'), 'Open', self)
         self.openFileAction.setToolTip('Open an existing wrapper')
         self.connect(self.openFileAction, QtCore.SIGNAL('triggered()'),
                      self.openFile)
         self.toolBar.addAction(self.openFileAction)
         self.saveFileAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-save.png'), 'Save', self)
+            self.get_icon('document-save'), 'Save', self)
         self.saveFileAction.setToolTip('Save wrapper')
         self.connect(self.saveFileAction, QtCore.SIGNAL('triggered()'),
                      self.save)
         self.toolBar.addAction(self.saveFileAction)
         self.saveFileAsAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/document-save-as.png'), 'Save As', self)
+            self.get_icon('document-save-as'), 'Save As', self)
         self.saveFileAsAction.setToolTip('Save wrapper as a new file')
         self.connect(self.saveFileAsAction, QtCore.SIGNAL('triggered()'),
                      self.saveAs)
         self.toolBar.addAction(self.saveFileAsAction)
+
+        if self.reload_scripts:
+            self.reloadAction = QtGui.QAction(
+                self.get_icon('view-refresh'), 'Refresh', self)
+            self.reloadAction.setToolTip('Save and Reload CLTools Modules in VisTrails')
+            self.connect(self.reloadAction, QtCore.SIGNAL('triggered()'),
+                         self.refresh)
+            self.toolBar.addAction(self.reloadAction)
         
         self.toolBar.addSeparator()
         self.addAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/list-add.png'), 'Add', self)
+            self.get_icon('list-add'), 'Add', self)
         self.addAction.setToolTip('Add a new argument')
         self.connect(self.addAction, QtCore.SIGNAL('triggered()'),
                      self.addArgument)
         self.toolBar.addAction(self.addAction)
         self.removeAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/list-remove.png'), 'Remove', self)
+            self.get_icon('list-remove'), 'Remove', self)
         self.removeAction.setToolTip('Remove the selected argument')
         self.connect(self.removeAction, QtCore.SIGNAL('triggered()'),
                      self.removeArgument)
         self.toolBar.addAction(self.removeAction)
         self.upAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/go-up.png'), 'Move up', self)
+            self.get_icon('go-up'), 'Move up', self)
         self.upAction.setToolTip('Move argument up one position')
         self.connect(self.upAction, QtCore.SIGNAL('triggered()'),
                      self.moveUp)
         self.toolBar.addAction(self.upAction)
         self.downAction = QtGui.QAction(
-            QtGui.QIcon(p%'icons/go-down.png'), 'Move down', self)
+            self.get_icon('go-down'), 'Move down', self)
         self.downAction.setToolTip('Move argument down one position')
         self.connect(self.downAction, QtCore.SIGNAL('triggered()'),
                      self.moveDown)
         self.toolBar.addAction(self.downAction)
         
         self.toolBar.addSeparator()
+
         self.showStdin = QtGui.QAction('stdin', self)
         self.showStdin.setToolTip('Check to use standard input as an input port')
         self.showStdin.setCheckable(True)
@@ -136,20 +148,65 @@ class QCLToolsWizard(QtGui.QWidget):
         self.showStderr.setToolTip('Check to use standard error as an output port')
         self.showStderr.setCheckable(True)
         self.toolBar.addAction(self.showStderr)
+        self.envPort = QtGui.QAction("env", self)
+        self.envPort.setToolTip('Check to add the "env" input port for specifying environment variables')
+        self.envPort.setCheckable(True)
+        self.toolBar.addAction(self.envPort)
         
         self.toolBar.addSeparator()
+
         self.stdAsFiles = QtGui.QAction('std file processing', self)
         self.stdAsFiles.setToolTip('Check to make pipes communicate using files instead of strings\nOnly useful when processing large files')
         self.stdAsFiles.setCheckable(True)
         self.toolBar.addAction(self.stdAsFiles)
 
+        self.toolBar.addSeparator()
+
+        self.previewPorts = QtGui.QAction('preview', self)
+        self.previewPorts.setToolTip('Check which ports will be available for this module')
+        self.connect(self.previewPorts, QtCore.SIGNAL('triggered()'),
+                     self.preview_ports)
+        self.toolBar.addAction(self.previewPorts)
+
+        
+        self.envOption = None
+        
         self.commandLayout = QtGui.QHBoxLayout()
-        self.commandLayout.addWidget(QtGui.QLabel("command:"))
+        self.commandLayout.setContentsMargins(5,5,5,5)
+        tooltip = 'The command to execute'
+        label = QtGui.QLabel("Command:")
+        label.setFixedWidth(80)
+        label.setToolTip(tooltip)
+        self.commandLayout.addWidget(label)
         self.command = QtGui.QLineEdit()
+        self.command.setToolTip(tooltip)
         self.commandLayout.addWidget(self.command)
+        tooltip = 'Sets directory to execute from. Leave blank to ignore.'
+        label = QtGui.QLabel("Directory:")
+        label.setToolTip(tooltip)
+        self.commandLayout.addWidget(label)
+        self.dir = QtGui.QLineEdit()
+        self.dir.setFixedWidth(140)
+        self.dir.setToolTip(tooltip)
+        self.commandLayout.addWidget(self.dir)
         self.vbox.addLayout(self.commandLayout)
 
+        self.previewLayout = QtGui.QHBoxLayout()
+        self.previewLayout.setContentsMargins(5,5,5,5)
+        self.previewLayout.setAlignment(QtCore.Qt.AlignLeft)
+        tooltip = 'Shows what the command will look like when executed in the command line'
+        label = QtGui.QLabel("Preview:")
+        label.setToolTip(tooltip)
+        label.setFixedWidth(80)
+        self.previewLayout.addWidget(label)
+        self.preview = QtGui.QLabel()
+        self.preview.setToolTip(tooltip)
+        self.preview.setMaximumWidth(600)
+        self.previewLayout.addWidget(self.preview)
+        self.vbox.addLayout(self.previewLayout)
+
         self.importLayout = QtGui.QHBoxLayout()
+        self.importLayout.setContentsMargins(5,5,5,5)
         self.importLayout.setAlignment(QtCore.Qt.AlignLeft)
         self.importLayout.addWidget(QtGui.QLabel("Man page:"))
         self.viewManButton = QtGui.QPushButton("view")
@@ -217,15 +274,23 @@ class QCLToolsWizard(QtGui.QWidget):
         self.argList = QtGui.QListWidget()
         self.layout().addWidget(self.argList)
 
+    def get_icon(self, name):
+        return QtGui.QIcon(os.path.join(os.path.dirname(__file__),
+                                        "icons",
+                                        "%s.png" % name))
     def setTitle(self, file=None):
         self.parent().setWindowTitle("CLTools Wizard - " + (file if file else "untitled"))
 
     def newFile(self):
+        self.conf = None
         self.file = None
         self.command.clear()
+        self.dir.clear()
         self.showStdin.setChecked(False)
         self.showStdout.setChecked(False)
         self.showStderr.setChecked(False)
+        self.envPort.setChecked(False)
+        self.envOption = None
         while self.argList.count():
             item = self.argList.item(0)
             itemWidget = self.argList.itemWidget(item)
@@ -240,6 +305,7 @@ class QCLToolsWizard(QtGui.QWidget):
         self.layout().addWidget(self.argList)
         self.stdAsFiles.setChecked(False)
         self.setTitle()
+        self.generate_preview()
     
     def openFile(self):
         fileName = QtGui.QFileDialog.getOpenFileName(self,
@@ -257,6 +323,7 @@ class QCLToolsWizard(QtGui.QWidget):
         self.file = fileName
         self.setTitle(self.file)
         self.command.setText(conf.get('command', ''))
+        self.dir.setText(conf.get('dir', ''))
         if 'stdin' in conf:
             self.stdinWidget.fromList(conf['stdin'])
         self.stdinGroup.setVisible('stdin' in conf)
@@ -276,16 +343,22 @@ class QCLToolsWizard(QtGui.QWidget):
             item.setSizeHint(arg.sizeHint())
             self.argList.addItem(item)
             self.argList.setItemWidget(item, arg)
-        if 'options' in conf:
-            self.stdAsFiles.setChecked('std_using_files' in conf['options'])
-
-    def save(self):
-        if not self.file:
-            self.saveAs()
-            if not self.file:
-                return
+        self.envPort.setChecked('options' in conf and
+                                'env_port' in conf['options'])
+        self.stdAsFiles.setChecked('options' in conf and
+                                   'std_using_files' in conf['options'])
+        self.envOption = conf['options']['env'] \
+                 if ('options' in conf and 'env' in conf['options']) else None
+        self.conf = conf
+        self.generate_preview()
+            
+    def get_current_conf(self):
         conf = {}
         conf['command'] = str(self.command.text()).strip()
+        dir = str(self.dir.text()).strip()
+        if dir:
+            conf['dir'] = dir
+            
         if self.stdinGroup.isVisible():
             conf['stdin'] = self.stdinWidget.toList()
         if self.stdoutGroup.isVisible():
@@ -297,14 +370,28 @@ class QCLToolsWizard(QtGui.QWidget):
             arg = self.argList.itemWidget(self.argList.item(row))
             args.append(arg.toList())
         conf['args'] = args
-        if self.stdAsFiles.isChecked():
-            if not 'options' in conf:
-                conf['options'] = {}
-            conf['options']['std_using_files'] = ''
 
+        options = {}
+        if self.stdAsFiles.isChecked():
+            options['std_using_files'] = ''
+        if self.envPort.isChecked():
+            options['env_port'] = ''
+        if self.envOption:
+            options['env'] = self.envOption
+        if options:
+            conf['options'] = options
+        return conf
+    
+    def save(self):
+        if not self.file:
+            self.saveAs()
+            if not self.file:
+                return
+        self.conf = self.get_current_conf()
         f = open(self.file, "w")
-        conf = json.dump(conf, f, sort_keys=True, indent=4)
+        json.dump(self.conf, f, sort_keys=True, indent=4)
         f.close()
+        self.generate_preview()
 
     def saveAs(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self,
@@ -318,6 +405,124 @@ class QCLToolsWizard(QtGui.QWidget):
             self.save()
             self.setTitle(self.file)
 
+    def refresh(self):
+        self.save()
+        self.reload_scripts()
+    
+    def generate_preview(self):
+        # generate preview from self.conf
+        c = self.get_current_conf()
+        if not c:
+            self.preview.setText('')
+            self.preview.setToolTip('')
+            return
+        
+        text = ''
+
+        # show env as bash-style prefix
+        if 'options' in c:
+            o = c['options']
+            # env_port
+            if 'env_port' in o:
+                text += '<env_port>'
+            # env
+            if 'env' in o:
+                if text:
+                    text += ';'
+                text += c['options']['env']
+            if text:
+                text += ' '
+
+        # command
+        text += c['command']
+        # args
+
+        if 'args' in c:
+            text += ''
+            for type, name, klass, opts in c['args']:
+                type = type.lower()
+                klass = klass.lower()
+                text += ' '
+                if type == 'constant':
+                    if 'flag' in opts:
+                        text += opts['flag'] + ' '
+                    text += name
+                    continue
+                if 'required' not in opts:
+                    text += '['
+                if klass in 'list':
+                    text += '{'
+                if 'flag' in opts:
+                    text += opts['flag']
+                    if klass != 'flag':
+                        text += ' '
+                if 'prefix' in opts:
+                    text += opts['prefix']
+                if type!='input' or klass != 'flag':
+                    text += '<'
+                if klass == 'list':
+                    text += opts['type'].lower() \
+                            if ('type' in opts and opts['type']) else 'string'
+                elif type=='input' and klass == 'flag':
+                    if 'flag' not in opts:
+                        text += name
+                elif type in ['output', 'inputoutput']:
+                    text += 'file'
+                else:
+                    text += klass
+                if type!='input' or klass != 'flag':
+                    text += '>'
+                if klass == 'list':
+                    text += '}'
+                if 'required' not in opts:
+                    text += ']' 
+                
+        self.preview.setText(text)
+        self.preview.setToolTip(text)
+
+    def preview_ports(self):
+        # show dialog with the ports that this module will have
+        self.generate_preview()
+        conf = self.get_current_conf()
+        if not conf:
+            return
+
+        intext = []
+        outtext = []
+
+        if 'stdin' in conf:
+            name, type, options = conf['stdin']
+            optional = 'required' not in options
+            intext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+        if 'stdout' in conf:
+            name, type, options = conf['stdout']
+            optional = 'required' not in options
+            outtext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+        if 'stderr' in conf:
+            name, type, options = conf['stderr']
+            optional = 'required' not in options
+            outtext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+        if 'options' in conf and 'env_port' in conf['options']:
+            intext.append('env: String')
+        for type, name, klass, options in conf['args']:
+            optional = 'required' not in options
+            if 'input' == type.lower():
+                intext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+            elif 'output' == type.lower():
+                outtext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+            elif 'inputoutput' == type.lower():
+                intext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
+                outtext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
+        
+        intext = ''.join(['Input %s. %s\n' % (i+1, t)
+                          for i, t in zip(xrange(len(intext)), intext)])
+        outtext = ''.join(['Output %s. %s\n' % (i+1, t)
+                            for i, t in zip(xrange(len(outtext)), outtext)])
+        
+        self.helppageView = QManpageDialog("Module Ports for this Wrapper",
+                                     intext + "\n" + outtext, self)
+        self.helppageView.show()
+    
     def loadFromCommand(self, argv):
         self.command.setText(argv[0])
         pos = 0
@@ -413,7 +618,7 @@ class QCLToolsWizard(QtGui.QWidget):
         try:
             text, stderr = subprocess.Popen(args,
                                     stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE).communicate()
+                                    stderr=subprocess.PIPE, shell=True).communicate()
             if not (text and len(text)):
                 text = stderr
                 if not (text and len(text)) or (text and text.beginswith('No ')):
@@ -429,7 +634,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        text = self.runProcess(['man', command])
+        text = self.runProcess(['-c', 'man %s | col -b' % command])
         if not text:
             QtGui.QMessageBox.warning(self, "Man page not found",
                                       "For command '%s'" % command)
@@ -482,7 +687,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = str(self.command.text())
         if command == '':
             return
-        text = self.runProcess(['man', command])
+        text = self.runProcess(['-c', 'man %s | col -b' % command])
         if not text:
             QtGui.QMessageBox.warning(self, "Man page not found",
                                       "For command '%s'" % command)
@@ -531,7 +736,7 @@ class QArgWidget(QtGui.QWidget):
         self.stdTypes = ['stdin', 'stdout', 'stderr']
         self.stdLabels = ['Standard input', 'Standard output', 'Standard error']
         self.stdDict = dict(zip(self.stdTypes, self.stdLabels))
-        
+
         self.argtype = argtype
         self.name = name
         self.klass = klass
@@ -541,104 +746,143 @@ class QArgWidget(QtGui.QWidget):
         self.setLayout(layout)
 
         self.buildWidget()
-        
+
     def buildWidget(self):
         layout = self.layout()
+        layout.setContentsMargins(2,2,2,2)
         # remove any previous layout
         layout1 = QtGui.QHBoxLayout()
+        layout1.setContentsMargins(2,2,2,2)
         layout.addLayout(layout1)
         if self.argtype not in self.stdTypes:
             layout2 = QtGui.QHBoxLayout()
+            layout2.setContentsMargins(2,2,2,2)
             layout.addLayout(layout2)
         else:
             layout2 = layout1
         # type of argument
         if self.argtype not in self.stdTypes:
             self.typeList = QtGui.QComboBox()
-            self.types = ['Input', 'Output', 'Constant']
+            self.types = ['Input', 'Output', 'InputOutput', 'Constant']
             self.typeDict = dict(zip(self.types, xrange(len(self.types))))
             self.typeDict.update(dict(zip([s.lower() for s in self.types], xrange(len(self.types)))))
-            self.typeList.addItems(self.types)
+            self.typeNames = ['Input Port', 'Output Port', 'InputOutput Port', 'Constant']
+            self.typeList.addItems(self.typeNames)
             self.typeList.setCurrentIndex(self.typeDict.get(self.argtype, 0))
-            label = QtGui.QLabel('Type:')
-            label.setToolTip('Sets if arg will be an input, output or a constant argument')
-            layout1.addWidget(label)
+            #label = QtGui.QLabel('Type:')
+            tt = "Select if argument will be an input port, output port, both, or a hidden constant. InputOutput's are always files."
+            #label.setToolTip(tt)
+            self.typeList.setToolTip(tt)
+            #layout1.addWidget(label)
             layout1.addWidget(self.typeList)
-        # name of port
-        self.nameLine = QtGui.QLineEdit(self.name)
-        label = QtGui.QLabel('Name:')
-        label.setToolTip('Name of the port, or the value for constants')
-        layout1.addWidget(label)
-        layout1.addWidget(self.nameLine)
         # type of port
         self.klassList = QtGui.QComboBox()
-        self.klasses = ['Flag', 'String', 'File', 'List']
+        self.klasses = ['Flag', 'String', 'Integer', 'Float', 'File', 'List']
         if self.argtype in self.stdTypes:
             self.klasses = ['String', 'File']
         self.klassDict = dict(zip(self.klasses, xrange(len(self.klasses))))
         self.klassDict.update(dict(zip([s.lower() for s in self.klasses], xrange(len(self.klasses)))))
-        self.klassList.addItems(self.klasses)
+        self.klassNames = ['Bool Flag', 'String', 'Integer', 'Float', 'File', 'List']
+        if self.argtype in self.stdTypes:
+            self.klassNames = ['String', 'File']
+        self.klassList.addItems(self.klassNames)
         self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
-        label = QtGui.QLabel('Class:')
-        label.setToolTip('Port Type. Can be String, File or Flag. List means an input list of one of the other types')
-        layout1.addWidget(label)
+        #label = QtGui.QLabel('Class:')
+        tt = 'Port Type. Can be String, Integer, Float, File or Boolean Flag. List means an input list of one of the other types. Only File and String should be used for output ports.'
+        self.klassList.setToolTip(tt)
+        #label.setToolTip(tt)
+        #layout1.addWidget(label)
         layout1.addWidget(self.klassList)
+        # name of port
+        self.nameLine = QtGui.QLineEdit(self.name)
+        label = QtGui.QLabel('Name:')
+        tt = 'Name of the port, or the value for constants'
+        label.setToolTip(tt)
+        self.nameLine.setToolTip(tt)
+        layout1.addWidget(label)
+        layout1.addWidget(self.nameLine)
         # options are different for each widget
-        # all args can have flag
         if self.argtype not in self.stdTypes:
+            # all args can have flag
             self.flag = QtGui.QLineEdit(self.options.get('flag', ''))
-            label = QtGui.QLabel('flag:')
-            label.setToolTip('a flag before your input. Example: "-f" -> "-f yourinput"')
+            label = QtGui.QLabel('Flag:')
+            tt = 'a short-style flag before your input. Example: "-f" -> "-f yourinput"'
+            label.setToolTip(tt)
+            self.flag.setToolTip(tt)
+            self.flag.setFixedWidth(100)
             layout1.addWidget(label)
             layout1.addWidget(self.flag)
         
-        if self.argtype not in self.stdTypes:
             # all args can have prefix
             self.prefix = QtGui.QLineEdit(self.options.get('prefix', ''))
-            label = QtGui.QLabel('prefix:')
-            label.setToolTip('a prefix to your input. Example: "--X=" -> "--X=yourinput"')
+            label = QtGui.QLabel('Prefix:')
+            tt = 'a long-style prefix to your input. Example: "--X=" -> "--X=yourinput"'
+            label.setToolTip(tt)
+            self.prefix.setToolTip(tt)
             layout1.addWidget(label)
             layout1.addWidget(self.prefix)
 
         # all can be required
         self.required = QtGui.QCheckBox()
         self.required.setChecked('required' in self.options)
-        label = QtGui.QLabel('required:')
-        label.setToolTip('Check to make port always visible in VisTrails')
+        label = QtGui.QLabel('Visible:')
+        tt = 'Check to make port always visible in VisTrails'
+        label.setToolTip(tt)
+        self.required.setToolTip(tt)
         layout2.addWidget(label)
         layout2.addWidget(self.required)
         
         # subtype
-        self.subList = ['String', 'File']
+        self.subList = ['String', 'Integer', 'Float', 'File']
         self.subDict = dict(zip(self.subList, xrange(len(self.subList))))
         self.subDict.update(dict(zip([s.lower() for s in self.subList], xrange(len(self.subList)))))
         self.subtype = QtGui.QComboBox()
         self.subtype.addItems(self.subList)
         self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String'), 0))
         self.listLabel = QtGui.QLabel('List type:')
-        self.listLabel.setToolTip('Choose type of values in List')
+        self.subtype.setVisible(False)
+        tt = 'Choose type of values in List'
+        self.subtype.setToolTip(tt)
+        self.listLabel.setToolTip(tt)
         layout2.addWidget(self.listLabel)
         layout2.addWidget(self.subtype)
-        self.listLabel.setVisible(self.klass == "List")
-        self.subtype.setVisible(self.klass == "List")
+        self.listLabel.setVisible(False)
+        self.subtype.setVisible(False)
+        
+        # input files and inputoutput's can set file suffix
+        self.suffix = QtGui.QLineEdit(self.options.get('suffix', ''))
+        self.suffixLabel = QtGui.QLabel('File suffix:')
+        tt = 'Sets the specified file ending on the created file, like for example: ".txt"'
+        self.suffixLabel.setToolTip(tt)
+        self.suffix.setToolTip(tt)
+        self.suffix.setFixedWidth(50)
+        layout2.addWidget(self.suffixLabel)
+        layout2.addWidget(self.suffix)
+        
+        self.klassChanged()
 
         # description
         self.desc = QtGui.QLineEdit(self.options.get('desc', ''))
-        label = QtGui.QLabel('description:')
-        label.setToolTip('Add a helpful description of the port')
+        label = QtGui.QLabel('Description:')
+        tt = 'Add a helpful description of the port'
+        label.setToolTip(tt)
+        self.desc.setToolTip(tt)
         layout2.addWidget(label)
         layout2.addWidget(self.desc)
         
         if self.argtype not in self.stdTypes:
             self.connect(self.klassList, QtCore.SIGNAL('currentIndexChanged(int)'),
                      self.klassChanged)
+            self.connect(self.typeList, QtCore.SIGNAL('currentIndexChanged(int)'),
+                     self.klassChanged)
 
     def getValues(self):
         """ get the values from the widgets and store them """
         if self.argtype not in self.stdTypes:
-            self.argtype = str(self.typeList.currentText())
-        self.klass = str(self.klassList.currentText())
-        self.name = str(self.nameLine.text())
+            self.argtype = self.types[self.typeList.currentIndex()]
+        self.klass = self.klasses[self.klassList.currentIndex()]
+        klass = self.klass.lower()
+        self.name = str(self.nameLine.text()).strip()
         self.options = {}
         if self.argtype not in self.stdTypes:
             flag = str(self.flag.text()).strip()
@@ -652,23 +896,33 @@ class QArgWidget(QtGui.QWidget):
             self.options['desc'] = desc
         if self.required.isChecked():
             self.options['required'] = ''
-        if self.klass == 'List':
+        if klass == 'list':
             subtype = str(self.subtype.currentText()).strip()
             if subtype:
                 self.options['type'] = subtype
+        type = self.argtype.lower()
+        suffix = str(self.suffix.text()).strip()
+        if ((klass == "file" and type == 'output') or type == 'inputoutput') and \
+            suffix:
+            self.options['suffix'] = suffix
 
     def setValues(self):
         if self.argtype not in self.stdTypes:
             self.typeList.setCurrentIndex(self.typeDict.get(self.argtype, 0))
         self.nameLine.setText(self.name)
-        self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
+        self.klassList.setCurrentIndex(self.klassDict[self.klass])
         if self.argtype not in self.stdTypes:
             self.flag.setText(self.options.get('flag', ''))
             self.prefix.setText(self.options.get('prefix', ''))
+            self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String')))
             self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String'), 0))
         self.required.setChecked('required' in self.options)
         self.desc.setText(self.options.get('desc', ''))
-        self.klassChanged(None)
+        type = self.argtype.lower()
+        klass = self.klass.lower()
+        if (klass == "file" and type == 'output') or type == 'inputoutput':
+            self.suffix.setText(self.options.get('suffix', ''))
+        self.klassChanged()
             
     def toList(self):
         self.getValues()
@@ -684,12 +938,19 @@ class QArgWidget(QtGui.QWidget):
             self.name, self.klass, self.options = arg
         self.setValues()
 
-    def klassChanged(self, index):
+    def klassChanged(self, index=0):
         if self.argtype in self.stdTypes:
             return
-        klass = str(self.klassList.currentText())
-        self.listLabel.setVisible(klass == "List")
-        self.subtype.setVisible(klass == "List")
+        type = self.types[self.typeList.currentIndex()].lower()
+        self.klassList.setVisible(type not in ['constant', 'inputoutput'])
+        klass = self.klasses[self.klassList.currentIndex()].lower()
+        self.listLabel.setVisible(klass == "list" and type == 'input')
+        self.subtype.setVisible(klass == "list" and type == 'input')
+
+        self.suffixLabel.setVisible((klass == "file" and type == 'output') or
+                                    type == 'inputoutput')
+        self.suffix.setVisible((klass == "file" and type == 'output') or
+                               type == 'inputoutput')
 
     def guess(self, name, count=0):
         """ add argument by guessing what the arg might be """
@@ -771,7 +1032,7 @@ class QManpageImport(QtGui.QDialog):
         for i in xrange(self.argLayout.count()):
             w = self.argLayout.layout().itemAt(i)
             w.layout().itemAt(0).widget().setChecked(True)
-        
+
     def selectNone(self):
         for i in xrange(self.argLayout.count()):
             w = self.argLayout.layout().itemAt(i)
@@ -796,12 +1057,12 @@ class QManpageImport(QtGui.QDialog):
 
 class QCLToolsWizardWindow(QtGui.QMainWindow):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None, reload_scripts=None):
         QtGui.QMainWindow.__init__(self, parent)
-        self.wizard = QCLToolsWizard(self)
+        self.wizard = QCLToolsWizard(self, reload_scripts)
         self.setCentralWidget(self.wizard)
         self.setWindowTitle("CLTools Wizard")
-        self.resize(800,600)
+        self.resize(1000,600)
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)

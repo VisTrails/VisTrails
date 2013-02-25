@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -115,15 +116,15 @@ def vector_conv(v, desired_type=None):
     return create_vector(v_list, desired_type)
 
 RVector = new_constant('RVector', staticmethod(vector_conv),
-                       robjects.RVector([]),
-                       staticmethod(lambda x: isinstance(x, robjects.RVector)))
+                       robjects.Vector([]),
+                       staticmethod(lambda x: isinstance(x, robjects.Vector)))
 
 def bool_vector_conv(v):
     return vector_conv(v, bool)
 
 RBoolVector = new_constant('RBoolVector' , staticmethod(bool_vector_conv), 
                             robjects.BoolVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
                        
 def int_vector_conv(v):
@@ -131,7 +132,7 @@ def int_vector_conv(v):
 
 RIntVector = new_constant('RIntVector' , staticmethod(int_vector_conv), 
                             robjects.IntVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
 
 def float_vector_conv(v):
@@ -139,7 +140,7 @@ def float_vector_conv(v):
 
 RFloatVector = new_constant('RFloatVector' , staticmethod(float_vector_conv), 
                             robjects.FloatVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
                        
 def str_vector_conv(v):
@@ -147,7 +148,7 @@ def str_vector_conv(v):
 
 RStrVector = new_constant('RStrVector' , staticmethod(str_vector_conv), 
                             robjects.StrVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
 
 def array_conv(v):
@@ -212,7 +213,7 @@ def list_conv(v):
 
 RList = new_constant('RList', staticmethod(list_conv),
                      robjects.r.list(),
-                     staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                     staticmethod(lambda x: isinstance(x, robjects.Vector)),
                      base_class=RVector,
                      compute=list_compute)
 

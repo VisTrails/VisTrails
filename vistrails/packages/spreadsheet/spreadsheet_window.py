@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -286,7 +287,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         editing = self.editingModeAction().isChecked()
         self.tabController.setEditingMode(editing)
     
-    def configShow(self):
+    def configShow(self, show=False):
         """ configShow() -> None
         Read VisTrails setting and show the spreadsheet window accordingly
         
@@ -315,6 +316,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         break
             if not self.visApp.temp_configuration.interactiveMode:
                 self.shownConfig = True
+                if show:
+                    self.show()
                 return
             ### Maximize
             if self.visApp.temp_configuration.maximizeWindows:

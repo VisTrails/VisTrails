@@ -1,5 +1,6 @@
 <!--###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -714,6 +715,9 @@
 	<sql column="parent_id" type="int"/>
       </property>
       <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="parameter_exploration">
 	<sql column="parent_id" type="int"/>
       </property>
     </choice>
@@ -1640,28 +1644,18 @@
       <sql type="int"/>
     </property>
 
-    <property name="sigstring" type="str">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(4095)"/>
-    </property>
-
-    <property name="labels" type="str">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(4095)"/>
-    </property>
-
-    <property name="defaults" type="str">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(4095)"/>
+    <property ref="true" object="portSpecItem" type="list" 
+	      mapping="one-to-many" expand="false">
+      <xml nodeType="xs:element"/>
     </property>
 
     <property name="min_conns" type="int">
-      <xml name="minConns" nodeType="xs:attribtue" type="xs:int"/>
+      <xml name="minConns" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
     </property>
 
     <property name="max_conns" type="int">
-      <xml name="maxConns" nodeType="xs:attribtue" type="xs:int"/>
+      <xml name="maxConns" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
     </property>
 
@@ -1693,6 +1687,75 @@
       <sql type="char(16)"/>
     </property>
 
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PORTSPECITEM ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="portSpecItem">
+    <layout>
+      <xml name="portSpecItem" nodeType="xs:element"/>
+      <sql table="port_spec_item"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="pos" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="module" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="label" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(4095)"/>
+    </property>
+
+    <property name="default" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="_default" type="varchar(4095)"/>
+    </property>
+
+    <property name="values" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="_values" type="mediumtext"/>
+    </property>
+
+    <property name="entry_type" type="str">
+      <xml name="entryType" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" type="long" object="portSpec" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
   </object>
 
   <!--++++++++++++++++++++++++++-->
@@ -1975,11 +2038,16 @@
       <xml nodeType="xs:element"/>
     </property>
 
+    <property ref="true" object="parameter_exploration" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+    
     <property ref="true" object="actionAnnotation" type="list" 
 	      mapping="one-to-many" index="action_id:key !key:value">
       <xml nodeType="xs:element"/>
     </property>
-
+    
   </object>
 
   <!--++++++++++++++++++++++++++-->
@@ -2162,6 +2230,70 @@
     </property>
   </object>
 
+  <!--++++++++++++++++++++++++++-->
+  <!-- PARAMETER_EXPLORATION +++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="parameter_exploration">
+    <layout>
+      <xml name="parameter_exploration" nodeType="xs:element"/>
+      <sql table="parameter_exploration"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="action_id" type="long" foreignKey="true" object="action">
+      <xml name="actionId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="date" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="dims" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="layout" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="function" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" type="long" object="vistrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+  
   <!--++++++++++++++++++++++++++-->
   <!-- OPM_GRAPH +++++++++++++++-->
   <!--++++++++++++++++++++++++++-->
@@ -2609,7 +2741,6 @@
       <!-- <sql type="varchar(4095)"/> -->
     </property>
   </object>
-  
 
   <!--++++++++++++++++++++++++++-->
   <!-- OPM_USED ++++++++++++++++-->
@@ -2913,6 +3044,120 @@
     <property name="entity_type" type="str" inverse="true">
       <sql type="char(16)"/>
     </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_DOCUMENT +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_document">
+    <layout>
+      <xml name="prov:document" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_entity" ref="true" object="prov_entity" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_activity" ref="true" object="prov_activity" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_agent" ref="true" object="prov_agent" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </property>
+    
+    <property name="vt_connection" ref="true" object="vt_connection" type="list" 
+          mapping="one-to-many">
+      <xml name="vt:connection" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_usage" ref="true" object="prov_usage" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:used" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_generation" ref="true" object="prov_generation" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:wasGeneratedBy" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_association" ref="true" object="prov_association" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:wasAssociatedWith" nodeType="xs:element"/>
+    </property>
+    
+    <!--<property name="vt_part" ref="true" object="vt_part" type="list" 
+          mapping="one-to-many">
+      <xml name="vt:isPartOf" nodeType="xs:element"/>
+    </property>-->
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ENTITY +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_entity">
+    <layout>
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+    <property name="prov_type" type="str">
+      <xml name="prov:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_label" type="str">
+      <xml name="prov:label" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_value" type="str">
+      <xml name="prov:value" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_id" type="str">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_type" type="str">
+      <xml name="vt:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_desc" type="str">
+      <xml name="vt:desc" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_package" type="str">
+      <xml name="vt:package" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_version" type="str">
+      <xml name="vt:version" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_cache" type="str">
+      <xml name="vt:cache" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_location_x" type="str">
+      <xml name="vt:location_x" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_location_y" type="str">
+      <xml name="vt:location_y" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
+    </property>
     
   </object>
   
@@ -2995,7 +3240,84 @@
     <property name="entity_type" type="str" inverse="true">
       <sql type="char(16)"/>
     </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_ENTITY +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_entity">
+    <layout>
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </layout>
     
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_entity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_PLAN +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_plan">
+    <layout>
+      <xml name="prov:plan" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_entity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ACTIVITY +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_activity">
+    <layout>
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+    <property name="startTime" type="str">
+      <xml name="prov:startTime" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="endTime" type="str">
+      <xml name="prov:endTime" nodeType="xs:element" type="xs:string"/>
+    </property>
+
+    <property name="vt_id" type="str" primaryKey="true">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_type" type="str">
+      <xml name="vt:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_cached" type="str">
+      <xml name="vt:cached" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_completed" type="str">
+      <xml name="vt:completed" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_id" type="str">
+      <xml name="vt:machine_id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_error" type="str">
+      <xml name="vt:error" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
+    </property>
   </object>
   
   <!--++++++++++++++++++++++++++-->
@@ -3029,8 +3351,8 @@
     </property>
     
     <property name="vtparent_id" type="long">
-    <xml nodeType="xs:attribute" type="xs:int"/>
-	<sql type="int"/>
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
     </property>
     
     <property name="vtpos" type="long">
@@ -3097,11 +3419,144 @@
 	      inverse="true">
       <sql column="alias_id" type="int"/>
     </property>
-    
   </object>
 
   <!--++++++++++++++++++++++++++-->
-  <!-- MASHUP ++++++++++++++++-->
+  <!-- REF_PROV_ACTIVITY +++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_activity">
+    <layout>
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_activity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_AGENT ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_agent">
+    <layout>
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property name="vt_id" type="str">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_type" type="str">
+      <xml name="prov:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_label" type="str">
+      <xml name="prov:label" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_os" type="str">
+      <xml name="vt:machine_os" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_architecture" type="str">
+      <xml name="vt:machine_architecture" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_processor" type="str">
+      <xml name="vt:machine_processor" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_ram" type="str">
+      <xml name="vt:machine_ram" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_AGENT ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_agent">
+    <layout>
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_agent">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- VT_CONNECTION +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="vt_connection">
+    <layout>
+      <xml name="vt:connection" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property name="vt_source" type="str">
+      <xml name="vt:source" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest" type="str">
+      <xml name="vt:dest" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_source_port" type="str">
+      <xml name="vt:source_port" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest_port" type="str">
+      <xml name="vt:dest_port" nodeType="xs:element" type="xs:string"/>
+    </property>
+      
+    <property name="vt_source_signature" type="str">
+      <xml name="vt:source_signature" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest_signature" type="str">
+      <xml name="vt:dest_signature" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_USAGE ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_usage">
+    <layout>
+      <xml name="prov:used" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_entity" ref="true" object="ref_prov_entity" type="str">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- MASHUP ++++++++++++++++++-->
   <!--++++++++++++++++++++++++++-->
 
   <object name="mashup">
@@ -3167,6 +3622,76 @@
     <property name="entity_type" type="str" inverse="true">
       <sql type="char(16)"/>
     </property>
-    </object>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_GENERATION +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_generation">
+    <layout>
+      <xml name="prov:wasGeneratedBy" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_entity" ref="true" object="ref_prov_entity" type="str">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ASSOCIATION ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_association">
+    <layout>
+      <xml name="prov:wasAssociatedWith" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_agent" ref="true" object="ref_prov_agent" type="str">
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_plan" ref="true" object="ref_prov_plan" type="str">
+      <xml name="prov:plan" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>  
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- IS_PART_OF ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="is_part_of">
+    <layout>
+      <xml name="dcterms:isPartOf" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
 
 </objects>

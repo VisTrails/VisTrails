@@ -149,7 +149,7 @@ class TestActionAnnotation(unittest.TestCase):
     def create_annotation(self, id_scope=IdScope()):
 
         annotation = \
-            ActionAnnotation(id=id_scope.getNewId('actionAnnotation'),
+            ActionAnnotation(id=id_scope.getNewId('mashup_actionAnnotation'),
                              key='akey', action_id=1L,
                              value='some value', user='test')
         return annotation

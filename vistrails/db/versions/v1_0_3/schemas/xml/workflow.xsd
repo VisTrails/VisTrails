@@ -1,5 +1,6 @@
 <!--###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -161,14 +162,16 @@
   </xs:element>
   <xs:element name="portSpec">
     <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="portSpecItem" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="name" type="xs:string"/>
       <xs:attribute name="type" type="xs:string"/>
       <xs:attribute name="optional" type="xs:int"/>
       <xs:attribute name="sortKey" type="xs:int"/>
-      <xs:attribute name="sigstring" type="xs:string"/>
-      <xs:attribute name="labels" type="xs:string"/>
-      <xs:attribute name="defaults" type="xs:string"/>
+      <xs:attribute name="minConns" type="xs:int"/>
+      <xs:attribute name="maxConns" type="xs:int"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="parameter">
@@ -179,6 +182,19 @@
       <xs:attribute name="type" type="xs:string"/>
       <xs:attribute name="val" type="xs:string"/>
       <xs:attribute name="alias" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="portSpecItem">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="pos" type="xs:int"/>
+      <xs:attribute name="module" type="xs:string"/>
+      <xs:attribute name="package" type="xs:string"/>
+      <xs:attribute name="namespace" type="xs:string"/>
+      <xs:attribute name="label" type="xs:string"/>
+      <xs:attribute name="default" type="xs:string"/>
+      <xs:attribute name="values" type="xs:string"/>
+      <xs:attribute name="entryType" type="xs:string"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -39,6 +40,9 @@ import shutil
 import time
 import uuid
 import mimetypes
+# mimetypes are broken by default on windows so use the builtins
+# Remove line below when it is fixed here: http://bugs.python.org/issue15207
+mimetypes.init(files=[])
 from core import debug
 from core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
@@ -136,16 +140,16 @@ class ThumbnailCache(object):
         elements = self.elements.values()
         elements.sort(key=lambda obj: obj.time)
         num = min(n,len(elements))
-        debug.critical("Will remove %s elements from cache..."%num)
-        debug.critical("Cache has %s elements and %s bytes"%(len(elements),
+        debug.debug("Will remove %s elements from cache..."%num)
+        debug.debug("Cache has %s elements and %s bytes"%(len(elements),
                                                              self.size()))
         for i in range(num):
             try:
                 del self.elements[elements[i].name]    
                 os.unlink(elements[i].abs_name)
             except os.error, e:
-                debug.warning("Could not remove file %s:"(elements[i].abs_name,
-                                                          str(e)))
+                debug.warning("Could not remove file %s: %s" % \
+                                 (elements[i].abs_name, str(e)))
     def remove(self,key):
         if key in self.elements.keys():
             entry = self.elements[key]
@@ -242,6 +246,8 @@ class ThumbnailCache(object):
         height = 0
         width = 0
         pixmaps = []
+        # OS may return wrong order so  we need to sort
+        fnames.sort()
         for fname in fnames:
             pix = QtGui.QPixmap(fname)
             if pix.height() > 0 and pix.width() > 0:

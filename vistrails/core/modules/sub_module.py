@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -44,10 +45,12 @@ except ImportError:
     import sha
     sha_hash = sha.new
 
+from core.cache.hasher import Hasher
+from core.cache.utils import hash_list
 from core.modules import module_registry
 from core.modules.basic_modules import String, Boolean, Variant, NotCacheable
 from core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError
+    ModuleError, ModuleSuspended
 from core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 
@@ -75,6 +78,8 @@ class OutputPort(Module):
 class Group(Module):
     def __init__(self):
         Module.__init__(self)
+        self.is_group = True
+        self.persistent_modules = []
 
     def compute(self):
         if not hasattr(self, 'pipeline') or self.pipeline is None:
@@ -88,6 +93,7 @@ class Group(Module):
                                          "remap dictionaries don't exist")
             
         res = self.interpreter.setup_pipeline(self.pipeline)
+        self.persistent_modules = res[0].values()
         if len(res[5]) > 0:
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n'.join(me.msg for me in res[5].itervalues()))
@@ -113,6 +119,12 @@ class Group(Module):
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n '.join(me.module.__class__.__name__ + ': ' + \
                                             me.msg for me in res[2].itervalues()))
+        if len(res[4]) > 0:
+            # extract messages and previous ModuleSuspended exceptions
+            message = '\n'.join([msg for msg in res[4].itervalues()])
+            children = [tmp_id_to_module_map[module_id]._module_suspended
+                        for module_id in res[4]]
+            raise ModuleSuspended(self, message, children=children)
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
@@ -123,10 +135,7 @@ class Group(Module):
                                            **{'reset_computed': False})
 
     def is_cacheable(self):
-        for module in self.pipeline.modules.itervalues():
-            if not module.summon().is_cacheable():
-                return False
-        return True
+        return all(m.is_cacheable() for m in self.persistent_modules)
 
 ###############################################################################
 
@@ -216,6 +225,13 @@ def read_vistrail(vt_fname):
     import db.services.io
     from core.vistrail.vistrail import Vistrail
     vistrail = db.services.io.open_vistrail_from_xml(vt_fname)
+    Vistrail.convert(vistrail)
+    return vistrail
+
+def read_vistrail_from_db(db_connection, abs_id):
+    import db.services.io
+    from core.vistrail.vistrail import Vistrail
+    vistrail = db.services.io.open_vistrail_from_db(db_connection, abs_id)
     Vistrail.convert(vistrail)
     return vistrail
 
@@ -369,18 +385,92 @@ def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
             abstractions.append((m.name, m.namespace))
     return abstractions
 
+def random_signature(pipeline, obj, chm):
+    hasher = sha_hash()
+    hasher.update(str(random.random()))
+    return hasher.digest()
+
+def input_port_signature(pipeline, obj, chm):
+    if hasattr(obj, '_input_port_signature') and \
+            obj._input_port_signature is not None:
+        return obj._input_port_signature
+    return random_signature(pipeline, obj, chm)
+
+def group_signature(pipeline, module, chm):
+    if module._port_specs is None:
+        module.make_port_specs()
+    input_conns = {}
+    input_functions = {}
+    for from_module, c_id in pipeline.graph.edges_to(module.id):
+        conn = pipeline.connections[c_id]
+        if conn.destination.name not in input_conns:
+            input_conns[conn.destination.name] = []
+        input_conns[conn.destination.name].append((from_module, conn))
+    for function in module.functions:
+        if function.name not in input_functions:
+            input_functions[function.name] = []
+        input_functions[function.name].append(function)
+    covered_modules = dict((k, False) for k in module._input_remap)
+    for input_port_name, conn_list in input_conns.iteritems():
+        covered_modules[input_port_name] = True
+        input_module = module._input_remap[input_port_name]
+        upstream_sigs = [(pipeline.subpipeline_signature(m) +
+                          Hasher.connection_signature(c))
+                         for (m, c) in conn_list]
+        module_sig = Hasher.module_signature(input_module, chm)
+        sig = Hasher.subpipeline_signature(module_sig, upstream_sigs)
+        if input_port_name in input_functions:
+            function_sig = hash_list(input_functions[input_port_name], 
+                                     Hasher.function_signature, chm)
+            sig = Hasher.compound_signature([sig, function_sig])
+        input_module._input_port_signature = sig
+    for input_port_name, done in covered_modules.iteritems():
+        if done:
+            continue
+        covered_modules[input_port_name] = True
+        input_module = module._input_remap[input_port_name]
+        if input_port_name in input_functions:
+            module_sig = Hasher.module_signature(input_module, chm)
+            function_sig = hash_list(input_functions[input_port_name], 
+                                     Hasher.function_signature, chm)
+            sig = Hasher.compound_signature([module_sig, function_sig])
+        else:
+            sig = Hasher.module_signature(input_module, chm)
+        input_module._input_port_signature = sig
+
+    module.pipeline.refresh_signatures()
+
+    sig_list = []
+    sig_list.append(Hasher.module_signature(module, chm))
+    for m_id in module.pipeline.graph.sinks():
+        sig_list.append(module.pipeline.subpipeline_signature(m_id))
+    return Hasher.compound_signature(sig_list)
+
+def parse_abstraction_name(filename, get_all_parts=False):
+    # assume only 1 possible prefix or suffix
+    import re
+    prefixes = ["abstraction_"]
+    suffixes = [".vt", ".xml"]
+    path, fname = os.path.split(filename)
+    hexpat = '[a-fA-F0-9]'
+    uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
+    prepat = '|'.join(prefixes).replace('.','\\.')
+    sufpat = '|'.join(suffixes).replace('.','\\.')
+    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
+    matchobj = pattern.match(fname)
+    prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
+    if get_all_parts:
+        return (path, prefix, absname, uuid[1:-1], suffix)
+    return absname
+
+
 ###############################################################################
 
 def initialize(*args, **kwargs):
     # These are all from sub_module.py!
     reg = module_registry.get_module_registry()
 
-    def random_signature(pipeline, obj, chm):
-        hasher = sha_hash()
-        hasher.update(str(random.random()))
-        return hasher.digest()
-
-    reg.add_module(InputPort, signatureCallable=random_signature)
+    reg.add_module(InputPort, signatureCallable=input_port_signature)
     reg.add_input_port(InputPort, "name", String, True)
     reg.add_input_port(InputPort, "optional", Boolean, True)
     reg.add_input_port(InputPort, "spec", String)
@@ -394,7 +484,8 @@ def initialize(*args, **kwargs):
     reg.add_input_port(OutputPort, "InternalPipe", Variant)
     reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
 
-    reg.add_module(Group)
+    reg.add_module(Group, signatureCallable=group_signature,
+                   hide_descriptor=True)
     reg.add_output_port(Group, "self", Group, True)
 
-    reg.add_module(Abstraction, name="SubWorkflow")
+    reg.add_module(Abstraction, name="SubWorkflow", hide_descriptor=True)

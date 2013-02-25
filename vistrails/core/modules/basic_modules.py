@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -56,7 +57,7 @@ try:
 except ImportError:
     import sha
     sha_hash = sha.new
-import zipfile
+#import zipfile
 import urllib
 
 ###############################################################################
@@ -115,6 +116,12 @@ class Constant(Module):
     def setValue(self, v):
         self.setResult("value", self.translate_to_python(v))
         self.upToDate = True
+        
+    def serialize(self):
+        return self.outputPorts['value_as_string']
+    
+    def deserialize(self, v):
+        return self.translate_to_python(v)
 
     @staticmethod
     def translate_to_string(v):
@@ -922,7 +929,8 @@ class SmartSource(NotCacheable, Module):
                     
                     if spec:
                         # See explanation of algo in doc/smart_source_resolution_algo.txt
-                        port_vistrail_base_class = spec.types()[0]
+                        # changed from spec.types()[0]
+                        port_vistrail_base_class = spec.descriptors()[0].module
                         mro = get_mro(type(v))
                         source_types = self.registry.python_source_types
                         found = False

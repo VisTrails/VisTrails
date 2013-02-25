@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -235,7 +236,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'sigstring', 'labels', 'defaults', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
         orderBy = 'id'
@@ -249,23 +250,17 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             type = self.convertFromDB(row[2], 'str', 'varchar(255)')
             optional = self.convertFromDB(row[3], 'int', 'int')
             sort_key = self.convertFromDB(row[4], 'int', 'int')
-            sigstring = self.convertFromDB(row[5], 'str', 'varchar(4095)')
-            labels = self.convertFromDB(row[6], 'str', 'varchar(4095)')
-            defaults = self.convertFromDB(row[7], 'str', 'varchar(4095)')
-            min_conns = self.convertFromDB(row[8], 'int', 'int')
-            max_conns = self.convertFromDB(row[9], 'int', 'int')
-            parentType = self.convertFromDB(row[10], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[11], 'long', 'int')
-            entity_type = self.convertFromDB(row[12], 'str', 'char(16)')
-            parent = self.convertFromDB(row[13], 'long', 'long')
+            min_conns = self.convertFromDB(row[5], 'int', 'int')
+            max_conns = self.convertFromDB(row[6], 'int', 'int')
+            parentType = self.convertFromDB(row[7], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[8], 'long', 'int')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
+            parent = self.convertFromDB(row[10], 'long', 'long')
             
             portSpec = DBPortSpec(name=name,
                                   type=type,
                                   optional=optional,
                                   sort_key=sort_key,
-                                  sigstring=sigstring,
-                                  labels=labels,
-                                  defaults=defaults,
                                   min_conns=min_conns,
                                   max_conns=max_conns,
                                   id=id)
@@ -278,7 +273,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'sigstring', 'labels', 'defaults', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
         orderBy = 'id'
@@ -292,23 +287,17 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             type = self.convertFromDB(row[2], 'str', 'varchar(255)')
             optional = self.convertFromDB(row[3], 'int', 'int')
             sort_key = self.convertFromDB(row[4], 'int', 'int')
-            sigstring = self.convertFromDB(row[5], 'str', 'varchar(4095)')
-            labels = self.convertFromDB(row[6], 'str', 'varchar(4095)')
-            defaults = self.convertFromDB(row[7], 'str', 'varchar(4095)')
-            min_conns = self.convertFromDB(row[8], 'int', 'int')
-            max_conns = self.convertFromDB(row[9], 'int', 'int')
-            parentType = self.convertFromDB(row[10], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[11], 'long', 'int')
-            entity_type = self.convertFromDB(row[12], 'str', 'char(16)')
-            parent = self.convertFromDB(row[13], 'long', 'long')
+            min_conns = self.convertFromDB(row[5], 'int', 'int')
+            max_conns = self.convertFromDB(row[6], 'int', 'int')
+            parentType = self.convertFromDB(row[7], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[8], 'long', 'int')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
+            parent = self.convertFromDB(row[10], 'long', 'long')
             
             portSpec = DBPortSpec(name=name,
                                   type=type,
                                   optional=optional,
                                   sort_key=sort_key,
-                                  sigstring=sigstring,
-                                  labels=labels,
-                                  defaults=defaults,
                                   min_conns=min_conns,
                                   max_conns=max_conns,
                                   id=id)
@@ -337,7 +326,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'sigstring', 'labels', 'defaults', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
         whereMap.update(global_props)
@@ -360,15 +349,6 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
                 self.convertToDB(obj.db_sort_key, 'int', 'int')
-        if hasattr(obj, 'db_sigstring') and obj.db_sigstring is not None:
-            columnMap['sigstring'] = \
-                self.convertToDB(obj.db_sigstring, 'str', 'varchar(4095)')
-        if hasattr(obj, 'db_labels') and obj.db_labels is not None:
-            columnMap['labels'] = \
-                self.convertToDB(obj.db_labels, 'str', 'varchar(4095)')
-        if hasattr(obj, 'db_defaults') and obj.db_defaults is not None:
-            columnMap['defaults'] = \
-                self.convertToDB(obj.db_defaults, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_min_conns') and obj.db_min_conns is not None:
             columnMap['min_conns'] = \
                 self.convertToDB(obj.db_min_conns, 'int', 'int')
@@ -398,7 +378,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'sigstring', 'labels', 'defaults', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
         whereMap.update(global_props)
@@ -421,15 +401,6 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
                 self.convertToDB(obj.db_sort_key, 'int', 'int')
-        if hasattr(obj, 'db_sigstring') and obj.db_sigstring is not None:
-            columnMap['sigstring'] = \
-                self.convertToDB(obj.db_sigstring, 'str', 'varchar(4095)')
-        if hasattr(obj, 'db_labels') and obj.db_labels is not None:
-            columnMap['labels'] = \
-                self.convertToDB(obj.db_labels, 'str', 'varchar(4095)')
-        if hasattr(obj, 'db_defaults') and obj.db_defaults is not None:
-            columnMap['defaults'] = \
-                self.convertToDB(obj.db_defaults, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_min_conns') and obj.db_min_conns is not None:
             columnMap['min_conns'] = \
                 self.convertToDB(obj.db_min_conns, 'int', 'int')
@@ -460,8 +431,9 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
-        pass
-    
+        for child in obj.db_portSpecItems:
+            child.db_portSpec = obj.db_id
+        
     def delete_sql_column(self, db, obj, global_props):
         table = 'port_spec'
         whereMap = {}
@@ -1633,6 +1605,146 @@ class DBLogSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBMashupAliasSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+        self.table = 'mashup_alias'
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'name', 'parent_id', 'entity_type']
+        table = 'mashup_alias'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
+            parent = self.convertFromDB(row[2], 'long', 'int')
+            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
+            
+            mashup_alias = DBMashupAlias(name=name,
+                                         id=id)
+            mashup_alias.db_parent = parent
+            mashup_alias.db_entity_type = entity_type
+            mashup_alias.is_dirty = False
+            res[('mashup_alias', id)] = mashup_alias
+        return res
+
+    def get_sql_select(self, db, global_props,lock=False):
+        columns = ['id', 'name', 'parent_id', 'entity_type']
+        table = 'mashup_alias'
+        whereMap = global_props
+        orderBy = 'id'
+        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+
+    def process_sql_columns(self, data, global_props):
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
+            parent = self.convertFromDB(row[2], 'long', 'int')
+            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
+            
+            mashup_alias = DBMashupAlias(name=name,
+                                         id=id)
+            mashup_alias.db_parent = parent
+            mashup_alias.db_entity_type = entity_type
+            mashup_alias.is_dirty = False
+            res[('mashup_alias', id)] = mashup_alias
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('mashup', obj.db_parent) in all_objects:
+            p = all_objects[('mashup', obj.db_parent)]
+            p.db_add_alias(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'name', 'parent_id', 'entity_type']
+        table = 'mashup_alias'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        
+    def set_sql_command(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return None
+        columns = ['id', 'name', 'parent_id', 'entity_type']
+        table = 'mashup_alias'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        return dbCommand
+
+    def set_sql_process(self, obj, global_props, lastId):
+        pass
+
+    def to_sql_fast(self, obj, do_copy=True):
+        if obj.db_component is not None:
+            child = obj.db_component
+            child.db_mashup_alias = obj.db_id
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'mashup_alias'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBMashupSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -1854,18 +1966,18 @@ class DBMashupSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
-class DBMashupAliasSQLDAOBase(SQLDAO):
+class DBPortSpecItemSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
-        self.table = 'mashup_alias'
+        self.table = 'port_spec_item'
 
     def getDao(self, dao):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'parent_id', 'entity_type']
-        table = 'mashup_alias'
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'port_spec_item'
         whereMap = global_props
         orderBy = 'id'
 
@@ -1874,21 +1986,36 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            parent = self.convertFromDB(row[2], 'long', 'int')
-            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            module = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            package = self.convertFromDB(row[3], 'str', 'varchar(255)')
+            namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            label = self.convertFromDB(row[5], 'str', 'varchar(4095)')
+            default = self.convertFromDB(row[6], 'str', 'varchar(4095)')
+            values = self.convertFromDB(row[7], 'str', 'mediumtext')
+            entry_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
+            portSpec = self.convertFromDB(row[9], 'long', 'int')
+            entity_id = self.convertFromDB(row[10], 'long', 'int')
+            entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
             
-            mashup_alias = DBMashupAlias(name=name,
-                                         id=id)
-            mashup_alias.db_parent = parent
-            mashup_alias.db_entity_type = entity_type
-            mashup_alias.is_dirty = False
-            res[('mashup_alias', id)] = mashup_alias
+            portSpecItem = DBPortSpecItem(module=module,
+                                          package=package,
+                                          namespace=namespace,
+                                          label=label,
+                                          default=default,
+                                          values=values,
+                                          entry_type=entry_type,
+                                          id=id)
+            portSpecItem.db_portSpec = portSpec
+            portSpecItem.db_entity_id = entity_id
+            portSpecItem.db_entity_type = entity_type
+            portSpecItem.is_dirty = False
+            res[('portSpecItem', id)] = portSpecItem
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'parent_id', 'entity_type']
-        table = 'mashup_alias'
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'port_spec_item'
         whereMap = global_props
         orderBy = 'id'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
@@ -1897,28 +2024,43 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            parent = self.convertFromDB(row[2], 'long', 'int')
-            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            module = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            package = self.convertFromDB(row[3], 'str', 'varchar(255)')
+            namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            label = self.convertFromDB(row[5], 'str', 'varchar(4095)')
+            default = self.convertFromDB(row[6], 'str', 'varchar(4095)')
+            values = self.convertFromDB(row[7], 'str', 'mediumtext')
+            entry_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
+            portSpec = self.convertFromDB(row[9], 'long', 'int')
+            entity_id = self.convertFromDB(row[10], 'long', 'int')
+            entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
             
-            mashup_alias = DBMashupAlias(name=name,
-                                         id=id)
-            mashup_alias.db_parent = parent
-            mashup_alias.db_entity_type = entity_type
-            mashup_alias.is_dirty = False
-            res[('mashup_alias', id)] = mashup_alias
+            portSpecItem = DBPortSpecItem(module=module,
+                                          package=package,
+                                          namespace=namespace,
+                                          label=label,
+                                          default=default,
+                                          values=values,
+                                          entry_type=entry_type,
+                                          id=id)
+            portSpecItem.db_portSpec = portSpec
+            portSpecItem.db_entity_id = entity_id
+            portSpecItem.db_entity_type = entity_type
+            portSpecItem.is_dirty = False
+            res[('portSpecItem', id)] = portSpecItem
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        if ('mashup', obj.db_parent) in all_objects:
-            p = all_objects[('mashup', obj.db_parent)]
-            p.db_add_alias(obj)
+        if ('portSpec', obj.db_portSpec) in all_objects:
+            p = all_objects[('portSpec', obj.db_portSpec)]
+            p.db_add_portSpecItem(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'parent_id', 'entity_type']
-        table = 'mashup_alias'
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'port_spec_item'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -1928,12 +2070,36 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'long', 'int')
-        if hasattr(obj, 'db_name') and obj.db_name is not None:
-            columnMap['name'] = \
-                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
+        if hasattr(obj, 'db_module') and obj.db_module is not None:
+            columnMap['module'] = \
+                self.convertToDB(obj.db_module, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_package') and obj.db_package is not None:
+            columnMap['package'] = \
+                self.convertToDB(obj.db_package, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_namespace') and obj.db_namespace is not None:
+            columnMap['namespace'] = \
+                self.convertToDB(obj.db_namespace, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_label') and obj.db_label is not None:
+            columnMap['label'] = \
+                self.convertToDB(obj.db_label, 'str', 'varchar(4095)')
+        if hasattr(obj, 'db_default') and obj.db_default is not None:
+            columnMap['_default'] = \
+                self.convertToDB(obj.db_default, 'str', 'varchar(4095)')
+        if hasattr(obj, 'db_values') and obj.db_values is not None:
+            columnMap['_values'] = \
+                self.convertToDB(obj.db_values, 'str', 'mediumtext')
+        if hasattr(obj, 'db_entry_type') and obj.db_entry_type is not None:
+            columnMap['entry_type'] = \
+                self.convertToDB(obj.db_entry_type, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_portSpec') and obj.db_portSpec is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_parent, 'long', 'int')
+                self.convertToDB(obj.db_portSpec, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -1948,8 +2114,8 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'parent_id', 'entity_type']
-        table = 'mashup_alias'
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'port_spec_item'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -1959,12 +2125,36 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'long', 'int')
-        if hasattr(obj, 'db_name') and obj.db_name is not None:
-            columnMap['name'] = \
-                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
+        if hasattr(obj, 'db_module') and obj.db_module is not None:
+            columnMap['module'] = \
+                self.convertToDB(obj.db_module, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_package') and obj.db_package is not None:
+            columnMap['package'] = \
+                self.convertToDB(obj.db_package, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_namespace') and obj.db_namespace is not None:
+            columnMap['namespace'] = \
+                self.convertToDB(obj.db_namespace, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_label') and obj.db_label is not None:
+            columnMap['label'] = \
+                self.convertToDB(obj.db_label, 'str', 'varchar(4095)')
+        if hasattr(obj, 'db_default') and obj.db_default is not None:
+            columnMap['_default'] = \
+                self.convertToDB(obj.db_default, 'str', 'varchar(4095)')
+        if hasattr(obj, 'db_values') and obj.db_values is not None:
+            columnMap['_values'] = \
+                self.convertToDB(obj.db_values, 'str', 'mediumtext')
+        if hasattr(obj, 'db_entry_type') and obj.db_entry_type is not None:
+            columnMap['entry_type'] = \
+                self.convertToDB(obj.db_entry_type, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_portSpec') and obj.db_portSpec is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_parent, 'long', 'int')
+                self.convertToDB(obj.db_portSpec, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -1980,12 +2170,10 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
-        if obj.db_component is not None:
-            child = obj.db_component
-            child.db_mashup_alias = obj.db_id
-        
+        pass
+    
     def delete_sql_column(self, db, obj, global_props):
-        table = 'mashup_alias'
+        table = 'port_spec_item'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -3178,6 +3366,9 @@ class DBFunctionSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
+        elif obj.db_parentType == 'parameter_exploration':
+            p = all_objects[('parameter_exploration', obj.db_parent)]
+            p.db_add_function(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -5776,6 +5967,206 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBParameterExplorationSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+        self.table = 'parameter_exploration'
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            action_id = self.convertFromDB(row[1], 'long', 'int')
+            name = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            date = self.convertFromDB(row[3], 'datetime', 'datetime')
+            user = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            dims = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            layout = self.convertFromDB(row[6], 'str', 'varchar(255)')
+            vistrail = self.convertFromDB(row[7], 'long', 'int')
+            entity_id = self.convertFromDB(row[8], 'long', 'int')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
+            
+            parameter_exploration = DBParameterExploration(action_id=action_id,
+                                                           name=name,
+                                                           date=date,
+                                                           user=user,
+                                                           dims=dims,
+                                                           layout=layout,
+                                                           id=id)
+            parameter_exploration.db_vistrail = vistrail
+            parameter_exploration.db_entity_id = entity_id
+            parameter_exploration.db_entity_type = entity_type
+            parameter_exploration.is_dirty = False
+            res[('parameter_exploration', id)] = parameter_exploration
+        return res
+
+    def get_sql_select(self, db, global_props,lock=False):
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = global_props
+        orderBy = 'id'
+        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+
+    def process_sql_columns(self, data, global_props):
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            action_id = self.convertFromDB(row[1], 'long', 'int')
+            name = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            date = self.convertFromDB(row[3], 'datetime', 'datetime')
+            user = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            dims = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            layout = self.convertFromDB(row[6], 'str', 'varchar(255)')
+            vistrail = self.convertFromDB(row[7], 'long', 'int')
+            entity_id = self.convertFromDB(row[8], 'long', 'int')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
+            
+            parameter_exploration = DBParameterExploration(action_id=action_id,
+                                                           name=name,
+                                                           date=date,
+                                                           user=user,
+                                                           dims=dims,
+                                                           layout=layout,
+                                                           id=id)
+            parameter_exploration.db_vistrail = vistrail
+            parameter_exploration.db_entity_id = entity_id
+            parameter_exploration.db_entity_type = entity_type
+            parameter_exploration.is_dirty = False
+            res[('parameter_exploration', id)] = parameter_exploration
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('vistrail', obj.db_vistrail) in all_objects:
+            p = all_objects[('vistrail', obj.db_vistrail)]
+            p.db_add_parameter_exploration(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_action_id') and obj.db_action_id is not None:
+            columnMap['action_id'] = \
+                self.convertToDB(obj.db_action_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_date') and obj.db_date is not None:
+            columnMap['date'] = \
+                self.convertToDB(obj.db_date, 'datetime', 'datetime')
+        if hasattr(obj, 'db_user') and obj.db_user is not None:
+            columnMap['user'] = \
+                self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_dims') and obj.db_dims is not None:
+            columnMap['dims'] = \
+                self.convertToDB(obj.db_dims, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_layout') and obj.db_layout is not None:
+            columnMap['layout'] = \
+                self.convertToDB(obj.db_layout, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_vistrail, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        
+    def set_sql_command(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return None
+        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        table = 'parameter_exploration'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_action_id') and obj.db_action_id is not None:
+            columnMap['action_id'] = \
+                self.convertToDB(obj.db_action_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_date') and obj.db_date is not None:
+            columnMap['date'] = \
+                self.convertToDB(obj.db_date, 'datetime', 'datetime')
+        if hasattr(obj, 'db_user') and obj.db_user is not None:
+            columnMap['user'] = \
+                self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_dims') and obj.db_dims is not None:
+            columnMap['dims'] = \
+                self.convertToDB(obj.db_dims, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_layout') and obj.db_layout is not None:
+            columnMap['layout'] = \
+                self.convertToDB(obj.db_layout, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_vistrail, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        return dbCommand
+
+    def set_sql_process(self, obj, global_props, lastId):
+        pass
+
+    def to_sql_fast(self, obj, do_copy=True):
+        for child in obj.db_functions:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'parameter_exploration'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBLoopExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -6850,6 +7241,8 @@ class DBVistrailSQLDAOBase(SQLDAO):
             child.db_parent = obj.db_id
         for child in obj.db_vistrailVariables:
             child.db_vistrail = obj.db_id
+        for child in obj.db_parameter_explorations:
+            child.db_vistrail = obj.db_id
         for child in obj.db_actionAnnotations:
             child.db_vistrail = obj.db_id
         
@@ -7126,10 +7519,12 @@ class SQLDAOListBase(dict):
             self['group'] = DBGroupSQLDAOBase(self)
         if 'log' not in self:
             self['log'] = DBLogSQLDAOBase(self)
-        if 'mashup' not in self:
-            self['mashup'] = DBMashupSQLDAOBase(self)
         if 'mashup_alias' not in self:
             self['mashup_alias'] = DBMashupAliasSQLDAOBase(self)
+        if 'mashup' not in self:
+            self['mashup'] = DBMashupSQLDAOBase(self)
+        if 'portSpecItem' not in self:
+            self['portSpecItem'] = DBPortSpecItemSQLDAOBase(self)
         if 'machine' not in self:
             self['machine'] = DBMachineSQLDAOBase(self)
         if 'add' not in self:
@@ -7168,6 +7563,8 @@ class SQLDAOListBase(dict):
             self['package'] = DBPackageSQLDAOBase(self)
         if 'workflow_exec' not in self:
             self['workflow_exec'] = DBWorkflowExecSQLDAOBase(self)
+        if 'parameter_exploration' not in self:
+            self['parameter_exploration'] = DBParameterExplorationSQLDAOBase(self)
         if 'loop_exec' not in self:
             self['loop_exec'] = DBLoopExecSQLDAOBase(self)
         if 'mashup_actionAnnotation' not in self:

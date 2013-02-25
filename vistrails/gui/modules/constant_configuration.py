@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,6 +42,7 @@ constants.
 from PyQt4 import QtCore, QtGui
 from core.utils import any, expression
 from core import system
+
 ############################################################################
 
 class ConstantWidgetMixin(object):
@@ -56,7 +58,7 @@ class ConstantWidgetMixin(object):
             self._last_contents = newContents
             self.emit(QtCore.SIGNAL('contentsChanged'), (self,newContents))    
 
-class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
+class StandardConstantWidgetBase(ConstantWidgetMixin):
     """
     StandardConstantWidget is a basic widget to be used
     to edit int/float/string values in VisTrails.
@@ -74,6 +76,19 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
        presses the return key.
 
     """
+    def __new__(cls, *args, **kwargs):
+        param = None
+        if len(args) > 0:
+            param = args[0]
+        if 'param' in kwargs:
+            param = kwargs['param']
+        if param is None:
+            raise Exception("Must pass param as first argument.")
+        if param.port_spec_item and param.port_spec_item.entry_type and \
+                param.port_spec_item.entry_type.startswith("enum"):
+            return StandardConstantEnumWidget.__new__(StandardConstantEnumWidget, *args, **kwargs)
+        return StandardConstantWidget.__new__(StandardConstantWidget, *args, **kwargs)
+
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
                     parent: QWidget)
@@ -82,17 +97,31 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         to 'int', 'float', and 'string'
 
         """
-        QtGui.QLineEdit.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param.strValue)
+
+        self.is_combo = False
+        self.is_editable = True
+
+        psi = param.port_spec_item
+        if param.strValue:
+            value = param.strValue
+        elif psi and psi.default:
+            value = psi.default
+        else:
+            value = param.strValue
+        ConstantWidgetMixin.__init__(self, value)
+
         # assert param.namespace == None
         # assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        if psi and psi.default:
+            self.setDefault(psi.default)
         contents = param.strValue
         contentType = param.type
         self.setText(contents)
         self._contentType = contentType
-        self.connect(self,
-                     QtCore.SIGNAL('returnPressed()'),
-                     self.update_parent)
+
+    def setDefault(self, default):
+        # Implement this in a subclass!
+        pass
 
     def contents(self):
         """contents() -> str
@@ -130,7 +159,19 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
                 self.setText(str(eval(str(base), None, None)))
             except:
                 self.setText(base)
-                
+
+
+class StandardConstantWidget(QtGui.QLineEdit, StandardConstantWidgetBase):
+    def __init__(self, param, parent=None):
+        QtGui.QLineEdit.__init__(self, parent)
+        StandardConstantWidgetBase.__init__(self, param, parent)
+        self.connect(self,
+                     QtCore.SIGNAL('returnPressed()'),
+                     self.update_parent)
+
+    def setDefault(self, value):
+        self.setPlaceholderText(value)
+
     def sizeHint(self):
         metrics = QtGui.QFontMetrics(self.font())
         width = min(metrics.width(self.text())+10,70)
@@ -139,7 +180,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
     
     def minimumSizeHint(self):
         return self.sizeHint()
-    
+
     ###########################################################################
     # event handlers
 
@@ -158,6 +199,67 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         QtGui.QLineEdit.focusOutEvent(self, event)
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
+    
+class StandardConstantEnumWidget(QtGui.QComboBox, StandardConstantWidgetBase):
+    def __init__(self, param, parent=None):
+        QtGui.QComboBox.__init__(self, parent)
+        psi = param.port_spec_item
+        if psi and psi.entry_type == 'enumFree':
+            self.setEditable(True)
+            self.setInsertPolicy(QtGui.QComboBox.NoInsert)
+            self.connect(self.lineEdit(),
+                         QtCore.SIGNAL('returnPressed()'),
+                         self.update_parent)
+        self.addItems(psi.values)
+        if psi and (psi.entry_type == "enumEmpty" or 
+                    psi.entry_type == 'enumFree'):
+            self.setCurrentIndex(-1)
+        StandardConstantWidgetBase.__init__(self, param, parent)
+        self.connect(self,
+                     QtCore.SIGNAL('currentIndexChanged(int)'),
+                     self.update_parent)
+
+    def text(self):
+        return self.currentText()
+
+    def setText(self, text):
+        idx = self.findText(text)
+        if idx > -1:
+            self.setCurrentIndex(idx)
+            if self.isEditable():
+                self.lineEdit().setText(text)
+        elif self.isEditable():
+            self.lineEdit().setText(text)
+
+    def setDefault(self, value):
+        idx = self.findText(value)
+        if idx > -1:
+            self.setCurrentIndex(idx)
+            if self.isEditable():
+                self.lineEdit().setPlaceholderText(value)
+        elif self.isEditable():
+            self.lineEdit().setPlaceholderText(value)
+
+
+    ###########################################################################
+    # event handlers
+
+    def focusInEvent(self, event):
+        """ focusInEvent(event: QEvent) -> None
+        Pass the event to the parent
+
+        """
+        self._contents = str(self.text())
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        QtGui.QComboBox.focusInEvent(self, event)
+
+    def focusOutEvent(self, event):
+        self.update_parent()
+        QtGui.QComboBox.focusOutEvent(self, event)
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+
 
 ###############################################################################
 # File Constant Widgets
@@ -199,10 +301,11 @@ class PathChooserToolButton(QtGui.QToolButton):
             self.parent().update_parent()
     
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getOpenFileName(self,
                                                  'Use Filename '
                                                  'as Value...',
-                                                 self.lineEdit.text(),
+                                                 text,
                                                  'All files '
                                                  '(*.*)')
 
@@ -278,10 +381,11 @@ class FileChooserToolButton(PathChooserToolButton):
                                        "Open a file chooser")
         
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getOpenFileName(self,
                                                  'Use Filename '
                                                  'as Value...',
-                                                 self.lineEdit.text(),
+                                                 text,
                                                  'All files '
                                                  '(*.*)')
 
@@ -294,12 +398,13 @@ class DirectoryChooserToolButton(PathChooserToolButton):
     def __init__(self, parent=None, lineEdit=None):
         PathChooserToolButton.__init__(self, parent, lineEdit, 
                                        "Open a directory chooser")
-        
+
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getExistingDirectory(self,
                                                       'Use Directory '
                                                       'as Value...',
-                                                      self.lineEdit.text())
+                                                      text)
 
 class DirectoryChooserWidget(PathChooserWidget):
     def create_browse_button(self):
@@ -311,9 +416,10 @@ class OutputPathChooserToolButton(PathChooserToolButton):
                                        "Open a path chooser")
     
     def openChooser(self):
+        text = self.lineEdit.text() or system.vistrails_data_directory()
         return QtGui.QFileDialog.getSaveFileName(self,
                                                  'Save Path',
-                                                 self.lineEdit.text(),
+                                                 text,
                                                  'All files (*.*)')
 
 class OutputPathChooserWidget(PathChooserWidget):
@@ -335,9 +441,10 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         assert param.type == 'Boolean'
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
         assert param.namespace is None
+        self._silent = False
+        self.setContents(param.strValue)
         self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
                      self.change_state)
-        self.setContents(param.strValue)
         
     def contents(self):
         return self._values[self._states.index(self.checkState())]
@@ -348,12 +455,17 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         else:
             value = "False"
         assert value in self._values
+        if silent:
+            self._silent = True
         self.setCheckState(self._states[self._values.index(value)])
         if not silent:
             self.update_parent()
+        else:
+            self._silent = False
             
     def change_state(self, state):
-        self.update_parent()
+        if not self._silent:
+            self.update_parent()
 
 ###############################################################################
 # Constant Color widgets

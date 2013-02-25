@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -176,11 +177,18 @@ def vistrails_root_directory():
     return __rootDir
 
 def vistrails_file_directory():
-    """ vistrails_directory() -> str 
+    """ vistrails_file_directory() -> str 
     Returns vistrails examples directory
 
     """
     return __fileDir
+
+def vistrails_data_directory():
+    """ vistrails_data_directory() -> str 
+    Returns vistrails data directory
+
+    """
+    return __dataDir
 
 def vistrails_default_file_type():
     """ vistrails_default_file_type() -> str
@@ -343,7 +351,8 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s.%s -- contact@vistrails.org
 
-Copyright (c) 2006-2011 University of Utah. All rights reserved.
+Copyright (c) 2011-2012 NYU-Poly. Copyright (c) 2006-2011 University of Utah. 
+All rights reserved.
 http://www.vistrails.org
 
 Redistribution and use in source and binary forms, with or without

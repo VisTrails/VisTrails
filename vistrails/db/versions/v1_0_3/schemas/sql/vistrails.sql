@@ -1,5 +1,6 @@
 --#############################################################################
 --
+-- Copyright (C) 2011-2012, NYU-Poly.
 -- Copyright (C) 2006-2011, University of Utah. 
 -- All rights reserved.
 -- Contact: contact@vistrails.org
@@ -62,9 +63,6 @@ CREATE TABLE port_spec(
     type varchar(255),
     optional int,
     sort_key int,
-    sigstring varchar(4095),
-    labels varchar(4095),
-    defaults varchar(4095),
     min_conns int,
     max_conns int,
     parent_type char(32),
@@ -142,6 +140,13 @@ CREATE TABLE log_tbl(
     vistrail_id int
 ) engine=InnoDB;
 
+CREATE TABLE mashup_alias(
+    id int,
+    name varchar(255),
+    parent_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
 CREATE TABLE mashup(
     id int not null auto_increment primary key,
     name varchar(255),
@@ -156,10 +161,18 @@ CREATE TABLE mashup(
     entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE mashup_alias(
+CREATE TABLE port_spec_item(
     id int,
-    name varchar(255),
+    pos int,
+    module varchar(255),
+    package varchar(255),
+    namespace varchar(255),
+    label varchar(4095),
+    _default varchar(4095),
+    _values mediumtext,
+    entry_type varchar(255),
     parent_id int,
+    entity_id int,
     entity_type char(16)
 ) engine=InnoDB;
 
@@ -391,6 +404,19 @@ CREATE TABLE workflow_exec(
     completed int,
     name varchar(255),
     log_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE parameter_exploration(
+    id int,
+    action_id int,
+    name varchar(255),
+    date datetime,
+    user varchar(255),
+    dims varchar(255),
+    layout varchar(255),
+    parent_id int,
     entity_id int,
     entity_type char(16)
 ) engine=InnoDB;

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,6 +39,7 @@ QModuleDocumentation
 """
 
 from PyQt4 import QtCore, QtGui
+from core.modules.module_registry import ModuleRegistryException
 from gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
@@ -85,10 +87,13 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
             self.update_module(None)
 
     def update_module(self, module=None):
-        if module and module.module_descriptor:
-            self.update_descriptor(module.module_descriptor)
-        else:
-            self.update_descriptor(None)
+        descriptor = None
+        try:
+            if module and module.module_descriptor:
+                descriptor = module.module_descriptor
+        except ModuleRegistryException:
+            pass
+        self.update_descriptor(descriptor)
 
     def update_descriptor(self, descriptor=None):
         self.descriptor = descriptor

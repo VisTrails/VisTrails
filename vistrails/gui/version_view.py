@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -56,7 +57,7 @@ from gui.qt import qt_super
 from gui.theme import CurrentTheme
 from gui.version_prop import QVersionPropOverlay
 from gui.vis_diff import QVisualDiff
-
+from gui.collection.workspace import QParamExplorationEntityItem
 import gui.utils
 import math
 
@@ -268,15 +269,45 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         QtGui.QGraphicsTextItem.__init__(self, parent, scene)
-        self.parent = parent
-        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.timer = None
+        self.isEditable = None
+        self.setEditable(False)
         self.setFont(CurrentTheme.VERSION_FONT)
         self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
+        self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
         self.centerX = 0.0
         self.centerY = 0.0
         self.label = ''
         self.isTag = True
         self.updatingTag = False
+
+    def setEditable(self, editable=True):
+        if self.timer:
+            self.timer.stop()
+            self.timer = None
+        if editable == self.isEditable:
+            return
+        self.isEditable = editable
+        if editable:
+            self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        else:
+            if self.textCursor():
+                c = self.textCursor()
+                c.clearSelection()
+                self.setTextCursor(c)
+            self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+
+    def setEditableLater(self):
+        self.timer = QtCore.QTimer(self)
+        self.timer.setSingleShot(True)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.setEditable)
+        self.timer.start(QtGui.QApplication.doubleClickInterval() + 5)
+
+    def setGhosted(self, ghosted):
+        if ghosted:
+            self.setDefaultTextColor(CurrentTheme.GHOSTED_VERSION_LABEL_COLOR)
+        else:
+            self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
 
     def changed(self, x, y, label, tag=True):
         """ changed(x: float, y: float, label: str) -> None
@@ -300,6 +331,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         self.setPlainText(self.label)
+        self.setEditable(False)
         if (len(str(self.label)) > 0):
             self.setTextWidth(-1)
         else:
@@ -310,7 +342,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         else:
             self.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)  
         self.updatePos()
-        self.parent.updateWidthFromLabel()
+        self.parentItem().updateWidthFromLabel()
 
     def updatePos(self):
         """ updatePos() -> None
@@ -334,13 +366,12 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
             self.updatingTag = False
             event.ignore()
             self.clearFocus()
-            self.hide()
             return
         qt_super(QGraphicsVersionTextItem, self).keyPressEvent(event)
         if (len(str(self.toPlainText())) > 0):
             self.setTextWidth(-1)
         self.updatePos()
-        self.parent.updateWidthFromLabel()
+        self.parentItem().updateWidthFromLabel()
 
     def focusOutEvent(self, event):
         """ focusOutEvent(event: QEvent) -> None
@@ -354,7 +385,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
                 self.reset()
             self.updatingTag = False
-      
+
 ##############################################################################
 # QGraphicsVersionItem
 
@@ -374,15 +405,16 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         QtGui.QGraphicsEllipseItem.__init__(self, parent, scene)
         self.setZValue(1)
         self.setAcceptDrops(True)
-        self.versionPen = CurrentTheme.VERSION_PEN
-        self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
-        self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self._versionPenNormal = CurrentTheme.VERSION_PEN
+        self._versionPen = CurrentTheme.VERSION_PEN
+        self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
         self.id = -1
         self.label = ''
         self.descriptionLabel = ''
         self.dragging = False
         self.ghosted = False
+        self.updatePainterState()
 
         # self.rank is a positive number that determines the
         # saturation of the node. Two version nodes might have the
@@ -393,7 +425,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         
         # Editable text item that remains hidden unless the version is selected
         self.text = QGraphicsVersionTextItem(self)
-        self.text.hide()
 
         # Need a timer to start a drag to avoid stalls on QGraphicsView
         self.dragTimer = QtCore.QTimer()
@@ -404,6 +435,31 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
         self.dragPos = QtCore.QPoint()
 
+    def _get_versionPen(self):
+        return self._versionPen
+    def _set_versionPen(self, pen):
+        self._versionPen = pen
+        self.updatePainterState()
+    versionPen = property(_get_versionPen, _set_versionPen)
+
+    def _get_versionBrush(self):
+        return self._versionBrush
+    def _set_versionBrush(self, brush):
+        self._versionBrush = brush
+        self.updatePainterState()
+    versionBrush = property(_get_versionBrush, _set_versionBrush)
+
+    def itemChange(self, change, value):
+        if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
+            if self.isSelected():
+                self.versionPen = CurrentTheme.VERSION_SELECTED_PEN
+                self.text.setEditableLater()
+            else:
+                self.versionPen = self._versionPenNormal
+                self.text.setEditable(False)
+            self.updatePainterState()
+        return QtGui.QGraphicsItem.itemChange(self, change, value)
+
     def setGhosted(self, ghosted=True):
         """ setGhosted(ghosted: True) -> None
         Set this version to be ghosted or not
@@ -411,14 +467,16 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         if self.ghosted <> ghosted:
             self.ghosted = ghosted
+            self.text.setGhosted(ghosted)
             if ghosted:
-                self.versionPen = CurrentTheme.GHOSTED_VERSION_PEN
-                self.versionLabelPen = CurrentTheme.GHOSTED_VERSION_LABEL_PEN
-                self.versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
+                self._versionPenNormal = CurrentTheme.GHOSTED_VERSION_PEN
+                self._versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
             else:
-                self.versionPen = CurrentTheme.VERSION_PEN
-                self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
-                self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
+                self._versionPenNormal = CurrentTheme.VERSION_PEN
+                self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
+            if not self.isSelected():
+                self._versionPen = self._versionPenNormal
+            self.updatePainterState()
 
     def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
         """ update_color(isThisUs: bool,
@@ -533,32 +591,12 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         return self.rect().adjusted(-2, -2, 2, 2)
 
     def paint(self, painter, option, widget=None):
-        """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
-                  widget: QWidget) -> None
-        Peform actual painting of the version shape
-        
-        """
-        if self.isSelected():
-            painter.setPen(CurrentTheme.VERSION_SELECTED_PEN)
-        else:
-            painter.setPen(self.versionPen)
-        painter.setBrush(self.versionBrush)
-        painter.drawEllipse(self.rect())
-        
-        # Only draw text if editable text item is not present
-        if not self.text.isVisible():
-            if self.isSelected() and not self.ghosted:
-                painter.setPen(CurrentTheme.VERSION_LABEL_SELECTED_PEN)
-            else:
-                painter.setPen(self.versionLabelPen)
+        option.state &= ~QtGui.QStyle.State_Selected
+        QtGui.QGraphicsEllipseItem.paint(self, painter, option, widget)
 
-            if self.label == '' and self.descriptionLabel != '':
-                # Draw description text if available
-                painter.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)
-                painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.descriptionLabel)
-            else:
-                painter.setFont(CurrentTheme.VERSION_FONT)
-                painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.label)
+    def updatePainterState(self):
+        self.setPen(self._versionPen)
+        self.setBrush(self._versionBrush)
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
@@ -607,17 +645,20 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         
         """
         self.dragging = False
-        qt_super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
+        QtGui.QGraphicsEllipseItem.mouseReleaseEvent(self, event)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
         Capture version-to-version drag-and-drop
-        
+        Also capture parameter exploration assignment
         """
         data = event.mimeData()
         if (hasattr(data, 'versionId') and
             hasattr(data, 'controller') and
-            data.versionId!=self.id):
+            data.versionId!=self.id) or \
+           (hasattr(data, 'items') and 
+            len(data.items) == 1 and
+            type(data.items[0]) == QParamExplorationEntityItem):
             event.accept()
         else:
             event.ignore()
@@ -635,16 +676,25 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             #                       self.scene().controller,
             #                       self.scene().views()[0])
             # visDiff.show()
+        elif (hasattr(data, 'items') and 
+              len(data.items) == 1 and
+              type(data.items[0]) == QParamExplorationEntityItem):
+            # apply this parameter exploration to the new version, validate it and switch to PE view
+            from gui.vistrails_window import _app
+            view = _app.get_current_view()
+            view.apply_parameter_exploration(self.id, data.items[0].entity.pe)
+            event.accept()
         else:
             event.ignore()  
 
     def perform_analogy(self):
         sender = self.scene().sender()
         analogy_name = str(sender.text())
-        selectedItems = self.scene().selectedItems()
+        # selectedItems = self.scene().selectedItems()
         controller = self.scene().controller
-        for item in selectedItems:
-            controller.perform_analogy(analogy_name, item.id)
+        print "calling perform analogy", analogy_name, self.id
+        # for item in selectedItems:
+        controller.perform_analogy(analogy_name, self.id)
 
     def show_raw_pipeline(self):
         self.scene().emit_selection = False
@@ -695,6 +745,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         menu.exec_(event.screenPos())
 
     def mouseDoubleClickEvent(self, event):
+        # QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
+        event.accept()
         self.scene().double_click(self.id)
 
 
@@ -812,6 +864,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
                               max_rank, ghosted)
+        for (version_from, version_to), link in self.edges.iteritems():
+            if self.versions[version_from].ghosted and \
+                    self.versions[version_to].ghosted:
+                link.setGhosted(True)
+            else:
+                link.setGhosted(False)
 
     def update_scene_single_node_change(self, controller, old_version, new_version):
         """ update_scene_single_node_change(controller: VistrailController,
@@ -1035,19 +1093,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             return
 
         selected_items = self.selectedItems()
-        # print 'selected_items:', [x.id for x in selected_items]
-        for item in self.versions.itervalues():
-            if item.id != 0:
-                item.text.hide()
         if len(selected_items) == 1:
             # emit versionSelected selected_id
             self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
                       selected_items[0].id, self.select_by_click, 
                       True, False, False)
-            if selected_items[0].id != 0:
-                selected_items[0].text.show()
         else:
             # emit versionSelected -1
+            for item in selected_items:
+                if item.text.isEditable:
+                    item.text.setEditable(False)
             self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
                       -1, self.select_by_click, True, False, False)
 
@@ -1057,6 +1112,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 selected_items[0].id, selected_items[1].id)
 
     def double_click(self, version_id):
+        self.mouseGrabberItem().ungrabMouse()
         self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
                   version_id, self.select_by_click, True, False, True)
 
@@ -1079,10 +1135,6 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.setScene(QVersionTreeScene(self))
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
-
-        # the redo stack stores the undone action ids 
-        # (undo is automatic with us, through the version tree)
-        self.redo_stack = []
 
     def set_default_layout(self):
         from gui.collection.workspace import QWorkspaceWindow
@@ -1123,17 +1175,19 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         return versionId > 0 
 
     def can_redo(self, versionId):
-        return len(self.redo_stack) > 0
+        return self.controller and self.controller.can_redo()
 
     def can_undo(self, versionId):
-        return versionId > 0
+        return self.controller and self.controller.can_undo()
     
     def can_execute(self, pipeline):
         return pipeline is not None and len(pipeline.modules) > 0
     
     def execute(self):
-        self.controller.execute_current_workflow()
+        res = self.controller.execute_current_workflow()
         from gui.vistrails_window import _app
+        if len(res[0][0].errors) > 0:
+            _app.qactions['pipeline'].trigger()
         _app.notify('execution_updated')
         
     def publish_to_web(self):
@@ -1157,13 +1211,12 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
             br = self.selectionBox.sceneBoundingRect()
         else:
             br = QtCore.QRectF(self.startSelectingPos,
-                              self.startSelectingPos)
+                               self.startSelectingPos)
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
                 if type(item) == gui.version_view.QGraphicsVersionItem:
                     item.text.clearFocus()
-                    item.text.hide()
         qt_super(QVersionTreeView, self).selectModules()
                 
     def set_title(self, title):

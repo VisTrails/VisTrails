@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -84,13 +85,19 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
         self._is_running = False
+        self.shared_memory = None
+        self.local_server = None
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
+        qt.allowQObjects()
+
+    def run_single_instance(self):
         # code for single instance of the application
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
             self.timeout = 10000
-            self._unique_key = "vistrails-single-instance-check-%s"%getpass.getuser()
+            self._unique_key = os.path.join(system.home_directory(),
+                                            "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
             self.local_server = None
             if self.shared_memory.attach():
@@ -107,11 +114,38 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if self.local_server.listen(self._unique_key):
                     debug.log("Listening on %s"%self.local_server.fullServerName())
                 else:
-                    debug.warning("Server is not listening. This means it will not accept \
-parameters from other instances")
-                                  
-        qt.allowQObjects()
+                    # This usually happens when vistrails have crashed
+                    # Delete the key and try again
+                    self.shared_memory.detach()
+                    self.local_server.close()
+                    if os.path.exists(self._unique_key):
+                        os.remove(self._unique_key)
 
+                    self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+                    self.local_server = None
+                    if self.shared_memory.attach():
+                        self._is_running = True
+                    else:
+                        self._is_running = False
+                        if not self.shared_memory.create(1):
+                            debug.critical("Unable to create single instance "
+                                           "of vistrails application")
+                            return
+                        self.local_server = QtNetwork.QLocalServer(self)
+                        self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
+                                     self.message_received)
+                        if self.local_server.listen(self._unique_key):
+                            debug.log("Listening on %s"%self.local_server.fullServerName())
+                        else:
+                            debug.warning("Server is not listening. This means it will not accept \
+parameters from other instances")
+
+    def found_another_instance_running(self):
+        debug.critical("Found another instance of VisTrails running")
+        msg = str(sys.argv[1:])
+        debug.critical("Will send parameters to main instance %s" % msg)
+        return self.send_message(msg)
+            
     def init(self, optionsDict=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
@@ -122,7 +156,16 @@ parameters from other instances")
         # DAK this is handled by finalize_vistrails in core.application now
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         VistrailsApplicationInterface.init(self,optionsDict)
-
+        
+        #singleInstance configuration
+        singleInstance = self.temp_configuration.check('singleInstance')
+        if singleInstance:
+            self.run_single_instance()
+            if self._is_running:
+                if self.found_another_instance_running() is True:
+                    return True
+                else:
+                    return False
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
@@ -151,6 +194,14 @@ parameters from other instances")
 
     def is_running_gui(self):
         return True
+
+    def get_controller(self):
+        return self.builderWindow.get_current_controller()
+
+    def get_vistrail(self):
+        if self.get_controller():
+            return self.get_controller().vistrail
+        return None
 
     def create_notification(self, notification_id, window=None, view=None):
         if view is not None:
@@ -280,9 +331,11 @@ parameters from other instances")
         """ interactiveMode() -> None
         Instantiate the GUI for interactive mode
         
-        """     
+        """
         if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
+            debug.DebugPrint.getInstance().register_splash(None)
+            self.splashScreen = None
         # self.builderWindow.modulePalette.updateFromModuleRegistry()
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()
@@ -293,6 +346,7 @@ parameters from other instances")
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
+        self.builderWindow.check_running_jobs()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -385,6 +439,7 @@ parameters from other instances")
                 workflow_info = self.temp_configuration.workflowInfo
             else:
                 workflow_info = None
+
             extra_info = None
             if self.temp_configuration.check('spreadsheetDumpCells'):
                 extra_info = \
@@ -393,14 +448,19 @@ parameters from other instances")
                 if extra_info is None:
                     extra_info = {}
                 extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
-            errs = core.console_mode.run(w_list,
+
+            if self.temp_configuration.check('parameterExploration'):
+                errs = core.console_mode.run_parameter_explorations(w_list,
+                                                                    extra_info=extra_info)
+            else:
+                errs = core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
                                       workflow_info, update_vistrail=True,
                                       extra_info=extra_info)
             if len(errs) > 0:
                 for err in errs:
                     debug.critical("*** Error in %s:%s:%s -- %s" % err)
-                return False
+                return [False, ["*** Error in %s:%s:%s -- %s" % err for err in errs]]
             return True
         else:
             debug.warning("no input vistrails provided")
@@ -455,7 +515,7 @@ parameters from other instances")
             pass
 
     def finishSession(self):
-        if QtCore.QT_VERSION >= 0x40400:
+        if QtCore.QT_VERSION >= 0x40400 and self.shared_memory is not None:
             self.shared_memory.detach()
             if self.local_server:
                 self.local_server.close()
@@ -507,9 +567,11 @@ parameters from other instances")
             self.temp_configuration.executeWorkflows = False
             self.temp_configuration.interactiveMode = True
             
-            self.parse_input_args_from_other_instance(str(byte_array))
+            result = self.parse_input_args_from_other_instance(str(byte_array))
+            if result not in [True, False]:
+                result = '\n'.join(result[1])
             self.shared_memory.lock()
-            local_socket.write("1")
+            local_socket.write(str(result))
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.debug("Writing failed: %s" %
@@ -537,11 +599,16 @@ parameters from other instances")
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
                                local_socket.errorString().toLatin1())
-                return
+                return False
             byte_array = local_socket.readAll()
-            debug.log("Other instance processed input (%s)"%str(byte_array))
+            result = str(byte_array)
+            debug.log("Other instance processed input (%s)"%result)
+            if result != 'True':
+                debug.critical(result)
+            else:
+                return True
             local_socket.disconnectFromServer()
-            return True
+            return str(byte_array)
     
     def parse_input_args_from_other_instance(self, msg):
         import re
@@ -555,14 +622,15 @@ parameters from other instances")
                 self.readOptions()
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
-                    self.process_interactive_input()
+                    result = self.process_interactive_input()
                     if not self.temp_configuration.showSpreadsheetOnly:
                         # in some systems (Linux and Tiger) we need to make both calls
                         # so builderWindow is activated
                         self.builderWindow.raise_()
                         self.builderWindow.activateWindow()
+                    return result
                 else:
-                    self.noninteractiveMode()
+                    return self.noninteractiveMode()
             else:
                 debug.critical("Invalid string: %s" % msg)
         else:
@@ -579,15 +647,7 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    if VistrailsApplication.is_running():
-        debug.critical("Found another instance of VisTrails running")
-        msg = str(sys.argv[1:])
-        debug.critical("Will send parameters to main instance %s" % msg)
-        res = VistrailsApplication.send_message(msg)
-        if res:
-            sys.exit(0)
-        else:
-            sys.exit(1)
+    
     try:
         core.requirements.check_all_vistrails_requirements()
     except core.requirements.MissingRequirement, e:

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -125,6 +126,8 @@ class SpreadsheetAnalogyObject(object):
 
         controller = get_controller_by_locator(p3_locator)
         vt = controller.vistrail
+        if controller.current_version != p3_number:
+            controller.change_selected_version(p3_number)
         action = perform( vt, p1_number, p2_number, p3_number)
         
         controller.add_new_action(action)

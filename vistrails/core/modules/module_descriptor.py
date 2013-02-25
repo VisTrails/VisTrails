@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,6 +39,7 @@ from core.utils import VistrailsInternalError
 from core.vistrail.port_spec import PortSpec, PortEndPoint
 import core.debug
 import core.modules.module_registry
+from core.modules.utils import create_descriptor_string
 from db.domain import DBModuleDescriptor
 
 # this is used by add_port to signal a repeated port. Should never
@@ -222,11 +224,13 @@ class ModuleDescriptor(DBModuleDescriptor):
     base_descriptor = property(_get_base_descriptor, _set_base_descriptor)
 
     def _get_sigstring(self):
-        if self.db_namespace:
-            return self.db_package + ':' + self.db_name + ':' + \
-                self.db_namespace
-        return self.db_package + ':' + self.db_name
+        return create_descriptor_string(self.db_package, self.db_name,
+                                        self.db_namespace)
     sigstring = property(_get_sigstring)
+
+    def _get_spec_tuple(self):
+        return (self.package, self.name, self.namespace)
+    spec_tuple = property(_get_spec_tuple)
 
     def set_module_abstract(self, v):
         self._is_abstract = v

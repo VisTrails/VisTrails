@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,12 +35,11 @@
 
 from PyQt4 import QtCore, QtGui
 
-from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import get_module_registry
-from core.param_explore import ActionBasedParameterExploration
 from gui.base_view import BaseView
 from gui.paramexplore.pe_table import QParameterExplorationWidget
 from gui.theme import CurrentTheme
+from core import debug
 
 class QParamExploreView(QParameterExplorationWidget, BaseView):
     explorationId = 0
@@ -55,12 +55,22 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
 
     def set_controller(self, controller):
         self.controller = controller
+        self.set_exploration()
         
+    def updatePipeline(self, pipeline):
+        name = self.controller.get_pipeline_name()[10:]
+        self.set_title("Explore: %s" % name)
+
+    def set_exploration(self, pe=None):
+        if not pe:
+            pe = self.controller.current_parameter_exploration
+        self.setParameterExploration(pe)
+
     def set_default_layout(self):
-        from gui.paramexplore.pe_palette import QParamExplorePalette
+        from gui.paramexplore.pe_inspector import QParamExploreInspector
         from gui.paramexplore.param_view import QParameterView
         self.set_palette_layout(
-            {QtCore.Qt.LeftDockWidgetArea: QParamExplorePalette,
+            {QtCore.Qt.LeftDockWidgetArea: QParamExploreInspector,
              QtCore.Qt.RightDockWidgetArea: QParameterView,
              })
             
@@ -98,66 +108,27 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         corresponding to each dimension
         
         """
-        registry = get_module_registry()
-        actions = self.table.collectParameterActions()
-        palette = self.get_palette()
-        # Set the annotation to persist the parameter exploration
-        # TODO: For now, we just replace the existing exploration - Later we should append them.
-        xmlString = "<paramexps>\n" + self.getParameterExploration() + "\n</paramexps>"
-        self.controller.vistrail.set_paramexp(self.controller.current_version, xmlString)
-        self.controller.set_changed(True)
+        # persist the parameter exploration
+        pe = self.getParameterExploration()
+        pe.action_id = self.controller.current_version
 
-        if palette.pipeline and actions:
-            explorer = ActionBasedParameterExploration()
-            (pipelines, performedActions) = explorer.explore(
-                palette.pipeline, actions)
-            
-            dim = [max(1, len(a)) for a in actions]
-            if (registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
-                registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
-                modifiedPipelines = palette.virtual_cell.positionPipelines(
-                    'PE#%d %s' % (QParamExploreView.explorationId,
-                                  self.controller.name),
-                    dim[2], dim[1], dim[0], pipelines, self.controller)
-            else:
-                modifiedPipelines = pipelines
+        # check if pe has changed
+        changed = False
+        if not self.controller.current_parameter_exploration or \
+         pe != self.controller.current_parameter_exploration:
+            changed = True
+            pe.name = ''
+            self.controller.current_parameter_exploration = pe
+            self.controller.vistrail.add_paramexp(pe)
+            self.controller.set_changed(True)
+        else:
+            pe = self.controller.current_parameter_exploration
 
-            mCount = []
-            for p in modifiedPipelines:
-                if len(mCount)==0:
-                    mCount.append(0)
-                else:
-                    mCount.append(len(p.modules)+mCount[len(mCount)-1])
-                
-            # Now execute the pipelines
-            totalProgress = sum([len(p.modules) for p in modifiedPipelines])
-            progress = QtGui.QProgressDialog('Performing Parameter '
-                                             'Exploration...',
-                                             '&Cancel',
-                                             0, totalProgress)
-            progress.setWindowTitle('Parameter Exploration')
-            progress.setWindowModality(QtCore.Qt.WindowModal)
-            progress.show()
-
-            QParamExploreView.explorationId += 1
-            interpreter = get_default_interpreter()
-            for pi in xrange(len(modifiedPipelines)):
-                progress.setValue(mCount[pi])
-                QtCore.QCoreApplication.processEvents()
-                if progress.wasCanceled():
-                    break
-                def moduleExecuted(objId):
-                    if not progress.wasCanceled():
-                        progress.setValue(progress.value()+1)
-                        QtCore.QCoreApplication.processEvents()
-                kwargs = {'locator': self.controller.locator,
-                          'current_version': self.controller.current_version,
-                          'view': palette.pipeline_view.scene(),
-                          'module_executed_hook': [moduleExecuted],
-                          'reason': 'Parameter Exploration',
-                          'actions': performedActions[pi],
-                          }
-                interpreter.execute(modifiedPipelines[pi], **kwargs)
-            progress.setValue(totalProgress)
-        
-        
+        errors = self.controller.executeParameterExploration(pe,
+                                     self.get_param_view().pipeline_view.scene())
+        if errors:
+            errors = '\n'.join(['Position %s: %s' % (error[0], error[1]) for error in errors])
+            debug.critical("Parameter Exploration Execution had errors", errors)
+        if changed:
+            from gui.vistrails_window import _app
+            _app.notify('exploration_changed')

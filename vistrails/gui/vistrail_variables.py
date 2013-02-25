@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -55,6 +56,7 @@ class QVistrailVariables(QVariableDropBox, QVistrailsPaletteInterface):
         """
         QVariableDropBox.__init__(self, parent)
         self.setWindowTitle('Vistrail Variables')
+        self.setToolWindowAcceptDrops(True)
 
     def sizeHint(self):
         """ sizeHint() -> None

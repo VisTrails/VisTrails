@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -39,6 +40,8 @@ from core import debug
 import core.db.action
 from core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort
+from core.modules.utils import parse_descriptor_string, \
+    create_descriptor_string, expand_port_spec_string
 from core.packagemanager import get_package_manager
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
@@ -97,7 +100,7 @@ class UpgradeWorkflowHandler(object):
                 s = reg.get_port_spec_from_descriptor(descriptor, port_name,
                                                       port_type)
                 found = True
-                sigstring = reg.expand_port_spec_string(sigstring, basic_pkg)
+                sigstring = expand_port_spec_string(sigstring, basic_pkg)
                 if s.sigstring != sigstring:
                     msg = ('%s port "%s" of module "%s" exists, but '
                            'signatures differ "%s" != "%s"') % \
@@ -325,6 +328,7 @@ class UpgradeWorkflowHandler(object):
                 new_spec.name = spec_name
                 new_module.add_port_spec(new_spec)
 
+        function_ops = []
         for function in old_module.functions:
             if function.name not in function_remap:
                 function_name = function.name
@@ -334,7 +338,7 @@ class UpgradeWorkflowHandler(object):
                     # don't add the function back in
                     continue                    
                 elif type(remap) != type(""):
-                    ops.extend(remap(function, new_module))
+                    function_ops.extend(remap(function, new_module))
                     continue
                 else:
                     function_name = remap
@@ -353,6 +357,7 @@ class UpgradeWorkflowHandler(object):
 
         # add the new module
         ops.append(('add', new_module))
+        ops.extend(function_ops)
 
         create_new_connection = UpgradeWorkflowHandler.create_new_connection
 
@@ -485,10 +490,10 @@ class UpgradeWorkflowHandler(object):
         reg = get_module_registry()
 
         old_module = pipeline.modules[module_id]
-        old_desc_str = reg.create_descriptor_string(old_module.package,
-                                                    old_module.name,
-                                                    old_module.namespace,
-                                                    False)
+        old_desc_str = create_descriptor_string(old_module.package,
+                                                old_module.name,
+                                                old_module.namespace,
+                                                False)
         # print 'running module_upgrade_request', old_module.name
         if old_desc_str in module_remap:
             for upgrade_tuple in module_remap[old_desc_str]:
@@ -520,9 +525,8 @@ class UpgradeWorkflowHandler(object):
                             else:
                                 raise e
                     elif type(new_module_type) == type(""):
-                        d_tuple = \
-                            reg.expand_descriptor_string(new_module_type, \
-                                                             old_module.package)
+                        d_tuple = parse_descriptor_string(new_module_type,
+                                                          old_module.package)
                         try:
                             new_module_desc = \
                                 reg.get_descriptor_by_name(*d_tuple)

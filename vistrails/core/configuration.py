@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -179,6 +180,7 @@ def default():
     base_dir = {
         'abstractionsDirectory': (None, str),
         'alwaysShowDebugPopup': False,
+        'autoConnect': True,
         'autosave': True,
         'dataDirectory': (None, str),
         'dbDefault': False,
@@ -206,14 +208,17 @@ def default():
         'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,
         'rootDirectory': (None, str),
+        'runningJobsList': (None, str),
         'shell': default_shell(),
         'showScrollbars': True,
         'showMovies': True,
         'showSplash': True,
         'showSpreadsheetOnly': False,
+        'singleInstance': True,
         'spreadsheetDumpCells': (None, str),
         'spreadsheetDumpPDF': False,
         'staticRegistry': (None, str),
+        'temporaryDirectory': (None, str),
         'thumbs': default_thumbs(),
         'upgradeOn': True,
         'upgradeDelay': True,

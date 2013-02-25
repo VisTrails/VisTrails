@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +36,8 @@ import urllib
 from core.mashup import conv_from_bool, conv_to_bool, convert_symbols
 from db.domain import DBMashupComponent
 
+systype = type
+
 ################################################################################
 class Component(DBMashupComponent):
     def __init__(self, id, vttype, param_id, parent_vttype, parent_id, mid, 
@@ -49,7 +52,7 @@ class Component(DBMashupComponent):
                                    parent_id, p_pos, mid, pos, type, value, 
                                    minVal, maxVal, stepSize, strvaluelist, 
                                    widget, seq, parent)
-        if type(seq) == bool:
+        if systype(seq) == bool:
             self.seq = seq
 
     id = DBMashupComponent.db_id
@@ -106,6 +109,7 @@ class Component(DBMashupComponent):
         """do_copy() -> Component 
         returns a clone of itself"""
         cp = DBMashupComponent.do_copy(self, new_ids, id_scope, id_remap)      
+        Component.convert(cp)
         return cp
     
     ##########################################################################
@@ -285,7 +289,7 @@ import copy
 
 class TestComponent(unittest.TestCase):
     def create_component(self, id_scope=IdScope()):
-        c = Component(id=id_scope.getNewId('component'),
+        c = Component(id=id_scope.getNewId('mashup_component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,
                           type='String', value='test', p_pos=0, pos=1, 

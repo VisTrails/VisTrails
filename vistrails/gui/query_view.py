@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -60,7 +61,6 @@ class QueryController(object):
 
     def __init__(self, query_view=None):
         self.query_view = query_view
-        self.refine = False
         self.search = None
         self.search_str = None
         self.search_pipeline = None
@@ -161,12 +161,7 @@ class QueryController(object):
         Set the refine state to True or False
         
         """
-        if self.refine != refine:
-            self.refine = refine
-            # need to recompute the graph because the refined items might
-            # have changed since last time
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(True)
+        self.query_view.version_result_view.controller.set_refine(refine)
 
     def reset_search(self):
         self.search = None
@@ -207,6 +202,8 @@ class QueryController(object):
 
     def update_version_tree(self):
         result_view = self.query_view.version_result_view
+        if result_view.controller.refine:
+            result_view.controller.recompute_terse_graph()
         result_view.controller.invalidate_version_tree()
 
     def show_vistrail_matches(self, *args, **kwargs):
@@ -214,6 +211,8 @@ class QueryController(object):
             self.set_level(QueryController.LEVEL_VISTRAIL)
         self.query_view.set_to_result_mode()
         result_view = self.query_view.version_result_view
+        if result_view.controller.refine:
+            result_view.controller.recompute_terse_graph()
         result_view.controller.invalidate_version_tree(*args, **kwargs)        
 
     def show_workflow_matches(self):
@@ -424,14 +423,16 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.vt_controller.current_pipeline_view = \
             self.workflow_result_view.scene()
         # self.vt_controller.vistrail_view.set_controller(self.vt_controller)
-        self.vt_controller.set_vistrail(controller.vistrail, None)
+        self.vt_controller.set_vistrail(controller.vistrail, None,
+                                        set_log_on_vt=False)
         self.vt_controller.change_selected_version(controller.current_version)
         self.version_result_view.set_controller(self.vt_controller)
         self.workflow_result_view.set_controller(self.vt_controller)
         self.query_controller.set_vistrail_controller(controller)
 
     def update_controller(self):
-        self.vt_controller.set_vistrail(self.controller.vistrail, None)
+        self.vt_controller.set_vistrail(self.controller.vistrail, None,
+                                        set_log_on_vt=False)
         self.vt_controller.change_selected_version(
             self.controller.current_version)
 
@@ -567,8 +568,12 @@ class QQueryView(QtGui.QWidget, BaseView):
             self.query_controller.reset_search()
         # FIXME add support for changing the query to something specific
 
-    def version_changed(self, version_id):
-        self.vt_controller.change_selected_version(version_id)
+    # DAK: removed this call as the query view maintains its own
+    # "current version"
+    # def version_changed(self, version_id):
+    #     self.vt_controller.change_selected_version(version_id)
+    #     self.version_result_view.select_current_version()
+    #     self.query_controller.update_results()
         
     def result_version_selected(self, version_id, by_click, do_validate=True,
                                 from_root=False, double_click=False):

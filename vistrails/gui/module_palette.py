@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -183,6 +184,8 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         # prepend places at the front of the list of packages,
         # by default adds to the end of the list of packages
         # Right now the list is sorted so prepend has no effect
+        if package_identifier in self.packages:
+            return self.packages[package_identifier]
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
         package_item = \
@@ -308,6 +311,25 @@ class QModuleTreeWidget(QSearchTreeWidget):
 
                     
             item.contextMenuEvent(event, self)
+
+    def startDrag(self, actions):
+        indexes = self.selectedIndexes()
+        if len(indexes) > 0:
+            mime_data = self.model().mimeData(indexes)
+            drag = QtGui.QDrag(self)
+            drag.setMimeData(mime_data)
+            item = mime_data.items[0]
+            
+            app = get_vistrails_application()
+            pipeline_view = app.builderWindow.get_current_view().get_current_tab()
+            module_item = pipeline_view.scene().add_tmp_module(item.descriptor)
+            pixmap = pipeline_view.paintModuleToPixmap(module_item)
+
+            drag.setPixmap(pixmap)
+            drag.setHotSpot(QtCore.QPoint(pixmap.width()/2, pixmap.height()/2))
+            drag.exec_(actions)
+            pipeline_view.scene().delete_tmp_module()
+
 
 class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
     """    

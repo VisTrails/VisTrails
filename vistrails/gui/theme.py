@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -285,13 +286,10 @@ class DefaultTheme(object):
         self.VERSION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 4)
 
-        # Brush and pen to draw a version label
-        self.VERSION_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
-        self.GHOSTED_VERSION_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('light_grey')))), 2)
-        self.VERSION_LABEL_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
+        self.VERSION_LABEL_COLOR = \
+            QtGui.QColor(*(ColorByName.get_int('black')))
+        self.GHOSTED_VERSION_LABEL_COLOR = \
+            QtGui.QColor(*(ColorByName.get_int('light_grey')))
 
         # Brush to draw version belongs to the current user
         self.VERSION_USER_BRUSH = QtGui.QBrush(
@@ -607,6 +605,9 @@ class DefaultTheme(object):
         self.RIGHT_ARROW_PIXMAP = QtGui.QPixmap(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/right.png')        
+        self.LEFT_ARROW_PIXMAP = QtGui.QPixmap(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/left.png')
         
         # Cursor for zoom in/out graphics views
         self.SELECT_CURSOR = QtGui.QCursor(QtCore.Qt.ArrowCursor)
@@ -641,6 +642,17 @@ class DefaultTheme(object):
         self.MASHUP_ALIAS_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/alias.png')
+
+        # Job View Icons
+        self.JOB_SCHEDULED = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/appointment-new.png')
+        self.JOB_FINISHED = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/emblem-important.png')
+        self.JOB_CHECKING = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/view-refresh.png')
         
         # Saved Queries icons
         self.QUERY_VIEW_ICON = self.ZOOM_ICON

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -199,7 +200,7 @@ class InvalidPipeline(Exception):
         self._version = version
 
     def __str__(self):
-        return "Pipeline cannot be instantiated:\n  " + \
+        return "Pipeline has errors. Please see the detailed message for more information.\n  " + \
             '\n  '.join(line for e in self._exception_set 
                         for line in str(e).splitlines())
 
@@ -453,6 +454,7 @@ class DummyView(object):
     def set_module_active(self, *args, **kwargs): pass
     def set_module_computing(self, *args, **kwargs): pass
     def set_module_success(self, *args, **kwargs): pass
+    def set_module_suspended(self, *args, **kwargs): pass
     def set_module_error(self, *args, **kwargs): pass
     def set_module_not_executed(self, *args, **kwargs): pass
     def set_module_progress(self, *args, **kwargs): pass

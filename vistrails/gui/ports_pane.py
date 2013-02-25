@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,8 +37,9 @@ from itertools import izip
 import os
 
 from core import debug
+from core.modules.basic_modules import identifier as basic_identifier
 from core.modules.module_registry import get_module_registry
-from core.modules.basic_modules import String
+from core.modules.utils import create_port_spec_string
 from core.vistrail.port_spec import PortSpec
 from core.system import vistrails_root_directory
 from gui.modules import get_widget_class
@@ -59,7 +61,11 @@ class AliasLabel(QtGui.QLabel):
         QtGui.QLabel.__init__(self, parent)
         self.alias = alias
         self.caption = text
-        self.default_label = default_label
+        # catch None
+        if default_label:
+            self.default_label = default_label
+        else:
+            self.default_label = ""
         self.updateText()
         self.setAttribute(QtCore.Qt.WA_Hover)
         self.setCursor(QtCore.Qt.PointingHandCursor)
@@ -127,6 +133,8 @@ class Parameter(object):
         self.strValue = ''
         self.alias = ''
         self.queryMethod = None
+        self.port_spec_item = None
+        self.param_exists = False
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
@@ -186,6 +194,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         layout = QtGui.QGridLayout()
         layout.setMargin(5)
         layout.setSpacing(5)
+        layout.setColumnStretch(1,1)
         self.group_box.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.group_box.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                      QtGui.QSizePolicy.Fixed)
@@ -197,21 +206,16 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         else:
             params = [None,] * len(self.port_spec.descriptors())
 
-        for i, (desc, param) in enumerate(izip(self.port_spec.descriptors(), 
-                                               params)):
-            #print 'adding desc', desc.name
-            # ps_label = ''
-            # if port_spec.labels is not None and len(port_spec.labels) > i:
-            #     ps_label = str(port_spec.labels[i])
-            # label = QHoverAliasLabel(p.alias, p.type, ps_label)
-
-            widget_class = widget_accessor(desc.module)
+        for i, (psi, param) in enumerate(izip(self.port_spec.port_spec_items, 
+                                              params)):
+            widget_class = widget_accessor(psi.descriptor.module)
             if param is not None:
                 obj = param
             else:
-                obj = Parameter(desc)
+                obj = Parameter(psi.descriptor)
+            obj.port_spec_item = psi
             if with_alias:
-                label = AliasLabel(obj.alias, obj.type)
+                label = AliasLabel(obj.alias, obj.type, psi.label)
                 self.my_labels.append(label)
             else:
                 label = QtGui.QLabel(obj.type)
@@ -457,9 +461,9 @@ class PortsList(QtGui.QTreeWidget):
                 if function.name in self.port_spec_items:
                     port_spec, item = self.port_spec_items[function.name]
                 else:
-                    sigstring = "(" + ",".join(
-                        ['edu.utah.sci.vistrails.basic:String'
-                         for i in xrange(len(function.parameters))]) + ")"
+                    sigstring = create_port_spec_string(
+                        [(basic_identifier, "String")
+                         for i in xrange(len(function.parameters))])
                     port_spec = PortSpec(name=function.name, type='input',
                                          sigstring=sigstring)
                     item = PortItem(port_spec,  False, False, False)
@@ -499,15 +503,7 @@ class PortsList(QtGui.QTreeWidget):
             elif item.childCount() > 0:
                 item.setExpanded(True)
             elif item.childCount() == 0 and item.is_constant():
-                subitem = self.entry_klass(item.port_spec)
-                item.addChild(subitem)
-                subitem.setFirstColumnSpanned(True)
-                self.setItemWidget(subitem, 0, subitem.get_widget())
-                item.setExpanded(True)
-                # need to find port_spec
-                if len(item.port_spec.descriptors()) == 0:
-                    self.update_method(subitem, item.port_spec.name, [], [])
-
+                self.do_add_method(item.port_spec, item)
         
     def set_controller(self, controller):
         self.controller = controller
@@ -544,8 +540,8 @@ class PortsList(QtGui.QTreeWidget):
 
             # make the scene display the fact that we have a parameter
             # by dimming the port
-            self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.recreate_module(
+            # self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_view.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
                                             
     def delete_method(self, subitem, port_name, real_id=None):
@@ -558,36 +554,32 @@ class PortsList(QtGui.QTreeWidget):
 
             # make the scene display the fact that we have lost the
             # parameter by undimming the port
-            self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.recreate_module(
+            # self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_view.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
 
         # how to delete items...x
         # subitem.deleteLater()
+            
+    def do_add_method(self, port_spec, item):
+        """do_add_method(port_spec: PortSpec,
+                         item:      PortItem) -> None
 
-    def add_method(self, port_name):
-        port_spec, item = self.port_spec_items[port_name]
+        Displays a new method for the port.
+        """
+
         subitem = self.entry_klass(port_spec)
         item.addChild(subitem)
         subitem.setFirstColumnSpanned(True)
         self.setItemWidget(subitem, 0, subitem.get_widget())
         item.setExpanded(True)
         if len(port_spec.descriptors()) == 0:
-            self.update_method(subitem, port_name, [], [])
-            
-        
-        # if methodBox.controller:
-        #     methodBox.lockUpdate()
-        #     methodBox.controller.update_function(methodBox.module,
-        #                                          self.function.name,
-        #                                          [str(w.contents()) 
-        #                                           for w in self.widgets],
-        #                                          self.function.real_id,
-        #                                          [str(label.alias)
-        #                                           for label in self.labels])
-            
-        #     methodBox.unlockUpdate()
+            self.update_method(subitem, port_spec.name, [], [])
 
+    def add_method(self, port_name):
+        port_spec, item = self.port_spec_items[port_name]
+        self.do_add_method(port_spec, item)
+        
     def contextMenuEvent(self, event):
         # Just dispatches the menu event to the widget item
         item = self.itemAt(event.pos())

@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -66,6 +67,7 @@ class DAOList(dict):
 COPYRIGHT_NOTICE = \
 """###############################################################################
 ##
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -254,6 +256,8 @@ def main(argv=None):
         return
 
     version = options['v']
+    # make sure version use dot-style
+    assert(len(version.split('.'))==3)
     versionName = 'v' + version.replace('.', '_')
     if options['d']:
         versionsDir = options['d']
