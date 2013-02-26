@@ -121,15 +121,6 @@ def initialize(*args, **keywords):
         basicWidgets = addWidget('vistrails.packages.spreadsheet.basic_widgets')
     importWidgetModules(basicWidgets)
 
-    # Create application if there is no one available
-    global app
-    app = QtCore.QCoreApplication.instance()
-    if app==None:
-        app = QtGui.QApplication(sys.argv)
-    if hasattr(app, 'builderWindow'):
-        global spreadsheetWindow        
-        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
-
 def menu_items():
     """menu_items() -> tuple of (str,function)
     It returns a list of pairs containing text for the menu and a
@@ -137,6 +128,7 @@ def menu_items():
     
     """
     def show_spreadsheet():
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         spreadsheetWindow.show()
         spreadsheetWindow.activateWindow()
         spreadsheetWindow.raise_()
