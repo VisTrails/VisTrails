@@ -35,7 +35,7 @@
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
-from vistrails.core.modules.basic_modules import File, String, Boolean, Integer
+from vistrails.core.modules.basic_modules import Color, File, String, Boolean, Integer
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from plot import MplPlot, MplPlotConfigurationWidget
 import time
@@ -263,7 +263,8 @@ else:
              ports=[
                      DataPort(name='np_array', type=NumPyArray),
                      ConstantPort(name='xlabel', type=String, optional=True),
-                     ConstantPort(name='ylabel', type=String, optional=True)])
+                     ConstantPort(name='ylabel', type=String, optional=True),
+                     ConstantPort(name='color', type=Color, optional=True)])
     ]
 
     ########################################
