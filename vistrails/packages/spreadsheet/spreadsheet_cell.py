@@ -316,7 +316,8 @@ class QCellToolBar(QtGui.QToolBar):
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
         self.addSaveCellAction()
         self.addExecuteCellAction()
-        self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
+        if sheet.allow_delete_cell:
+            self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
 
