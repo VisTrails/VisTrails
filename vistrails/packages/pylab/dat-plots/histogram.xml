@@ -225,6 +225,59 @@
       <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="False" />
     </change>
   </action>
+  <action date="2013-02-26 15:30:25" id="22" prevId="21" session="21" user="Remi">
+    <add id="59" objectId="3" parentObjId="0" parentObjType="module" what="portSpec">
+      <portSpec id="3" maxConns="-1" minConns="0" name="color" optional="0" sortKey="3" type="input">
+        <portSpecItem default="" entryType="" id="-1" label="" module="Color" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <change id="60" newObjId="16" oldObjId="8" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="subplot%28111%29%0An%2C%20bins%2C%20patches%20%3D%20hist%28np_array.array%2C%20100%29%0Aif%20self.hasInputFromPort%28%27x_label%27%29%3A%0A%20%20%20%20xlabel%28x_label%29%0Aif%20self.hasInputFromPort%28%27y_label%27%29%3A%0A%20%20%20%20ylabel%28y_label%29%0Aif%20self.hasInputFromPort%28%27color%27%29%3A%0A%20%20%20%20setp%28patches%2C%20color%3Dcolor.tuple%29%0A" />
+    </change>
+  </action>
+  <action date="2013-02-26 15:32:26" id="23" prevId="22" session="24" user="Remi">
+    <add id="61" objectId="6" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="6" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="62" objectId="9" parentObjId="6" parentObjType="module" what="location">
+      <location id="9" x="164.226415094" y="186.181818182" />
+    </add>
+  </action>
+  <action date="2013-02-26 15:32:29" id="24" prevId="23" session="24" user="Remi">
+    <add id="63" objectId="5" parentObjId="" parentObjType="" what="connection">
+      <connection id="5" />
+    </add>
+    <add id="64" objectId="10" parentObjId="5" parentObjType="connection" what="port">
+      <port id="10" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="65" objectId="11" parentObjId="5" parentObjType="connection" what="port">
+      <port id="11" moduleId="0" moduleName="MplPlot" name="color" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-02-26 15:32:35" id="25" prevId="24" session="24" user="Remi">
+    <add id="66" objectId="10" parentObjId="6" parentObjType="module" what="function">
+      <function id="10" name="optional" pos="0" />
+    </add>
+    <add id="67" objectId="17" parentObjId="10" parentObjType="function" what="parameter">
+      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
+  <action date="2013-02-26 15:32:39" id="26" prevId="25" session="24" user="Remi">
+    <add id="68" objectId="11" parentObjId="6" parentObjType="module" what="function">
+      <function id="11" name="spec" pos="1" />
+    </add>
+    <add id="69" objectId="18" parentObjId="11" parentObjType="function" what="parameter">
+      <parameter alias="" id="18" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Color" />
+    </add>
+  </action>
+  <action date="2013-02-26 15:32:41" id="27" prevId="26" session="24" user="Remi">
+    <add id="70" objectId="12" parentObjId="6" parentObjType="module" what="function">
+      <function id="12" name="name" pos="2" />
+    </add>
+    <add id="71" objectId="19" parentObjId="12" parentObjType="function" what="parameter">
+      <parameter alias="" id="19" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="color" />
+    </add>
+  </action>
   <annotation id="1" key="__abstraction_origin_uuid__" value="65004b35-5a99-11e2-ad03-0023dfa7ad4e" />
   <annotation id="2" key="__abstraction_uuid__" value="65004b35-5a99-11e2-ad03-0023dfa7ad4e" />
   <actionAnnotation actionId="11" date="2013-01-18 11:42:39" id="3" key="__prune__" user="Remi" value="True" />

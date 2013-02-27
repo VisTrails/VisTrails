@@ -423,7 +423,7 @@ def initialize(*args, **keywords):
 
 # Define DAT plots
 try:
-    from dat.packages import Plot, Port, \
+    from dat.packages import Plot, DataPort, \
         Variable, \
         CustomVariableLoader, FileVariableLoader, \
         translate
@@ -456,7 +456,7 @@ else:
              description=_("A very simple plot, retrieving an image from its "
                          "URL"),
              ports=[
-                     Port(name='url', type=basic.String, optional=False)]),
+                     DataPort(name='url', type=basic.String, optional=False)]),
     ]
 
     ########################################
