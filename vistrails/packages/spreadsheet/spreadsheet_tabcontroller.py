@@ -42,6 +42,7 @@ from vistrails.core.application import get_vistrails_application
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.db.services.io import SaveBundle
+import spreadsheet_flags
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
@@ -62,7 +63,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
-    def __init__(self, parent=None, create_firsttab=True, allow_change=True):
+    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
         """ StandardWidgetTabController(parent: QWidget)
                                         -> StandardWidgetTabController
         Initialize signals/slots and widgets for the tab bar
@@ -71,17 +72,18 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         QtGui.QTabWidget.__init__(self, parent)
         self.operatingWidget = self
-        self.setTabBar(StandardWidgetTabBar(self, allow_renaming=allow_change))
+        self.setTabBar(
+                StandardWidgetTabBar(self, swflags=swflags))
         self.setTabShape(QtGui.QTabWidget.Triangular)
         self.setTabPosition(QtGui.QTabWidget.South)
         self.tabWidgets = []
         self.floatingTabWidgets = []
-        self._allow_change = allow_change
-        if create_firsttab:
+        self._flags = swflags
+        if swflags & spreadsheet_flags.WINDOW_CREATE_FIRST_SHEET:
             self.addTabWidget(
                     StandardWidgetSheetTab(
                             self,
-                            allow_create_sheet=allow_change),
+                            swflags=swflags),
                     'Sheet 1')
         self.connect(self.tabBar(),
                      QtCore.SIGNAL('tabMoveRequest(int,int)'),
@@ -308,7 +310,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 self.addTabWidget(
                         StandardWidgetSheetTab(
                                 self,
-                                allow_create_sheet=self._allow_change),
+                                swflags=self._flags),
                         'Sheet %d' % (self.count()+1)))
         self.currentWidget().sheet.stretchCells()
         

@@ -52,6 +52,7 @@ from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 import spreadsheet_controller
 from spreadsheet_config import configuration
+import spreadsheet_flags
 from vistrails.core.inspector import PipelineInspector
 import spreadsheet_rc
 
@@ -89,14 +90,14 @@ class StandardWidgetToolBar(QtGui.QToolBar):
     included
     
     """
-    def __init__(self, parent=None, allow_create_sheet=True):
+    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
         """ StandardWidgetToolBar(parent: QWidget) -> StandardWidgetToolBar
         Init the toolbar with default actions
         
         """
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
-        if allow_create_sheet:
+        if swflags & spreadsheet_flags.TAB_CREATE_SHEET:
             self.addAction(self.sheetTab.tabWidget.newSheetAction())
         self.addAction(self.sheetTab.tabWidget.openAction())
         self.addAction(self.sheetTab.tabWidget.saveAction())
@@ -596,7 +597,8 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     displaying the spreadsheet.
     
     """
-    def __init__(self, tabWidget,row=None , col=None, allow_create_sheet=True):
+    def __init__(self, tabWidget,row=None , col=None,
+            swflags=spreadsheet_flags.DEFAULTS):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
                                 col: int) -> StandardWidgetSheet
@@ -615,7 +617,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.sheet.setFitToWindow(True)
         self.toolBar = StandardWidgetToolBar(
                 self,
-                allow_create_sheet=allow_create_sheet)
+                swflags=swflags)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
         self.vLayout.setMargin(0)
@@ -876,7 +878,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     to change tab name
     
     """
-    def __init__(self, parent=None, allow_renaming=True):
+    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
         """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
         
@@ -898,7 +900,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                                                  self)
         self.outerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
                                                  None)
-        self._allow_renaming = allow_renaming
+        self._allow_renaming = swflags & spreadsheet_flags.TAB_RENAME_SHEET
 
     def mouseDoubleClickEvent(self, e):
         """ mouseDoubleClickEvent(e: QMouseEvent) -> None
