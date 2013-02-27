@@ -597,7 +597,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     displaying the spreadsheet.
     
     """
-    def __init__(self, tabWidget,row=None , col=None,
+    def __init__(self, tabWidget, row=None , col=None,
             swflags=spreadsheet_flags.DEFAULTS):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
@@ -607,6 +607,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         """
         QtGui.QWidget.__init__(self, None)
         StandardWidgetSheetTabInterface.__init__(self)
+        self.allow_delete_cell = swflags & spreadsheet_flags.TAB_DELETE_CELL
         if not row:
             row = configuration.rowCount
         if not col:

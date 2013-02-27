@@ -20,6 +20,8 @@ WINDOW_CREATE_FIRST_SHEET = 1 << 4
 TAB_CREATE_SHEET = 1 << 5
 # Allows to rename a sheet from the tab bar
 TAB_RENAME_SHEET = 1 << 6
+# Allows to delete (i.e. empty) a cell in the sheet
+TAB_DELETE_CELL = 1 << 7
 
 DEFAULTS = (
         WINDOW_MENU_MAIN | WINDOW_MENU_VIEW | WINDOW_MENU_WINDOW |
