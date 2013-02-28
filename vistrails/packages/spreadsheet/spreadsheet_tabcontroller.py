@@ -111,12 +111,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.spreadsheetFileName = None
         self.loadingMode = False
         self.editingMode = False
-        self.closeButton = QtGui.QToolButton(self)
-        self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
-        self.closeButton.setAutoRaise(True)
-        self.setCornerWidget(self.closeButton)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
-                     self.deleteSheetAction().trigger)
+        if swflags & spreadsheet_flags.TAB_CLOSE_SHEET:
+            self.closeButton = QtGui.QToolButton(self)
+            self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
+            self.closeButton.setAutoRaise(True)
+            self.setCornerWidget(self.closeButton)
+            self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
+                         self.deleteSheetAction().trigger)
         
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean
